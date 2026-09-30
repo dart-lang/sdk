@@ -35,6 +35,7 @@ import 'package:kernel/type_environment.dart';
 import 'package:kernel/util/graph.dart';
 import 'package:package_config/package_config.dart' as package_config;
 
+import '../api_prototype/deprecated_js_interop_libraries.dart';
 import '../api_prototype/experimental_flags.dart';
 import '../api_prototype/file_system.dart';
 import '../base/common.dart';
@@ -775,7 +776,11 @@ class SourceLoader extends Loader implements ProblemReportingHelper {
       isSupportedBySpec:
           (importability == Importability.always || importableWithFlag),
     )) {
-      diagnostic = diag.unavailableDartLibrary.withArguments(uri: importUri);
+      // Web compilers disallow the deprecated JS interop libraries by
+      // considering them unsupported. Explain how to migrate away from them.
+      diagnostic = deprecatedJsInteropLibraryNames.contains(importUri.path)
+          ? diag.deprecatedJsInteropLibraryImport.withArguments(uri: importUri)
+          : diag.unavailableDartLibrary.withArguments(uri: importUri);
     }
     // Coverage-ignore(suite): Not run.
     else if (importableWithFlag) {

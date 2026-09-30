@@ -4,119 +4,17 @@
 
 import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
-import 'package:analysis_server_plugin/edit/assist/assist.dart';
-import 'package:analysis_server_plugin/edit/assist/dart_assist_context.dart';
-import 'package:analysis_server_plugin/src/correction/assist_processor.dart';
-import 'package:analysis_server_plugin/src/correction/change_workspace.dart';
-import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
-import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer_plugin/protocol/protocol_common.dart'
-    hide AnalysisError;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
-import 'package:analyzer_testing/src/single_unit.dart';
-import 'package:analyzer_testing/src/test_instrumentation_service.dart';
+import 'package:analyzer_testing/correction/assist_processor.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
-
-import '../../../../selection_mixin.dart';
-
-/// A base class defining support for writing assist processor tests.
-abstract class AssistProcessorTest extends SingleUnitTest with SelectionMixin {
-  late String _resultCode;
-
-  /// Return the kind of assist expected by this class.
-  AssistKind get kind;
-
-  /// The workspace in which fixes contributor operates.
-  Future<ChangeWorkspace> get workspace async {
-    return DartChangeWorkspace([await session]);
-  }
-
-  @override
-  void addTestSource(String code) {
-    super.addTestSource(code);
-    setPositionOrRange(0);
-  }
-
-  /// Asserts that there is an assist of the given [kind] at [offset] which
-  /// produces the [expected] code when applied to [testCode].
-  ///
-  /// If [index] is provided, selects the position or range marker at [index] in
-  /// [parsedTestCode] before computing assists.
-  ///
-  /// Returns the [SourceChange] for the matching assist.
-  Future<SourceChange> assertHasAssist(String expected, {int index = 0}) async {
-    setPositionOrRange(index);
-
-    expected = normalizeNewlinesForPlatform(expected);
-
-    // Remove any marker in the expected code. We allow markers to prevent an
-    // otherwise empty line from having the leading whitespace be removed.
-    expected = TestCode.parse(expected).code;
-    var assist = await _assertHasAssist();
-    var change = assist.change;
-    expect(change.id, kind.id);
-    // Apply to `testFile`.
-    var fileEdit = change.getFileEdit(testFile.path);
-    expect(fileEdit, isNotNull);
-    _resultCode = SourceEdit.applySequence(testCode, fileEdit!.edits);
-    expect(_resultCode, expected);
-    return change;
-  }
-
-  /// Asserts that there is no [Assist] of the given [kind] at [offset].
-  Future<void> assertNoAssist([int index = 0]) async {
-    setPositionOrRange(index);
-    var assists = await _computeAssists();
-    for (var assist in assists) {
-      if (assist.kind == kind) {
-        fail('Unexpected assist $kind in\n${assists.join('\n')}');
-      }
-    }
-  }
-
-  /// Computes assists and verifies that there is an assist of the given kind.
-  Future<Assist> _assertHasAssist() async {
-    var assists = await _computeAssists();
-    for (var assist in assists) {
-      if (assist.kind == kind) {
-        return assist;
-      }
-    }
-    fail('Expected to find assist $kind in\n${assists.join('\n')}');
-  }
-
-  Future<List<Assist>> _computeAssists() async {
-    var libraryResult = testLibraryResult;
-    if (libraryResult == null) {
-      return const [];
-    }
-    var context = DartAssistContext(
-      TestInstrumentationService(),
-      await workspace,
-      libraryResult,
-      testAnalysisResult,
-      offset,
-      length,
-    );
-    return await computeAssists(context);
-  }
-
-  List<Position> _findResultPositions(List<String> searchStrings) {
-    var positions = <Position>[];
-    for (var search in searchStrings) {
-      var offset = _resultCode.indexOf(search);
-      positions.add(Position(testFile.path, offset));
-    }
-    return positions;
-  }
-}
 
 /// A base class defining support for writing assist processor tests for
 /// built-in assist processors.
 abstract class BuiltInAssistProcessorTest extends AssistProcessorTest {
   late SourceChange _change;
+  late String _resultCode;
 
   void assertExitPosition({String? before, String? after}) {
     var exitPosition = _change.selection!;
@@ -147,6 +45,8 @@ abstract class BuiltInAssistProcessorTest extends AssistProcessorTest {
     int index = 0,
   }) async {
     _change = await super.assertHasAssist(expected, index: index);
+    var fileEdit = _change.getFileEdit(testFile.path)!;
+    _resultCode = SourceEdit.applySequence(testCode, fileEdit.edits);
     var fileEdits = _change.edits;
     if (additionallyChangedFiles == null) {
       expect(fileEdits, hasLength(1));
@@ -180,6 +80,8 @@ abstract class BuiltInAssistProcessorTest extends AssistProcessorTest {
     }
   }
 
+  /// Creates a list of [LinkedEditSuggestion]s of the given [kind] for each
+  /// string in [values].
   List<LinkedEditSuggestion> expectedSuggestions(
     LinkedEditSuggestionKind kind,
     List<String> values,
@@ -195,5 +97,12 @@ abstract class BuiltInAssistProcessorTest extends AssistProcessorTest {
     registerBuiltInAssistGenerators();
     registerBuiltInFixGenerators();
     super.setUp();
+  }
+
+  List<Position> _findResultPositions(List<String> searchStrings) {
+    return [
+      for (var search in searchStrings)
+        Position(testFile.path, _resultCode.indexOf(search)),
+    ];
   }
 }

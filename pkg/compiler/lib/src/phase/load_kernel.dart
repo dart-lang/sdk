@@ -6,6 +6,13 @@ import 'dart:async';
 import 'dart:typed_data';
 
 // ignore: implementation_imports
+import 'package:_js_interop_checks/src/deprecated_js_interop_imports.dart'
+    show
+        DeprecatedJsInteropImportPaths,
+        findDeprecatedJsInteropImportPaths,
+        formatImportTree,
+        hasDeprecatedJsInteropImports;
+// ignore: implementation_imports
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
 import 'package:collection/collection.dart';
 // ignore: implementation_imports
@@ -154,7 +161,7 @@ void _simplifyConstConditionals(
   }
 
   fe.ConstConditionalSimplifier(
-    const Dart2jsDartLibrarySupport(),
+    Dart2jsDartLibrarySupport(deprecatedJsInterop: options.deprecatedJsInterop),
     const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
     component,
     reportMessage,
@@ -190,6 +197,7 @@ void _doTransformsOnKernelLoad(
       (fe.LocatedMessage message, List<fe.LocatedMessage>? context) =>
           reportLocatedMessage(reporter, message, context),
       environment: Environment(options.environment),
+      deprecatedJsInterop: options.deprecatedJsInterop,
     );
     StaticInteropClassEraser(coreTypes).visitComponent(component);
     global_transforms.transformLibraries(
@@ -200,6 +208,102 @@ void _doTransformsOnKernelLoad(
     );
     _simplifyConstConditionals(component, options, classHierarchy, reporter);
   }
+}
+
+/// Reports how each deprecated JS interop import is reachable from
+/// [entryLibrary].
+///
+/// When compiling from source, the CFE already reports an error at each such
+/// import when deprecated JS interop is disabled. This adds a single message
+/// after those errors showing the shortest import paths from the entrypoint to
+/// the deprecated JS interop libraries as a tree. Libraries in packages other
+/// than the entrypoint's own package are grouped by package, and repeated
+/// subtrees are only shown once.
+///
+/// The message is an info if an error was already reported. Otherwise, such
+/// as when the imports are in libraries loaded from a `.dill` file, it is an
+/// error that also explains how to fix the imports, so that compilation fails
+/// instead of silently producing no output.
+///
+/// Does nothing unless deprecated JS interop is disabled. The import graph is
+/// only built if some library in [component] imports a deprecated JS interop
+/// library. Returns `true` if any deprecated JS interop imports reachable from
+/// [entryLibrary] were found.
+bool _reportDeprecatedJsInteropImports(
+  CompilerOptions options,
+  Component component,
+  Library? entryLibrary,
+  DiagnosticReporter reporter,
+) {
+  if (options.deprecatedJsInterop || entryLibrary == null) return false;
+  if (!hasDeprecatedJsInteropImports(component.libraries)) return false;
+  final importPaths = findDeprecatedJsInteropImportPaths(entryLibrary);
+  if (importPaths.isEmpty) return false;
+  if (reporter.hasReportedError) {
+    reporter.reportInfoMessage(noLocationSpannable, MessageKind.generic, {
+      'text': _importPathsText(importPaths),
+    });
+  } else {
+    reporter.reportErrorMessage(noLocationSpannable, MessageKind.generic, {
+      'text': _unreportedImportsErrorText(importPaths),
+    });
+  }
+  return true;
+}
+
+/// Explains how to fix imports of deprecated JS interop libraries, as in the
+/// error that the CFE reports at each such import.
+const String _deprecatedJsInteropMigrationHint =
+    "Migrate to 'package:web' and 'dart:js_interop' (see "
+    'https://dart.dev/interop/js-interop/past-js-interop), or temporarily '
+    "enable the 'deprecated-js-interop' option.";
+
+/// Returns the text of the error listing [importPaths] when the CFE hasn't
+/// reported the imports, which also explains why they are an error and how to
+/// fix them.
+String _unreportedImportsErrorText(
+  DeprecatedJsInteropImportPaths importPaths,
+) => [
+  'Imports of deprecated JS interop libraries are not allowed.',
+  _importPathsText(importPaths),
+  _deprecatedJsInteropMigrationHint,
+].join('\n');
+
+/// Returns the text of the info message listing [importPaths] from the main
+/// library.
+String _importPathsText(DeprecatedJsInteropImportPaths importPaths) {
+  final tree = formatImportTree(importPaths, rootLabel: 'main library');
+  return [
+    'Deprecated JS interop libraries are imported through:',
+    for (final line in tree.split('\n')) '  $line',
+  ].join('\n');
+}
+
+/// Returns the library compiled from source for [entryUri], falling back to
+/// the library that declares `main`.
+Library? _findSourceEntryLibrary(Component component, Uri entryUri) =>
+    component.libraries.firstWhereOrNull(
+      (library) => library.importUri == entryUri || library.fileUri == entryUri,
+    ) ??
+    component.mainMethod?.enclosingLibrary;
+
+/// Returns [state] if it can be reused for a compilation with [options], or
+/// `null` otherwise.
+///
+/// The CFE reuses compiler state, including its target, without comparing
+/// targets. State created for a target with a different
+/// [CompilerOptions.deprecatedJsInterop] value would resolve `dart.library.*`
+/// conditions incorrectly, so it must be discarded.
+fe.InitializedCompilerState? _reusableCompilerState(
+  fe.InitializedCompilerState? state,
+  CompilerOptions options,
+) {
+  final oldTarget = state?.options.target;
+  if (oldTarget is Dart2jsTarget &&
+      oldTarget.deprecatedJsInterop != options.deprecatedJsInterop) {
+    return null;
+  }
+  return state;
 }
 
 Future<_LoadFromKernelResult> _loadFromKernel(
@@ -245,6 +349,14 @@ Future<_LoadFromKernelResult> _loadFromKernel(
     component.setMainMethodAndMode(mainMethod, true);
   }
 
+  if (_reportDeprecatedJsInteropImports(
+    options,
+    component,
+    entryLibrary ?? component.mainMethod?.enclosingLibrary,
+    reporter,
+  )) {
+    return _LoadFromKernelResult(null, entryLibrary);
+  }
   _doTransformsOnKernelLoad(component, options, reporter);
   registerSources(component, compilerInput);
   return _LoadFromKernelResult(component, entryLibrary);
@@ -294,7 +406,7 @@ Future<_LoadFromSourceResult> _loadFromSource(
   }
 
   initializedCompilerState = fe.initializeCompiler(
-    initializedCompilerState,
+    _reusableCompilerState(initializedCompilerState, options),
     target,
     options.librariesSpecificationUri,
     dependencies,
@@ -322,6 +434,14 @@ Future<_LoadFromSourceResult> _loadFromSource(
       return true;
     }());
 
+    if (_reportDeprecatedJsInteropImports(
+      options,
+      component,
+      _findSourceEntryLibrary(component, options.compilationTarget),
+      reporter,
+    )) {
+      return _LoadFromSourceResult(null, initializedCompilerState);
+    }
     _doTransformsOnKernelLoad(component, options, reporter);
 
     registerSources(component, compilerInput);

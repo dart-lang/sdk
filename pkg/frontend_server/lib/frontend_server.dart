@@ -276,6 +276,15 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
       'track-widget-creation',
     ],
   )
+  ..addFlag(
+    'deprecated-js-interop',
+    help:
+        'Allow the deprecated JS interop libraries (e.g. dart:html, dart:js).\n'
+        'When disabled, conditional imports on these libraries resolve to '
+        'false and importing them is an error. Only affects the dartdevc '
+        'target.',
+    defaultsTo: true,
+  )
   ..addMultiOption(
     'delete-tostring-package-uri',
     help:
@@ -682,8 +691,9 @@ class FrontendCompiler implements CompilerInterface {
     }
   }
 
-  void _installDartdevcTarget() {
-    targets['dartdevc'] = (TargetFlags flags) => new DevCompilerTarget(flags);
+  void _installDartdevcTarget({required bool deprecatedJsInterop}) {
+    targets['dartdevc'] = (TargetFlags flags) =>
+        new DevCompilerTarget(flags, deprecatedJsInterop: deprecatedJsInterop);
   }
 
   @override
@@ -834,7 +844,9 @@ class FrontendCompiler implements CompilerInterface {
     }
 
     // Initialize additional supported kernel targets.
-    _installDartdevcTarget();
+    _installDartdevcTarget(
+      deprecatedJsInterop: options['deprecated-js-interop'],
+    );
     final bool aot = options['aot'];
     final bool minimalKernel = options['minimal-kernel'];
     compilerOptions.target = createFrontEndTarget(

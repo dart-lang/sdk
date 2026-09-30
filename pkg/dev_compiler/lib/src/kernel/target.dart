@@ -9,6 +9,8 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
 import 'package:_js_interop_checks/js_interop_checks.dart';
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart';
 import 'package:_js_interop_checks/src/transformations/shared_interop_transformer.dart';
+import 'package:front_end/src/api_prototype/deprecated_js_interop_libraries.dart'
+    show deprecatedJsInteropLibraryNames;
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' hide Pattern;
@@ -23,10 +25,16 @@ import 'kernel_helpers.dart';
 
 /// A kernel [Target] to configure the Dart Front End for dartdevc.
 class DevCompilerTarget extends Target {
-  DevCompilerTarget(this.flags);
+  DevCompilerTarget(this.flags, {this.deprecatedJsInterop = true});
 
   @override
   final TargetFlags flags;
+
+  /// Whether the deprecated JS interop libraries may be used.
+  ///
+  /// When `false`, `dart.library.<name>` is considered `false` for each of the
+  /// [deprecatedJsInteropLibraryNames] and importing any of them is an error.
+  final bool deprecatedJsInterop;
 
   WidgetCreatorTracker? _widgetTracker;
 
@@ -341,7 +349,7 @@ class DevCompilerTarget extends Target {
 
   @override
   DartLibrarySupport get dartLibrarySupport =>
-      const DevCompilerDartLibrarySupport();
+      DevCompilerDartLibrarySupport(deprecatedJsInterop: deprecatedJsInterop);
 
   // For correctness the DDC runtime needs to reevaluate libraries that contain
   // mixin applications when the mixin was edited. If the edit was only within
@@ -357,7 +365,16 @@ class DevCompilerDartLibrarySupport extends CustomizedDartLibrarySupport {
   // This is required so that `dart.library._ddc_only` can be used as an import
   // condition. Libraries with leading underscores are otherwise considered
   // unsupported regardless of the library specification.
-  const DevCompilerDartLibrarySupport() : super(supported: const {'_ddc_only'});
+  //
+  // When [deprecatedJsInterop] is `false`, the deprecated JS interop libraries
+  // are considered unsupported so that conditions on them evaluate to `false`.
+  const DevCompilerDartLibrarySupport({bool deprecatedJsInterop = true})
+    : super(
+        supported: const {'_ddc_only'},
+        unsupported: deprecatedJsInterop
+            ? const {}
+            : deprecatedJsInteropLibraryNames,
+      );
 }
 
 /// Analyzes a component to determine if any covariance checks in private

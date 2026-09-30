@@ -18,9 +18,10 @@ class Dart2jsConstantEvaluator extends ir.TryConstantEvaluator {
     ir.TypeEnvironment typeEnvironment,
     ir.ReportErrorFunction reportError, {
     Environment? environment,
+    bool deprecatedJsInterop = true,
     super.supportReevaluationForTesting,
   }) : super(
-         const Dart2jsDartLibrarySupport(),
+         Dart2jsDartLibrarySupport(deprecatedJsInterop: deprecatedJsInterop),
          const Dart2jsConstantsBackend(supportsUnevaluatedConstants: false),
          component,
          typeEnvironment,

@@ -272,6 +272,15 @@ class Options {
         help: 'Compile to generate a dynamic module',
         negatable: false,
         defaultsTo: false,
+      )
+      ..addFlag(
+        'deprecated-js-interop',
+        help:
+            'Allow the deprecated JS interop libraries (e.g. dart:html, '
+            'dart:js).\n'
+            'When disabled, conditional imports on these libraries resolve '
+            'to false and importing them is an error.',
+        defaultsTo: true,
       );
   }
 

@@ -271,7 +271,12 @@ Future<CompilerResult> _compile(
   );
 
   var trackCreationLocations = argResults.flag('track-creation-locations');
-  var oldCompilerState = compilerState;
+  var deprecatedJsInterop = argResults.flag('deprecated-js-interop');
+  var target = DevCompilerTarget(
+    TargetFlags(trackCreationLocations: trackCreationLocations),
+    deprecatedJsInterop: deprecatedJsInterop,
+  );
+  var oldCompilerState = _reusableCompilerState(compilerState, target);
   var recordUsedInputs = argResults.option('used-inputs-file') != null;
   var additionalDillModules = summaryModules.keys.toList();
   fe.DdcResult? result;
@@ -290,9 +295,7 @@ Future<CompilerResult> _compile(
       packageFile != null ? sourcePathToUri(packageFile) : null,
       sourcePathToUri(librarySpecPath),
       additionalDillModules,
-      DevCompilerTarget(
-        TargetFlags(trackCreationLocations: trackCreationLocations),
-      ),
+      target,
       fileSystem: fileSystem,
       explicitExperimentalFlags: explicitExperimentalFlags,
       environmentDefines: declaredVariables,
@@ -321,6 +324,7 @@ Future<CompilerResult> _compile(
       oldCompilerState,
       {
         'trackCreationLocations=$trackCreationLocations',
+        'deprecatedJsInterop=$deprecatedJsInterop',
         'multiRootScheme=${fileSystem.markerScheme}',
         'multiRootRoots=${fileSystem.roots}',
       },
@@ -332,9 +336,7 @@ Future<CompilerResult> _compile(
       sourcePathToUri(librarySpecPath),
       additionalDillModules,
       inputDigests,
-      DevCompilerTarget(
-        TargetFlags(trackCreationLocations: trackCreationLocations),
-      ),
+      target,
       fileSystem: fileSystem,
       explicitExperimentalFlags: explicitExperimentalFlags,
       environmentDefines: declaredVariables,
@@ -1041,6 +1043,25 @@ String? _findPackagesFilePath() {
     if (dir.path == parent.path) return null;
     dir = parent;
   }
+}
+
+/// Returns [state] if it can be reused when compiling with [target], or `null`
+/// otherwise.
+///
+/// The CFE reuses non-incremental compiler state, including its target,
+/// without comparing targets. State created for a target with a different
+/// [DevCompilerTarget.deprecatedJsInterop] value would resolve `dart.library.*`
+/// conditions incorrectly, so it must be discarded.
+fe.InitializedCompilerState? _reusableCompilerState(
+  fe.InitializedCompilerState? state,
+  DevCompilerTarget target,
+) {
+  var oldTarget = state?.options.target;
+  if (oldTarget is DevCompilerTarget &&
+      oldTarget.deprecatedJsInterop != target.deprecatedJsInterop) {
+    return null;
+  }
+  return state;
 }
 
 /// Inputs must be absolute paths. Returns null if no prefixing path is found.
