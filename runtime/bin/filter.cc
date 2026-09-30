@@ -36,8 +36,7 @@ static Dart_Handle GetFilter(Dart_Handle filter_obj, Filter** filter) {
 }
 
 static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
-                                  Filter::Dictionary* result) {
-  ASSERT(result != nullptr);
+                                  Filter::Dictionary& result) {
   intptr_t size;
   Dart_Handle err = Dart_ListLength(dictionary_obj, &size);
   if (Dart_IsError(err)) {
@@ -48,13 +47,12 @@ static Dart_Handle CopyDictionary(Dart_Handle dictionary_obj,
   dict.data = std::make_unique<uint8_t[]>(size);
   dict.length = size;
 
-  // Dart_ListGetAsBytes already takes the fast path for typed data internally.
   err = Dart_ListGetAsBytes(dictionary_obj, 0, dict.data.get(), size);
   if (Dart_IsError(err)) {
     return err;
   }
 
-  *result = std::move(dict);
+  result = std::move(dict);
   return Dart_Null();
 }
 
@@ -67,10 +65,7 @@ void FUNCTION_NAME(Filter_CreateZLibInflate)(Dart_NativeArguments args) {
 
   Filter::Dictionary dictionary;
   if (!Dart_IsNull(dict_obj)) {
-    Dart_Handle err = CopyDictionary(dict_obj, &dictionary);
-    if (Dart_IsError(err)) {
-      Dart_PropagateError(err);
-    }
+    ThrowIfError(CopyDictionary(dict_obj, dictionary));
     ASSERT(dictionary.data != nullptr);
   }
   intptr_t dictionary_length = dictionary.length;
@@ -108,10 +103,7 @@ void FUNCTION_NAME(Filter_CreateZLibDeflate)(Dart_NativeArguments args) {
 
   Filter::Dictionary dictionary;
   if (!Dart_IsNull(dict_obj)) {
-    Dart_Handle err = CopyDictionary(dict_obj, &dictionary);
-    if (Dart_IsError(err)) {
-      Dart_PropagateError(err);
-    }
+    ThrowIfError(CopyDictionary(dict_obj, dictionary));
     ASSERT(dictionary.data != nullptr);
   }
   intptr_t dictionary_length = dictionary.length;
@@ -271,7 +263,6 @@ bool ZLibDeflateFilter::Init() {
   if ((dictionary_.data != nullptr) && !gzip_ && !raw_) {
     result = deflateSetDictionary(&stream_, dictionary_.data.get(),
                                   dictionary_.length);
-    dictionary_.data.reset();
     if (result != Z_OK) {
       return false;
     }
@@ -401,7 +392,6 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
       } else {
         int result = inflateSetDictionary(&stream_, dictionary_.data.get(),
                                           dictionary_.length);
-        dictionary_.data.reset();
         error = result != Z_OK;
       }
       if (error) {

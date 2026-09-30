@@ -6,6 +6,7 @@
 #define RUNTIME_BIN_FILTER_H_
 
 #include <memory>
+#include <utility>
 
 #include "bin/builtin.h"
 #include "bin/utils.h"
@@ -17,8 +18,6 @@ namespace bin {
 
 class Filter {
  public:
-  // A dictionary copied out of Dart and owned by the filter, kept together
-  // with the length that was actually copied so the two can never disagree.
   struct Dictionary {
     std::unique_ptr<uint8_t[]> data;
     intptr_t length = 0;
@@ -93,7 +92,7 @@ class ZLibDeflateFilter : public Filter {
   const int32_t window_bits_;
   const int32_t mem_level_;
   const int32_t strategy_;
-  Dictionary dictionary_;
+  const Dictionary dictionary_;
   const bool raw_;
   uint8_t* current_buffer_;
   z_stream stream_;
@@ -124,7 +123,7 @@ class ZLibInflateFilter : public Filter {
  private:
   const bool gzip_;
   const int32_t window_bits_;
-  Dictionary dictionary_;
+  const Dictionary dictionary_;
   const bool raw_;
   uint8_t* current_buffer_;
   z_stream stream_;
