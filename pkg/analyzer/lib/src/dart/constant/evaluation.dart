@@ -99,7 +99,10 @@ class ConstantEvaluationEngine {
           library,
           diagnosticReporter,
         );
-        var dartConstant = constantVisitor.evaluateConstant(defaultValue);
+        var dartConstant = constantVisitor.evaluateConstant(
+          defaultValue,
+          implicitCastType: constant.type,
+        );
         constant.evaluationResult = dartConstant;
       } else {
         constant.evaluationResult = _nullObject(library);
@@ -620,10 +623,13 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   /// Returns the resulting constant value, which can be an [InvalidConstant]
   /// if the expression fails to evaluate to a constant value.
   ///
+  /// If [implicitCastType] is provided, returns an [InvalidConstant] if the
+  /// evaluated value would fail an implicit cast to that type.
+  ///
   /// The [ConstantVisitor] can't return any `null` values even though
   /// [UnifyingAstVisitor2] allows it. If we encounter an unexpected `null`
   /// value, we will return an [InvalidConstant] instead.
-  Constant evaluateConstant(AstNode node) {
+  Constant evaluateConstant(AstNode node, {TypeImpl? implicitCastType}) {
     var result = node.accept2(this);
     if (result == null) {
       // Should never reach this.
@@ -631,6 +637,23 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
         'The constant evaluator returned an unexpected null value.',
       );
     }
+
+    // Check whether the evaluated value would fail the implicit cast. Static
+    // type mismatches are reported elsewhere, so only report an evaluation
+    // error when the expression is statically assignable to the cast type.
+    if (implicitCastType != null) {
+      if (node is Expression &&
+          result is DartObjectImpl &&
+          !result.isInvalid &&
+          !typeSystem.runtimeTypeMatch(result, implicitCastType) &&
+          typeSystem.isAssignableTo(node.typeOrThrow, implicitCastType)) {
+        return InvalidConstant.forEntity(
+          entity: node,
+          locatableDiagnostic: diag.constEvalThrowsException,
+        );
+      }
+    }
+
     return result;
   }
 
@@ -3460,26 +3483,14 @@ class _ConstructorInvocationEvaluator {
         }
       }
       if (argumentValue != null) {
-        if (!argumentValue.isInvalid &&
-            !typeSystem.runtimeTypeMatch(argumentValue, parameter.type)) {
-          // Mark the type mismatch error as a runtime exception if the argument
-          // is statically assignable to the parameter.
-          // TODO(kallentu): https://github.com/dart-lang/sdk/issues/53263
-          var isEvaluationException =
-              errorTarget is Expression &&
-              _library.typeSystem.isAssignableTo(
-                errorTarget.typeOrThrow,
-                parameter.type,
-              );
-          return InvalidConstant.forEntity(
-            entity: errorTarget,
-            locatableDiagnostic: diag.constConstructorParamTypeMismatch
-                .withArguments(
-                  valueType: argumentValue.type.getDisplayString(),
-                  parameterType: parameter.type.getDisplayString(),
-                ),
-            isRuntimeException: isEvaluationException,
-          );
+        var error = _checkArgumentType(
+          typeSystem,
+          argumentValue,
+          parameter.type,
+          errorTarget,
+        );
+        if (error != null) {
+          return error;
         }
         if (baseParameter is FieldFormalParameterElement) {
           var field = (parameter as FieldFormalParameterElement).field;
@@ -3782,6 +3793,28 @@ class _ConstructorInvocationEvaluator {
       argumentValueMap: argumentValueMap,
       argumentNodeMap: argumentNodeMap,
     );
+
+    // In a valid factory redirection chain, parameter types can only widen.
+    // Check supplied arguments against the original factory's parameter types;
+    // intermediate factories cannot introduce a stricter check.
+    // Omitted arguments use the final constructor's defaults.
+    if (redirectionResult.constructor != constructor) {
+      for (var parameter in constructor.formalParameters) {
+        var baseParameter = parameter.baseElement;
+        if (argumentValueMap[baseParameter] case var value?) {
+          var error = _checkArgumentType(
+            library.typeSystem,
+            value,
+            parameter.type,
+            argumentNodeMap[baseParameter] ?? node,
+          );
+          if (error != null) {
+            return error;
+          }
+        }
+      }
+    }
+
     constructor = redirectionResult.constructor;
 
     var evaluator = _ConstructorInvocationEvaluator._(
@@ -3805,6 +3838,36 @@ class _ConstructorInvocationEvaluator {
     } else {
       return evaluator.evaluateGenerativeConstructorCall();
     }
+  }
+
+  static InvalidConstant? _checkArgumentType(
+    TypeSystemImpl typeSystem,
+    DartObjectImpl argumentValue,
+    TypeImpl parameterType,
+    AstNode errorTarget,
+  ) {
+    if (argumentValue.isInvalid ||
+        typeSystem.runtimeTypeMatch(argumentValue, parameterType)) {
+      return null;
+    }
+    var expression = switch (errorTarget) {
+      NamedArgument() => errorTarget.argumentExpression2,
+      Expression() => errorTarget,
+      _ => null,
+    };
+    return InvalidConstant.forEntity(
+      entity: errorTarget,
+      locatableDiagnostic: diag.constConstructorParamTypeMismatch.withArguments(
+        valueType: argumentValue.type.getDisplayString(),
+        parameterType: parameterType.getDisplayString(),
+      ),
+      // Mark the type mismatch error as a runtime exception if the argument
+      // is statically assignable to the parameter.
+      // TODO(kallentu): https://github.com/dart-lang/sdk/issues/53263
+      isRuntimeException:
+          expression != null &&
+          typeSystem.isAssignableTo(expression.typeOrThrow, parameterType),
+    );
   }
 
   /// Attempt to follow the chain of factory redirections until a constructor is
