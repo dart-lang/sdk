@@ -21,6 +21,7 @@ void main(List<String> args) {
   bool interleave = true;
   int? seed;
   int iterations = 5;
+  int warmup = 1;
   int core = 7;
   int gcRuns = 1;
   String? aotRuntime;
@@ -71,6 +72,11 @@ void main(List<String> args) {
       String value = arg.substring("--seed=".length);
       seed = int.tryParse(value);
       if (seed == null) throw "--seed must be an integer (got '$value').";
+    } else if (arg.startsWith("--warmup=")) {
+      String value = arg.substring("--warmup=".length);
+      int? parsed = int.tryParse(value);
+      if (parsed == null) throw "--warmup must be an integer (got '$value').";
+      warmup = parsed;
     } else {
       throw "Don't know argument '$arg'";
     }
@@ -84,6 +90,9 @@ void main(List<String> args) {
     // The t-test needs at least two samples per snapshot to estimate the
     // variance.
     throw "--iterations must be at least 2 (got $iterations).";
+  }
+  if (warmup < 0) {
+    throw "--warmup must not be negative (got $warmup).";
   }
   if (arguments.isEmpty) {
     print("Note: Running without any arguments to the snapshots.");
@@ -118,6 +127,7 @@ void main(List<String> args) {
 
   _doRun(
     iterations,
+    warmup,
     snapshots,
     aotRuntime,
     core,
@@ -136,6 +146,7 @@ void main(List<String> args) {
     print("");
     _doRun(
       iterations,
+      warmup,
       snapshots,
       aotRuntime,
       core,
@@ -155,6 +166,7 @@ void main(List<String> args) {
     print("");
     _doRun(
       iterations,
+      warmup,
       snapshots,
       aotRuntime,
       core,
@@ -187,6 +199,7 @@ void main(List<String> args) {
 
 void _doRun(
   int iterations,
+  int warmup,
   List<String> snapshots,
   String aotRuntime,
   int core,
@@ -210,6 +223,12 @@ void _doRun(
     "Will now run $iterations+$gcRuns iterations with "
     "${snapshots.length} snapshots.",
   );
+  if (warmup > 0) {
+    print(
+      "Each snapshot will first be run $warmup extra time(s) as warm-up; "
+      "these runs are not included in the results.",
+    );
+  }
 
   if (extraVmArguments != null && extraVmArguments.isNotEmpty) {
     print("Running with extra vm arguments: ${extraVmArguments.join(" ")}");
@@ -224,7 +243,7 @@ void _doRun(
     }
 
     if (lines > 80) lines = 80;
-    int totalNumberOfRuns = (iterations + gcRuns) * snapshots.length;
+    int totalNumberOfRuns = (warmup + iterations + gcRuns) * snapshots.length;
     if (totalNumberOfRuns < lines) lines = totalNumberOfRuns;
     List<int> charCodes = List.filled(lines, ".".codeUnitAt(0));
     for (int i = 9; i < charCodes.length; i += 10) {
@@ -245,7 +264,14 @@ void _doRun(
     ...snapshotSpecificArguments[snapshotNum],
   ];
 
-  void measure(int snapshotNum, int iteration, {int? positionInRound}) {
+  // Runs [snapshotNum] under `perf stat`. If [isWarmup] is `true`, the result
+  // is only recorded in the raw output, not used in the comparison.
+  void measure(
+    int snapshotNum,
+    int iteration, {
+    int? positionInRound,
+    bool isWarmup = false,
+  }) {
     // We want this silent to mean no stdout print, but still want progress
     // info which is what the dot provides.
     if (silent) {
@@ -268,10 +294,10 @@ void _doRun(
         benchmarkRun["filesize"] = f.lengthSync();
       }
     }
-    runResults[snapshotNum].add(benchmarkRun);
+    if (!isWarmup) runResults[snapshotNum].add(benchmarkRun);
     rawOutput?.addRun(
       phase: phase,
-      kind: "measure",
+      kind: isWarmup ? "warmup" : "measure",
       snapshotIndex: snapshotNum,
       iteration: iteration,
       positionInRound: positionInRound,
@@ -307,6 +333,19 @@ void _doRun(
   }
 
   if (random != null) {
+    // Warm up (e.g. the file system cache and the CPU caches) before
+    // measuring anything.
+    for (int iteration = 0; iteration < warmup; iteration++) {
+      List<int> order = _roundOrder(random, snapshots.length);
+      for (int position = 0; position < order.length; position++) {
+        measure(
+          order[position],
+          iteration,
+          positionInRound: position,
+          isWarmup: true,
+        );
+      }
+    }
     // Interleave the runs: each round runs every snapshot once, in a random
     // order. This way slow drift in the machine's performance over the
     // course of the session affects all snapshots equally, instead of
@@ -325,6 +364,9 @@ void _doRun(
     }
   } else {
     for (int snapshotNum = 0; snapshotNum < snapshots.length; snapshotNum++) {
+      for (int iteration = 0; iteration < warmup; iteration++) {
+        measure(snapshotNum, iteration, isWarmup: true);
+      }
       for (int iteration = 0; iteration < iterations; iteration++) {
         measure(snapshotNum, iteration);
       }
@@ -468,6 +510,10 @@ void _help() {
   print("  --seed=<n>");
   print("    Seed for the random order of interleaved runs (by default a");
   print("    random seed is chosen and printed).");
+  print("");
+  print("  --warmup=<n>");
+  print("    Run each snapshot <n> extra times (default 1) before the");
+  print("    measured runs. These runs aren't included in the results.");
 }
 
 bool compare(
@@ -916,8 +962,8 @@ class RawOutput {
   /// Records a single run.
   ///
   /// [phase] identifies which set of runs this belongs to (e.g. "default",
-  /// "cache" or "no-gc"), [kind] says what sort of run it was (e.g.
-  /// "measure" or "gc"), and [values] holds the counter values reported for
+  /// "cache" or "no-gc"), [kind] says what sort of run it was ("measure",
+  /// "warmup" or "gc"), and [values] holds the counter values reported for
   /// the run. When runs are interleaved, [positionInRound] is the position
   /// of this run within its round.
   void addRun({
