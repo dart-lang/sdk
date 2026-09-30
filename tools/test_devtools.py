@@ -21,9 +21,9 @@ def run_command(command, cwd, env=None):
     # TODO(srawlins): Check how to run bash scripts on Windows, or convert the
     # devtools scripts to Dart or batch scripts...
     # On Windows, if we're running a '.sh' script, we need bash.
-    # if utils.GuessOS() == 'win32' and command[0].endswith('.sh'):
-    #     # Assume bash is in PATH (standard for Git for Windows).
-    #     command = ['bash'] + command
+    if utils.GuessOS() == 'win32' and command[0].endswith('.sh'):
+        # Assume bash is in PATH (standard for Git for Windows).
+        command = ['bash'] + command
 
     subprocess.run(command, cwd=cwd, env=env, check=True)
 
@@ -70,9 +70,9 @@ def main():
         return 1
 
     # TODO(srawlins): Enable Windows testing.
-    if platform == 'windows':
-        print('DevTools tests are currently skipped on Windows.')
-        return 0
+    #if platform == 'windows':
+    #    print('DevTools tests are currently skipped on Windows.')
+    #    return 0
 
     # Set up paths relative to the SDK root.
     sdk_root = utils.DART_DIR
@@ -143,6 +143,9 @@ def main():
                 'devtools_extensions',
                 'devtools_shared',
         ]:
+            if platform == 'windows':
+                print('DevTools tests are currently skipped on Windows.')
+                return 0
             jobs.append({
                 'script': 'tool/ci/package_tests.sh',
                 'env': {
