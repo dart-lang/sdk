@@ -578,9 +578,14 @@ class DispatchTable {
           final procedureMetadata = procedureAttributeMetadata[member]!;
           // `hasTearOffUses` can be true for operators as well, even though
           // it's not possible to tear-off an operator. (no syntax for it)
-          if (member.kind == ProcedureKind.Method &&
-              procedureMetadata.hasTearOffUses) {
-            addMember(member.tearOffReference, staticDispatch);
+          if (member.kind == ProcedureKind.Method) {
+            if (procedureMetadata.hasTearOffUses) {
+              addMember(member.tearOffReference, staticDispatch);
+            } else {
+              // Even when there are no possible targets, there may still be
+              // call sites that rely on this selector existing.
+              _createSelectorForTarget(member.tearOffReference);
+            }
           }
         }
       }
