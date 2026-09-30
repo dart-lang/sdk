@@ -55,6 +55,7 @@ class JsGetFlagLowering {
     'DEV_COMPILER' => false,
     'MINIFIED' => _options.enableMinification,
     'MUST_RETAIN_METADATA' => false,
+    'SERVER_MODE' => _options.compileForServer,
     'USE_CONTENT_SECURITY_POLICY' =>
       _options.features.useContentSecurityPolicy.isEnabled,
     'VARIANCE' => _options.enableVariance,

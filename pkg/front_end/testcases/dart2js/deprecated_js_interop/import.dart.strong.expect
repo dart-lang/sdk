@@ -1,0 +1,22 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dart2js/deprecated_js_interop/import.dart:8:8: Error: Import of deprecated JS interop library 'dart:html' is not allowed.
+// Deprecated JS interop libraries are planned for removal in Dart 4.0.
+// Migrate to 'package:web' and 'dart:js_interop' (see https://dart.dev/interop/js-interop/past-js-interop), or temporarily enable the 'deprecated-js-interop' option.
+// import 'dart:html';
+//        ^
+//
+// pkg/front_end/testcases/dart2js/deprecated_js_interop/import.dart:9:8: Error: Import of deprecated JS interop library 'dart:js_util' is not allowed.
+// Deprecated JS interop libraries are planned for removal in Dart 4.0.
+// Migrate to 'package:web' and 'dart:js_interop' (see https://dart.dev/interop/js-interop/past-js-interop), or temporarily enable the 'deprecated-js-interop' option.
+// import 'dart:js_util';
+//        ^
+//
+import self as self;
+
+import "dart:html";
+import "dart:js_util";
+
+static method main() → dynamic {}

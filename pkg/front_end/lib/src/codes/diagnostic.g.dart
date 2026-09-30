@@ -2275,6 +2275,26 @@ Message _withArgumentsDeferredTypeAnnotation({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required Uri uri})>
+deprecatedJsInteropLibraryImport = const Template(
+  "DeprecatedJsInteropLibraryImport",
+  withArguments: _withArgumentsDeprecatedJsInteropLibraryImport,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDeprecatedJsInteropLibraryImport({required Uri uri}) {
+  var uri_0 = conversions.relativizeUri(uri);
+  return new Message(
+    deprecatedJsInteropLibraryImport,
+    problemMessage:
+        """Import of deprecated JS interop library '${uri_0}' is not allowed.
+Deprecated JS interop libraries are planned for removal in Dart 4.0.
+Migrate to 'package:web' and 'dart:js_interop' (see https://dart.dev/interop/js-interop/past-js-interop), or temporarily enable the 'deprecated-js-interop' option.""",
+    arguments: {'uri': uri},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function({
     required int count,

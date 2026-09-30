@@ -26,7 +26,7 @@ import 'dart:_js_helper'
         wrapZoneUnaryCallback,
         TrustedGetRuntimeType;
 
-import 'dart:_foreign_helper' show JS;
+import 'dart:_foreign_helper' show JS, JS_GET_FLAG;
 import 'dart:_native_typed_data' show NativeUint8List;
 import 'dart:_rti' show getRuntimeTypeOfDartObject;
 
@@ -718,7 +718,7 @@ class _Uri {
   // Consider the possibility of using Windows behavior if app is
   // compiled with `--server-mode` and running on Node or a similar platform.
   static final bool _isWindowsCached =
-      !const bool.fromEnvironment('dart.library.html') &&
+      JS_GET_FLAG('SERVER_MODE') &&
       JS<bool>(
         'bool',
         'typeof process != "undefined" && '

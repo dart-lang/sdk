@@ -4549,6 +4549,15 @@ unavailableDartLibrary:
   script: |
     import "dart:non_existing_library";
 
+deprecatedJsInteropLibraryImport:
+  parameters:
+    Uri uri: The URI of the deprecated JS interop library.
+  problemMessage: |
+    Import of deprecated JS interop library '#uri' is not allowed.
+    Deprecated JS interop libraries are planned for removal in Dart 4.0.
+    Migrate to 'package:web' and 'dart:js_interop' (see https://dart.dev/interop/js-interop/past-js-interop), or temporarily enable the 'deprecated-js-interop' option.
+  external: test/deprecated_js_interop_library_import_test.dart
+
 unsupportedPlatformDartLibraryImport:
   parameters:
     Uri uri: The URI of the library that is unsupported.
