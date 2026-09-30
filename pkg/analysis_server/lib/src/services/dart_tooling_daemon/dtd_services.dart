@@ -174,7 +174,7 @@ class DtdServices {
     Method method,
     Parameters params,
     OperationPerformanceImpl performance,
-  ) {
+  ) async {
     // Map the incoming request into types we use for LSP request handling.
     var message = IncomingMessage.fromJson({
       'jsonrpc': jsonRpcVersion,
@@ -195,7 +195,14 @@ class DtdServices {
       to: ProcessId.server,
       message: message.toJson(),
     );
-    return completer.future;
+    var response = await completer.future;
+    _server.sessionLogger.logMessage(
+      from: ProcessId.server,
+      to: ProcessId.dtd,
+      message: response,
+    );
+
+    return response;
   }
 
   /// Handles an unexpected error occurring on the DTD connection by logging and
@@ -231,7 +238,15 @@ class DtdServices {
 
     // Post a 'initialized' event to the LSP stream so clients know that all
     // services have finished registering.
-    await dtd.postEvent(_lspStreamName, 'initialized', {});
+    var event = 'initialized';
+    var params = <String, Object?>{};
+    // Ensure this shows up in the log to aid debugging.
+    _server.sessionLogger.logMessage(
+      from: ProcessId.server,
+      to: ProcessId.dtd,
+      message: {'event': event, 'params': params},
+    );
+    await dtd.postEvent(_lspStreamName, event, params);
   }
 
   /// Registers a single message handler to DTD only if it allows untrusted
