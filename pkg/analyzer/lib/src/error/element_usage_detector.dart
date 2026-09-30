@@ -521,15 +521,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
   }
 
-  void annotation(Annotation node) {
-    var element = node.elementAnnotation?.element;
-    checkUsage(element, node.name, usageRange: node.name.sourceRange);
-    var arguments = node.arguments;
-    if (arguments != null) {
-      _invocationArguments(element, arguments);
-    }
-  }
-
   void assignmentExpression(AssignmentExpression node) {
     var target = node.leftHandSide2;
     var targetRange = _assignmentTargetRange(target);

@@ -23,8 +23,7 @@ class A {
 }
 
 @A.named()
-// ^^^^^
-// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
+// [diag.missingRequiredArgument][column 2][length 7] The named parameter 'a' is required, but there's no corresponding argument.
 void f() {}
 ''');
   }
@@ -52,8 +51,7 @@ class A {
 import 'a.dart' as a;
 
 @a.A.named()
-//   ^^^^^
-// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
+// [diag.missingRequiredArgument][column 2][length 9] The named parameter 'a' is required, but there's no corresponding argument.
 void f() {}
 ''');
   }
@@ -69,8 +67,7 @@ class A {
 import 'a.dart' as a;
 
 @a.A()
-// ^
-// [diag.missingRequiredArgument] The named parameter 'a' is required, but there's no corresponding argument.
+// [diag.missingRequiredArgument][column 2][length 3] The named parameter 'a' is required, but there's no corresponding argument.
 void f() {}
 ''');
   }

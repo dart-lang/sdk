@@ -317,20 +317,24 @@ mixin ErrorDetectionHelpers {
     DartType context,
     SyntacticEntity errorNode,
   ) {
-    var visitedTypes = {type};
+    if (!typeSystem.acceptsFunctionType(context)) {
+      return null;
+    }
+
+    Set<DartType>? visitedTypes;
     while (type is TypeParameterType) {
       if (type.nullabilitySuffix != NullabilitySuffix.none) {
         // The value might be `null`, so implicit `.call` tearoff is invalid.
         return null;
       }
+      visitedTypes ??= {type};
       type = type.bound;
       if (!visitedTypes.add(type)) {
         // A cycle!
         return null;
       }
     }
-    if (typeSystem.acceptsFunctionType(context) &&
-        type is InterfaceType &&
+    if (type is InterfaceType &&
         type.nullabilitySuffix != NullabilitySuffix.question) {
       return inheritance
           .getMember3(

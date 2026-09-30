@@ -636,8 +636,6 @@ import 'non_const_generative_enum_constructor_test.dart'
     as non_const_generative_enum_constructor;
 import 'non_const_map_as_expression_statement_test.dart'
     as non_const_map_as_expression_statement;
-import 'non_constant_annotation_constructor_test.dart'
-    as non_constant_annotation_constructor;
 import 'non_constant_case_expression_from_deferred_library_test.dart'
     as non_constant_case_expression_from_deferred_library;
 import 'non_constant_case_expression_test.dart' as non_constant_case_expression;
@@ -869,7 +867,6 @@ import 'type_test_with_undefined_name_test.dart'
     as type_test_with_undefined_name;
 import 'unawaited_return_in_try_block_test.dart'
     as unawaited_return_in_try_block;
-import 'undefined_annotation_test.dart' as undefined_annotation;
 import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
 import 'undefined_constructor_in_initializer_default_test.dart'
@@ -1367,7 +1364,6 @@ main() {
     non_const_call_to_literal_constructor.main();
     non_const_generative_enum_constructor.main();
     non_const_map_as_expression_statement.main();
-    non_constant_annotation_constructor.main();
     non_constant_case_expression_from_deferred_library.main();
     non_constant_case_expression.main();
     non_constant_default_value_from_deferred_library.main();
@@ -1517,7 +1513,6 @@ main() {
     type_test_with_non_type.main();
     type_test_with_undefined_name.main();
     unawaited_return_in_try_block.main();
-    undefined_annotation.main();
     undefined_class_boolean.main();
     undefined_class.main();
     undefined_constructor_in_initializer_default.main();

@@ -199,22 +199,6 @@ class B extends A {
 ''');
   }
 
-  test_issue49389() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class Foo {
-  const Foo({required this.bar});
-  final Map<String, String> bar;
-}
-
-void main() {
-  final data = <String, String>{};
-  const Foo(bar: data);
-//               ^^^^
-// [diag.invalidConstant] Invalid constant value.
-}
-''');
-  }
-
   test_prefixed_static_constructor() async {
     newFile('$testPackageLibPath/lib1.dart', '''
 class A {}

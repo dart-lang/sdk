@@ -76249,7 +76249,6 @@ class A {}
             tokenLengthList: [1, 3]
             elementIndexList
               0 = null
-              0 = null
         supertype: Object @ dart:core
         interface: #M1
     exportMapId: #M2
@@ -76272,7 +76271,6 @@ class A {}
             tokenBuffer: @foo.bar
             tokenLengthList: [1, 3, 1, 3]
             elementIndexList
-              0 = null
               0 = null
               0 = null
         supertype: Object @ dart:core
@@ -76306,7 +76304,6 @@ class A {}
             elementIndexList
               0 = null
               0 = null
-              0 = null
         supertype: Object @ dart:core
         interface: #M1
     exportMapId: #M2
@@ -76329,7 +76326,6 @@ class A {}
             tokenBuffer: @foo
             tokenLengthList: [1, 3]
             elementIndexList
-              0 = null
               0 = null
         supertype: Object @ dart:core
         interface: #M4
@@ -85564,9 +85560,9 @@ void foo() {}
               [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
             elementIndexList
               7 = element 0
+              23 = element 1
               0 = null
               6 = typeParameter 0
-              23 = element 1
         functionType: FunctionType
           returnType: void
     exportMapId: #M3
@@ -85607,9 +85603,9 @@ final b = 0;
               [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
             elementIndexList
               7 = element 0
+              23 = element 1
               0 = null
               6 = typeParameter 0
-              23 = element 1
         functionType: FunctionType
           returnType: void
     declaredVariables
@@ -85657,12 +85653,12 @@ void foo() {}
               [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
             elementIndexList
               7 = element 0
+              23 = element 1
               0 = null
               0 = null
               22 = typeParameter 1
               22 = typeParameter 1
               6 = typeParameter 0
-              23 = element 1
         functionType: FunctionType
           returnType: void
     exportMapId: #M3
@@ -85703,12 +85699,12 @@ final b = 0;
               [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
             elementIndexList
               7 = element 0
+              23 = element 1
               0 = null
               0 = null
               22 = typeParameter 1
               22 = typeParameter 1
               6 = typeParameter 0
-              23 = element 1
         functionType: FunctionType
           returnType: void
     declaredVariables

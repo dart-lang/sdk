@@ -325,6 +325,7 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
 abstract final class Annotation implements AstNode {
   /// The arguments to the constructor being invoked, or `null` if this
   /// annotation isn't the invocation of a constructor.
+  @ToBeDeprecated('Use expression instead.')
   ArgumentList? get arguments;
 
   /// The at sign (`@`) that introduces the annotation.
@@ -332,23 +333,47 @@ abstract final class Annotation implements AstNode {
 
   /// The name of the constructor being invoked, or `null` if this annotation
   /// isn't the invocation of a named constructor.
+  @ToBeDeprecated('Use expression instead.')
   SimpleIdentifier? get constructorName;
 
   /// The element associated with this annotation.
   ///
   /// Returns `null` if the AST structure hasn't been resolved or if this
   /// annotation couldn't be resolved.
+  @ToBeDeprecated('Use elementAnnotation.element, or expression instead.')
   Element? get element;
 
   /// The element annotation representing this annotation in the element model,
   /// or `null` if the AST hasn't been resolved.
   ElementAnnotation? get elementAnnotation;
 
+  /// The expression that follows the [atSign].
+  ///
+  /// The syntax of an annotation is fixed:
+  /// `identifier ('.' identifier)? typeArguments? ('.' identifier)? arguments?`.
+  /// With arguments, the expression is always a [ConstructorInvocation], even
+  /// before resolution. Without arguments, the parser produces a chain of
+  /// [ParsedUnqualifiedName], [ParsedNameAccess], and [ParsedTypeArguments],
+  /// which resolution replaces, depending on what the names denote, with:
+  /// - a [NameExpression], such as `foo`, `p.foo`, or `C.foo`;
+  /// - a [TypeLiteral], such as `C` or `p.C<int>`;
+  /// - a [ConstructorTearOff], such as `C.named` or `C<int>.named`;
+  /// - a [FunctionInstantiation], such as `f<int>`.
+  ///
+  /// An annotation is resolved like the same expression written without a
+  /// keyword in a constant context. A valid annotation is either a read of a
+  /// constant variable or an invocation of a constant constructor. For any
+  /// other expression resolution reports a diagnostic, and the annotation has
+  /// no value.
+  @experimental
+  Expression get expression;
+
   /// The name of either the class defining the constructor that is being
   /// invoked or the field that is being referenced.
   ///
   /// If a named constructor is being referenced, then the name of the
   /// constructor is available using [constructorName].
+  @ToBeDeprecated('Use expression instead.')
   Identifier get name;
 
   @override
@@ -361,6 +386,7 @@ abstract final class Annotation implements AstNode {
 
   /// The period before the constructor name, or `null` if this annotation isn't
   /// the invocation of a named constructor.
+  @ToBeDeprecated('Use expression instead.')
   Token? get period;
 
   /// The type arguments to the constructor being invoked, or `null` if either
@@ -369,17 +395,14 @@ abstract final class Annotation implements AstNode {
   ///
   /// Note that type arguments are only valid if [Feature.generic_metadata] is
   /// enabled.
+  @ToBeDeprecated('Use expression instead.')
   TypeArgumentList? get typeArguments;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('atSign'),
-    GenerateNodeProperty('name'),
-    GenerateNodeProperty('typeArguments'),
-    GenerateNodeProperty('period'),
-    GenerateNodeProperty('constructorName'),
-    GenerateNodeProperty('arguments'),
+    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
 final class AnnotationImpl extends AstNodeImpl
@@ -390,51 +413,27 @@ final class AnnotationImpl extends AstNodeImpl
   final Token atSign;
 
   @generated
-  IdentifierImpl _name;
-
-  @generated
-  TypeArgumentListImpl? _typeArguments;
-
-  @generated
-  @override
-  final Token? period;
-
-  @generated
-  SimpleIdentifierImpl? _constructorName;
-
-  @generated
-  ArgumentListImpl? _arguments;
-
-  Element? _element;
+  ExpressionImpl _expression;
 
   @override
   ElementAnnotationImpl? elementAnnotation;
 
-  @generated
-  AnnotationImpl({
-    required this.atSign,
-    required IdentifierImpl name,
-    required TypeArgumentListImpl? typeArguments,
-    required this.period,
-    required SimpleIdentifierImpl? constructorName,
-    required ArgumentListImpl? arguments,
-  }) : _name = name,
-       _typeArguments = typeArguments,
-       _constructorName = constructorName,
-       _arguments = arguments {
-    _becomeParentOf12(name);
-    _becomeParentOf12(typeArguments);
-    _becomeParentOf12(constructorName);
-    _becomeParentOf12(arguments);
+  /// The legacy V1 children, derived from the tokens of [expression] when
+  /// they are first observed.
+  _AnnotationV1Children? _v1Children;
+
+  @DoNotGenerate(
+    reason: 'Wires a V2-only child in a node shared by both AST views',
+  )
+  AnnotationImpl({required this.atSign, required ExpressionImpl expression})
+    : _expression = expression {
+    _becomeParentOf2(expression);
   }
 
-  @generated
+  @ToBeDeprecated('Use expression instead.')
   @override
-  ArgumentListImpl? get arguments => _arguments;
-
-  @generated
-  set arguments(ArgumentListImpl? arguments) {
-    _arguments = _becomeParentOf12(arguments);
+  ArgumentListImpl? get arguments {
+    return _becomeParentOf1(_v1.arguments);
   }
 
   @generated
@@ -443,55 +442,34 @@ final class AnnotationImpl extends AstNodeImpl
     return atSign;
   }
 
-  @generated
+  @ToBeDeprecated('Use expression instead.')
   @override
-  SimpleIdentifierImpl? get constructorName => _constructorName;
+  SimpleIdentifierImpl? get constructorName => _v1.constructorName;
 
-  @generated
-  set constructorName(SimpleIdentifierImpl? constructorName) {
-    _constructorName = _becomeParentOf12(constructorName);
-  }
-
+  @ToBeDeprecated('Use elementAnnotation.element, or expression instead.')
   @override
-  Element? get element {
-    if (_element case var element?) {
-      return element;
-    } else if (constructorName == null) {
-      return name.element;
-    }
-    return null;
-  }
-
-  set element(Element? value) {
-    _element = value;
-  }
+  Element? get element => elementAnnotation?.element;
 
   @generated
   @override
   Token get endToken {
-    if (arguments case var arguments?) {
-      return arguments.endToken;
-    }
-    if (constructorName case var constructorName?) {
-      return constructorName.endToken;
-    }
-    if (period case var period?) {
-      return period;
-    }
-    if (typeArguments case var typeArguments?) {
-      return typeArguments.endToken;
-    }
-    return name.endToken;
+    return expression.endToken;
   }
 
   @generated
   @override
-  IdentifierImpl get name => _name;
+  ExpressionImpl get expression => _expression;
 
-  @generated
-  set name(IdentifierImpl name) {
-    _name = _becomeParentOf12(name);
+  @DoNotGenerate(
+    reason: 'Wires a V2-only child in a node shared by both AST views',
+  )
+  set expression(ExpressionImpl expression) {
+    _expression = _becomeParentOf2(expression);
   }
+
+  @ToBeDeprecated('Use expression instead.')
+  @override
+  IdentifierImpl get name => _v1.name;
 
   @override
   @ToBeDeprecated('Use parent2 instead')
@@ -501,13 +479,14 @@ final class AnnotationImpl extends AstNodeImpl
   @override
   AstNodeImpl get parent2 => super.parent2!;
 
-  @generated
+  @ToBeDeprecated('Use expression instead.')
   @override
-  TypeArgumentListImpl? get typeArguments => _typeArguments;
+  Token? get period => _v1.period;
 
-  @generated
-  set typeArguments(TypeArgumentListImpl? typeArguments) {
-    _typeArguments = _becomeParentOf12(typeArguments);
+  @ToBeDeprecated('Use expression instead.')
+  @override
+  TypeArgumentListImpl? get typeArguments {
+    return _becomeParentOf1(_v1.typeArguments);
   }
 
   @DoNotGenerate(reason: 'V1 projections expose the legacy child topology')
@@ -524,11 +503,15 @@ final class AnnotationImpl extends AstNodeImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('atSign', atSign)
-    ..addNode('name', name)
-    ..addNode('typeArguments', typeArguments)
-    ..addToken('period', period)
-    ..addNode('constructorName', constructorName)
-    ..addNode('arguments', arguments);
+    ..addNode('expression', expression);
+
+  /// The legacy V1 children, with the elements of their identifiers
+  /// updated from the current resolution of [expression].
+  _AnnotationV1Children get _v1 {
+    var children = _v1Children ??= _AnnotationV1Children._of(this);
+    children._updateElements(expression);
+    return children;
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -544,26 +527,15 @@ final class AnnotationImpl extends AstNodeImpl
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent2, this));
-    return false;
+    assert(identical(expression, child));
+    return true;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(name, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'name'.");
-    }
-    if (identical(typeArguments, oldNode)) {
-      typeArguments = null;
-      return;
-    }
-    if (identical(constructorName, oldNode)) {
-      constructorName = null;
-      return;
-    }
-    if (identical(arguments, oldNode)) {
-      arguments = null;
-      return;
+    if (identical(expression, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'expression'.");
     }
     super.removeChild(oldNode);
   }
@@ -571,26 +543,14 @@ final class AnnotationImpl extends AstNodeImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(name, oldNode)) {
-      name = newNode as IdentifierImpl;
-      return;
-    }
-    if (identical(typeArguments, oldNode)) {
-      typeArguments = newNode as TypeArgumentListImpl?;
-      return;
-    }
-    if (identical(constructorName, oldNode)) {
-      constructorName = newNode as SimpleIdentifierImpl?;
-      return;
-    }
-    if (identical(arguments, oldNode)) {
-      arguments = newNode as ArgumentListImpl?;
+    if (identical(expression, oldNode)) {
+      expression = newNode as ExpressionImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
   }
 
-  @generated
+  @DoNotGenerate(reason: 'V1 traverses the legacy child topology')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -604,10 +564,7 @@ final class AnnotationImpl extends AstNodeImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    name.accept2(visitor);
-    typeArguments?.accept2(visitor);
-    constructorName?.accept2(visitor);
-    arguments?.accept2(visitor);
+    expression.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -619,40 +576,28 @@ final class AnnotationImpl extends AstNodeImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(IdentifierImpl)? visitName,
-    void Function(TypeArgumentListImpl)? visitTypeArguments,
-    void Function(SimpleIdentifierImpl)? visitConstructorName,
-    void Function(ArgumentListImpl)? visitArguments,
+    void Function(ExpressionImpl)? visitExpression,
   }) {
-    if (visitName != null) {
-      visitName(name);
+    if (visitExpression != null) {
+      visitExpression(expression);
     } else {
-      name.accept2(visitor);
-    }
-    if (typeArguments case var typeArguments?) {
-      if (visitTypeArguments != null) {
-        visitTypeArguments(typeArguments);
-      } else {
-        typeArguments.accept2(visitor);
-      }
-    }
-    if (constructorName case var constructorName?) {
-      if (visitConstructorName != null) {
-        visitConstructorName(constructorName);
-      } else {
-        constructorName.accept2(visitor);
-      }
-    }
-    if (arguments case var arguments?) {
-      if (visitArguments != null) {
-        visitArguments(arguments);
-      } else {
-        arguments.accept2(visitor);
-      }
+      expression.accept2(visitor);
     }
   }
 
-  @generated
+  /// Links the legacy V1 children to this node.
+  ///
+  /// A shared node inside [expression], such as the argument list, is moved
+  /// between canonical V2 parents during resolution, which clears its V1
+  /// parent; observing the V1 topology links it again.
+  void _attachV1Children() {
+    name;
+    typeArguments;
+    constructorName;
+    arguments;
+  }
+
+  @DoNotGenerate(reason: 'V1 searches the legacy child topology')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name._containsOffset(rangeOffset, rangeEnd)) {
@@ -679,23 +624,8 @@ final class AnnotationImpl extends AstNodeImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (name._containsOffset(rangeOffset, rangeEnd)) {
-      return name;
-    }
-    if (typeArguments case var typeArguments?) {
-      if (typeArguments._containsOffset(rangeOffset, rangeEnd)) {
-        return typeArguments;
-      }
-    }
-    if (constructorName case var constructorName?) {
-      if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
-        return constructorName;
-      }
-    }
-    if (arguments case var arguments?) {
-      if (arguments._containsOffset(rangeOffset, rangeEnd)) {
-        return arguments;
-      }
+    if (expression._containsOffset(rangeOffset, rangeEnd)) {
+      return expression;
     }
     return null;
   }
@@ -57780,6 +57710,12 @@ enum V1Projection {
     while (root._parent2?._astNodeApi == AstNodeApi.v2) {
       root = root._parent2!;
     }
+    // The V1 annotation doesn't project its expression; it exposes the
+    // legacy name, type arguments, constructor name, and arguments.
+    if (root._parent2 case AnnotationImpl annotation) {
+      annotation._attachV1Children();
+      return;
+    }
     var projection = switch (root) {
       ExpressionImpl() => toV1Expression(root),
       CascadeSectionImpl() => toV1Expression(root.body),
@@ -60023,6 +59959,216 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
         children[i].accept2(visitor);
       }
     }
+  }
+}
+
+/// The legacy V1 children of an [AnnotationImpl].
+///
+/// The metadata grammar fixes their shape:
+/// `identifier ('.' identifier)? typeArguments? ('.' identifier)? arguments?`.
+/// They are derived from the tokens of the annotation expression, so the
+/// parsed expression and the canonical expression that replaces it during
+/// resolution have the same V1 children. The type arguments and the arguments
+/// are the shared nodes inside the expression.
+final class _AnnotationV1Children {
+  final IdentifierImpl name;
+  final SimpleIdentifierImpl _nameHead;
+  final SimpleIdentifierImpl? _nameTail;
+  final TypeArgumentListImpl? typeArguments;
+  final Token? period;
+  final SimpleIdentifierImpl? constructorName;
+  final ArgumentListImpl? arguments;
+
+  _AnnotationV1Children._({
+    required this.name,
+    required SimpleIdentifierImpl nameHead,
+    required SimpleIdentifierImpl? nameTail,
+    required this.typeArguments,
+    required this.period,
+    required this.constructorName,
+    required this.arguments,
+  }) : _nameHead = nameHead,
+       _nameTail = nameTail;
+
+  factory _AnnotationV1Children._of(AnnotationImpl annotation) {
+    var expression = annotation.expression;
+    var end = expression.endToken;
+    Token? tokenAfter(Token token) {
+      return identical(token, end) ? null : token.next;
+    }
+
+    var nameHead = SimpleIdentifierImpl.v1Projection(
+      token: expression.beginToken,
+    );
+    SimpleIdentifierImpl? nameTail;
+    IdentifierImpl name = nameHead;
+    var cursor = nameHead.token;
+    if (tokenAfter(cursor) case var period?
+        when period.type == TokenType.PERIOD) {
+      if (tokenAfter(period) case var identifier?) {
+        nameTail = SimpleIdentifierImpl.v1Projection(token: identifier);
+        name = PrefixedIdentifierImpl.v1Projection(
+          prefix: nameHead,
+          period: period,
+          identifier: nameTail,
+        );
+        cursor = identifier;
+      }
+    }
+
+    TypeArgumentListImpl? typeArguments;
+    if (tokenAfter(cursor) case var leftBracket?
+        when leftBracket.type == TokenType.LT) {
+      typeArguments = _findNode(expression, leftBracket);
+      if (typeArguments != null) {
+        cursor = typeArguments.endToken;
+      }
+    }
+
+    Token? period;
+    SimpleIdentifierImpl? constructorName;
+    if (tokenAfter(cursor) case var periodToken?
+        when periodToken.type == TokenType.PERIOD) {
+      if (tokenAfter(periodToken) case var identifier?) {
+        period = periodToken;
+        constructorName = SimpleIdentifierImpl.v1Projection(token: identifier);
+        cursor = identifier;
+      }
+    }
+
+    ArgumentListImpl? arguments;
+    if (tokenAfter(cursor) case var leftParenthesis?
+        when leftParenthesis.type == TokenType.OPEN_PAREN) {
+      arguments = _findNode(expression, leftParenthesis);
+    }
+
+    annotation._becomeParentOf1(name);
+    annotation._becomeParentOf1(constructorName);
+    return _AnnotationV1Children._(
+      name: name,
+      nameHead: nameHead,
+      nameTail: nameTail,
+      typeArguments: typeArguments,
+      period: period,
+      constructorName: constructorName,
+      arguments: arguments,
+    );
+  }
+
+  /// Sets the elements of the V1 identifiers from the resolution of
+  /// [expression], which is `null` for identifiers that it doesn't resolve.
+  void _updateElements(ExpressionImpl expression) {
+    _nameHead.element = _tokenElement(expression, _nameHead.token);
+    if (_nameTail case var nameTail?) {
+      nameTail.element = _tokenElement(expression, nameTail.token);
+    }
+    if (constructorName case var constructorName?) {
+      constructorName.element = _tokenElement(
+        expression,
+        constructorName.token,
+      );
+    }
+  }
+
+  static Element? _constructorTokenElement(
+    ConstructorTypeReferenceImpl typeReference,
+    ConstructorSelectorImpl? selector,
+    InternalConstructorElement? constructor,
+    Token token,
+  ) {
+    if (identical(typeReference.importPrefix?.name, token)) {
+      return typeReference.importPrefix?.element;
+    }
+    if (identical(typeReference.name, token)) {
+      return typeReference.element;
+    }
+    if (identical(selector?.name2, token)) {
+      return constructor;
+    }
+    return null;
+  }
+
+  /// Returns the node of type [T] in [root] that begins with [beginToken].
+  static T? _findNode<T extends AstNodeImpl>(
+    AstNodeImpl root,
+    Token beginToken,
+  ) {
+    if (root is T && identical(root.beginToken, beginToken)) {
+      return root;
+    }
+    for (var entity in root._childEntities2.entities) {
+      var children = switch (entity.value) {
+        AstNodeImpl node => [node],
+        List<Object> list => list.whereType<AstNodeImpl>(),
+        _ => const <AstNodeImpl>[],
+      };
+      for (var child in children) {
+        if (_findNode<T>(child, beginToken) case var result?) {
+          return result;
+        }
+      }
+    }
+    return null;
+  }
+
+  /// The element that the resolution of [expression] associates with [token].
+  static Element? _tokenElement(ExpressionImpl expression, Token token) {
+    switch (expression) {
+      case UnqualifiedNameExpressionImpl():
+        if (identical(expression.name, token)) {
+          return expression._legacyReadElement;
+        }
+      case ImportPrefixedNameExpressionImpl():
+        if (identical(expression.importPrefix.name, token)) {
+          return expression.importPrefix.element;
+        }
+        if (identical(expression.name, token)) {
+          return expression._legacyReadElement;
+        }
+      case ReceiverPropertyExtractionImpl():
+        if (identical(expression.name, token)) {
+          return expression._legacyReadElement;
+        }
+        switch (expression.receiver) {
+          case StaticQualifierImpl receiver:
+            if (identical(receiver.importPrefix?.name, token)) {
+              return receiver.importPrefix?.element;
+            }
+            if (identical(receiver.name, token)) {
+              return receiver.element;
+            }
+          case ExpressionImpl receiver:
+            return _tokenElement(receiver, token);
+          default:
+            break;
+        }
+      case TypeLiteralImpl(:NamedTypeImpl type):
+        if (identical(type.importPrefix?.name, token)) {
+          return type.importPrefix?.element;
+        }
+        if (identical(type.name, token)) {
+          return type.element;
+        }
+      case ConstructorTearOffImpl():
+        return _constructorTokenElement(
+          expression.typeReference,
+          expression.selector,
+          expression.element,
+          token,
+        );
+      case ConstructorInvocationImpl(:var constructorReference):
+        return _constructorTokenElement(
+          constructorReference.typeReference,
+          constructorReference.selector,
+          constructorReference.element,
+          token,
+        );
+      case FunctionInstantiationImpl(:var operand):
+        return _tokenElement(operand, token);
+      default:
+        break;
+    }
+    return null;
   }
 }
 

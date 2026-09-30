@@ -37,10 +37,14 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -95,6 +99,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -128,6 +134,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -164,6 +172,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             fields: VariableDeclarationList
@@ -198,6 +208,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: int
                 name: SimpleIdentifier
                   token: int
             propertyKeyword: get
@@ -230,6 +242,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: int
                 name: SimpleIdentifier
                   token: int
             name: a
@@ -274,6 +288,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
                 name: SimpleIdentifier
                   token: <empty> <synthetic>
             returnType: NamedType
@@ -317,6 +333,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: set
                 name: SimpleIdentifier
                   token: set
             name: a
@@ -361,19 +379,31 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: a
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                    arguments(v1)
+                      SimpleIdentifier
+                        token: <empty> <synthetic>
+                    rightParenthesis: ) <synthetic>
                 name: SimpleIdentifier
                   token: a
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments2
-                    ParsedUnqualifiedName
-                      name: <empty> <synthetic>
-                  arguments(v1)
+                  arguments
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -430,14 +460,24 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: a
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                    arguments(v1)
+                      SimpleIdentifier
+                        token: <empty> <synthetic>
+                    rightParenthesis: ) <synthetic>
                 name: SimpleIdentifier
                   token: a
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments2
-                    ParsedUnqualifiedName
-                      name: <empty> <synthetic>
-                  arguments(v1)
+                  arguments
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
@@ -499,14 +539,24 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: a
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ParsedUnqualifiedName
+                        name: <empty> <synthetic>
+                    arguments(v1)
+                      SimpleIdentifier
+                        token: <empty> <synthetic>
+                    rightParenthesis: ) <synthetic>
                 name: SimpleIdentifier
                   token: a
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments2
-                    ParsedUnqualifiedName
-                      name: <empty> <synthetic>
-                  arguments(v1)
+                  arguments
                     SimpleIdentifier
                       token: <empty> <synthetic>
                   rightParenthesis: ) <synthetic>
@@ -551,18 +601,32 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: a
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ParsedUnqualifiedName
+                        name: int
+                      ParsedUnqualifiedName
+                        name: get
+                      ParsedUnqualifiedName
+                        name: a
+                    arguments(v1)
+                      SimpleIdentifier
+                        token: int
+                      SimpleIdentifier
+                        token: get
+                      SimpleIdentifier
+                        token: a
+                    rightParenthesis: ) <synthetic>
                 name: SimpleIdentifier
                   token: a
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments2
-                    ParsedUnqualifiedName
-                      name: int
-                    ParsedUnqualifiedName
-                      name: get
-                    ParsedUnqualifiedName
-                      name: a
-                  arguments(v1)
+                  arguments
                     SimpleIdentifier
                       token: int
                     SimpleIdentifier
@@ -680,6 +744,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -724,6 +790,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -765,6 +833,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -806,6 +876,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -846,6 +918,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -894,6 +968,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -931,6 +1007,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -984,6 +1062,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1029,6 +1109,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: l
                       name: SimpleIdentifier
                         token: l
                   variables
@@ -1065,6 +1147,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: int
                       name: SimpleIdentifier
                         token: int
                   name: f
@@ -1105,6 +1189,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   returnType: NamedType
@@ -1147,6 +1233,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   keyword: var
@@ -1185,6 +1273,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1225,6 +1315,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1272,6 +1364,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1318,6 +1412,8 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ParsedUnqualifiedName
+                        name: <empty> <synthetic>
                       name: SimpleIdentifier
                         token: <empty> <synthetic>
                   variables
@@ -1363,21 +1459,38 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            CallInvocation
+                              receiver: ParsedUnqualifiedName
+                                name: assert
+                              argumentList: ArgumentList
+                                leftParenthesis: (
+                                arguments2
+                                  BooleanLiteral
+                                    literal: true
+                                rightParenthesis: )
+                          arguments(v1)
+                            FunctionExpressionInvocation
+                              function: SimpleIdentifier
+                                token: assert
+                              argumentList: ArgumentList
+                                leftParenthesis: (
+                                arguments
+                                  BooleanLiteral
+                                    literal: true
+                                rightParenthesis: )
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
-                          CallInvocation
-                            receiver: ParsedUnqualifiedName
-                              name: assert
-                            argumentList: ArgumentList
-                              leftParenthesis: (
-                              arguments2
-                                BooleanLiteral
-                                  literal: true
-                              rightParenthesis: )
-                        arguments(v1)
+                        arguments
                           FunctionExpressionInvocation
                             function: SimpleIdentifier
                               token: assert
@@ -1424,11 +1537,23 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            SetOrMapLiteral
+                              leftBracket: {
+                              rightBracket: }
+                              isMap: false
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
+                        arguments
                           SetOrMapLiteral
                             leftBracket: {
                             rightBracket: }
@@ -1472,14 +1597,24 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
-                          ParsedUnqualifiedName
-                            name: <empty> <synthetic>
-                        arguments(v1)
+                        arguments
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1524,14 +1659,24 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
-                          ParsedUnqualifiedName
-                            name: <empty> <synthetic>
-                        arguments(v1)
+                        arguments
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1575,14 +1720,24 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
-                          ParsedUnqualifiedName
-                            name: <empty> <synthetic>
-                        arguments(v1)
+                        arguments
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1633,6 +1788,13 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
@@ -1675,14 +1837,24 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
-                          ParsedUnqualifiedName
-                            name: <empty> <synthetic>
-                        arguments(v1)
+                        arguments
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1739,14 +1911,24 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
-                          ParsedUnqualifiedName
-                            name: <empty> <synthetic>
-                        arguments(v1)
+                        arguments
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1795,15 +1977,30 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            NamedArgument
+                              name: l
+                              colon: :
+                              argumentExpression2: SetOrMapLiteral
+                                leftBracket: {
+                                rightBracket: }
+                                isMap: false
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
+                        arguments
                           NamedArgument
                             name: l
                             colon: :
-                            argumentExpression2: SetOrMapLiteral
+                            argumentExpression: SetOrMapLiteral
                               leftBracket: {
                               rightBracket: }
                               isMap: false
@@ -1846,11 +2043,27 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            FunctionExpression
+                              parameters: FormalParameterList
+                                leftParenthesis: (
+                                rightParenthesis: )
+                              body: BlockFunctionBody
+                                block: Block
+                                  leftBracket: {
+                                  rightBracket: }
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
+                        arguments
                           FunctionExpression
                             parameters: FormalParameterList
                               leftParenthesis: (
@@ -1898,11 +2111,27 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            FunctionExpression
+                              parameters: FormalParameterList
+                                leftParenthesis: (
+                                rightParenthesis: )
+                              body: BlockFunctionBody
+                                block: Block
+                                  leftBracket: {
+                                  rightBracket: }
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
+                        arguments
                           FunctionExpression
                             parameters: FormalParameterList
                               leftParenthesis: (
@@ -1947,14 +2176,24 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
-                          ParsedUnqualifiedName
-                            name: <empty> <synthetic>
-                        arguments(v1)
+                        arguments
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -1995,14 +2234,24 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
-                          ParsedUnqualifiedName
-                            name: <empty> <synthetic>
-                        arguments(v1)
+                        arguments
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -2042,17 +2291,33 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            SwitchExpression
+                              switchKeyword: switch
+                              leftParenthesis: (
+                              expression2: ParsedUnqualifiedName
+                                name: x
+                              expression(v1): SimpleIdentifier
+                                token: x
+                              rightParenthesis: )
+                              leftBracket: {
+                              rightBracket: }
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
+                        arguments
                           SwitchExpression
                             switchKeyword: switch
                             leftParenthesis: (
-                            expression2: ParsedUnqualifiedName
-                              name: x
-                            expression(v1): SimpleIdentifier
+                            expression: SimpleIdentifier
                               token: x
                             rightParenthesis: )
                             leftBracket: {
@@ -2095,14 +2360,24 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
-                          ParsedUnqualifiedName
-                            name: <empty> <synthetic>
-                        arguments(v1)
+                        arguments
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -2152,14 +2427,24 @@ CompilationUnit
                   metadata
                     Annotation
                       atSign: @
+                      expression: ConstructorInvocation
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: a
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            ParsedUnqualifiedName
+                              name: <empty> <synthetic>
+                          arguments(v1)
+                            SimpleIdentifier
+                              token: <empty> <synthetic>
+                          rightParenthesis: ) <synthetic>
                       name: SimpleIdentifier
                         token: a
                       arguments: ArgumentList
                         leftParenthesis: (
-                        arguments2
-                          ParsedUnqualifiedName
-                            name: <empty> <synthetic>
-                        arguments(v1)
+                        arguments
                           SimpleIdentifier
                             token: <empty> <synthetic>
                         rightParenthesis: ) <synthetic>
@@ -2194,6 +2479,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       classKeyword: class
@@ -2219,6 +2506,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -2247,6 +2536,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       enumKeyword: enum
@@ -2287,6 +2578,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -2313,6 +2606,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: int
           name: SimpleIdentifier
             token: int
       name: f
@@ -2341,6 +2636,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       returnType: NamedType
@@ -2369,6 +2666,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: int
           name: SimpleIdentifier
             token: int
       getKeyword: get
@@ -2410,6 +2709,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: mixin
           name: SimpleIdentifier
             token: mixin
       name: M
@@ -2436,6 +2737,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: set
           name: SimpleIdentifier
             token: set
       name: a
@@ -2474,6 +2777,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: typedef
           name: SimpleIdentifier
             token: typedef
       variables: VariableDeclarationList
@@ -2523,6 +2828,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: <empty> <synthetic>
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -2618,14 +2925,24 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: a
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+              arguments(v1)
+                SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
           name: SimpleIdentifier
             token: a
           arguments: ArgumentList
             leftParenthesis: (
-            arguments2
-              ParsedUnqualifiedName
-                name: <empty> <synthetic>
-            arguments(v1)
+            arguments
               SimpleIdentifier
                 token: <empty> <synthetic>
             rightParenthesis: ) <synthetic>
@@ -2759,14 +3076,24 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: a
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+              arguments(v1)
+                SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
           name: SimpleIdentifier
             token: a
           arguments: ArgumentList
             leftParenthesis: (
-            arguments2
-              ParsedUnqualifiedName
-                name: <empty> <synthetic>
-            arguments(v1)
+            arguments
               SimpleIdentifier
                 token: <empty> <synthetic>
             rightParenthesis: ) <synthetic>

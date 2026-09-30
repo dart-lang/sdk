@@ -647,6 +647,20 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_undefinedAnnotation() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_annotation: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_annotation: ignore
+''');
+  }
+
   test_analyzer_errors_severityValues() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:

@@ -1226,7 +1226,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
 
   /// Return an indication of the Dart type associated with the [annotation].
   _PrimitiveDartType _typeForAnnotation(Annotation annotation) {
-    var element = annotation.element;
+    var element = annotation.elementAnnotation?.element;
     if (element is ConstructorElement) {
       var name = element.enclosingElement.name;
       if (_primitiveIntegerNativeTypes.contains(name)) {
@@ -1481,9 +1481,9 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     bool requiredFound = false;
     List<Annotation> extraAnnotations = [];
     for (Annotation annotation in annotations) {
-      if (annotation.element.ffiClass != null ||
-          annotation.element?.enclosingElement.isAbiSpecificIntegerSubclass ==
-              true) {
+      var element = annotation.elementAnnotation?.element;
+      if (element.ffiClass != null ||
+          element?.enclosingElement.isAbiSpecificIntegerSubclass == true) {
         if (requiredFound) {
           extraAnnotations.add(annotation);
         } else {
@@ -2280,7 +2280,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   /// Validate that none of the [annotations] are from `dart:ffi`.
   void _validateNoAnnotations(NodeList<Annotation> annotations) {
     for (Annotation annotation in annotations) {
-      if (annotation.element.ffiClass != null) {
+      if (annotation.elementAnnotation?.element.ffiClass != null) {
         _diagnosticReporter.report(
           diag.annotationOnPointerField.at(annotation),
         );
@@ -2582,7 +2582,7 @@ enum _PrimitiveDartType { double, int, bool, void_, handle, none }
 
 extension on Annotation {
   bool get isAbiSpecificIntegerMapping {
-    var element = this.element;
+    var element = elementAnnotation?.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name ==
@@ -2590,14 +2590,14 @@ extension on Annotation {
   }
 
   bool get isArray {
-    var element = this.element;
+    var element = elementAnnotation?.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Array';
   }
 
   bool get isPacked {
-    var element = this.element;
+    var element = elementAnnotation?.element;
     return element is ConstructorElement &&
         element.ffiClass != null &&
         element.enclosingElement.name == 'Packed';

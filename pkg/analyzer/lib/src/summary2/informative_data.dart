@@ -1871,7 +1871,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitAnnotation(Annotation node) {
     _tokenOrNull(node.atSign);
-    _tokenOrNull(node.period);
     super.visitAnnotation(node);
   }
 

@@ -59,57 +59,6 @@ Map<Object, InternalFormalParameterElement> _computeParameterMap(
   };
 }
 
-/// Specialization of [InvocationInferrer] for performing type inference on AST
-/// nodes of type [Annotation] that resolve to a constructor invocation.
-class AnnotationInferrer extends FullInvocationInferrer<AnnotationImpl> {
-  /// The identifier pointing to the constructor that's being invoked, or `null`
-  /// if a constructor name couldn't be found (should only happen when
-  /// recovering from errors).  If the constructor is generic, this identifier's
-  /// static element will be updated to point to a
-  /// [SubstitutedConstructorElementImpl] with type arguments filled in.
-  final SimpleIdentifierImpl? constructorName;
-
-  AnnotationInferrer({
-    required super.resolver,
-    required super.node,
-    required super.argumentList,
-    required super.contextType,
-    required super.whyNotPromotedArguments,
-    required super.target,
-    required this.constructorName,
-  }) : super._();
-
-  @override
-  bool get _isConst => true;
-
-  @override
-  bool get _isGenericInferenceDisabled => !resolver.genericMetadataIsEnabled;
-
-  @override
-  bool get _needsTypeArgumentBoundsCheck => true;
-
-  @override
-  TypeArgumentListImpl? get _typeArguments => node.typeArguments;
-
-  @override
-  List<FormalParameterElement>? _storeResult(
-    List<DartType>? typeArgumentTypes,
-    FunctionType? invokeType,
-  ) {
-    if (invokeType != null) {
-      var elementOrMember = node.element as InternalConstructorElement;
-      var constructorElement = SubstitutedConstructorElementImpl.from2(
-        elementOrMember.baseElement,
-        invokeType.returnType as InterfaceType,
-      );
-      constructorName?.element = constructorElement;
-      node.element = constructorElement;
-      return constructorElement.formalParameters;
-    }
-    return null;
-  }
-}
-
 /// Specialization of [InvocationInferrer] for applying an argument list to a
 /// value or implicit `call` receiver.
 class CallInvocationInferrer
@@ -158,6 +107,13 @@ class ConstructorInvocationInferrer
 
   @override
   bool get _isConst => node.isConst;
+
+  /// Without generic metadata, the type arguments of a constructor invoked by
+  /// an annotation are not inferred.
+  @override
+  bool get _isGenericInferenceDisabled {
+    return node.parent2 is AnnotationImpl && !resolver.genericMetadataIsEnabled;
+  }
 
   @override
   bool get _needsTypeArgumentBoundsCheck => true;

@@ -321,6 +321,8 @@ ClassDeclaration
   metadata
     Annotation
       atSign: @ @45
+      expression: ParsedUnqualifiedName
+        name: Annotation @46
       name: SimpleIdentifier
         token: Annotation @46
   abstractKeyword: abstract @57
@@ -421,6 +423,8 @@ ClassDeclaration
   metadata
     Annotation
       atSign: @ @45
+      expression: ParsedUnqualifiedName
+        name: Annotation @46
       name: SimpleIdentifier
         token: Annotation @46
   abstractKeyword: abstract @249

@@ -1421,6 +1421,8 @@ ExtensionTypeDeclaration
   metadata
     Annotation
       atSign: @
+      expression: ParsedUnqualifiedName
+        name: foo
       name: SimpleIdentifier
         token: foo
   extensionKeyword: extension
@@ -3442,6 +3444,8 @@ ExtensionTypeDeclaration
           metadata
             Annotation
               atSign: @
+              expression: ParsedUnqualifiedName
+                name: foo
               name: SimpleIdentifier
                 token: foo
           type: NamedType
@@ -3587,6 +3591,8 @@ ExtensionTypeDeclaration
           metadata
             Annotation
               atSign: @
+              expression: ParsedUnqualifiedName
+                name: foo
               name: SimpleIdentifier
                 token: foo
           name: it

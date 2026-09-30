@@ -649,7 +649,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.initializingFormalForNonExistentField: [ChangeTo.field, CreateField.new],
   diag.instanceAccessToStaticMember: [ChangeToStaticAccess.new],
   diag.integerLiteralImpreciseAsDouble: [ChangeToNearestPreciseValue.new],
-  diag.invalidAnnotation: [ChangeTo.annotation],
   diag.invalidAssignment: [
     AddExplicitCast.new,
     AddNullCheck.new,
@@ -841,7 +840,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ConvertToNullAwareSpread.new,
   ],
   diag.uncheckedUseOfNullableValueInYieldEach: [AddNullCheck.new],
-  diag.undefinedAnnotation: [ChangeTo.annotation],
   diag.undefinedClass: [ChangeTo.classOrMixin],
   diag.undefinedClassBoolean: [ReplaceBooleanWithBool.new],
   diag.undefinedEnumConstant: [
@@ -1220,11 +1218,6 @@ final _builtInNonLintMultiGenerators = {
   ],
   diag.uncheckedPropertyAccessOfNullableValue: [
     ImportLibrary.forExtensionMember,
-  ],
-  diag.undefinedAnnotation: [
-    CreateClass.new,
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forTypeOrMember,
   ],
   diag.undefinedClass: [
     CreateClass.new,

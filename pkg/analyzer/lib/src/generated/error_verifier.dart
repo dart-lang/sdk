@@ -382,7 +382,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   @override
   void visitAnnotation(Annotation node) {
     _checkForInvalidAnnotationFromDeferredLibrary(node);
-    _requiredParametersVerifier.visitAnnotation(node);
     super.visitAnnotation(node);
   }
 
@@ -6108,6 +6107,14 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   ///
   /// See [diag.invalidAnnotationFromDeferredLibrary].
   void _checkForInvalidAnnotationFromDeferredLibrary(Annotation annotation) {
+    // An invocation through a deferred prefix, such as `@p.C()`, is checked
+    // like any other constant constructor invocation, which reports
+    // `const_deferred_class`. Only a reference, such as `@p.c`, is reported
+    // here.
+    if (annotation.expression is ConstructorInvocation) {
+      return;
+    }
+
     Identifier nameIdentifier = annotation.name;
     if (nameIdentifier is PrefixedIdentifier && nameIdentifier.isDeferred) {
       diagnosticReporter.report(
@@ -8705,9 +8712,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return true;
     }
     var parent = identifier.parent2;
-    if (parent is Annotation) {
-      return identical(parent.constructorName, identifier);
-    }
     if (parent is CommentReference) {
       return true;
     }

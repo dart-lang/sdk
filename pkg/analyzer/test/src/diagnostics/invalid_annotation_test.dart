@@ -45,7 +45,8 @@ class A {
 }
 
 @A.foo()
-// [diag.invalidAnnotation][column 1][length 8] Annotation must be either a const variable reference or const constructor invocation.
+// ^^^
+// [diag.constWithUndefinedConstructor] The class 'A' doesn't have a constant constructor 'foo'.
 void f() {}
 ''');
   }
@@ -117,8 +118,8 @@ void f() {
 void f() {
   const a = 0;
   @a(0)
-//^^^^^
-// [diag.invalidAnnotation] Annotation must be either a const variable reference or const constructor invocation.
+// ^
+// [diag.constWithNonType] The name 'a' isn't a class.
   var b; // ignore:unused_local_variable
 }
 ''');
@@ -148,7 +149,8 @@ const Property property = const Property(42);
     await resolveTestCodeWithDiagnostics(r'''
 import 'annotations.dart' as pref;
 @pref.property(123)
-// [diag.invalidAnnotation][column 1][length 19] Annotation must be either a const variable reference or const constructor invocation.
+//    ^^^^^^^^
+// [diag.constWithNonType] The name 'property' isn't a class.
 main() {
 }
 ''');
@@ -164,7 +166,7 @@ class Property {
 const Property property = const Property(42);
 
 @property(123)
-// [diag.invalidAnnotation][column 1][length 14] Annotation must be either a const variable reference or const constructor invocation.
+// [diag.constWithNonType][column 2][length 8] The name 'property' isn't a class.
 main() {
 }
 ''');
@@ -195,7 +197,8 @@ main() {
 import 'dart:math' as p;
 
 @p.sin(0)
-// [diag.invalidAnnotation][column 1][length 9] Annotation must be either a const variable reference or const constructor invocation.
+// ^^^
+// [diag.constWithNonType] The name 'sin' isn't a class.
 class B {}
 ''');
   }
@@ -205,7 +208,8 @@ class B {}
 import 'dart:math' as p;
 
 @p.sin.cos(0)
-// [diag.invalidAnnotation][column 1][length 13] Annotation must be either a const variable reference or const constructor invocation.
+// ^^^
+// [diag.constWithNonType] The name 'sin' isn't a class.
 class B {}
 ''');
   }

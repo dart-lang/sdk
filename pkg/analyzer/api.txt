@@ -827,6 +827,7 @@ package:analyzer/dart/ast/ast.dart:
     constructorName (getter: SimpleIdentifier?)
     element (getter: Element?)
     elementAnnotation (getter: ElementAnnotation?)
+    expression (getter: Expression, experimental)
     name (getter: Identifier)
     parent (getter: AstNode)
     parent2 (getter: AstNode, experimental)

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -35,7 +36,7 @@ class CreateExtensionGetter extends _CreateExtensionMember {
   Future<void> compute(ChangeBuilder builder) async {
     var addStaticKeyword = inStaticContext;
     var nameNode = node;
-    if (nameNode is! SimpleIdentifier) {
+    if (nameNode is! SimpleIdentifier || nameNode.annotationContainingName != null) {
       return;
     }
     if (!nameNode.inGetterContext()) {

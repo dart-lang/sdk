@@ -1455,9 +1455,13 @@ enum E {
 }
 
 @E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 1] Generative enum constructors can only be used to create an enum constant.
 @p.E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 3] Generative enum constructors can only be used to create an enum constant.
 @E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 7] Generative enum constructors can only be used to create an enum constant.
 @p.E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 9] Generative enum constructors can only be used to create an enum constant.
 void f() {}
 ''');
 
@@ -2258,9 +2262,13 @@ enum E {
 }
 
 @E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 1] Generative enum constructors can only be used to create an enum constant.
 @p.E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 3] Generative enum constructors can only be used to create an enum constant.
 @E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 7] Generative enum constructors can only be used to create an enum constant.
 @p.E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 9] Generative enum constructors can only be used to create an enum constant.
 @E.myConstant
 @p.E.myConstant
 void f() {}

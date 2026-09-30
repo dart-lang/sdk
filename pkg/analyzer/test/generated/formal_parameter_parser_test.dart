@@ -1071,6 +1071,8 @@ RegularFormalParameter
   metadata
     Annotation
       atSign: @
+      expression: ParsedUnqualifiedName
+        name: deprecated
       name: SimpleIdentifier
         token: deprecated
   name: a
@@ -1088,6 +1090,8 @@ RegularFormalParameter
   metadata
     Annotation
       atSign: @
+      expression: ParsedUnqualifiedName
+        name: deprecated
       name: SimpleIdentifier
         token: deprecated
   type: NamedType

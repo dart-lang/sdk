@@ -657,7 +657,6 @@ class LibraryAnalyzer {
         diag.newWithNonType,
         diag.notAType,
         diag.prefixIdentifierNotFollowedByDot,
-        diag.undefinedAnnotation,
         diag.undefinedClass,
         diag.undefinedFunction,
         diag.undefinedIdentifier,

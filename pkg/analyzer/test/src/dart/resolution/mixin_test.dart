@@ -231,6 +231,13 @@ mixin M {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: a
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::a
+      invokeType: int Function()
+      type: int
+    staticType: int
   name: SimpleIdentifier
     token: a
     element: <testLibrary>::@getter::a

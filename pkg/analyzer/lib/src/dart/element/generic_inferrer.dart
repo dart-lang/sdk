@@ -659,21 +659,6 @@ class GenericInferrer {
               .at(errorEntity),
         );
       }
-    } else if (errorEntity is Annotation) {
-      if (genericMetadataIsEnabled) {
-        // Only report an error if generic metadata is valid syntax.
-        var element = errorEntity.name.element;
-        if (element != null && !element.metadata.hasOptionalTypeArgs) {
-          String constructorName = errorEntity.constructorName == null
-              ? errorEntity.name.name
-              : '${errorEntity.name.name}.${errorEntity.constructorName}';
-          diagnosticReporter.report(
-            diag.inferenceFailureOnInstanceCreation
-                .withArguments(function: constructorName)
-                .at(errorEntity),
-          );
-        }
-      }
     } else if (errorEntity is SimpleIdentifier) {
       _reportNamedInferenceFailure(
         diagnosticReporter: diagnosticReporter,

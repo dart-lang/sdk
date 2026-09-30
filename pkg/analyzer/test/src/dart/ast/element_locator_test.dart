@@ -298,7 +298,7 @@ class Class {
 }
 void main(@Class.name() parameter) {}
 ''');
-    var node = result.findNode.simple('Class.name() parameter');
+    var node = result.findNodeV1.simple('Class.name() parameter');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::Class
@@ -312,7 +312,7 @@ class Class {
 }
 void main(@Class() parameter) {}
 ''');
-    var node = result.findNode.simple('Class() parameter');
+    var node = result.findNodeV1.simple('Class() parameter');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::Class::@constructor::new
@@ -1077,6 +1077,20 @@ void main() {
 ''');
   }
 
+  test_locate_ConstructorInvocation_annotation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class Class {
+  const Class();
+}
+void main(@Class() parameter) {}
+''');
+    var node = result.findNode.singleConstructorInvocation;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::Class::@constructor::new
+''');
+  }
+
   test_locate_ConstructorInvocation_type_prefixedIdentifier() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
@@ -1153,6 +1167,34 @@ class B extends A {
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::named
+''');
+  }
+
+  test_locate_ConstructorTypeReference_annotation_namedConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class Class {
+  const Class.name();
+}
+void main(@Class.name() parameter) {}
+''');
+    var node = result.findNode.singleConstructorTypeReference;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::Class
+''');
+  }
+
+  test_locate_ConstructorTypeReference_annotation_unnamedConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class Class {
+  const Class();
+}
+void main(@Class() parameter) {}
+''');
+    var node = result.findNode.singleConstructorTypeReference;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::Class
 ''');
   }
 
@@ -1367,34 +1409,6 @@ int f() => 3;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
-''');
-  }
-
-  test_locate_Identifier_annotationClass_namedConstructor() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class Class {
-  const Class.name();
-}
-void main(@Class.name() parameter) {}
-''');
-    var node = result.findNode.simple('Class.name() parameter');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::Class
-''');
-  }
-
-  test_locate_Identifier_annotationClass_unnamedConstructor() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class Class {
-  const Class();
-}
-void main(@Class() parameter) {}
-''');
-    var node = result.findNode.simple('Class() parameter');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::Class::@constructor::new
 ''');
   }
 

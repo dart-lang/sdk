@@ -99,28 +99,23 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
            : null;
 
   @override
-  void visitAnnotation(Annotation node) {
+  void visitAnnotation(covariant AnnotationImpl node) {
     super.visitAnnotation(node);
-    // check annotation creation
-    var element = node.element;
-    if (element is ConstructorElement) {
-      // should be 'const' constructor
-      if (!element.isConst) {
-        _diagnosticReporter.report(
-          diag.nonConstantAnnotationConstructor.at(node),
-        );
-        return;
-      }
-      // should have arguments
-      var argumentList = node.arguments;
-      if (argumentList == null) {
+    // A type literal `@C` and a constructor tear-off `@C.named` are valid
+    // constant expressions, but not valid annotations, which must invoke a
+    // constant constructor. The intent was almost certainly to invoke the
+    // constructor, so report that the arguments are missing. Whether the
+    // constructor is const is checked once it is invoked.
+    switch (node.expression) {
+      case ConstructorTearOffImpl(element: _?):
+      case TypeLiteralImpl(
+        type: NamedTypeImpl(element: InterfaceElement(unnamedConstructor: _?)),
+      ):
         _diagnosticReporter.report(
           diag.noAnnotationConstructorArguments.at(node),
         );
-        return;
-      }
-      // arguments should be constants
-      _validateConstantArguments(argumentList);
+      default:
+        break;
     }
   }
 

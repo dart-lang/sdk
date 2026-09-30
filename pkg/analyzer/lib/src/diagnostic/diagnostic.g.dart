@@ -12603,17 +12603,6 @@ nonBoolOperand = DiagnosticWithArguments(
 );
 
 /// No parameters.
-const DiagnosticWithoutArguments nonConstantAnnotationConstructor =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'non_constant_annotation_constructor',
-      problemMessage: "Annotation creation can only call a const constructor.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'non_constant_annotation_constructor',
-      expectedTypes: [],
-    );
-
-/// No parameters.
 const DiagnosticWithoutArguments nonConstantCaseExpression =
     DiagnosticWithoutArgumentsImpl(
       name: 'non_constant_case_expression',
@@ -16605,24 +16594,6 @@ const DiagnosticWithoutArguments uncheckedUseOfNullableValueInYieldEach =
       uniqueName: 'unchecked_use_of_nullable_value_in_yield_each',
       expectedTypes: [],
     );
-
-/// Parameters:
-/// String name: the name of the annotation
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String name})
->
-undefinedAnnotation = DiagnosticWithArguments(
-  name: 'undefined_annotation',
-  problemMessage: "Undefined name '{0}' used as an annotation.",
-  correctionMessage:
-      "Try defining the name or importing it from another library.",
-  hasPublishedDocs: true,
-  isUnresolvedIdentifier: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_annotation',
-  withArguments: _withArgumentsUndefinedAnnotation,
-  expectedTypes: [ExpectedType.string],
-);
 
 /// Parameters:
 /// String name: the name of the undefined class
@@ -22387,10 +22358,6 @@ LocatableDiagnostic _withArgumentsUncheckedPropertyAccessOfNullableValue({
   return LocatableDiagnosticImpl(diag.uncheckedPropertyAccessOfNullableValue, [
     name,
   ]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedAnnotation({required String name}) {
-  return LocatableDiagnosticImpl(diag.undefinedAnnotation, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedClass({required String name}) {

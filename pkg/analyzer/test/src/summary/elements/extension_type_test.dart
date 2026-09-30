@@ -140,13 +140,27 @@ library
               metadata
                 Annotation
                   atSign: @ @35
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: Deprecated @36
+                        element: dart:core::@class::Deprecated
+                        type: Deprecated
+                      element: dart:core::@class::Deprecated::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @46
+                      arguments2
+                        SimpleStringLiteral
+                          literal: '0' @47
+                      rightParenthesis: ) @50
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: Deprecated @36
                     element: dart:core::@class::Deprecated
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @46
-                    arguments2
+                    arguments
                       SimpleStringLiteral
                         literal: '0' @47
                     rightParenthesis: ) @50
@@ -182,13 +196,27 @@ library
           metadata
             Annotation
               atSign: @ @35
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Deprecated @36
+                    element: dart:core::@class::Deprecated
+                    type: Deprecated
+                  element: dart:core::@class::Deprecated::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @46
+                  arguments2
+                    SimpleStringLiteral
+                      literal: '0' @47
+                  rightParenthesis: ) @50
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: Deprecated @36
                 element: dart:core::@class::Deprecated
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @46
-                arguments2
+                arguments
                   SimpleStringLiteral
                     literal: '0' @47
                 rightParenthesis: ) @50
@@ -264,6 +292,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @30
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @30
                     element: dart:core::@getter::deprecated
@@ -300,6 +335,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: deprecated @30
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @30
                 element: dart:core::@getter::deprecated
@@ -2441,6 +2483,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @17
+                      expression: UnqualifiedNameExpression
+                        name: deprecated @18
+                        resolution: GetterInvocationResolution
+                          element: dart:core::@getter::deprecated
+                          invokeType: Deprecated Function()
+                          type: Deprecated
+                        staticType: Deprecated
                       name: SimpleIdentifier
                         token: deprecated @18
                         element: dart:core::@getter::deprecated
@@ -2464,6 +2513,13 @@ library
           metadata
             Annotation
               atSign: @ @17
+              expression: UnqualifiedNameExpression
+                name: deprecated @18
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @18
                 element: dart:core::@getter::deprecated
@@ -2483,6 +2539,13 @@ library
               metadata
                 Annotation
                   atSign: @ @17
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @18
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @18
                     element: dart:core::@getter::deprecated
@@ -2531,6 +2594,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @33
+                      expression: UnqualifiedNameExpression
+                        name: deprecated @34
+                        resolution: GetterInvocationResolution
+                          element: dart:core::@getter::deprecated
+                          invokeType: Deprecated Function()
+                          type: Deprecated
+                        staticType: Deprecated
                       name: SimpleIdentifier
                         token: deprecated @34
                         element: dart:core::@getter::deprecated
@@ -2554,6 +2624,13 @@ library
           metadata
             Annotation
               atSign: @ @33
+              expression: UnqualifiedNameExpression
+                name: deprecated @34
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @34
                 element: dart:core::@getter::deprecated
@@ -2573,6 +2650,13 @@ library
               metadata
                 Annotation
                   atSign: @ @33
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @34
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @34
                     element: dart:core::@getter::deprecated
@@ -3012,6 +3096,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @17
+                      expression: UnqualifiedNameExpression
+                        name: deprecated @18
+                        resolution: GetterInvocationResolution
+                          element: dart:core::@getter::deprecated
+                          invokeType: Deprecated Function()
+                          type: Deprecated
+                        staticType: Deprecated
                       name: SimpleIdentifier
                         token: deprecated @18
                         element: dart:core::@getter::deprecated
@@ -3035,6 +3126,13 @@ library
           metadata
             Annotation
               atSign: @ @17
+              expression: UnqualifiedNameExpression
+                name: deprecated @18
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @18
                 element: dart:core::@getter::deprecated
@@ -3054,6 +3152,13 @@ library
               metadata
                 Annotation
                   atSign: @ @17
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @18
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @18
                     element: dart:core::@getter::deprecated
@@ -4832,6 +4937,13 @@ library
               metadata
                 Annotation
                   atSign: @ @33
+                  expression: UnqualifiedNameExpression
+                    name: foo @34
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @34
                     element: <testLibrary>::@getter::foo
@@ -4859,6 +4971,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @42
+                      expression: UnqualifiedNameExpression
+                        name: foo @43
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@extensionType::E::@getter::foo
+                          invokeType: int Function()
+                          type: int
+                        staticType: int
                       name: SimpleIdentifier
                         token: foo @43
                         element: <testLibrary>::@extensionType::E::@getter::foo
@@ -4901,6 +5020,13 @@ library
           metadata
             Annotation
               atSign: @ @33
+              expression: UnqualifiedNameExpression
+                name: foo @34
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @34
                 element: <testLibrary>::@getter::foo
@@ -4916,6 +5042,13 @@ library
           metadata
             Annotation
               atSign: @ @42
+              expression: UnqualifiedNameExpression
+                name: foo @43
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@extensionType::E::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @43
                 element: <testLibrary>::@extensionType::E::@getter::foo
@@ -4943,6 +5076,13 @@ library
               metadata
                 Annotation
                   atSign: @ @42
+                  expression: UnqualifiedNameExpression
+                    name: foo @43
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@extensionType::E::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @43
                     element: <testLibrary>::@extensionType::E::@getter::foo

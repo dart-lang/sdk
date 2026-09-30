@@ -18,23 +18,40 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   final LibraryFragmentImpl _libraryFragment;
   late Scope _scope;
 
+  /// The resolver for annotations, and the scope that it was created for.
+  ///
+  /// Creating a resolver and its visitors costs more than resolving a typical
+  /// annotation, such as `@override`, so it is reused while the scope stays
+  /// the same, for example for all annotations of members of a class.
+  ({Scope scope, AstResolver resolver})? _astResolverCache;
+
   MetadataResolver(this._linker, this._libraryFragment, this._libraryBuilder)
     : _containerScope = _libraryFragment.scope {
     _scope = _containerScope;
+  }
+
+  /// The resolver for annotations in [_scope].
+  AstResolver get _astResolver {
+    var cache = _astResolverCache;
+    if (cache != null && identical(cache.scope, _scope)) {
+      return cache.resolver;
+    }
+
+    var resolver = AstResolver(
+      _linker,
+      _libraryFragment,
+      _scope,
+      _libraryBuilder.kind.file.analysisOptions,
+    );
+    _astResolverCache = (scope: _scope, resolver: resolver);
+    return resolver;
   }
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
     var annotationElement = node.elementAnnotation;
     if (annotationElement is ElementAnnotationImpl) {
-      var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-      var astResolver = AstResolver(
-        _linker,
-        _libraryFragment,
-        _scope,
-        analysisOptions,
-      );
-      astResolver.resolveAnnotation(node);
+      _astResolver.resolveAnnotation(node);
     }
   }
 

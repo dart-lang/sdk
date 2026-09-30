@@ -24,6 +24,7 @@ import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -1801,8 +1802,34 @@ class ElementAnnotationImpl
         'use';
   }
 
+  /// The constructor that the annotation invokes, or the getter or variable
+  /// that it reads, according to the resolution of its expression.
+  ///
+  /// An annotation that names a class, such as `@C`, or tears off a
+  /// constructor, such as `@C.named`, is taken as an invocation with missing
+  /// arguments, and denotes the unnamed constructor of the class, or the
+  /// torn-off constructor. Constant verification reports the missing
+  /// arguments.
+  ///
+  /// An invalid annotation that instantiates a generic function, such as
+  /// `@g<int>`, denotes the function.
   @override
-  Element? get element => annotationAst.element;
+  Element? get element {
+    return switch (annotationAst.expression) {
+      ConstructorInvocationImpl(:var constructorReference) =>
+        constructorReference.element,
+      ConstructorTearOffImpl(:var element) => element,
+      // TODO(scheglov): `@C` resolves to the class, not to a constructor.
+      // Consider returning the class, or `null`, instead of the unnamed
+      // constructor, which was kept for compatibility with V1.
+      TypeLiteralImpl(type: NamedTypeImpl(:InterfaceElement element)) =>
+        element.unnamedConstructor,
+      NameExpressionImpl(:var resolution) => resolution?.elementOrRecovery,
+      FunctionInstantiationImpl(operand: NameExpressionImpl(:var resolution)) =>
+        resolution?.elementOrRecovery,
+      _ => null,
+    };
+  }
 
   @override
   bool get isAlwaysThrows => _isPackageMetaGetter(_alwaysThrowsVariableName);

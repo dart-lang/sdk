@@ -697,20 +697,45 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: B
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                IntegerLiteral
+                  literal: 2
+              rightParenthesis: )
           name: SimpleIdentifier
             token: B
           arguments: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               IntegerLiteral
                 literal: 2
             rightParenthesis: )
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: C
+                  period: .
+                name: foo
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                IntegerLiteral
+                  literal: 3
+              rightParenthesis: )
           name: PrefixedIdentifier
             prefix: SimpleIdentifier
               token: C
@@ -719,12 +744,30 @@ CompilationUnit
               token: foo
           arguments: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               IntegerLiteral
                 literal: 3
             rightParenthesis: )
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: d
+                  period: .
+                name: E
+              selector: ConstructorSelector
+                period: .
+                name2: bar
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                IntegerLiteral
+                  literal: 4
+                IntegerLiteral
+                  literal: 5
+              rightParenthesis: )
           name: PrefixedIdentifier
             prefix: SimpleIdentifier
               token: d
@@ -736,7 +779,7 @@ CompilationUnit
             token: bar
           arguments: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               IntegerLiteral
                 literal: 4
               IntegerLiteral
@@ -1675,6 +1718,8 @@ CompilationUnit
               metadata
                 Annotation
                   atSign: @
+                  expression: ParsedUnqualifiedName
+                    name: a
                   name: SimpleIdentifier
                     token: a
               name: E
@@ -2715,6 +2760,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
       libraryKeyword: library
@@ -2738,6 +2785,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
       libraryKeyword: library
@@ -2945,6 +2994,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
       libraryKeyword: library
@@ -2956,6 +3007,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: B
           name: SimpleIdentifier
             token: B
       importKeyword: import
@@ -3252,6 +3305,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             name: ONE
@@ -3592,6 +3647,8 @@ CompilationUnit
               metadata
                 Annotation
                   atSign: @
+                  expression: ParsedUnqualifiedName
+                    name: A
                   name: SimpleIdentifier
                     token: A
               name: a
@@ -3599,11 +3656,21 @@ CompilationUnit
               metadata
                 Annotation
                   atSign: @
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: B
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments2
+                        IntegerLiteral
+                          literal: 2
+                      rightParenthesis: )
                   name: SimpleIdentifier
                     token: B
                   arguments: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       IntegerLiteral
                         literal: 2
                     rightParenthesis: )
@@ -3617,6 +3684,19 @@ CompilationUnit
                 metadata
                   Annotation
                     atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          importPrefix: ImportPrefixReference
+                            name: C
+                            period: .
+                          name: foo
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          IntegerLiteral
+                            literal: 3
+                        rightParenthesis: )
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: C
@@ -3625,7 +3705,7 @@ CompilationUnit
                         token: foo
                     arguments: ArgumentList
                       leftParenthesis: (
-                      arguments2
+                      arguments
                         IntegerLiteral
                           literal: 3
                       rightParenthesis: )
@@ -3638,6 +3718,24 @@ CompilationUnit
                 metadata
                   Annotation
                     atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          importPrefix: ImportPrefixReference
+                            name: d
+                            period: .
+                          name: E
+                        selector: ConstructorSelector
+                          period: .
+                          name2: bar
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          IntegerLiteral
+                            literal: 4
+                          IntegerLiteral
+                            literal: 5
+                        rightParenthesis: )
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: d
@@ -3649,7 +3747,7 @@ CompilationUnit
                       token: bar
                     arguments: ArgumentList
                       leftParenthesis: (
-                      arguments2
+                      arguments
                         IntegerLiteral
                           literal: 4
                         IntegerLiteral
@@ -4772,6 +4870,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: Z
           name: SimpleIdentifier
             token: Z
       mixinKeyword: mixin

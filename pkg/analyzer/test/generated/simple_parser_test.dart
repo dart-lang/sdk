@@ -43,6 +43,85 @@ CompilationUnit
               metadata
                 Annotation
                   atSign: @
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        importPrefix: ImportPrefixReference
+                          name: Foo
+                          period: .
+                        name: bar
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments2
+                        ListLiteral
+                          constKeyword: const
+                          leftBracket: [
+                          rightBracket: ]
+                        ListLiteral
+                          constKeyword: const
+                          leftBracket: [
+                          elements2
+                            IntegerLiteral
+                              literal: 1
+                          rightBracket: ]
+                        SetOrMapLiteral
+                          constKeyword: const
+                          leftBracket: {
+                          elements2
+                            MapLiteralEntry
+                              key2: SimpleStringLiteral
+                                literal: ""
+                              separator: :
+                              value2: SimpleStringLiteral
+                                literal: r""
+                          rightBracket: }
+                          isMap: false
+                        BinaryOperatorInvocation
+                          leftOperand: IntegerLiteral
+                            literal: 0xFF
+                          operator: +
+                          rightOperand: IntegerLiteral
+                            literal: 2
+                          binaryOperator: add
+                        DoubleLiteral
+                          literal: .3
+                        DoubleLiteral
+                          literal: 4.5
+                      arguments(v1)
+                        ListLiteral
+                          constKeyword: const
+                          leftBracket: [
+                          rightBracket: ]
+                        ListLiteral
+                          constKeyword: const
+                          leftBracket: [
+                          elements
+                            IntegerLiteral
+                              literal: 1
+                          rightBracket: ]
+                        SetOrMapLiteral
+                          constKeyword: const
+                          leftBracket: {
+                          elements
+                            MapLiteralEntry
+                              key: SimpleStringLiteral
+                                literal: ""
+                              separator: :
+                              value: SimpleStringLiteral
+                                literal: r""
+                          rightBracket: }
+                          isMap: false
+                        BinaryExpression
+                          leftOperand: IntegerLiteral
+                            literal: 0xFF
+                          operator: +
+                          rightOperand: IntegerLiteral
+                            literal: 2
+                        DoubleLiteral
+                          literal: .3
+                        DoubleLiteral
+                          literal: 4.5
+                      rightParenthesis: )
                   name: PrefixedIdentifier
                     prefix: SimpleIdentifier
                       token: Foo
@@ -51,42 +130,7 @@ CompilationUnit
                       token: bar
                   arguments: ArgumentList
                     leftParenthesis: (
-                    arguments2
-                      ListLiteral
-                        constKeyword: const
-                        leftBracket: [
-                        rightBracket: ]
-                      ListLiteral
-                        constKeyword: const
-                        leftBracket: [
-                        elements2
-                          IntegerLiteral
-                            literal: 1
-                        rightBracket: ]
-                      SetOrMapLiteral
-                        constKeyword: const
-                        leftBracket: {
-                        elements2
-                          MapLiteralEntry
-                            key2: SimpleStringLiteral
-                              literal: ""
-                            separator: :
-                            value2: SimpleStringLiteral
-                              literal: r""
-                        rightBracket: }
-                        isMap: false
-                      BinaryOperatorInvocation
-                        leftOperand: IntegerLiteral
-                          literal: 0xFF
-                        operator: +
-                        rightOperand: IntegerLiteral
-                          literal: 2
-                        binaryOperator: add
-                      DoubleLiteral
-                        literal: .3
-                      DoubleLiteral
-                        literal: 4.5
-                    arguments(v1)
+                    arguments
                       ListLiteral
                         constKeyword: const
                         leftBracket: [
@@ -303,6 +347,8 @@ class C {}
     assertParsedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ParsedUnqualifiedName
+    name: A
   name: SimpleIdentifier
     token: A
 ''');
@@ -317,16 +363,28 @@ class C {}
     assertParsedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: A
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        ParsedUnqualifiedName
+          name: x
+        ParsedUnqualifiedName
+          name: y
+      arguments(v1)
+        SimpleIdentifier
+          token: x
+        SimpleIdentifier
+          token: y
+      rightParenthesis: )
   name: SimpleIdentifier
     token: A
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
-      ParsedUnqualifiedName
-        name: x
-      ParsedUnqualifiedName
-        name: y
-    arguments(v1)
+    arguments
       SimpleIdentifier
         token: x
       SimpleIdentifier
@@ -344,6 +402,11 @@ class C {}
     assertParsedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: A
+    operator: .
+    name: B
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -362,6 +425,26 @@ class C {}
     assertParsedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        importPrefix: ImportPrefixReference
+          name: A
+          period: .
+        name: B
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        ParsedUnqualifiedName
+          name: x
+        ParsedUnqualifiedName
+          name: y
+      arguments(v1)
+        SimpleIdentifier
+          token: x
+        SimpleIdentifier
+          token: y
+      rightParenthesis: )
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -370,12 +453,7 @@ Annotation
       token: B
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
-      ParsedUnqualifiedName
-        name: x
-      ParsedUnqualifiedName
-        name: y
-    arguments(v1)
+    arguments
       SimpleIdentifier
         token: x
       SimpleIdentifier
@@ -393,6 +471,14 @@ class C {}
     assertParsedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ParsedNameAccess
+    operand: ParsedNameAccess
+      operand: ParsedUnqualifiedName
+        name: A
+      operator: .
+      name: B
+    operator: .
+    name: C
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -414,6 +500,29 @@ class C {}
     assertParsedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: ConstructorInvocation
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        importPrefix: ImportPrefixReference
+          name: A
+          period: .
+        name: B
+      selector: ConstructorSelector
+        period: .
+        name2: C
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        ParsedUnqualifiedName
+          name: x
+        ParsedUnqualifiedName
+          name: y
+      arguments(v1)
+        SimpleIdentifier
+          token: x
+        SimpleIdentifier
+          token: y
+      rightParenthesis: )
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
@@ -425,12 +534,7 @@ Annotation
     token: C
   arguments: ArgumentList
     leftParenthesis: (
-    arguments2
-      ParsedUnqualifiedName
-        name: x
-      ParsedUnqualifiedName
-        name: y
-    arguments(v1)
+    arguments
       SimpleIdentifier
         token: x
       SimpleIdentifier
@@ -945,6 +1049,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
       classKeyword: class
@@ -975,10 +1081,14 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: B
           name: SimpleIdentifier
             token: B
       classKeyword: class
@@ -1008,10 +1118,14 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: B
           name: SimpleIdentifier
             token: B
       classKeyword: class
@@ -1036,6 +1150,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
       classKeyword: class
@@ -1065,10 +1181,14 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: B
           name: SimpleIdentifier
             token: B
       classKeyword: class
@@ -1099,10 +1219,14 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: B
           name: SimpleIdentifier
             token: B
       classKeyword: class
@@ -1266,18 +1390,30 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: B
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                ParsedUnqualifiedName
+                  name: x
+              arguments(v1)
+                SimpleIdentifier
+                  token: x
+              rightParenthesis: )
           name: SimpleIdentifier
             token: B
           arguments: ArgumentList
             leftParenthesis: (
-            arguments2
-              ParsedUnqualifiedName
-                name: x
-            arguments(v1)
+            arguments
               SimpleIdentifier
                 token: x
             rightParenthesis: )

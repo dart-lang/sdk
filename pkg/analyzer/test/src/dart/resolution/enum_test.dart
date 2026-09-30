@@ -1428,6 +1428,13 @@ PrimaryConstructorDeclaration
         metadata
           Annotation
             atSign: @
+            expression: UnqualifiedNameExpression
+              name: foo
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@enum::A::@getter::foo
+                invokeType: int Function()
+                type: int
+              staticType: int
             name: SimpleIdentifier
               token: foo
               element: <testLibrary>::@enum::A::@getter::foo
@@ -1817,6 +1824,13 @@ PrimaryConstructorDeclaration
         metadata
           Annotation
             atSign: @
+            expression: UnqualifiedNameExpression
+              name: foo
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@getter::foo
+                invokeType: int Function()
+                type: int
+              staticType: int
             name: SimpleIdentifier
               token: foo
               element: <testLibrary>::@getter::foo
@@ -1835,6 +1849,13 @@ PrimaryConstructorDeclaration
           metadata
             Annotation
               atSign: @
+              expression: UnqualifiedNameExpression
+                name: foo
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@enum::A::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo
                 element: <testLibrary>::@enum::A::@getter::foo
@@ -2174,6 +2195,13 @@ PrimaryConstructorBody
   metadata
     Annotation
       atSign: @
+      expression: UnqualifiedNameExpression
+        name: deprecated
+        resolution: GetterInvocationResolution
+          element: dart:core::@getter::deprecated
+          invokeType: Deprecated Function()
+          type: Deprecated
+        staticType: Deprecated
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
@@ -2202,6 +2230,13 @@ PrimaryConstructorBody
   metadata
     Annotation
       atSign: @
+      expression: UnqualifiedNameExpression
+        name: deprecated
+        resolution: GetterInvocationResolution
+          element: dart:core::@getter::deprecated
+          invokeType: Deprecated Function()
+          type: Deprecated
+        staticType: Deprecated
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
