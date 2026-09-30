@@ -143,6 +143,16 @@ const MessageCode assignmentToPrimaryConstructorParameter = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode augmentationExtendsClauseAlreadyPresent = const MessageCode(
+  "AugmentationExtendsClauseAlreadyPresent",
+  sharedCode: SharedCode.augmentationExtendsClauseAlreadyPresent,
+  problemMessage:
+      """The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.""",
+  correctionMessage:
+      """Try removing the 'extends' clause, either here or in the augmentation target.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitAsIdentifier = const MessageCode(
   "AwaitAsIdentifier",
   pseudoSharedCode: PseudoSharedCode.asyncKeywordUsedAsIdentifier,
@@ -3176,6 +3186,7 @@ enum SharedCode {
   annotationWithTypeArgumentsUninstantiated,
   anonymousMethodWrongParameterList,
   assignmentToPrimaryConstructorParameter,
+  augmentationExtendsClauseAlreadyPresent,
   baseEnum,
   binaryOperatorWrittenOut,
   breakOutsideOfLoop,

@@ -92,7 +92,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
     required super.modifiers,
   }) : _underscoreEnumTypeBuilder = underscoreEnumTypeBuilder,
        _introductory = introductory,
-       _enumElements = enumElements;
+       _enumElements = enumElements,
+       super(supertypeBuilder: underscoreEnumTypeBuilder);
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {

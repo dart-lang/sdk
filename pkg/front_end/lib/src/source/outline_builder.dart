@@ -2841,17 +2841,16 @@ class OutlineBuilder extends StackListenerImpl {
       Identifier identifier = name as Identifier;
       String classNameForErrors = identifier.name;
       List<TypeBuilder> mixins = mixinApplication as List<TypeBuilder>;
-      if (supertype is TypeBuilder) {
-        if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
-          _compilationUnit.addProblem(
-            diag.nullableSuperclassError.withArguments(
-              supertypeName: supertype.fullNameForErrors,
-            ),
-            identifier.nameOffset,
-            classNameForErrors.length,
-            uri,
-          );
-        }
+      supertype as TypeBuilder;
+      if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
+        _compilationUnit.addProblem(
+          diag.nullableSuperclassError.withArguments(
+            supertypeName: supertype.fullNameForErrors,
+          ),
+          identifier.nameOffset,
+          classNameForErrors.length,
+          uri,
+        );
       }
       for (TypeBuilder mixin in mixins) {
         if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
@@ -2891,7 +2890,7 @@ class OutlineBuilder extends StackListenerImpl {
         name: identifier.name,
         typeParameters: typeParameters?.fragments,
         modifiers: modifiers,
-        supertype: supertype as TypeBuilder?,
+        supertype: supertype,
         mixins: mixins,
         interfaces: interfaces,
         startOffset: startOffset,
@@ -4774,7 +4773,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
-    if (!libraryFeatures.constFunctions.isEnabled) {
+    if (!libraryFeatures.constFunctions.isEnabled &&
+        !libraryFeatures.augmentations.isEnabled) {
       handleRecoverableError(diag.constFactory, constKeyword, constKeyword);
     }
   }

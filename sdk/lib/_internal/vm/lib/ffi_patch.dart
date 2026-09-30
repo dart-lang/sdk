@@ -393,7 +393,7 @@ final class _NativeCallableIsolateGroupBound<T extends Function>
 
 @patch
 @pragma("vm:entry-point")
-final class Array<T extends NativeType> extends _Compound {
+final class Array<T extends NativeType> {
   /// The size of the current dimension.
   ///
   /// This is variable if [_variableLength] is true.

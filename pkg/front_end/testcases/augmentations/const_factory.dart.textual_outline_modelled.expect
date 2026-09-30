@@ -1,0 +1,29 @@
+class C1 {
+  @annotation
+  augment const factory fact(int v);
+  const factory fact(int v) = C1.named;
+  const new named(this.v);
+  final int v;
+}
+
+class C2 {
+  augment const factory fact(int v) = C2.foo;
+  @annotation
+  const factory fact(int v);
+  const new foo(this.v);
+  final int v;
+}
+
+const annotation = 0;
+
+extension type const ET1(int v) {
+  @annotation
+  augment const factory fact(int v);
+  const factory fact(int v) = ET1.new;
+}
+
+extension type const ET2(int v) {
+  augment const factory fact(int v) = ET2.new;
+  @annotation
+  const factory fact(int v);
+}

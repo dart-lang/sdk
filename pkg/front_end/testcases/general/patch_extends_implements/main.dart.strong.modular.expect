@@ -6,12 +6,6 @@ library;
 //   new Class1a();
 //       ^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extends_implements/main.dart:11:24: Error: A value of type 'Class2b' can't be assigned to a variable of type 'SuperClass'.
-//  - 'Class2b' is from 'dart:test'.
-//  - 'SuperClass' is from 'dart:test'.
-//   SuperClass c2b = new Class2b();
-//                        ^
-//
 // pkg/front_end/testcases/general/patch_extends_implements/main.dart:13:23: Error: A value of type 'Class3b' can't be assigned to a variable of type 'Interface'.
 //  - 'Class3b' is from 'dart:test'.
 //  - 'Interface' is from 'dart:test'.
@@ -33,11 +27,7 @@ static method test() → dynamic {
   invalid-expression "The class 'Class1a' is abstract and can't be instantiated.";
   new test::Class1b::•();
   test::SuperClass c2a = new test::Class2a::•();
-  test::SuperClass c2b = invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/main.dart:11:24: Error: A value of type 'Class2b' can't be assigned to a variable of type 'SuperClass'.
- - 'Class2b' is from 'dart:test'.
- - 'SuperClass' is from 'dart:test'.
-  SuperClass c2b = new Class2b();
-                       ^" in new test::Class2b::•() as{TypeError} test::SuperClass;
+  test::SuperClass c2b = new test::Class2b::•();
   test::Interface c3a = new test::Class3a::•();
   test::Interface c3b = invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/main.dart:13:23: Error: A value of type 'Class3b' can't be assigned to a variable of type 'Interface'.
  - 'Class3b' is from 'dart:test'.
@@ -117,9 +107,9 @@ class Class2a extends test::SuperClass {
     ;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C1
-class Class2b extends core::Object {
+class Class2b extends test::SuperClass {
   synthetic constructor •() → test::Class2b
-    : super core::Object::•()
+    : super test::SuperClass::•()
     ;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C1

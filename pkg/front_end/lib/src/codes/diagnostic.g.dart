@@ -263,6 +263,14 @@ Message _withArgumentsArgumentTypeNotAssignable({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode augmentationExtendsClassAlreadyPresentCause =
+    const MessageCode(
+      "AugmentationExtendsClassAlreadyPresentCause",
+      severity: CfeSeverity.context,
+      problemMessage: """The previous 'extends' clause.""",
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitInLateLocalInitializer = const MessageCode(
   "AwaitInLateLocalInitializer",
   problemMessage:

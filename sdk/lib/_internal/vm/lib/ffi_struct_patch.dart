@@ -16,13 +16,13 @@ final class _Compound implements NativeType {}
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
 @patch
-abstract base class Struct extends _Compound implements SizedNativeType {}
+abstract base class Struct implements SizedNativeType {}
 
 @pragma("vm:deeply-immutable") // subclassing special-cased in validator
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")
 @patch
-abstract base class Union extends _Compound implements SizedNativeType {}
+abstract base class Union implements SizedNativeType {}
 
 @pragma("vm:entry-point")
 @pragma("wasm:entry-point")

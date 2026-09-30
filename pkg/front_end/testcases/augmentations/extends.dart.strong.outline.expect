@@ -1,0 +1,67 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/augmentations/extends.dart:10:25: Error: The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+// Try removing the 'extends' clause, either here or in the augmentation target.
+// augment class C extends A; // Error
+//                         ^
+// pkg/front_end/testcases/augmentations/extends.dart:9:17: Context: The previous 'extends' clause.
+// class C extends A;
+//                 ^
+//
+// pkg/front_end/testcases/augmentations/extends.dart:14:25: Error: The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+// Try removing the 'extends' clause, either here or in the augmentation target.
+// augment class D extends A; // Error
+//                         ^
+// pkg/front_end/testcases/augmentations/extends.dart:13:25: Context: The previous 'extends' clause.
+// augment class D extends A;
+//                         ^
+//
+// pkg/front_end/testcases/augmentations/extends.dart:17:25: Error: The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+// Try removing the 'extends' clause, either here or in the augmentation target.
+// augment class E extends B; // Error
+//                         ^
+// pkg/front_end/testcases/augmentations/extends.dart:16:17: Context: The previous 'extends' clause.
+// class E extends A;
+//                 ^
+//
+// pkg/front_end/testcases/augmentations/extends.dart:21:25: Error: The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
+// Try removing the 'extends' clause, either here or in the augmentation target.
+// augment class F extends B; // Error
+//                         ^
+// pkg/front_end/testcases/augmentations/extends.dart:20:25: Context: The previous 'extends' clause.
+// augment class F extends A;
+//                         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    ;
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    ;
+}
+class C extends self::A {
+  synthetic constructor •() → self::C
+    ;
+}
+class D extends self::A {
+  synthetic constructor •() → self::D
+    ;
+}
+class E extends self::A {
+  synthetic constructor •() → self::E
+    ;
+}
+class F extends self::A {
+  synthetic constructor •() → self::F
+    ;
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

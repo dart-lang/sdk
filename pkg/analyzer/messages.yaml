@@ -1867,13 +1867,6 @@ CompileTimeErrorCode:
         }
       }
       ```
-  augmentationExtendsClauseAlreadyPresent:
-    type: compileTimeError
-    parameters: none
-    experiment: augmentations
-    problemMessage: The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.
-    correctionMessage: Try removing the 'extends' clause, either here or in the augmentation target.
-    hasPublishedDocs: false
   augmentationModifierExtra:
     type: compileTimeError
     parameters:
