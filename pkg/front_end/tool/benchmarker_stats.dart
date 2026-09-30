@@ -25,6 +25,10 @@ class Comparison {
   /// The half-width of the confidence interval for [diff].
   final double confidence;
 
+  /// For a paired comparison, the standard deviation of the per-pair
+  /// differences; `null` for an unpaired comparison.
+  final double? diffStdDev;
+
   new({
     required this.fromCount,
     required this.toCount,
@@ -34,6 +38,7 @@ class Comparison {
     required this.toStdDev,
     required this.diff,
     required this.confidence,
+    this.diffStdDev,
   });
 
   /// [confidence] expressed as a percentage of [fromMean], or `null` if
@@ -75,5 +80,40 @@ Comparison compareUnpaired(List<num> from, List<num> to) {
     toStdDev: math.sqrt(toVariance),
     diff: toMean - fromMean,
     confidence: confidence,
+  );
+}
+
+/// Compares [from] and [to] as paired samples (`from[i]` and `to[i]` were
+/// measured in the same round), using a two-sided paired t-test at the 95%
+/// confidence level.
+///
+/// The test is done on the per-pair differences `to[i] - from[i]`, so
+/// anything that affects both measurements in a pair equally (such as slow
+/// drift in the machine's performance, when the runs are interleaved)
+/// cancels out.
+Comparison comparePaired(List<num> from, List<num> to) {
+  if (from.length != to.length) {
+    throw new ArgumentError(
+      "Paired samples must have the same length "
+      "(got ${from.length} and ${to.length}).",
+    );
+  }
+  int count = from.length;
+  List<num> diffs = [for (int i = 0; i < count; i++) to[i] - from[i]];
+  double diffMean = SimpleTTestStat.average(diffs);
+  double diffStdDev = math.sqrt(SimpleTTestStat.variance(diffs));
+  double standardError = diffStdDev / math.sqrt(count);
+  double confidence =
+      SimpleTTestStat.tTableTwoTails_0_05(count - 1) * standardError;
+  return new Comparison(
+    fromCount: count,
+    toCount: count,
+    fromMean: SimpleTTestStat.average(from),
+    toMean: SimpleTTestStat.average(to),
+    fromStdDev: math.sqrt(SimpleTTestStat.variance(from)),
+    toStdDev: math.sqrt(SimpleTTestStat.variance(to)),
+    diff: diffMean,
+    confidence: confidence,
+    diffStdDev: diffStdDev,
   );
 }

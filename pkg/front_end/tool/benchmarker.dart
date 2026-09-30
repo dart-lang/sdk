@@ -99,8 +99,10 @@ void main(List<String> args) {
       "Interleaving runs in random order "
       "(seed $seed; pass --seed=$seed to reproduce).",
     );
+    print("Results use a paired t-test on the per-round differences.");
   } else {
     print("Not interleaving runs.");
+    print("Results use an unpaired t-test.");
   }
   RawOutput? rawOutput = rawOutputPath == null
       ? null
@@ -334,6 +336,10 @@ void _doRun(
   }
   stdout.write("\n\n");
 
+  // When the runs are interleaved, the i'th run of each snapshot was done in
+  // the same round, so the measurements can be compared pairwise, which
+  // cancels out drift in the machine's performance.
+  bool paired = random != null;
   List<Map<String, num>> firstSnapshotResults = runResults.first;
   String snapshot1Name = _getName(snapshots[0]);
   if (snapshotSpecificArguments[0].isNotEmpty) {
@@ -350,7 +356,12 @@ void _doRun(
       "snapshot #${i + 1} ($comparedToSnapshotName)",
     );
     List<Map<String, num>> compareToResults = runResults[i];
-    if (!_compare(firstSnapshotResults, compareToResults, showAll: showAll)) {
+    if (!_compare(
+      firstSnapshotResults,
+      compareToResults,
+      showAll: showAll,
+      paired: paired,
+    )) {
       print("No change.");
     }
     if (gcRuns >= 3) {
@@ -360,6 +371,7 @@ void _doRun(
         gcInfos[0].map((gcInfo) => gcInfo.combinedTime).toList(),
         "Combined GC time",
         showAll: showAll,
+        paired: paired,
       )) {
         print("No change in combined time.");
       }
@@ -448,8 +460,10 @@ void _help() {
   print("  --no-interleave");
   print("    By default, the runs are interleaved: each round runs every");
   print("    snapshot once, in a random order, so that slow drift in the");
-  print("    machine's performance affects all snapshots equally. With this");
-  print("    option, all runs of one snapshot are done before the next.");
+  print("    machine's performance affects all snapshots equally, and the");
+  print("    results are computed with a paired t-test on the per-round");
+  print("    differences. With this option, all runs of one snapshot are");
+  print("    done before the next, and an unpaired t-test is used.");
   print("");
   print("  --seed=<n>");
   print("    Seed for the random order of interleaved runs (by default a");
@@ -461,13 +475,22 @@ bool compare(
   List<Map<String, num>> to, {
   bool showAll = false,
 }) {
-  return _compare(from, to, showAll: showAll);
+  return _compare(from, to, showAll: showAll, paired: false);
 }
 
+/// Compares the measurements in [from] and [to], printing the metrics that
+/// changed significantly (or all metrics if [showAll] is `true`).
+///
+/// If [paired] is `true`, `from[i]` and `to[i]` must have been measured in
+/// the same round, and a paired t-test is used. Otherwise the two lists are
+/// treated as independent samples.
+///
+/// Returns whether any metric changed significantly.
 bool _compare(
   List<Map<String, num>> from,
   List<Map<String, num>> to, {
   required bool showAll,
+  required bool paired,
 }) {
   bool somethingWasSignificant = false;
   Set<String> allCaptions = {};
@@ -475,8 +498,18 @@ bool _compare(
     allCaptions.addAll(entry.keys);
   }
   for (String caption in allCaptions) {
-    List<num> fromForCaption = _extractDataForCaption(caption, from);
-    List<num> toForCaption = _extractDataForCaption(caption, to);
+    List<num> fromForCaption;
+    List<num> toForCaption;
+    if (paired) {
+      (fromForCaption, toForCaption) = _extractPairedDataForCaption(
+        caption,
+        from,
+        to,
+      );
+    } else {
+      fromForCaption = _extractDataForCaption(caption, from);
+      toForCaption = _extractDataForCaption(caption, to);
+    }
     if (caption.startsWith("context-switches") ||
         caption.startsWith("cpu-migrations")) {
       // These are seemingly always 0 --- if they're not we'll print a warning.
@@ -491,11 +524,14 @@ bool _compare(
       }
     }
     if (fromForCaption.isEmpty || toForCaption.isEmpty) continue;
+    // A paired t-test needs at least two pairs to estimate the variance.
+    if (paired && fromForCaption.length < 2) continue;
     somethingWasSignificant |= _compareSingle(
       toForCaption,
       fromForCaption,
       caption,
       showAll: showAll,
+      paired: paired,
     );
   }
   return somethingWasSignificant;
@@ -504,14 +540,20 @@ bool _compare(
 /// Compares [to] against [from] for the metric [caption], printing the
 /// result if it is significant (or if [showAll] is `true`).
 ///
+/// If [paired] is `true`, `from[i]` and `to[i]` must have been measured in
+/// the same round, and a paired t-test is used.
+///
 /// Returns whether the result was significant.
 bool _compareSingle(
   List<num> to,
   List<num> from,
   String caption, {
   bool showAll = false,
+  bool paired = false,
 }) {
-  Comparison comparison = compareUnpaired(from, to);
+  Comparison comparison = paired
+      ? comparePaired(from, to)
+      : compareUnpaired(from, to);
   if (comparison.significant || showAll) {
     StringBuffer line = new StringBuffer(
       "$caption: "
@@ -525,8 +567,13 @@ bool _compareSingle(
     if (showAll) {
       line.write(
         " (sd: ${comparison.fromStdDev.toStringAsFixed(2)} / "
-        "${comparison.toStdDev.toStringAsFixed(2)})",
+        "${comparison.toStdDev.toStringAsFixed(2)}",
       );
+      double? diffStdDev = comparison.diffStdDev;
+      if (diffStdDev != null) {
+        line.write("; sd of diff: ${diffStdDev.toStringAsFixed(2)}");
+      }
+      line.write(")");
       line.write(
         comparison.significant ? " [significant]" : " [not significant]",
       );
@@ -546,6 +593,28 @@ List<num> _extractDataForCaption(String caption, List<Map<String, num>> data) {
     if (value != null) result.add(value);
   }
   return result;
+}
+
+/// Extracts the values for [caption] from [from] and [to], keeping only the
+/// rounds where both have a value, so that the returned lists stay aligned
+/// (the i'th element of each list comes from the same round).
+(List<num>, List<num>) _extractPairedDataForCaption(
+  String caption,
+  List<Map<String, num>> from,
+  List<Map<String, num>> to,
+) {
+  List<num> fromResult = [];
+  List<num> toResult = [];
+  int count = min(from.length, to.length);
+  for (int i = 0; i < count; i++) {
+    num? fromValue = from[i][caption];
+    num? toValue = to[i][caption];
+    if (fromValue != null && toValue != null) {
+      fromResult.add(fromValue);
+      toResult.add(toValue);
+    }
+  }
+  return (fromResult, toResult);
 }
 
 Map<String, num> benchmark(

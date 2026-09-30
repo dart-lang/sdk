@@ -50,6 +50,7 @@ annoying
 anon
 aoo
 aotruntime
+apart
 applier
 approval
 approve
@@ -260,6 +261,7 @@ descending
 descriptors
 deviation
 deviations
+df
 dfast
 dfuzz
 di
@@ -448,6 +450,7 @@ hover
 hunk
 hurray
 i'm
+i'th
 ia
 icache
 identification
@@ -767,6 +770,7 @@ revisions
 risky
 rk
 rnone
+rounds
 route
 routines
 row
@@ -818,6 +822,7 @@ sidebar
 sided
 sigint
 signalled
+significantly
 sigterm
 sigwinch
 silence
