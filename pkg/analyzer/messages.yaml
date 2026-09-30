@@ -1387,7 +1387,7 @@ CompileTimeErrorCode:
     parameters:
       Type receiverType: the name of the type of the receiver
       Type parameterType: the name of the declared parameter type
-    experiment: anonymous-methods
+    experiments: anonymous-methods
     problemMessage: The receiver type '#receiverType' must be assignable to the formal parameter type '#parameterType' in an anonymous method.
     correctionMessage: Try removing the parameter type, or make it a supertype of the receiver type.
     hasPublishedDocs: false
@@ -1871,7 +1871,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String modifier: the lexeme of the modifier.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: The augmentation has the '#modifier' modifier that the declaration doesn't have.
     correctionMessage: Try removing the '#modifier' modifier, or adding it to the declaration.
     hasPublishedDocs: false
@@ -1879,7 +1879,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String modifier: the lexeme of the modifier.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: The augmentation is missing the '#modifier' modifier that the declaration has.
     correctionMessage: Try adding the '#modifier' modifier, or removing it from the declaration.
     hasPublishedDocs: false
@@ -1887,7 +1887,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the formal parameter.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The augmentation has a named formal parameter '#name', but the declaration doesn't."
     correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
     hasPublishedDocs: false
@@ -1895,7 +1895,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the formal parameter.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The augmentation is missing the named formal parameter '#name' from the declaration."
     correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
     hasPublishedDocs: false
@@ -1904,7 +1904,7 @@ CompileTimeErrorCode:
     parameters:
       int expectedCount: the number of optional positional formal parameters in the declaration.
       int actualCount: the number of optional positional formal parameters in the augmentation.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The augmentation has #actualCount optional positional formal parameters, but the declaration has #expectedCount."
     correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
     hasPublishedDocs: false
@@ -1912,7 +1912,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String modifier: the lexeme of the modifier.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The augmentation has the '#modifier' modifier on this formal parameter, but the declaration doesn't."
     correctionMessage: "Try removing the '#modifier' modifier, or adding it to the declaration."
     hasPublishedDocs: false
@@ -1920,7 +1920,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String modifier: the lexeme of the modifier.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The augmentation is missing the '#modifier' modifier on this formal parameter that the declaration has."
     correctionMessage: "Try adding the '#modifier' modifier, or removing it from the declaration."
     hasPublishedDocs: false
@@ -1929,7 +1929,7 @@ CompileTimeErrorCode:
     parameters:
       Type expectedType: the type of the formal parameter in the declaration.
       Type actualType: the type of the formal parameter in the augmentation.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The augmentation's formal parameter type '#actualType' must be the same as the declaration's formal parameter type '#expectedType'."
     correctionMessage: Try changing the augmentation's formal parameter type to match the declaration, or omit the type.
     hasPublishedDocs: false
@@ -1938,7 +1938,7 @@ CompileTimeErrorCode:
     parameters:
       String expectedName: the name from a preceding declaration.
       String actualName: the name in the augmentation.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The parameter name '#actualName' must either match the name '#expectedName' from a preceding declaration or be '_'."
     correctionMessage: "Try changing the name to '#expectedName', or changing it to '_'."
     hasPublishedDocs: false
@@ -1947,28 +1947,28 @@ CompileTimeErrorCode:
     parameters:
       String declarationKind: the name of the declaration kind.
       String augmentationKind: the name of the augmentation kind.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "Can't augment a #declarationKind with a #augmentationKind."
     correctionMessage: Try changing the augmentation to match the declaration kind.
     hasPublishedDocs: false
   augmentationTypeParameterBound:
     type: compileTimeError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: The augmentation type parameter must have the same bound as the corresponding type parameter of the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
   augmentationTypeParameterCount:
     type: compileTimeError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: The augmentation must have the same number of type parameters as the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
   augmentationTypeParameterName:
     type: compileTimeError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: The augmentation type parameter must have the same name as the corresponding type parameter of the declaration.
     correctionMessage: Try changing the augmentation to match the declaration type parameters.
     hasPublishedDocs: false
@@ -1977,14 +1977,14 @@ CompileTimeErrorCode:
     parameters:
       Type getterType: the return type of the getter being augmented
       Type setterType: the parameter type of the setter being augmented
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The getter and setter augmented by this variable have different types: '#getterType' and '#setterType'."
     correctionMessage: Try changing the getter and setter to have the same type.
     hasPublishedDocs: false
   augmentationWithoutDeclaration:
     type: compileTimeError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
     hasPublishedDocs: false
@@ -1993,7 +1993,7 @@ CompileTimeErrorCode:
     parameters:
       String name: the name of the getter
     sharedName: augmentationWithoutDeclaration
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "This augmentation induces a getter, but no getter declaration named '#name' exists to augment."
     correctionMessage: Try changing the augmentation to match an existing getter declaration.
     hasPublishedDocs: false
@@ -2002,14 +2002,14 @@ CompileTimeErrorCode:
     parameters:
       String name: the name of the setter
     sharedName: augmentationWithoutDeclaration
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "This augmentation induces a setter, but no setter declaration named '#name' exists to augment."
     correctionMessage: Try changing the augmentation to match an existing setter declaration.
     hasPublishedDocs: false
   augmentationOfMixinApplicationClass:
     type: compileTimeError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "Mixin application classes can't be augmented."
     correctionMessage: Try removing the 'augment' keyword, or making the target a normal class.
     hasPublishedDocs: false
@@ -2018,7 +2018,7 @@ CompileTimeErrorCode:
     parameters:
       int expectedCount: the number of required positional formal parameters in the declaration.
       int actualCount: the number of required positional formal parameters in the augmentation.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The augmentation has #actualCount required positional formal parameters, but the declaration has #expectedCount."
     correctionMessage: Try changing the augmentation's formal parameters to match the declaration.
     hasPublishedDocs: false
@@ -2028,7 +2028,7 @@ CompileTimeErrorCode:
       Type expectedType: the return type of the getter being augmented
       Type actualType: the return type of the induced getter
     sharedName: augmentationReturnTypeMismatch
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The getter induced by this augmentation has return type '#actualType', but the getter being augmented has return type '#expectedType'."
     correctionMessage: Try changing the augmentation's type to match the getter being augmented.
     hasPublishedDocs: false
@@ -2036,7 +2036,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters: none
     sharedName: declarationAlreadyComplete
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The getter induced by this augmentation is complete, but the getter being augmented is already complete."
     correctionMessage: Try removing the augmentation, or making one of the declarations 'abstract'.
     hasPublishedDocs: false
@@ -2044,7 +2044,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters: none
     sharedName: declarationAlreadyComplete
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The setter induced by this augmentation is complete, but the setter being augmented is already complete."
     correctionMessage: Try removing the augmentation, or making one of the declarations 'abstract'.
     hasPublishedDocs: false
@@ -2053,21 +2053,21 @@ CompileTimeErrorCode:
     parameters:
       Type expectedType: the return type of the declaration
       Type actualType: the return type of the augmentation
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The augmentation's return type '#actualType' must be the same as the introductory declaration's return type '#expectedType'."
     correctionMessage: Try changing the augmentation's return type to match the declaration.
     hasPublishedDocs: false
   augmentedExpressionIsNotSetter:
     type: compileTimeError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: The augmented declaration is not a setter, it can't be used to write a value.
     correctionMessage: Try assigning a value to a setter.
     hasPublishedDocs: false
   augmentedExpressionIsSetter:
     type: compileTimeError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: The augmented declaration is a setter, it can't be used to read a value.
     correctionMessage: Try assigning a value to the augmented setter.
     hasPublishedDocs: false
@@ -2075,14 +2075,14 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String operator: the lexeme of the operator.
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: The enclosing augmentation doesn't augment the operator '#operator'.
     correctionMessage: Try augmenting or invoking the correct operator.
     hasPublishedDocs: false
   augmentsConstantVariable:
     type: compileTimeError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "Const variables can't be augmented."
     correctionMessage: "Try removing the augmentation, or changing the const variable to a final variable."
     hasPublishedDocs: false
@@ -4321,7 +4321,7 @@ CompileTimeErrorCode:
   constantVariableAugmentation:
     type: compileTimeError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "Variable augmentations can't be const."
     correctionMessage: "Try replacing 'const' with 'final'."
     hasPublishedDocs: false
@@ -4652,7 +4652,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters: none
     sharedName: declarationAlreadyComplete
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The augmentation can't provide a body, initializers, or initializing formal or super formal parameters because the constructor is already complete."
     correctionMessage: "Try removing the body, initializers, or initializing formal or super formal parameters from the augmentation, or removing the body, initializers, or initializing formal or super formal parameters from the preceding declaration."
     hasPublishedDocs: false
@@ -5270,7 +5270,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters: none
     sharedName: declarationAlreadyComplete
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The augmentation can't provide a body because the function or member is already complete."
     correctionMessage: "Try removing the body from the augmentation, or removing the body from the preceding declaration."
     hasPublishedDocs: false
@@ -5278,7 +5278,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the function, method, getter, or setter
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The function or member '#name' must have a body after all augmentations are applied."
     correctionMessage: "Try adding a body to the introductory declaration, or providing an augmentation with a body."
     hasPublishedDocs: false
@@ -5286,7 +5286,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the variable inducing the getter
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The getter induced by '#name' must have a body."
     correctionMessage: "Try removing 'abstract' and adding an initializer."
     hasPublishedDocs: false
@@ -5294,7 +5294,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the variable inducing the setter
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The setter induced by '#name' must have a body."
     correctionMessage: "Try removing 'abstract' and adding an initializer."
     hasPublishedDocs: false
@@ -5302,7 +5302,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the variable inducing the getter
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The getter induced by '#name' must have a body after all augmentations are applied."
     correctionMessage: "Try adding an initializer or providing an augmentation with a getter body."
     hasPublishedDocs: false
@@ -5310,7 +5310,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the variable inducing the setter
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The setter induced by '#name' must have a body after all augmentations are applied."
     correctionMessage: "Try adding an initializer or providing an augmentation with a setter body."
     hasPublishedDocs: false
@@ -5318,14 +5318,14 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the factory constructor
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The factory constructor '#name' must have a body or redirection after all augmentations are applied."
     correctionMessage: "Try adding a body or redirection to the introductory declaration, or providing an augmentation with a body or redirection."
     hasPublishedDocs: false
   defaultValueAlreadySpecifiedInAugmentationChain:
     type: compileTimeError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: "The default value for this optional parameter was already specified in the augmentation chain."
     correctionMessage: "Try removing all but one of the default values."
     hasPublishedDocs: false
@@ -23616,7 +23616,7 @@ ParserErrorCode:
   invalidUseOfIdentifierAugmented:
     type: syntacticError
     parameters: none
-    experiment: augmentations
+    experiments: augmentations
     problemMessage: The identifier 'augmented' can only be used to reference the augmented declaration inside an augmentation.
     correctionMessage: Try using a different identifier.
     hasPublishedDocs: false

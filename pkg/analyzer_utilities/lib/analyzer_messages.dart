@@ -452,18 +452,14 @@ class AnalyzerMessage extends Message with MessageWithAnalyzerCode {
   }
 
   new internal(
-    MessageYaml messageYaml, {
+    super.messageYaml, {
     required this.analyzerCode,
     required this.package,
   }) : hasPublishedDocs = messageYaml.getBool('hasPublishedDocs'),
        type = messageYaml.get(
          'type',
          decode: MessageWithAnalyzerCode.decodeType,
-       ),
-       super(messageYaml) {
-    // Ignore extra keys related to analyzer example-based tests.
-    messageYaml.allowExtraKeys({'experiment'});
-  }
+       );
 }
 
 /// Description of the set of base messages classes used for a certain message

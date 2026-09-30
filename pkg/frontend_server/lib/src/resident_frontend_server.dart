@@ -39,6 +39,8 @@ import '../resident_frontend_server_utils.dart'
 /// Mostly used when debugging.
 StreamSubscription<ProcessSignal>? _cleanupHandler;
 
+Completer<dynamic>? _currentlyHandling;
+
 extension on DateTime {
   /// Truncates by 1 second.
   ///
@@ -928,19 +930,36 @@ Future<StreamSubscription<Socket>?> residentListenAndCompile(
     (client) {
       client.listen(
         (Uint8List data) async {
-          String result = await ResidentFrontendServer.handleRequest(
-            utf8.decode(data),
-          );
-          client.write(result);
-          shutdownTimer.cancel();
-          if (result == ResidentFrontendServer._shutdownJsonResponse) {
-            await residentServerCleanup(server, serverInfoFile);
-          } else {
-            shutdownTimer = startShutdownTimer(
-              inactivityTimeout,
-              server,
-              serverInfoFile,
+          // Don't try to compile more than once thing at a time.
+          // Dart is single-threaded anyway so it won't compile faster, and if
+          // asking to compile the same thing twice will get into trouble with
+          // the cached compiler if we try.
+          while (_currentlyHandling != null) {
+            await _currentlyHandling!.future;
+          }
+          _currentlyHandling = new Completer();
+          bool restartShutdownTimer = true;
+          try {
+            shutdownTimer.cancel();
+            String result = await ResidentFrontendServer.handleRequest(
+              utf8.decode(data),
             );
+            client.write(result);
+            if (result == ResidentFrontendServer._shutdownJsonResponse) {
+              restartShutdownTimer = false;
+              await residentServerCleanup(server, serverInfoFile);
+            }
+          } finally {
+            if (restartShutdownTimer) {
+              shutdownTimer = startShutdownTimer(
+                inactivityTimeout,
+                server,
+                serverInfoFile,
+              );
+            }
+            Completer<dynamic> currentlyHandlingLocal = _currentlyHandling!;
+            _currentlyHandling = null;
+            currentlyHandlingLocal.complete();
           }
         },
         onError: (error) {
