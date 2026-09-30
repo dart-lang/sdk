@@ -446,6 +446,11 @@ Future<Process> startProcess(
     arguments = [executable, ...arguments];
     executable = oomHelper;
   }
+  // TODO(rmacnak): How to reliably find this? What should the limit's value be?
+  // if (Platform.isWindows) {
+  //   arguments = [executable, ...arguments];
+  //   executable = "out\\DebugX64\\job_helper.exe";
+  // }
   return Process.start(
     executable,
     arguments,
