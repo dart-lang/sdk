@@ -24,7 +24,11 @@ SocketAddress::SocketAddress(const RawAddr& addr) : addr_(addr) {
   if (addr.is_unnamed_unix_socket()) {
     as_string_[0] = 0;
   } else if (addr.ss.ss_family == AF_UNIX) {
-    memmove(as_string_, addr.un.sun_path, sizeof(addr.un.sun_path));
+    // getpeername()/getsockname() can return a sun_path that fills the whole
+    // field without a terminating NUL, so copy at most one byte less and
+    // terminate to keep as_string() a valid C string.
+    memmove(as_string_, addr.un.sun_path, sizeof(as_string_) - 1);
+    as_string_[sizeof(as_string_) - 1] = '\0';
   } else {
     int err = SocketBase::FormatNumericAddress(addr, as_string_,
                                                kMaxAddressStringLength);
