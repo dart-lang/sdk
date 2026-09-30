@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:convert";
 import "dart:io";
 
 import '../test/simple_stats.dart';
@@ -20,6 +21,7 @@ void main(List<String> args) {
   int gcRuns = 1;
   String? aotRuntime;
   String? checkFileSize;
+  String? rawOutputPath;
   List<String> snapshots = [];
   List<List<String>> snapshotSpecificArguments = [];
   List<String> arguments = [];
@@ -52,6 +54,11 @@ void main(List<String> args) {
       doDisabledGcBenchmarkToo = true;
     } else if (arg == "--silent") {
       silent = true;
+    } else if (arg.startsWith("--raw-output=")) {
+      rawOutputPath = arg.substring("--raw-output=".length);
+      if (rawOutputPath.isEmpty) {
+        throw "--raw-output requires a file name (e.g. --raw-output=out.json).";
+      }
     } else {
       throw "Don't know argument '$arg'";
     }
@@ -72,6 +79,15 @@ void main(List<String> args) {
   while (snapshotSpecificArguments.length < snapshots.length) {
     snapshotSpecificArguments.add([]);
   }
+  RawOutput? rawOutput = rawOutputPath == null
+      ? null
+      : new RawOutput(
+          commandLineArguments: args,
+          snapshots: snapshots,
+          snapshotSpecificArguments: snapshotSpecificArguments,
+          arguments: arguments,
+          core: core,
+        );
 
   _doRun(
     iterations,
@@ -84,6 +100,8 @@ void main(List<String> args) {
     cacheBenchmarking: false,
     silent: silent,
     gcRuns: gcRuns,
+    rawOutput: rawOutput,
+    phase: "default",
   );
   if (doCacheBenchmarkingToo) {
     print("");
@@ -98,6 +116,8 @@ void main(List<String> args) {
       cacheBenchmarking: true,
       silent: silent,
       gcRuns: gcRuns,
+      rawOutput: rawOutput,
+      phase: "cache",
     );
   }
   if (doDisabledGcBenchmarkToo) {
@@ -117,10 +137,18 @@ void main(List<String> args) {
         "--new_gen_semi_initial_size=10000",
         "--new_gen_semi_max_size=20000",
       ],
+      rawOutput: rawOutput,
+      phase: "no-gc",
     );
 
     // TODO(jensj): Should we do a (number of) run(s) where we measure memory
     // usage?
+  }
+
+  if (rawOutput != null) {
+    rawOutput.writeTo(rawOutputPath!);
+    print("");
+    print("Wrote raw measurements to $rawOutputPath");
   }
 }
 
@@ -136,6 +164,8 @@ void _doRun(
   required bool silent,
   required int gcRuns,
   List<String>? extraVmArguments,
+  RawOutput? rawOutput,
+  required String phase,
 }) {
   print(
     "Will now run $iterations+$gcRuns iterations with "
@@ -184,6 +214,7 @@ void _doRun(
       if (silent) {
         writes = _silentWrite(writes, lines);
       }
+      DateTime startTime = new DateTime.now();
       Map<String, num> benchmarkRun = _benchmark(
         aotRuntime,
         core,
@@ -201,6 +232,15 @@ void _doRun(
         }
       }
       snapshotResults.add(benchmarkRun);
+      rawOutput?.addRun(
+        phase: phase,
+        kind: "measure",
+        snapshotIndex: snapshotNum,
+        iteration: iteration,
+        startTime: startTime,
+        endTime: new DateTime.now(),
+        values: benchmarkRun,
+      );
     }
 
     // Do GC runs too.
@@ -208,8 +248,23 @@ void _doRun(
       if (silent) {
         writes = _silentWrite(writes, lines);
       }
-      gcInfo.add(
-        _verboseGcRun(aotRuntime, snapshot, [], usedArguments, silent: true),
+      DateTime startTime = new DateTime.now();
+      GCInfo info = _verboseGcRun(
+        aotRuntime,
+        snapshot,
+        [],
+        usedArguments,
+        silent: true,
+      );
+      gcInfo.add(info);
+      rawOutput?.addRun(
+        phase: phase,
+        kind: "gc",
+        snapshotIndex: snapshotNum,
+        iteration: i,
+        startTime: startTime,
+        endTime: new DateTime.now(),
+        values: {"combinedGcTimeMs": info.combinedTime, ...info.countWhat},
       );
     }
   }
@@ -309,6 +364,12 @@ void _help() {
   print("to compile compile.dart, then do statistics on the data returned");
   print("by `perf stat` where especially `instructions:u` and `branches:u`");
   print("has been observed to be stable.");
+  print("");
+  print("Additional options:");
+  print("");
+  print("  --raw-output=<file>");
+  print("    Write every individual measurement (with timestamps) to <file>");
+  print("    as JSON, for offline analysis.");
 }
 
 bool compare(List<Map<String, num>> from, List<Map<String, num>> to) {
@@ -639,6 +700,70 @@ class GCInfo {
   final Map<String, int> countWhat;
 
   new(this.combinedTime, this.countWhat);
+}
+
+/// Collects every individual measurement so that it can be written to a JSON
+/// file for offline analysis (e.g. plotting a metric against time to look for
+/// drift).
+class RawOutput {
+  final List<String> commandLineArguments;
+  final List<String> snapshots;
+  final List<List<String>> snapshotSpecificArguments;
+  final List<String> arguments;
+  final int core;
+  final DateTime startTime = new DateTime.now();
+  final List<Map<String, Object?>> _runs = [];
+
+  new({
+    required this.commandLineArguments,
+    required this.snapshots,
+    required this.snapshotSpecificArguments,
+    required this.arguments,
+    required this.core,
+  });
+
+  /// Records a single run.
+  ///
+  /// [phase] identifies which set of runs this belongs to (e.g. "default",
+  /// "cache" or "no-gc"), [kind] says what sort of run it was (e.g.
+  /// "measure" or "gc"), and [values] holds the counter values reported for
+  /// the run.
+  void addRun({
+    required String phase,
+    required String kind,
+    required int snapshotIndex,
+    required int iteration,
+    required DateTime startTime,
+    required DateTime endTime,
+    required Map<String, num> values,
+  }) {
+    _runs.add({
+      "sequence": _runs.length,
+      "phase": phase,
+      "kind": kind,
+      "snapshotIndex": snapshotIndex,
+      "snapshot": snapshots[snapshotIndex],
+      "iteration": iteration,
+      "startTime": startTime.toIso8601String(),
+      "endTime": endTime.toIso8601String(),
+      "values": values,
+    });
+  }
+
+  void writeTo(String path) {
+    Map<String, Object?> json = {
+      "commandLineArguments": commandLineArguments,
+      "snapshots": snapshots,
+      "snapshotSpecificArguments": snapshotSpecificArguments,
+      "arguments": arguments,
+      "core": core,
+      "startTime": startTime.toIso8601String(),
+      "endTime": new DateTime.now().toIso8601String(),
+      "runs": _runs,
+    };
+    new File(path)
+        .writeAsStringSync(new JsonEncoder.withIndent("  ").convert(json));
+  }
 }
 
 class Warnings {
