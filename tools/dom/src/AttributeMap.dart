@@ -25,7 +25,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     return false;
   }
 
-  String putIfAbsent(String key, String ifAbsent()) {
+  String putIfAbsent(String key, String Function() ifAbsent) {
     if (!containsKey(key)) {
       this[key] = ifAbsent();
     }
@@ -38,7 +38,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     }
   }
 
-  void forEach(void f(String key, String value)) {
+  void forEach(void Function(String key, String value) f) {
     for (var key in keys) {
       var value = this[key];
       f(key, value as String);
@@ -216,7 +216,7 @@ class _DataAttributeMap extends MapBase<String, String> {
     _attributes[_attr(key)] = value;
   }
 
-  String putIfAbsent(String key, String ifAbsent()) =>
+  String putIfAbsent(String key, String Function() ifAbsent) =>
       _attributes.putIfAbsent(_attr(key), ifAbsent);
 
   String? remove(Object? key) => _attributes.remove(_attr(key as String));
@@ -228,7 +228,7 @@ class _DataAttributeMap extends MapBase<String, String> {
     }
   }
 
-  void forEach(void f(String key, String value)) {
+  void forEach(void Function(String key, String value) f) {
     _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         f(_strip(key), value);

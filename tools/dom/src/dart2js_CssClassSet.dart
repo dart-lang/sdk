@@ -43,7 +43,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  modify(f(Set<String> s)) {
+  modify(void Function(Set<String> s) f) {
     _sets.forEach((CssClassSetImpl e) => e.modify(f));
   }
 
@@ -128,11 +128,11 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _removeWhere(_element, iterable.toSet().contains, false);
   }
 
-  void removeWhere(bool test(String name)) {
+  void removeWhere(bool Function(String name) test) {
     _removeWhere(_element, test, true);
   }
 
-  void retainWhere(bool test(String name)) {
+  void retainWhere(bool Function(String name) test) {
     _removeWhere(_element, test, false);
   }
 
@@ -201,7 +201,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
   }
 
   static void _removeWhere(
-      Element _element, bool test(String name), bool doRemove) {
+      Element _element, bool Function(String name) test, bool doRemove) {
     DomTokenList list = _classListOf(_element);
     int i = 0;
     while (i < _classListLength(list)) {

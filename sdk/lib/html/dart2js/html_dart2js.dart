@@ -122,7 +122,7 @@ class HtmlElement extends Element implements NoncedElement {
  * Emitted for any setlike IDL entry needs a callback signature.
  * Today there is only one.
  */
-typedef void FontFaceSetForEachCallback(
+typedef FontFaceSetForEachCallback = void Function(
   FontFace fontFace,
   FontFace fontFaceAgain,
   FontFaceSet set,
@@ -1624,7 +1624,7 @@ class Blob extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void BlobCallback(Blob? blob);
+typedef BlobCallback = void Function(Blob? blob);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -9086,7 +9086,7 @@ class CssurlImageValue extends CssImageValue {
 
 // https://dvcs.w3.org/hg/webcomponents/raw-file/tip/spec/custom/index.html#dfn-custom-element-constructor-generation
 @deprecated // experimental
-typedef void CustomElementConstructor();
+typedef CustomElementConstructor = void Function();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -9365,14 +9365,14 @@ class DataTransferItemList extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void DecodeErrorCallback(DomException error);
+typedef DecodeErrorCallback = void Function(DomException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef void DecodeSuccessCallback(AudioBuffer decodedData);
+typedef DecodeSuccessCallback = void Function(AudioBuffer decodedData);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -12137,7 +12137,7 @@ class _ChildrenElementList extends ListBase<Element>
     }
   }
 
-  void sort([int compare(Element a, Element b)?]) {
+  void sort([int Function(Element a, Element b)? compare]) {
     throw new UnsupportedError('Cannot sort element lists');
   }
 
@@ -12145,15 +12145,15 @@ class _ChildrenElementList extends ListBase<Element>
     throw new UnsupportedError('Cannot shuffle element lists');
   }
 
-  void removeWhere(bool test(Element element)) {
+  void removeWhere(bool Function(Element element) test) {
     _filter(test, false);
   }
 
-  void retainWhere(bool test(Element element)) {
+  void retainWhere(bool Function(Element element) test) {
     _filter(test, true);
   }
 
-  void _filter(bool test(Element element), bool retainMatching) {
+  void _filter(bool Function(Element element) test, bool retainMatching) {
     Iterable<Element> removed;
     if (retainMatching) {
       removed = _element.children.where((e) => !test(e));
@@ -15738,7 +15738,7 @@ class EmbedElement extends HtmlElement {
 
 // WARNING: Do not edit - generated code.
 
-typedef void _EntriesCallback(List entries);
+typedef _EntriesCallback = void Function(List entries);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -15881,14 +15881,14 @@ class Entry extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void _EntryCallback(Entry entry);
+typedef _EntryCallback = void Function(Entry entry);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef void _ErrorCallback(DomException error);
+typedef _ErrorCallback = void Function(DomException error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16586,7 +16586,7 @@ class File extends Blob {
 
 // WARNING: Do not edit - generated code.
 
-typedef void _FileCallback(File? file);
+typedef _FileCallback = void Function(File? file);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16840,7 +16840,7 @@ class FileSystem extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void _FileSystemCallback(FileSystem fileSystem);
+typedef _FileSystemCallback = void Function(FileSystem fileSystem);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -16952,7 +16952,7 @@ class FileWriter extends EventTarget {
 
 // WARNING: Do not edit - generated code.
 
-typedef void _FileWriterCallback(FileWriter fileWriter);
+typedef _FileWriterCallback = void Function(FileWriter fileWriter);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17282,14 +17282,14 @@ class FormElement extends HtmlElement {
 
 // WARNING: Do not edit - generated code.
 
-typedef void FrameRequestCallback(num highResTime);
+typedef FrameRequestCallback = void Function(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef void FunctionStringCallback(String data);
+typedef FunctionStringCallback = void Function(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -17611,13 +17611,13 @@ class Geoposition extends JavaScriptObject {
 abstract class GlobalEventHandlers implements EventTarget {
   void addEventListener(
     String type,
-    dynamic listener(Event event)?, [
+    dynamic Function(Event event)? listener, [
     bool? useCapture,
   ]);
   bool dispatchEvent(Event event);
   void removeEventListener(
     String type,
-    dynamic listener(Event event)?, [
+    dynamic Function(Event event)? listener, [
     bool? useCapture,
   ]);
   Events get on;
@@ -18537,7 +18537,7 @@ class HttpRequest extends HttpRequestEventTarget {
   static Future<String> getString(
     String url, {
     bool? withCredentials,
-    void onProgress(ProgressEvent e)?,
+    void Function(ProgressEvent e)? onProgress,
   }) {
     return request(
       url,
@@ -18577,7 +18577,7 @@ class HttpRequest extends HttpRequestEventTarget {
     bool? withCredentials,
     String? responseType,
     Map<String, String>? requestHeaders,
-    void onProgress(ProgressEvent e)?,
+    void Function(ProgressEvent e)? onProgress,
   }) {
     var parts = [];
     data.forEach((key, value) {
@@ -18669,7 +18669,7 @@ class HttpRequest extends HttpRequestEventTarget {
     String? mimeType,
     Map<String, String>? requestHeaders,
     sendData,
-    void onProgress(ProgressEvent e)?,
+    void Function(ProgressEvent e)? onProgress,
   }) {
     var completer = new Completer<HttpRequest>();
 
@@ -19367,7 +19367,7 @@ class IdleDeadline extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void IdleRequestCallback(IdleDeadline deadline);
+typedef IdleRequestCallback = void Function(IdleDeadline deadline);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -20469,7 +20469,7 @@ class IntersectionObserver extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void IntersectionObserverCallback(
+typedef IntersectionObserverCallback = void Function(
   List entries,
   IntersectionObserver observer,
 );
@@ -21695,7 +21695,7 @@ class MediaSession extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void MediaSessionActionHandler();
+typedef MediaSessionActionHandler = void Function();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22059,7 +22059,7 @@ class MenuElement extends HtmlElement {
 
 // WARNING: Do not edit - generated code.
 
-typedef void MessageCallback(Map message);
+typedef MessageCallback = void Function(Map message);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22325,7 +22325,7 @@ class Metadata extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void MetadataCallback(Metadata metadata);
+typedef MetadataCallback = void Function(Metadata metadata);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22469,7 +22469,7 @@ class MidiInputMap extends JavaScriptObject with MapMixin<String, dynamic> {
 
   Map? operator [](dynamic key) => _getItem(key);
 
-  void forEach(void f(String key, dynamic value)) {
+  void forEach(void Function(String key, dynamic value) f) {
     var entries = JS('', '#.entries()', this);
     while (true) {
       var entry = JS('', '#.next()', entries);
@@ -22503,7 +22503,7 @@ class MidiInputMap extends JavaScriptObject with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  dynamic putIfAbsent(String key, dynamic ifAbsent()) {
+  dynamic putIfAbsent(String key, dynamic Function() ifAbsent) {
     throw new UnsupportedError("Not supported");
   }
 
@@ -22577,7 +22577,7 @@ class MidiOutputMap extends JavaScriptObject with MapMixin<String, dynamic> {
 
   Map? operator [](dynamic key) => _getItem(key);
 
-  void forEach(void f(String key, dynamic value)) {
+  void forEach(void Function(String key, dynamic value) f) {
     var entries = JS('', '#.entries()', this);
     while (true) {
       var entry = JS('', '#.next()', entries);
@@ -22611,7 +22611,7 @@ class MidiOutputMap extends JavaScriptObject with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  dynamic putIfAbsent(String key, dynamic ifAbsent()) {
+  dynamic putIfAbsent(String key, dynamic Function() ifAbsent) {
     throw new UnsupportedError("Not supported");
   }
 
@@ -22759,7 +22759,7 @@ class ModElement extends HtmlElement {
 
 // WARNING: Do not edit - generated code.
 
-typedef void MojoWatchCallback(int result);
+typedef MojoWatchCallback = void Function(int result);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22993,7 +22993,10 @@ class MouseEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-typedef void MutationCallback(List mutations, MutationObserver observer);
+typedef MutationCallback = void Function(
+  List mutations,
+  MutationObserver observer,
+);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23578,14 +23581,16 @@ class NavigatorUserMediaError extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void _NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
+typedef _NavigatorUserMediaErrorCallback = void Function(
+  NavigatorUserMediaError error,
+);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef void _NavigatorUserMediaSuccessCallback(MediaStream stream);
+typedef _NavigatorUserMediaSuccessCallback = void Function(MediaStream stream);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -23713,7 +23718,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     return true;
   }
 
-  void _filter(bool test(Node node), bool removeMatching) {
+  void _filter(bool Function(Node node) test, bool removeMatching) {
     // This implementation of removeWhere/retainWhere is more efficient
     // than the default in ListBase. Child nodes can be removed in constant
     // time.
@@ -23727,11 +23732,11 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     }
   }
 
-  void removeWhere(bool test(Node node)) {
+  void removeWhere(bool Function(Node node) test) {
     _filter(test, true);
   }
 
-  void retainWhere(bool test(Node node)) {
+  void retainWhere(bool Function(Node node) test) {
     _filter(test, false);
   }
 
@@ -24487,7 +24492,7 @@ class NotificationEvent extends ExtendableEvent {
 
 // WARNING: Do not edit - generated code.
 
-typedef void _NotificationPermissionCallback(String permission);
+typedef _NotificationPermissionCallback = void Function(String permission);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26085,7 +26090,7 @@ class PerformanceObserver extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void PerformanceObserverCallback(
+typedef PerformanceObserverCallback = void Function(
   PerformanceObserverEntryList entries,
   PerformanceObserver observer,
 );
@@ -26509,7 +26514,7 @@ class PopStateEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 @Unstable()
-typedef void _PositionCallback(position);
+typedef _PositionCallback = void Function(dynamic position);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26539,7 +26544,7 @@ class PositionError extends JavaScriptObject {
 // WARNING: Do not edit - generated code.
 
 @Unstable()
-typedef void _PositionErrorCallback(PositionError error);
+typedef _PositionErrorCallback = void Function(PositionError error);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27015,21 +27020,23 @@ class QuoteElement extends HtmlElement {
 
 // WARNING: Do not edit - generated code.
 
-typedef void RtcPeerConnectionErrorCallback(DomException exception);
+typedef RtcPeerConnectionErrorCallback = void Function(DomException exception);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef void _RtcSessionDescriptionCallback(RtcSessionDescription sdp);
+typedef _RtcSessionDescriptionCallback = void Function(
+  RtcSessionDescription sdp,
+);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef void RtcStatsCallback(RtcStatsResponse response);
+typedef RtcStatsCallback = void Function(RtcStatsResponse response);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27211,7 +27218,7 @@ class RemotePlayback extends EventTarget {
 
 // WARNING: Do not edit - generated code.
 
-typedef void RemotePlaybackAvailabilityCallback(bool available);
+typedef RemotePlaybackAvailabilityCallback = void Function(bool available);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27251,7 +27258,7 @@ class ReportingObserver extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void ReportingObserverCallback(
+typedef ReportingObserverCallback = void Function(
   List reports,
   ReportingObserver observer,
 );
@@ -27261,7 +27268,7 @@ typedef void ReportingObserverCallback(
 
 // WARNING: Do not edit - generated code.
 
-typedef void RequestAnimationFrameCallback(num highResTime);
+typedef RequestAnimationFrameCallback = void Function(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -27292,7 +27299,10 @@ class ResizeObserver extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void ResizeObserverCallback(List entries, ResizeObserver observer);
+typedef ResizeObserverCallback = void Function(
+  List entries,
+  ResizeObserver observer,
+);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -28020,7 +28030,7 @@ class RtcStatsReport extends JavaScriptObject with MapMixin<String, dynamic> {
 
   Map? operator [](dynamic key) => _getItem(key);
 
-  void forEach(void f(String key, dynamic value)) {
+  void forEach(void Function(String key, dynamic value) f) {
     var entries = JS('', '#.entries()', this);
     while (true) {
       var entry = JS('', '#.next()', entries);
@@ -28054,7 +28064,7 @@ class RtcStatsReport extends JavaScriptObject with MapMixin<String, dynamic> {
     throw new UnsupportedError("Not supported");
   }
 
-  dynamic putIfAbsent(String key, dynamic ifAbsent()) {
+  dynamic putIfAbsent(String key, dynamic Function() ifAbsent) {
     throw new UnsupportedError("Not supported");
   }
 
@@ -28275,7 +28285,7 @@ class ScrollState extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void ScrollStateCallback(ScrollState scrollState);
+typedef ScrollStateCallback = void Function(ScrollState scrollState);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29828,7 +29838,7 @@ class Storage extends JavaScriptObject with MapMixin<String, String> {
     _setItem(key, value);
   }
 
-  String putIfAbsent(String key, String ifAbsent()) {
+  String putIfAbsent(String key, String Function() ifAbsent) {
     if (!containsKey(key)) this[key] = ifAbsent();
     return this[key] as String;
   }
@@ -29841,7 +29851,7 @@ class Storage extends JavaScriptObject with MapMixin<String, String> {
 
   void clear() => _clear();
 
-  void forEach(void f(String key, String value)) {
+  void forEach(void Function(String key, String value) f) {
     for (var i = 0; true; i++) {
       final key = _key(i);
       if (key == null) return;
@@ -29896,7 +29906,7 @@ class Storage extends JavaScriptObject with MapMixin<String, String> {
 
 // WARNING: Do not edit - generated code.
 
-typedef void StorageErrorCallback(DomError error);
+typedef StorageErrorCallback = void Function(DomError error);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29989,14 +29999,14 @@ class StorageManager extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void StorageQuotaCallback(int grantedQuotaInBytes);
+typedef StorageQuotaCallback = void Function(int grantedQuotaInBytes);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-typedef void StorageUsageCallback(
+typedef StorageUsageCallback = void Function(
   int currentUsageInBytes,
   int currentQuotaInBytes,
 );
@@ -31048,7 +31058,7 @@ class TimeRanges extends JavaScriptObject {
 
 // WARNING: Do not edit - generated code.
 
-typedef void TimeoutHandler();
+typedef TimeoutHandler = void Function();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -32360,7 +32370,7 @@ class VisualViewport extends EventTarget {
 
 // WARNING: Do not edit - generated code.
 
-typedef void VoidCallback();
+typedef VoidCallback = void Function();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36539,7 +36549,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     return false;
   }
 
-  String putIfAbsent(String key, String ifAbsent()) {
+  String putIfAbsent(String key, String Function() ifAbsent) {
     if (!containsKey(key)) {
       this[key] = ifAbsent();
     }
@@ -36552,7 +36562,7 @@ abstract class _AttributeMap extends MapBase<String, String> {
     }
   }
 
-  void forEach(void f(String key, String value)) {
+  void forEach(void Function(String key, String value) f) {
     for (var key in keys) {
       var value = this[key];
       f(key, value as String);
@@ -36732,7 +36742,7 @@ class _DataAttributeMap extends MapBase<String, String> {
     _attributes[_attr(key)] = value;
   }
 
-  String putIfAbsent(String key, String ifAbsent()) =>
+  String putIfAbsent(String key, String Function() ifAbsent) =>
       _attributes.putIfAbsent(_attr(key), ifAbsent);
 
   String? remove(Object? key) => _attributes.remove(_attr(key as String));
@@ -36744,7 +36754,7 @@ class _DataAttributeMap extends MapBase<String, String> {
     }
   }
 
-  void forEach(void f(String key, String value)) {
+  void forEach(void Function(String key, String value) f) {
     _attributes.forEach((String key, String value) {
       if (_matches(key)) {
         f(_strip(key), value);
@@ -37540,7 +37550,7 @@ class _MultiElementCssClassSet extends CssClassSetImpl {
    *   After f returns, the modified set is written to the
    *       className property of this element.
    */
-  modify(f(Set<String> s)) {
+  modify(void Function(Set<String> s) f) {
     _sets.forEach((CssClassSetImpl e) => e.modify(f));
   }
 
@@ -37627,11 +37637,11 @@ class _ElementCssClassSet extends CssClassSetImpl {
     _removeWhere(_element, iterable.toSet().contains, false);
   }
 
-  void removeWhere(bool test(String name)) {
+  void removeWhere(bool Function(String name) test) {
     _removeWhere(_element, test, true);
   }
 
-  void retainWhere(bool test(String name)) {
+  void retainWhere(bool Function(String name) test) {
     _removeWhere(_element, test, false);
   }
 
@@ -37701,7 +37711,7 @@ class _ElementCssClassSet extends CssClassSetImpl {
 
   static void _removeWhere(
     Element _element,
-    bool test(String name),
+    bool Function(String name) test,
     bool doRemove,
   ) {
     DomTokenList list = _classListOf(_element);
@@ -37856,7 +37866,7 @@ class Dimension {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-typedef EventListener(Event event);
+typedef EventListener = dynamic Function(Event event);
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -37978,7 +37988,7 @@ abstract class ElementStream<T extends Event> implements Stream<T> {
    * * [Event Capture](http://www.w3.org/TR/DOM-Level-2-Events/events.html#Events-flow-capture)
    *   from the W3C DOM Events specification.
    */
-  StreamSubscription<T> capture(void onData(T event));
+  StreamSubscription<T> capture(void Function(T event) onData);
 }
 
 /**
@@ -37993,8 +38003,8 @@ class _EventStream<T extends Event> extends Stream<T> {
 
   // DOM events are inherently multi-subscribers.
   Stream<T> asBroadcastStream({
-    void onListen(StreamSubscription<T> subscription)?,
-    void onCancel(StreamSubscription<T> subscription)?,
+    void Function(StreamSubscription<T> subscription)? onListen,
+    void Function(StreamSubscription<T> subscription)? onCancel,
   }) => this;
   bool get isBroadcast => true;
 
@@ -38002,9 +38012,9 @@ class _EventStream<T extends Event> extends Stream<T> {
   // enable scalar replacement of an immediately allocated receiver.
   @pragma('dart2js:tryInline')
   StreamSubscription<T> listen(
-    void onData(T event)?, {
+    void Function(T event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return new _EventStreamSubscription<T>(
@@ -38036,7 +38046,7 @@ class _ElementEventStreamImpl<T extends Event> extends _EventStream<T>
         return e;
       });
 
-  StreamSubscription<T> capture(void onData(T event)) =>
+  StreamSubscription<T> capture(void Function(T event) onData) =>
       new _EventStreamSubscription<T>(
         this._target,
         this._eventType,
@@ -38069,9 +38079,9 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
 
   // Delegate all regular Stream behavior to a wrapped Stream.
   StreamSubscription<T> listen(
-    void onData(T event)?, {
+    void Function(T event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     var pool = new _StreamPool<T>.broadcast();
@@ -38086,7 +38096,7 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
     );
   }
 
-  StreamSubscription<T> capture(void onData(T event)) {
+  StreamSubscription<T> capture(void Function(T event) onData) {
     var pool = new _StreamPool<T>.broadcast();
     for (var target in _targetList) {
       pool.add(new _EventStream<T>(target, _eventType, true));
@@ -38095,8 +38105,8 @@ class _ElementListEventStreamImpl<T extends Event> extends Stream<T>
   }
 
   Stream<T> asBroadcastStream({
-    void onListen(StreamSubscription<T> subscription)?,
-    void onCancel(StreamSubscription<T> subscription)?,
+    void Function(StreamSubscription<T> subscription)? onListen,
+    void Function(StreamSubscription<T> subscription)? onCancel,
   }) => this;
   bool get isBroadcast => true;
 }
@@ -38112,7 +38122,7 @@ class _EventStreamSubscription<T extends Event>
   _EventStreamSubscription(
     this._target,
     this._eventType,
-    void onData(T event)?,
+    void Function(T event)? onData,
     this._useCapture,
   ) : _onData = onData == null
           ? null
@@ -38135,7 +38145,7 @@ class _EventStreamSubscription<T extends Event>
 
   bool get _canceled => _target == null;
 
-  void onData(void handleData(T event)?) {
+  void onData(void Function(T event)? handleData) {
     if (_canceled) {
       throw new StateError("Subscription has been canceled.");
     }
@@ -38154,7 +38164,7 @@ class _EventStreamSubscription<T extends Event>
   void onError(Function? handleError) {}
 
   /// Has no effect.
-  void onDone(void handleDone()?) {}
+  void onDone(void Function()? handleDone) {}
 
   void pause([Future? resumeSignal]) {
     if (_canceled) return;
@@ -38217,9 +38227,9 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
 
   // Delegate all regular Stream behavior to our wrapped Stream.
   StreamSubscription<T> listen(
-    void onData(T event)?, {
+    void Function(T event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _streamController.stream.listen(
@@ -38231,8 +38241,8 @@ class _CustomEventStreamImpl<T extends Event> extends Stream<T>
   }
 
   Stream<T> asBroadcastStream({
-    void onListen(StreamSubscription<T> subscription)?,
-    void onCancel(StreamSubscription<T> subscription)?,
+    void Function(StreamSubscription<T> subscription)? onListen,
+    void Function(StreamSubscription<T> subscription)? onCancel,
   }) => _streamController.stream;
 
   bool get isBroadcast => true;
@@ -38828,7 +38838,7 @@ abstract mixin class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot add to immutable List.");
   }
 
-  void sort([int compare(E a, E b)?]) {
+  void sort([int Function(E a, E b)? compare]) {
     throw new UnsupportedError("Cannot sort immutable List.");
   }
 
@@ -38860,11 +38870,11 @@ abstract mixin class ImmutableListMixin<E> implements List<E> {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     throw new UnsupportedError("Cannot remove from immutable List.");
   }
 
@@ -40704,7 +40714,7 @@ class _WrappedList<E extends Node> extends ListBase<E>
     _list.length = newLength;
   }
 
-  void sort([int compare(E a, E b)?]) {
+  void sort([int Function(E a, E b)? compare]) {
     if (compare == null) {
       _list.sort();
     } else {
@@ -40763,7 +40773,7 @@ class _HttpRequestUtils {
   // Helper for factory HttpRequest.get
   static HttpRequest get(
     String url,
-    onComplete(HttpRequest request),
+    void Function(HttpRequest request) onComplete,
     bool withCredentials,
   ) {
     final request = new HttpRequest();

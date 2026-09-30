@@ -640,7 +640,8 @@ class HtmlDartInterfaceGenerator(object):
         annotations = self._metadata.GetFormattedMetadata(
             self._library_name, self._interface)
 
-        params = info.ParametersAsDeclaration(self._DartType)
+        params = info.ParametersAsDeclaration(self._DartType,
+                                              require_types=True)
 
         types = params.split()
         if len(types) > 0:
@@ -649,11 +650,10 @@ class HtmlDartInterfaceGenerator(object):
                 types[0] = 'List'
                 params = " ".join(types)
 
-        code.Emit(
-            '$(ANNOTATIONS)typedef void $NAME($PARAMS);\n',
-            ANNOTATIONS=annotations,
-            NAME=typedef_name,
-            PARAMS=params)
+        code.Emit('$(ANNOTATIONS)typedef $NAME = void Function($PARAMS);\n',
+                  ANNOTATIONS=annotations,
+                  NAME=typedef_name,
+                  PARAMS=params)
         self._backend.GenerateCallback(info)
 
     def GenerateInterface(self):
@@ -823,7 +823,7 @@ class HtmlDartInterfaceGenerator(object):
             NULLABLE='?',
             NULLSAFECAST=True,
             NULLASSERT='!')
-        if self._interface.doc_js_name is 'RadioNodeList':
+        if self._interface.doc_js_name == 'RadioNodeList':
             print(self._backend.ImplementationTemplate())
             print(implementation_members_emitter)
         stream_getter_signatures_emitter = None
@@ -1355,7 +1355,7 @@ class Dart2JSBackend(HtmlDartGenerator):
         return self._interface.doc_js_name in _js_custom_constructors
 
     def MakeFactoryCall(self, factory, method, arguments, constructor_info):
-        if factory is 'document' and method is 'createElement' \
+        if factory == 'document' and method == 'createElement' \
             and not ',' in arguments \
             and not self._HasUnreliableFactoryConstructor():
             return emitter.Format(
