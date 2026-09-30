@@ -75,9 +75,6 @@ DART_WARN_UNUSED_RESULT static bool SetNetmask(struct ifaddrs* ifaddr,
                                                int family,
                                                int prefixlen) {
   if (family == AF_INET6) {
-    // prefixlen comes from the netlink message (ifa_prefixlen is a u8) and is
-    // not guaranteed to match the address family, so reject anything that
-    // doesn't fit rather than walking past the 16-byte sin6_addr.
     if (prefixlen < 0 || prefixlen > 128) {
       return false;
     }
