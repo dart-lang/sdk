@@ -126,7 +126,7 @@ class TestExpressionCompiler {
       component: component,
     );
     var codeBytes = utf8.encode(code.code);
-    var sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
+    var sourceMapBytes = utf8.encode(code.encodedSourceMap!);
 
     File(output.toFilePath()).writeAsBytesSync(codeBytes);
     File('${output.toFilePath()}.map').writeAsBytesSync(sourceMapBytes);
