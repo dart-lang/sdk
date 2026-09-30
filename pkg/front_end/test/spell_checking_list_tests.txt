@@ -204,6 +204,7 @@ cores
 corge
 corners
 costing
+course
 cov
 coverable
 coverages
@@ -486,6 +487,8 @@ intel
 interactions
 interactive
 interchangeable
+interleave
+interleaving
 internet
 interpolate
 interpolator
@@ -540,6 +543,7 @@ loopback
 lsp
 ma
 mac
+machine's
 maker
 manual
 matters
@@ -790,6 +794,7 @@ sdks
 secondary
 secondtest
 secure
+seed
 seemingly
 segment
 selection

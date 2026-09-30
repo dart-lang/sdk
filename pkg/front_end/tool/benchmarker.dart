@@ -4,6 +4,7 @@
 
 import "dart:convert";
 import "dart:io";
+import "dart:math";
 
 import '../test/utils/io_utils.dart' show computeRepoDirUri;
 import 'benchmarker_stats.dart';
@@ -17,6 +18,8 @@ void main(List<String> args) {
   bool doDisabledGcBenchmarkToo = false;
   bool silent = false;
   bool showAll = false;
+  bool interleave = true;
+  int? seed;
   int iterations = 5;
   int core = 7;
   int gcRuns = 1;
@@ -62,6 +65,12 @@ void main(List<String> args) {
       if (rawOutputPath.isEmpty) {
         throw "--raw-output requires a file name (e.g. --raw-output=out.json).";
       }
+    } else if (arg == "--no-interleave") {
+      interleave = false;
+    } else if (arg.startsWith("--seed=")) {
+      String value = arg.substring("--seed=".length);
+      seed = int.tryParse(value);
+      if (seed == null) throw "--seed must be an integer (got '$value').";
     } else {
       throw "Don't know argument '$arg'";
     }
@@ -82,6 +91,17 @@ void main(List<String> args) {
   while (snapshotSpecificArguments.length < snapshots.length) {
     snapshotSpecificArguments.add([]);
   }
+  Random? random;
+  if (interleave) {
+    seed ??= new Random().nextInt(1 << 32);
+    random = new Random(seed);
+    print(
+      "Interleaving runs in random order "
+      "(seed $seed; pass --seed=$seed to reproduce).",
+    );
+  } else {
+    print("Not interleaving runs.");
+  }
   RawOutput? rawOutput = rawOutputPath == null
       ? null
       : new RawOutput(
@@ -90,6 +110,8 @@ void main(List<String> args) {
           snapshotSpecificArguments: snapshotSpecificArguments,
           arguments: arguments,
           core: core,
+          interleave: interleave,
+          seed: interleave ? seed : null,
         );
 
   _doRun(
@@ -105,6 +127,7 @@ void main(List<String> args) {
     showAll: showAll,
     gcRuns: gcRuns,
     rawOutput: rawOutput,
+    random: random,
     phase: "default",
   );
   if (doCacheBenchmarkingToo) {
@@ -122,6 +145,7 @@ void main(List<String> args) {
       showAll: showAll,
       gcRuns: gcRuns,
       rawOutput: rawOutput,
+      random: random,
       phase: "cache",
     );
   }
@@ -144,6 +168,7 @@ void main(List<String> args) {
         "--new_gen_semi_max_size=20000",
       ],
       rawOutput: rawOutput,
+      random: random,
       phase: "no-gc",
     );
 
@@ -173,6 +198,11 @@ void _doRun(
   List<String>? extraVmArguments,
   RawOutput? rawOutput,
   required String phase,
+
+  // If non-null, the runs are interleaved, using `random` to pick the order
+  // of the snapshots in each round. If null, all runs of one snapshot are
+  // done before moving on to the next snapshot.
+  required Random? random,
 }) {
   print(
     "Will now run $iterations+$gcRuns iterations with "
@@ -201,78 +231,105 @@ void _doRun(
     print(new String.fromCharCodes(charCodes));
   }
 
-  List<List<Map<String, num>>> runResults = [];
-  List<List<GCInfo>> gcInfos = [];
+  List<List<Map<String, num>>> runResults = [
+    for (int i = 0; i < snapshots.length; i++) [],
+  ];
+  List<List<GCInfo>> gcInfos = [for (int i = 0; i < snapshots.length; i++) []];
   Warnings warnings = new Warnings();
   int writes = 0;
-  for (int snapshotNum = 0; snapshotNum < snapshots.length; snapshotNum++) {
-    String snapshot = snapshots[snapshotNum];
-    List<String> usedArguments = [
-      ...arguments,
-      ...snapshotSpecificArguments[snapshotNum],
-    ];
-    List<GCInfo> gcInfo = [];
-    gcInfos.add(gcInfo);
-    List<Map<String, num>> snapshotResults = [];
-    runResults.add(snapshotResults);
-    for (int iteration = 0; iteration < iterations; iteration++) {
-      // We want this silent to mean no stdout print, but still want progress
-      // info which is what the dot provides.
-      if (silent) {
-        writes = _silentWrite(writes, lines);
-      }
-      DateTime startTime = new DateTime.now();
-      Map<String, num> benchmarkRun = _benchmark(
-        aotRuntime,
-        core,
-        snapshot,
-        extraVmArguments ?? [],
-        usedArguments,
-        warnings: warnings,
-        cacheBenchmarking: cacheBenchmarking,
-        silent: silent,
-      );
-      if (checkFileSize != null) {
-        File f = new File(checkFileSize);
-        if (f.existsSync()) {
-          benchmarkRun["filesize"] = f.lengthSync();
-        }
-      }
-      snapshotResults.add(benchmarkRun);
-      rawOutput?.addRun(
-        phase: phase,
-        kind: "measure",
-        snapshotIndex: snapshotNum,
-        iteration: iteration,
-        startTime: startTime,
-        endTime: new DateTime.now(),
-        values: benchmarkRun,
-      );
-    }
 
-    // Do GC runs too.
-    for (int i = 0; i < gcRuns; i++) {
-      if (silent) {
-        writes = _silentWrite(writes, lines);
+  List<String> usedArgumentsFor(int snapshotNum) => [
+    ...arguments,
+    ...snapshotSpecificArguments[snapshotNum],
+  ];
+
+  void measure(int snapshotNum, int iteration, {int? positionInRound}) {
+    // We want this silent to mean no stdout print, but still want progress
+    // info which is what the dot provides.
+    if (silent) {
+      writes = _silentWrite(writes, lines);
+    }
+    DateTime startTime = new DateTime.now();
+    Map<String, num> benchmarkRun = _benchmark(
+      aotRuntime,
+      core,
+      snapshots[snapshotNum],
+      extraVmArguments ?? [],
+      usedArgumentsFor(snapshotNum),
+      warnings: warnings,
+      cacheBenchmarking: cacheBenchmarking,
+      silent: silent,
+    );
+    if (checkFileSize != null) {
+      File f = new File(checkFileSize);
+      if (f.existsSync()) {
+        benchmarkRun["filesize"] = f.lengthSync();
       }
-      DateTime startTime = new DateTime.now();
-      GCInfo info = _verboseGcRun(
-        aotRuntime,
-        snapshot,
-        [],
-        usedArguments,
-        silent: true,
-      );
-      gcInfo.add(info);
-      rawOutput?.addRun(
-        phase: phase,
-        kind: "gc",
-        snapshotIndex: snapshotNum,
-        iteration: i,
-        startTime: startTime,
-        endTime: new DateTime.now(),
-        values: {"combinedGcTimeMs": info.combinedTime, ...info.countWhat},
-      );
+    }
+    runResults[snapshotNum].add(benchmarkRun);
+    rawOutput?.addRun(
+      phase: phase,
+      kind: "measure",
+      snapshotIndex: snapshotNum,
+      iteration: iteration,
+      positionInRound: positionInRound,
+      startTime: startTime,
+      endTime: new DateTime.now(),
+      values: benchmarkRun,
+    );
+  }
+
+  void gcRun(int snapshotNum, int iteration, {int? positionInRound}) {
+    if (silent) {
+      writes = _silentWrite(writes, lines);
+    }
+    DateTime startTime = new DateTime.now();
+    GCInfo info = _verboseGcRun(
+      aotRuntime,
+      snapshots[snapshotNum],
+      [],
+      usedArgumentsFor(snapshotNum),
+      silent: true,
+    );
+    gcInfos[snapshotNum].add(info);
+    rawOutput?.addRun(
+      phase: phase,
+      kind: "gc",
+      snapshotIndex: snapshotNum,
+      iteration: iteration,
+      positionInRound: positionInRound,
+      startTime: startTime,
+      endTime: new DateTime.now(),
+      values: {"combinedGcTimeMs": info.combinedTime, ...info.countWhat},
+    );
+  }
+
+  if (random != null) {
+    // Interleave the runs: each round runs every snapshot once, in a random
+    // order. This way slow drift in the machine's performance over the
+    // course of the session affects all snapshots equally, instead of
+    // showing up as a difference between them.
+    for (int iteration = 0; iteration < iterations; iteration++) {
+      List<int> order = _roundOrder(random, snapshots.length);
+      for (int position = 0; position < order.length; position++) {
+        measure(order[position], iteration, positionInRound: position);
+      }
+    }
+    for (int i = 0; i < gcRuns; i++) {
+      List<int> order = _roundOrder(random, snapshots.length);
+      for (int position = 0; position < order.length; position++) {
+        gcRun(order[position], i, positionInRound: position);
+      }
+    }
+  } else {
+    for (int snapshotNum = 0; snapshotNum < snapshots.length; snapshotNum++) {
+      for (int iteration = 0; iteration < iterations; iteration++) {
+        measure(snapshotNum, iteration);
+      }
+      // Do GC runs too.
+      for (int i = 0; i < gcRuns; i++) {
+        gcRun(snapshotNum, i);
+      }
     }
   }
   stdout.write("\n\n");
@@ -338,6 +395,10 @@ int _silentWrite(int previousWriteCount, int lines) {
   return previousWriteCount;
 }
 
+/// Returns the indices `0 .. count - 1` in a random order.
+List<int> _roundOrder(Random random, int count) =>
+    [for (int i = 0; i < count; i++) i]..shuffle(random);
+
 String _getName(String urlIsh) {
   return Uri.parse(urlIsh).pathSegments.last;
 }
@@ -383,6 +444,16 @@ void _help() {
   print("    Print the comparison for every metric, including the standard");
   print("    deviations and whether the change is significant, instead of");
   print("    only printing the significant changes.");
+  print("");
+  print("  --no-interleave");
+  print("    By default, the runs are interleaved: each round runs every");
+  print("    snapshot once, in a random order, so that slow drift in the");
+  print("    machine's performance affects all snapshots equally. With this");
+  print("    option, all runs of one snapshot are done before the next.");
+  print("");
+  print("  --seed=<n>");
+  print("    Seed for the random order of interleaved runs (by default a");
+  print("    random seed is chosen and printed).");
 }
 
 bool compare(
@@ -758,6 +829,8 @@ class RawOutput {
   final List<List<String>> snapshotSpecificArguments;
   final List<String> arguments;
   final int core;
+  final bool interleave;
+  final int? seed;
   final DateTime startTime = new DateTime.now();
   final List<Map<String, Object?>> _runs = [];
 
@@ -767,6 +840,8 @@ class RawOutput {
     required this.snapshotSpecificArguments,
     required this.arguments,
     required this.core,
+    required this.interleave,
+    required this.seed,
   });
 
   /// Records a single run.
@@ -774,12 +849,14 @@ class RawOutput {
   /// [phase] identifies which set of runs this belongs to (e.g. "default",
   /// "cache" or "no-gc"), [kind] says what sort of run it was (e.g.
   /// "measure" or "gc"), and [values] holds the counter values reported for
-  /// the run.
+  /// the run. When runs are interleaved, [positionInRound] is the position
+  /// of this run within its round.
   void addRun({
     required String phase,
     required String kind,
     required int snapshotIndex,
     required int iteration,
+    int? positionInRound,
     required DateTime startTime,
     required DateTime endTime,
     required Map<String, num> values,
@@ -791,6 +868,7 @@ class RawOutput {
       "snapshotIndex": snapshotIndex,
       "snapshot": snapshots[snapshotIndex],
       "iteration": iteration,
+      "positionInRound": positionInRound,
       "startTime": startTime.toIso8601String(),
       "endTime": endTime.toIso8601String(),
       "values": values,
@@ -804,6 +882,8 @@ class RawOutput {
       "snapshotSpecificArguments": snapshotSpecificArguments,
       "arguments": arguments,
       "core": core,
+      "interleave": interleave,
+      "seed": seed,
       "startTime": startTime.toIso8601String(),
       "endTime": new DateTime.now().toIso8601String(),
       "runs": _runs,
