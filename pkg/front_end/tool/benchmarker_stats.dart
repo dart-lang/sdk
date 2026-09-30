@@ -117,3 +117,72 @@ Comparison comparePaired(List<num> from, List<num> to) {
     diffStdDev: diffStdDev,
   );
 }
+
+/// A linear trend fitted to a series of measurements.
+class Trend {
+  final int count;
+  final double mean;
+
+  /// The estimated change in the measurement per step (e.g. per round).
+  final double slope;
+
+  /// The half-width of the confidence interval for [slope].
+  final double slopeConfidence;
+
+  new({
+    required this.count,
+    required this.mean,
+    required this.slope,
+    required this.slopeConfidence,
+  });
+
+  /// The estimated total change from the first to the last measurement,
+  /// expressed as a percentage of [mean], or `null` if [mean] is zero.
+  double? get percentChangeOverSeries =>
+      mean == 0 ? null : slope * (count - 1) * 100 / mean;
+
+  /// The half-width of the confidence interval for
+  /// [percentChangeOverSeries], or `null` if [mean] is zero.
+  double? get percentConfidenceOverSeries =>
+      mean == 0 ? null : (slopeConfidence * (count - 1) * 100 / mean).abs();
+
+  /// Whether the confidence interval for [slope] excludes zero.
+  bool get significant => slopeConfidence < slope.abs();
+}
+
+/// Fits a straight line to [values] (as a function of their index) using
+/// least squares, and computes a 95% confidence interval for the slope.
+///
+/// This is used to detect drift, i.e. measurements getting steadily larger
+/// or smaller over the course of a benchmarking session. Requires at least
+/// three values.
+Trend linearTrend(List<num> values) {
+  int count = values.length;
+  if (count < 3) {
+    throw new ArgumentError("Need at least 3 values (got $count).");
+  }
+  double xMean = (count - 1) / 2;
+  double yMean = SimpleTTestStat.average(values);
+  double sxx = 0;
+  double sxy = 0;
+  for (int i = 0; i < count; i++) {
+    double dx = i - xMean;
+    sxx += dx * dx;
+    sxy += dx * (values[i] - yMean);
+  }
+  double slope = sxy / sxx;
+  double sse = 0;
+  for (int i = 0; i < count; i++) {
+    double residual = values[i] - (yMean + slope * (i - xMean));
+    sse += residual * residual;
+  }
+  double residualVariance = sse / (count - 2);
+  double slopeStandardError = math.sqrt(residualVariance / sxx);
+  return new Trend(
+    count: count,
+    mean: yMean,
+    slope: slope,
+    slopeConfidence:
+        SimpleTTestStat.tTableTwoTails_0_05(count - 2) * slopeStandardError,
+  );
+}

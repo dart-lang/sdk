@@ -16,6 +16,10 @@ void main() {
   testComparePairedKnownValues();
   testComparePairedCancelsDrift();
   testComparePairedLengthMismatch();
+  testLinearTrendKnownValues();
+  testLinearTrendPerfectLine();
+  testLinearTrendNoTrend();
+  testLinearTrendTooFewValues();
 }
 
 void expectClose(double expected, double actual, {double epsilon = 1e-9}) {
@@ -103,4 +107,42 @@ void testComparePairedCancelsDrift() {
 
 void testComparePairedLengthMismatch() {
   Expect.throws<ArgumentError>(() => comparePaired([1, 2, 3], [1, 2]));
+}
+
+void testLinearTrendKnownValues() {
+  Trend trend = linearTrend([1, 2, 4, 3, 5]);
+  // Least squares fit: y = 3 + 0.9 * (x - 2), with residuals
+  // [-0.2, -0.1, 1, -0.9, 0.2] (sum of squares 1.9).
+  Expect.equals(5, trend.count);
+  expectClose(3, trend.mean);
+  expectClose(0.9, trend.slope);
+  // t(0.975, df = 3) * sqrt((1.9 / 3) / 10).
+  expectClose(3.182446305 * math.sqrt(1.9 / 3 / 10), trend.slopeConfidence);
+  Expect.isTrue(trend.significant);
+  expectClose(120, trend.percentChangeOverSeries!);
+  expectClose(
+    3.182446305 * math.sqrt(1.9 / 3 / 10) * 4 * 100 / 3,
+    trend.percentConfidenceOverSeries!,
+  );
+}
+
+void testLinearTrendPerfectLine() {
+  Trend trend = linearTrend([10, 8, 6, 4, 2]);
+  expectClose(-2, trend.slope);
+  expectClose(0, trend.slopeConfidence);
+  Expect.isTrue(trend.significant);
+  expectClose(-80 / 6 * 10, trend.percentChangeOverSeries!);
+}
+
+void testLinearTrendNoTrend() {
+  Trend trend = linearTrend([5, 1, 5, 1, 5, 1]);
+  Expect.isFalse(trend.significant);
+  Trend flat = linearTrend([0, 0, 0]);
+  Expect.isFalse(flat.significant);
+  Expect.isNull(flat.percentChangeOverSeries);
+  Expect.isNull(flat.percentConfidenceOverSeries);
+}
+
+void testLinearTrendTooFewValues() {
+  Expect.throws<ArgumentError>(() => linearTrend([1, 2]));
 }

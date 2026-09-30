@@ -29,6 +29,7 @@ aei
 aen
 aer
 af
+alarms
 albeit
 aligns
 alleged
@@ -184,6 +185,7 @@ companion
 comparative
 comparators
 comparer
+compensate
 compiler's
 complement
 complicated
@@ -296,6 +298,7 @@ doo
 downstream
 draw
 drift
+drifted
 dry
 dsemi
 dskip
@@ -305,6 +308,7 @@ dupe
 dur
 durations
 dw
+dx
 e's
 ea
 ease
@@ -367,6 +371,7 @@ filler
 filters
 fin
 fisk
+fitted
 five
 fixtures
 fl
@@ -762,6 +767,8 @@ reproduce
 reproduction
 req
 resetting
+residual
+residuals
 resuming
 retaining
 retainingpath
@@ -833,6 +840,7 @@ sleep
 slice
 slight
 sliver
+slope
 sm
 smoke
 snull
@@ -852,7 +860,9 @@ splitting
 spurious
 sqrt
 squared
+squares
 ss
+sse
 ssls
 sssp
 stacks
@@ -863,6 +873,7 @@ statistics
 stats
 stay
 std
+steadily
 stopwatches
 streams
 stress
@@ -891,6 +902,8 @@ supermixin
 supplement
 suspension
 swallow
+sxx
+sxy
 t\b\f\u
 t\u
 ta
@@ -921,6 +934,7 @@ transitively
 translators
 transparent
 treenode
+trend
 triangle
 triggers
 trimming

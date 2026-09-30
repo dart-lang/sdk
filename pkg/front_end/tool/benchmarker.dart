@@ -429,6 +429,9 @@ void _doRun(
     }
   }
 
+  print("");
+  _checkDrift(runResults, interleaved: random != null);
+
   if (warnings.scalingInEffect) {
     print("Be aware that the above was with scaling in effect.");
     print("As such the results are likely useless.");
@@ -436,6 +439,68 @@ void _doRun(
     print("Running this tool");
     print("sudo out/ReleaseX64/dart pkg/front_end/tool/perf_event_tool.dart");
     print("will attempt to give you such information.");
+  }
+}
+
+/// Checks whether any metric drifted (got steadily larger or smaller) over
+/// the course of the runs of any snapshot, and prints a warning if so.
+///
+/// Drift means that the machine's performance wasn't stable during the
+/// session. Without interleaving, drift shows up as a spurious difference
+/// between the snapshots.
+void _checkDrift(
+  List<List<Map<String, num>>> runResults, {
+  required bool interleaved,
+}) {
+  Set<String> allCaptions = {
+    for (List<Map<String, num>> results in runResults)
+      for (Map<String, num> entry in results) ...entry.keys,
+  };
+  int checks = 0;
+  List<String> driftWarnings = [];
+  for (String caption in allCaptions) {
+    for (int i = 0; i < runResults.length; i++) {
+      List<num> values = _extractDataForCaption(caption, runResults[i]);
+      if (values.length < 3) continue;
+      checks++;
+      Trend trend = linearTrend(values);
+      if (!trend.significant) continue;
+      double? percentChange = trend.percentChangeOverSeries;
+      double? percentConfidence = trend.percentConfidenceOverSeries;
+      if (percentChange == null || percentConfidence == null) continue;
+      driftWarnings.add(
+        "$caption for snapshot #${i + 1} changed by "
+        "${percentChange.toStringAsFixed(4)}% +/- "
+        "${percentConfidence.toStringAsFixed(4)}% "
+        "from the first to the last run.",
+      );
+    }
+  }
+  if (checks == 0) return;
+  if (driftWarnings.isEmpty) {
+    print("Drift check: no significant drift detected.");
+    return;
+  }
+  print("Drift check: the following metrics drifted during the session:");
+  for (String warning in driftWarnings) {
+    print("  $warning");
+  }
+  print(
+    "  (With $checks checks at the 95% confidence level, about "
+    "${(checks * 0.05).toStringAsFixed(1)} false alarms are expected by "
+    "chance.)",
+  );
+  if (interleaved) {
+    print(
+      "  Interleaving and the paired t-test compensate for slow drift, "
+      "but drift suggests that the machine's performance isn't stable.",
+    );
+  } else {
+    print(
+      "  Because the runs weren't interleaved, drift can show up as a "
+      "spurious difference between snapshots. Consider running without "
+      "--no-interleave.",
+    );
   }
 }
 
