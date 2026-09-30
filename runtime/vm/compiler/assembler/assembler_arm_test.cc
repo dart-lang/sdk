@@ -2168,6 +2168,185 @@ ASSEMBLER_TEST_RUN(Vshlqi64, test) {
   }
 }
 
+ASSEMBLER_TEST_GENERATE(Vshlqi32ZeroShift, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    Label fail;
+    __ LoadImmediate(R1, -42);
+    __ vmovsr(S0, R1);
+    __ LoadImmediate(R1, 7);
+    __ vmovsr(S1, R1);
+    __ LoadImmediate(R1, -1);
+    __ vmovsr(S2, R1);
+    __ LoadImmediate(R1, 0x7FFFFFFF);
+    __ vmovsr(S3, R1);
+
+    __ LoadImmediate(R1, 0);
+    __ vmovsr(S4, R1);
+    __ vmovsr(S5, R1);
+    __ vmovsr(S6, R1);
+    __ vmovsr(S7, R1);
+
+    // Set Q2 to a value no lane expects, so an unchanged lane must come from
+    // the shift.
+    __ LoadImmediate(R1, 0x55555555);
+    __ vmovsr(S8, R1);
+    __ vmovsr(S9, R1);
+    __ vmovsr(S10, R1);
+    __ vmovsr(S11, R1);
+
+    __ vshlqi(kFourBytes, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ CompareImmediate(R0, -42);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ vmovrs(R0, S9);
+    __ CompareImmediate(R0, 7);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ vmovrs(R0, S10);
+    __ CompareImmediate(R0, -1);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ vmovrs(R0, S11);
+    __ CompareImmediate(R0, 0x7FFFFFFF);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+
+    __ LoadImmediate(R0, 1);
+    __ Bind(&fail);
+  }
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(Vshlqi32ZeroShift, test) {
+  EXPECT(test != nullptr);
+  if (TargetCPUFeatures::neon_supported()) {
+    typedef int (*Tst)() DART_UNUSED;
+    EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  }
+}
+
+ASSEMBLER_TEST_GENERATE(Vshlqi32LargeShift, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    Label fail;
+    __ LoadImmediate(R1, -42);
+    __ vmovsr(S0, R1);
+    __ LoadImmediate(R1, 7);
+    __ vmovsr(S1, R1);
+    __ LoadImmediate(R1, -1);
+    __ vmovsr(S2, R1);
+    __ LoadImmediate(R1, 0x7FFFFFF0);
+    __ vmovsr(S3, R1);
+
+    __ LoadImmediate(R1, 32);
+    __ vmovsr(S4, R1);
+    __ LoadImmediate(R1, 4);
+    __ vmovsr(S5, R1);
+    __ LoadImmediate(R1, -32);
+    __ vmovsr(S6, R1);
+    __ LoadImmediate(R1, -4);
+    __ vmovsr(S7, R1);
+
+    __ LoadImmediate(R1, 0x55555555);
+    __ vmovsr(S8, R1);
+    __ vmovsr(S9, R1);
+    __ vmovsr(S10, R1);
+    __ vmovsr(S11, R1);
+
+    __ vshlqi(kFourBytes, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ CompareImmediate(R0, 0);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ vmovrs(R0, S9);
+    __ CompareImmediate(R0, 112);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ vmovrs(R0, S10);
+    __ CompareImmediate(R0, -1);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ vmovrs(R0, S11);
+    __ CompareImmediate(R0, 0x07FFFFFF);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+
+    __ LoadImmediate(R0, 1);
+    __ Bind(&fail);
+  }
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(Vshlqi32LargeShift, test) {
+  EXPECT(test != nullptr);
+  if (TargetCPUFeatures::neon_supported()) {
+    typedef int (*Tst)() DART_UNUSED;
+    EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  }
+}
+
+ASSEMBLER_TEST_GENERATE(Vshlqu32LargeShift, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    Label fail;
+    __ LoadImmediate(R1, -1);
+    __ vmovsr(S0, R1);
+    __ LoadImmediate(R1, -16);
+    __ vmovsr(S1, R1);
+    __ LoadImmediate(R1, 3);
+    __ vmovsr(S2, R1);
+    __ LoadImmediate(R1, 0x70000000);
+    __ vmovsr(S3, R1);
+
+    __ LoadImmediate(R1, -32);
+    __ vmovsr(S4, R1);
+    __ LoadImmediate(R1, -1);
+    __ vmovsr(S5, R1);
+    __ LoadImmediate(R1, 4);
+    __ vmovsr(S6, R1);
+    __ LoadImmediate(R1, -28);
+    __ vmovsr(S7, R1);
+
+    __ LoadImmediate(R1, 0x55555555);
+    __ vmovsr(S8, R1);
+    __ vmovsr(S9, R1);
+    __ vmovsr(S10, R1);
+    __ vmovsr(S11, R1);
+
+    __ vshlqu(kFourBytes, Q2, Q0, Q1);
+
+    __ vmovrs(R0, S8);
+    __ CompareImmediate(R0, 0);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ vmovrs(R0, S9);
+    __ CompareImmediate(R0, 0x7FFFFFF8);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ vmovrs(R0, S10);
+    __ CompareImmediate(R0, 48);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+    __ vmovrs(R0, S11);
+    __ CompareImmediate(R0, 7);
+    __ LoadImmediate(R0, 0);
+    __ b(&fail, NE);
+
+    __ LoadImmediate(R0, 1);
+    __ Bind(&fail);
+  }
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(Vshlqu32LargeShift, test) {
+  EXPECT(test != nullptr);
+  if (TargetCPUFeatures::neon_supported()) {
+    typedef int (*Tst)() DART_UNUSED;
+    EXPECT_EQ(1, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  }
+}
+
 ASSEMBLER_TEST_GENERATE(Mint_shl_ok, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     const QRegister value = Q0;

@@ -3051,39 +3051,39 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
       if (size == 0) {
         for (int i = 0; i < 16; i++) {
           int8_t shift = s8n.i8[i];
-          if (shift > 0) {
-            s8d.u8[i] = s8m.u8[i] << shift;
-          } else if (shift < 0) {
+          if (shift >= 0) {
+            s8d.u8[i] = shift >= 8 ? 0 : s8m.u8[i] << shift;
+          } else {
             if (is_signed) {
-              s8d.i8[i] = s8m.i8[i] >> (-shift);
+              s8d.i8[i] = s8m.i8[i] >> (-shift >= 8 ? 7 : -shift);
             } else {
-              s8d.u8[i] = s8m.u8[i] >> (-shift);
+              s8d.u8[i] = -shift >= 8 ? 0 : s8m.u8[i] >> (-shift);
             }
           }
         }
       } else if (size == 1) {
         for (int i = 0; i < 8; i++) {
           int8_t shift = s8n.i8[i * 2];
-          if (shift > 0) {
-            s8d.u16[i] = s8m.u16[i] << shift;
-          } else if (shift < 0) {
+          if (shift >= 0) {
+            s8d.u16[i] = shift >= 16 ? 0 : s8m.u16[i] << shift;
+          } else {
             if (is_signed) {
-              s8d.i16[i] = s8m.i16[i] >> (-shift);
+              s8d.i16[i] = s8m.i16[i] >> (-shift >= 16 ? 15 : -shift);
             } else {
-              s8d.u16[i] = s8m.u16[i] >> (-shift);
+              s8d.u16[i] = -shift >= 16 ? 0 : s8m.u16[i] >> (-shift);
             }
           }
         }
       } else if (size == 2) {
         for (int i = 0; i < 4; i++) {
           int8_t shift = s8n.i8[i * 4];
-          if (shift > 0) {
-            s8d.u32[i] = s8m.u32[i] << shift;
-          } else if (shift < 0) {
+          if (shift >= 0) {
+            s8d.u32[i] = shift >= 32 ? 0 : s8m.u32[i] << shift;
+          } else {
             if (is_signed) {
-              s8d.i32[i] = s8m.i32[i] >> (-shift);
+              s8d.i32[i] = s8m.i32[i] >> (-shift >= 32 ? 31 : -shift);
             } else {
-              s8d.u32[i] = s8m.u32[i] >> (-shift);
+              s8d.u32[i] = -shift >= 32 ? 0 : s8m.u32[i] >> (-shift);
             }
           }
         }
@@ -3091,13 +3091,13 @@ void Simulator::DecodeSIMDDataProcessing(Instr* instr) {
         ASSERT(size == 3);
         for (int i = 0; i < 2; i++) {
           int8_t shift = s8n.i8[i * 8];
-          if (shift > 0) {
-            s8d.u64[i] = s8m.u64[i] << shift;
-          } else if (shift < 0) {
+          if (shift >= 0) {
+            s8d.u64[i] = shift >= 64 ? 0 : s8m.u64[i] << shift;
+          } else {
             if (is_signed) {
-              s8d.i64[i] = s8m.i64[i] >> (-shift);
+              s8d.i64[i] = s8m.i64[i] >> (-shift >= 64 ? 63 : -shift);
             } else {
-              s8d.u64[i] = s8m.u64[i] >> (-shift);
+              s8d.u64[i] = -shift >= 64 ? 0 : s8m.u64[i] >> (-shift);
             }
           }
         }

@@ -4365,6 +4365,21 @@ DEFINE_EMIT(Int32x4WithFlag,
   }
 }
 
+DEFINE_EMIT(Int32x4Shift,
+            (VRegister result,
+             VRegister value,
+             Register shift,
+             Temp<Register> count,
+             Temp<VRegister> shift_vector)) {
+  __ AndImmediate(count, shift, 31);
+  if (instr->kind() == SimdOpInstr::kInt32x4ShrS) {
+    // SSHL shifts right when the per-lane count is negative.
+    __ neg(count, count);
+  }
+  __ vdupw(shift_vector, count);
+  __ vsshlw(result, value, shift_vector);
+}
+
 // Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
 // format:
 //
@@ -4372,6 +4387,9 @@ DEFINE_EMIT(Int32x4WithFlag,
 //     SIMPLE(OpA) - Emitter with name OpA is used to emit OpA.
 //
 #define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
+  CASE(Int32x4Shl)                                                             \
+  CASE(Int32x4ShrS)                                                            \
+  ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
   CASE(Float32x4ShuffleMix)                                                    \
   CASE(Int32x4ShuffleMix)                                                      \

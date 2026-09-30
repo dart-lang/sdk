@@ -12,6 +12,13 @@
 
 [#63811]: https://github.com/dart-lang/sdk/issues/63811
 
+#### `dart:io`
+
+- Process spawning on Mac switched from `fork`-and-`exec` to `posix_spawn`.
+  `PATH` resolution will now happen with the parent's `PATH` instead of the
+  child's `PATH`. Using an absolute path for the `executable` argument to
+  `Process.start` etc is recommended to avoid platform-specific differences.
+
 #### `dart:typed_data`
 
 - **Breaking change:** `toString()` on the SIMD value types `Float32x4`,
