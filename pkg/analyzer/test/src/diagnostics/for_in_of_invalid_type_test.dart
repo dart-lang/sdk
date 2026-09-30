@@ -45,7 +45,7 @@ f(bool e) async {
     await resolveTestCodeWithDiagnostics(r'''
 f(Never e) async {
   await for (var id in e) {
-// [diag.deadCode][column 14][length 26] Dead code.
+// [diag.deadCode][column 27][length 13] Dead code.
     id;
   }
 }
@@ -136,7 +136,7 @@ f(L e) {
     await resolveTestCodeWithDiagnostics(r'''
 f(Never e) {
   for (var id in e) {
-// [diag.deadCode][column 8][length 26] Dead code.
+// [diag.deadCode][column 21][length 13] Dead code.
     id;
   }
 }

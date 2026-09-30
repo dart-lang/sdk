@@ -6,6 +6,10 @@
   longer a comment reference, so it  isn't resolved, indexed, or renamed. Use `[C.new]` instead.
 * Deprecated `CommentReference.newKeyword`. It now always returns `null`.
 * Removed the `deprecated_new_in_comment_reference` diagnostic, along with its quick fix.
+* The loop variable of a for-in loop, including its metadata, is resolved
+  before the iterable, in source order. As a result, `dead_code` for a loop
+  over an expression of type `Never` starts at the loop body instead of the
+  loop variable.
 
 ## 14.4.0
 

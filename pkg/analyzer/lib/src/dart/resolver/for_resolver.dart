@@ -114,7 +114,7 @@ class ForResolver {
       pattern: forLoopParts.pattern,
       expression: forLoopParts.iterable2,
       dispatchBody: dispatchBody,
-      beforePatternOffset: node.offset,
+      beforePatternOffset: forLoopParts.keyword.offset,
       beforeExpressionOffset: forLoopParts.inKeyword.offset,
       bodyBeginOffset: rightParenthesisOffset,
       endOffset: endOffset,
@@ -206,6 +206,10 @@ class ForResolver {
           : _resolver.typeProvider.iterableType(valueType);
     }
 
+    // The loop variable, including its metadata, precedes the iterable in the
+    // source, so visit it first; flow analysis expects source order.
+    loopVariable?.accept2(_resolver);
+
     _resolver.analyzeExpression(
       iterable,
       SharedTypeSchemaView(targetType ?? UnknownInferredType.instance),
@@ -217,7 +221,6 @@ class ForResolver {
       iterable,
     );
 
-    loopVariable?.accept2(_resolver);
     var elementType = _computeForEachElementType(iterable, isAsync);
     if (loopVariable != null && loopVariable.type == null) {
       var loopVariableElement =

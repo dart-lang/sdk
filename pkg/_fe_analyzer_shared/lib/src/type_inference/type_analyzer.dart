@@ -1901,10 +1901,12 @@ mixin TypeAnalyzer<
   /// `for (<keyword> <pattern> in <expression>) <body>`
   ///
   /// [beforePatternOffset] is the last source offset that should be considered
-  /// to be prior to entry into the `for`. The offset of any character in the
-  /// `for` keyword (or `await` keyword, if present) should work, since no
-  /// expressions can appear in this range, but the first such character is
-  /// probably the best choice.
+  /// to be prior to entry into the pattern. The offset of any character in
+  /// `<keyword>` should work, since no expressions can appear in this range,
+  /// but the first character of the keyword is probably the best choice.
+  /// An offset in the metadata preceding `<keyword>` doesn't work, because the
+  /// metadata may contain expressions, which are visited in source order,
+  /// before the iterable.
   ///
   /// [beforeExpressionOffset] is the last source offset that should be
   /// considered to be part of the pattern. The offset of the `in` token is

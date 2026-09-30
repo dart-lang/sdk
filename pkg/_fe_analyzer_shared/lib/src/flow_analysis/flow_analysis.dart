@@ -1328,10 +1328,12 @@ abstract class FlowAnalysis<
   /// [elementType] is the element type of the `Iterable`, or `dynamic`.
   ///
   /// [offset] is the last source offset that should be considered to be prior
-  /// to entry into the `for`. The offset of any character in the `for` keyword
-  /// (or `await` keyword, if present) should work, since no expressions can
-  /// appear in this range, but the first such character is probably the best
-  /// choice.
+  /// to entry into the pattern. The offset of any character in the `var` or
+  /// `final` keyword should work, since no expressions can appear in this
+  /// range, but the first character of the keyword is probably the best
+  /// choice. An offset in the metadata preceding the keyword doesn't work,
+  /// because the metadata may contain expressions, which are visited in source
+  /// order, before the iterable.
   void patternForIn_beforePattern(SharedTypeView elementType, {int offset = 0});
 
   /// Call this method just after visiting the pattern of a "pattern-for-in"
