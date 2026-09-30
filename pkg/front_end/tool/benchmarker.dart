@@ -5,8 +5,8 @@
 import "dart:convert";
 import "dart:io";
 
-import '../test/simple_stats.dart';
 import '../test/utils/io_utils.dart' show computeRepoDirUri;
+import 'benchmarker_stats.dart';
 
 late final Uri repoDir = computeRepoDirUri();
 
@@ -16,6 +16,7 @@ void main(List<String> args) {
   bool doCacheBenchmarkingToo = false;
   bool doDisabledGcBenchmarkToo = false;
   bool silent = false;
+  bool showAll = false;
   int iterations = 5;
   int core = 7;
   int gcRuns = 1;
@@ -54,6 +55,8 @@ void main(List<String> args) {
       doDisabledGcBenchmarkToo = true;
     } else if (arg == "--silent") {
       silent = true;
+    } else if (arg == "--show-all") {
+      showAll = true;
     } else if (arg.startsWith("--raw-output=")) {
       rawOutputPath = arg.substring("--raw-output=".length);
       if (rawOutputPath.isEmpty) {
@@ -99,6 +102,7 @@ void main(List<String> args) {
     checkFileSize,
     cacheBenchmarking: false,
     silent: silent,
+    showAll: showAll,
     gcRuns: gcRuns,
     rawOutput: rawOutput,
     phase: "default",
@@ -115,6 +119,7 @@ void main(List<String> args) {
       checkFileSize,
       cacheBenchmarking: true,
       silent: silent,
+      showAll: showAll,
       gcRuns: gcRuns,
       rawOutput: rawOutput,
       phase: "cache",
@@ -132,6 +137,7 @@ void main(List<String> args) {
       checkFileSize,
       cacheBenchmarking: false,
       silent: silent,
+      showAll: showAll,
       gcRuns: 0,
       extraVmArguments: [
         "--new_gen_semi_initial_size=10000",
@@ -162,6 +168,7 @@ void _doRun(
   String? checkFileSize, {
   required bool cacheBenchmarking,
   required bool silent,
+  required bool showAll,
   required int gcRuns,
   List<String>? extraVmArguments,
   RawOutput? rawOutput,
@@ -286,7 +293,7 @@ void _doRun(
       "snapshot #${i + 1} ($comparedToSnapshotName)",
     );
     List<Map<String, num>> compareToResults = runResults[i];
-    if (!_compare(firstSnapshotResults, compareToResults)) {
+    if (!_compare(firstSnapshotResults, compareToResults, showAll: showAll)) {
       print("No change.");
     }
     if (gcRuns >= 3) {
@@ -295,6 +302,7 @@ void _doRun(
         gcInfos[i].map((gcInfo) => gcInfo.combinedTime).toList(),
         gcInfos[0].map((gcInfo) => gcInfo.combinedTime).toList(),
         "Combined GC time",
+        showAll: showAll,
       )) {
         print("No change in combined time.");
       }
@@ -370,13 +378,26 @@ void _help() {
   print("  --raw-output=<file>");
   print("    Write every individual measurement (with timestamps) to <file>");
   print("    as JSON, for offline analysis.");
+  print("");
+  print("  --show-all");
+  print("    Print the comparison for every metric, including the standard");
+  print("    deviations and whether the change is significant, instead of");
+  print("    only printing the significant changes.");
 }
 
-bool compare(List<Map<String, num>> from, List<Map<String, num>> to) {
-  return _compare(from, to);
+bool compare(
+  List<Map<String, num>> from,
+  List<Map<String, num>> to, {
+  bool showAll = false,
+}) {
+  return _compare(from, to, showAll: showAll);
 }
 
-bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
+bool _compare(
+  List<Map<String, num>> from,
+  List<Map<String, num>> to, {
+  required bool showAll,
+}) {
   bool somethingWasSignificant = false;
   Set<String> allCaptions = {};
   for (Map<String, num> entry in [...from, ...to]) {
@@ -403,23 +424,49 @@ bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
       toForCaption,
       fromForCaption,
       caption,
+      showAll: showAll,
     );
   }
   return somethingWasSignificant;
 }
 
-bool _compareSingle(List<num> to, List<num> from, String caption) {
-  TTestResult stats = SimpleTTestStat.ttest(to, from);
-  if (stats.significant) {
-    print(
-      "$caption: ${stats.percentChangeIfSignificant(fractionDigits: 4)} "
-      "(${stats.valueChangeIfSignificant(fractionDigits: 2)}) "
-      "(${stats.meanChangeStringIfSignificant(fractionDigits: 2)})",
+/// Compares [to] against [from] for the metric [caption], printing the
+/// result if it is significant (or if [showAll] is `true`).
+///
+/// Returns whether the result was significant.
+bool _compareSingle(
+  List<num> to,
+  List<num> from,
+  String caption, {
+  bool showAll = false,
+}) {
+  Comparison comparison = compareUnpaired(from, to);
+  if (comparison.significant || showAll) {
+    StringBuffer line = new StringBuffer(
+      "$caption: "
+      "${_formatPercent(comparison.percentDiff)} +/- "
+      "${_formatPercent(comparison.percentConfidence)} "
+      "(${comparison.diff.toStringAsFixed(2)} +/- "
+      "${comparison.confidence.toStringAsFixed(2)}) "
+      "(${comparison.fromMean.toStringAsFixed(2)} -> "
+      "${comparison.toMean.toStringAsFixed(2)})",
     );
-    return true;
+    if (showAll) {
+      line.write(
+        " (sd: ${comparison.fromStdDev.toStringAsFixed(2)} / "
+        "${comparison.toStdDev.toStringAsFixed(2)})",
+      );
+      line.write(
+        comparison.significant ? " [significant]" : " [not significant]",
+      );
+    }
+    print(line);
   }
-  return false;
+  return comparison.significant;
 }
+
+String _formatPercent(double? percent) =>
+    percent == null ? "n/a%" : "${percent.toStringAsFixed(4)}%";
 
 List<num> _extractDataForCaption(String caption, List<Map<String, num>> data) {
   List<num> result = [];

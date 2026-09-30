@@ -249,6 +249,7 @@ decrease
 decrements
 dectcem
 deece
+degrees
 deleting
 denylist
 depended
@@ -257,6 +258,7 @@ desc
 descending
 descriptors
 deviation
+deviations
 dfast
 dfuzz
 di
@@ -316,6 +318,7 @@ emethod
 entrypoints
 eoo
 epoch
+epsilon
 equally
 erase
 err
@@ -376,6 +379,7 @@ forces
 foreground
 forever
 forgot
+formula
 forrest
 forth
 forty
@@ -625,6 +629,7 @@ oops
 oovf
 opacity
 operate
+opposite
 ops
 optimal
 oracle
@@ -652,6 +657,7 @@ paused
 pays
 pb
 pc
+percentage
 percentile
 periodic
 periodically
@@ -778,6 +784,7 @@ scheduler
 screen
 scripts
 scroll
+sd
 sdkroot
 sdks
 secondary
@@ -803,6 +810,7 @@ shortest
 shot
 shuffle
 sidebar
+sided
 sigint
 signalled
 sigterm
