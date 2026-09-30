@@ -1191,6 +1191,7 @@ final sharedAnalyzerCodes = <DiagnosticCode>[
   diag.annotationWithTypeArgumentsUninstantiated,
   diag.anonymousMethodWrongParameterList,
   diag.assignmentToPrimaryConstructorParameter,
+  diag.augmentationExtendsClauseAlreadyPresent,
   diag.baseEnum,
   diag.binaryOperatorWrittenOut,
   diag.breakOutsideOfLoop,

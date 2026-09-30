@@ -1,0 +1,29 @@
+augment class B extends A;
+
+augment class C extends A;
+
+augment class D extends A;
+
+augment class D extends A;
+
+augment class E extends B;
+
+augment class F extends A;
+
+augment class F extends B;
+
+class A;
+
+class B;
+
+class C extends A;
+
+class D;
+
+class E extends A;
+
+class F;
+
+expect(expected, actual) {}
+
+main() {}

@@ -147,7 +147,7 @@ class JsObject {
 }
 
 @patch
-class JsFunction extends JsObject {
+class JsFunction {
   @patch
   factory JsFunction.withThis(Function f) {
     return JsFunction._fromJs(

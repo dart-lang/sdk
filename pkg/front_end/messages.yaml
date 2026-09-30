@@ -7830,3 +7830,8 @@ dartExternalEffectMalformedPragma:
     const bar = 'external-effect';
     @pragma(bar)
     external void foo(Object? x);
+
+augmentationExtendsClassAlreadyPresentCause:
+  parameters: none
+  problemMessage: "The previous 'extends' clause."
+  severity: CONTEXT

@@ -407,6 +407,34 @@ class BuilderFactory {
     ClassFragment fragment,
     List<Fragment>? augmentations,
   ) {
+    TypeBuilder? supertypeBuilder = fragment.supertype;
+    if (augmentations != null) {
+      for (Fragment augmentation in augmentations) {
+        augmentation as ClassFragment;
+
+        TypeBuilder? augmentationSupertype = augmentation.supertype;
+        if (augmentationSupertype != null) {
+          if (supertypeBuilder != null) {
+            _problemReporting.addProblem(
+              diag.augmentationExtendsClauseAlreadyPresent,
+              augmentationSupertype.charOffset!,
+              noLength,
+              augmentationSupertype.fileUri,
+              context: [
+                diag.augmentationExtendsClassAlreadyPresentCause.withLocation(
+                  supertypeBuilder.fileUri!,
+                  supertypeBuilder.charOffset!,
+                  noLength,
+                ),
+              ],
+            );
+          } else {
+            supertypeBuilder = augmentationSupertype;
+          }
+        }
+      }
+    }
+
     IndexedClass? indexedClass = _indexedLibrary?.lookupIndexedClass(
       fragment.name,
     );
@@ -434,6 +462,7 @@ class BuilderFactory {
             indexedClass: indexedClass,
             introductory: introductory,
             augmentations: augmentations,
+            supertypeBuilder: supertypeBuilder,
           ),
       setBuilder: (fragment, builder) => fragment.builder = builder,
       // TODO(johnniwinther): Use a distinct message for patch/augmentation
@@ -762,7 +791,7 @@ class BuilderFactory {
       reference: indexedClass?.reference,
       createDeclaration: (EnumFragment fragment) {
         enumElements.addAll(fragment.enumElements);
-        return new EnumDeclaration(fragment, _loader.target.underscoreEnumType);
+        return new EnumDeclaration(fragment);
       },
       createBuilder:
           ({
@@ -1121,6 +1150,7 @@ class BuilderFactory {
             indexedClass: indexedClass,
             introductory: introductory,
             augmentations: augmentations,
+            supertypeBuilder: fragment.supertype,
           ),
       setBuilder: (fragment, builder) => fragment.builder = builder,
       // TODO(johnniwinther): Use a distinct message for patch/augmentation
@@ -1134,6 +1164,7 @@ class BuilderFactory {
     NamedMixinApplicationFragment fragment,
   ) {
     List<TypeBuilder> mixins = fragment.mixins.toList();
+    TypeBuilder supertype = fragment.supertype;
     TypeBuilder mixin = mixins.removeLast();
     ClassDeclaration classDeclaration = new NamedMixinApplication(
       fragment,
@@ -1172,6 +1203,7 @@ class BuilderFactory {
       indexedClass: referencesFromIndexedClass,
       mixedInTypeBuilder: mixin,
       introductory: classDeclaration,
+      supertypeBuilder: supertype,
     );
     _mixinApplications[classBuilder] = mixin;
     fragment.builder = classBuilder;

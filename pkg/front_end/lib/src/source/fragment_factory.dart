@@ -297,7 +297,7 @@ abstract class FragmentFactory {
     required String name,
     required List<TypeParameterFragment>? typeParameters,
     required Modifiers modifiers,
-    required TypeBuilder? supertype,
+    required TypeBuilder supertype,
     required List<TypeBuilder> mixins,
     required List<TypeBuilder>? interfaces,
     required int startOffset,

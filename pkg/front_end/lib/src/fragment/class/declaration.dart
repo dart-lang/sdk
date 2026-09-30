@@ -15,7 +15,6 @@ abstract class ClassDeclaration {
   int get endOffset;
   bool get isMixinDeclaration;
 
-  TypeBuilder? get supertype;
   List<TypeBuilder>? get mixedInTypes;
   List<TypeBuilder>? get interfaces;
 
@@ -65,9 +64,6 @@ class RegularClassDeclaration implements ClassDeclaration {
   bool get isMixinDeclaration => false;
 
   @override
-  TypeBuilder? get supertype => _fragment.supertype;
-
-  @override
   List<TypeBuilder>? get mixedInTypes => _fragment.mixins;
 
   @override
@@ -106,10 +102,7 @@ class RegularClassDeclaration implements ClassDeclaration {
 class EnumDeclaration implements ClassDeclaration {
   final EnumFragment _fragment;
 
-  @override
-  final TypeBuilder supertype;
-
-  new(this._fragment, this.supertype);
+  new(this._fragment);
 
   @override
   ExtensionScope get extensionScope =>
@@ -213,9 +206,6 @@ class NamedMixinApplication implements ClassDeclaration {
   bool get isMixinDeclaration => false;
 
   @override
-  TypeBuilder? get supertype => _fragment.supertype;
-
-  @override
   List<TypeBuilder>? get interfaces => _fragment.interfaces;
 
   @override
@@ -268,9 +258,6 @@ class AnonymousMixinApplication implements ClassDeclaration {
   final Uri fileUri;
 
   @override
-  final TypeBuilder? supertype;
-
-  @override
   bool get isMixinDeclaration => false;
 
   @override
@@ -287,7 +274,6 @@ class AnonymousMixinApplication implements ClassDeclaration {
     required this.nameOffset,
     required this.startOffset,
     required this.endOffset,
-    required this.supertype,
     required this.interfaces,
   });
 
@@ -344,9 +330,6 @@ class MixinDeclaration implements ClassDeclaration {
 
   @override
   bool get isMixinDeclaration => true;
-
-  @override
-  TypeBuilder? get supertype => _fragment.supertype;
 
   @override
   List<TypeBuilder>? get mixedInTypes => _fragment.mixins;
