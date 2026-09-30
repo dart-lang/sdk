@@ -61,6 +61,11 @@ void main(List<String> args) {
   if (snapshots.length < 2) {
     throw "Can't compare less than two snapshots. Specify using '--snapshot='";
   }
+  if (iterations < 2) {
+    // The t-test needs at least two samples per snapshot to estimate the
+    // variance.
+    throw "--iterations must be at least 2 (got $iterations).";
+  }
   if (arguments.isEmpty) {
     print("Note: Running without any arguments to the snapshots.");
   }
