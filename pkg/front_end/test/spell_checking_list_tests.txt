@@ -86,6 +86,7 @@ backing
 bail
 bailing
 bailout
+bandwidth
 bar'baz
 bar\'baz
 barbar
@@ -115,6 +116,7 @@ bold
 boo
 boollist
 bools
+boost
 bootstrapping
 bots
 boundaries
@@ -186,6 +188,7 @@ comparative
 comparators
 comparer
 compensate
+competing
 compiler's
 complement
 complicated
@@ -213,6 +216,9 @@ coverable
 coverages
 cp
 cpu
+cpufreq
+cpuinfo
+cpus
 csi
 ct
 ctrl
@@ -394,7 +400,9 @@ forty
 fortytwo
 foundation
 fox
+fpu
 fq
+fragmentation
 frequency
 frozen
 fruits
@@ -422,10 +430,12 @@ gm
 golem
 goo
 google
+governor
 graphic
 grault
 greeting
 gtgt
+guest
 gulp
 gunk
 ha
@@ -452,8 +462,12 @@ hosting
 hot
 hotreload
 hover
+huge
+hugepage
 hunk
 hurray
+hyperthread
+hypervisor
 i'm
 i'th
 ia
@@ -505,6 +519,8 @@ introducer
 inv
 involves
 ioo
+iowait
+irq
 irrespective
 ish
 iso
@@ -542,6 +558,7 @@ listening
 listing
 llc
 ln
+loadavg
 locale
 locating
 logs
@@ -552,6 +569,8 @@ lsp
 ma
 mac
 machine's
+machines
+madvise
 maker
 manual
 matters
@@ -633,6 +652,7 @@ oh
 okay
 ol
 onefour
+online
 onull
 oo
 oobar
@@ -658,6 +678,7 @@ overly
 ox
 pack
 packet
+pages
 paging
 paint
 parallax
@@ -692,6 +713,7 @@ policy
 pooled
 population
 portions
+powersave
 pp
 pr
 practise
@@ -716,6 +738,7 @@ protected
 proved
 proxy
 pseudocode
+pstate
 pt
 pubspec
 punch
@@ -844,6 +867,7 @@ slope
 sm
 smoke
 snull
+softirq
 somehow
 sorter
 soundly
@@ -874,6 +898,7 @@ stats
 stay
 std
 steadily
+steal
 stopwatches
 streams
 stress
@@ -904,18 +929,21 @@ suspension
 swallow
 sxx
 sxy
+sys
 t\b\f\u
 t\u
 ta
 tails
 taskset
 te
+temperature
 templates
 testfile
 theoretically
 there'll
 thereby
 thereof
+thp
 thread
 threads
 ticks
@@ -926,8 +954,10 @@ timer
 timings
 tinv
 tk
+tlb
 told
 tooltip
+topology
 touch
 tpt
 transitively
@@ -946,6 +976,7 @@ tta
 ttest
 ttta
 tttta
+turbo
 twotwo
 txt
 typeargs
@@ -989,6 +1020,7 @@ versioned
 vf
 virtually
 visualization
+vme
 vp
 vscode
 vt

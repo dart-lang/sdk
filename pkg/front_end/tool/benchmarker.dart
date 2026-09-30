@@ -7,6 +7,7 @@ import "dart:io";
 import "dart:math";
 
 import '../test/utils/io_utils.dart' show computeRepoDirUri;
+import 'benchmarker_machine_check.dart';
 import 'benchmarker_stats.dart';
 
 late final Uri repoDir = computeRepoDirUri();
@@ -19,6 +20,7 @@ void main(List<String> args) {
   bool silent = false;
   bool showAll = false;
   bool interleave = true;
+  bool checkMachine = true;
   int? seed;
   int iterations = 5;
   int warmup = 1;
@@ -77,6 +79,8 @@ void main(List<String> args) {
       int? parsed = int.tryParse(value);
       if (parsed == null) throw "--warmup must be an integer (got '$value').";
       warmup = parsed;
+    } else if (arg == "--no-machine-check") {
+      checkMachine = false;
     } else {
       throw "Don't know argument '$arg'";
     }
@@ -99,6 +103,20 @@ void main(List<String> args) {
   }
   while (snapshotSpecificArguments.length < snapshots.length) {
     snapshotSpecificArguments.add([]);
+  }
+  String? coreError = checkCore(core);
+  if (coreError != null) throw coreError;
+  if (checkMachine) {
+    List<String> machineWarnings = checkMachineSetup(core);
+    if (machineWarnings.isEmpty) {
+      print("Machine setup check: no issues found.");
+    } else {
+      print("Machine setup check (pass --no-machine-check to skip):");
+      for (String warning in machineWarnings) {
+        print("  Warning: $warning");
+      }
+    }
+    print("");
   }
   Random? random;
   if (interleave) {
@@ -579,6 +597,13 @@ void _help() {
   print("  --warmup=<n>");
   print("    Run each snapshot <n> extra times (default 1) before the");
   print("    measured runs. These runs aren't included in the results.");
+  print("");
+  print("  --no-machine-check");
+  print("    Before benchmarking, the tool checks for machine settings known");
+  print("    to make results noisy (CPU frequency governor, turbo boost,");
+  print("    transparent huge pages, load, other processes on the benchmark");
+  print("    core or its hyperthread sibling, running in a VM) and prints");
+  print("    warnings. This option skips that check.");
 }
 
 bool compare(
