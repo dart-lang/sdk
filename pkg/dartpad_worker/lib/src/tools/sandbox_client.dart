@@ -11,6 +11,18 @@ import 'package:json_rpc_2/json_rpc_2.dart';
 
 import '../shared.dart';
 import '../util/message_port.dart';
+import '../util/parameters_ext.dart';
+
+/// Structured `dart:developer.log` entry emitted by the sandbox.
+typedef SandboxLogRecord = ({
+  String message,
+  String name,
+  int level,
+  int sequenceNumber,
+  int time,
+  String? error,
+  String? stackTrace,
+});
 
 /// Client for talking to the [MessagePort] posted by `sandbox.js`.
 final class SandboxClient {
@@ -21,6 +33,7 @@ final class SandboxClient {
       StreamController<({String level, String message})>.broadcast();
   final _extensionEventController =
       StreamController<({String kind, Map<String, Object?> data})>.broadcast();
+  final _logController = StreamController<SandboxLogRecord>.broadcast();
 
   /// Create a [SandboxClient] for talking to the `sandbox.js` that posted
   /// [port].
@@ -52,6 +65,18 @@ final class SandboxClient {
       _extensionEventController.add((kind: kind, data: data));
     });
 
+    _peer.registerMethod('log', (Parameters params) {
+      _logController.add((
+        message: params['message'].asStringOr(''),
+        name: params['name'].asStringOr(''),
+        level: params['level'].asIntOr(0),
+        sequenceNumber: params['sequenceNumber'].asIntOr(0),
+        time: params['time'].asIntOr(DateTime.now().millisecondsSinceEpoch),
+        error: params['error'].asStringOrNull,
+        stackTrace: params['stackTrace'].asStringOrNull,
+      ));
+    });
+
     // Start listening
     scheduleMicrotask(() async {
       try {
@@ -71,6 +96,7 @@ final class SandboxClient {
     _onClosed();
     unawaited(_consoleController.close());
     unawaited(_extensionEventController.close());
+    unawaited(_logController.close());
   }
 
   /// Close the sandbox client, this will NOT remove the iframe.
@@ -103,6 +129,9 @@ final class SandboxClient {
   /// These events are fired by `dart:developer`'s `postEvent` method.
   Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent =>
       _extensionEventController.stream;
+
+  /// Stream of `dart:developer.log` records from the sandbox.
+  Stream<SandboxLogRecord> get onLog => _logController.stream;
 
   /// Injects compiled DDC library bundles into the sandbox.
   Future<void> loadModules({required List<CompiledModule> modules}) async {

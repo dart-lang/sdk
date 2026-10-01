@@ -273,10 +273,20 @@
   function safeSerialize(arg) {
     if (arg === null) return 'null';
     if (arg === undefined) return 'undefined';
-    if (arg instanceof Error) return arg.stack || arg.toString();
+    if (arg instanceof Error) return renderError(arg);
     if (typeof arg === 'function') return `[Function: ${arg.name || 'anonymous'}]`;
     if (arg instanceof HTMLElement) return `<${arg.tagName.toLowerCase()}>`;
+    if (Array.isArray(arg)) return `[${arg.map(safeSerialize).join(', ')}]`;
     if (typeof arg === 'object') {
+      if (!(arg instanceof Date) &&
+          typeof arg.toString === 'function' &&
+          arg.toString !== Object.prototype.toString) {
+        try {
+          return String(arg);
+        } catch (_) {
+          // Fall through to JSON.stringify.
+        }
+      }
       try {
         return JSON.stringify(arg);
       } catch (_) {
@@ -295,7 +305,7 @@
   };
 
   // Proxy console over RPC
-  for (const level of Object.keys(originalConsole)) {
+  for (const level of ['log', 'info', 'warn', 'error']) {
     console[level] = function (...args) {
       // Format message as a single string
       const message = args.map(safeSerialize).join(' ');
@@ -305,6 +315,33 @@
       originalConsole[level].apply(console, args);
     };
   }
+
+  console.debug = function (...args) {
+    originalConsole.debug.apply(console, args);
+    if (args[0] === 'dart.developer.log' && args[1] && typeof args[1] === 'object') {
+      const items = args[1];
+      sendNotification('log', {
+        message: String(items.message),
+        name: String(items.name),
+        level: items.level,
+        sequenceNumber: items.sequenceNumber,
+        time: items.time?.millisecondsSinceEpoch,
+        error: items.error != null ? safeSerialize(items.error) : undefined,
+        stackTrace:
+            items.stackTrace != null ? String(items.stackTrace) : undefined,
+      });
+      return;
+    }
+    if (args[0] === 'dart.developer.inspect') {
+      sendNotification('console', {
+        level: 'debug',
+        message: safeSerialize(args[1]),
+      });
+      return;
+    }
+    const message = args.map(safeSerialize).join(' ');
+    sendNotification('console', { level: 'debug', message });
+  };
 
   // Render an Javascript `Error` and map to Dart sources.
   function renderError(e) {

@@ -10,8 +10,16 @@ import '../../integration_harness.dart';
 void main() {
   testDartIntegration('sandbox can run code', (ctx) async {
     await ctx.ws.writeFileFromText('main.dart', '''
+      import 'dart:developer' as developer;
+
+      class _Item {
+        @override
+        String toString() => 'custom-item';
+      }
+
       void main() {
         print('Hello World');
+        developer.inspect([_Item()]);
       }
     ''');
 
@@ -24,6 +32,7 @@ void main() {
     await ctx.sandbox.run('main.dart', mode: 'console');
 
     await ctx.checkConsole(.it()..contains('Hello World'));
+    await ctx.checkConsole(.it()..equals('[custom-item]'), level: .debug);
   });
 
   testDartIntegration('sandbox handles unhandled error', (ctx) async {
