@@ -263,6 +263,7 @@ bool ZLibDeflateFilter::Init() {
   if ((dictionary_.data != nullptr) && !gzip_ && !raw_) {
     result = deflateSetDictionary(&stream_, dictionary_.data.get(),
                                   dictionary_.length);
+    dictionary_.data.reset();
     if (result != Z_OK) {
       return false;
     }
@@ -392,6 +393,7 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
       } else {
         int result = inflateSetDictionary(&stream_, dictionary_.data.get(),
                                           dictionary_.length);
+        dictionary_.data.reset();
         error = result != Z_OK;
       }
       if (error) {

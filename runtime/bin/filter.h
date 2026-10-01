@@ -92,7 +92,7 @@ class ZLibDeflateFilter : public Filter {
   const int32_t window_bits_;
   const int32_t mem_level_;
   const int32_t strategy_;
-  const Dictionary dictionary_;
+  Dictionary dictionary_;
   const bool raw_;
   uint8_t* current_buffer_;
   z_stream stream_;
@@ -123,7 +123,7 @@ class ZLibInflateFilter : public Filter {
  private:
   const bool gzip_;
   const int32_t window_bits_;
-  const Dictionary dictionary_;
+  Dictionary dictionary_;
   const bool raw_;
   uint8_t* current_buffer_;
   z_stream stream_;
