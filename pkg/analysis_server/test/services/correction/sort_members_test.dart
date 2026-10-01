@@ -1373,22 +1373,149 @@ part 'test.dart';
     await parseTestCode(r'''
 part of 'part.dart';
 
-import 'dart:io';
-import 'dart:async';
+part 'b.dart';
+import 'b.dart';
+export 'b.dart';
+import 'a.dart';
+export 'a.dart';
+part 'a.dart';
 
 void f() {}
-
-Future? a;
+class C {}
+class A {}
+int b = 0;
 ''');
     _assertSort(r'''
 part of 'part.dart';
 
-import 'dart:async';
-import 'dart:io';
+import 'a.dart';
+import 'b.dart';
 
-Future? a;
+export 'a.dart';
+export 'b.dart';
 
+part 'a.dart';
+part 'b.dart';
+
+int b = 0;
 void f() {}
+class A {}
+class C {}
+''');
+  }
+
+  Future<void> test_partFile_directives_partOfName() async {
+    await parseTestCode(r'''
+part of lib;
+
+export 'dart:bbb';
+import 'dart:bbb';
+export 'dart:aaa';
+import 'dart:aaa';
+part 'bbb.dart';
+part 'aaa.dart';
+''');
+    _assertSort(r'''
+part of lib;
+
+import 'dart:aaa';
+import 'dart:bbb';
+
+export 'dart:aaa';
+export 'dart:bbb';
+
+part 'aaa.dart';
+part 'bbb.dart';
+''');
+  }
+
+  Future<void> test_partFile_directives_withAnnotations() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part 'test.dart';
+''');
+
+    await parseTestCode(r'''
+@partAnnotation
+part of 'part.dart';
+
+export 'dart:bbb';
+@MyAnnotation(1)
+@MyAnnotation(2)
+import 'dart:bbb';
+@MyAnnotation(3)
+export 'dart:aaa';
+import 'dart:aaa';
+@partAnnotation
+part 'bbb.dart';
+part 'aaa.dart';
+
+class MyAnnotation {
+  const MyAnnotation(_);
+}
+''');
+    _assertSort(r'''
+@partAnnotation
+part of 'part.dart';
+
+import 'dart:aaa';
+@MyAnnotation(1)
+@MyAnnotation(2)
+import 'dart:bbb';
+
+@MyAnnotation(3)
+export 'dart:aaa';
+export 'dart:bbb';
+
+part 'aaa.dart';
+@partAnnotation
+part 'bbb.dart';
+
+class MyAnnotation {
+  const MyAnnotation(_);
+}
+''');
+  }
+
+  Future<void> test_partFile_directives_withDocComments() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part 'test.dart';
+''');
+
+    await parseTestCode(r'''
+/// Doc comment for part of.
+part of 'part.dart';
+
+/// Doc comment for import b.
+import 'b.dart';
+/// Doc comment for import a.
+import 'a.dart';
+/// Doc comment for export b.
+export 'b.dart';
+/// Doc comment for export a.
+export 'a.dart';
+/// Doc comment for part b.
+part 'b.dart';
+/// Doc comment for part a.
+part 'a.dart';
+''');
+    _assertSort(r'''
+/// Doc comment for part of.
+part of 'part.dart';
+
+/// Doc comment for import a.
+import 'a.dart';
+/// Doc comment for import b.
+import 'b.dart';
+
+/// Doc comment for export a.
+export 'a.dart';
+/// Doc comment for export b.
+export 'b.dart';
+
+/// Doc comment for part a.
+part 'a.dart';
+/// Doc comment for part b.
+part 'b.dart';
 ''');
   }
 
