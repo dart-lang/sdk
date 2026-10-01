@@ -421,7 +421,8 @@ class CallSites : public ValueObject {
   // Attempt to devirtualize collected call-sites by applying Canonicalization
   // rules.
   void TryDevirtualize(FlowGraph* graph) {
-    GrowableArray<Definition*> worklist(calls_->length());
+    GrowableArray<Definition*> worklist(calls_->length() +
+                                        closure_calls_.length());
     BitVector processed(graph->zone(), graph->current_ssa_temp_index());
 
     auto add_to_worklist = [&](Definition* defn) {
@@ -455,16 +456,17 @@ class CallSites : public ValueObject {
     // their dependencies (values that flow into inputs). Calls will
     // form the prefix of the worklist followed by their inputs.
     for (auto& call_info : *calls_) {
-      // Call might not have an SSA temp assigned because its result is
-      // not used. We still want to add such call to worklist but we
-      // should not try to update the bitvector.
-      if (call_info.call->HasSSATemp()) {
-        add_to_worklist(call_info.call);
-      } else {
-        worklist.Add(call_info.call);
+      worklist.Add(call_info.call);
+    }
+    for (auto& call_info : closure_calls_) {
+      worklist.Add(call_info.call);
+    }
+    // Mark calls which have SSA index as processed.
+    for (auto& call : worklist) {
+      if (call->HasSSATemp()) {
+        processed.Add(call->ssa_temp_index());
       }
     }
-    RELEASE_ASSERT(worklist.length() == calls_->length());
     add_transitive_dependencies_to_worklist(0);
 
     // Step 2: canonicalize each definition from the worklist. We process
