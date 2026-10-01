@@ -157,12 +157,22 @@ final class DartPadRunMode {
   /// invoking `entrypoint.main()`.
   final String? entrypointWrapperTemplate;
 
-  DartPadRunMode({required this.mode, this.entrypointWrapperTemplate});
+  /// Additional library URIs precompiled and available in this run mode (for
+  /// example, `package:flutter/...` in `flutter` mode).
+  final List<String> libraries;
+
+  DartPadRunMode({
+    required this.mode,
+    this.entrypointWrapperTemplate,
+    this.libraries = const [],
+  });
 
   factory DartPadRunMode.fromJson(Map<String, Object?> json) {
     return DartPadRunMode(
       mode: json['mode'] as String,
       entrypointWrapperTemplate: json['entrypointWrapperTemplate'] as String?,
+      libraries:
+          (json['libraries'] as List<dynamic>?)?.cast<String>() ?? const [],
     );
   }
 
@@ -171,6 +181,7 @@ final class DartPadRunMode {
       'mode': mode,
       if (entrypointWrapperTemplate != null)
         'entrypointWrapperTemplate': entrypointWrapperTemplate,
+      if (libraries.isNotEmpty) 'libraries': libraries,
     };
   }
 
