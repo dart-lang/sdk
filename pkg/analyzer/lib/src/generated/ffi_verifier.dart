@@ -1146,18 +1146,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     if (expr is BooleanLiteral) {
       return expr.value;
     }
-    if (expr is Identifier) {
-      var element = expr.element;
-      if (element is VariableElement && element.isConst) {
-        return element.computeConstantValue()?.toBoolValue();
-      }
-      if (element is PropertyAccessorElement) {
-        var variable = element.variable;
-        if (variable.isConst) {
-          return variable.computeConstantValue()?.toBoolValue();
-        }
-      }
-    }
     return null;
   }
 
@@ -1356,21 +1344,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         if (type?.isTypedData ?? false) {
           return;
         }
-      case PrefixedIdentifier _:
-        // Struct or Union field.
-        var compound = receiver.prefix;
-        var type = compound.staticType;
-        if (type?.isCompoundSubtype ?? false) {
-          return;
-        }
-      case PropertyAccess _:
-        // Struct or Union field.
-        var compound = receiver.target2;
-        var type = compound?.staticType;
-        if (type?.isCompoundSubtype ?? false) {
-          return;
-        }
       case ReceiverPropertyExtraction(receiver: Expression compound):
+        // Struct or Union field.
         if (compound.staticType?.isCompoundSubtype ?? false) {
           return;
         }
@@ -1996,7 +1971,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     var validTarget = false;
 
     var referencedElement = switch (argument) {
-      IdentifierImpl() => argument.element?.nonSynthetic,
       NameExpressionImpl() => argument.resolution?.element?.nonSynthetic,
       _ => null,
     };

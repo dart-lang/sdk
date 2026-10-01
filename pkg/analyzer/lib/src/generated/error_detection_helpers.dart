@@ -350,18 +350,6 @@ mixin ErrorDetectionHelpers {
     }
   }
 
-  /// Return the variable element represented by the given [expression], or
-  /// `null` if there is no such element.
-  VariableElement? getVariableElement(Expression? expression) {
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is VariableElement) {
-        return element;
-      }
-    }
-    return null;
-  }
-
   void _checkForArgumentTypeNotAssignableForArgument({
     required Expression argument,
     required TypeImpl staticParameterType,

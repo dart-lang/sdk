@@ -8196,22 +8196,6 @@ class LibraryFragmentImpl extends FragmentImpl
   }
 
   /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
-  /// given (possibly prefixed) identifier [node].
-  bool shouldIgnoreUndefinedIdentifier(Identifier node) {
-    if (node is PrefixedIdentifier) {
-      return shouldIgnoreUndefined(
-        prefix: node.prefix.name,
-        name: node.identifier.name,
-      );
-    }
-
-    return shouldIgnoreUndefined(
-      prefix: null,
-      name: (node as SimpleIdentifier).name,
-    );
-  }
-
-  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
   /// given (possibly prefixed) named type [node].
   bool shouldIgnoreUndefinedNamedType(NamedType node) {
     return shouldIgnoreUndefined(

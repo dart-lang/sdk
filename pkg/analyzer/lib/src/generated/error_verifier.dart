@@ -3112,7 +3112,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     var formalParameter = element;
     formalParameter ??= switch (node) {
       AssignedVariablePattern(:var element) => element,
-      SimpleIdentifier(:var element) => element,
       _ => null,
     };
 
@@ -7711,13 +7710,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         if (target.operator.type == TokenType.QUESTION_PERIOD) {
           return previousShortCircuitingOperator(receiver) ?? target.operator;
         }
-      } else if (target is PropertyAccess) {
-        var operator = target.operator;
-        var type = operator.type;
-        if (type == TokenType.QUESTION_PERIOD) {
-          var realTarget = target.realTarget2;
-          return previousShortCircuitingOperator(realTarget) ?? operator;
-        }
       } else if (target is IndexExpression) {
         if (target.question != null) {
           var realTarget = target.realTarget2;
@@ -7755,19 +7747,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
 
+    // A static member reference, such as `C?.x`, has a `StaticQualifier`
+    // receiver instead of an `InstanceReceiver`, and is checked by the caller.
     if (targetType == null) {
-      // The "target" might be an identifier that names a type, and the rest of
-      // the expression might be a reference to a static member of that type,
-      // e.g. `int?.parse(...)`. In which case the diagnostic should be
-      // reported.
-      if (target is! Identifier) return;
-      var targetElement = target.element;
-      if (targetElement is! InterfaceElement &&
-          targetElement is! ExtensionElement &&
-          targetElement is! TypeAliasElement) {
-        return;
-      }
-    } else if (!typeSystem.isStrictlyNonNullable(targetType)) {
+      return;
+    }
+    if (!typeSystem.isStrictlyNonNullable(targetType)) {
       // The warning shouldn't be reported because the target type is
       // potentially nullable.
       return;
@@ -8494,12 +8479,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     // constant.
     if (expression is NameExpression) {
       return expression.name.lexeme;
-    } else if (expression is SimpleIdentifier) {
-      return expression.name;
-    } else if (expression is PrefixedIdentifier) {
-      return expression.identifier.name;
-    } else if (expression is PropertyAccess) {
-      return expression.propertyName.name;
     }
     return null;
   }
@@ -8780,24 +8759,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     } finally {
       _thisContextStack.removeLast();
     }
-  }
-
-  /// Checks whether the given [expression] is a reference to a class. If it is
-  /// then the element representing the class is returned, otherwise `null` is
-  /// returned.
-  static InterfaceElement? getTypeReference(Expression expression) {
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is InterfaceElement) {
-        return element;
-      } else if (element is TypeAliasElement) {
-        var aliasedType = element.aliasedType;
-        if (aliasedType is InterfaceType) {
-          return aliasedType.element;
-        }
-      }
-    }
-    return null;
   }
 }
 

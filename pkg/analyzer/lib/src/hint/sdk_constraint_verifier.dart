@@ -325,14 +325,8 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
             errorEntity = target.methodName;
           } else if (target is NamedType) {
             errorEntity = target.name;
-          } else if (target is PrefixedIdentifier) {
-            errorEntity = target.identifier;
-          } else if (target is PropertyAccess) {
-            errorEntity = target.propertyName;
           } else if (target is PropertyExtraction) {
             errorEntity = target.name;
-          } else if (target is SimpleIdentifier) {
-            errorEntity = target;
           } else {
             throw UnimplementedError('(${target.runtimeType}) $target');
           }
@@ -359,12 +353,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   static bool _shouldReportEnumIndex(AstNode node, Element element) {
     if (element is PropertyAccessorElement && element.name == 'index') {
       DartType? targetType;
-      if (node is PrefixedIdentifier) {
-        targetType = node.prefix.staticType;
-      } else if (node is PropertyAccess) {
-        targetType = node.realTarget2.staticType;
-      } else if (node is ReceiverPropertyExtraction &&
-          node.receiver is Expression) {
+      if (node is ReceiverPropertyExtraction && node.receiver is Expression) {
         targetType = (node.receiver as Expression).staticType;
       }
       if (targetType != null) {

@@ -208,14 +208,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         // TODO(mosum): Expand the logic to check if the individual interpolation elements are const.
         StringInterpolation() => false,
       };
-    } else if (expression is Identifier) {
-      var element = expression.element;
-      switch (element) {
-        case GetterElement():
-          return element.variable.isConst;
-        case VariableElement():
-          return element.isConst;
-      }
     } else if (expression is NameExpression) {
       var element = expression.resolution?.elementOrRecovery;
       return switch (element) {
@@ -235,15 +227,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     if (node is DotShorthandNameExpression) return true;
     if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference2) return false;
-    if (node is SimpleIdentifier) {
-      var parent = node.parent2;
-      while (parent is ParenthesizedExpression) {
-        parent = parent.parent2;
-      }
-      if (parent is InvocationExpression) return false;
-      if (node.element is TopLevelFunctionElement) return true;
-      if (node.element is MethodElement) return true;
-    }
     if (node is NameExpression) {
       return node.resolution is ExecutableTearOffResolution;
     }

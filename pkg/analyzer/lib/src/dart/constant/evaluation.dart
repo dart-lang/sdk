@@ -2757,11 +2757,7 @@ class DartObjectComputer {
     if (rawType is FunctionTypeImpl) {
       if (typeArguments.length != rawType.typeParameters.length) {
         InvocationTarget? target;
-        if (node is SimpleIdentifier) {
-          if (node.element case ExecutableElement e) {
-            target = InvocationTargetExecutableElement(e);
-          }
-        } else if (node is UnqualifiedNameExpression) {
+        if (node is UnqualifiedNameExpression) {
           if (node.resolution?.element case ExecutableElement element) {
             target = InvocationTargetExecutableElement(element);
           }

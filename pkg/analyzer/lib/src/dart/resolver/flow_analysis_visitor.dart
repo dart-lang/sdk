@@ -1468,29 +1468,6 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   _LocalVariableTypeProvider(this._manager);
 
   @override
-  TypeImpl getType(SimpleIdentifierImpl node, {required bool isRead}) {
-    var variable = node.element as InternalVariableElement;
-    var flow = _manager.flow;
-    if (variable is PromotableElementImpl && flow != null) {
-      SharedTypeView? promotedType;
-      if (isRead) {
-        ExpressionInfo expressionInfo;
-        (:promotedType, :expressionInfo) = flow.variableRead(
-          variable,
-          offset: node.offset,
-        );
-        _manager.storeExpressionInfo(node, expressionInfo);
-      } else {
-        promotedType = flow.promotedType(variable);
-      }
-      if (promotedType != null) {
-        return promotedType.unwrapTypeView<TypeImpl>();
-      }
-    }
-    return variable.type;
-  }
-
-  @override
   TypeImpl getWriteType(InternalVariableElement element) {
     var flow = _manager.flow;
     if (element is PromotableElementImpl && flow != null) {

@@ -810,23 +810,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }());
     var staticType = replacementExpression.staticType;
     if (staticType == null) {
-      var shouldHaveType = true;
-      if (replacementExpression is IdentifierImpl) {
-        var element = replacementExpression.element;
-        if (element is ExtensionElement ||
-            element is InterfaceElement ||
-            element is PrefixElement ||
-            element is TypeAliasElement) {
-          shouldHaveType = false;
-        }
-      }
-      if (shouldHaveType) {
-        assert(
-          false,
-          'No static type for: '
-          '(${replacementExpression.runtimeType}) $replacementExpression',
-        );
-      }
+      assert(
+        false,
+        'No static type for: '
+        '(${replacementExpression.runtimeType}) $replacementExpression',
+      );
       staticType = operations.unknownType.unwrapTypeSchemaView();
     }
     var flowAnalysisInfo = flowAnalysis.getExpressionInfo(expression);
@@ -1285,11 +1273,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     expression as ExpressionImpl;
     var isLegacy = !isConstructorTearoffsEnabled;
-    if (isLegacy &&
-        expression is! NameExpressionImpl &&
-        expression is! SimpleIdentifierImpl &&
-        expression is! PrefixedIdentifierImpl &&
-        expression is! PropertyAccessImpl) {
+    if (isLegacy && expression is! NameExpressionImpl) {
       return expression;
     }
 
@@ -1770,83 +1754,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         .resolveUnqualifiedNameReadWriteAssignmentTarget(node);
   }
 
-  void setReadElement(
-    Expression node,
-    Element? element, {
-    required bool atDynamicTarget,
-  }) {
-    var readType = atDynamicTarget
-        ? DynamicTypeImpl.instance
-        : InvalidTypeImpl.instance;
-    if (node is IndexExpression) {
-      if (element is InternalMethodElement) {
-        readType = element.returnType;
-      }
-    } else if (node is PrefixedIdentifier ||
-        node is PropertyAccess ||
-        node is SimpleIdentifier) {
-      if (element is InternalGetterElement) {
-        readType = element.returnType;
-      } else if (element is VariableElement) {
-        readType = localVariableTypeProvider.getType(
-          node as SimpleIdentifierImpl,
-          isRead: true,
-        );
-      }
-    }
-
-    var parent = node.parent2;
-    if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
-      parent.readElement = element;
-      parent.readType = readType;
-    }
-  }
-
   @override
   void setVariableType(PromotableElementImpl variable, SharedTypeView type) {
     if (variable is LocalVariableElementImpl) {
       variable.type = type.unwrapTypeView();
     } else {
       throw UnimplementedError('TODO(paulberry)');
-    }
-  }
-
-  void setWriteElement(
-    Expression node,
-    Element? element, {
-    required bool atDynamicTarget,
-  }) {
-    var writeType = atDynamicTarget
-        ? DynamicTypeImpl.instance
-        : InvalidTypeImpl.instance;
-    if (node is IndexExpression) {
-      if (element is InternalMethodElement) {
-        var parameters = element.formalParameters;
-        if (parameters.length == 2) {
-          writeType = parameters[1].type;
-        }
-      }
-    } else if (node is PrefixedIdentifier ||
-        node is PropertyAccess ||
-        node is SimpleIdentifier) {
-      if (element is InternalSetterElement) {
-        if (element.isOriginVariable) {
-          writeType = element.variable.type;
-        } else {
-          var parameters = element.formalParameters;
-          if (parameters.length == 1) {
-            writeType = parameters[0].type;
-          }
-        }
-      } else if (element is InternalVariableElement) {
-        writeType = element.type;
-      }
-    }
-
-    var parent = node.parent2;
-    if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
-      parent.writeElement = element;
-      parent.writeType = writeType;
     }
   }
 
@@ -2143,11 +2056,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var staticType = node.staticType;
     if (staticType != null) {
       var (element, name, errorEntity) = switch (expression) {
-        SimpleIdentifier(:var element, :var name) => (
-          element,
-          name,
-          expression as SyntacticEntity,
-        ),
         UnqualifiedNameExpression(
           :var name,
           resolution: VariableReadResolution(:var element),
@@ -5589,9 +5497,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           // null aware, but that has already been taken care of in
           // `visitCascadeExpression`. So there is nothing further to do.
           break;
-        case SimpleIdentifier(element: InterfaceElement()):
-          // `?.` to access static methods is equivalent to `.`, so do nothing.
-          break;
         case SuperReferenceImpl():
           // Preserve null shorting when recovering the invalid `super?.` and
           // `super?[` forms, without giving the receiver an expression type.
@@ -5880,9 +5785,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       name = nameNode.name.lexeme;
     } else if (nameNode is CallInvocation) {
       var function = nameNode.receiver;
-      if (function is SimpleIdentifier) {
-        name = function.name;
-      } else if (function is UnqualifiedNameExpression) {
+      if (function is UnqualifiedNameExpression) {
         name = function.name.lexeme;
       }
     } else if (nameNode is EnumConstantArguments) {
@@ -6019,12 +5922,6 @@ class SwitchExhaustiveness {
       return _referencedElement(expression.expression2);
     } else if (expression is NameExpression) {
       return expression.resolution?.elementOrRecovery;
-    } else if (expression is PrefixedIdentifier) {
-      return expression.element;
-    } else if (expression is PropertyAccess) {
-      return expression.propertyName.element;
-    } else if (expression is SimpleIdentifier) {
-      return expression.element;
     }
     return null;
   }

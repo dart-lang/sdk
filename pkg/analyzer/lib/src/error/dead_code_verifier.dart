@@ -419,11 +419,10 @@ class NullSafetyDeadCodeVerifier {
     var first = node.sections.firstOrNull;
     var body = first?.body;
     if (body is CascadePropertyExtraction ||
-        body is PropertyAccess ||
         body is MethodInvocation ||
         body is CascadeMethodInvocation ||
         body is CascadeIndexExpression) {
-      _verifyUnassignedSimpleIdentifier(node, node.target2, first!.operator);
+      _verifyUnassignedVariable(node, node.target2, first!.operator);
     }
   }
 
@@ -435,7 +434,7 @@ class NullSafetyDeadCodeVerifier {
   }
 
   void verifyIndexExpression(IndexExpression node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target2, node.question);
+    _verifyUnassignedVariable(node, node.target2, node.question);
   }
 
   void verifyNullAwareAccess(
@@ -443,16 +442,16 @@ class NullSafetyDeadCodeVerifier {
     Expression receiver,
     Token operator,
   ) {
-    _verifyUnassignedSimpleIdentifier(node, receiver, operator);
+    _verifyUnassignedVariable(node, receiver, operator);
   }
 
   void verifyPropertyAccess(PropertyAccess node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
+    _verifyUnassignedVariable(node, node.target2, node.operator);
   }
 
   void verifyReceiverIndexExpression(ReceiverIndexExpression node) {
     if (node.receiver case Expression receiver) {
-      _verifyUnassignedSimpleIdentifier(node, receiver, node.question);
+      _verifyUnassignedVariable(node, receiver, node.question);
     }
   }
 
@@ -467,7 +466,7 @@ class NullSafetyDeadCodeVerifier {
     return false;
   }
 
-  void _verifyUnassignedSimpleIdentifier(
+  void _verifyUnassignedVariable(
     AstNode node,
     Expression? target,
     Token? operator,
@@ -488,7 +487,6 @@ class NullSafetyDeadCodeVerifier {
 
     target = target?.unParenthesized2;
     var element = switch (target) {
-      SimpleIdentifier(:var element) => element,
       UnqualifiedNameExpression(
         resolution: VariableReadResolution(:var element),
       ) =>
@@ -501,7 +499,6 @@ class NullSafetyDeadCodeVerifier {
         while (parent is MethodInvocation ||
             parent is FunctionInvocation ||
             parent is ParsedExpression ||
-            parent is PropertyAccess ||
             parent is PropertyExtraction ||
             parent is IndexExpression2 ||
             parent is IndexExpression) {

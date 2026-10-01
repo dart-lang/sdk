@@ -521,14 +521,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
   }
 
-  void assignmentExpression(AssignmentExpression node) {
-    var target = node.leftHandSide2;
-    var targetRange = _assignmentTargetRange(target);
-    checkUsage(node.readElement, target, usageRange: targetRange);
-    checkUsage(node.writeElement, target, usageRange: targetRange);
-    checkUsage(node.element, node, usageRange: node.operator.sourceRange);
-  }
-
   void binaryOperatorInvocation(BinaryOperatorInvocation node) {
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
   }
@@ -1016,8 +1008,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   static SourceRange _assignmentTargetRange(AstNode target) => switch (target) {
     NamedAssignmentTarget(:var name) => name.sourceRange,
-    PrefixedIdentifier(:var identifier) => identifier.sourceRange,
-    PropertyAccess(:var propertyName) => propertyName.sourceRange,
     _ => target.sourceRange,
   };
 

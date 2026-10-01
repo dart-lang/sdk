@@ -1658,55 +1658,7 @@ class PropertyElementResolver with ScopeHelpers {
     required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
-    PrefixedIdentifierImpl? originalNode,
   }) {
-    //
-    // If this property access is of the form 'C.m' where 'C' is a class,
-    // then we don't call resolveProperty(...) which walks up the class
-    // hierarchy, instead we just look for the member in the type only.  This
-    // does not apply to conditional property accesses (i.e. 'C?.m').
-    //
-    if (target is IdentifierImpl) {
-      var targetElement = target.element;
-      if (targetElement is InterfaceElement) {
-        return _resolveTargetInterfaceElement(
-          typeReference: targetElement,
-          isCascaded: isCascaded,
-          propertyName: propertyName,
-          hasRead: hasRead,
-          hasWrite: hasWrite,
-        );
-      } else if (targetElement is TypeAliasElement) {
-        var aliasedType = targetElement.aliasedType;
-        if (aliasedType is InterfaceType) {
-          return _resolveTargetInterfaceElement(
-            typeReference: aliasedType.element,
-            isCascaded: isCascaded,
-            propertyName: propertyName,
-            hasRead: hasRead,
-            hasWrite: hasWrite,
-          );
-        }
-      }
-    }
-
-    //
-    // If this property access is of the form 'E.m' where 'E' is an extension,
-    // then look for the member in the extension. This does not apply to
-    // conditional property accesses (i.e. 'C?.m').
-    //
-    if (target is IdentifierImpl) {
-      var targetElement = target.element;
-      if (targetElement is ExtensionElement) {
-        return _resolveTargetExtensionElement(
-          extension: targetElement,
-          propertyName: propertyName,
-          hasRead: hasRead,
-          hasWrite: hasWrite,
-        );
-      }
-    }
-
     var targetType = target.typeOrThrow;
 
     if (targetType is VoidType) {
@@ -1787,10 +1739,7 @@ class PropertyElementResolver with ScopeHelpers {
               result.getter2,
               SharedTypeView(unpromotedType),
             );
-        _resolver.flowAnalysis.storeExpressionInfo(
-          originalNode ?? node,
-          expressionInfo,
-        );
+        _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
         getType = wrappedPromotedType?.unwrapTypeView();
       }
       getType ??= unpromotedType;

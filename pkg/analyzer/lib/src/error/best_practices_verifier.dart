@@ -1628,15 +1628,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     var expressions = addTo ?? <Expression, Element>{};
 
     Element? element;
-    if (expression is PropertyAccess) {
-      element = expression.propertyName.element;
-      // Tear-off.
-      if (element is LocalFunctionElement ||
-          element is TopLevelFunctionElement ||
-          element is MethodElement) {
-        element = null;
-      }
-    } else if (expression is MethodInvocation) {
+    if (expression is MethodInvocation) {
       element = expression.methodName.element;
     } else if (expression is NamedFunctionInvocation) {
       element = switch (expression.resolution) {
@@ -1651,14 +1643,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       element = expression.resolution?.elementOrRecovery;
       // An executable name expression is a tear-off, not a value read from a
       // declaration carrying `doNotStore`.
-      if (element is LocalFunctionElement ||
-          element is TopLevelFunctionElement ||
-          element is MethodElement) {
-        element = null;
-      }
-    } else if (expression is Identifier) {
-      element = expression.element;
-      // Tear-off.
       if (element is LocalFunctionElement ||
           element is TopLevelFunctionElement ||
           element is MethodElement) {
@@ -2042,7 +2026,6 @@ class _InvalidAccessVerifier {
         _ => node.parent2,
       };
       if (parent is MethodInvocation && parent.target2 is SuperExpression ||
-          parent is PropertyAccess && parent.target2 is SuperExpression ||
           parent is ReceiverMethodInvocation &&
               parent.receiver is SuperReference ||
           parent is ReceiverPropertyExtraction &&
@@ -2230,9 +2213,7 @@ class _InvalidAccessVerifier {
     String name;
     SyntacticEntity errorEntity = node;
 
-    if (node is Identifier) {
-      name = node.name;
-    } else if (node is CombinatorName) {
+    if (node is CombinatorName) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is NamedAssignmentTarget) {
@@ -2292,20 +2273,15 @@ class _UsedParameterVisitor extends RecursiveAstVisitor2<void> {
 }
 
 extension on Expression {
-  /// Whether this is the [PrefixedIdentifier] referring to `double.nan`.
-  // TODO(srawlins): This will return the wrong answer for `prefixed.double.nan`
-  // and for `import 'foo.dart' as double; double.nan`.
+  /// Whether this is a reference to `double.nan`.
   bool get isDoubleNan {
-    var self = this;
-    if (self case ReceiverPropertyExtraction(
+    if (this case ReceiverPropertyExtraction(
       resolution: GetterInvocationResolution(:var element),
     )) {
       return element.name == 'nan' &&
           element.enclosingElement.name == 'double' &&
           element.library.isDartCore;
     }
-    return self is PrefixedIdentifier &&
-        self.prefix.name == 'double' &&
-        self.identifier.name == 'nan';
+    return false;
   }
 }

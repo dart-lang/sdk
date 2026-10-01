@@ -29,35 +29,6 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void checkDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    var element = node.constructorName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
-  void checkDotShorthandInvocation(DotShorthandInvocation node) {
-    var element = node.memberName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
-  void checkDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    var element = node.propertyName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
   void checkNamedFunctionInvocation(NamedFunctionInvocation node) {
     if (node.resolution case ExecutableInvocationResolution(:var element)) {
       _check(node, element, nameToken: node.name);
@@ -81,9 +52,6 @@ class UseResultVerifier {
 
   void _check(AstNode node, Element element, {Token? nameToken}) {
     var parent = node.parent2;
-    if (parent is PrefixedIdentifier) {
-      parent = parent.parent2;
-    }
     if (parent is CommentReference) {
       // Don't flag references in comments.
       return;
@@ -108,7 +76,6 @@ class UseResultVerifier {
     var toAnnotate = nameToken ?? node.nodeToAnnotate;
     var displayName = switch (toAnnotate) {
       Token(:var lexeme) => lexeme,
-      SimpleIdentifier(:var name) => name,
       UnqualifiedNameExpression(:var name) => name.lexeme,
       _ => element.displayName,
     };
@@ -179,14 +146,6 @@ class UseResultVerifier {
       return parent.target2 == node;
     }
 
-    if (parent is PrefixedIdentifier) {
-      if (parent.prefix == node) {
-        return true;
-      } else {
-        return _isUsed(parent);
-      }
-    }
-
     // Null-checking a result is not a "use".
     if (parent is NullAssertionExpression) {
       return _isUsed(parent);
@@ -239,7 +198,6 @@ class UseResultVerifier {
         parent is NamedArgument ||
         parent is PatternAssignment ||
         parent is PatternVariableDeclaration ||
-        parent is PropertyAccess ||
         parent is PropertyExtraction ||
         parent is RecordLiteral ||
         parent is RecordLiteralNamedField ||
@@ -279,7 +237,6 @@ extension on AstNode {
     DotShorthandPropertyAccess node => node.propertyName,
     MethodInvocation node => node.methodName,
     ReceiverMethodInvocation node => node.name,
-    PropertyAccess node => node.propertyName,
     CallInvocation(receiver: ReceiverPropertyExtraction(:var name)) => name,
     CallInvocation node => node.receiver.nodeToAnnotate,
     _ => this,

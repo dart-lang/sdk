@@ -246,7 +246,6 @@ class BinaryExpressionResolver {
 
     PromotableElementImpl? unassignedElement(InstanceReceiverImpl expression) {
       var element = switch (expression) {
-        SimpleIdentifierImpl(:var element) => element,
         UnqualifiedNameExpressionImpl(
           resolution: VariableReadResolutionImpl(:var element),
         ) =>

@@ -41,14 +41,7 @@ Element? getElementOfNode(AstNode? node) {
       element = ElementLocatorV2.locate(node);
   }
 
-  if (node is SimpleIdentifier && element is PrefixElement) {
-    var parent = node.parent2;
-    if (parent is ImportDirective) {
-      element = MockLibraryImportElement(parent.libraryImport!);
-    } else {
-      element = _getImportElementInfo(node);
-    }
-  } else if (node is ImportPrefixReference && element is PrefixElement) {
+  if (node is ImportPrefixReference && element is PrefixElement) {
     element = _getImportElementInfoFromReference(node);
   }
 
@@ -126,42 +119,6 @@ ConstructorElement? _getActualConstructorElement(
     }
   }
   return constructor;
-}
-
-/// Returns the [MockLibraryImportElement] that is referenced by [prefixNode]
-/// with a [PrefixElement], maybe `null`.
-MockLibraryImportElement? _getImportElementInfo(SimpleIdentifier prefixNode) {
-  // prepare environment
-  var parent = prefixNode.parent2;
-  var unit = prefixNode.thisOrAncestorOfType2<CompilationUnitImpl>();
-  var libraryFragment = unit?.declaredFragment;
-  if (libraryFragment == null) {
-    return null;
-  }
-  // prepare used element
-  Element? usedElement;
-  if (parent case PrefixedIdentifier prefixed) {
-    if (prefixed.prefix == prefixNode) {
-      usedElement = prefixed.element;
-    }
-  } else if (parent case MethodInvocation invocation) {
-    if (invocation.target2 == prefixNode) {
-      usedElement = invocation.methodName.element;
-    }
-  }
-  // we need used Element
-  if (usedElement == null) {
-    return null;
-  }
-  // find ImportElement
-  var prefix = prefixNode.name;
-  var importElementsMap = <LibraryImport, Set<Element>>{};
-  return _getMockImportElement(
-    libraryFragment,
-    prefix,
-    usedElement,
-    importElementsMap,
-  );
 }
 
 /// Returns the [MockLibraryImportElement] that is referenced by [prefixNode]

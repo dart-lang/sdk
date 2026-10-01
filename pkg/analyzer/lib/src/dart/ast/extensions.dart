@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -35,22 +34,6 @@ Element? _readElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element? _readElement2(AstNode node) {
-  var parent = node.parent2;
-
-  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-    return parent.readElement;
-  }
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _readElement2(parent);
-  }
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _readElement2(parent);
-  }
-  return null;
-}
-
-// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 Element? _writeElement(AstNode node) {
   var parent = node.parent;
 
@@ -74,22 +57,6 @@ Element? _writeElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-Element? _writeElement2(AstNode node) {
-  var parent = node.parent2;
-
-  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-    return parent.writeElement;
-  }
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _writeElement2(parent);
-  }
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _writeElement2(parent);
-  }
-  return null;
-}
-
-// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
 DartType? _writeType(AstNode node) {
   var parent = node.parent;
 
@@ -108,22 +75,6 @@ DartType? _writeType(AstNode node) {
   }
   if (parent is PropertyAccess && parent.propertyName == node) {
     return _writeType(parent);
-  }
-  return null;
-}
-
-// TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
-DartType? _writeType2(AstNode node) {
-  var parent = node.parent2;
-
-  if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-    return parent.writeType;
-  }
-  if (parent is PrefixedIdentifier && parent.identifier == node) {
-    return _writeType2(parent);
-  }
-  if (parent is PropertyAccess && parent.propertyName == node) {
-    return _writeType2(parent);
   }
   return null;
 }
@@ -265,94 +216,16 @@ extension IdentifierExtension on Identifier {
     return _readElement(this);
   }
 
-  Element? get readElement2 {
-    return _readElement2(this);
-  }
-
-  SimpleIdentifier get simpleName {
-    var self = this;
-    if (self is SimpleIdentifier) {
-      return self;
-    } else {
-      return (self as PrefixedIdentifier).identifier;
-    }
-  }
-
   Element? get writeElement {
     return _writeElement(this);
-  }
-
-  Element? get writeElement2 {
-    return _writeElement2(this);
   }
 
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;
   }
 
-  Element? get writeOrReadElement2 {
-    return _writeElement2(this) ?? element;
-  }
-
   DartType? get writeOrReadType {
     return _writeType(this) ?? staticType;
-  }
-
-  DartType? get writeOrReadType2 {
-    return _writeType2(this) ?? staticType;
-  }
-}
-
-extension IdentifierImplExtension on IdentifierImpl {
-  ConstructorTypeReferenceImpl toConstructorTypeReference({
-    required TypeArgumentListImpl? typeArguments,
-  }) {
-    var self = this;
-    if (self is PrefixedIdentifierImpl) {
-      return ConstructorTypeReferenceImpl(
-        importPrefix: ImportPrefixReferenceImpl(
-          name: self.prefix.token,
-          period: self.period,
-        )..element = self.prefix.element,
-        name: self.identifier.token,
-        typeArguments: typeArguments,
-      )..element = self.identifier.element;
-    } else if (self is SimpleIdentifierImpl) {
-      return ConstructorTypeReferenceImpl(
-        importPrefix: null,
-        name: self.token,
-        typeArguments: typeArguments,
-      )..element = self.element;
-    } else {
-      throw UnimplementedError('(${self.runtimeType}) $self');
-    }
-  }
-
-  NamedTypeImpl toNamedType({
-    required TypeArgumentListImpl? typeArguments,
-    required Token? question,
-  }) {
-    var self = this;
-    if (self is PrefixedIdentifierImpl) {
-      return NamedTypeImpl(
-        importPrefix: ImportPrefixReferenceImpl(
-          name: self.prefix.token,
-          period: self.period,
-        )..element = self.prefix.element,
-        name: self.identifier.token,
-        typeArguments: typeArguments,
-        question: question,
-      )..element = self.identifier.element;
-    } else if (self is SimpleIdentifierImpl) {
-      return NamedTypeImpl(
-        importPrefix: null,
-        name: self.token,
-        typeArguments: typeArguments,
-        question: question,
-      )..element = self.element;
-    } else {
-      throw UnimplementedError('(${self.runtimeType}) $self');
-    }
   }
 }
 
@@ -360,10 +233,6 @@ extension IdentifierImplExtension on IdentifierImpl {
 extension IndexExpressionExtension on IndexExpression {
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;
-  }
-
-  Element? get writeOrReadElement2 {
-    return _writeElement2(this) ?? element;
   }
 }
 

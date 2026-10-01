@@ -491,7 +491,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   Element? visitNode(AstNode node) {
     return switch (node) {
       IncrementOrDecrementExpression(:var element) => element,
-      Identifier() => _visitIdentifier(node),
       ReceiverPropertyExtraction(
         resolution: FunctionCallTearOffResolution(),
         :var receiver,
@@ -592,47 +591,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
     UnqualifiedNameAssignmentTarget node,
   ) {
     return node.write?.element;
-  }
-
-  Element? _visitIdentifier(Identifier node) {
-    var parent = node.parent2;
-    if (parent is ConstructorDeclaration) {
-      // Map a constructor declarations to its associated constructor element.
-      var returnType = parent.typeName;
-      if (identical(returnType, node)) {
-        var name = parent.name;
-        if (name != null) {
-          return parent.declaredFragment?.element;
-        }
-        var element = node.element;
-        if (element is InterfaceElement) {
-          return element.unnamedConstructor;
-        }
-      } else if (parent.name == node.endToken) {
-        return parent.declaredFragment?.element;
-      }
-    } else if (parent is DottedName) {
-      var grandParent = parent.parent2;
-      if (grandParent is LibraryDirective) {
-        return grandParent.element;
-      }
-      return null;
-    } else if (parent is MethodInvocation &&
-        parent.methodName == node &&
-        parent.methodName.name == MethodElement.CALL_METHOD_NAME) {
-      // Handle .call() invocations on functions.
-      var method = parent.realTarget2;
-      if (method is Identifier && method.staticType is FunctionType) {
-        return method.element;
-      }
-    } else if (parent is PrefixedIdentifier &&
-        parent.identifier == node &&
-        parent.identifier.name == MethodElement.CALL_METHOD_NAME &&
-        parent.prefix.staticType is FunctionType) {
-      // Handle .call tear-offs on functions.
-      return parent.prefix.element;
-    }
-    return node.writeOrReadElement2;
   }
 
   Element? _visitIndexAssignmentTarget(IndexAssignmentTarget node) {

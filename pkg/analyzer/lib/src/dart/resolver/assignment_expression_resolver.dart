@@ -1035,27 +1035,6 @@ class AssignmentExpressionShared {
 
   DiagnosticReporter get _errorReporter => _resolver.diagnosticReporter;
 
-  void checkFinalAlreadyAssigned(
-    Expression left, {
-    bool isForEachIdentifier = false,
-  }) {
-    var flowAnalysis = _resolver.flowAnalysis;
-
-    var flow = flowAnalysis.flow;
-    if (flow == null) return;
-
-    if (left is SimpleIdentifier) {
-      var element = left.element;
-      if (element is PromotableElementImpl) {
-        _checkFinalAlreadyAssigned(
-          left,
-          element,
-          isForEachIdentifier: isForEachIdentifier,
-        );
-      }
-    }
-  }
-
   void checkFinalForEachIdentifier(ForEachPartsWithIdentifierImpl node) {
     if (_resolver.flowAnalysis.flow == null) return;
     if (node.write case VariableWriteResolutionImpl(

@@ -206,9 +206,6 @@ extension AstNodeExtension2 on AstNode? {
     if (node is ImportPrefixReference) {
       node = node.parent2;
     }
-    if (node is SimpleIdentifier) {
-      node = node.parent2;
-    }
     if (node is ConstructorSelector) {
       node = node.parent2;
     }
@@ -292,11 +289,6 @@ extension AstNodeExtension2 on AstNode? {
       argument = self;
     } else if (self?.parent2 case NamedArgument parent) {
       argument = parent;
-    } else if (self is SimpleIdentifier) {
-      var parent = self.parent2;
-      if (parent is Label && parent.parent2 is NamedArgument) {
-        argument = parent.parent2 as NamedArgument;
-      }
     }
 
     if (argument == null || argument.name.lexeme != name) {

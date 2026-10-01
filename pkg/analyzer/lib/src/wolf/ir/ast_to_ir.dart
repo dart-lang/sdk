@@ -146,30 +146,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     required this.eventListener,
   }) : coreLibrary = typeProvider.objectElement.library;
 
-  /// If [node] is used as a read-write target, returns the elements selected
-  /// for its implicit read and write.
-  ({Element? readElement, Element? writeElement})? assignmentTargeting(
-    AstNode node,
-  ) {
-    while (true) {
-      var parent = node.parent2!;
-      switch (parent) {
-        case PrefixedIdentifier() when identical(node, parent.identifier):
-        case PropertyAccess() when identical(node, parent.propertyName):
-          node = parent;
-        case AssignmentExpression() when identical(node, parent.leftHandSide2):
-          return (
-            readElement: parent.readElement,
-            writeElement: parent.writeElement,
-          );
-        case AssignmentTarget():
-          return null;
-        case dynamic(:var runtimeType):
-          throw UnimplementedError('TODO(paulberry): $runtimeType');
-      }
-    }
-  }
-
   _LValueTemplates dispatchAssignmentTarget(AssignmentTarget target) =>
       switch (target) {
         ReceiverIndexAssignmentTarget() => _receiverIndexAssignmentTarget(
@@ -1417,7 +1393,6 @@ sealed class _LValueTemplates {
 /// Instruction templates for converting a property access to IR.
 class _PropertyAccessTemplates extends _LValueTemplates {
   final String name;
-  final SimpleIdentifier? property;
   final PropertyAccessorElement? readElement;
   final PropertyAccessorElement? writeElement;
 
@@ -1425,34 +1400,15 @@ class _PropertyAccessTemplates extends _LValueTemplates {
   ///
   /// Caller is responsible for ensuring that the target of the property access
   /// is pushed to the stack.
-  _PropertyAccessTemplates(SimpleIdentifier property)
-    : name = property.name,
-      property = property,
-      readElement = null,
-      writeElement = null,
-      super(subexpressionCount: 1);
-
   _PropertyAccessTemplates.direct({
     required this.name,
     this.readElement,
     this.writeElement,
-  }) : property = null,
-       super(subexpressionCount: 1);
+  }) : super(subexpressionCount: 1);
 
   void read(_AstToIRVisitor visitor) {
     // Stack: target
-    var property = this.property;
-    visitor.instanceGet(
-      readElement ??
-          switch (property) {
-            var property? =>
-              (property.element ??
-                      visitor.assignmentTargeting(property)?.readElement)
-                  as PropertyAccessorElement?,
-            _ => null,
-          },
-      name,
-    );
+    visitor.instanceGet(readElement, name);
     // Stack: value
   }
 
@@ -1488,16 +1444,7 @@ class _PropertyAccessTemplates extends _LValueTemplates {
     // Stack: target value
     visitor.ir.shuffle(2, visitor.stackIndices101);
     // Stack: value target value
-    visitor.instanceSet(
-      writeElement ??
-          switch (property) {
-            var property? =>
-              visitor.assignmentTargeting(property)!.writeElement
-                  as PropertyAccessorElement?,
-            null => null,
-          },
-      name,
-    );
+    visitor.instanceSet(writeElement, name);
     // Stack: value returnValue
     visitor.ir.drop();
     // Stack: value
