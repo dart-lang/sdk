@@ -9,7 +9,6 @@ import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:async/async.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:path/path.dart' as p;
@@ -19,7 +18,6 @@ import 'resource_provider/resource_provider_ext.dart';
 import 'resource_provider/resource_provider_wrap_cwd.dart';
 import 'shared.dart' hide FileSystemException;
 import 'tools/file_watch.dart';
-import 'tools/frontend_server_compiler.dart' show FrontendServerCompiler;
 import 'tools/language_server.dart';
 import 'tools/pub.dart';
 import 'tools/sandbox.dart';
@@ -404,26 +402,6 @@ class _Workspace {
     return {'bytes': await collectBytes(folder.createTarStream())};
   }
 
-  String _findPackageConfigFromEntrypoint(String entrypoint) {
-    var parent = _rp.getFile(entrypoint).parent;
-    do {
-      final pkgConfig = parent
-          .getFolder('.dart_tool')
-          .getFile('package_config.json');
-
-      if (pkgConfig.exists) {
-        return pkgConfig.path;
-      }
-
-      parent = parent.parent;
-    } while (!parent.isRoot);
-    throw PackageConfigNotFoundException(
-      'Unable to find `.dart_tool/package_config.json` in any '
-      'parent directory of `$entrypoint`.',
-      data: {'entrypoint': entrypoint},
-    );
-  }
-
   Object? _pub(Parameters params) async {
     final path = _resolvePath(params['uri'].asUri);
     final command = params['command'].asString;
@@ -520,49 +498,13 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  FrontendServerCompiler _createCompiler(Uri path, DartPadRunMode mode) {
-    var entrypoint = _resolvePath(path);
-
-    // Test if the file we're compiling exists.
-    // Otherwise, we get really ugly errors if there is a bootstrap file in play
-    if (!_rp.getFile(entrypoint).exists) {
-      throw CompilationFailedException(
-        'Compilation entrypoint "$entrypoint" not found',
-        data: {'entrypoint': entrypoint},
-      );
-    }
-
-    var rp = _rp;
-    final entrypointWrapperTemplate = mode.entrypointWrapperTemplate;
-    if (entrypointWrapperTemplate != null) {
-      final originalEntrypoint = entrypoint;
-      entrypoint = '$originalEntrypoint.${mode.mode}-wrapper.dart';
-
-      final overlay = rp = OverlayResourceProvider(_rp);
-      overlay.setOverlay(
-        entrypoint,
-        content: entrypointWrapperTemplate.replaceAll(
-          '{{entrypoint}}',
-          _rp.pathContext.basename(originalEntrypoint),
-        ),
-        modificationStamp: 0,
-      );
-    }
-
-    return FrontendServerCompiler(
-      resourceProvider: rp,
-      packageConfig: _findPackageConfigFromEntrypoint(entrypoint),
-      targetPath: entrypoint,
-      config: _worker._config,
-    );
-  }
-
   Object? _connectSandbox(Parameters params) async {
     final port = params.portAsMessagePort;
     final sandboxId = _worker._nextSandboxId++;
     final sandbox = _sandboxes[sandboxId] = await Sandbox.create(
       port: port,
-      createCompiler: _createCompiler,
+      resourceProvider: _rp,
+      config: _worker._config,
       onClosed: () => _sandboxes.remove(sandboxId),
     );
     sandbox.onConsole.listen((e) {

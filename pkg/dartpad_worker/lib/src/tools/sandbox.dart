@@ -4,6 +4,8 @@
 
 import 'dart:async';
 
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:pool/pool.dart';
 
 import '../shared.dart';
@@ -11,27 +13,30 @@ import '../util/message_port.dart';
 import 'frontend_server_compiler.dart';
 import 'sandbox_client.dart';
 
-typedef CompilerFactory =
-    FutureOr<FrontendServerCompiler> Function(Uri path, DartPadRunMode mode);
-
 final class Sandbox {
   final SandboxClient _client;
-  final CompilerFactory _createCompiler;
+  final ResourceProvider _rp;
+  final DartPadConfig _config;
   final _pool = Pool(1);
 
   /// Compiler for the program running in this sandbox, `null` until [run] has
   /// successfully started one. Doubles as the "already used" marker for [run].
   FrontendServerCompiler? _compiler;
 
-  Sandbox._(this._client, this._createCompiler);
+  /// Path to `.dart_tool/package_config.json` for the running program, or
+  /// `null` if no program is running.
+  String? get packageConfigPath => _compiler?.packageConfig;
+
+  Sandbox._(this._client, this._rp, this._config);
 
   static Future<Sandbox> create({
     required MessagePort port,
+    required ResourceProvider resourceProvider,
+    required DartPadConfig config,
     required void Function() onClosed,
-    required CompilerFactory createCompiler,
   }) async {
     final client = SandboxClient(port, onClosed);
-    return Sandbox._(client, createCompiler);
+    return Sandbox._(client, resourceProvider, config);
   }
 
   Future<T> _synced<T>(FutureOr<T> Function() fn) => _pool.withResource(fn);
@@ -39,6 +44,64 @@ final class Sandbox {
   Stream<({String level, String message})> get onConsole => _client.onConsole;
   Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent =>
       _client.onExtensionEvent;
+
+  String _findPackageConfigFromEntrypoint(String entrypoint) {
+    var parent = _rp.getFile(entrypoint).parent;
+    do {
+      final pkgConfig = parent
+          .getFolder('.dart_tool')
+          .getFile('package_config.json');
+
+      if (pkgConfig.exists) {
+        return pkgConfig.path;
+      }
+
+      parent = parent.parent;
+    } while (!parent.isRoot);
+    throw PackageConfigNotFoundException(
+      'Unable to find `.dart_tool/package_config.json` in any '
+      'parent directory of `$entrypoint`.',
+      data: {'entrypoint': entrypoint},
+    );
+  }
+
+  FrontendServerCompiler _createCompiler(
+    String entrypoint,
+    DartPadRunMode mode,
+  ) {
+    // Test if the file we're compiling exists.
+    // Otherwise, we get really ugly errors if there is a bootstrap file in play
+    if (!_rp.getFile(entrypoint).exists) {
+      throw CompilationFailedException(
+        'Compilation entrypoint "$entrypoint" not found',
+        data: {'entrypoint': entrypoint},
+      );
+    }
+
+    var rp = _rp;
+    final entrypointWrapperTemplate = mode.entrypointWrapperTemplate;
+    if (entrypointWrapperTemplate != null) {
+      final originalEntrypoint = entrypoint;
+      entrypoint = '$originalEntrypoint.${mode.mode}-wrapper.dart';
+
+      final overlay = rp = OverlayResourceProvider(_rp);
+      overlay.setOverlay(
+        entrypoint,
+        content: entrypointWrapperTemplate.replaceAll(
+          '{{entrypoint}}',
+          _rp.pathContext.basename(originalEntrypoint),
+        ),
+        modificationStamp: 0,
+      );
+    }
+
+    return FrontendServerCompiler(
+      resourceProvider: rp,
+      packageConfig: _findPackageConfigFromEntrypoint(entrypoint),
+      targetPath: entrypoint,
+      config: _config,
+    );
+  }
 
   /// Compiles [target] and starts running it in this sandbox.
   ///
@@ -55,20 +118,17 @@ final class Sandbox {
           );
         }
 
-        final c = await _createCompiler(Uri.parse(target), mode);
+        final c = _createCompiler(target, mode);
         try {
           final r = await c.compile();
+          _compiler = c;
 
           await _client.loadModules(modules: r.modules);
           await _client.run(Uri.parse(r.entrypointLibraryUri), mode: mode.mode);
 
-          // Only retain the compiler once the program is actually running, such
-          // that a failed run() -- most often a compilation error -- can be
-          // retried once the problem has been fixed.
-          _compiler = c;
-
           return (log: r.log);
         } catch (_) {
+          _compiler = null;
           await c.close().onError((_, _) {});
           rethrow;
         }
