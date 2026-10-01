@@ -38,7 +38,7 @@ class ElementLocatorV2 {
 class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitAnnotation(Annotation node) {
-    return node.element;
+    return node.elementAnnotation?.element;
   }
 
   @override
@@ -110,7 +110,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
     if (parent is Annotation) {
       // Map the type name in an annotation.
       if (identical(parent.name, node) && parent.constructorName == null) {
-        return parent.element;
+        return parent.elementAnnotation?.element;
       }
     } else if (parent is ConstructorDeclaration) {
       // Map a constructor declarations to its associated constructor element.
@@ -290,7 +290,7 @@ class _ElementMapper extends GeneralizingAstVisitor<Element> {
 class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   @override
   Element? visitAnnotation(Annotation node) {
-    return node.element;
+    return node.elementAnnotation?.element;
   }
 
   @override
@@ -383,6 +383,11 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
       return parent.element;
     }
     return null;
+  }
+
+  @override
+  Element? visitConstructorTypeReference(ConstructorTypeReference node) {
+    return node.element;
   }
 
   @override
@@ -596,12 +601,7 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
 
   Element? _visitIdentifier(Identifier node) {
     var parent = node.parent2;
-    if (parent is Annotation) {
-      // Map the type name in an annotation.
-      if (identical(parent.name, node) && parent.constructorName == null) {
-        return parent.element;
-      }
-    } else if (parent is ConstructorDeclaration) {
+    if (parent is ConstructorDeclaration) {
       // Map a constructor declarations to its associated constructor element.
       var returnType = parent.typeName;
       if (identical(returnType, node)) {

@@ -150,9 +150,15 @@ class MigrationSchedule._(
     for (var pubspec in pubspecs) {
       var summary = summaryBuilder.forPackage(pubspec);
 
+      // A constraint without a lower bound, like `any`, has no starting
+      // version to migrate from.
       var declaredVersion = minimumSdkConstraint(pubspec.file);
       if (declaredVersion == null) {
-        summary.recordSkipped('Unknown SDK version.');
+        summary.recordSkipped(
+          "The pubspec doesn't declare a minimum SDK version. Add one to its "
+          "'environment' section, run \"dart pub get\", then re-run the "
+          'migration tool.',
+        );
         continue;
       }
 
@@ -169,7 +175,8 @@ class MigrationSchedule._(
       if (finalSdkVersion != null) {
         if (supportedVersion >= finalSdkVersion) {
           summary.recordSkipped(
-            'Already at target SDK version $targetSdkVersion.',
+            'The package SDK version "$declaredVersion" is already at or past '
+            'the target SDK version $targetSdkVersion.',
           );
           continue;
         }

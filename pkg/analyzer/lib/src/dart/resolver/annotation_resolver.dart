@@ -3,485 +3,73 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inference_helper.dart';
-import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
-import 'package:analyzer/src/dart/type_instantiation_target.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
+/// Resolves an annotation, and checks that it denotes a valid annotation.
+///
+/// The annotation expression is resolved like any other expression in a
+/// constant context. Lookup failures are reported by that resolution, like
+/// for any other expression. A resolved annotation must be either a read of a
+/// constant variable, or an invocation of a constant constructor; other
+/// resolved expressions are reported as invalid annotations. Constructor
+/// invocations are verified by constant verification, like other constant
+/// constructor invocations.
 class AnnotationResolver {
   final ResolverVisitor _resolver;
 
   AnnotationResolver(this._resolver);
 
-  LibraryElementImpl get _definingLibrary => _resolver.definingLibrary;
-
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
-
-  void resolve(
-    AnnotationImpl node,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments,
-  ) {
-    node.typeArguments?.accept2(_resolver);
-    _resolve(node, whyNotPromotedArguments);
-  }
-
-  void _classConstructorInvocation(
-    AnnotationImpl node,
-    InterfaceElementImpl classElement,
-    SimpleIdentifierImpl? constructorName,
-    ArgumentListImpl argumentList,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments,
-  ) {
-    InternalConstructorElement? constructorElement;
-    if (constructorName != null) {
-      constructorElement = classElement.getNamedConstructor(
-        constructorName.name,
-      );
-    } else {
-      constructorElement = classElement.unnamedConstructor;
-    }
-
-    _constructorInvocation(
-      node,
-      classElement.name!,
-      constructorName,
-      classElement.typeParameters,
-      constructorElement,
-      argumentList,
-      (typeArguments) {
-        return classElement.instantiateImpl(
-          typeArguments: typeArguments,
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
-      },
-      whyNotPromotedArguments,
+  void resolve(AnnotationImpl node) {
+    _resolver.analyzeExpression(
+      node.expression,
+      _resolver.operations.unknownType,
     );
+    _resolver.popRewrite();
+    _verify(node);
   }
 
-  void _classGetter(
-    AnnotationImpl node,
-    InterfaceElement classElement,
-    SimpleIdentifierImpl? getterName,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments,
-  ) {
-    ExecutableElement? getter;
-    if (getterName != null) {
-      getter = classElement.getGetter(getterName.name);
-      // Recovery, try to find a constructor.
-      getter ??= classElement.getNamedConstructor(getterName.name);
-    } else {
-      getter = classElement.unnamedConstructor;
-    }
-
-    getterName?.element = getter;
-    node.element = getter;
-
-    if (getterName != null && getter is PropertyAccessorElement) {
-      _propertyAccessorElement(
-        node,
-        getterName,
-        getter,
-        whyNotPromotedArguments,
-      );
-      _resolveAnnotationElementGetter(node, getter);
-    } else if (getter is! ConstructorElement) {
-      _diagnosticReporter.report(diag.invalidAnnotation.at(node));
-    }
-
-    _visitArguments(
-      node,
-      whyNotPromotedArguments,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
-    );
-  }
-
-  void _constructorInvocation(
-    AnnotationImpl node,
-    String typeDisplayName,
-    SimpleIdentifierImpl? constructorName,
-    List<TypeParameterElementImpl> typeParameters,
-    InternalConstructorElement? constructorElement,
-    ArgumentListImpl argumentList,
-    InterfaceType Function(List<TypeImpl> typeArguments) instantiateElement,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments,
-  ) {
-    constructorName?.element = constructorElement;
-    node.element = constructorElement;
-
-    if (constructorElement == null) {
-      _diagnosticReporter.report(diag.invalidAnnotation.at(node));
-      AnnotationInferrer(
-        resolver: _resolver,
-        node: node,
-        argumentList: argumentList,
-        contextType: UnknownInferredType.instance,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        constructorName: constructorName,
-        target: null,
-      ).resolveInvocation();
-      return;
-    }
-
-    var elementToInfer = ConstructorElementToInfer(
-      typeParameters,
-      constructorElement,
-    );
-    var constructorRawType = elementToInfer.asType;
-
-    AnnotationInferrer(
-      resolver: _resolver,
-      node: node,
-      argumentList: argumentList,
-      contextType: UnknownInferredType.instance,
-      whyNotPromotedArguments: whyNotPromotedArguments,
-      constructorName: constructorName,
-      target: InvocationTargetConstructorElement(
-        constructorElement,
-        // TODO(paulberry): eliminate this cast by changing the type of
-        // `ConstructorElementToInfer.asType`.
-        constructorRawType as FunctionTypeImpl,
-      ),
-    ).resolveInvocation();
-  }
-
-  void _extensionGetter(
-    AnnotationImpl node,
-    ExtensionElement extensionElement,
-    SimpleIdentifierImpl? getterName,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments,
-  ) {
-    ExecutableElement? getter;
-    if (getterName != null) {
-      getter = extensionElement.getGetter(getterName.name);
-    }
-
-    getterName?.element = getter;
-    node.element = getter;
-
-    if (getterName != null && getter is PropertyAccessorElement) {
-      _propertyAccessorElement(
-        node,
-        getterName,
-        getter,
-        whyNotPromotedArguments,
-      );
-      _resolveAnnotationElementGetter(node, getter);
-    } else {
-      _diagnosticReporter.report(diag.invalidAnnotation.at(node));
-    }
-
-    _visitArguments(
-      node,
-      whyNotPromotedArguments,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
-    );
-  }
-
-  void _localVariable(
-    AnnotationImpl node,
-    VariableElement element,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments,
-  ) {
-    if (!element.isConst || node.arguments != null) {
-      _diagnosticReporter.report(diag.invalidAnnotation.at(node));
-    }
-
-    _visitArguments(
-      node,
-      whyNotPromotedArguments,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
-    );
-  }
-
-  void _propertyAccessorElement(
-    AnnotationImpl node,
-    SimpleIdentifierImpl name,
-    PropertyAccessorElement element,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments,
-  ) {
-    name.element = element;
-    node.element = element;
-
-    _resolveAnnotationElementGetter(node, element);
-    _visitArguments(
-      node,
-      whyNotPromotedArguments,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
-    );
-  }
-
-  void _resolve(
-    AnnotationImpl node,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments,
-  ) {
-    SimpleIdentifierImpl name1;
-    SimpleIdentifierImpl? name2;
-    SimpleIdentifierImpl? name3;
-    var nameNode = node.name;
-    if (nameNode is PrefixedIdentifierImpl) {
-      name1 = nameNode.prefix;
-      name2 = nameNode.identifier;
-      name3 = node.constructorName;
-    } else {
-      name1 = nameNode as SimpleIdentifierImpl;
-      name2 = node.constructorName;
-    }
-    var argumentList = node.arguments;
-
-    var element1 = name1.scopeLookupResult!.getter;
-    name1.element = element1;
-
-    if (element1 == null) {
-      _diagnosticReporter.report(
-        diag.undefinedAnnotation.withArguments(name: name1.name).at(node),
-      );
-      _visitArguments(
-        node,
-        whyNotPromotedArguments,
-        dataForTesting: _resolver.inferenceHelper.dataForTesting,
-      );
-      return;
-    }
-
-    // Class(args) or Class.CONST
-    if (element1 is InterfaceElementImpl) {
-      if (argumentList != null) {
-        _classConstructorInvocation(
-          node,
-          element1,
-          name2,
-          argumentList,
-          whyNotPromotedArguments,
-        );
-      } else {
-        _classGetter(node, element1, name2, whyNotPromotedArguments);
-      }
-      return;
-    }
-
-    // Extension.CONST
-    if (element1 is ExtensionElement) {
-      _extensionGetter(node, element1, name2, whyNotPromotedArguments);
-      return;
-    }
-
-    // prefix.*
-    if (element1 is PrefixElement) {
-      if (name2 != null) {
-        var element = element1.scope.lookup(name2.name).getter;
-        name2.element = element;
-        // prefix.Class(args) or prefix.Class.CONST
-        if (element is InterfaceElementImpl) {
-          if (element is ClassElement && argumentList != null) {
-            _classConstructorInvocation(
-              node,
-              element,
-              name3,
-              argumentList,
-              whyNotPromotedArguments,
-            );
-          } else {
-            _classGetter(node, element, name3, whyNotPromotedArguments);
-          }
+  void _verify(AnnotationImpl node) {
+    switch (node.expression) {
+      case ConstructorInvocationImpl():
+      case ConstructorTearOffImpl():
+      // An annotation that names a class with an unnamed constructor, such as
+      // `@C`, is taken as an invocation of that constructor with missing
+      // arguments.
+      case TypeLiteralImpl(
+        type: NamedTypeImpl(element: InterfaceElement(unnamedConstructor: _?)),
+      ):
+        // Constant verification reports non-constant constructors, and
+        // missing arguments.
+        return;
+      // Type arguments without an argument list, such as `@g<int>`, are a
+      // syntax error that the parser has already reported. Resolution of the
+      // expression reported any lookup failure, such as `@undefined<int>`.
+      case FunctionInstantiationImpl():
+        return;
+      case NameExpressionImpl expression:
+        // A read from a receiver that couldn't be resolved, such as
+        // `@undefined.foo`, was reported with the receiver.
+        if (expression case ReceiverPropertyExtractionImpl(
+          :NameExpressionImpl receiver,
+        ) when receiver.resolution?.element == null) {
           return;
         }
-        // prefix.Extension.CONST
-        if (element is ExtensionElement) {
-          _extensionGetter(node, element, name3, whyNotPromotedArguments);
-          return;
-        }
-        // prefix.CONST
-        if (element is PropertyAccessorElement) {
-          _propertyAccessorElement(
-            node,
-            name2,
-            element,
-            whyNotPromotedArguments,
-          );
-          return;
-        }
-
-        // prefix.TypeAlias(args) or prefix.TypeAlias.CONST
-        if (element is TypeAliasElementImpl) {
-          var aliasedType = element.aliasedType;
-          var argumentList = node.arguments;
-          if (aliasedType is InterfaceTypeImpl && argumentList != null) {
-            _typeAliasConstructorInvocation(
-              node,
-              element,
-              name3,
-              aliasedType,
-              argumentList,
-              whyNotPromotedArguments,
-              dataForTesting: _resolver.inferenceHelper.dataForTesting,
-            );
-          } else {
-            _typeAliasGetter(node, element, name3, whyNotPromotedArguments);
-          }
-          return;
-        }
-        // undefined
+        // Only a valid read is checked; the resolution of the expression
+        // reported why the read is invalid, for example an undefined name.
+        var element = expression.resolution?.element;
         if (element == null) {
-          _diagnosticReporter.report(
-            diag.undefinedAnnotation.withArguments(name: name2.name).at(node),
-          );
-          _visitArguments(
-            node,
-            whyNotPromotedArguments,
-            dataForTesting: _resolver.inferenceHelper.dataForTesting,
-          );
           return;
         }
-      }
+        if (element.denotesConstantVariable) {
+          return;
+        }
+      default:
+        break;
     }
-
-    // CONST
-    if (element1 is PropertyAccessorElement) {
-      _propertyAccessorElement(node, name1, element1, whyNotPromotedArguments);
-      return;
-    }
-
-    // TypeAlias(args) or TypeAlias.CONST
-    if (element1 is TypeAliasElementImpl) {
-      var aliasedType = element1.aliasedType;
-      var argumentList = node.arguments;
-      if (aliasedType is InterfaceTypeImpl && argumentList != null) {
-        _typeAliasConstructorInvocation(
-          node,
-          element1,
-          name2,
-          aliasedType,
-          argumentList,
-          whyNotPromotedArguments,
-          dataForTesting: _resolver.inferenceHelper.dataForTesting,
-        );
-      } else {
-        _typeAliasGetter(node, element1, name2, whyNotPromotedArguments);
-      }
-      return;
-    }
-
-    if (element1 is VariableElement) {
-      _localVariable(node, element1, whyNotPromotedArguments);
-      return;
-    }
-
-    _diagnosticReporter.report(diag.invalidAnnotation.at(node));
-
-    _visitArguments(
-      node,
-      whyNotPromotedArguments,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
-    );
-  }
-
-  void _resolveAnnotationElementGetter(
-    Annotation annotation,
-    PropertyAccessorElement accessorElement,
-  ) {
-    // The accessor should be synthetic, the variable should be constant, and
-    // there should be no arguments.
-    if (accessorElement.isOriginDeclaration ||
-        !accessorElement.variable.isConst ||
-        annotation.arguments != null) {
-      _diagnosticReporter.report(diag.invalidAnnotation.at(annotation));
-    }
-  }
-
-  void _typeAliasConstructorInvocation(
-    AnnotationImpl node,
-    TypeAliasElementImpl typeAliasElement,
-    SimpleIdentifierImpl? constructorName,
-    InterfaceTypeImpl aliasedType,
-    ArgumentListImpl argumentList,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
-    required TypeConstraintGenerationDataForTesting? dataForTesting,
-  }) {
-    var constructorElement = aliasedType.lookUpConstructor(
-      constructorName?.name,
-      _definingLibrary,
-    );
-
-    _constructorInvocation(
-      node,
-      typeAliasElement.name!,
-      constructorName,
-      typeAliasElement.typeParameters,
-      constructorElement,
-      argumentList,
-      (typeArguments) {
-        return typeAliasElement.instantiateImpl(
-              typeArguments: typeArguments,
-              nullabilitySuffix: NullabilitySuffix.none,
-            )
-            as InterfaceType;
-      },
-      whyNotPromotedArguments,
-    );
-  }
-
-  void _typeAliasGetter(
-    AnnotationImpl node,
-    TypeAliasElement typeAliasElement,
-    SimpleIdentifierImpl? getterName,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments,
-  ) {
-    ExecutableElement? getter;
-    var aliasedType = typeAliasElement.aliasedType;
-    if (aliasedType is InterfaceType) {
-      var classElement = aliasedType.element;
-      if (getterName != null) {
-        getter = classElement.getGetter(getterName.name);
-      }
-    }
-
-    getterName?.element = getter;
-    node.element = getter;
-
-    if (getterName != null && getter is PropertyAccessorElement) {
-      _propertyAccessorElement(
-        node,
-        getterName,
-        getter,
-        whyNotPromotedArguments,
-      );
-      _resolveAnnotationElementGetter(node, getter);
-    } else if (getter is! ConstructorElement) {
-      _diagnosticReporter.report(diag.invalidAnnotation.at(node));
-    }
-
-    _visitArguments(
-      node,
-      whyNotPromotedArguments,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
-    );
-  }
-
-  void _visitArguments(
-    AnnotationImpl node,
-    List<WhyNotPromotedGetter> whyNotPromotedArguments, {
-    required TypeConstraintGenerationDataForTesting? dataForTesting,
-  }) {
-    var arguments = node.arguments;
-    if (arguments != null) {
-      AnnotationInferrer(
-        resolver: _resolver,
-        node: node,
-        argumentList: arguments,
-        contextType: UnknownInferredType.instance,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        constructorName: null,
-        target: null,
-      ).resolveInvocation();
-    }
+    _resolver.diagnosticReporter.report(diag.invalidAnnotation.at(node));
   }
 }

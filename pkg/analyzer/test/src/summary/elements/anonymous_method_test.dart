@@ -64,13 +64,29 @@ library
           metadata
             Annotation
               atSign: @ @34
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @35
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @36
+                  arguments2
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
+                  rightParenthesis: ) @43
+                staticType: A
               name: SimpleIdentifier
                 token: A @35
                 element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @36
-                arguments2
+                arguments
                   SimpleIdentifier
                     token: _notSerializableExpression @-1
                     element: <null>
@@ -96,13 +112,29 @@ library
       metadata
         Annotation
           atSign: @ @34
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @35
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @36
+              arguments2
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
+                  staticType: null
+              rightParenthesis: ) @43
+            staticType: A
           name: SimpleIdentifier
             token: A @35
             element: <testLibrary>::@class::A
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @36
-            arguments2
+            arguments
               SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>

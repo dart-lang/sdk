@@ -855,20 +855,36 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: A
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ConstructorInvocation
+                        keyword: const
+                        constructorReference: ConstructorReference2
+                          typeReference: ConstructorTypeReference
+                            name: A
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                    arguments(v1)
+                      InstanceCreationExpression
+                        keyword: const
+                        constructorName: ConstructorName
+                          type: NamedType
+                            name: A
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                    rightParenthesis: )
                 name: SimpleIdentifier
                   token: A
                 arguments: ArgumentList
                   leftParenthesis: (
-                  arguments2
-                    ConstructorInvocation
-                      keyword: const
-                      constructorReference: ConstructorReference2
-                        typeReference: ConstructorTypeReference
-                          name: A
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        rightParenthesis: )
-                  arguments(v1)
+                  arguments
                     InstanceCreationExpression
                       keyword: const
                       constructorName: ConstructorName

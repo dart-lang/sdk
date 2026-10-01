@@ -7673,6 +7673,8 @@ ForElement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: var
@@ -7747,6 +7749,8 @@ ForStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: var
@@ -8540,6 +8544,8 @@ PatternVariableDeclarationStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: final
@@ -8578,6 +8584,8 @@ PatternVariableDeclarationStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: final
@@ -8610,6 +8618,8 @@ PatternVariableDeclarationStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: final
@@ -8646,6 +8656,8 @@ PatternVariableDeclarationStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: final
@@ -8677,6 +8689,8 @@ PatternVariableDeclarationStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: final
@@ -8710,6 +8724,8 @@ PatternVariableDeclarationStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: var
@@ -8748,6 +8764,8 @@ PatternVariableDeclarationStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: var
@@ -8780,6 +8798,8 @@ PatternVariableDeclarationStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: var
@@ -8816,6 +8836,8 @@ PatternVariableDeclarationStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: var
@@ -8847,6 +8869,8 @@ PatternVariableDeclarationStatement
     metadata
       Annotation
         atSign: @
+        expression: ParsedUnqualifiedName
+          name: annotation
         name: SimpleIdentifier
           token: annotation
     keyword: var

@@ -2,10 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import "dart:convert";
 import "dart:io";
 
-import '../test/simple_stats.dart';
 import '../test/utils/io_utils.dart' show computeRepoDirUri;
+import 'benchmarker_stats.dart';
 
 late final Uri repoDir = computeRepoDirUri();
 
@@ -15,11 +16,13 @@ void main(List<String> args) {
   bool doCacheBenchmarkingToo = false;
   bool doDisabledGcBenchmarkToo = false;
   bool silent = false;
+  bool showAll = false;
   int iterations = 5;
   int core = 7;
   int gcRuns = 1;
   String? aotRuntime;
   String? checkFileSize;
+  String? rawOutputPath;
   List<String> snapshots = [];
   List<List<String>> snapshotSpecificArguments = [];
   List<String> arguments = [];
@@ -52,6 +55,13 @@ void main(List<String> args) {
       doDisabledGcBenchmarkToo = true;
     } else if (arg == "--silent") {
       silent = true;
+    } else if (arg == "--show-all") {
+      showAll = true;
+    } else if (arg.startsWith("--raw-output=")) {
+      rawOutputPath = arg.substring("--raw-output=".length);
+      if (rawOutputPath.isEmpty) {
+        throw "--raw-output requires a file name (e.g. --raw-output=out.json).";
+      }
     } else {
       throw "Don't know argument '$arg'";
     }
@@ -61,12 +71,26 @@ void main(List<String> args) {
   if (snapshots.length < 2) {
     throw "Can't compare less than two snapshots. Specify using '--snapshot='";
   }
+  if (iterations < 2) {
+    // The t-test needs at least two samples per snapshot to estimate the
+    // variance.
+    throw "--iterations must be at least 2 (got $iterations).";
+  }
   if (arguments.isEmpty) {
     print("Note: Running without any arguments to the snapshots.");
   }
   while (snapshotSpecificArguments.length < snapshots.length) {
     snapshotSpecificArguments.add([]);
   }
+  RawOutput? rawOutput = rawOutputPath == null
+      ? null
+      : new RawOutput(
+          commandLineArguments: args,
+          snapshots: snapshots,
+          snapshotSpecificArguments: snapshotSpecificArguments,
+          arguments: arguments,
+          core: core,
+        );
 
   _doRun(
     iterations,
@@ -78,7 +102,10 @@ void main(List<String> args) {
     checkFileSize,
     cacheBenchmarking: false,
     silent: silent,
+    showAll: showAll,
     gcRuns: gcRuns,
+    rawOutput: rawOutput,
+    phase: "default",
   );
   if (doCacheBenchmarkingToo) {
     print("");
@@ -92,7 +119,10 @@ void main(List<String> args) {
       checkFileSize,
       cacheBenchmarking: true,
       silent: silent,
+      showAll: showAll,
       gcRuns: gcRuns,
+      rawOutput: rawOutput,
+      phase: "cache",
     );
   }
   if (doDisabledGcBenchmarkToo) {
@@ -107,15 +137,24 @@ void main(List<String> args) {
       checkFileSize,
       cacheBenchmarking: false,
       silent: silent,
+      showAll: showAll,
       gcRuns: 0,
       extraVmArguments: [
         "--new_gen_semi_initial_size=10000",
         "--new_gen_semi_max_size=20000",
       ],
+      rawOutput: rawOutput,
+      phase: "no-gc",
     );
 
     // TODO(jensj): Should we do a (number of) run(s) where we measure memory
     // usage?
+  }
+
+  if (rawOutput != null) {
+    rawOutput.writeTo(rawOutputPath!);
+    print("");
+    print("Wrote raw measurements to $rawOutputPath");
   }
 }
 
@@ -129,8 +168,11 @@ void _doRun(
   String? checkFileSize, {
   required bool cacheBenchmarking,
   required bool silent,
+  required bool showAll,
   required int gcRuns,
   List<String>? extraVmArguments,
+  RawOutput? rawOutput,
+  required String phase,
 }) {
   print(
     "Will now run $iterations+$gcRuns iterations with "
@@ -179,6 +221,7 @@ void _doRun(
       if (silent) {
         writes = _silentWrite(writes, lines);
       }
+      DateTime startTime = new DateTime.now();
       Map<String, num> benchmarkRun = _benchmark(
         aotRuntime,
         core,
@@ -196,6 +239,15 @@ void _doRun(
         }
       }
       snapshotResults.add(benchmarkRun);
+      rawOutput?.addRun(
+        phase: phase,
+        kind: "measure",
+        snapshotIndex: snapshotNum,
+        iteration: iteration,
+        startTime: startTime,
+        endTime: new DateTime.now(),
+        values: benchmarkRun,
+      );
     }
 
     // Do GC runs too.
@@ -203,8 +255,23 @@ void _doRun(
       if (silent) {
         writes = _silentWrite(writes, lines);
       }
-      gcInfo.add(
-        _verboseGcRun(aotRuntime, snapshot, [], usedArguments, silent: true),
+      DateTime startTime = new DateTime.now();
+      GCInfo info = _verboseGcRun(
+        aotRuntime,
+        snapshot,
+        [],
+        usedArguments,
+        silent: true,
+      );
+      gcInfo.add(info);
+      rawOutput?.addRun(
+        phase: phase,
+        kind: "gc",
+        snapshotIndex: snapshotNum,
+        iteration: i,
+        startTime: startTime,
+        endTime: new DateTime.now(),
+        values: {"combinedGcTimeMs": info.combinedTime, ...info.countWhat},
       );
     }
   }
@@ -226,7 +293,7 @@ void _doRun(
       "snapshot #${i + 1} ($comparedToSnapshotName)",
     );
     List<Map<String, num>> compareToResults = runResults[i];
-    if (!_compare(firstSnapshotResults, compareToResults)) {
+    if (!_compare(firstSnapshotResults, compareToResults, showAll: showAll)) {
       print("No change.");
     }
     if (gcRuns >= 3) {
@@ -235,6 +302,7 @@ void _doRun(
         gcInfos[i].map((gcInfo) => gcInfo.combinedTime).toList(),
         gcInfos[0].map((gcInfo) => gcInfo.combinedTime).toList(),
         "Combined GC time",
+        showAll: showAll,
       )) {
         print("No change in combined time.");
       }
@@ -304,13 +372,32 @@ void _help() {
   print("to compile compile.dart, then do statistics on the data returned");
   print("by `perf stat` where especially `instructions:u` and `branches:u`");
   print("has been observed to be stable.");
+  print("");
+  print("Additional options:");
+  print("");
+  print("  --raw-output=<file>");
+  print("    Write every individual measurement (with timestamps) to <file>");
+  print("    as JSON, for offline analysis.");
+  print("");
+  print("  --show-all");
+  print("    Print the comparison for every metric, including the standard");
+  print("    deviations and whether the change is significant, instead of");
+  print("    only printing the significant changes.");
 }
 
-bool compare(List<Map<String, num>> from, List<Map<String, num>> to) {
-  return _compare(from, to);
+bool compare(
+  List<Map<String, num>> from,
+  List<Map<String, num>> to, {
+  bool showAll = false,
+}) {
+  return _compare(from, to, showAll: showAll);
 }
 
-bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
+bool _compare(
+  List<Map<String, num>> from,
+  List<Map<String, num>> to, {
+  required bool showAll,
+}) {
   bool somethingWasSignificant = false;
   Set<String> allCaptions = {};
   for (Map<String, num> entry in [...from, ...to]) {
@@ -337,23 +424,49 @@ bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
       toForCaption,
       fromForCaption,
       caption,
+      showAll: showAll,
     );
   }
   return somethingWasSignificant;
 }
 
-bool _compareSingle(List<num> to, List<num> from, String caption) {
-  TTestResult stats = SimpleTTestStat.ttest(to, from);
-  if (stats.significant) {
-    print(
-      "$caption: ${stats.percentChangeIfSignificant(fractionDigits: 4)} "
-      "(${stats.valueChangeIfSignificant(fractionDigits: 2)}) "
-      "(${stats.meanChangeStringIfSignificant(fractionDigits: 2)})",
+/// Compares [to] against [from] for the metric [caption], printing the
+/// result if it is significant (or if [showAll] is `true`).
+///
+/// Returns whether the result was significant.
+bool _compareSingle(
+  List<num> to,
+  List<num> from,
+  String caption, {
+  bool showAll = false,
+}) {
+  Comparison comparison = compareUnpaired(from, to);
+  if (comparison.significant || showAll) {
+    StringBuffer line = new StringBuffer(
+      "$caption: "
+      "${_formatPercent(comparison.percentDiff)} +/- "
+      "${_formatPercent(comparison.percentConfidence)} "
+      "(${comparison.diff.toStringAsFixed(2)} +/- "
+      "${comparison.confidence.toStringAsFixed(2)}) "
+      "(${comparison.fromMean.toStringAsFixed(2)} -> "
+      "${comparison.toMean.toStringAsFixed(2)})",
     );
-    return true;
+    if (showAll) {
+      line.write(
+        " (sd: ${comparison.fromStdDev.toStringAsFixed(2)} / "
+        "${comparison.toStdDev.toStringAsFixed(2)})",
+      );
+      line.write(
+        comparison.significant ? " [significant]" : " [not significant]",
+      );
+    }
+    print(line);
   }
-  return false;
+  return comparison.significant;
 }
+
+String _formatPercent(double? percent) =>
+    percent == null ? "n/a%" : "${percent.toStringAsFixed(4)}%";
 
 List<num> _extractDataForCaption(String caption, List<Map<String, num>> data) {
   List<num> result = [];
@@ -634,6 +747,70 @@ class GCInfo {
   final Map<String, int> countWhat;
 
   new(this.combinedTime, this.countWhat);
+}
+
+/// Collects every individual measurement so that it can be written to a JSON
+/// file for offline analysis (e.g. plotting a metric against time to look for
+/// drift).
+class RawOutput {
+  final List<String> commandLineArguments;
+  final List<String> snapshots;
+  final List<List<String>> snapshotSpecificArguments;
+  final List<String> arguments;
+  final int core;
+  final DateTime startTime = new DateTime.now();
+  final List<Map<String, Object?>> _runs = [];
+
+  new({
+    required this.commandLineArguments,
+    required this.snapshots,
+    required this.snapshotSpecificArguments,
+    required this.arguments,
+    required this.core,
+  });
+
+  /// Records a single run.
+  ///
+  /// [phase] identifies which set of runs this belongs to (e.g. "default",
+  /// "cache" or "no-gc"), [kind] says what sort of run it was (e.g.
+  /// "measure" or "gc"), and [values] holds the counter values reported for
+  /// the run.
+  void addRun({
+    required String phase,
+    required String kind,
+    required int snapshotIndex,
+    required int iteration,
+    required DateTime startTime,
+    required DateTime endTime,
+    required Map<String, num> values,
+  }) {
+    _runs.add({
+      "sequence": _runs.length,
+      "phase": phase,
+      "kind": kind,
+      "snapshotIndex": snapshotIndex,
+      "snapshot": snapshots[snapshotIndex],
+      "iteration": iteration,
+      "startTime": startTime.toIso8601String(),
+      "endTime": endTime.toIso8601String(),
+      "values": values,
+    });
+  }
+
+  void writeTo(String path) {
+    Map<String, Object?> json = {
+      "commandLineArguments": commandLineArguments,
+      "snapshots": snapshots,
+      "snapshotSpecificArguments": snapshotSpecificArguments,
+      "arguments": arguments,
+      "core": core,
+      "startTime": startTime.toIso8601String(),
+      "endTime": new DateTime.now().toIso8601String(),
+      "runs": _runs,
+    };
+    new File(path)
+        .writeAsStringSync(new JsonEncoder.withIndent("  ").convert(json));
+  }
 }
 
 class Warnings {

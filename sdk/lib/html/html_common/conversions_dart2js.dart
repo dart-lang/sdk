@@ -62,7 +62,10 @@ _convertDartToNative_Value(Object? value) {
 ///
 /// This method requires that the values within the map are either maps
 /// themselves, lists, or do not need a conversion.
-convertDartToNative_Dictionary(Map? dict, [void postCreate(Object? f)?]) {
+convertDartToNative_Dictionary(
+  Map? dict, [
+  void Function(Object? f)? postCreate,
+]) {
   if (dict == null) return null;
   var object = JS('var', '{}');
   if (postCreate != null) {
@@ -105,7 +108,7 @@ convertNativeToDart_AcceptStructuredClone(object, {mustCopy = false}) =>
 class _StructuredCloneDart2Js extends _StructuredClone {
   JSObject newJsObject() => JS('JSObject', '{}');
 
-  void forEachObjectKey(object, action(key, value)) {
+  void forEachObjectKey(object, Function(dynamic key, dynamic value) action) {
     for (final key in JS(
       'returns:JSExtendableArray;new:true',
       'Object.keys(#)',
@@ -133,7 +136,7 @@ class _AcceptStructuredCloneDart2Js extends _AcceptStructuredClone {
   List newDartList(length) => newJsList(length);
   bool identicalInJs(a, b) => identical(a, b);
 
-  void forEachJsField(object, action(key, value)) {
+  void forEachJsField(object, Function(dynamic key, dynamic value) action) {
     for (final key in JS('JSExtendableArray', 'Object.keys(#)', object)) {
       action(key, JS('var', '#[#]', object, key));
     }

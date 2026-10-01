@@ -167,12 +167,7 @@ void f() {}
     _assertReplacementForChildren<Annotation>(
       destination: parseResult.findNode.annotation('prefix.A'),
       source: parseResult.findNode.annotation('prefix.B'),
-      childAccessors: [
-        (node) => node.arguments!,
-        (node) => node.constructorName!,
-        (node) => node.name,
-        (node) => node.typeArguments!,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 

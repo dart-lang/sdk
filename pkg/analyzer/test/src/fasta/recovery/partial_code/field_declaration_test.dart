@@ -51,6 +51,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -455,6 +457,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -837,6 +841,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -1192,6 +1198,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -1510,6 +1518,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -1914,6 +1924,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -2296,6 +2308,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -2651,6 +2665,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -2970,6 +2986,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -3383,6 +3401,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -3774,6 +3794,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -4138,6 +4160,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -4465,6 +4489,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -4878,6 +4904,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -5269,6 +5297,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -5633,6 +5663,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -5961,6 +5993,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -6383,6 +6417,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -6783,6 +6819,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -7158,6 +7196,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -7523,6 +7563,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -7936,6 +7978,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -8327,6 +8371,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -8695,6 +8741,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -9022,6 +9070,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -9435,6 +9485,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -9826,6 +9878,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -9871,6 +9925,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -10584,6 +10640,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -10940,6 +10998,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -11344,6 +11404,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -11726,6 +11788,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -11770,6 +11834,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList
@@ -12468,6 +12534,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             fields: VariableDeclarationList

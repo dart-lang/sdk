@@ -113,8 +113,12 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
 
 /// A visitor used to traverse the AST structures of all of the compilation
 /// units being resolved and build tables of the constant variables, constant
-/// constructors, constant constructor invocations, and annotations found in
-/// those compilation units.
+/// constructors, and constant constructor invocations found in those
+/// compilation units.
+///
+/// Annotations are not included. An annotation is verified like any other
+/// constant expression, by `ConstantVerifier`, which evaluates it; its value
+/// as an `ElementAnnotation` is computed only when requested.
 class ConstantFinder extends RecursiveAstVisitor2<void> {
   final ConstantEvaluationConfiguration configuration;
 
@@ -127,23 +131,6 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   bool treatFinalInstanceVarAsConst = false;
 
   ConstantFinder({required this.configuration});
-
-  @override
-  void visitAnnotation(covariant AnnotationImpl node) {
-    super.visitAnnotation(node);
-    var elementAnnotation = node.elementAnnotation;
-    if (elementAnnotation == null) {
-      // Analyzer ignores annotations on "part of" directives and on enum
-      // constant declarations.
-      assert(
-        node.parent2 is PartDirective ||
-            node.parent2 is PartOfDirective ||
-            node.parent2 is EnumConstantDeclaration,
-      );
-    } else {
-      constantsToCompute.add(elementAnnotation);
-    }
-  }
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {

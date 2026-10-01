@@ -84,6 +84,8 @@ class FindNode2 extends _FindNodeBase {
 
   ConstructorTearOff get singleConstructorTearOff => _single();
 
+  ConstructorTypeReference get singleConstructorTypeReference => _single();
+
   DirectAssignment get singleDirectAssignment => _single();
 
   DotShorthandMethodInvocation get singleDotShorthandMethodInvocation =>

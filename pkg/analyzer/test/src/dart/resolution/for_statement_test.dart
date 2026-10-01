@@ -2082,6 +2082,13 @@ ForStatement
     metadata
       Annotation
         atSign: @
+        expression: UnqualifiedNameExpression
+          name: foo
+          resolution: GetterInvocationResolution
+            element: <testLibrary>::@getter::foo
+            invokeType: int Function()
+            type: int
+          staticType: int
         name: SimpleIdentifier
           token: foo
           element: <testLibrary>::@getter::foo
@@ -2150,6 +2157,12 @@ ForStatement
     metadata
       Annotation
         atSign: @
+        expression: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@51
+            type: InvalidType
+          staticType: InvalidType
         name: SimpleIdentifier
           token: a
           element: a@51
@@ -3797,6 +3810,13 @@ ForStatement
       metadata
         Annotation
           atSign: @
+          expression: UnqualifiedNameExpression
+            name: deprecated
+            resolution: GetterInvocationResolution
+              element: dart:core::@getter::deprecated
+              invokeType: Deprecated Function()
+              type: Deprecated
+            staticType: Deprecated
           name: SimpleIdentifier
             token: deprecated
             element: dart:core::@getter::deprecated
@@ -3923,6 +3943,12 @@ ForStatement
       metadata
         Annotation
           atSign: @
+          expression: UnqualifiedNameExpression
+            name: a
+            resolution: VariableReadResolution
+              element: a@40
+              type: InvalidType
+            staticType: InvalidType
           name: SimpleIdentifier
             token: a
             element: a@40

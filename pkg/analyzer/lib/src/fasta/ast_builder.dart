@@ -2525,29 +2525,67 @@ class AstBuilder extends StackListener {
         startToken: typeArguments.beginToken,
       );
     }
-    // Annotation names still use the legacy identifier API. Keep their
-    // construction here rather than using identifiers as parser-stack values.
     var name = pop()!;
-    push(
-      AnnotationImpl(
-        atSign: atSign,
-        name: switch (name) {
-          Token() => SimpleIdentifierImpl(token: name),
-          _QualifiedName() => PrefixedIdentifierImpl(
-            prefix: SimpleIdentifierImpl(token: name.prefix),
-            period: name.period,
-            identifier: SimpleIdentifierImpl(token: name.name),
+    if (name is! Token && name is! _QualifiedName) {
+      throw StateError('Unexpected annotation name: $name');
+    }
+
+    ExpressionImpl expression;
+    if (argumentList != null) {
+      // An annotation with arguments can only invoke a constructor, so it is
+      // built as if written with `const`, except that there is no keyword.
+      expression = ConstructorInvocationImpl(
+        keyword: null,
+        constructorReference: ConstructorReference2Impl(
+          typeReference: ConstructorTypeReferenceImpl(
+            importPrefix: name is _QualifiedName
+                ? ImportPrefixReferenceImpl(
+                    name: name.prefix,
+                    period: name.period,
+                  )
+                : null,
+            name: name is _QualifiedName ? name.name : name as Token,
+            typeArguments: typeArguments,
           ),
-          _ => throw StateError('Unexpected annotation name: $name'),
-        },
-        typeArguments: typeArguments,
-        period: periodBeforeName,
-        constructorName: constructorName != null
-            ? SimpleIdentifierImpl(token: constructorName)
-            : null,
-        arguments: argumentList,
-      ),
-    );
+          selector: switch (periodBeforeName) {
+            var period? => ConstructorSelectorImpl.v2(
+              period: period,
+              name2: constructorName!,
+            ),
+            null => null,
+          },
+        ),
+        argumentList: argumentList,
+        typeArguments: null,
+      );
+    } else {
+      // Without arguments, the annotation is a read that resolution
+      // interprets like the same keywordless expression.
+      ParsedExpressionImpl operand = switch (name) {
+        _QualifiedName() => ParsedNameAccessImpl(
+          operand: ParsedUnqualifiedNameImpl(name: name.prefix),
+          operator: name.period,
+          name: name.name,
+        ),
+        _ => ParsedUnqualifiedNameImpl(name: name as Token),
+      };
+      if (typeArguments != null) {
+        operand = ParsedTypeArgumentsImpl(
+          operand: operand,
+          typeArguments: typeArguments,
+        );
+      }
+      if (periodBeforeName != null) {
+        operand = ParsedNameAccessImpl(
+          operand: operand,
+          operator: periodBeforeName,
+          name: constructorName!,
+        );
+      }
+      expression = operand;
+    }
+
+    push(AnnotationImpl(atSign: atSign, expression: expression));
   }
 
   @override

@@ -167,6 +167,29 @@ void f(int x) {
 ''');
   }
 
+  test_flowEnd_forEachElementParts_iterable_never_pattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f(Never e) => [for (var (i) in e) i];
+//                             ^
+// [diag.forInOfInvalidType] The type 'Never' used in the 'for' loop must implement 'Iterable'.
+//                                ^^^
+// [diag.deadCode] Dead code.
+''');
+  }
+
+  test_flowEnd_forEachParts_iterable_never_pattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f(Never e) {
+  for (var (i) in e) {
+//                ^
+// [diag.forInOfInvalidType] The type 'Never' used in the 'for' loop must implement 'Iterable'.
+// [diag.deadCode][column 22][length 12] Dead code.
+    i;
+  }
+}
+''');
+  }
+
   test_flowEnd_forElementParts_initializer_pattern_throw() async {
     await resolveTestCodeWithDiagnostics(r'''
 f() => [for (var (i) = throw 0; true; 1) 0];
@@ -1159,6 +1182,55 @@ void f() {
 //        ^^^^
 // [diag.deadCode] Dead code.
     return;
+  }
+}
+''');
+  }
+
+  test_flowEnd_forEachElementParts_iterable_never_declaration() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f(Never e) => [for (var i in e) i];
+//                              ^^^
+// [diag.deadCode] Dead code.
+''');
+  }
+
+  test_flowEnd_forEachElementParts_iterable_never_identifier() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f(Never e, int i) => [for (i in e) i];
+//                                 ^^^
+// [diag.deadCode] Dead code.
+''');
+  }
+
+  test_flowEnd_forEachParts_iterable_never_declaration() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f(Never e) {
+  for (var i in e) {
+// [diag.deadCode][column 20][length 12] Dead code.
+    i;
+  }
+}
+''');
+  }
+
+  test_flowEnd_forEachParts_iterable_never_declaration_metadata() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f(Never e) {
+  for (@Deprecated('0') var i in e) {
+// [diag.deadCode][column 37][length 12] Dead code.
+    i;
+  }
+}
+''');
+  }
+
+  test_flowEnd_forEachParts_iterable_never_identifier() async {
+    await resolveTestCodeWithDiagnostics(r'''
+f(Never e, int i) {
+  for (i in e) {
+// [diag.deadCode][column 16][length 12] Dead code.
+    i;
   }
 }
 ''');

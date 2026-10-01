@@ -14,6 +14,30 @@ main() {
 
 @reflectiveTest
 class ConstWithNonConstTest extends PubPackageResolutionTest {
+  test_annotation_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+}
+
+@A.named()
+// [diag.constWithNonConst][column 2][length 9] The constructor being called isn't a const constructor.
+void f() {}
+''');
+  }
+
+  test_annotation_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A();
+}
+
+@A()
+// [diag.constWithNonConst][column 2][length 3] The constructor being called isn't a const constructor.
+void f() {}
+''');
+  }
+
   test_inConstContext() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

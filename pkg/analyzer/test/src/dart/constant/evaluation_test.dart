@@ -7992,8 +7992,6 @@ void main() {
   }
 
   test_issue49389() async {
-    // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
-    // NamedExpressions.
     await resolveTestCodeWithDiagnostics(r'''
 class Foo {
   const Foo({required this.bar});
@@ -8004,7 +8002,7 @@ void main() {
   final data = <String, String>{};
   const Foo(bar: data);
 //               ^^^^
-// [diag.invalidConstant] Invalid constant value.
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 }
 ''');
   }

@@ -9508,9 +9508,12 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when an annotation is found that is
-      using something that is neither a variable marked as `const` or the
-      invocation of a `const` constructor.
+      The analyzer produces this diagnostic when an annotation without
+      arguments references something that is neither a variable marked as
+      `const` nor a constructor. An annotation with arguments, such as `@f()`,
+      is an invocation of a `const` constructor, so when `f` isn't a class it's
+      reported like any other constant constructor invocation, as
+      `creation_with_non_type`.
 
       Getters can't be used as annotations.
 
@@ -9530,14 +9533,6 @@ CompileTimeErrorCode:
 
       ```dart
       [!@f!]
-      void f() {}
-      ```
-
-      The following code produces this diagnostic because `f` isn't a
-      constructor:
-
-      ```dart
-      [!@f()!]
       void f() {}
       ```
 
@@ -12762,6 +12757,7 @@ CompileTimeErrorCode:
   nonConstantAnnotationConstructor:
     type: compileTimeError
     parameters: none
+    removedIn: "3.14"
     problemMessage: Annotation creation can only call a const constructor.
     hasPublishedDocs: true
     documentation: |-
@@ -14317,10 +14313,11 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when an annotation consists of a
-      single identifier, but that identifier is the name of a class rather than a
-      variable. To create an instance of the class, the identifier must be
-      followed by an argument list.
+      The analyzer produces this diagnostic when an annotation is the name of a
+      class, such as `@C`, or of a constructor, such as `@C.named`, rather than
+      the name of a variable. To create an instance of the class, the name must
+      be followed by an argument list. This diagnostic is reported whether or
+      not the constructor is a `const` constructor.
 
       #### Example
 
@@ -18386,6 +18383,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the annotation
+    removedIn: "3.14"
     problemMessage: "Undefined name '#name' used as an annotation."
     correctionMessage: Try defining the name or importing it from another library.
     isUnresolvedIdentifier: true

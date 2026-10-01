@@ -1057,6 +1057,8 @@ Block
           metadata
             Annotation
               atSign: @
+              expression: ParsedUnqualifiedName
+                name: A
               name: SimpleIdentifier
                 token: A
           keyword: var
@@ -1093,6 +1095,8 @@ Block
           metadata
             Annotation
               atSign: @
+              expression: ParsedUnqualifiedName
+                name: A
               name: SimpleIdentifier
                 token: A
           keyword: var
@@ -1617,6 +1621,8 @@ Block
           metadata
             Annotation
               atSign: @
+              expression: ParsedUnqualifiedName
+                name: A
               name: SimpleIdentifier
                 token: A
           keyword: var
@@ -1655,6 +1661,8 @@ Block
           metadata
             Annotation
               atSign: @
+              expression: ParsedUnqualifiedName
+                name: A
               name: SimpleIdentifier
                 token: A
           keyword: var

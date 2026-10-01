@@ -148,6 +148,9 @@ abstract class DartEditBuilder implements EditBuilder {
   /// {@template isRequiredType}
   /// If [isRequiredType] is `true` then the type is always written.
   /// {@endtemplate}
+  ///
+  /// If [onClosure] is `false`, we will write the type as stated above.
+  /// Otherwise, only if `always_specify_types` is on, the type will be written.
   void writeFormalParameter(
     String name, {
     bool isCovariant,
@@ -157,6 +160,7 @@ abstract class DartEditBuilder implements EditBuilder {
     DartType? type,
     String? typeGroupName,
     bool isRequiredType,
+    bool onClosure,
   });
 
   /// Writes the code for a list of [parameters], including the surrounding

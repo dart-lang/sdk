@@ -2124,6 +2124,61 @@ class A {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/54645
+  Future<void> test_subclass_namedSuper_namedArgument() async {
+    await indexTestUnit('''
+class Foo extends BaseFoo {
+  const Foo({
+    required super.field,
+  });
+}
+
+class BaseFoo {
+  const BaseFoo({
+    required this.field,
+  });
+
+  final String field;
+}
+
+void main() {
+  final baseFoo = BaseFoo(field: 'value');
+  baseFoo.field;
+
+  final foo = Foo(field: 'value');
+  foo.fi^eld;
+}
+''');
+    createRenameRefactoring();
+    refactoring.newName = 'renamedField';
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+    refactoringChange = await refactoring.createChange();
+    assertTestChangeResult('''
+class Foo extends BaseFoo {
+  const Foo({
+    required super.renamedField,
+  });
+}
+
+class BaseFoo {
+  const BaseFoo({
+    required this.renamedField,
+  });
+
+  final String renamedField;
+}
+
+void main() {
+  final baseFoo = BaseFoo(renamedField: 'value');
+  baseFoo.renamedField;
+
+  final foo = Foo(renamedField: 'value');
+  foo.renamedField;
+}
+''');
+  }
+
   Future<void> test_subclass_namedSuper_otherLibrary() async {
     await indexTestUnit('''
 class Base {

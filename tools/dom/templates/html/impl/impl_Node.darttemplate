@@ -100,7 +100,7 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     return true;
   }
 
-  void _filter(bool test(Node node), bool removeMatching) {
+  void _filter(bool Function(Node node) test, bool removeMatching) {
     // This implementation of removeWhere/retainWhere is more efficient
     // than the default in ListBase. Child nodes can be removed in constant
     // time.
@@ -114,11 +114,11 @@ class _ChildNodeListLazy extends ListBase<Node> implements NodeListWrapper {
     }
   }
 
-  void removeWhere(bool test(Node node)) {
+  void removeWhere(bool Function(Node node) test) {
     _filter(test, true);
   }
 
-  void retainWhere(bool test(Node node)) {
+  void retainWhere(bool Function(Node node) test) {
     _filter(test, false);
   }
 

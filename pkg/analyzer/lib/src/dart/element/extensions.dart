@@ -19,6 +19,17 @@ extension DartTypeExtension on DartType {
 }
 
 extension Element2Extension on Element {
+  /// Whether a reference to this element reads a constant variable, either
+  /// the variable itself, or its implicit getter.
+  bool get denotesConstantVariable {
+    return switch (this) {
+      PropertyAccessorElement(:var isOriginDeclaration, :var variable) =>
+        !isOriginDeclaration && variable.isConst,
+      VariableElement(:var isConst) => isConst,
+      _ => false,
+    };
+  }
+
   TypeImpl? get firstParameterType {
     var self = this;
     if (self is InternalMethodElement) {

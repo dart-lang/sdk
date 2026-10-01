@@ -233,7 +233,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitAnnotation(Annotation node) {
     node.visitChildren2(this);
-    _addElement(node.element);
   }
 
   @override

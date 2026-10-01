@@ -64,23 +64,8 @@ class AstBinaryReader {
   }
 
   Annotation _readAnnotation() {
-    var name = _readNode() as IdentifierImpl;
-    var typeArguments = _readOptionalNode() as TypeArgumentListImpl?;
-    var constructorName = _readOptionalNode() as SimpleIdentifierImpl?;
-    var arguments = _readOptionalNode() as ArgumentListImpl?;
-    var node = AnnotationImpl(
-      atSign: Tokens.at(),
-      name: name,
-      typeArguments: typeArguments,
-      period: constructorName != null ? Tokens.period() : null,
-      constructorName: constructorName,
-      arguments: arguments,
-    );
-    node.element = _reader.readElement();
-    if (arguments != null) {
-      _resolveArguments(node.element, arguments);
-    }
-    return node;
+    var expression = _readNode() as ExpressionImpl;
+    return AnnotationImpl(atSign: Tokens.at(), expression: expression);
   }
 
   ArgumentList _readArgumentList() {

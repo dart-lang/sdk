@@ -25,10 +25,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitAnnotation(Annotation node) {
     sink.write('@');
-    _visitNode(node.name);
-    _visitNode(node.typeArguments);
-    _visitNode(node.constructorName, prefix: '.');
-    _visitNode(node.arguments);
+    _visitNode(node.expression);
   }
 
   @override

@@ -296,6 +296,45 @@ class CreateGetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createGetter;
 
+  Future<void> test_annotation() async {
+    await resolveTestCode('''
+class A {
+  @foo
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_annotation_staticMember() async {
+    await resolveTestCode('''
+class A {
+  const A();
+}
+
+@A.foo
+void f() {}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_annotation_staticMember_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  const A();
+}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+class C {
+  @p.A.foo
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_dotShorthand_class() async {
     await resolveTestCode('''
 class A {

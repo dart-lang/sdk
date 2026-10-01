@@ -9,18 +9,16 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/dart/organize_imports.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unused_import.dart';
-import 'package:analysis_server/src/services/correction/fix/pubspec/fix_generator.dart';
+import 'package:analysis_server/src/services/correction/fix/pubspec/pubspec_fix_processor.dart';
 import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/edit/fix/dart_fix_context.dart';
-import 'package:analysis_server_plugin/edit/fix/fix.dart';
 import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -28,8 +26,6 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/source/file_source.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
@@ -38,14 +34,12 @@ import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/pubspec/validators/missing_dependency_validator.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
-import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show SourceFileEdit;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
@@ -55,12 +49,6 @@ import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:linter/src/lint_names.dart';
 import 'package:linter/src/rules/directives_ordering.dart';
 import 'package:meta/meta.dart';
-import 'package:yaml/yaml.dart';
-
-typedef PubspecFixRequestResult = ({
-  List<SourceFileEdit> edits,
-  List<BulkFix> details,
-});
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -188,14 +176,6 @@ class BulkFixProcessor {
   /// results and processing can end early (in which case any results may be
   /// invalid).
   final CancellationToken? _cancellationToken;
-
-  /// The set of codes that that can be passed that will cause Pubspec fixes
-  /// to be applied (in addition to when no codes are supplied).
-  final _pubspecFixDiagnosticCodes = {
-    diag.missingDependency.lowerCaseName,
-    diag.dependOnReferencedPackages.lowerCaseName,
-    diag.migrateDesignWidgets.lowerCaseName,
-  };
 
   /// Initialize a newly created processor to create fixes for diagnostics in
   /// libraries in the [_workspace].
@@ -342,7 +322,12 @@ class BulkFixProcessor {
   /// Returns a [PubspecFixRequestResult] that includes edits to the pubspec
   /// files in the given [contexts].
   Future<PubspecFixRequestResult> fixPubspec(List<AnalysisContext> contexts) =>
-      _computeChangesToPubspec(contexts);
+      PubspecFixProcessor(
+        resourceProvider: _workspace.resourceProvider,
+        codesToFix: _codesToFix,
+        defaultEol: builder.defaultEol,
+        cancellationToken: _cancellationToken,
+      ).fix(contexts);
 
   /// Returns a [PubspecFixRequestResult] that includes edits to the pubspec
   /// files in the given [context] to fix diagnostics for missing packages in
@@ -350,7 +335,13 @@ class BulkFixProcessor {
   Future<PubspecFixRequestResult> fixPubspecForFile(
     AnalysisContext context,
     String filePath,
-  ) => _computeChangesToPubspec([context], onlyForFile: filePath);
+  ) => PubspecFixProcessor(
+    resourceProvider: _workspace.resourceProvider,
+    codesToFix: _codesToFix,
+    defaultEol: builder.defaultEol,
+    cancellationToken: _cancellationToken,
+    onlyForFile: filePath,
+  ).fix([context]);
 
   /// Returns a [BulkFixRequestResult] that includes a change builder that has
   /// been used to format the dart files in the given [contexts].
@@ -418,110 +409,6 @@ class BulkFixProcessor {
         }
       }
     }
-  }
-
-  Future<PubspecFixRequestResult> _computeChangesToPubspec(
-    List<AnalysisContext> contexts, {
-    String? onlyForFile,
-  }) async {
-    assert(
-      onlyForFile == null || contexts.length == 1,
-      'When fixing pubspec issues only for one file, only one context should be provided',
-    );
-
-    // If we were filtered to a set or codes that doesn't include codes that
-    // should make pubspec fixes, don't compute any fixes.
-    //
-    // Note: Currently, any of these codes will result in all dependencies being
-    // fixed even if they did not produce the specific code requested. This is a
-    // consequence of how these fixes are currently applied (that is, they are
-    // not driven by the diagnostics).
-    if (_codesToFix != null &&
-        !_codesToFix.any(_pubspecFixDiagnosticCodes.contains)) {
-      return (edits: <SourceFileEdit>[], details: <BulkFix>[]);
-    }
-
-    var fixes = <SourceFileEdit>[];
-    var details = <BulkFix>[];
-    for (var context in contexts) {
-      var workspace = context.contextRoot.workspace;
-      if (workspace is! PackageConfigWorkspace) {
-        continue;
-      }
-      var pathContext = context.contextRoot.resourceProvider.pathContext;
-      var packageToDeps = <PubPackage, _PubspecDeps>{};
-
-      var filePaths = onlyForFile != null
-          ? [onlyForFile]
-          : context.contextRoot.analyzedFiles();
-      for (var filePath in filePaths) {
-        if (!file_paths.isDart(pathContext, filePath) ||
-            file_paths.isGenerated(filePath)) {
-          continue;
-        }
-        var package = workspace.findPackageFor(filePath);
-        if (package is! PubPackage) {
-          continue;
-        }
-
-        var libPath = package.root.getFolder('lib');
-        var binPath = package.root.getFolder('bin');
-
-        var pubspecDeps = packageToDeps.putIfAbsent(
-          package,
-          () => _PubspecDeps(),
-        );
-
-        // Get the list of imports used in the files.
-        var libraryResult = context.currentSession.getParsedLibrary(filePath);
-        if (libraryResult is! ParsedLibraryResult) {
-          continue;
-        }
-
-        for (var unitResult in libraryResult.units) {
-          var directives = unitResult.unit.directives;
-          for (var directive in directives) {
-            var uri = (directive is ImportDirective)
-                ? directive.uri.stringValue
-                : '';
-            if (uri!.startsWith('package:')) {
-              var name = Uri.parse(uri).pathSegments.first;
-              if (libPath.contains(filePath) || binPath.contains(filePath)) {
-                pubspecDeps.packages.add(name);
-              } else {
-                pubspecDeps.devPackages.add(name);
-              }
-            }
-          }
-        }
-      }
-
-      // Iterate over packages in the workspace, compute changes to pubspec.
-      for (var package in packageToDeps.keys) {
-        var pubspecDeps = packageToDeps[package]!;
-        var pubspecFile = package.pubspecFile;
-        var result = await _runPubspecValidatorAndFixGenerator(
-          FileSource(pubspecFile),
-          pubspecDeps.packages,
-          pubspecDeps.devPackages.difference(pubspecDeps.packages),
-          context.contextRoot.resourceProvider,
-        );
-        if (result.isNotEmpty) {
-          for (var fix in result) {
-            fixes.addAll(fix.change.edits);
-          }
-          details.add(
-            BulkFix(pubspecFile.path, [
-              // TODO(dantup): We always show 1 here and this diagnostic code
-              //  even if there are multiple packages added and if the
-              //  diagnostic is something like depend_on_referenced_packages.
-              BulkFixDetail(diag.missingDependency.lowerCaseName, 1),
-            ]),
-          );
-        }
-      }
-    }
-    return (edits: fixes, details: details);
   }
 
   /// Implementation for [fixErrors] and [hasFixes].
@@ -1071,44 +958,6 @@ class BulkFixProcessor {
     return BulkFixRequestResult(builder);
   }
 
-  Future<List<Fix>> _runPubspecValidatorAndFixGenerator(
-    Source pubspec,
-    Set<String> usedDeps,
-    Set<String> usedDevDeps,
-    ResourceProvider resourceProvider,
-  ) async {
-    String contents = pubspec.contents.data;
-    YamlNode? node;
-    try {
-      node = loadYamlNode(contents);
-    } catch (_) {
-      // Could not parse the pubspec file.
-      return [];
-    }
-
-    if (node is! YamlMap) {
-      // The file is empty.
-      return [];
-    }
-
-    var errors = MissingDependencyValidator(
-      node,
-      pubspec,
-      resourceProvider,
-    ).validate(usedDeps, usedDevDeps);
-    if (errors.isNotEmpty) {
-      var generator = PubspecFixGenerator(
-        resourceProvider,
-        errors[0],
-        contents,
-        node,
-        defaultEol: builder.defaultEol,
-      );
-      return await generator.computeFixes();
-    }
-    return [];
-  }
-
   /// Returns whether [diagnosticCode] is an error that can be fixed in bulk.
   static bool _canBulkFix(DiagnosticCode diagnosticCode) {
     bool hasBulkFixProducers(List<ProducerGenerator>? generators) {
@@ -1361,11 +1210,6 @@ class IterativeBulkFixRequestResult {
   new(this.edits, this.details) : errorMessage = null;
 
   new error(this.errorMessage) : edits = [], details = [];
-}
-
-class _PubspecDeps {
-  final Set<String> packages = <String>{};
-  final Set<String> devPackages = <String>{};
 }
 
 extension on Diagnostic {

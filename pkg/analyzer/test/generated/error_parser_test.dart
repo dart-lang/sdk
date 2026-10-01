@@ -2306,6 +2306,8 @@ FunctionDeclaration
   metadata
     Annotation
       atSign: @
+      expression: ParsedUnqualifiedName
+        name: Foo
       name: SimpleIdentifier
         token: Foo
   name: f

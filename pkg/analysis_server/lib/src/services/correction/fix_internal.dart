@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/dart/add_async.dart';
 import 'package:analysis_server/src/services/correction/dart/add_await.dart';
 import 'package:analysis_server/src/services/correction/dart/add_call_super.dart';
 import 'package:analysis_server/src/services/correction/dart/add_class_modifier.dart';
+import 'package:analysis_server/src/services/correction/dart/add_closure.dart';
 import 'package:analysis_server/src/services/correction/dart/add_const.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
 import 'package:analysis_server/src/services/correction/dart/add_empty_argument_list.dart';
@@ -541,6 +542,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     AddNullCheck.new,
     WrapInText.new,
     AddAwait.argumentType,
+    AddMissingClosureParameters.parameters,
   ],
   diag.asyncForInWrongContext: [AddAsync.new],
   diag.augmentationModifierExtra: [RemoveLexeme.modifier],
@@ -647,13 +649,13 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.initializingFormalForNonExistentField: [ChangeTo.field, CreateField.new],
   diag.instanceAccessToStaticMember: [ChangeToStaticAccess.new],
   diag.integerLiteralImpreciseAsDouble: [ChangeToNearestPreciseValue.new],
-  diag.invalidAnnotation: [ChangeTo.annotation],
   diag.invalidAssignment: [
     AddExplicitCast.new,
     AddNullCheck.new,
     ChangeTypeAnnotation.new,
     MakeVariableNullable.new,
     AddAwait.assignment,
+    AddMissingClosureParameters.parameters,
   ],
   diag.invalidConstant: [RemoveConst.new],
   diag.invalidCovariantModifierInPrimaryConstructor: [
@@ -741,6 +743,12 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.nonExhaustiveSwitchStatementPrivate: [AddMissingSwitchCases.new],
   diag.nonFinalFieldInEnum: [MakeFinal.new],
   diag.notAType: [ChangeTo.classOrMixin],
+  diag.notEnoughPositionalArgumentsNamePlural: [
+    AddMissingClosureParameters.positional,
+  ],
+  diag.notEnoughPositionalArgumentsNameSingular: [
+    AddMissingClosureParameters.positional,
+  ],
   diag.notInitializedNonNullableInstanceField: [
     AddLate.new,
     CreateConstructorForFinalFields.requiredNamed,
@@ -769,12 +777,15 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
+    AddMissingClosureParameters.parameters,
   ],
   diag.returnOfInvalidTypeFromMethod: [
     AddAsync.wrongReturnType,
     MakeReturnTypeNullable.new,
     ReplaceReturnType.new,
+    AddMissingClosureParameters.parameters,
   ],
+  diag.returnWithoutValue: [AddMissingClosureParameters.expression],
   diag.setElementFromDeferredLibrary: [RemoveConst.new],
   diag.setElementTypeNotAssignableNullability: [
     ConvertToNullAwareSetElement.new,
@@ -829,7 +840,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ConvertToNullAwareSpread.new,
   ],
   diag.uncheckedUseOfNullableValueInYieldEach: [AddNullCheck.new],
-  diag.undefinedAnnotation: [ChangeTo.annotation],
   diag.undefinedClass: [ChangeTo.classOrMixin],
   diag.undefinedClassBoolean: [ReplaceBooleanWithBool.new],
   diag.undefinedEnumConstant: [
@@ -984,6 +994,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.missingConstFinalVarOrType: [AddTypeAnnotation.new],
   diag.missingEnumBody: [InsertBody.new],
   diag.missingFunctionBody: [ConvertIntoBlockBody.missingBody],
+  diag.missingIdentifier: [
+    AddMissingClosureParameters.named,
+    AddMissingClosureParameters.expression,
+  ],
   diag.missingTypedefParameters: [AddEmptyArgumentList.new],
   diag.mixinDeclaresConstructor: [RemoveConstructor.new],
   diag.patternAssignmentDeclaresVariable: [RemoveVarKeyword.new],
@@ -1204,11 +1218,6 @@ final _builtInNonLintMultiGenerators = {
   ],
   diag.uncheckedPropertyAccessOfNullableValue: [
     ImportLibrary.forExtensionMember,
-  ],
-  diag.undefinedAnnotation: [
-    CreateClass.new,
-    ImportLibrary.forTopLevelVariable,
-    ImportLibrary.forTypeOrMember,
   ],
   diag.undefinedClass: [
     CreateClass.new,

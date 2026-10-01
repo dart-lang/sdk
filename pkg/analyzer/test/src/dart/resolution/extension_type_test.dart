@@ -3436,6 +3436,13 @@ ExtensionTypeDeclaration
           metadata
             Annotation
               atSign: @
+              expression: UnqualifiedNameExpression
+                name: deprecated
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated
                 element: dart:core::@getter::deprecated
@@ -3641,6 +3648,13 @@ ExtensionTypeDeclaration
           metadata
             Annotation
               atSign: @
+              expression: UnqualifiedNameExpression
+                name: deprecated
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated
                 element: dart:core::@getter::deprecated
@@ -3701,6 +3715,13 @@ ExtensionTypeDeclaration
           metadata
             Annotation
               atSign: @
+              expression: UnqualifiedNameExpression
+                name: deprecated
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated
                 element: dart:core::@getter::deprecated
@@ -4172,6 +4193,13 @@ PrimaryConstructorDeclaration
         metadata
           Annotation
             atSign: @
+            expression: UnqualifiedNameExpression
+              name: foo
+              resolution: GetterInvocationResolution
+                element: <testLibrary>::@getter::foo
+                invokeType: int Function()
+                type: int
+              staticType: int
             name: SimpleIdentifier
               token: foo
               element: <testLibrary>::@getter::foo
@@ -4190,6 +4218,13 @@ PrimaryConstructorDeclaration
           metadata
             Annotation
               atSign: @
+              expression: UnqualifiedNameExpression
+                name: foo
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@extensionType::E::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo
                 element: <testLibrary>::@extensionType::E::@getter::foo
@@ -4485,6 +4520,13 @@ PrimaryConstructorBody
   metadata
     Annotation
       atSign: @
+      expression: UnqualifiedNameExpression
+        name: deprecated
+        resolution: GetterInvocationResolution
+          element: dart:core::@getter::deprecated
+          invokeType: Deprecated Function()
+          type: Deprecated
+        staticType: Deprecated
       name: SimpleIdentifier
         token: deprecated
         element: dart:core::@getter::deprecated
@@ -4818,8 +4860,8 @@ extension type E<T extends Unresolved>(int it) {}
   test_typeParameter_metadata_undefined() async {
     await resolveTestCodeWithDiagnostics(r'''
 extension type E<@Unresolved T>(int it) {}
-//               ^^^^^^^^^^^
-// [diag.undefinedAnnotation] Undefined name 'Unresolved' used as an annotation.
+//                ^^^^^^^^^^
+// [diag.undefinedIdentifier] Undefined name 'Unresolved'.
 ''');
   }
 

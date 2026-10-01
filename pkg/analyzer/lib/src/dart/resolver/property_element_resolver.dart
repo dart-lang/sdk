@@ -311,12 +311,14 @@ class PropertyElementResolver with ScopeHelpers {
             );
         if (elementToInfer != null &&
             elementToInfer.typeParameters.isNotEmpty) {
-          var inferred = _resolver.inferenceHelper.inferTearOff(
-            node,
-            identifier,
-            elementToInfer.asType,
-            contextType: contextType,
-          ) as FunctionType;
+          var inferred =
+              _resolver.inferenceHelper.inferTearOff(
+                    node,
+                    identifier,
+                    elementToInfer.asType,
+                    contextType: contextType,
+                  )
+                  as FunctionType;
           var inferredType = inferred.returnType;
           var constructorElement = SubstitutedConstructorElementImpl.from2(
             elementToInfer.element.baseElement,
@@ -372,7 +374,6 @@ class PropertyElementResolver with ScopeHelpers {
       nameToken: node.name,
       hasRead: hasRead,
       hasWrite: true,
-      forAnnotation: false,
     );
     if (hasRead) {
       var resolution = _propertyReadWriteTargetResult(result);
@@ -399,7 +400,6 @@ class PropertyElementResolver with ScopeHelpers {
       nameToken: node.name,
       hasRead: true,
       hasWrite: false,
-      forAnnotation: false,
     );
     var element = result.readElementRequested2;
     if (element is ExtensionElement) {
@@ -726,7 +726,6 @@ class PropertyElementResolver with ScopeHelpers {
     required PrefixedIdentifierImpl node,
     required bool hasRead,
     required bool hasWrite,
-    bool forAnnotation = false,
   }) {
     var prefix = node.prefix;
     var identifier = node.identifier;
@@ -738,7 +737,6 @@ class PropertyElementResolver with ScopeHelpers {
         nameToken: identifier.token,
         hasRead: hasRead,
         hasWrite: hasWrite,
-        forAnnotation: forAnnotation,
       );
     }
 
@@ -2390,7 +2388,6 @@ class PropertyElementResolver with ScopeHelpers {
     required Token nameToken,
     required bool hasRead,
     required bool hasWrite,
-    required bool forAnnotation,
   }) {
     var name = nameToken.lexeme;
     var lookupResult = target.scope.lookup(name);
@@ -2409,11 +2406,10 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (hasRead && readElement == null || hasWrite && writeElement == null) {
-      if (!forAnnotation &&
-          !_resolver.libraryFragment.shouldIgnoreUndefined(
-            prefix: target.name,
-            name: name,
-          )) {
+      if (!_resolver.libraryFragment.shouldIgnoreUndefined(
+        prefix: target.name,
+        name: name,
+      )) {
         diagnosticReporter.report(
           diag.undefinedPrefixedName
               .withArguments(referenceName: name, prefixName: target.name!)

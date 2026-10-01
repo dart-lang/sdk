@@ -6,6 +6,7 @@ import 'dart:collection';
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analysis_server/src/utilities/extensions/iterable.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
@@ -134,6 +135,24 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   Future<List<_PrefixedName>> _allPossibleNames() async {
+    // An annotation can reference only a constant variable, or a class.
+    if (node.annotationContainingName case var annotation?) {
+      // Only a name after an import prefix can be imported; after anything
+      // else, such as a class or a variable, it is a member.
+      if (annotation.name
+          case PrefixedIdentifier(
+            prefix: SimpleIdentifier(element: var element?),
+          )
+          when element is! PrefixElement) {
+        return const [];
+      }
+      return switch (_importKind) {
+        .forTopLevelVariable => _namesForTopLevelVariable(),
+        .forTypeOrMember => _namesForType(),
+        _ => const [],
+      };
+    }
+
     return switch (_importKind) {
       .forCommentReference => _namesForType(_commentReferenceKinds),
       .forExtension => _namesForExtension(),
@@ -690,7 +709,7 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   List<_PrefixedName> _namesForTopLevelVariable() {
     String? prefix;
-    var targetNode = node;
+    var targetNode = node.annotationContainingName ?? node;
     if (targetNode case Annotation(:var name)) {
       if (name.element == null) {
         if (targetNode.arguments != null) {
@@ -743,7 +762,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   List<_PrefixedName> _namesForType([List<ElementKind> kinds = _typeKinds]) {
-    var targetNode = node;
+    var targetNode = node.annotationContainingName ?? node;
     if (targetNode case Annotation(:var name)) {
       if (name.element == null) {
         if (targetNode.period != null && targetNode.arguments == null) {
@@ -1113,6 +1132,12 @@ class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
 
     if (targetNode is Annotation) {
       targetNode = targetNode.name;
+    }
+    // An undefined prefix is reported at the prefix; replace it together with
+    // the period that follows it.
+    if (targetNode case SimpleIdentifier(parent: PrefixedIdentifier prefixed)
+        when identical(prefixed.prefix, targetNode)) {
+      targetNode = prefixed;
     }
 
     await _editCombinator?.compute(builder);

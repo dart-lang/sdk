@@ -91,6 +91,13 @@ extension E on C {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: ann
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::ann
+      invokeType: int Function()
+      type: int
+    staticType: int
   name: SimpleIdentifier
     token: ann
     element: <testLibrary>::@getter::ann

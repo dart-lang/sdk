@@ -897,6 +897,13 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -921,6 +928,13 @@ mixin E {}
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -943,6 +957,13 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -964,6 +985,13 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1020,6 +1048,13 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1042,6 +1077,13 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1072,6 +1114,13 @@ f(@A int p<A>(int x)) {}''');
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1094,6 +1143,13 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1137,6 +1193,13 @@ class C {
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1158,6 +1221,13 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A
@@ -1213,6 +1283,13 @@ const A = null;
     assertResolvedNodeText(node, r'''
 Annotation
   atSign: @
+  expression: UnqualifiedNameExpression
+    name: A
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::A
+      invokeType: dynamic Function()
+      type: dynamic
+    staticType: dynamic
   name: SimpleIdentifier
     token: A
     element: <testLibrary>::@getter::A

@@ -173,25 +173,20 @@ class ConstantEvaluationEngine {
         constant.isConstantEvaluated = true;
       }
     } else if (constant is ElementAnnotationImpl) {
-      var constNode = constant.annotationAst;
-      var element = constant.element;
-      if (element is PropertyAccessorElement) {
-        // The annotation is a reference to a compile-time constant variable.
-        // Just copy the evaluation result.
-        var variableElement =
-            element.variable.baseElement as VariableElementImpl?;
-        var evaluationResult = variableElement?.evaluationResult;
-        if (evaluationResult != null) {
-          constant.evaluationResult = evaluationResult;
-        } else {
-          // This could happen in the event that the annotation refers to a
-          // non-constant.  The error is detected elsewhere, so just silently
-          // ignore it here.
-          constant.evaluationResult = null;
-        }
-      } else if (element is InternalConstructorElement &&
-          element.isConst &&
-          constNode.arguments != null) {
+      // Only a valid annotation, which invokes a constant constructor or reads
+      // a constant variable, has a value. What is wrong with an invalid
+      // annotation, for example an undefined name, is reported by resolution;
+      // it has neither a value nor evaluation errors.
+      var expression = constant.annotationAst.expression;
+      var isValid = switch (expression) {
+        ConstructorInvocationImpl(:var constructorReference) =>
+          constructorReference.element?.isConst ?? false,
+        NameExpressionImpl(:var resolution) =>
+          resolution?.element?.denotesConstantVariable ?? false,
+        _ => false,
+      };
+      if (isValid) {
+        // The annotation is evaluated like any other constant expression.
         var diagnosticListener = RecordingDiagnosticListener();
         var diagnosticReporter = DiagnosticReporter(
           diagnosticListener,
@@ -202,20 +197,11 @@ class ConstantEvaluationEngine {
           library,
           diagnosticReporter,
         );
-        var result = evaluateAndFormatErrorsInConstructorCall(
-          library,
-          constNode,
-          element.returnType.typeArguments,
-          constNode.arguments!.arguments2,
-          element,
-          constantVisitor,
+        constant.evaluationResult = constantVisitor.evaluateConstant(
+          expression,
         );
-        constant.evaluationResult = result;
         constant.additionalErrors = diagnosticListener.diagnostics;
       } else {
-        // This may happen for invalid code (e.g. failing to pass arguments
-        // to an annotation which references a const constructor).  The error
-        // is detected elsewhere, so just silently ignore it here.
         constant.evaluationResult = null;
       }
     } else if (constant is VariableElement) {
@@ -318,25 +304,9 @@ class ConstantEvaluationEngine {
         }
       }
     } else if (constant is ElementAnnotationImpl) {
-      Annotation constNode = constant.annotationAst;
-      var element = constant.element;
-      if (element is PropertyAccessorElement) {
-        // The annotation is a reference to a compile-time constant variable,
-        // so it depends on the variable.
-        var baseElement = element.variable.baseElement as VariableElementImpl;
-        callback(baseElement);
-      } else if (element is ConstructorElement) {
-        // The annotation is a constructor invocation, so it depends on the
-        // constructor.
-        var baseElement = element.baseElement;
-        callback(baseElement as ConstructorElementImpl);
-      } else {
-        // This could happen in the event of invalid code.  The error will be
-        // reported at constant evaluation time.
-      }
-      if (constNode.arguments != null) {
-        constNode.arguments!.accept2(referenceFinder);
-      }
+      // The annotation depends on the constants that its expression uses,
+      // including the constant variable or the constructor that it references.
+      constant.annotationAst.expression.accept2(referenceFinder);
     } else if (constant is VariableFragmentImpl) {
       // `constant` is a VariableElement but not a VariableElementImpl.  This
       // can happen sometimes in the case of invalid user code (for example, a
@@ -2208,6 +2178,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
         } else if (current is IfElement && current.expression2 == node) {
           return diag.ifElementConditionFromDeferredLibrary;
         } else if (current is ConstructorInvocation) {
+          // The arguments of an annotation are the arguments of its
+          // constructor invocation.
+          if (current.parent2 is Annotation) {
+            return diag.invalidAnnotationConstantValueFromDeferredLibrary;
+          }
           return diag.constConstructorConstantFromDeferredLibrary;
         } else if (current is ListLiteral) {
           return diag.nonConstantListElementFromDeferredLibrary;

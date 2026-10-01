@@ -541,6 +541,29 @@ void f() {}
 ''');
   }
 
+  Future<void> test_annotation_constructor_prefixDefined() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class MyAnnotation {
+  const MyAnnotation();
+}
+''');
+    newFile('$testPackageLibPath/b.dart', '');
+    await resolveTestCode('''
+import 'b.dart' as a;
+
+@a.MyAnnotation()
+void f() {}
+''');
+    await assertHasFix('''
+import 'package:test/a.dart' as a;
+
+import 'b.dart' as a;
+
+@a.MyAnnotation()
+void f() {}
+''');
+  }
+
   Future<void> test_annotation_variable() async {
     newFile('$testPackageLibPath/a.dart', '''
 const myAnnotation = 42;
@@ -1594,6 +1617,21 @@ void f() {}
 ''');
   }
 
+  Future<void> test_withClass_annotation_undefinedStaticMember() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+class Test {
+  const Test();
+}
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart';
+
+@Test.foo
+void f() {}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_withClass_catchClause() async {
     newFile('$testPackageLibPath/lib.dart', '''
 class Test {}
@@ -2316,7 +2354,44 @@ import 'package:test/a.dart';
 
 @foo
 void f() {}
+''', expectedNumberOfFixesForKind: 2);
+  }
+
+  Future<void> test_withTopLevelVariable_annotation_arguments() async {
+    newFile('$testPackageLibPath/a.dart', '''
+const foo = 0;
 ''');
+    await resolveTestCode('''
+@foo()
+void f() {}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_withTopLevelVariable_annotation_namedConstructor() async {
+    newFile('$testPackageLibPath/a.dart', '''
+const Foo = 0;
+''');
+
+    await resolveTestCode('''
+@Foo.named()
+void f() {}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_withTopLevelVariable_annotation_undefinedMember() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+const test = 0;
+''');
+    await resolveTestCode('''
+import 'package:test/lib.dart';
+
+@test.foo
+void f() {}
+''');
+    await assertNoFix();
   }
 
   Future<void> test_withTopLevelVariable_read() async {

@@ -21,6 +21,17 @@ class CreateLocalVariableTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createLocalVariable;
 
+  Future<void> test_annotation() async {
+    await resolveTestCode('''
+void f() {
+  @foo
+  var x = 0;
+  print(x);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_functionType_named() async {
     await resolveTestCode('''
 typedef MY_FUNCTION(int p);

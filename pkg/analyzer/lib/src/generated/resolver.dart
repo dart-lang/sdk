@@ -2059,21 +2059,16 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterAnnotation(node);
     // Annotations can contain expressions, so we need flow analysis to be
     // available to process those expressions.
+    // TODO(scheglov): Inside a body, this reuses the flow analysis of the
+    // body, so annotations must be resolved in source order with the body.
+    // But metadata is a constant, not a part of the control flow; consider
+    // making each annotation its own flow analysis root.
     flowAnalysis.withFlowAnalysis(
       node: node,
       formalParameters: null,
       offset: node.atSign.offset,
       operation: () {
-        var whyNotPromotedArguments =
-            <Map<SharedTypeView, NonPromotionReason> Function()>[];
-        _annotationResolver.resolve(node, whyNotPromotedArguments);
-        var arguments = node.arguments;
-        if (arguments != null) {
-          checkForArgumentTypesNotAssignableInList(
-            arguments,
-            whyNotPromotedArguments,
-          );
-        }
+        _annotationResolver.resolve(node);
       },
     );
     inferenceLogWriter?.exitAnnotation(node);
@@ -6174,11 +6169,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     } else if (nameNode is EnumConstantDeclaration) {
       var declaredElement = nameNode.declaredFragment!.element;
       name = declaredElement.type.getDisplayString();
-    } else if (nameNode is Annotation) {
-      var nameNodeName = nameNode.name;
-      name = nameNodeName is PrefixedIdentifier
-          ? nameNodeName.identifier.name
-          : '${nameNodeName.name}.new';
     } else if (nameNode is DotShorthandConstructorInvocation) {
       name = nameNode.constructorName.name;
     } else if (nameNode is DotShorthandConstructorInvocation2) {

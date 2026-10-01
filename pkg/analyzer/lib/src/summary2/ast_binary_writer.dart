@@ -27,22 +27,7 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   @override
   void visitAnnotation(Annotation node) {
     _sink.writeEnum(AstNodeTag.Annotation);
-
-    _writeNode(node.name);
-    _writeOptionalNode(node.typeArguments);
-    _writeOptionalNode(node.constructorName);
-
-    var arguments = node.arguments;
-    if (arguments != null) {
-      if (!arguments.arguments2.every((argument) {
-        return _isSerializableExpression(argument.argumentExpression2);
-      })) {
-        arguments = null;
-      }
-    }
-    _writeOptionalNode(arguments);
-
-    _sink.writeElement(node.element);
+    _writeNode(node.expression);
   }
 
   @override
@@ -1389,28 +1374,5 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
   void _writeUint32(int value) {
     _sink.writeUint32(value);
-  }
-
-  /// Return `true` if the expression might be successfully serialized.
-  ///
-  /// This does not mean that the expression is constant, it just means that
-  /// we know that it might be serialized and deserialized. For example
-  /// function expressions are problematic, and are not necessary to
-  /// deserialize, so we choose not to do this.
-  static bool _isSerializableExpression(Expression? node) {
-    if (node == null) return false;
-
-    var visitor = _IsSerializableExpressionVisitor();
-    node.accept2(visitor);
-    return visitor.result;
-  }
-}
-
-class _IsSerializableExpressionVisitor extends RecursiveAstVisitor2<void> {
-  bool result = true;
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    result = false;
   }
 }

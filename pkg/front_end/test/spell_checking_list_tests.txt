@@ -249,6 +249,7 @@ decrease
 decrements
 dectcem
 deece
+degrees
 deleting
 denylist
 depended
@@ -257,6 +258,7 @@ desc
 descending
 descriptors
 deviation
+deviations
 dfast
 dfuzz
 di
@@ -290,6 +292,7 @@ donly
 doo
 downstream
 draw
+drift
 dry
 dsemi
 dskip
@@ -315,6 +318,7 @@ emethod
 entrypoints
 eoo
 epoch
+epsilon
 equally
 erase
 err
@@ -375,6 +379,7 @@ forces
 foreground
 forever
 forgot
+formula
 forrest
 forth
 forty
@@ -491,6 +496,7 @@ involves
 ioo
 irrespective
 ish
+iso
 it'll
 italic
 iter
@@ -609,6 +615,7 @@ obool
 observable
 october
 offers
+offline
 oh
 okay
 ol
@@ -622,6 +629,7 @@ oops
 oovf
 opacity
 operate
+opposite
 ops
 optimal
 oracle
@@ -649,6 +657,7 @@ paused
 pays
 pb
 pc
+percentage
 percentile
 periodic
 periodically
@@ -664,6 +673,7 @@ pink
 placement
 planned
 playing
+plotting
 plug
 policy
 pooled
@@ -774,6 +784,7 @@ scheduler
 screen
 scripts
 scroll
+sd
 sdkroot
 sdks
 secondary
@@ -799,6 +810,7 @@ shortest
 shot
 shuffle
 sidebar
+sided
 sigint
 signalled
 sigterm

@@ -143,11 +143,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitAnnotation(covariant AnnotationImpl node) {
-    node.visitChildrenWithHooks(this, visitConstructorName: (_) {});
-  }
-
-  @override
   void visitAnonymousMethodInvocation(
     covariant AnonymousMethodInvocationImpl node,
   ) {

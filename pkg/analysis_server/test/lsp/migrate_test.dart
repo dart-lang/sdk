@@ -873,7 +873,7 @@ class C {
       apply: true,
       expectedSummary: '''
 test_project:
-  Skipped (Already at target SDK version 3.13.0.)''',
+  Skipped (The package SDK version "3.13.0" is already at or past the target SDK version 3.13.0.)''',
     );
   }
 
@@ -892,7 +892,7 @@ environment:
       apply: true,
       expectedSummary: '''
 test_project:
-  Skipped (Already at target SDK version 3.13.0.)''',
+  Skipped (The package SDK version "3.13.0-dev.1" is already at or past the target SDK version 3.13.0.)''',
     );
   }
 
@@ -981,7 +981,7 @@ class C {
       apply: true,
       expectedSummary: '''
 test_project:
-  Skipped (Already at target SDK version 3.13.0.)''',
+  Skipped (The package SDK version "3.14.0" is already at or past the target SDK version 3.13.0.)''',
     );
   }
 
@@ -1154,7 +1154,7 @@ test_project:
         unnecessary_type_name_in_constructor • 1 change
 
 other_package:
-  Skipped (Already at target SDK version 3.13.0.)''',
+  Skipped (The package SDK version "3.13.0" is already at or past the target SDK version 3.13.0.)''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 class A {
@@ -2218,7 +2218,7 @@ name: test_project
       apply: true,
       expectedSummary: '''
 test_project:
-  Skipped (Unknown SDK version.)''',
+  Skipped (The pubspec doesn't declare a minimum SDK version. Add one to its 'environment' section, run "dart pub get", then re-run the migration tool.)''',
     );
   }
 
@@ -2466,7 +2466,7 @@ test_project:
       apply: true,
       expectedSummary: '''
 test_project:
-  Skipped (Unknown SDK version.)''',
+  Skipped (The pubspec doesn't declare a minimum SDK version. Add one to its 'environment' section, run "dart pub get", then re-run the migration tool.)''',
     );
   }
 

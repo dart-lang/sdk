@@ -778,6 +778,71 @@ ForElement
 ''');
   }
 
+  test_sync_metadata_shadowing() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const a = 0;
+void f(List<int> x) {
+  [for (@a var (a) in x) a];
+//      ^^
+// [diag.invalidAnnotation] Annotation must be either a const variable reference or const constructor invocation.
+}
+''');
+    var node = result.findNode.singleForElement;
+    assertResolvedNodeText(node, r'''
+ForElement
+  forKeyword: for
+  leftParenthesis: (
+  forLoopParts: ForEachPartsWithPattern
+    metadata
+      Annotation
+        atSign: @
+        expression: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: a@51
+            type: InvalidType
+          staticType: InvalidType
+        name: SimpleIdentifier
+          token: a
+          element: a@51
+          staticType: null
+        element: a@51
+    keyword: var
+    pattern: ParenthesizedPattern
+      leftParenthesis: (
+      pattern: DeclaredVariablePattern
+        name: a
+        declaredFragment: isPublic a@51
+          element: hasImplicitType isPublic
+            type: int
+        matchedValueType: int
+      rightParenthesis: )
+      matchedValueType: int
+    inKeyword: in
+    iterable2: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: List<int>
+      staticType: List<int>
+    iterable(v1): SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: List<int>
+  rightParenthesis: )
+  body2: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: a@51
+      type: int
+    staticType: int
+  body(v1): SimpleIdentifier
+    token: a
+    element: a@51
+    staticType: int
+''');
+  }
+
   test_sync_pattern_patternVariable_typed() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(List<int> x) {

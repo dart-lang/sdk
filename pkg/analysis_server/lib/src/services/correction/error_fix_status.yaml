@@ -1292,10 +1292,6 @@ non_const_map_as_expression_statement:
   status: needsFix
   notes: |-
     Add `const` keyword.
-non_constant_annotation_constructor:
-  status: needsFix
-  notes: |-
-    Add `const` to the constructor (if doing so would be valid).
 non_constant_case_expression:
   status: noFix
   notes: |-
@@ -1565,7 +1561,9 @@ return_of_invalid_type_from_function:
 return_of_invalid_type_from_method:
   status: hasFix
 return_without_value:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Only when the enclosing function's return type is a function type.
 sealed_class_subtype_outside_of_library:
   status: noFix
 set_element_from_deferred_library:
@@ -1681,8 +1679,6 @@ unchecked_use_of_nullable_value_in_spread:
 unchecked_use_of_nullable_value_in_yield_each:
   status: hasFix
 unawaited_return_in_try_block:
-  status: hasFix
-undefined_annotation:
   status: hasFix
 undefined_class:
   status: hasFix
@@ -3233,7 +3229,11 @@ missing_get:
   notes: |-
     Add the `get`.
 missing_identifier:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Only where a function-typed expression is missing: a named argument, a
+    variable's initializer, a switch expression case's result, or an arrow
+    function's body.
 missing_initializer:
   status: noFix
 missing_keyword_operator:

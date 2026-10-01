@@ -16,6 +16,17 @@ main() {
 
 @reflectiveTest
 class UndefinedPrefixedNameTest extends PubPackageResolutionTest {
+  test_annotation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+@p.unresolved
+// ^^^^^^^^^^
+// [diag.undefinedPrefixedName] The name 'unresolved' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+void f() {}
+''');
+  }
+
   test_getterContext() async {
     newFile('$testPackageLibPath/lib.dart', '');
     await resolveTestCodeWithDiagnostics('''

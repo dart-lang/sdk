@@ -652,57 +652,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitAnnotation(Annotation node) {
-    if (node.element case ConstructorElement element) {
-      var baseElement = element.baseElement.actualConstructor;
-      if (node.constructorName case var constructorName?) {
-        var offset = node.period!.offset;
-        recordRelationOffset(
-          baseElement,
-          IndexRelationKind.IS_INVOKED_BY,
-          offset,
-          constructorName.end - offset,
-          true,
-        );
-      } else if (node.name case PrefixedIdentifier(
-        :var period,
-        identifier: SimpleIdentifier(element: ConstructorElement()),
-      )) {
-        recordRelationOffset(
-          baseElement,
-          IndexRelationKind.IS_INVOKED_BY,
-          period.offset,
-          node.name.end - period.offset,
-          true,
-        );
-      } else {
-        var offset = node.typeArguments?.end ?? node.name.end;
-        recordRelationOffset(
-          baseElement,
-          IndexRelationKind.IS_INVOKED_BY,
-          offset,
-          0,
-          true,
-        );
-      }
-
-      if (node.name case PrefixedIdentifier(
-        :var prefix,
-        identifier: SimpleIdentifier(element: ConstructorElement()),
-      )) {
-        prefix.accept2(this);
-      } else {
-        node.name.accept2(this);
-      }
-      node.typeArguments?.accept2(this);
-      node.arguments?.accept2(this);
-      return;
-    }
-
-    super.visitAnnotation(node);
-  }
-
-  @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {
     recordRelation(
       node.element,

@@ -4249,6 +4249,8 @@ PrimaryConstructorBody
   metadata
     Annotation
       atSign: @
+      expression: ParsedUnqualifiedName
+        name: deprecated
       name: SimpleIdentifier
         token: deprecated
   thisKeyword: this

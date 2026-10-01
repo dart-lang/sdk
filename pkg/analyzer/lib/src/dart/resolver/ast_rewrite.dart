@@ -317,11 +317,6 @@ class AstRewriter {
   /// [ConstructorTearOff].
   AstNode prefixedIdentifier(Scope nameScope, PrefixedIdentifierImpl node) {
     var parent = node.parent2;
-    if (parent is AnnotationImpl) {
-      // An annotations which is a const constructor invocation can initially be
-      // represented with a [PrefixedIdentifier]. Do not rewrite such nodes.
-      return node;
-    }
     if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
       // A constructor cannot be assigned to, in some expression like
       // `C.new = foo`; do not rewrite.

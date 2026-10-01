@@ -19,7 +19,6 @@ class MutableBox {
 @Box(const Box(const MutableBox()))
 //             ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
 //                   ^
 // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
 class D {}
@@ -27,7 +26,6 @@ class D {}
 @Box(const MutableBox(const Box()))
 //   ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
 //         ^
 // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
 class E {}
@@ -35,7 +33,6 @@ class E {}
 @Box(Box(const MutableBox()))
 //       ^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
 //             ^
 // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
 class H {}
@@ -43,7 +40,6 @@ class H {}
 @Box(MutableBox(const Box()))
 //   ^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
-// [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
 // [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
 class I {}
 

@@ -47,6 +47,26 @@ abstract final class DartFixKind {
     DartFixKindPriority.standard,
     "Add 'super.{0}'",
   );
+  static const addClosure = FixKind(
+    'dart.fix.add.closure',
+    DartFixKindPriority.standard,
+    'Add closure',
+  );
+  static const addClosureNamed = FixKind(
+    'dart.fix.add.closureNamed',
+    DartFixKindPriority.standard,
+    'Add closure to {0}',
+  );
+  static const addClosureParameters = FixKind(
+    'dart.fix.add.closureParameters',
+    DartFixKindPriority.standard,
+    'Add {0} missing closure parameters',
+  );
+  static const addClosurePositional = FixKind(
+    'dart.fix.add.closurePositional',
+    DartFixKindPriority.standard,
+    'Add closure as {0} argument',
+  );
   static const addEmptyArgumentList = FixKind(
     'dart.fix.add.empty.argument.list',
     DartFixKindPriority.standard,

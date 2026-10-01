@@ -74,6 +74,9 @@ abstract final class _DiagnosticOptions {
     // `test_analyzer_errors_removed_pluginsInInnerOptions` after Flutter
     // removes its `plugins_in_inner_options` suppression.
     'PLUGINS_IN_INNER_OPTIONS',
+    // Annotations report undefined names like other expressions, as
+    // `UNDEFINED_IDENTIFIER` or `UNDEFINED_PREFIXED_NAME`.
+    'UNDEFINED_ANNOTATION',
   };
 
   static Set<String> currentLintCodeNames() {
