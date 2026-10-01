@@ -16,7 +16,6 @@ import 'dart:js_interop_unsafe';
 import 'package:web/web.dart' as web;
 
 import 'src/message_port/message_port.dart';
-import 'src/util/json_rpc_message_port_channel.dart';
 import 'src/worker_client.dart';
 
 export 'src/dartpad_config.dart' show DartPadConfig;
@@ -100,7 +99,7 @@ final class DartPadSdk {
     }.toJS;
 
     return DartPad._(
-      jsonRpcMessagePortChannel(await session.future),
+      MessagePortExt.fromMessagePort(await session.future).jsonRpcChannel(),
       worker,
       blobUrl,
     );

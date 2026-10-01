@@ -7,13 +7,10 @@ library;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
-import 'package:dartpad/src/message_port/json_rpc_binary_channel.dart';
 import 'package:dartpad/src/message_port/message_port.dart';
 import 'package:dartpad_worker/src/shared.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
-import 'package:stream_channel/stream_channel.dart';
 import 'package:test/test.dart';
 
 import 'checks_ext.dart';
@@ -74,14 +71,10 @@ final class FakeSandboxedIframe {
   String? _mode;
 
   FakeSandboxedIframe() {
-    final controller = StreamChannelController<Uint8List>();
-    port = MessagePort.fromBinaryChannel(controller.local);
+    final (localPort, foreignPort) = MessagePortExt.createChannel();
+    port = localPort;
 
-    final jsonRpcChannel = controller.foreign.transform(
-      binaryChannelToJsonRpcChannelTransformer,
-    );
-
-    _peer = Peer.withoutJson(jsonRpcChannel.cast<dynamic>());
+    _peer = Peer.withoutJson(foreignPort.jsonRpcChannel());
 
     _peer.registerMethod('loadModules', (Parameters params) {
       _addEvent(LoadModulesEvent._(_decodeModules(params)));
