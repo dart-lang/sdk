@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -202,20 +201,19 @@ class PropertyElementResolver with ScopeHelpers {
       }
     }
 
-    var identifier = SimpleIdentifierImpl(token: propertyName);
     var result = switch (receiver) {
       ExpressionImpl() => _resolve(
         node: node,
         target: receiver,
         isCascaded: true,
         isNullAware: isNullAware,
-        propertyName: identifier,
+        propertyName: propertyName,
         hasRead: hasRead,
         hasWrite: hasWrite,
       ),
       ExtensionOverride2Impl() => _resolveTargetExtensionOverride(
         target: receiver,
-        propertyName: identifier,
+        propertyName: propertyName,
         hasRead: hasRead,
         hasWrite: hasWrite,
       ),
@@ -285,10 +283,9 @@ class PropertyElementResolver with ScopeHelpers {
     if (shorthandContext case ValidDotShorthandContextResolutionImpl(
       lookupType: var context,
     )) {
-      var identifier = SimpleIdentifierImpl(token: node.name);
       // Find constructor tearoffs.
       var element = context.lookUpConstructor(
-        identifier.name,
+        node.name.lexeme,
         _definingLibrary,
       );
       if (element != null) {
@@ -306,7 +303,7 @@ class PropertyElementResolver with ScopeHelpers {
         var elementToInfer = _resolver.inferenceHelper
             .constructorElementToInfer(
               typeElement: context.element,
-              constructorName: identifier.token,
+              constructorName: node.name,
               definingLibrary: _resolver.definingLibrary,
             );
         if (elementToInfer != null &&
@@ -314,7 +311,6 @@ class PropertyElementResolver with ScopeHelpers {
           var inferred =
               _resolver.inferenceHelper.inferTearOff(
                     node,
-                    identifier,
                     elementToInfer.asType,
                     contextType: contextType,
                   )
@@ -335,7 +331,7 @@ class PropertyElementResolver with ScopeHelpers {
       var result = _resolveTargetInterfaceElement(
         typeReference: contextElement,
         isCascaded: false,
-        propertyName: identifier,
+        propertyName: node.name,
         hasRead: true,
         hasWrite: false,
         resolvingDotShorthand: true,
@@ -745,7 +741,7 @@ class PropertyElementResolver with ScopeHelpers {
       target: prefix,
       isCascaded: false,
       isNullAware: false,
-      propertyName: identifier,
+      propertyName: identifier.token,
       hasRead: hasRead,
       hasWrite: hasWrite,
     );
@@ -761,7 +757,7 @@ class PropertyElementResolver with ScopeHelpers {
     var override = target is InvalidExtensionOverrideExpressionImpl
         ? target.extensionOverride
         : null;
-    var propertyName = node.propertyName;
+    var propertyName = node.propertyName.token;
 
     if (override != null) {
       return _resolveTargetExtensionOverride(
@@ -868,7 +864,7 @@ class PropertyElementResolver with ScopeHelpers {
         var result = _resolveTargetSuperReference(
           node: node,
           target: receiver,
-          propertyName: SimpleIdentifierImpl(token: node.name),
+          propertyName: node.name,
           hasRead: false,
           hasWrite: true,
         );
@@ -894,7 +890,7 @@ class PropertyElementResolver with ScopeHelpers {
       case ExtensionOverride2Impl():
         var result = _resolveTargetExtensionOverride(
           target: receiver,
-          propertyName: SimpleIdentifierImpl(token: node.name),
+          propertyName: node.name,
           hasRead: false,
           hasWrite: true,
         );
@@ -947,12 +943,7 @@ class PropertyElementResolver with ScopeHelpers {
         );
 
         var writeElement = result.setter2;
-        _checkForStaticMember2(
-          target: receiver,
-          propertyName: node.name.lexeme,
-          propertyNameEntity: node.name,
-          element: writeElement,
-        );
+        _checkForStaticMember(receiver, node.name, writeElement);
 
         InternalExecutableElement? writeRecovery;
         if (result.needsSetterError) {
@@ -967,8 +958,8 @@ class PropertyElementResolver with ScopeHelpers {
             parentNode: node.parent2,
           );
           writeRecovery = readResult.getter2;
-          AssignmentVerifier(diagnosticReporter).verifyPropertyAssignmentTarget(
-            node: node,
+          AssignmentVerifier(diagnosticReporter).verify(
+            name: node.name,
             requested: null,
             recovery: writeRecovery,
             receiverType: receiverType,
@@ -994,7 +985,7 @@ class PropertyElementResolver with ScopeHelpers {
         var result = _resolveTargetSuperReference(
           node: node,
           target: receiver,
-          propertyName: SimpleIdentifierImpl(token: node.name),
+          propertyName: node.name,
           hasRead: true,
           hasWrite: false,
         );
@@ -1038,7 +1029,7 @@ class PropertyElementResolver with ScopeHelpers {
       case ExtensionOverride2Impl():
         var result = _resolveTargetExtensionOverride(
           target: receiver,
-          propertyName: SimpleIdentifierImpl(token: node.name),
+          propertyName: node.name,
           hasRead: true,
           hasWrite: false,
         );
@@ -1122,12 +1113,7 @@ class PropertyElementResolver with ScopeHelpers {
         }
 
         var readElement = result.getter2;
-        _checkForStaticMember2(
-          target: receiver,
-          propertyName: node.name.lexeme,
-          propertyNameEntity: node.name,
-          element: readElement,
-        );
+        _checkForStaticMember(receiver, node.name, readElement);
 
         if (result.needsGetterError) {
           diagnosticReporter.report(
@@ -1204,7 +1190,7 @@ class PropertyElementResolver with ScopeHelpers {
           _resolveTargetSuperReference(
             node: node,
             target: receiver,
-            propertyName: SimpleIdentifierImpl(token: node.name),
+            propertyName: node.name,
             hasRead: true,
             hasWrite: true,
           ),
@@ -1221,7 +1207,7 @@ class PropertyElementResolver with ScopeHelpers {
       case ExtensionOverride2Impl():
         var result = _resolveTargetExtensionOverride(
           target: receiver,
-          propertyName: SimpleIdentifierImpl(token: node.name),
+          propertyName: node.name,
           hasRead: true,
           hasWrite: true,
           assignmentToMethodOnMissingWrite:
@@ -1236,20 +1222,7 @@ class PropertyElementResolver with ScopeHelpers {
           var result = _resolveTargetInterfaceElement(
             typeReference: typeReference,
             isCascaded: false,
-            propertyName: SimpleIdentifierImpl(token: node.name),
-            hasRead: true,
-            hasWrite: true,
-          );
-          return _propertyReadWriteTargetResult(result);
-        }
-
-        if (receiver case SimpleIdentifierImpl(
-          element: InterfaceElement typeReference,
-        )) {
-          var result = _resolveTargetInterfaceElement(
-            typeReference: typeReference,
-            isCascaded: false,
-            propertyName: SimpleIdentifierImpl(token: node.name),
+            propertyName: node.name,
             hasRead: true,
             hasWrite: true,
           );
@@ -1318,18 +1291,8 @@ class PropertyElementResolver with ScopeHelpers {
 
         var readElement = result.getter2;
         var writeElement = result.setter2;
-        _checkForStaticMember2(
-          target: receiver,
-          propertyName: node.name.lexeme,
-          propertyNameEntity: node.name,
-          element: readElement,
-        );
-        _checkForStaticMember2(
-          target: receiver,
-          propertyName: node.name.lexeme,
-          propertyNameEntity: node.name,
-          element: writeElement,
-        );
+        _checkForStaticMember(receiver, node.name, readElement);
+        _checkForStaticMember(receiver, node.name, writeElement);
 
         if (result.needsGetterError) {
           diagnosticReporter.report(
@@ -1339,8 +1302,8 @@ class PropertyElementResolver with ScopeHelpers {
           );
         }
         if (result.needsSetterError) {
-          AssignmentVerifier(diagnosticReporter).verifyPropertyAssignmentTarget(
-            node: node,
+          AssignmentVerifier(diagnosticReporter).verify(
+            name: node.name,
             requested: null,
             recovery: readElement,
             receiverType: receiverType,
@@ -1407,7 +1370,7 @@ class PropertyElementResolver with ScopeHelpers {
         target: ancestorCascade.target2,
         isCascaded: true,
         isNullAware: ancestorCascade.isNullAware,
-        propertyName: node,
+        propertyName: node.token,
         hasRead: hasRead,
         hasWrite: hasWrite,
       );
@@ -1471,7 +1434,7 @@ class PropertyElementResolver with ScopeHelpers {
       writeElementRecovery = writeLookup?.recovery;
 
       AssignmentVerifier(diagnosticReporter).verify(
-        node: node,
+        name: node.token,
         requested: writeElementRequested,
         recovery: writeElementRecovery,
         receiverType: null,
@@ -1573,46 +1536,32 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  /// If the [element] is not static, report the error on the [identifier].
+  /// If the [element] is not static, report the error on the [propertyName].
   ///
   /// Returns `true` if an error was reported.
   bool _checkForStaticAccessToInstanceMember(
-    SimpleIdentifier identifier,
+    Token propertyName,
     ExecutableElement element,
   ) {
     if (element.isStatic) return false;
 
     diagnosticReporter.report(
       diag.staticAccessToInstanceMember
-          .withArguments(name: identifier.name)
-          .at(identifier),
+          .withArguments(name: propertyName.lexeme)
+          .at(propertyName),
     );
     return true;
   }
 
   void _checkForStaticMember(
     AstNode target,
-    SimpleIdentifier propertyName,
+    Token propertyName,
     ExecutableElement? element,
   ) {
-    _checkForStaticMember2(
-      target: target,
-      propertyName: propertyName.name,
-      propertyNameEntity: propertyName,
-      element: element,
-    );
-  }
-
-  void _checkForStaticMember2({
-    required AstNode target,
-    required String propertyName,
-    required SyntacticEntity propertyNameEntity,
-    required ExecutableElement? element,
-  }) {
     if (element != null && element.isStatic) {
       if (target is ExtensionOverride2) {
         diagnosticReporter.report(
-          diag.extensionOverrideAccessToStaticMember.at(propertyNameEntity),
+          diag.extensionOverrideAccessToStaticMember.at(propertyName),
         );
       } else {
         var enclosingElement = element.enclosingElement;
@@ -1621,10 +1570,10 @@ class PropertyElementResolver with ScopeHelpers {
           _resolver.diagnosticReporter.report(
             diag.instanceAccessToStaticMemberOfUnnamedExtension
                 .withArguments(
-                  name: propertyName,
+                  name: propertyName.lexeme,
                   kind: element.kind.displayName,
                 )
-                .at(propertyNameEntity),
+                .at(propertyName),
           );
         } else {
           // It is safe to assume that `enclosingElement.name` is non-`null`
@@ -1633,14 +1582,14 @@ class PropertyElementResolver with ScopeHelpers {
           diagnosticReporter.report(
             diag.instanceAccessToStaticMember
                 .withArguments(
-                  memberName: propertyName,
+                  memberName: propertyName.lexeme,
                   memberKind: element.kind.displayName,
                   enclosingElementName: enclosingElement!.name!,
                   enclosingElementKind: enclosingElement is MixinElement
                       ? 'mixin'
                       : enclosingElement.kind.displayName,
                 )
-                .at(propertyNameEntity),
+                .at(propertyName),
           );
         }
       }
@@ -1860,7 +1809,7 @@ class PropertyElementResolver with ScopeHelpers {
     required ExpressionImpl target,
     required bool isCascaded,
     required bool isNullAware,
-    required SimpleIdentifier propertyName,
+    required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
     PrefixedIdentifierImpl? originalNode,
@@ -1923,7 +1872,7 @@ class PropertyElementResolver with ScopeHelpers {
       targetType = _typeSystem.promoteToNonNull(targetType);
     }
 
-    if (propertyName.name == MethodElement.CALL_METHOD_NAME) {
+    if (propertyName.lexeme == MethodElement.CALL_METHOD_NAME) {
       var targetTypeResolved = _typeSystem.resolveToBound(targetType);
       if (targetTypeResolved is FunctionTypeImpl) {
         return PropertyElementResolverResult(
@@ -1944,7 +1893,7 @@ class PropertyElementResolver with ScopeHelpers {
         diagnosticReporter.report(
           diag.undefinedGetterOnFunctionType
               .withArguments(
-                getterName: propertyName.name,
+                getterName: propertyName.lexeme,
                 functionTypeAliasName: target.type.qualifiedName,
               )
               .at(propertyName),
@@ -1953,7 +1902,7 @@ class PropertyElementResolver with ScopeHelpers {
         diagnosticReporter.report(
           diag.undefinedSetterOnFunctionType
               .withArguments(
-                setterName: propertyName.name,
+                setterName: propertyName.lexeme,
                 functionTypeAliasName: target.type.qualifiedName,
               )
               .at(propertyName),
@@ -1965,7 +1914,7 @@ class PropertyElementResolver with ScopeHelpers {
     var result = _resolver.typePropertyResolver.resolve(
       receiver: target,
       receiverType: targetType,
-      name: propertyName.name,
+      name: propertyName.lexeme,
       hasRead: hasRead,
       hasWrite: hasWrite,
       propertyErrorEntity: propertyName,
@@ -1988,7 +1937,7 @@ class PropertyElementResolver with ScopeHelpers {
                   : ExpressionPropertyTarget(
                       _resolver.flowAnalysis.getExpressionInfo(target),
                     ),
-              propertyName.name,
+              propertyName.lexeme,
               result.getter2,
               SharedTypeView(unpromotedType),
             );
@@ -2004,7 +1953,7 @@ class PropertyElementResolver with ScopeHelpers {
       if (result.needsGetterError) {
         diagnosticReporter.report(
           diag.undefinedGetter
-              .withArguments(memberName: propertyName.name, type: targetType)
+              .withArguments(memberName: propertyName.lexeme, type: targetType)
               .at(propertyName),
         );
       }
@@ -2016,7 +1965,7 @@ class PropertyElementResolver with ScopeHelpers {
         var readResult = _resolver.typePropertyResolver.resolve(
           receiver: target,
           receiverType: targetType,
-          name: propertyName.name,
+          name: propertyName.lexeme,
           hasRead: true,
           hasWrite: false,
           propertyErrorEntity: propertyName,
@@ -2024,7 +1973,7 @@ class PropertyElementResolver with ScopeHelpers {
         );
 
         AssignmentVerifier(diagnosticReporter).verify(
-          node: propertyName,
+          name: propertyName,
           requested: null,
           recovery: readResult.getter2,
           receiverType: targetType,
@@ -2056,7 +2005,6 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
     var element = receiver.element;
-    var propertyName = SimpleIdentifierImpl(token: name);
     var interfaceElement = switch (element) {
       InterfaceElement element => element,
       TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
@@ -2066,14 +2014,14 @@ class PropertyElementResolver with ScopeHelpers {
       return _resolveTargetInterfaceElement(
         typeReference: interfaceElement,
         isCascaded: false,
-        propertyName: propertyName,
+        propertyName: name,
         hasRead: hasRead,
         hasWrite: hasWrite,
       );
     } else if (element is ExtensionElement) {
       return _resolveTargetExtensionElement(
         extension: element,
-        propertyName: propertyName,
+        propertyName: name,
         hasRead: hasRead,
         hasWrite: hasWrite,
       );
@@ -2104,11 +2052,11 @@ class PropertyElementResolver with ScopeHelpers {
 
   PropertyElementResolverResult _resolveTargetExtensionElement({
     required ExtensionElement extension,
-    required SimpleIdentifier propertyName,
+    required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
   }) {
-    var memberName = propertyName.name;
+    var memberName = propertyName.lexeme;
 
     ExecutableElement? readElement;
     ExecutableElement? readElementRecovery;
@@ -2171,7 +2119,7 @@ class PropertyElementResolver with ScopeHelpers {
 
   PropertyElementResolverResult _resolveTargetExtensionOverride({
     required ExtensionOverride2Impl target,
-    required SimpleIdentifier propertyName,
+    required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
     bool assignmentToMethodOnMissingWrite = false,
@@ -2186,7 +2134,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     var element = target.element;
-    var memberName = propertyName.name;
+    var memberName = propertyName.lexeme;
 
     var result = _extensionResolver.getOverrideMember(target, memberName);
 
@@ -2245,7 +2193,7 @@ class PropertyElementResolver with ScopeHelpers {
   PropertyElementResolverResult _resolveTargetInterfaceElement({
     required InterfaceElement typeReference,
     required bool isCascaded,
-    required SimpleIdentifier propertyName,
+    required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
     bool resolvingDotShorthand = false,
@@ -2258,13 +2206,13 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? readElementRecovery;
     DartType? getType;
     if (hasRead) {
-      readElement = typeReference.getGetter(propertyName.name);
+      readElement = typeReference.getGetter(propertyName.lexeme);
       if (readElement != null && !_isAccessible(readElement)) {
         readElement = null;
       }
 
       if (readElement == null) {
-        readElement = typeReference.getMethod(propertyName.name);
+        readElement = typeReference.getMethod(propertyName.lexeme);
         if (readElement != null && !_isAccessible(readElement)) {
           readElement = null;
         }
@@ -2275,7 +2223,7 @@ class PropertyElementResolver with ScopeHelpers {
           // When direct lookups fail, try static extension resolution.
           var result = _resolver.typePropertyResolver.resolveStaticExtension(
             declaration: typeReference,
-            name: propertyName.name,
+            name: propertyName.lexeme,
             hasRead: hasRead,
             hasWrite: hasWrite,
             propertyErrorEntity: propertyName,
@@ -2300,7 +2248,7 @@ class PropertyElementResolver with ScopeHelpers {
           diagnosticReporter.report(
             diag.dotShorthandUndefinedGetter
                 .withArguments(
-                  getterName: propertyName.name,
+                  getterName: propertyName.lexeme,
                   typeName: typeReference.name!,
                 )
                 .at(propertyName),
@@ -2312,7 +2260,7 @@ class PropertyElementResolver with ScopeHelpers {
           diagnosticReporter.report(
             code
                 .withArguments(
-                  memberName: propertyName.name,
+                  memberName: propertyName.lexeme,
                   type: typeReference.thisType,
                 )
                 .at(propertyName),
@@ -2324,12 +2272,12 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? writeElement;
     ExecutableElement? writeElementRecovery;
     if (hasWrite) {
-      writeElement = typeReference.getSetter(propertyName.name);
+      writeElement = typeReference.getSetter(propertyName.lexeme);
       if (writeElement != null) {
         if (!_isAccessible(writeElement)) {
           diagnosticReporter.report(
             diag.privateSetter
-                .withArguments(name: propertyName.name)
+                .withArguments(name: propertyName.lexeme)
                 .at(propertyName),
           );
         }
@@ -2343,7 +2291,7 @@ class PropertyElementResolver with ScopeHelpers {
         // When direct lookups fail, try static extension resolution.
         var result = _resolver.typePropertyResolver.resolveStaticExtension(
           declaration: typeReference,
-          name: propertyName.name,
+          name: propertyName.lexeme,
           hasRead: hasRead,
           hasWrite: hasWrite,
           propertyErrorEntity: propertyName,
@@ -2354,9 +2302,9 @@ class PropertyElementResolver with ScopeHelpers {
           writeElement = result.setter2;
         } else {
           // Recovery, try to use getter.
-          writeElementRecovery = typeReference.getGetter(propertyName.name);
+          writeElementRecovery = typeReference.getGetter(propertyName.lexeme);
           AssignmentVerifier(diagnosticReporter).verify(
-            node: propertyName,
+            name: propertyName,
             requested: null,
             recovery: writeElementRecovery,
             receiverType: typeReference.thisType,
@@ -2364,9 +2312,9 @@ class PropertyElementResolver with ScopeHelpers {
         }
       } else {
         // Recovery, try to use getter.
-        writeElementRecovery = typeReference.getGetter(propertyName.name);
+        writeElementRecovery = typeReference.getGetter(propertyName.lexeme);
         AssignmentVerifier(diagnosticReporter).verify(
-          node: propertyName,
+          name: propertyName,
           requested: null,
           recovery: writeElementRecovery,
           receiverType: typeReference.thisType,
@@ -2428,7 +2376,7 @@ class PropertyElementResolver with ScopeHelpers {
   PropertyElementResolverResult _resolveTargetSuperReference({
     required AstNode node,
     required SuperReference target,
-    required SimpleIdentifier propertyName,
+    required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
   }) {
@@ -2444,7 +2392,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
-        var name = Name(_definingLibrary.uri, propertyName.name);
+        var name = Name(_definingLibrary.uri, propertyName.lexeme);
         readElement = _resolver.inheritance.getMember(
           targetType.element,
           name,
@@ -2466,7 +2414,7 @@ class PropertyElementResolver with ScopeHelpers {
               diag.abstractSuperMemberReference
                   .withArguments(
                     memberKind: readElement.kind.displayName,
-                    name: propertyName.name,
+                    name: propertyName.lexeme,
                   )
                   .at(propertyName),
             );
@@ -2474,7 +2422,7 @@ class PropertyElementResolver with ScopeHelpers {
             diagnosticReporter.report(
               diag.undefinedSuperGetter
                   .withArguments(
-                    getterName: propertyName.name,
+                    getterName: propertyName.lexeme,
                     type: targetType,
                   )
                   .at(propertyName),
@@ -2487,7 +2435,7 @@ class PropertyElementResolver with ScopeHelpers {
           var (promotedType: wrappedPromotedType, :expressionInfo) = flow
               .propertyGet(
                 SuperPropertyTarget.singleton,
-                propertyName.name,
+                propertyName.lexeme,
                 readElement,
                 SharedTypeView(unpromotedType),
               );
@@ -2502,7 +2450,7 @@ class PropertyElementResolver with ScopeHelpers {
 
       if (hasWrite) {
         writeElement = targetType.lookUpSetter(
-          propertyName.name,
+          propertyName.lexeme,
           _definingLibrary,
           concrete: true,
           inherited: true,
@@ -2515,7 +2463,7 @@ class PropertyElementResolver with ScopeHelpers {
           // But we would like to give the user at least some resolution.
           // So, we retry without the "concrete" requirement.
           writeElement = targetType.lookUpSetter(
-            propertyName.name,
+            propertyName.lexeme,
             _definingLibrary,
             inherited: true,
           );
@@ -2524,7 +2472,7 @@ class PropertyElementResolver with ScopeHelpers {
               diag.abstractSuperMemberReference
                   .withArguments(
                     memberKind: writeElement.kind.displayName,
-                    name: propertyName.name,
+                    name: propertyName.lexeme,
                   )
                   .at(propertyName),
             );
@@ -2532,7 +2480,7 @@ class PropertyElementResolver with ScopeHelpers {
             diagnosticReporter.report(
               diag.undefinedSuperSetter
                   .withArguments(
-                    setterName: propertyName.name,
+                    setterName: propertyName.lexeme,
                     type: targetType,
                   )
                   .at(propertyName),

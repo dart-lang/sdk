@@ -114,30 +114,16 @@ class InvocationInferenceHelper {
     return ConstructorElementToInfer(typeParameters, rawElement);
   }
 
-  /// Given an uninstantiated generic function type, referenced by the
-  /// [identifier] in the tear-off [expression], try to infer the instantiated
-  /// generic function type from the surrounding context.
+  /// Given an uninstantiated generic function type [tearOffType] of the
+  /// tear-off [expression], try to infer the instantiated generic function
+  /// type from the surrounding context.
+  ///
+  /// The inferred type arguments are passed to [recordTypeArguments].
   DartType inferTearOff(
     ExpressionImpl expression,
-    SimpleIdentifierImpl identifier,
     DartType tearOffType, {
     required DartType contextType,
-  }) {
-    return inferTearOff2(
-      expression,
-      tearOffType,
-      contextType: contextType,
-      recordTypeArguments: (typeArguments) {
-        identifier.tearOffTypeArgumentTypes = typeArguments;
-      },
-    );
-  }
-
-  DartType inferTearOff2(
-    ExpressionImpl expression,
-    DartType tearOffType, {
-    required DartType contextType,
-    required void Function(List<TypeImpl>) recordTypeArguments,
+    void Function(List<TypeImpl>)? recordTypeArguments,
   }) {
     if (contextType is FunctionTypeImpl && tearOffType is FunctionTypeImpl) {
       var typeArguments = _typeSystem.inferFunctionTypeInstantiation(
@@ -153,7 +139,7 @@ class InvocationInferenceHelper {
         dataForTesting: dataForTesting,
         nodeForTesting: expression,
       );
-      recordTypeArguments(typeArguments);
+      recordTypeArguments?.call(typeArguments);
       if (typeArguments.isNotEmpty) {
         return tearOffType.instantiate(typeArguments);
       }

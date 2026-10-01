@@ -149,7 +149,7 @@ class ConstructorTearOffResolver {
       );
       node.recordStaticType(constructorType, resolver: _resolver);
       var typeArgumentTypes = <TypeImpl>[];
-      _resolver.inferenceHelper.inferTearOff2(
+      _resolver.inferenceHelper.inferTearOff(
         node,
         constructorType,
         contextType: contextType,
