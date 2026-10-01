@@ -12,6 +12,7 @@ import "dart:_internal"
         ClassID,
         CodeUnits,
         ExpandIterable,
+        FixedLengthListMixin,
         FollowedByIterable,
         IterableElementError,
         ListMapView,
@@ -81,26 +82,6 @@ abstract final class _TypedListBase {
   bool get isNotEmpty => !isEmpty;
 
   // Method(s) implementing the List interface.
-
-  set length(newLength) {
-    throw UnsupportedError("Cannot resize a fixed-length list");
-  }
-
-  void clear() {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  bool remove(Object? element) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void removeRange(int start, int end) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void replaceRange(int start, int end, Iterable iterable) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
 
   @pragma("vm:prefer-inline")
   void _setRange(int start, int end, Iterable from, [int skipCount = 0]) {
@@ -413,22 +394,6 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
     return this[index];
   }
 
-  void add(int value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void addAll(Iterable<int> value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void insert(int index, int value) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
-  void insertAll(int index, Iterable<int> values) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
   void sort([int compare(int a, int b)?]) {
     Sort.sort(this, compare ?? Comparable.compare);
   }
@@ -453,22 +418,6 @@ base mixin _IntListMixin on _TypedListBase implements TypedDataList<int> {
       if (this[i] == element) return i;
     }
     return -1;
-  }
-
-  int removeLast() {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  int removeAt(int index) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void removeWhere(bool test(int element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void retainWhere(bool test(int element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   int get first {
@@ -750,22 +699,6 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
     return this[index];
   }
 
-  void add(double value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void addAll(Iterable<double> value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void insert(int index, double value) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
-  void insertAll(int index, Iterable<double> values) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
   void sort([int compare(double a, double b)?]) {
     Sort.sort(this, compare ?? Comparable.compare);
   }
@@ -790,22 +723,6 @@ base mixin _DoubleListMixin on _TypedListBase implements TypedDataList<double> {
       if (this[i] == element) return i;
     }
     return -1;
-  }
-
-  double removeLast() {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  double removeAt(int index) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void removeWhere(bool test(double element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void retainWhere(bool test(double element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   double get first {
@@ -1142,22 +1059,6 @@ base mixin _Float32x4ListMixin on _TypedListBase
     return this[index];
   }
 
-  void add(Float32x4 value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void addAll(Iterable<Float32x4> value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void insert(int index, Float32x4 value) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
-  void insertAll(int index, Iterable<Float32x4> values) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
   void sort([int compare(Float32x4 a, Float32x4 b)?]) {
     if (compare == null) {
       throw "SIMD don't have default compare.";
@@ -1185,22 +1086,6 @@ base mixin _Float32x4ListMixin on _TypedListBase
       if (this[i] == element) return i;
     }
     return -1;
-  }
-
-  Float32x4 removeLast() {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  Float32x4 removeAt(int index) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void removeWhere(bool test(Float32x4 element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void retainWhere(bool test(Float32x4 element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   Float32x4 get first {
@@ -1485,22 +1370,6 @@ base mixin _Int32x4ListMixin on _TypedListBase
     return this[index];
   }
 
-  void add(Int32x4 value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void addAll(Iterable<Int32x4> value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void insert(int index, Int32x4 value) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
-  void insertAll(int index, Iterable<Int32x4> values) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
   void sort([int compare(Int32x4 a, Int32x4 b)?]) {
     if (compare == null) {
       throw "SIMD don't have default compare.";
@@ -1528,22 +1397,6 @@ base mixin _Int32x4ListMixin on _TypedListBase
       if (this[i] == element) return i;
     }
     return -1;
-  }
-
-  Int32x4 removeLast() {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  Int32x4 removeAt(int index) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void removeWhere(bool test(Int32x4 element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void retainWhere(bool test(Int32x4 element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   Int32x4 get first {
@@ -1828,22 +1681,6 @@ base mixin _Float64x2ListMixin on _TypedListBase
     return this[index];
   }
 
-  void add(Float64x2 value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void addAll(Iterable<Float64x2> value) {
-    throw UnsupportedError("Cannot add to a fixed-length list");
-  }
-
-  void insert(int index, Float64x2 value) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
-  void insertAll(int index, Iterable<Float64x2> values) {
-    throw UnsupportedError("Cannot insert into a fixed-length list");
-  }
-
   void sort([int compare(Float64x2 a, Float64x2 b)?]) {
     if (compare == null) {
       throw "SIMD don't have default compare.";
@@ -1871,22 +1708,6 @@ base mixin _Float64x2ListMixin on _TypedListBase
       if (this[i] == element) return i;
     }
     return -1;
-  }
-
-  Float64x2 removeLast() {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  Float64x2 removeAt(int index) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void removeWhere(bool test(Float64x2 element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
-  }
-
-  void retainWhere(bool test(Float64x2 element)) {
-    throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   Float64x2 get first {
@@ -2356,6 +2177,257 @@ abstract final class _TypedList extends _TypedListBase {
   }
 }
 
+abstract final class _TypedIntListBase extends _TypedList
+    with FixedLengthListMixin<int> {}
+
+abstract final class _TypedDoubleListBase extends _TypedList
+    with FixedLengthListMixin<double> {}
+
+abstract final class _TypedFloat32x4ListBase extends _TypedList
+    with FixedLengthListMixin<Float32x4> {}
+
+abstract final class _TypedInt32x4ListBase extends _TypedList
+    with FixedLengthListMixin<Int32x4> {}
+
+abstract final class _TypedFloat64x2ListBase extends _TypedList
+    with FixedLengthListMixin<Float64x2> {}
+
+base mixin _Int8ListCommonMixin on _TypedListBase implements Int8List {
+  int get elementSizeInBytes => Int8List.bytesPerElement;
+
+  Int8List asUnmodifiableView() => _UnmodifiableInt8ArrayView(this);
+
+  Int8List _createList(int length) => Int8List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove1(start, count, from, skipCount);
+}
+
+base mixin _Uint8ListCommonMixin on _TypedListBase implements Uint8List {
+  int get elementSizeInBytes => Uint8List.bytesPerElement;
+
+  Uint8List asUnmodifiableView() => _UnmodifiableUint8ArrayView(this);
+
+  Uint8List _createList(int length) => Uint8List(length);
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove1(start, count, from, skipCount);
+}
+
+base mixin _Uint8ClampedListCommonMixin on _TypedListBase
+    implements Uint8ClampedList {
+  int get elementSizeInBytes => Uint8List.bytesPerElement;
+
+  Uint8ClampedList asUnmodifiableView() =>
+      _UnmodifiableUint8ClampedArrayView(this);
+
+  Uint8ClampedList _createList(int length) => Uint8ClampedList(length);
+
+  @pragma("vm:prefer-inline")
+  bool get _containsUnsignedBytes => true;
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => from._containsUnsignedBytes
+      ? _memMove1(start, count, from, skipCount)
+      : _setClampedRange(start, count, from, skipCount);
+}
+
+base mixin _Int16ListCommonMixin on _TypedListBase implements Int16List {
+  int get elementSizeInBytes => Int16List.bytesPerElement;
+
+  Int16List asUnmodifiableView() => _UnmodifiableInt16ArrayView(this);
+
+  Int16List _createList(int length) => Int16List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove2(start, count, from, skipCount);
+}
+
+base mixin _Uint16ListCommonMixin on _TypedListBase implements Uint16List {
+  int get elementSizeInBytes => Uint16List.bytesPerElement;
+
+  Uint16List asUnmodifiableView() => _UnmodifiableUint16ArrayView(this);
+
+  Uint16List _createList(int length) => Uint16List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove2(start, count, from, skipCount);
+}
+
+base mixin _Int32ListCommonMixin on _TypedListBase implements Int32List {
+  int get elementSizeInBytes => Int32List.bytesPerElement;
+
+  Int32List asUnmodifiableView() => _UnmodifiableInt32ArrayView(this);
+
+  Int32List _createList(int length) => Int32List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove4(start, count, from, skipCount);
+}
+
+base mixin _Uint32ListCommonMixin on _TypedListBase implements Uint32List {
+  int get elementSizeInBytes => Uint32List.bytesPerElement;
+
+  Uint32List asUnmodifiableView() => _UnmodifiableUint32ArrayView(this);
+
+  Uint32List _createList(int length) => Uint32List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove4(start, count, from, skipCount);
+}
+
+base mixin _Int64ListCommonMixin on _TypedListBase implements Int64List {
+  int get elementSizeInBytes => Int64List.bytesPerElement;
+
+  Int64List asUnmodifiableView() => _UnmodifiableInt64ArrayView(this);
+
+  Int64List _createList(int length) => Int64List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove8(start, count, from, skipCount);
+}
+
+base mixin _Uint64ListCommonMixin on _TypedListBase implements Uint64List {
+  int get elementSizeInBytes => Uint64List.bytesPerElement;
+
+  Uint64List asUnmodifiableView() => _UnmodifiableUint64ArrayView(this);
+
+  Uint64List _createList(int length) => Uint64List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove8(start, count, from, skipCount);
+}
+
+base mixin _Float32ListCommonMixin on _TypedListBase implements Float32List {
+  int get elementSizeInBytes => Float32List.bytesPerElement;
+
+  Float32List asUnmodifiableView() => _UnmodifiableFloat32ArrayView(this);
+
+  Float32List _createList(int length) => Float32List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove4(start, count, from, skipCount);
+}
+
+base mixin _Float64ListCommonMixin on _TypedListBase implements Float64List {
+  int get elementSizeInBytes => Float64List.bytesPerElement;
+
+  Float64List asUnmodifiableView() => _UnmodifiableFloat64ArrayView(this);
+
+  Float64List _createList(int length) => Float64List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove8(start, count, from, skipCount);
+}
+
+base mixin _Float32x4ListCommonMixin on _TypedListBase
+    implements Float32x4List {
+  int get elementSizeInBytes => Float32x4List.bytesPerElement;
+
+  Float32x4List asUnmodifiableView() => _UnmodifiableFloat32x4ArrayView(this);
+
+  Float32x4List _createList(int length) => Float32x4List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove16(start, count, from, skipCount);
+}
+
+base mixin _Int32x4ListCommonMixin on _TypedListBase implements Int32x4List {
+  int get elementSizeInBytes => Int32x4List.bytesPerElement;
+
+  Int32x4List asUnmodifiableView() => _UnmodifiableInt32x4ArrayView(this);
+
+  Int32x4List _createList(int length) => Int32x4List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove16(start, count, from, skipCount);
+}
+
+base mixin _Float64x2ListCommonMixin on _TypedListBase
+    implements Float64x2List {
+  int get elementSizeInBytes => Float64x2List.bytesPerElement;
+
+  Float64x2List asUnmodifiableView() => _UnmodifiableFloat64x2ArrayView(this);
+
+  Float64x2List _createList(int length) => Float64x2List(length);
+
+  @pragma("vm:prefer-inline")
+  void _fastSetRange(
+    int start,
+    int count,
+    _TypedListBase from,
+    int skipCount,
+  ) => _memMove16(start, count, from, skipCount);
+}
+
 @patch
 class Int8List {
   @patch
@@ -2371,8 +2443,8 @@ class Int8List {
 }
 
 @pragma("vm:entry-point")
-final class _Int8List extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Int8List>
+final class _Int8List extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Int8List>, _Int8ListCommonMixin
     implements Int8List {
   factory _Int8List._uninstantiable() {
     throw "Unreachable";
@@ -2390,27 +2462,6 @@ final class _Int8List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setInt8(index, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int8List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int8List interface.
-  Int8List asUnmodifiableView() => _UnmodifiableInt8ArrayView(this);
-
-  // Internal utility methods.
-  Int8List _createList(int length) {
-    return Int8List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove1(start, count, from, skipCount);
 }
 
 @patch
@@ -2428,8 +2479,8 @@ class Uint8List {
 }
 
 @pragma("vm:entry-point")
-final class _Uint8List extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Uint8List>
+final class _Uint8List extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Uint8List>, _Uint8ListCommonMixin
     implements Uint8List {
   factory _Uint8List._uninstantiable() {
     throw "Unreachable";
@@ -2447,30 +2498,6 @@ final class _Uint8List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setUint8(index, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint8List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint8List interface.
-  Uint8List asUnmodifiableView() => _UnmodifiableUint8ArrayView(this);
-
-  // Internal utility methods.
-  Uint8List _createList(int length) {
-    return Uint8List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  bool get _containsUnsignedBytes => true;
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove1(start, count, from, skipCount);
 }
 
 @patch
@@ -2489,8 +2516,11 @@ class Uint8ClampedList {
 }
 
 @pragma("vm:entry-point")
-final class _Uint8ClampedList extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
+final class _Uint8ClampedList extends _TypedIntListBase
+    with
+        _IntListMixin,
+        _TypedIntListMixin<Uint8ClampedList>,
+        _Uint8ClampedListCommonMixin
     implements Uint8ClampedList {
   factory _Uint8ClampedList._uninstantiable() {
     throw "Unreachable";
@@ -2508,33 +2538,6 @@ final class _Uint8ClampedList extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setUint8(index, _toClampedUint8(value));
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint8List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint8ClampedList interface.
-  Uint8ClampedList asUnmodifiableView() =>
-      _UnmodifiableUint8ClampedArrayView(this);
-
-  // Internal utility methods.
-  Uint8ClampedList _createList(int length) {
-    return Uint8ClampedList(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  bool get _containsUnsignedBytes => true;
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => from._containsUnsignedBytes
-      ? _memMove1(start, count, from, skipCount)
-      : _setClampedRange(start, count, from, skipCount);
 }
 
 @patch
@@ -2552,8 +2555,8 @@ class Int16List {
 }
 
 @pragma("vm:entry-point")
-final class _Int16List extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Int16List>
+final class _Int16List extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Int16List>, _Int16ListCommonMixin
     implements Int16List {
   factory _Int16List._uninstantiable() {
     throw "Unreachable";
@@ -2584,27 +2587,6 @@ final class _Int16List extends _TypedList
       super.setRange(start, end, from, skipCount);
     }
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int16List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int16List interface.
-  Int16List asUnmodifiableView() => _UnmodifiableInt16ArrayView(this);
-
-  // Internal utility methods.
-  Int16List _createList(int length) {
-    return Int16List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove2(start, count, from, skipCount);
 }
 
 @patch
@@ -2622,8 +2604,8 @@ class Uint16List {
 }
 
 @pragma("vm:entry-point")
-final class _Uint16List extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Uint16List>
+final class _Uint16List extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Uint16List>, _Uint16ListCommonMixin
     implements Uint16List {
   factory _Uint16List._uninstantiable() {
     throw "Unreachable";
@@ -2654,27 +2636,6 @@ final class _Uint16List extends _TypedList
       super.setRange(start, end, from, skipCount);
     }
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint16List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint16List interface.
-  Uint16List asUnmodifiableView() => _UnmodifiableUint16ArrayView(this);
-
-  // Internal utility methods.
-  Uint16List _createList(int length) {
-    return Uint16List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove2(start, count, from, skipCount);
 }
 
 @patch
@@ -2692,8 +2653,8 @@ class Int32List {
 }
 
 @pragma("vm:entry-point")
-final class _Int32List extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Int32List>
+final class _Int32List extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Int32List>, _Int32ListCommonMixin
     implements Int32List {
   factory _Int32List._uninstantiable() {
     throw "Unreachable";
@@ -2710,27 +2671,6 @@ final class _Int32List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setInt32(index * Int32List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int32List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int32List interface.
-  Int32List asUnmodifiableView() => _UnmodifiableInt32ArrayView(this);
-
-  // Internal utility methods.
-  Int32List _createList(int length) {
-    return Int32List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove4(start, count, from, skipCount);
 }
 
 @patch
@@ -2748,8 +2688,8 @@ class Uint32List {
 }
 
 @pragma("vm:entry-point")
-final class _Uint32List extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Uint32List>
+final class _Uint32List extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Uint32List>, _Uint32ListCommonMixin
     implements Uint32List {
   factory _Uint32List._uninstantiable() {
     throw "Unreachable";
@@ -2766,27 +2706,6 @@ final class _Uint32List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setUint32(index * Uint32List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint32List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint32List interface.
-  Uint32List asUnmodifiableView() => _UnmodifiableUint32ArrayView(this);
-
-  // Internal utility methods.
-  Uint32List _createList(int length) {
-    return Uint32List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove4(start, count, from, skipCount);
 }
 
 @patch
@@ -2804,8 +2723,8 @@ class Int64List {
 }
 
 @pragma("vm:entry-point")
-final class _Int64List extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Int64List>
+final class _Int64List extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Int64List>, _Int64ListCommonMixin
     implements Int64List {
   factory _Int64List._uninstantiable() {
     throw "Unreachable";
@@ -2822,27 +2741,6 @@ final class _Int64List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setInt64(index * Int64List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int64List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int64List interface.
-  Int64List asUnmodifiableView() => _UnmodifiableInt64ArrayView(this);
-
-  // Internal utility methods.
-  Int64List _createList(int length) {
-    return Int64List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove8(start, count, from, skipCount);
 }
 
 @patch
@@ -2860,8 +2758,8 @@ class Uint64List {
 }
 
 @pragma("vm:entry-point")
-final class _Uint64List extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Uint64List>
+final class _Uint64List extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Uint64List>, _Uint64ListCommonMixin
     implements Uint64List {
   factory _Uint64List._uninstantiable() {
     throw "Unreachable";
@@ -2878,27 +2776,6 @@ final class _Uint64List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setUint64(index * Uint64List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint64List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint64List interface.
-  Uint64List asUnmodifiableView() => _UnmodifiableUint64ArrayView(this);
-
-  // Internal utility methods.
-  Uint64List _createList(int length) {
-    return Uint64List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove8(start, count, from, skipCount);
 }
 
 @patch
@@ -2916,8 +2793,11 @@ class Float32List {
 }
 
 @pragma("vm:entry-point")
-final class _Float32List extends _TypedList
-    with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
+final class _Float32List extends _TypedDoubleListBase
+    with
+        _DoubleListMixin,
+        _TypedDoubleListMixin<Float32List>,
+        _Float32ListCommonMixin
     implements Float32List {
   factory _Float32List._uninstantiable() {
     throw "Unreachable";
@@ -2935,27 +2815,6 @@ final class _Float32List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setFloat32(index * Float32List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float32List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float32List interface.
-  Float32List asUnmodifiableView() => _UnmodifiableFloat32ArrayView(this);
-
-  // Internal utility methods.
-  Float32List _createList(int length) {
-    return Float32List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove4(start, count, from, skipCount);
 }
 
 @patch
@@ -2973,8 +2832,11 @@ class Float64List {
 }
 
 @pragma("vm:entry-point")
-final class _Float64List extends _TypedList
-    with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
+final class _Float64List extends _TypedDoubleListBase
+    with
+        _DoubleListMixin,
+        _TypedDoubleListMixin<Float64List>,
+        _Float64ListCommonMixin
     implements Float64List {
   factory _Float64List._uninstantiable() {
     throw "Unreachable";
@@ -2992,27 +2854,6 @@ final class _Float64List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setFloat64(index * Float64List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float64List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float64List interface.
-  Float64List asUnmodifiableView() => _UnmodifiableFloat64ArrayView(this);
-
-  // Internal utility methods.
-  Float64List _createList(int length) {
-    return Float64List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove8(start, count, from, skipCount);
 }
 
 @patch
@@ -3031,8 +2872,8 @@ class Float32x4List {
 }
 
 @pragma("vm:entry-point")
-final class _Float32x4List extends _TypedList
-    with _Float32x4ListMixin
+final class _Float32x4List extends _TypedFloat32x4ListBase
+    with _Float32x4ListMixin, _Float32x4ListCommonMixin
     implements Float32x4List {
   factory _Float32x4List._uninstantiable() {
     throw "Unreachable";
@@ -3049,27 +2890,6 @@ final class _Float32x4List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setFloat32x4(index * Float32x4List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float32x4List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float32x4List interface.
-  Float32x4List asUnmodifiableView() => _UnmodifiableFloat32x4ArrayView(this);
-
-  // Internal utility methods.
-  Float32x4List _createList(int length) {
-    return Float32x4List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove16(start, count, from, skipCount);
 }
 
 @patch
@@ -3087,8 +2907,8 @@ class Int32x4List {
 }
 
 @pragma("vm:entry-point")
-final class _Int32x4List extends _TypedList
-    with _Int32x4ListMixin
+final class _Int32x4List extends _TypedInt32x4ListBase
+    with _Int32x4ListMixin, _Int32x4ListCommonMixin
     implements Int32x4List {
   factory _Int32x4List._uninstantiable() {
     throw "Unreachable";
@@ -3105,27 +2925,6 @@ final class _Int32x4List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setInt32x4(index * Int32x4List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int32x4List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int32x4List interface.
-  Int32x4List asUnmodifiableView() => _UnmodifiableInt32x4ArrayView(this);
-
-  // Internal utility methods.
-  Int32x4List _createList(int length) {
-    return Int32x4List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove16(start, count, from, skipCount);
 }
 
 @patch
@@ -3144,8 +2943,8 @@ class Float64x2List {
 }
 
 @pragma("vm:entry-point")
-final class _Float64x2List extends _TypedList
-    with _Float64x2ListMixin
+final class _Float64x2List extends _TypedFloat64x2ListBase
+    with _Float64x2ListMixin, _Float64x2ListCommonMixin
     implements Float64x2List {
   factory _Float64x2List._uninstantiable() {
     throw "Unreachable";
@@ -3162,32 +2961,11 @@ final class _Float64x2List extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setFloat64x2(index * Float64x2List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float64x2List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float64x2List interface.
-  Float64x2List asUnmodifiableView() => _UnmodifiableFloat64x2ArrayView(this);
-
-  // Internal utility methods.
-  Float64x2List _createList(int length) {
-    return Float64x2List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove16(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalInt8Array extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Int8List>
+final class _ExternalInt8Array extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Int8List>, _Int8ListCommonMixin
     implements Int8List {
   factory _ExternalInt8Array._uninstantiable() {
     throw "Unreachable";
@@ -3204,32 +2982,11 @@ final class _ExternalInt8Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setInt8(index, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int8List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int8List interface.
-  Int8List asUnmodifiableView() => _UnmodifiableInt8ArrayView(this);
-
-  // Internal utility methods.
-  Int8List _createList(int length) {
-    return Int8List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove1(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalUint8Array extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Uint8List>
+final class _ExternalUint8Array extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Uint8List>, _Uint8ListCommonMixin
     implements Uint8List {
   factory _ExternalUint8Array._uninstantiable() {
     throw "Unreachable";
@@ -3247,35 +3004,14 @@ final class _ExternalUint8Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setUint8(index, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint8List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint8ClampedList interface.
-  Uint8List asUnmodifiableView() => _UnmodifiableUint8ArrayView(this);
-
-  // Internal utility methods.
-  Uint8List _createList(int length) {
-    return Uint8List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  bool get _containsUnsignedBytes => true;
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove1(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalUint8ClampedArray extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
+final class _ExternalUint8ClampedArray extends _TypedIntListBase
+    with
+        _IntListMixin,
+        _TypedIntListMixin<Uint8ClampedList>,
+        _Uint8ClampedListCommonMixin
     implements Uint8ClampedList {
   factory _ExternalUint8ClampedArray._uninstantiable() {
     throw "Unreachable";
@@ -3293,38 +3029,11 @@ final class _ExternalUint8ClampedArray extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setUint8(index, _toClampedUint8(value));
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint8List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint8ClampedList interface.
-  Uint8ClampedList asUnmodifiableView() =>
-      _UnmodifiableUint8ClampedArrayView(this);
-
-  // Internal utility methods.
-  Uint8ClampedList _createList(int length) {
-    return Uint8ClampedList(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  bool get _containsUnsignedBytes => true;
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => from._containsUnsignedBytes
-      ? _memMove1(start, count, from, skipCount)
-      : _setClampedRange(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalInt16Array extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Int16List>
+final class _ExternalInt16Array extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Int16List>, _Int16ListCommonMixin
     implements Int16List {
   factory _ExternalInt16Array._uninstantiable() {
     throw "Unreachable";
@@ -3341,32 +3050,11 @@ final class _ExternalInt16Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setInt16(index * Int16List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int16List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int16List interface.
-  Int16List asUnmodifiableView() => _UnmodifiableInt16ArrayView(this);
-
-  // Internal utility methods.
-  Int16List _createList(int length) {
-    return Int16List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove2(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalUint16Array extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Uint16List>
+final class _ExternalUint16Array extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Uint16List>, _Uint16ListCommonMixin
     implements Uint16List {
   factory _ExternalUint16Array._uninstantiable() {
     throw "Unreachable";
@@ -3383,32 +3071,11 @@ final class _ExternalUint16Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setUint16(index * Uint16List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint16List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint16List interface.
-  Uint16List asUnmodifiableView() => _UnmodifiableUint16ArrayView(this);
-
-  // Internal utility methods.
-  Uint16List _createList(int length) {
-    return Uint16List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove2(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalInt32Array extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Int32List>
+final class _ExternalInt32Array extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Int32List>, _Int32ListCommonMixin
     implements Int32List {
   factory _ExternalInt32Array._uninstantiable() {
     throw "Unreachable";
@@ -3424,32 +3091,11 @@ final class _ExternalInt32Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setInt32(index * Int32List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int32List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int32List interface.
-  Int32List asUnmodifiableView() => _UnmodifiableInt32ArrayView(this);
-
-  // Internal utility methods.
-  Int32List _createList(int length) {
-    return Int32List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove4(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalUint32Array extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Uint32List>
+final class _ExternalUint32Array extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Uint32List>, _Uint32ListCommonMixin
     implements Uint32List {
   factory _ExternalUint32Array._uninstantiable() {
     throw "Unreachable";
@@ -3465,32 +3111,11 @@ final class _ExternalUint32Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setUint32(index * Uint32List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint32List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint32List interface.
-  Uint32List asUnmodifiableView() => _UnmodifiableUint32ArrayView(this);
-
-  // Internal utility methods.
-  Uint32List _createList(int length) {
-    return Uint32List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove4(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalInt64Array extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Int64List>
+final class _ExternalInt64Array extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Int64List>, _Int64ListCommonMixin
     implements Int64List {
   factory _ExternalInt64Array._uninstantiable() {
     throw "Unreachable";
@@ -3506,32 +3131,11 @@ final class _ExternalInt64Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setInt64(index * Int64List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int64List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int64List interface.
-  Int64List asUnmodifiableView() => _UnmodifiableInt64ArrayView(this);
-
-  // Internal utility methods.
-  Int64List _createList(int length) {
-    return Int64List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove8(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalUint64Array extends _TypedList
-    with _IntListMixin, _TypedIntListMixin<Uint64List>
+final class _ExternalUint64Array extends _TypedIntListBase
+    with _IntListMixin, _TypedIntListMixin<Uint64List>, _Uint64ListCommonMixin
     implements Uint64List {
   factory _ExternalUint64Array._uninstantiable() {
     throw "Unreachable";
@@ -3547,32 +3151,14 @@ final class _ExternalUint64Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setUint64(index * Uint64List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint64List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint64List interface.
-  Uint64List asUnmodifiableView() => _UnmodifiableUint64ArrayView(this);
-
-  // Internal utility methods.
-  Uint64List _createList(int length) {
-    return Uint64List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove8(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalFloat32Array extends _TypedList
-    with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
+final class _ExternalFloat32Array extends _TypedDoubleListBase
+    with
+        _DoubleListMixin,
+        _TypedDoubleListMixin<Float32List>,
+        _Float32ListCommonMixin
     implements Float32List {
   factory _ExternalFloat32Array._uninstantiable() {
     throw "Unreachable";
@@ -3589,32 +3175,14 @@ final class _ExternalFloat32Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setFloat32(index * Float32List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float32List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float32List interface.
-  Float32List asUnmodifiableView() => _UnmodifiableFloat32ArrayView(this);
-
-  // Internal utility methods.
-  Float32List _createList(int length) {
-    return Float32List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove4(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalFloat64Array extends _TypedList
-    with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
+final class _ExternalFloat64Array extends _TypedDoubleListBase
+    with
+        _DoubleListMixin,
+        _TypedDoubleListMixin<Float64List>,
+        _Float64ListCommonMixin
     implements Float64List {
   factory _ExternalFloat64Array._uninstantiable() {
     throw "Unreachable";
@@ -3631,32 +3199,11 @@ final class _ExternalFloat64Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setFloat64(index * Float64List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float64List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float64List interface.
-  Float64List asUnmodifiableView() => _UnmodifiableFloat64ArrayView(this);
-
-  // Internal utility methods.
-  Float64List _createList(int length) {
-    return Float64List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove8(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalFloat32x4Array extends _TypedList
-    with _Float32x4ListMixin
+final class _ExternalFloat32x4Array extends _TypedFloat32x4ListBase
+    with _Float32x4ListMixin, _Float32x4ListCommonMixin
     implements Float32x4List {
   factory _ExternalFloat32x4Array._uninstantiable() {
     throw "Unreachable";
@@ -3673,32 +3220,11 @@ final class _ExternalFloat32x4Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setFloat32x4(index * Float32x4List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float32x4List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float32x4 interface.
-  Float32x4List asUnmodifiableView() => _UnmodifiableFloat32x4ArrayView(this);
-
-  // Internal utility methods.
-  Float32x4List _createList(int length) {
-    return Float32x4List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove16(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalInt32x4Array extends _TypedList
-    with _Int32x4ListMixin
+final class _ExternalInt32x4Array extends _TypedInt32x4ListBase
+    with _Int32x4ListMixin, _Int32x4ListCommonMixin
     implements Int32x4List {
   factory _ExternalInt32x4Array._uninstantiable() {
     throw "Unreachable";
@@ -3715,32 +3241,11 @@ final class _ExternalInt32x4Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setInt32x4(index * Int32x4List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int32x4List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int32x4List interface.
-  Int32x4List asUnmodifiableView() => _UnmodifiableInt32x4ArrayView(this);
-
-  // Internal utility methods.
-  Int32x4List _createList(int length) {
-    return Int32x4List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove16(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _ExternalFloat64x2Array extends _TypedList
-    with _Float64x2ListMixin
+final class _ExternalFloat64x2Array extends _TypedFloat64x2ListBase
+    with _Float64x2ListMixin, _Float64x2ListCommonMixin
     implements Float64x2List {
   factory _ExternalFloat64x2Array._uninstantiable() {
     throw "Unreachable";
@@ -3757,27 +3262,6 @@ final class _ExternalFloat64x2Array extends _TypedList
     index = _typedDataIndexCheck(this, index, length);
     _setFloat64x2(index * Float64x2List.bytesPerElement, value);
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float64x2List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float64x2List interface.
-  Float64x2List asUnmodifiableView() => _UnmodifiableFloat64x2ArrayView(this);
-
-  // Internal utility methods.
-  Float64x2List _createList(int length) {
-    return Float64x2List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove16(start, count, from, skipCount);
 }
 
 @patch
@@ -4388,9 +3872,24 @@ abstract final class _TypedListView extends _TypedListBase
   external int get offsetInBytes;
 }
 
+abstract final class _TypedIntListViewBase extends _TypedListView
+    with FixedLengthListMixin<int> {}
+
+abstract final class _TypedDoubleListViewBase extends _TypedListView
+    with FixedLengthListMixin<double> {}
+
+abstract final class _TypedFloat32x4ListViewBase extends _TypedListView
+    with FixedLengthListMixin<Float32x4> {}
+
+abstract final class _TypedInt32x4ListViewBase extends _TypedListView
+    with FixedLengthListMixin<Int32x4> {}
+
+abstract final class _TypedFloat64x2ListViewBase extends _TypedListView
+    with FixedLengthListMixin<Float64x2> {}
+
 @pragma("vm:entry-point")
-final class _Int8ArrayView extends _TypedListView
-    with _IntListMixin, _TypedIntListMixin<Int8List>
+final class _Int8ArrayView extends _TypedIntListViewBase
+    with _IntListMixin, _TypedIntListMixin<Int8List>, _Int8ListCommonMixin
     implements Int8List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4418,32 +3917,11 @@ final class _Int8ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int8List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int8List interface.
-  Int8List asUnmodifiableView() => _UnmodifiableInt8ArrayView(this);
-
-  // Internal utility methods.
-  Int8List _createList(int length) {
-    return Int8List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove1(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Uint8ArrayView extends _TypedListView
-    with _IntListMixin, _TypedIntListMixin<Uint8List>
+final class _Uint8ArrayView extends _TypedIntListViewBase
+    with _IntListMixin, _TypedIntListMixin<Uint8List>, _Uint8ListCommonMixin
     implements Uint8List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4471,35 +3949,14 @@ final class _Uint8ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint8List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint8List interface.
-  Uint8List asUnmodifiableView() => _UnmodifiableUint8ArrayView(this);
-
-  // Internal utility methods.
-  Uint8List _createList(int length) {
-    return Uint8List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  bool get _containsUnsignedBytes => true;
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove1(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Uint8ClampedArrayView extends _TypedListView
-    with _IntListMixin, _TypedIntListMixin<Uint8ClampedList>
+final class _Uint8ClampedArrayView extends _TypedIntListViewBase
+    with
+        _IntListMixin,
+        _TypedIntListMixin<Uint8ClampedList>,
+        _Uint8ClampedListCommonMixin
     implements Uint8ClampedList {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4527,38 +3984,11 @@ final class _Uint8ClampedArrayView extends _TypedListView
       _toClampedUint8(value),
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint8List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint8ClampedList interface.
-  Uint8ClampedList asUnmodifiableView() =>
-      _UnmodifiableUint8ClampedArrayView(this);
-
-  // Internal utility methods.
-  Uint8ClampedList _createList(int length) {
-    return Uint8ClampedList(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  bool get _containsUnsignedBytes => true;
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => from._containsUnsignedBytes
-      ? _memMove1(start, count, from, skipCount)
-      : _setClampedRange(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Int16ArrayView extends _TypedListView
-    with _IntListMixin, _TypedIntListMixin<Int16List>
+final class _Int16ArrayView extends _TypedIntListViewBase
+    with _IntListMixin, _TypedIntListMixin<Int16List>, _Int16ListCommonMixin
     implements Int16List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4599,33 +4029,11 @@ final class _Int16ArrayView extends _TypedListView
       super.setRange(start, end, from, skipCount);
     }
   }
-
-  // Method(s) implementing the TypedData interface.
-
-  int get elementSizeInBytes {
-    return Int16List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int16List interface.
-  Int16List asUnmodifiableView() => _UnmodifiableInt16ArrayView(this);
-
-  // Internal utility methods.
-  Int16List _createList(int length) {
-    return Int16List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove2(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Uint16ArrayView extends _TypedListView
-    with _IntListMixin, _TypedIntListMixin<Uint16List>
+final class _Uint16ArrayView extends _TypedIntListViewBase
+    with _IntListMixin, _TypedIntListMixin<Uint16List>, _Uint16ListCommonMixin
     implements Uint16List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4666,33 +4074,11 @@ final class _Uint16ArrayView extends _TypedListView
       super.setRange(start, end, from, skipCount);
     }
   }
-
-  // Method(s) implementing the TypedData interface.
-
-  int get elementSizeInBytes {
-    return Uint16List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint16List interface.
-  Uint16List asUnmodifiableView() => _UnmodifiableUint16ArrayView(this);
-
-  // Internal utility methods.
-  Uint16List _createList(int length) {
-    return Uint16List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove2(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Int32ArrayView extends _TypedListView
-    with _IntListMixin, _TypedIntListMixin<Int32List>
+final class _Int32ArrayView extends _TypedIntListViewBase
+    with _IntListMixin, _TypedIntListMixin<Int32List>, _Int32ListCommonMixin
     implements Int32List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4719,32 +4105,11 @@ final class _Int32ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int32List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int32List interface.
-  Int32List asUnmodifiableView() => _UnmodifiableInt32ArrayView(this);
-
-  // Internal utility methods.
-  Int32List _createList(int length) {
-    return Int32List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove4(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Uint32ArrayView extends _TypedListView
-    with _IntListMixin, _TypedIntListMixin<Uint32List>
+final class _Uint32ArrayView extends _TypedIntListViewBase
+    with _IntListMixin, _TypedIntListMixin<Uint32List>, _Uint32ListCommonMixin
     implements Uint32List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4771,32 +4136,11 @@ final class _Uint32ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint32List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint32List interface.
-  Uint32List asUnmodifiableView() => _UnmodifiableUint32ArrayView(this);
-
-  // Internal utility methods.
-  Uint32List _createList(int length) {
-    return Uint32List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove4(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Int64ArrayView extends _TypedListView
-    with _IntListMixin, _TypedIntListMixin<Int64List>
+final class _Int64ArrayView extends _TypedIntListViewBase
+    with _IntListMixin, _TypedIntListMixin<Int64List>, _Int64ListCommonMixin
     implements Int64List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4823,32 +4167,11 @@ final class _Int64ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int64List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int16List interface.
-  Int64List asUnmodifiableView() => _UnmodifiableInt64ArrayView(this);
-
-  // Internal utility methods.
-  Int64List _createList(int length) {
-    return Int64List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove8(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Uint64ArrayView extends _TypedListView
-    with _IntListMixin, _TypedIntListMixin<Uint64List>
+final class _Uint64ArrayView extends _TypedIntListViewBase
+    with _IntListMixin, _TypedIntListMixin<Uint64List>, _Uint64ListCommonMixin
     implements Uint64List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4875,32 +4198,14 @@ final class _Uint64ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Uint64List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Uint64List interface.
-  Uint64List asUnmodifiableView() => _UnmodifiableUint64ArrayView(this);
-
-  // Internal utility methods.
-  Uint64List _createList(int length) {
-    return Uint64List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove8(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Float32ArrayView extends _TypedListView
-    with _DoubleListMixin, _TypedDoubleListMixin<Float32List>
+final class _Float32ArrayView extends _TypedDoubleListViewBase
+    with
+        _DoubleListMixin,
+        _TypedDoubleListMixin<Float32List>,
+        _Float32ListCommonMixin
     implements Float32List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4928,32 +4233,14 @@ final class _Float32ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float32List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float32List interface.
-  Float32List asUnmodifiableView() => _UnmodifiableFloat32ArrayView(this);
-
-  // Internal utility methods.
-  Float32List _createList(int length) {
-    return Float32List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove4(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Float64ArrayView extends _TypedListView
-    with _DoubleListMixin, _TypedDoubleListMixin<Float64List>
+final class _Float64ArrayView extends _TypedDoubleListViewBase
+    with
+        _DoubleListMixin,
+        _TypedDoubleListMixin<Float64List>,
+        _Float64ListCommonMixin
     implements Float64List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -4981,32 +4268,11 @@ final class _Float64ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float64List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float64List interface.
-  Float64List asUnmodifiableView() => _UnmodifiableFloat64ArrayView(this);
-
-  // Internal utility methods.
-  Float64List _createList(int length) {
-    return Float64List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove8(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Float32x4ArrayView extends _TypedListView
-    with _Float32x4ListMixin
+final class _Float32x4ArrayView extends _TypedFloat32x4ListViewBase
+    with _Float32x4ListMixin, _Float32x4ListCommonMixin
     implements Float32x4List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -5033,32 +4299,11 @@ final class _Float32x4ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float32x4List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float32x4List interface.
-  Float32x4List asUnmodifiableView() => _UnmodifiableFloat32x4ArrayView(this);
-
-  // Internal utility methods.
-  Float32x4List _createList(int length) {
-    return Float32x4List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove16(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Int32x4ArrayView extends _TypedListView
-    with _Int32x4ListMixin
+final class _Int32x4ArrayView extends _TypedInt32x4ListViewBase
+    with _Int32x4ListMixin, _Int32x4ListCommonMixin
     implements Int32x4List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -5085,32 +4330,11 @@ final class _Int32x4ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Int32x4List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Int32x4List interface.
-  Int32x4List asUnmodifiableView() => _UnmodifiableInt32x4ArrayView(this);
-
-  // Internal utility methods.
-  Int32x4List _createList(int length) {
-    return Int32x4List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove16(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
-final class _Float64x2ArrayView extends _TypedListView
-    with _Float64x2ListMixin
+final class _Float64x2ArrayView extends _TypedFloat64x2ListViewBase
+    with _Float64x2ListMixin, _Float64x2ListCommonMixin
     implements Float64x2List {
   // Constructor.
   @pragma("vm:recognized", "other")
@@ -5137,27 +4361,6 @@ final class _Float64x2ArrayView extends _TypedListView
       value,
     );
   }
-
-  // Method(s) implementing the TypedData interface.
-  int get elementSizeInBytes {
-    return Float64x2List.bytesPerElement;
-  }
-
-  // Method(s) implementing the Float64x2List interface.
-  Float64x2List asUnmodifiableView() => _UnmodifiableFloat64x2ArrayView(this);
-
-  // Internal utility methods.
-  Float64x2List _createList(int length) {
-    return Float64x2List(length);
-  }
-
-  @pragma("vm:prefer-inline")
-  void _fastSetRange(
-    int start,
-    int count,
-    _TypedListBase from,
-    int skipCount,
-  ) => _memMove16(start, count, from, skipCount);
 }
 
 @pragma("vm:entry-point")
