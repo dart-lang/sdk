@@ -433,91 +433,102 @@ class LspAnalysisServer extends AnalysisServer {
   }) {
     var startTime = DateTime.now();
     performance.logRequestTiming(message.clientRequestTime);
-    runZonedGuarded(() async {
-      try {
-        if (message is ResponseMessage) {
-          handleClientResponse(message);
-        } else if (message is IncomingMessage) {
-          // Record performance information for the request.
-          var rootPerformance = OperationPerformanceImpl('<root>');
-          RequestPerformance? requestPerformance;
-          await rootPerformance.runAsync('request[${message.method}]', (
-            performance,
-          ) async {
-            requestPerformance = RequestPerformance(
-              operation: message.method.toString(),
-              performance: performance,
-              requestLatency: message.timeSinceRequest,
-              startTime: startTime,
-            );
-            recentPerformance.requests.add(requestPerformance!);
 
-            var messageInfo = MessageInfo(
-              performance: performance,
-              clientCapabilities: editorClientCapabilities,
-              timeSinceRequest: message.timeSinceRequest,
-              completer: completer,
-              isTrustedCaller: true,
-            );
-
-            if (message is RequestMessage) {
-              analyticsManager.startedRequestMessage(
-                request: message,
+    runZonedGuarded(
+      () async {
+        try {
+          if (message is ResponseMessage) {
+            handleClientResponse(message);
+          } else if (message is IncomingMessage) {
+            // Record performance information for the request.
+            var rootPerformance = OperationPerformanceImpl('<root>');
+            RequestPerformance? requestPerformance;
+            await rootPerformance.runAsync('request[${message.method}]', (
+              performance,
+            ) async {
+              requestPerformance = RequestPerformance(
+                operation: message.method.toString(),
+                performance: performance,
+                requestLatency: message.timeSinceRequest,
                 startTime: startTime,
               );
-              await _handleRequestMessage(
-                message,
-                messageInfo,
-                cancellationToken: cancellationToken,
+              recentPerformance.requests.add(requestPerformance!);
+
+              var messageInfo = MessageInfo(
+                performance: performance,
+                clientCapabilities: editorClientCapabilities,
+                timeSinceRequest: message.timeSinceRequest,
+                completer: completer,
+                isTrustedCaller: true,
               );
-            } else if (message is NotificationMessage) {
-              await _handleNotificationMessage(message, messageInfo);
-              analyticsManager.handledNotificationMessage(
-                notification: message,
-                startTime: startTime,
-                endTime: DateTime.now(),
-              );
-            } else {
-              showErrorMessageToUser('Unknown incoming message type');
+
+              if (message is RequestMessage) {
+                analyticsManager.startedRequestMessage(
+                  request: message,
+                  startTime: startTime,
+                );
+                await _handleRequestMessage(
+                  message,
+                  messageInfo,
+                  cancellationToken: cancellationToken,
+                );
+              } else if (message is NotificationMessage) {
+                await _handleNotificationMessage(message, messageInfo);
+                analyticsManager.handledNotificationMessage(
+                  notification: message,
+                  startTime: startTime,
+                  endTime: DateTime.now(),
+                );
+              } else {
+                showErrorMessageToUser('Unknown incoming message type');
+              }
+            });
+            if (requestPerformance != null &&
+                requestPerformance!.performance.elapsed >
+                    ServerRecentPerformance.slowRequestsThreshold) {
+              recentPerformance.slowRequests.add(requestPerformance!);
             }
-          });
-          if (requestPerformance != null &&
-              requestPerformance!.performance.elapsed >
-                  ServerRecentPerformance.slowRequestsThreshold) {
-            recentPerformance.slowRequests.add(requestPerformance!);
+          } else {
+            showErrorMessageToUser('Unknown message type');
           }
-        } else {
-          showErrorMessageToUser('Unknown message type');
+          completer?.setComplete();
+        } on InconsistentAnalysisException {
+          sendErrorResponse(
+            message,
+            ResponseError(
+              code: ErrorCodes.ContentModified,
+              message: 'Document was modified before operation completed',
+            ),
+          );
+          completer?.setComplete();
+        } catch (error, stackTrace) {
+          var errorMessage = message is ResponseMessage
+              ? 'An error occurred while handling the response to request ${message.id}'
+              : message is RequestMessage
+              ? 'An error occurred while handling ${message.method} request'
+              : message is NotificationMessage
+              ? 'An error occurred while handling ${message.method} notification'
+              : 'Unknown message type';
+          sendErrorResponse(
+            message,
+            ResponseError(
+              code: ServerErrorCodes.unhandledError,
+              message: errorMessage,
+            ),
+          );
+          logException(errorMessage, error, stackTrace);
+          completer?.setComplete();
         }
-        completer?.setComplete();
-      } on InconsistentAnalysisException {
-        sendErrorResponse(
-          message,
-          ResponseError(
-            code: ErrorCodes.ContentModified,
-            message: 'Document was modified before operation completed',
-          ),
-        );
-        completer?.setComplete();
-      } catch (error, stackTrace) {
-        var errorMessage = message is ResponseMessage
-            ? 'An error occurred while handling the response to request ${message.id}'
-            : message is RequestMessage
-            ? 'An error occurred while handling ${message.method} request'
-            : message is NotificationMessage
-            ? 'An error occurred while handling ${message.method} notification'
-            : 'Unknown message type';
-        sendErrorResponse(
-          message,
-          ResponseError(
-            code: ServerErrorCodes.unhandledError,
-            message: errorMessage,
-          ),
-        );
-        logException(errorMessage, error, stackTrace);
-        completer?.setComplete();
-      }
-    }, unhandledZoneError);
+      },
+      unhandledZoneError,
+      zoneValues: {
+        // A container for capturing additional timings (such as analysis) stored
+        // in zoneValues so it can be accessed anywhere in the processing of this
+        // request.
+        RequestPerformanceAdditionalTimings.zoneValueKey:
+            RequestPerformanceAdditionalTimings(),
+      },
+    );
   }
 
   /// Logs the error on the client using window/logMessage.

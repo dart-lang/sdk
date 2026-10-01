@@ -806,6 +806,13 @@ class LegacyAnalysisServer extends AnalysisServer {
         }
         completer.complete();
       },
+      zoneValues: {
+        // A container for capturing additional timings (such as analysis) stored
+        // in zoneValues so it can be accessed anywhere in the processing of this
+        // request.
+        RequestPerformanceAdditionalTimings.zoneValueKey:
+            RequestPerformanceAdditionalTimings(),
+      },
     );
   }
 
