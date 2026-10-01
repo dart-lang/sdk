@@ -1846,12 +1846,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     if (isNotSerializableMarker(node)) {
       return;
     }
 
-    super.visitSimpleIdentifier(node);
+    super.visitUnqualifiedNameExpression(node);
   }
 
   void _applyToEnumConstantInitializer(FieldFragmentImpl fragment) {

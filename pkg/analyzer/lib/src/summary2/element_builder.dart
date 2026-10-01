@@ -1464,7 +1464,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       // Build fields for all enum constants.
-      var valuesElements = <SimpleIdentifierImpl>[];
+      var valuesElements = <UnqualifiedNameExpressionImpl>[];
       var valuesNames = <String>{};
       for (var constant in node.body.constants) {
         var nameToken = constant.name;
@@ -1533,7 +1533,9 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
         field.constantInitializer2 = initializer;
 
         valuesElements.add(
-          SimpleIdentifierImpl(token: StringToken(TokenType.STRING, name, -1)),
+          UnqualifiedNameExpressionImpl(
+            name: StringToken(TokenType.STRING, name, -1),
+          ),
         );
         valuesNames.add(name);
       }

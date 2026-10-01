@@ -575,14 +575,17 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
         formalParameterElement.type = superFormalParameter.type;
 
         superInvocationArguments.add(
-          SimpleIdentifierImpl(
-              token: StringToken(
+          UnqualifiedNameExpressionImpl(
+              name: StringToken(
                 TokenType.STRING,
                 formalParameterFragment.name ?? '',
                 -1,
               ),
             )
-            ..element = formalParameterElement
+            ..resolution = VariableReadResolutionImpl(
+              element: formalParameterElement,
+              type: formalParameterElement.type,
+            )
             ..setPseudoExpressionStaticType(formalParameterElement.type),
         );
       }

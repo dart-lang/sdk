@@ -528,9 +528,12 @@ class InstanceMemberInferrer {
           constructor.formalParameters.cast(),
           initializer.argumentList.arguments2,
           (parameter, argument) {
-            (argument as SimpleIdentifierImpl).setPseudoExpressionStaticType(
-              parameter.type,
+            argument as UnqualifiedNameExpressionImpl;
+            argument.resolution = VariableReadResolutionImpl(
+              element: parameter,
+              type: parameter.type,
             );
+            argument.setPseudoExpressionStaticType(parameter.type);
           },
         );
       }

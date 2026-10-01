@@ -3118,9 +3118,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              element: <null>
+            UnqualifiedNameExpression
+              name: _notSerializableExpression @-1
+              resolution: <null>
               staticType: null
           inducedGetter: #F2
       getters
@@ -3177,7 +3177,11 @@ library
             AssertInitializer
               assertKeyword: assert @24
               leftParenthesis: ( @30
-              condition2: SimpleIdentifier
+              condition2: UnqualifiedNameExpression
+                name: _notSerializableExpression @-1
+                resolution: <null>
+                staticType: null
+              condition(v1): SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
@@ -3227,7 +3231,11 @@ library
                 element: <null>
                 staticType: InvalidType
               comma: , @32
-              message2: SimpleIdentifier
+              message2: UnqualifiedNameExpression
+                name: _notSerializableExpression @-1
+                resolution: <null>
+                staticType: null
+              message(v1): SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
@@ -3286,7 +3294,11 @@ library
                 element: <testLibrary>::@class::A::@field::foo
                 staticType: null
               equals: = @49
-              expression2: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: _notSerializableExpression @-1
+                resolution: <null>
+                staticType: null
+              expression(v1): SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
@@ -3318,9 +3330,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              element: <null>
+            UnqualifiedNameExpression
+              name: _notSerializableExpression @-1
+              resolution: <null>
               staticType: null
           inducedGetter: #F2
       getters
@@ -3403,6 +3415,14 @@ library
                   IntegerLiteral
                     literal: 0 @66
                     staticType: int
+                  UnqualifiedNameExpression
+                    name: _notSerializableExpression @-1
+                    resolution: <null>
+                    staticType: null
+                arguments(v1)
+                  IntegerLiteral
+                    literal: 0 @66
+                    staticType: int
                   SimpleIdentifier
                     token: _notSerializableExpression @-1
                     element: <null>
@@ -3478,6 +3498,14 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @83
                 arguments2
+                  IntegerLiteral
+                    literal: 0 @84
+                    staticType: int
+                  UnqualifiedNameExpression
+                    name: _notSerializableExpression @-1
+                    resolution: <null>
+                    staticType: null
+                arguments(v1)
                   IntegerLiteral
                     literal: 0 @84
                     staticType: int
@@ -3569,9 +3597,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              element: <null>
+            UnqualifiedNameExpression
+              name: _notSerializableExpression @-1
+              resolution: <null>
               staticType: null
           inducedGetter: #F2
       getters
@@ -3678,9 +3706,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              element: <null>
+            UnqualifiedNameExpression
+              name: _notSerializableExpression @-1
+              resolution: <null>
               staticType: null
           inducedGetter: #F2
       getters

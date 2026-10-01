@@ -59,6 +59,11 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @37
                   arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                  arguments(v1)
                     SimpleIdentifier
                       token: _notSerializableExpression @-1
                       element: <null>
@@ -107,6 +112,11 @@ library
             argumentList: ArgumentList
               leftParenthesis: ( @37
               arguments2
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
+                  staticType: null
+              arguments(v1)
                 SimpleIdentifier
                   token: _notSerializableExpression @-1
                   element: <null>
@@ -172,6 +182,11 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @37
                   arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                  arguments(v1)
                     SimpleIdentifier
                       token: _notSerializableExpression @-1
                       element: <null>
@@ -220,6 +235,11 @@ library
             argumentList: ArgumentList
               leftParenthesis: ( @37
               arguments2
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
+                  staticType: null
+              arguments(v1)
                 SimpleIdentifier
                   token: _notSerializableExpression @-1
                   element: <null>
