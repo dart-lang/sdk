@@ -4,10 +4,12 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import 'contexts_page_test.dart' as contexts_page;
 import 'performance_page_test.dart' as performance_page;
 
 void main() {
   defineReflectiveSuite(() {
+    contexts_page.main();
     performance_page.main();
   }, name: 'status');
 }
