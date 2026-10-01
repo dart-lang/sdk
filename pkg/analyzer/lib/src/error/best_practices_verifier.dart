@@ -882,13 +882,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _elementUsageFrontierDetector.simpleIdentifier(node);
-    _invalidAccessVerifier.verify(node);
-    super.visitSimpleIdentifier(node);
-  }
-
-  @override
   void visitStaticQualifier(StaticQualifier node) {
     _elementUsageFrontierDetector.staticQualifier(node);
     _invalidAccessVerifier.verifyStaticQualifier(node);
@@ -1799,31 +1792,6 @@ class _InvalidAccessVerifier {
        ),
        _inTestDirectory = inTestDirectory;
 
-  /// Produces a warning if [identifier] is accessed from an invalid location.
-  ///
-  /// In particular, a warning is produced in either of the two following cases:
-  ///
-  /// * The element associated with [identifier] is annotated with [internal],
-  ///   and is accessed from outside the package in which the element is
-  ///   declared.
-  /// * The element associated with [identifier] is annotated with [protected],
-  ///   [visibleForTesting], and/or `visibleForTemplate`, and is accessed from a
-  ///   location which is invalid as per the rules of each such annotation.
-  ///   Conversely, if the element is annotated with more than one of these
-  ///   annotations, the access is valid (and no warning is produced) if it
-  ///   conforms to the rules of at least one of the annotations.
-  void verify(SimpleIdentifier identifier) {
-    if (identifier.inDeclarationContext() || identifier.inCommentReference2) {
-      return;
-    }
-
-    _verify(
-      node: identifier,
-      nameToken: identifier.token,
-      element: identifier.writeOrReadElement2,
-    );
-  }
-
   void verifyBinary(BinaryOperatorInvocation node) {
     var element = node.element;
     if (element != null && _hasVisibleForOverriding(element)) {
@@ -2313,14 +2281,6 @@ class _UsedParameterVisitor extends RecursiveAstVisitor2<void> {
 
   bool isUsed(FormalParameterElement parameter) =>
       _usedParameters.contains(parameter);
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.element?.baseElement;
-    if (_parameters.contains(element)) {
-      _usedParameters.add(element as FormalParameterElement);
-    }
-  }
 
   @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {

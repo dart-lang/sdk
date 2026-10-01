@@ -994,30 +994,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  _LValueTemplates visitSimpleIdentifier(SimpleIdentifier node) {
-    var staticElement = node.element;
-    if (staticElement == null) {
-      if (assignmentTargeting(node) case var assignment?) {
-        staticElement = assignment.readElement ?? assignment.writeElement;
-      }
-    }
-    switch (staticElement) {
-      case FormalParameterElement():
-      case LocalVariableElement():
-        return _LocalTemplates(locals[staticElement]!);
-      case PropertyAccessorElement(isStatic: false):
-        this_();
-        // Stack: this
-        return _PropertyAccessTemplates(node);
-      // Stack: value
-      case dynamic(:var runtimeType):
-        throw UnimplementedError(
-          'TODO(paulberry): $runtimeType: $staticElement',
-        );
-    }
-  }
-
-  @override
   Null visitSimpleStringLiteral(SimpleStringLiteral node) {
     ir.literal(ir.encodeLiteral(node.value));
     // Stack: value

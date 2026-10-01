@@ -249,14 +249,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    _checkSinceSdkVersion(node.element, node);
-  }
-
-  @override
   void visitStaticQualifier(StaticQualifier node) {
     _checkSinceSdkVersion(node.element, node, errorEntity: node.name);
     super.visitStaticQualifier(node);

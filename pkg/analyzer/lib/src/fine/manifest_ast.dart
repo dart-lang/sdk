@@ -483,11 +483,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _addElement(node.element);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {}
 
   @override

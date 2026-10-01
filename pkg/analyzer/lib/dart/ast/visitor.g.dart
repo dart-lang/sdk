@@ -3176,12 +3176,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   }
 
   @override
-  R? visitSimpleIdentifier(SimpleIdentifier node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
   R? visitSimpleStringLiteral(SimpleStringLiteral node) {
     node.visitChildren2(this);
     return null;
@@ -4678,9 +4672,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   R? visitShowCombinator(ShowCombinator node) => null;
 
   @override
-  R? visitSimpleIdentifier(SimpleIdentifier node) => null;
-
-  @override
   R? visitSimpleStringLiteral(SimpleStringLiteral node) => null;
 
   @override
@@ -6108,9 +6099,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitShowCombinator(ShowCombinator node) => _throw(node);
-
-  @override
-  R? visitSimpleIdentifier(SimpleIdentifier node) => _throw(node);
 
   @override
   R? visitSimpleStringLiteral(SimpleStringLiteral node) => _throw(node);
@@ -9396,14 +9384,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   }
 
   @override
-  T? visitSimpleIdentifier(SimpleIdentifier node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitSimpleIdentifier(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitSimpleStringLiteral(SimpleStringLiteral node) {
     stopwatch.start();
     T? result = _baseVisitor.visitSimpleStringLiteral(node);
@@ -11052,9 +11032,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitShowCombinator(ShowCombinator node) => visitNode(node);
-
-  @override
-  R? visitSimpleIdentifier(SimpleIdentifier node) => visitNode(node);
 
   @override
   R? visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);

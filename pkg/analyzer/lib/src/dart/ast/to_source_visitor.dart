@@ -1612,11 +1612,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    sink.write(node.token.lexeme);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     sink.write(node.literal.lexeme);
   }

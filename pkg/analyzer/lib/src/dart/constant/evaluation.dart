@@ -1353,26 +1353,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   }
 
   @override
-  Constant visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    if (node.element case FormalParameterElement element) {
-      var value = _lexicalEnvironment?[element.baseElement];
-      if (value != null) {
-        return _instantiateLegacyFunctionType(
-          node.tearOffTypeArgumentTypes,
-          value,
-        );
-      }
-    }
-
-    return _getConstantValue(
-      errorNode: node,
-      expression: node,
-      element: node.element,
-      tearOffTypeArgumentTypes: node.tearOffTypeArgumentTypes,
-    );
-  }
-
-  @override
   Constant visitSimpleStringLiteral(SimpleStringLiteral node) {
     return DartObjectImpl(
       typeSystem,

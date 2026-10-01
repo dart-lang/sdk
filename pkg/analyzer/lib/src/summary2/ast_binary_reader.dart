@@ -1318,10 +1318,6 @@ class AstBinaryReader {
         return _readParenthesizedExpression();
       case AstNodeTag.IncrementOrDecrementExpression:
         return _readIncrementOrDecrementExpression();
-      case AstNodeTag.PrefixedIdentifier:
-        return _readPrefixedIdentifier();
-      case AstNodeTag.PropertyAccess:
-        return _readPropertyAccess();
       case AstNodeTag.ReceiverPropertyAssignmentTarget:
         return _readReceiverPropertyAssignmentTarget();
       case AstNodeTag.ReceiverPropertyExtraction:
@@ -1342,8 +1338,6 @@ class AstBinaryReader {
         return _readRedirectingConstructorInvocation();
       case AstNodeTag.SetOrMapLiteral:
         return _readSetOrMapLiteral();
-      case AstNodeTag.SimpleIdentifier:
-        return _readSimpleIdentifier();
       case AstNodeTag.SimpleStringLiteral:
         return _readSimpleStringLiteral();
       case AstNodeTag.SpreadElement:
@@ -1466,43 +1460,6 @@ class AstBinaryReader {
       leftParenthesis: Tokens.openParenthesis(),
       expression2: expression,
       rightParenthesis: Tokens.closeParenthesis(),
-    );
-    _readExpressionResolution(node);
-    return node;
-  }
-
-  PrefixedIdentifierImpl _readPrefixedIdentifier() {
-    var prefix = _readNode() as SimpleIdentifierImpl;
-    var identifier = _readNode() as SimpleIdentifierImpl;
-    var node = PrefixedIdentifierImpl(
-      prefix: prefix,
-      period: Tokens.period(),
-      identifier: identifier,
-    );
-    _readExpressionResolution(node);
-    return node;
-  }
-
-  PropertyAccess _readPropertyAccess() {
-    var flags = _readByte();
-    var target = _readOptionalNode() as ExpressionImpl?;
-    var propertyName = _readNode() as SimpleIdentifierImpl;
-
-    Token operator;
-    if (AstBinaryFlags.hasQuestion(flags)) {
-      operator = AstBinaryFlags.hasPeriod(flags)
-          ? Tokens.questionPeriod()
-          : Tokens.questionPeriodPeriod();
-    } else {
-      operator = AstBinaryFlags.hasPeriod(flags)
-          ? Tokens.period()
-          : Tokens.periodPeriod();
-    }
-
-    var node = PropertyAccessImpl(
-      target2: target,
-      operator: operator,
-      propertyName: propertyName,
     );
     _readExpressionResolution(node);
     return node;
@@ -1759,17 +1716,6 @@ class AstBinaryReader {
       node.becomeSet();
     }
 
-    _readExpressionResolution(node);
-    return node;
-  }
-
-  SimpleIdentifier _readSimpleIdentifier() {
-    var name = _readStringReference();
-    var node = SimpleIdentifierImpl(
-      token: StringToken(TokenType.STRING, name, -1),
-    );
-    node.element = _reader.readElement();
-    node.tearOffTypeArgumentTypes = _reader.readOptionalTypeList();
     _readExpressionResolution(node);
     return node;
   }

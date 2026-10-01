@@ -1519,12 +1519,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitIfNullAssignment(covariant IfNullAssignmentImpl node) {
     var target = node.target;
     if (target is InvalidExpressionAssignmentTargetImpl) {
-      if (target.expression case SimpleIdentifierImpl(
-        element: ExecutableElement(),
-      )) {
-        _checkForDeadNullCoalesce(target.expression.typeOrThrow, node.value);
-        checkForUseOfVoidResult(target.expression);
-      }
       _constArgumentsVerifier.visitIfNullAssignment(node);
       super.visitIfNullAssignment(node);
       return;
@@ -2218,29 +2212,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForSetElementTypeNotAssignable3(node);
     }
     super.visitSetOrMapLiteral(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _constArgumentsVerifier.visitSimpleIdentifier(node);
-    _checkForAmbiguousImport(
-      element: node.writeOrReadElement2,
-      name: node.token,
-    );
-    _checkForReferenceBeforeDeclaration(
-      element: node.element,
-      nameToken: node.token,
-    );
-    _checkForInvalidInstanceMemberAccess(node);
-    _checkForTypeParameterReferencedByStatic(
-      element: node.element,
-      name: node.token,
-    );
-    if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
-      _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
-    }
-    _checkUseVerifier.checkSimpleIdentifier(node);
-    super.visitSimpleIdentifier(node);
   }
 
   @override
@@ -6179,40 +6150,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  /// Verify that if the given [identifier] is part of a constructor
-  /// initializer, then it does not implicitly reference 'this' expression.
-  ///
-  /// See [diag.implicitThisReferenceInInitializer],
-  /// [diag.instanceMemberAccessFromFactory], and
-  /// [diag.instanceMemberAccessFromStatic].
-  void _checkForInvalidInstanceMemberAccess(SimpleIdentifier identifier) {
-    // qualified method invocation
-    var parent = identifier.parent2;
-    if (parent is MethodInvocation) {
-      if (identical(parent.methodName, identifier) &&
-          parent.realTarget2 != null) {
-        return;
-      }
-    }
-    // qualified property access
-    if (parent is PropertyAccess) {
-      if (identical(parent.propertyName, identifier)) {
-        return;
-      }
-    }
-    if (parent is PrefixedIdentifier) {
-      if (identical(parent.identifier, identifier)) {
-        return;
-      }
-    }
-
-    _checkForInvalidInstanceMemberAccess2(
-      entity: identifier,
-      name: identifier.name,
-      element: identifier.writeOrReadElement2,
-    );
-  }
-
   void _checkForInvalidInstanceMemberAccess2({
     required SyntacticEntity entity,
     required String name,
@@ -7987,25 +7924,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  /// Check that if the given [name] is a reference to a static member it is
-  /// defined in the enclosing class rather than in a superclass.
-  ///
-  /// See
-  /// [diag.unqualifiedReferenceToNonLocalStaticMember].
-  void _checkForUnqualifiedReferenceToNonLocalStaticMember(
-    SimpleIdentifier name,
-  ) {
-    if (name.parent2 is DotShorthandPropertyAccessImpl ||
-        name.parent2 is DotShorthandInvocationImpl) {
-      return;
-    }
-
-    _checkForUnqualifiedReferenceToNonLocalStaticMember2(
-      entity: name,
-      element: name.writeOrReadElement2,
-    );
-  }
-
   void _checkForUnqualifiedReferenceToNonLocalStaticMember2({
     required SyntacticEntity entity,
     required Element? element,
@@ -8701,33 +8619,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return expression.propertyName.name;
     }
     return null;
-  }
-
-  /// Return `true` if the given [identifier] is in a location where it is
-  /// allowed to resolve to a static member of a supertype.
-  bool _isUnqualifiedReferenceToNonLocalStaticMemberAllowed(
-    SimpleIdentifier identifier,
-  ) {
-    if (identifier.inDeclarationContext()) {
-      return true;
-    }
-    var parent = identifier.parent2;
-    if (parent is CommentReference) {
-      return true;
-    }
-    if (parent is MethodInvocation) {
-      return identical(parent.methodName, identifier);
-    }
-    if (parent is PrefixedIdentifier) {
-      return identical(parent.identifier, identifier);
-    }
-    if (parent is PropertyAccess) {
-      return identical(parent.propertyName, identifier);
-    }
-    if (parent is SuperConstructorInvocation) {
-      return identical(parent.constructorName, identifier);
-    }
-    return false;
   }
 
   /// Return `true` if the [importElement] is the internal library `dart:_wasm`

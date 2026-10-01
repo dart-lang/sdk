@@ -1128,8 +1128,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addShowCombinator(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addSimpleIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addSimpleStringLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addSpreadElement(AbstractAnalysisRule rule, AstVisitor2 visitor);

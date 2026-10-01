@@ -538,15 +538,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
 
   _IndexContributor(this.assembler, this.unit);
 
-  /// Record that the name [node] has a relation of the given [kind].
-  void recordNameRelation(
-    SimpleIdentifier node,
-    IndexRelationKind kind,
-    bool isQualified,
-  ) {
-    assembler.addNameRelation(node.name, kind, node.offset, isQualified);
-  }
-
   /// Record reference to the given operator [Element].
   void recordOperatorReference(Token operator, Element? element) {
     recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
@@ -1320,58 +1311,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    // name in declaration
-    if (node.inDeclarationContext()) {
-      return;
-    }
-
-    var element = node.writeOrReadElement2;
-
-    // record unresolved name reference
-    bool isQualified = _isQualified(node);
-    if (element == null) {
-      bool inGetterContext = node.inGetterContext();
-      bool inSetterContext = node.inSetterContext();
-      IndexRelationKind kind;
-      if (inGetterContext && inSetterContext) {
-        kind = IndexRelationKind.IS_READ_WRITTEN_BY;
-      } else if (inGetterContext) {
-        kind = IndexRelationKind.IS_READ_BY;
-      } else {
-        kind = IndexRelationKind.IS_WRITTEN_BY;
-      }
-      recordNameRelation(node, kind, isQualified);
-    }
-    IndexRelationKind kind = IndexRelationKind.IS_REFERENCED_BY;
-    if (node.thisOrAncestorOfType<CommentReference>() != null) {
-      kind = IndexRelationKind.IS_REFERENCED_BY;
-    } else if (element is GetterElement || element is SetterElement) {
-      kind = IndexRelationKind.IS_INVOKED_BY;
-    } else if (element is FormalParameterElement) {
-      var parent = node.parent2;
-      var isGet = node.inGetterContext();
-      var isSet = node.inSetterContext();
-      if (parent is CommentReference) {
-        kind = IndexRelationKind.IS_REFERENCED_BY;
-      } else if (isGet && isSet) {
-        kind = IndexRelationKind.IS_READ_WRITTEN_BY;
-      } else if (isGet) {
-        if (parent is MethodInvocation && parent.methodName == node) {
-          kind = IndexRelationKind.IS_INVOKED_BY;
-        } else {
-          kind = IndexRelationKind.IS_READ_BY;
-        }
-      } else if (isSet) {
-        kind = IndexRelationKind.IS_WRITTEN_BY;
-      }
-    }
-
-    // record specific relations
-    recordRelation(element, kind, node, isQualified);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     // Index analyzer diagnostic expectations inside string literals.
     if (_analyzerDiagnosticLibrary case var diagnosticLibrary?) {
@@ -1563,16 +1502,6 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       }
     }
     return null;
-  }
-
-  /// Return `true` if [node] has an explicit or implicit qualifier, so that it
-  /// cannot be shadowed by a local declaration.
-  bool _isQualified(SimpleIdentifier node) {
-    if (node.isQualified) {
-      return true;
-    }
-    AstNode parent = node.parent2!;
-    return parent is Combinator || parent is Label;
   }
 
   void _recordImportPrefixedElement({

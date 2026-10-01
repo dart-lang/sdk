@@ -669,29 +669,6 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    var e = node.element;
-    if (e == element) {
-      references.add(MatchInfo(node.offset, node.length, MatchKind.REFERENCE));
-    } else if (e is GetterElement && e.variable == element) {
-      bool inGetterContext = node.inGetterContext();
-      bool inSetterContext = node.inSetterContext();
-      MatchKind kind;
-      if (inGetterContext && inSetterContext) {
-        kind = MatchKind.READ_WRITE;
-      } else if (inGetterContext) {
-        kind = MatchKind.READ;
-      } else {
-        kind = MatchKind.WRITE;
-      }
-      references.add(MatchInfo(node.offset, node.length, kind));
-    }
-  }
-
-  @override
   void visitStaticQualifier(StaticQualifier node) {
     if (node.element == element) {
       references.add(

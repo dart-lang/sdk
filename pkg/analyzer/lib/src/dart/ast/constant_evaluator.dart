@@ -696,10 +696,6 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
   }
 
   @override
-  Object? visitSimpleIdentifier(SimpleIdentifier node) =>
-      _getConstantValue(null);
-
-  @override
   Object? visitSimpleStringLiteral(SimpleStringLiteral node) => node.value;
 
   @override

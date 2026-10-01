@@ -179,14 +179,6 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (simpleIdentifier != null) {
-      simpleIdentifier!(node);
-    }
-    super.visitSimpleIdentifier(node);
-  }
-
-  @override
   void visitSwitchExpression(SwitchExpression node) {
     switchExpression?.call(node);
     super.visitSwitchExpression(node);

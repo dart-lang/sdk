@@ -400,35 +400,6 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    if (import.prefix != null) {
-      if (node.element == import.prefix?.element) {
-        var parent = node.parent2;
-        if (parent is PrefixedIdentifier && parent.prefix == node) {
-          var element = parent.writeOrReadElement2?.baseElement;
-          if (importedElements.contains(element)) {
-            _addResultForPrefix(node, parent.identifier);
-          }
-        }
-        if (parent is MethodInvocation && parent.target2 == node) {
-          var element = parent.methodName.element?.baseElement;
-          if (importedElements.contains(element)) {
-            _addResultForPrefix(node, parent.methodName);
-          }
-        }
-      }
-    } else {
-      var element = node.writeOrReadElement2?.baseElement;
-      if (importedElements.contains(element)) {
-        _addResult(node.offset, 0);
-      }
-    }
-  }
-
-  @override
   void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
     var element = switch (node.resolution) {
       ExecutableInvocationResolution(:var element) => element.baseElement,
@@ -468,11 +439,6 @@ class ImportElementReferencesVisitor extends RecursiveAstVisitor2<void> {
         false,
       ),
     );
-  }
-
-  void _addResultForPrefix(SimpleIdentifier prefixNode, AstNode nextNode) {
-    int prefixOffset = prefixNode.offset;
-    _addResult(prefixOffset, nextNode.offset - prefixOffset);
   }
 }
 
@@ -2037,38 +2003,6 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
   ) {
     _recordNamedAssignmentTarget(node);
     node.receiver.accept2(this);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    var element = node.element;
-    if (elements.contains(element)) {
-      var parent = node.parent2;
-      SearchResultKind kind = SearchResultKind.REFERENCE;
-      if (element is LocalFunctionElement) {
-        if (parent is MethodInvocation && parent.methodName == node) {
-          kind = SearchResultKind.INVOCATION;
-        }
-      } else if (element is VariableElement) {
-        bool isGet = node.inGetterContext();
-        bool isSet = node.inSetterContext();
-        if (isGet && isSet) {
-          kind = SearchResultKind.READ_WRITE;
-        } else if (isGet) {
-          if (parent is MethodInvocation && parent.methodName == node) {
-            kind = SearchResultKind.INVOCATION;
-          } else {
-            kind = SearchResultKind.READ;
-          }
-        } else if (isSet) {
-          kind = SearchResultKind.WRITE;
-        }
-      }
-      _addResult(node, kind);
-    }
   }
 
   @override

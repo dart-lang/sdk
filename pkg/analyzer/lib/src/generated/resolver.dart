@@ -61,7 +61,6 @@ import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
-import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
@@ -276,9 +275,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   late final ConstructorInvocationResolver constructorInvocationResolver =
       ConstructorInvocationResolver(this);
-
-  late final SimpleIdentifierResolver _simpleIdentifierResolver =
-      SimpleIdentifierResolver(this);
 
   late final PropertyElementResolver _propertyElementResolver =
       PropertyElementResolver(this);
@@ -1561,134 +1557,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       hasRead: hasRead,
       hasWrite: hasWrite,
     );
-  }
-
-  /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
-  /// or implicit [IncrementOrDecrementExpression].
-  PropertyElementResolverResult resolveForWrite({
-    required ExpressionImpl node,
-    required bool hasRead,
-  }) {
-    inferenceLogWriter?.enterLValue(node);
-    if (node is IndexExpressionImpl) {
-      var target = node.target2;
-      if (target != null) {
-        analyzeExpression(
-          target,
-          operations.unknownType,
-          continueNullShorting: true,
-        );
-        popRewrite();
-      }
-
-      if (node.isNullAware) {
-        _startNullAwareAccess(
-          node.target2,
-          offset: (node.period ?? node.question ?? node.leftBracket).offset,
-        );
-        nullSafetyDeadCodeVerifier.visitNode(node.index2);
-      }
-
-      var result = _propertyElementResolver.resolveIndexExpression(
-        node: node,
-        hasRead: hasRead,
-        hasWrite: true,
-      );
-
-      analyzeExpression(
-        node.index2,
-        SharedTypeSchemaView(result.indexContextType),
-      );
-      popRewrite();
-      var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-        flowAnalysis.getExpressionInfo(node.index2),
-      );
-      checkIndexExpressionIndex(
-        node.index2,
-        readElement: hasRead
-            ? result.readElement2 as InternalExecutableElement?
-            : null,
-        writeElement: result.writeElement2 as InternalExecutableElement?,
-        whyNotPromoted: whyNotPromoted,
-      );
-
-      inferenceLogWriter?.exitLValue(node);
-      return result;
-    } else if (node is PrefixedIdentifierImpl) {
-      var prefix = node.prefix;
-      analyzeExpression(
-        prefix,
-        operations.unknownType,
-        continueNullShorting: true,
-      );
-      popRewrite();
-
-      // TODO(scheglov): It would be nice to rewrite all such cases.
-      if (prefix.staticType is RecordType) {
-        var propertyAccess = PropertyAccessImpl(
-          target2: prefix,
-          operator: node.period,
-          propertyName: node.identifier,
-        );
-        node.replaceWith(propertyAccess);
-        inferenceLogWriter?.exitLValue(node);
-        return _propertyElementResolver.resolvePropertyAccess(
-          node: propertyAccess,
-          hasRead: hasRead,
-          hasWrite: true,
-        );
-      }
-
-      inferenceLogWriter?.exitLValue(node);
-      return _propertyElementResolver.resolvePrefixedIdentifier(
-        node: node,
-        hasRead: hasRead,
-        hasWrite: true,
-      );
-    } else if (node is PropertyAccessImpl) {
-      if (node.target2 case var target?) {
-        analyzeExpression(
-          target,
-          operations.unknownType,
-          continueNullShorting: true,
-        );
-        popRewrite();
-      }
-      if (node.isNullAware) {
-        _startNullAwareAccess(node.target2, offset: node.operator.offset);
-        nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
-      }
-
-      inferenceLogWriter?.exitLValue(node);
-      return _propertyElementResolver.resolvePropertyAccess(
-        node: node,
-        hasRead: hasRead,
-        hasWrite: true,
-      );
-    } else if (node is SimpleIdentifierImpl) {
-      var result = _propertyElementResolver.resolveSimpleIdentifier(
-        node: node,
-        hasRead: hasRead,
-        hasWrite: true,
-      );
-
-      if (hasRead && result.readElementRequested2 == null) {
-        diagnosticReporter.report(
-          diag.undefinedIdentifier.withArguments(name: node.name).at(node),
-        );
-      }
-
-      inferenceLogWriter?.exitLValue(node);
-      return result;
-    } else {
-      inferenceLogWriter?.exitLValue(node, reanalyzeAsRValue: true);
-      analyzeExpression(
-        node,
-        SharedTypeSchemaView(UnknownInferredType.instance),
-      );
-      popRewrite();
-      return PropertyElementResolverResult();
-    }
   }
 
   void resolveImportPrefixedAssignmentTarget(
@@ -4677,20 +4545,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   void visitShowCombinator(ShowCombinator node) {}
-
-  @override
-  void visitSimpleIdentifier(
-    covariant SimpleIdentifierImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    _simpleIdentifierResolver.resolve(node, contextType: contextType);
-    _insertImplicitCallTearOff(
-      insertGenericFunctionInstantiation(node, contextType: contextType),
-      contextType: contextType,
-    );
-    inferenceLogWriter?.exitExpression(node);
-  }
 
   @override
   void visitSimpleStringLiteral(

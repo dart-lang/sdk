@@ -2475,12 +2475,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _runSubscriptions(node, _registry._forSimpleIdentifier);
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     _runSubscriptions(node, _registry._forSimpleStringLiteral);
     node.visitChildren2(this);
@@ -4969,8 +4963,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ShowCombinator>> _forShowCombinator = [];
 
-  final List<_Subscription2<SimpleIdentifier>> _forSimpleIdentifier = [];
-
   final List<_Subscription2<SimpleStringLiteral>> _forSimpleStringLiteral = [];
 
   final List<_Subscription2<SpreadElement>> _forSpreadElement = [];
@@ -6581,12 +6573,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addShowCombinator(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forShowCombinator.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addSimpleIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forSimpleIdentifier.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

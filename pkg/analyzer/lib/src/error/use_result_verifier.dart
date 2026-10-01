@@ -88,30 +88,6 @@ class UseResultVerifier {
     }
   }
 
-  void checkSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
-    }
-
-    var parent = node.parent2;
-    // Covered by the checks for the complete parent expressions.
-    if (parent is DotShorthandConstructorInvocation ||
-        parent is DotShorthandInvocation ||
-        parent is DotShorthandPropertyAccess ||
-        parent is PropertyAccess ||
-        parent is MethodInvocation ||
-        parent is CallInvocation) {
-      return;
-    }
-
-    var element = node.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
   void _check(AstNode node, Element element, {Token? nameToken}) {
     var parent = node.parent2;
     if (parent is PrefixedIdentifier) {

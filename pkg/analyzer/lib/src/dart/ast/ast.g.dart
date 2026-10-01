@@ -888,8 +888,6 @@ abstract class AstVisitor2<R> {
 
   R? visitShowCombinator(ShowCombinator node);
 
-  R? visitSimpleIdentifier(SimpleIdentifier node);
-
   R? visitSimpleStringLiteral(SimpleStringLiteral node);
 
   R? visitSpreadElement(SpreadElement node);

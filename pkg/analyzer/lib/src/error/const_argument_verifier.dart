@@ -144,19 +144,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var parent = node.parent2;
-    if (parent is PropertyAccess && parent.propertyName == node) return;
-    if (parent is PrefixedIdentifier && parent.identifier == node) return;
-    if (parent is DotShorthandPropertyAccess && parent.propertyName == node) {
-      return;
-    }
-    if (parent is DotShorthandInvocation && parent.memberName == node) return;
-    if (parent is MethodInvocation && parent.methodName == node) return;
-    _checkTearoff(node, node.element);
-  }
-
-  @override
   void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     _check(
       arguments: node.argumentList.arguments2,

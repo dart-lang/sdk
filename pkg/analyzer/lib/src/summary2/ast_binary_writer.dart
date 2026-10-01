@@ -745,41 +745,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _sink.writeEnum(AstNodeTag.PrefixedIdentifier);
-    _writeNode(node.prefix);
-    _writeNode(node.identifier);
-
-    // TODO(scheglov): In actual prefixed identifier, the type of the identifier.
-    _storeExpression(node);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _sink.writeEnum(AstNodeTag.PropertyAccess);
-
-    var operatorType = node.operator.type;
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasPeriod:
-            operatorType == TokenType.PERIOD ||
-            operatorType == TokenType.QUESTION_PERIOD,
-        hasPeriod2:
-            operatorType == TokenType.PERIOD_PERIOD ||
-            operatorType == TokenType.QUESTION_PERIOD_PERIOD,
-        hasQuestion:
-            operatorType == TokenType.QUESTION_PERIOD ||
-            operatorType == TokenType.QUESTION_PERIOD_PERIOD,
-      ),
-    );
-
-    _writeOptionalNode(node.target2);
-    _writeNode(node.propertyName);
-    // TODO(scheglov): Get from the property?
-    _storeExpression(node);
-  }
-
-  @override
   void visitReceiverIndexAssignmentTarget(
     covariant ReceiverIndexAssignmentTargetImpl node,
   ) {
@@ -936,17 +901,6 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
 
     _writeOptionalNode(node.typeArguments);
     _writeNodeList(node.elements2);
-
-    _storeExpression(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _sink.writeEnum(AstNodeTag.SimpleIdentifier);
-    _writeStringReference(node.name);
-
-    _sink.writeElement(node.element);
-    _sink.writeOptionalTypeList(node.tearOffTypeArgumentTypes);
 
     _storeExpression(node);
   }

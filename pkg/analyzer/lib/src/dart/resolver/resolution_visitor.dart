@@ -765,18 +765,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   void visitReceiverPropertyAssignmentTarget(
     covariant ReceiverPropertyAssignmentTargetImpl node,
   ) {
-    if (node.receiver case SimpleIdentifierImpl receiver
-        when node.operator.type == TokenType.PERIOD) {
-      var target = _importPrefixedAssignmentTarget(
-        receiver.token,
-        node.operator,
-        node.name,
-      );
-      if (target != null) {
-        node.replaceWith(target);
-        return;
-      }
-    }
     node.visitChildren2(this);
   }
 
@@ -819,30 +807,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       super.visitShowCombinator(node);
     } finally {
       scope?.importsTrackingActive(true);
-    }
-  }
-
-  @override
-  void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    var newNode = _astRewriter.simpleIdentifier(nameScope, node);
-    if (newNode != node) {
-      return newNode.accept2(this);
-    }
-
-    var scopeLookupResult = nameScope.lookup(node.name);
-    node.scopeLookupResult = scopeLookupResult;
-
-    var element = scopeLookupResult.getter;
-    if (element is PromotableElementImpl) {
-      node.element = element;
-
-      if (element is JoinPatternVariableElementImpl) {
-        element.references.add(node.token);
-      }
-    }
-
-    if (node.inSetterContext()) {
-      _recordUnqualifiedWrite(scopeLookupResult, node);
     }
   }
 
@@ -1081,20 +1045,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     } else {
       return NullabilitySuffix.none;
     }
-  }
-
-  ImportPrefixedAssignmentTargetImpl? _importPrefixedAssignmentTarget(
-    Token prefixName,
-    Token period,
-    Token name,
-  ) {
-    var element = nameScope.lookup(prefixName.lexeme).getter;
-    if (element is! PrefixElement) return null;
-    return ImportPrefixedAssignmentTargetImpl(
-      importPrefix: ImportPrefixReferenceImpl(name: prefixName, period: period)
-        ..element = element,
-      name: name,
-    );
   }
 
   AstNode? _lookupBreakOrContinueTarget(

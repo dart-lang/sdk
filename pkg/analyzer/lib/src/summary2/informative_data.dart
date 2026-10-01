@@ -2369,11 +2369,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _tokenOrNull(node.token);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     _tokenOrNull(node.literal);
   }

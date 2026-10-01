@@ -481,38 +481,6 @@ class AstRewriter {
     return node;
   }
 
-  AstNode simpleIdentifier(Scope nameScope, SimpleIdentifierImpl node) {
-    if (node.isSynthetic) {
-      return node;
-    }
-    var parent = node.parent2;
-    if (parent is ReceiverPropertyAssignmentTargetImpl &&
-        identical(parent.receiver, node) &&
-        nameScope.lookup(node.name).getter is PrefixElement) {
-      // Import-prefixed read/write targets currently retain their legacy
-      // prefix receiver until they have a dedicated canonical target node.
-      return node;
-    }
-    if (_isTypeLiteralContext(parent, node)) {
-      var lookup = nameScope.lookup(node.name);
-      switch (lookup.getter) {
-        case DynamicElementImpl():
-        case InterfaceElementImpl():
-        case NeverElementImpl():
-        case TypeAliasElementImpl():
-        case TypeParameterElementImpl():
-          return _toTypeLiteral(node);
-      }
-
-      var expression = UnqualifiedNameExpressionImpl(name: node.token)
-        ..scopeLookupResult = lookup;
-      node.replaceWith(expression);
-      return expression;
-    }
-
-    return node;
-  }
-
   bool _isTypeLiteralContext(AstNode? parent, ExpressionImpl node) {
     if (parent is AstNodeImpl) {
       return parent.isInValueExpressionSlot(node);

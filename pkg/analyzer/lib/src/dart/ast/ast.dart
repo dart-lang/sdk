@@ -45030,6 +45030,10 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     resolver.visitPrefixedIdentifier(this, contextType: contextType);
   }
 
+  @override
+  String toSource() =>
+      '${_prefix.toSource()}${period.lexeme}${_identifier.toSource()}';
+
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
@@ -51243,16 +51247,19 @@ abstract final class SimpleIdentifier implements Identifier {
   bool inSetterContext();
 }
 
-@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('token')])
+/// The V1 compatibility projection of a name.
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [GenerateNodeProperty('token')],
+)
 final class SimpleIdentifierImpl extends IdentifierImpl
     implements SimpleIdentifier {
   @generated
   @override
   final Token token;
 
-  AstNodeApi? _astNodeApiOverride;
-
-  ExpressionImpl? _v1ProjectionOrigin;
+  final ExpressionImpl? _v1ProjectionOrigin;
 
   /// The element associated with this identifier based on static type
   /// information, or `null` if the AST structure hasn't been resolved or if
@@ -51263,33 +51270,10 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   List<TypeImpl>? tearOffTypeArgumentTypes;
 
-  /// If this identifier is meant to be looked up in the enclosing scope, the
-  /// raw result the scope lookup, prior to figuring out whether a write or a
-  /// read context is intended, and prior to falling back on implicit `this` (if
-  /// appropriate).
-  ///
-  /// Or `null` if this identifier isn't meant to be looked up in the enclosing
-  /// scope.
-  ScopeLookupResult? scopeLookupResult;
-
-  @generated
-  SimpleIdentifierImpl({required this.token});
-
   SimpleIdentifierImpl.v1Projection({
     required this.token,
     ExpressionImpl? origin,
-  }) : _astNodeApiOverride = AstNodeApi.v1,
-       _v1ProjectionOrigin = origin;
-
-  /// The cascade that contains this [SimpleIdentifier].
-  CascadeExpressionImpl? get ancestorCascade {
-    var operatorType = token.previous?.type;
-    if (operatorType == TokenType.PERIOD_PERIOD ||
-        operatorType == TokenType.QUESTION_PERIOD_PERIOD) {
-      return thisOrAncestorOfType2<CascadeExpressionImpl>();
-    }
-    return null;
-  }
+  }) : _v1ProjectionOrigin = origin;
 
   @generated
   @override
@@ -51346,9 +51330,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   Precedence get precedence => Precedence.primary;
 
-  @DoNotGenerate(reason: 'Some instances are V1 compatibility projections')
+  @generated
   @override
-  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @override
@@ -51356,8 +51340,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addToken('token', token);
+  ChildEntities get _childEntities2 {
+    throw StateError('SimpleIdentifier is not in the V2 AST view.');
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -51367,7 +51352,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSimpleIdentifier(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('SimpleIdentifier is not in the V2 AST view.');
+  }
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() {
@@ -51475,15 +51462,30 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
+    assert(identical(child.parent, this));
     return false;
   }
 
   @generated
   @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitSimpleIdentifier(this, contextType: contextType);
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('SimpleIdentifier is a V1 projection.');
+  }
+
+  @override
+  String toSource() => token.lexeme;
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -51493,12 +51495,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   @experimental
   @override
-  void visitChildren2(AstVisitor2 visitor) {}
-
-  /// Visits the children of this node.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('SimpleIdentifier is not in the V2 AST view.');
+  }
 
   @generated
   @override
@@ -51509,7 +51508,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    return null;
+    throw StateError('SimpleIdentifier is not in the V2 AST view.');
   }
 }
 

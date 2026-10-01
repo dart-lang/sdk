@@ -67,6 +67,30 @@ int Function(int) f(C c) => c;
     _assertSource('c', result.findNodeV1.singleImplicitCallReference);
   }
 
+  test_prefixedIdentifier() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'dart:math' as math;
+var x = math.pi;
+''');
+    _assertSource('math.pi', result.findNodeV1.singlePrefixedIdentifier);
+  }
+
+  test_simpleIdentifier() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+var foo = 0;
+var x = foo;
+''');
+    _assertSource('foo', result.findNodeV1.simple('foo;'));
+  }
+
+  test_unqualifiedNameExpression() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+var foo = 0;
+var x = foo;
+''');
+    _assertSource('foo', result.findNode.singleUnqualifiedNameExpression);
+  }
+
   void _assertSource(String expected, AstNode node) {
     expect(node.toString(), expected);
   }
@@ -4020,15 +4044,6 @@ class A {
 }
 ''');
     var node = parseResult.findNode.singleRegularFormalParameter;
-    _assertSource(code, node);
-  }
-
-  void test_visitSimpleIdentifier() {
-    var code = 'foo';
-    var parseResult = parseTestCodeWithDiagnostics('''
-var x = $code;
-''');
-    var node = parseResult.findNodeV1.singleSimpleIdentifier;
     _assertSource(code, node);
   }
 

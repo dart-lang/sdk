@@ -303,18 +303,6 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.element;
-    if (element is GetterElementImpl) {
-      element = element.variable;
-    }
-
-    if (element is VariableElementImpl && element.isConst) {
-      _callback(element);
-    }
-  }
-
-  @override
   void visitSuperConstructorInvocation(
     covariant SuperConstructorInvocationImpl node,
   ) {

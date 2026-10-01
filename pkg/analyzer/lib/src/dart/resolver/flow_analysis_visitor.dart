@@ -1268,18 +1268,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.element;
-    if (element is PromotableElementImpl &&
-        node.inGetterContext() &&
-        node.parent2 is! FormalParameter &&
-        node.parent2 is! CatchClause &&
-        node.parent2 is! CommentReference) {
-      assignedVariables.read(element);
-    }
-  }
-
-  @override
   void visitSwitchExpression(covariant SwitchExpressionImpl node) {
     node.expression2.accept2(this);
 
