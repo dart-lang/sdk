@@ -204,23 +204,22 @@ def main():
                     'DEVTOOLS_PACKAGE': 'devtools_app'
                 }
             })
-        # TODO(srawlins): Enable more devtools_app integration tests.
-        #     jobs.append({
-        #         'script': 'tool/ci/bots.sh',
-        #         'env': {
-        #             'BOT': bot,
-        #             'DEVICE': 'flutter-web',
-        #             'DEVTOOLS_PACKAGE': 'devtools_app'
-        #         }
-        #     })
-        #     jobs.append({
-        #         'script': 'tool/ci/bots.sh',
-        #         'env': {
-        #             'BOT': bot,
-        #             'DEVICE': 'dart-cli',
-        #             'DEVTOOLS_PACKAGE': 'devtools_app'
-        #         }
-        #     })
+            jobs.append({
+                'script': 'tool/ci/bots.sh',
+                'env': {
+                    'BOT': bot,
+                    'DEVICE': 'flutter-web',
+                    'DEVTOOLS_PACKAGE': 'devtools_app'
+                }
+            })
+            jobs.append({
+                'script': 'tool/ci/bots.sh',
+                'env': {
+                    'BOT': bot,
+                    'DEVICE': 'dart-cli',
+                    'DEVTOOLS_PACKAGE': 'devtools_app'
+                }
+            })
 
         # TODO(srawlins): Enable benchmark_performance tests.
         # jobs.append({'script': 'tool/ci/benchmark_performance.sh', 'env': {}})
