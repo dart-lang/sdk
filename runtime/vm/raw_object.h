@@ -2662,6 +2662,7 @@ class UntaggedContext : public UntaggedObject {
 
 #define CONTEXT_SCOPE_VARIABLE_DESC_FLAG_LIST(V)                               \
   V(Final)                                                                     \
+  V(EffectivelyFinal)                                                          \
   V(Late)                                                                      \
   V(Nullable)                                                                  \
   V(Invisible)                                                                 \

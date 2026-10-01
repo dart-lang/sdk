@@ -143,6 +143,15 @@ class LocalVariable : public ZoneObject {
   bool is_final() const { return IsFinalBit::decode(bitfield_); }
   void set_is_final() { bitfield_ = IsFinalBit::update(true, bitfield_); }
 
+  // True if the variable is initialized at declaration (or function entry) and
+  // never written to afterwards.
+  bool is_effectively_final() const {
+    return IsEffectivelyFinalBit::decode(bitfield_);
+  }
+  void set_is_effectively_final(bool value = true) {
+    bitfield_ = IsEffectivelyFinalBit::update(value, bitfield_);
+  }
+
   bool is_captured() const { return IsCapturedBit::decode(bitfield_); }
   void set_is_captured() { bitfield_ = IsCapturedBit::update(true, bitfield_); }
 
@@ -225,11 +234,16 @@ class LocalVariable : public ZoneObject {
   const char* ToCString() const;
 
  private:
-  // If true, this variable is readonly.
+  // If true, this variable is syntactically final.
   using IsFinalBit = BitField<uint32_t, bool, 0, 1>;
+  // If true, this variable is initialized at declaration (or function entry)
+  // and never written to afterwards.
+  using IsEffectivelyFinalBit =
+      BitField<uint32_t, bool, IsFinalBit::kNextBit, 1>;
   // If true, this variable lives in the context, otherwise
   // in the stack frame.
-  using IsCapturedBit = BitField<uint32_t, bool, IsFinalBit::kNextBit, 1>;
+  using IsCapturedBit =
+      BitField<uint32_t, bool, IsEffectivelyFinalBit::kNextBit, 1>;
   using IsInvisibleBit = BitField<uint32_t, bool, IsCapturedBit::kNextBit, 1>;
   using IsLateBit = BitField<uint32_t, bool, IsInvisibleBit::kNextBit, 1>;
 

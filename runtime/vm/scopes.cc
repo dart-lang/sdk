@@ -454,6 +454,8 @@ ContextScopePtr LocalScope::PreserveOuterScope(
       context_scope.SetNameAt(captured_idx, variable->name());
       context_scope.ClearFlagsAt(captured_idx);
       context_scope.SetIsFinalAt(captured_idx, variable->is_final());
+      context_scope.SetIsEffectivelyFinalAt(captured_idx,
+                                            variable->is_effectively_final());
       context_scope.SetIsLateAt(captured_idx, variable->is_late());
       if (variable->is_late()) {
         context_scope.SetLateInitOffsetAt(captured_idx,
@@ -540,6 +542,9 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
     if (context_scope.IsFinalAt(i)) {
       variable->set_is_final();
     }
+    if (context_scope.IsEffectivelyFinalAt(i)) {
+      variable->set_is_effectively_final();
+    }
     if (is_late) {
       variable->set_is_late();
       variable->set_late_init_offset(context_scope.LateInitOffsetAt(i));
@@ -572,6 +577,7 @@ ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetNameAt(0, Symbols::This());
   context_scope.ClearFlagsAt(0);
   context_scope.SetIsFinalAt(0, true);
+  context_scope.SetIsEffectivelyFinalAt(0, true);
   const AbstractType& type = AbstractType::Handle(func.ParameterTypeAt(0));
   context_scope.SetTypeAt(0, type);
   context_scope.SetCidAt(0, kIllegalCid);

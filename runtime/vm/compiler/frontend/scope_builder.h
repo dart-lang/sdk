@@ -44,7 +44,7 @@ class ScopeBuilder {
   void VisitListOfNamedExpressions();
   void VisitArguments();
   void VisitVariableDeclaration();
-  void VisitVariable();
+  LocalVariable* VisitVariable();
   void VisitVariableGet(intptr_t declaration_binary_offset);
   void VisitDartType();
   void VisitInterfaceType(bool simple);
