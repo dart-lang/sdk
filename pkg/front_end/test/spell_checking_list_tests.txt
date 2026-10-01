@@ -14,6 +14,7 @@ aaa
 aarhus
 ab
 abcompile
+abramowitz
 ac
 aci
 acn
@@ -29,6 +30,7 @@ aei
 aen
 aer
 af
+alarms
 albeit
 aligns
 alleged
@@ -50,16 +52,20 @@ annoying
 anon
 aoo
 aotruntime
+apart
 applier
+approaches
 approval
 approve
 approximation
 arbitrarily
+arcsine
 area
 arglebargle
 arr
 arrive
 asdf
+asin
 asserter
 assure
 asterisk
@@ -84,6 +90,7 @@ backing
 bail
 bailing
 bailout
+bandwidth
 bar'baz
 bar\'baz
 barbar
@@ -100,6 +107,7 @@ benchmarkers
 besides
 beta
 bigger
+bisect
 bitmask
 bivariant
 bkonyi
@@ -110,9 +118,11 @@ bleeding
 bler
 blorp
 bold
+bonferroni
 boo
 boollist
 bools
+boost
 bootstrapping
 bots
 boundaries
@@ -146,11 +156,13 @@ captions
 carefully
 categorization
 categorize
+cauchy
 causal
 cb
 cc
 ccc
 cdee
+cdf
 cells
 center
 certificate
@@ -172,6 +184,7 @@ cmp
 cnn
 coded
 codepath
+coefficients
 coincidences
 cold
 collisions
@@ -183,6 +196,8 @@ companion
 comparative
 comparators
 comparer
+compensate
+competing
 compiler's
 complement
 complicated
@@ -198,17 +213,22 @@ constr
 constrains
 consts
 contract
+converges
 conversions
 coo
 cores
 corge
 corners
 costing
+course
 cov
 coverable
 coverages
 cp
 cpu
+cpufreq
+cpuinfo
+cpus
 csi
 ct
 ctrl
@@ -259,6 +279,7 @@ descending
 descriptors
 deviation
 deviations
+df
 dfast
 dfuzz
 di
@@ -281,6 +302,8 @@ discrepancies
 dispatcher
 dispose
 dist
+distribution
+distribution's
 diterations
 div
 divergent
@@ -293,6 +316,7 @@ doo
 downstream
 draw
 drift
+drifted
 dry
 dsemi
 dskip
@@ -302,6 +326,7 @@ dupe
 dur
 durations
 dw
+dx
 e's
 ea
 ease
@@ -350,6 +375,7 @@ fac
 failsafe
 faking
 falling
+family
 fasta
 faults
 favors
@@ -364,6 +390,7 @@ filler
 filters
 fin
 fisk
+fitted
 five
 fixtures
 fl
@@ -386,7 +413,9 @@ forty
 fortytwo
 foundation
 fox
+fpu
 fq
+fragmentation
 frequency
 frozen
 fruits
@@ -414,10 +443,12 @@ gm
 golem
 goo
 google
+governor
 graphic
 grault
 greeting
 gtgt
+guest
 gulp
 gunk
 ha
@@ -444,9 +475,14 @@ hosting
 hot
 hotreload
 hover
+huge
+hugepage
 hunk
 hurray
+hyperthread
+hypervisor
 i'm
+i'th
 ia
 icache
 identification
@@ -486,6 +522,8 @@ intel
 interactions
 interactive
 interchangeable
+interleave
+interleaving
 internet
 interpolate
 interpolator
@@ -494,6 +532,8 @@ introducer
 inv
 involves
 ioo
+iowait
+irq
 irrespective
 ish
 iso
@@ -514,6 +554,7 @@ ko
 koo
 la
 lambdas
+lanczos
 lat
 launch
 launching
@@ -522,6 +563,7 @@ le
 leftovers
 legs
 lengths
+lentz
 lightly
 likewise
 lily
@@ -531,8 +573,10 @@ listening
 listing
 llc
 ln
+loadavg
 locale
 locating
+logarithm
 logs
 loo
 lookahead
@@ -540,6 +584,9 @@ loopback
 lsp
 ma
 mac
+machine's
+machines
+madvise
 maker
 manual
 matters
@@ -547,6 +594,7 @@ mds
 meaningless
 measured
 measurement
+measuring
 merger
 mf
 mfs
@@ -609,6 +657,7 @@ nq
 null'ed
 numbered
 numerator
+numerical
 nums
 ob
 obool
@@ -620,6 +669,7 @@ oh
 okay
 ol
 onefour
+online
 onull
 oo
 oobar
@@ -645,6 +695,7 @@ overly
 ox
 pack
 packet
+pages
 paging
 paint
 parallax
@@ -679,6 +730,7 @@ policy
 pooled
 population
 portions
+powersave
 pp
 pr
 practise
@@ -703,6 +755,7 @@ protected
 proved
 proxy
 pseudocode
+pstate
 pt
 pubspec
 punch
@@ -711,6 +764,10 @@ pv
 px
 py
 python
+qab
+qam
+qap
+qt
 quicker
 quit
 quot
@@ -720,6 +777,7 @@ ram
 rate
 reality
 recalculate
+recipes
 recompilation
 recompiles
 redir
@@ -729,6 +787,7 @@ reducer
 reenable
 reexport
 referential
+reflection
 refname
 refs
 refusing
@@ -736,6 +795,7 @@ regards
 regenerate
 regex
 regressions
+regularized
 reify
 reject
 relinked
@@ -754,6 +814,8 @@ reproduce
 reproduction
 req
 resetting
+residual
+residuals
 resuming
 retaining
 retainingpath
@@ -763,6 +825,7 @@ revisions
 risky
 rk
 rnone
+rounds
 route
 routines
 row
@@ -790,6 +853,7 @@ sdks
 secondary
 secondtest
 secure
+seed
 seemingly
 segment
 selection
@@ -813,6 +877,8 @@ sidebar
 sided
 sigint
 signalled
+significance
+significantly
 sigterm
 sigwinch
 silence
@@ -822,9 +888,11 @@ sleep
 slice
 slight
 sliver
+slope
 sm
 smoke
 snull
+softirq
 somehow
 sorter
 soundly
@@ -841,7 +909,9 @@ splitting
 spurious
 sqrt
 squared
+squares
 ss
+sse
 ssls
 sssp
 stacks
@@ -852,7 +922,11 @@ statistics
 stats
 stay
 std
+steadily
+steal
+stegun
 stopwatches
+straddle
 streams
 stress
 stretch
@@ -861,6 +935,8 @@ strip
 strongest
 stub's
 stuck
+student
+student's
 stupid
 subcommand
 subdir
@@ -880,18 +956,23 @@ supermixin
 supplement
 suspension
 swallow
+sxx
+sxy
+sys
 t\b\f\u
 t\u
 ta
 tails
 taskset
 te
+temperature
 templates
 testfile
 theoretically
 there'll
 thereby
 thereof
+thp
 thread
 threads
 ticks
@@ -902,14 +983,17 @@ timer
 timings
 tinv
 tk
+tlb
 told
 tooltip
+topology
 touch
 tpt
 transitively
 translators
 transparent
 treenode
+trend
 triangle
 triggers
 trimming
@@ -921,6 +1005,7 @@ tta
 ttest
 ttta
 tttta
+turbo
 twotwo
 txt
 typeargs
@@ -964,6 +1049,7 @@ versioned
 vf
 virtually
 visualization
+vme
 vp
 vscode
 vt
@@ -972,6 +1058,7 @@ waited
 waits
 wall
 walt
+warm
 warmup
 warmups
 week
@@ -990,6 +1077,7 @@ worse
 wrongly
 ws
 x's
+x^a
 xb
 xf
 xfq

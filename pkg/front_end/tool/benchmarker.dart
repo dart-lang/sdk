@@ -4,8 +4,10 @@
 
 import "dart:convert";
 import "dart:io";
+import "dart:math";
 
 import '../test/utils/io_utils.dart' show computeRepoDirUri;
+import 'benchmarker_machine_check.dart';
 import 'benchmarker_stats.dart';
 
 late final Uri repoDir = computeRepoDirUri();
@@ -17,7 +19,12 @@ void main(List<String> args) {
   bool doDisabledGcBenchmarkToo = false;
   bool silent = false;
   bool showAll = false;
+  bool interleave = true;
+  bool checkMachine = true;
+  bool strict = false;
+  int? seed;
   int iterations = 5;
+  int warmup = 1;
   int core = 7;
   int gcRuns = 1;
   String? aotRuntime;
@@ -62,6 +69,21 @@ void main(List<String> args) {
       if (rawOutputPath.isEmpty) {
         throw "--raw-output requires a file name (e.g. --raw-output=out.json).";
       }
+    } else if (arg == "--no-interleave") {
+      interleave = false;
+    } else if (arg.startsWith("--seed=")) {
+      String value = arg.substring("--seed=".length);
+      seed = int.tryParse(value);
+      if (seed == null) throw "--seed must be an integer (got '$value').";
+    } else if (arg.startsWith("--warmup=")) {
+      String value = arg.substring("--warmup=".length);
+      int? parsed = int.tryParse(value);
+      if (parsed == null) throw "--warmup must be an integer (got '$value').";
+      warmup = parsed;
+    } else if (arg == "--no-machine-check") {
+      checkMachine = false;
+    } else if (arg == "--strict") {
+      strict = true;
     } else {
       throw "Don't know argument '$arg'";
     }
@@ -76,11 +98,41 @@ void main(List<String> args) {
     // variance.
     throw "--iterations must be at least 2 (got $iterations).";
   }
+  if (warmup < 0) {
+    throw "--warmup must not be negative (got $warmup).";
+  }
   if (arguments.isEmpty) {
     print("Note: Running without any arguments to the snapshots.");
   }
   while (snapshotSpecificArguments.length < snapshots.length) {
     snapshotSpecificArguments.add([]);
+  }
+  String? coreError = checkCore(core);
+  if (coreError != null) throw coreError;
+  if (checkMachine) {
+    List<String> machineWarnings = checkMachineSetup(core);
+    if (machineWarnings.isEmpty) {
+      print("Machine setup check: no issues found.");
+    } else {
+      print("Machine setup check (pass --no-machine-check to skip):");
+      for (String warning in machineWarnings) {
+        print("  Warning: $warning");
+      }
+    }
+    print("");
+  }
+  Random? random;
+  if (interleave) {
+    seed ??= new Random().nextInt(1 << 32);
+    random = new Random(seed);
+    print(
+      "Interleaving runs in random order "
+      "(seed $seed; pass --seed=$seed to reproduce).",
+    );
+    print("Results use a paired t-test on the per-round differences.");
+  } else {
+    print("Not interleaving runs.");
+    print("Results use an unpaired t-test.");
   }
   RawOutput? rawOutput = rawOutputPath == null
       ? null
@@ -90,10 +142,13 @@ void main(List<String> args) {
           snapshotSpecificArguments: snapshotSpecificArguments,
           arguments: arguments,
           core: core,
+          interleave: interleave,
+          seed: interleave ? seed : null,
         );
 
   _doRun(
     iterations,
+    warmup,
     snapshots,
     aotRuntime,
     core,
@@ -103,14 +158,17 @@ void main(List<String> args) {
     cacheBenchmarking: false,
     silent: silent,
     showAll: showAll,
+    strict: strict,
     gcRuns: gcRuns,
     rawOutput: rawOutput,
+    random: random,
     phase: "default",
   );
   if (doCacheBenchmarkingToo) {
     print("");
     _doRun(
       iterations,
+      warmup,
       snapshots,
       aotRuntime,
       core,
@@ -120,8 +178,10 @@ void main(List<String> args) {
       cacheBenchmarking: true,
       silent: silent,
       showAll: showAll,
+      strict: strict,
       gcRuns: gcRuns,
       rawOutput: rawOutput,
+      random: random,
       phase: "cache",
     );
   }
@@ -129,6 +189,7 @@ void main(List<String> args) {
     print("");
     _doRun(
       iterations,
+      warmup,
       snapshots,
       aotRuntime,
       core,
@@ -138,12 +199,14 @@ void main(List<String> args) {
       cacheBenchmarking: false,
       silent: silent,
       showAll: showAll,
+      strict: strict,
       gcRuns: 0,
       extraVmArguments: [
         "--new_gen_semi_initial_size=10000",
         "--new_gen_semi_max_size=20000",
       ],
       rawOutput: rawOutput,
+      random: random,
       phase: "no-gc",
     );
 
@@ -160,6 +223,7 @@ void main(List<String> args) {
 
 void _doRun(
   int iterations,
+  int warmup,
   List<String> snapshots,
   String aotRuntime,
   int core,
@@ -169,15 +233,27 @@ void _doRun(
   required bool cacheBenchmarking,
   required bool silent,
   required bool showAll,
+  required bool strict,
   required int gcRuns,
   List<String>? extraVmArguments,
   RawOutput? rawOutput,
   required String phase,
+
+  // If non-null, the runs are interleaved, using `random` to pick the order
+  // of the snapshots in each round. If null, all runs of one snapshot are
+  // done before moving on to the next snapshot.
+  required Random? random,
 }) {
   print(
     "Will now run $iterations+$gcRuns iterations with "
     "${snapshots.length} snapshots.",
   );
+  if (warmup > 0) {
+    print(
+      "Each snapshot will first be run $warmup extra time(s) as warm-up; "
+      "these runs are not included in the results.",
+    );
+  }
 
   if (extraVmArguments != null && extraVmArguments.isNotEmpty) {
     print("Running with extra vm arguments: ${extraVmArguments.join(" ")}");
@@ -192,7 +268,7 @@ void _doRun(
     }
 
     if (lines > 80) lines = 80;
-    int totalNumberOfRuns = (iterations + gcRuns) * snapshots.length;
+    int totalNumberOfRuns = (warmup + iterations + gcRuns) * snapshots.length;
     if (totalNumberOfRuns < lines) lines = totalNumberOfRuns;
     List<int> charCodes = List.filled(lines, ".".codeUnitAt(0));
     for (int i = 9; i < charCodes.length; i += 10) {
@@ -201,82 +277,136 @@ void _doRun(
     print(new String.fromCharCodes(charCodes));
   }
 
-  List<List<Map<String, num>>> runResults = [];
-  List<List<GCInfo>> gcInfos = [];
+  List<List<Map<String, num>>> runResults = [
+    for (int i = 0; i < snapshots.length; i++) [],
+  ];
+  List<List<GCInfo>> gcInfos = [for (int i = 0; i < snapshots.length; i++) []];
   Warnings warnings = new Warnings();
   int writes = 0;
-  for (int snapshotNum = 0; snapshotNum < snapshots.length; snapshotNum++) {
-    String snapshot = snapshots[snapshotNum];
-    List<String> usedArguments = [
-      ...arguments,
-      ...snapshotSpecificArguments[snapshotNum],
-    ];
-    List<GCInfo> gcInfo = [];
-    gcInfos.add(gcInfo);
-    List<Map<String, num>> snapshotResults = [];
-    runResults.add(snapshotResults);
-    for (int iteration = 0; iteration < iterations; iteration++) {
-      // We want this silent to mean no stdout print, but still want progress
-      // info which is what the dot provides.
-      if (silent) {
-        writes = _silentWrite(writes, lines);
-      }
-      DateTime startTime = new DateTime.now();
-      Map<String, num> benchmarkRun = _benchmark(
-        aotRuntime,
-        core,
-        snapshot,
-        extraVmArguments ?? [],
-        usedArguments,
-        warnings: warnings,
-        cacheBenchmarking: cacheBenchmarking,
-        silent: silent,
-      );
-      if (checkFileSize != null) {
-        File f = new File(checkFileSize);
-        if (f.existsSync()) {
-          benchmarkRun["filesize"] = f.lengthSync();
-        }
-      }
-      snapshotResults.add(benchmarkRun);
-      rawOutput?.addRun(
-        phase: phase,
-        kind: "measure",
-        snapshotIndex: snapshotNum,
-        iteration: iteration,
-        startTime: startTime,
-        endTime: new DateTime.now(),
-        values: benchmarkRun,
-      );
-    }
 
-    // Do GC runs too.
-    for (int i = 0; i < gcRuns; i++) {
-      if (silent) {
-        writes = _silentWrite(writes, lines);
+  List<String> usedArgumentsFor(int snapshotNum) => [
+    ...arguments,
+    ...snapshotSpecificArguments[snapshotNum],
+  ];
+
+  // Runs [snapshotNum] under `perf stat`. If [isWarmup] is `true`, the result
+  // is only recorded in the raw output, not used in the comparison.
+  void measure(
+    int snapshotNum,
+    int iteration, {
+    int? positionInRound,
+    bool isWarmup = false,
+  }) {
+    // We want this silent to mean no stdout print, but still want progress
+    // info which is what the dot provides.
+    if (silent) {
+      writes = _silentWrite(writes, lines);
+    }
+    DateTime startTime = new DateTime.now();
+    Map<String, num> benchmarkRun = _benchmark(
+      aotRuntime,
+      core,
+      snapshots[snapshotNum],
+      extraVmArguments ?? [],
+      usedArgumentsFor(snapshotNum),
+      warnings: warnings,
+      cacheBenchmarking: cacheBenchmarking,
+      silent: silent,
+    );
+    if (checkFileSize != null) {
+      File f = new File(checkFileSize);
+      if (f.existsSync()) {
+        benchmarkRun["filesize"] = f.lengthSync();
       }
-      DateTime startTime = new DateTime.now();
-      GCInfo info = _verboseGcRun(
-        aotRuntime,
-        snapshot,
-        [],
-        usedArguments,
-        silent: true,
-      );
-      gcInfo.add(info);
-      rawOutput?.addRun(
-        phase: phase,
-        kind: "gc",
-        snapshotIndex: snapshotNum,
-        iteration: i,
-        startTime: startTime,
-        endTime: new DateTime.now(),
-        values: {"combinedGcTimeMs": info.combinedTime, ...info.countWhat},
-      );
+    }
+    if (!isWarmup) runResults[snapshotNum].add(benchmarkRun);
+    rawOutput?.addRun(
+      phase: phase,
+      kind: isWarmup ? "warmup" : "measure",
+      snapshotIndex: snapshotNum,
+      iteration: iteration,
+      positionInRound: positionInRound,
+      startTime: startTime,
+      endTime: new DateTime.now(),
+      values: benchmarkRun,
+    );
+  }
+
+  void gcRun(int snapshotNum, int iteration, {int? positionInRound}) {
+    if (silent) {
+      writes = _silentWrite(writes, lines);
+    }
+    DateTime startTime = new DateTime.now();
+    GCInfo info = _verboseGcRun(
+      aotRuntime,
+      snapshots[snapshotNum],
+      [],
+      usedArgumentsFor(snapshotNum),
+      silent: true,
+    );
+    gcInfos[snapshotNum].add(info);
+    rawOutput?.addRun(
+      phase: phase,
+      kind: "gc",
+      snapshotIndex: snapshotNum,
+      iteration: iteration,
+      positionInRound: positionInRound,
+      startTime: startTime,
+      endTime: new DateTime.now(),
+      values: {"combinedGcTimeMs": info.combinedTime, ...info.countWhat},
+    );
+  }
+
+  if (random != null) {
+    // Warm up (e.g. the file system cache and the CPU caches) before
+    // measuring anything.
+    for (int iteration = 0; iteration < warmup; iteration++) {
+      List<int> order = _roundOrder(random, snapshots.length);
+      for (int position = 0; position < order.length; position++) {
+        measure(
+          order[position],
+          iteration,
+          positionInRound: position,
+          isWarmup: true,
+        );
+      }
+    }
+    // Interleave the runs: each round runs every snapshot once, in a random
+    // order. This way slow drift in the machine's performance over the
+    // course of the session affects all snapshots equally, instead of
+    // showing up as a difference between them.
+    for (int iteration = 0; iteration < iterations; iteration++) {
+      List<int> order = _roundOrder(random, snapshots.length);
+      for (int position = 0; position < order.length; position++) {
+        measure(order[position], iteration, positionInRound: position);
+      }
+    }
+    for (int i = 0; i < gcRuns; i++) {
+      List<int> order = _roundOrder(random, snapshots.length);
+      for (int position = 0; position < order.length; position++) {
+        gcRun(order[position], i, positionInRound: position);
+      }
+    }
+  } else {
+    for (int snapshotNum = 0; snapshotNum < snapshots.length; snapshotNum++) {
+      for (int iteration = 0; iteration < warmup; iteration++) {
+        measure(snapshotNum, iteration, isWarmup: true);
+      }
+      for (int iteration = 0; iteration < iterations; iteration++) {
+        measure(snapshotNum, iteration);
+      }
+      // Do GC runs too.
+      for (int i = 0; i < gcRuns; i++) {
+        gcRun(snapshotNum, i);
+      }
     }
   }
   stdout.write("\n\n");
 
+  // When the runs are interleaved, the i'th run of each snapshot was done in
+  // the same round, so the measurements can be compared pairwise, which
+  // cancels out drift in the machine's performance.
+  bool paired = random != null;
   List<Map<String, num>> firstSnapshotResults = runResults.first;
   String snapshot1Name = _getName(snapshots[0]);
   if (snapshotSpecificArguments[0].isNotEmpty) {
@@ -293,7 +423,14 @@ void _doRun(
       "snapshot #${i + 1} ($comparedToSnapshotName)",
     );
     List<Map<String, num>> compareToResults = runResults[i];
-    if (!_compare(firstSnapshotResults, compareToResults, showAll: showAll)) {
+    if (!_compare(
+      firstSnapshotResults,
+      compareToResults,
+      showAll: showAll,
+      paired: paired,
+      strict: strict,
+      printMetricCount: true,
+    )) {
       print("No change.");
     }
     if (gcRuns >= 3) {
@@ -303,6 +440,7 @@ void _doRun(
         gcInfos[0].map((gcInfo) => gcInfo.combinedTime).toList(),
         "Combined GC time",
         showAll: showAll,
+        paired: paired,
       )) {
         print("No change in combined time.");
       }
@@ -318,6 +456,9 @@ void _doRun(
     }
   }
 
+  print("");
+  _checkDrift(runResults, interleaved: random != null, strict: strict);
+
   if (warnings.scalingInEffect) {
     print("Be aware that the above was with scaling in effect.");
     print("As such the results are likely useless.");
@@ -325,6 +466,84 @@ void _doRun(
     print("Running this tool");
     print("sudo out/ReleaseX64/dart pkg/front_end/tool/perf_event_tool.dart");
     print("will attempt to give you such information.");
+  }
+}
+
+/// Checks whether any metric drifted (got steadily larger or smaller) over
+/// the course of the runs of any snapshot, and prints a warning if so.
+///
+/// Drift means that the machine's performance wasn't stable during the
+/// session. Without interleaving, drift shows up as a spurious difference
+/// between the snapshots.
+void _checkDrift(
+  List<List<Map<String, num>>> runResults, {
+  required bool interleaved,
+  required bool strict,
+}) {
+  Set<String> allCaptions = {
+    for (List<Map<String, num>> results in runResults)
+      for (Map<String, num> entry in results) ...entry.keys,
+  };
+  List<(String, int, List<num>)> series = [];
+  for (String caption in allCaptions) {
+    for (int i = 0; i < runResults.length; i++) {
+      List<num> values = _extractDataForCaption(caption, runResults[i]);
+      if (values.length < 3) continue;
+      // A metric with the exact same value in every run clearly hasn't
+      // drifted (and is probably constant for a structural reason), so it
+      // isn't checked, and doesn't count towards the Bonferroni correction.
+      if (values.every((v) => v == values.first)) continue;
+      series.add((caption, i, values));
+    }
+  }
+  int checks = series.length;
+  if (checks == 0) return;
+  double alpha = perComparisonAlpha(checks, strict: strict);
+  List<String> driftWarnings = [];
+  for (var (caption, i, values) in series) {
+    Trend trend = linearTrend(values, alpha: alpha);
+    if (!trend.significant) continue;
+    double? percentChange = trend.percentChangeOverSeries;
+    double? percentConfidence = trend.percentConfidenceOverSeries;
+    if (percentChange == null || percentConfidence == null) continue;
+    driftWarnings.add(
+      "$caption for snapshot #${i + 1} changed by "
+      "${percentChange.toStringAsFixed(4)}% +/- "
+      "${percentConfidence.toStringAsFixed(4)}% "
+      "from the first to the last run.",
+    );
+  }
+  if (driftWarnings.isEmpty) {
+    print("Drift check: no significant drift detected.");
+    return;
+  }
+  print("Drift check: the following metrics drifted during the session:");
+  for (String warning in driftWarnings) {
+    print("  $warning");
+  }
+  if (strict) {
+    print(
+      "  ($checks checks, each at the ${_formatConfidenceLevel(alpha)} "
+      "confidence level (Bonferroni correction).)",
+    );
+  } else {
+    print(
+      "  (With $checks checks at the 95% confidence level, about "
+      "${(checks * 0.05).toStringAsFixed(1)} false alarms are expected by "
+      "chance.)",
+    );
+  }
+  if (interleaved) {
+    print(
+      "  Interleaving and the paired t-test compensate for slow drift, "
+      "but drift suggests that the machine's performance isn't stable.",
+    );
+  } else {
+    print(
+      "  Because the runs weren't interleaved, drift can show up as a "
+      "spurious difference between snapshots. Consider running without "
+      "--no-interleave.",
+    );
   }
 }
 
@@ -337,6 +556,10 @@ int _silentWrite(int previousWriteCount, int lines) {
   previousWriteCount++;
   return previousWriteCount;
 }
+
+/// Returns the indices `0 .. count - 1` in a random order.
+List<int> _roundOrder(Random random, int count) =>
+    [for (int i = 0; i < count; i++) i]..shuffle(random);
 
 String _getName(String urlIsh) {
   return Uri.parse(urlIsh).pathSegments.last;
@@ -383,6 +606,39 @@ void _help() {
   print("    Print the comparison for every metric, including the standard");
   print("    deviations and whether the change is significant, instead of");
   print("    only printing the significant changes.");
+  print("");
+  print("  --no-interleave");
+  print("    By default, the runs are interleaved: each round runs every");
+  print("    snapshot once, in a random order, so that slow drift in the");
+  print("    machine's performance affects all snapshots equally, and the");
+  print("    results are computed with a paired t-test on the per-round");
+  print("    differences. With this option, all runs of one snapshot are");
+  print("    done before the next, and an unpaired t-test is used.");
+  print("");
+  print("  --seed=<n>");
+  print("    Seed for the random order of interleaved runs (by default a");
+  print("    random seed is chosen and printed).");
+  print("");
+  print("  --warmup=<n>");
+  print("    Run each snapshot <n> extra times (default 1) before the");
+  print("    measured runs. These runs aren't included in the results.");
+  print("");
+  print("  --no-machine-check");
+  print("    Before benchmarking, the tool checks for machine settings known");
+  print("    to make results noisy (CPU frequency governor, turbo boost,");
+  print("    transparent huge pages, load, other processes on the benchmark");
+  print("    core or its hyperthread sibling, running in a VM) and prints");
+  print("    warnings. This option skips that check.");
+  print("");
+  print("  --strict");
+  print("    Many metrics are compared, so with the default 95% confidence");
+  print("    level about 1 in 20 unchanged metrics is still reported as");
+  print("    changed. With this option, the Bonferroni correction is used:");
+  print("    with k metrics, each is tested at the 1 - 0.05/k level, so the");
+  print("    chance of any false positive is at most 5%. (This also applies");
+  print("    to the drift check.) However, this increases the risk of false");
+  print("    negatives: a real change is less likely to be reported, so more");
+  print("    iterations may be needed to detect small changes.");
 }
 
 bool compare(
@@ -390,22 +646,57 @@ bool compare(
   List<Map<String, num>> to, {
   bool showAll = false,
 }) {
-  return _compare(from, to, showAll: showAll);
+  return _compare(
+    from,
+    to,
+    showAll: showAll,
+    paired: false,
+    strict: false,
+    printMetricCount: false,
+  );
 }
 
+/// Compares the measurements in [from] and [to], printing the metrics that
+/// changed significantly (or all metrics if [showAll] is `true`).
+///
+/// If [paired] is `true`, `from[i]` and `to[i]` must have been measured in
+/// the same round, and a paired t-test is used. Otherwise the two lists are
+/// treated as independent samples.
+///
+/// If [strict] is `true`, the Bonferroni correction is applied: with `k`
+/// metrics, each is tested at the `1 - 0.05 / k` confidence level, so that
+/// the chance of *any* false positive is at most 5%.
+///
+/// If [printMetricCount] is `true`, a line saying how many metrics were
+/// compared (and so how many false positives to expect) is printed.
+///
+/// Returns whether any metric changed significantly.
 bool _compare(
   List<Map<String, num>> from,
   List<Map<String, num>> to, {
   required bool showAll,
+  required bool paired,
+  required bool strict,
+  required bool printMetricCount,
 }) {
-  bool somethingWasSignificant = false;
   Set<String> allCaptions = {};
   for (Map<String, num> entry in [...from, ...to]) {
     allCaptions.addAll(entry.keys);
   }
+  List<(String, List<num>, List<num>)> metrics = [];
   for (String caption in allCaptions) {
-    List<num> fromForCaption = _extractDataForCaption(caption, from);
-    List<num> toForCaption = _extractDataForCaption(caption, to);
+    List<num> fromForCaption;
+    List<num> toForCaption;
+    if (paired) {
+      (fromForCaption, toForCaption) = _extractPairedDataForCaption(
+        caption,
+        from,
+        to,
+      );
+    } else {
+      fromForCaption = _extractDataForCaption(caption, from);
+      toForCaption = _extractDataForCaption(caption, to);
+    }
     if (caption.startsWith("context-switches") ||
         caption.startsWith("cpu-migrations")) {
       // These are seemingly always 0 --- if they're not we'll print a warning.
@@ -420,18 +711,66 @@ bool _compare(
       }
     }
     if (fromForCaption.isEmpty || toForCaption.isEmpty) continue;
+    // A paired t-test needs at least two pairs to estimate the variance.
+    if (paired && fromForCaption.length < 2) continue;
+    metrics.add((caption, fromForCaption, toForCaption));
+  }
+
+  // Metrics with the exact same value in every run don't count towards the
+  // number of comparisons for the Bonferroni correction (see
+  // [countNonConstant]).
+  int metricCount = countNonConstant([
+    for (var (_, fromForCaption, toForCaption) in metrics)
+      [...fromForCaption, ...toForCaption],
+  ]);
+  double alpha = perComparisonAlpha(metricCount, strict: strict);
+
+  bool somethingWasSignificant = false;
+  for (var (caption, fromForCaption, toForCaption) in metrics) {
     somethingWasSignificant |= _compareSingle(
       toForCaption,
       fromForCaption,
       caption,
       showAll: showAll,
+      paired: paired,
+      alpha: alpha,
     );
+  }
+  if (printMetricCount && metricCount > 0) {
+    if (strict) {
+      print(
+        "($metricCount metrics compared, each at the "
+        "${_formatConfidenceLevel(alpha)} confidence level "
+        "(Bonferroni correction), so the chance of any false positive "
+        "is at most 5%, but real changes are less likely to be "
+        "reported.)",
+      );
+    } else {
+      print(
+        "($metricCount metrics compared at the 95% confidence level, so "
+        "about ${(metricCount * 0.05).toStringAsFixed(1)} false positives "
+        "are expected by chance. Pass --strict to correct for this (at the "
+        "cost of more false negatives).)",
+      );
+    }
   }
   return somethingWasSignificant;
 }
 
+/// Formats `1 - alpha` as a percentage, e.g. "99.58%".
+String _formatConfidenceLevel(double alpha) {
+  String percent = ((1 - alpha) * 100).toStringAsFixed(4);
+  // Remove trailing zeros (and a trailing decimal point).
+  percent = percent.replaceFirst(new RegExp(r"\.?0+$"), "");
+  return "$percent%";
+}
+
 /// Compares [to] against [from] for the metric [caption], printing the
 /// result if it is significant (or if [showAll] is `true`).
+///
+/// If [paired] is `true`, `from[i]` and `to[i]` must have been measured in
+/// the same round, and a paired t-test is used. The test is done at the
+/// `1 - alpha` confidence level.
 ///
 /// Returns whether the result was significant.
 bool _compareSingle(
@@ -439,8 +778,12 @@ bool _compareSingle(
   List<num> from,
   String caption, {
   bool showAll = false,
+  bool paired = false,
+  double alpha = 0.05,
 }) {
-  Comparison comparison = compareUnpaired(from, to);
+  Comparison comparison = paired
+      ? comparePaired(from, to, alpha: alpha)
+      : compareUnpaired(from, to, alpha: alpha);
   if (comparison.significant || showAll) {
     StringBuffer line = new StringBuffer(
       "$caption: "
@@ -454,8 +797,13 @@ bool _compareSingle(
     if (showAll) {
       line.write(
         " (sd: ${comparison.fromStdDev.toStringAsFixed(2)} / "
-        "${comparison.toStdDev.toStringAsFixed(2)})",
+        "${comparison.toStdDev.toStringAsFixed(2)}",
       );
+      double? diffStdDev = comparison.diffStdDev;
+      if (diffStdDev != null) {
+        line.write("; sd of diff: ${diffStdDev.toStringAsFixed(2)}");
+      }
+      line.write(")");
       line.write(
         comparison.significant ? " [significant]" : " [not significant]",
       );
@@ -475,6 +823,28 @@ List<num> _extractDataForCaption(String caption, List<Map<String, num>> data) {
     if (value != null) result.add(value);
   }
   return result;
+}
+
+/// Extracts the values for [caption] from [from] and [to], keeping only the
+/// rounds where both have a value, so that the returned lists stay aligned
+/// (the i'th element of each list comes from the same round).
+(List<num>, List<num>) _extractPairedDataForCaption(
+  String caption,
+  List<Map<String, num>> from,
+  List<Map<String, num>> to,
+) {
+  List<num> fromResult = [];
+  List<num> toResult = [];
+  int count = min(from.length, to.length);
+  for (int i = 0; i < count; i++) {
+    num? fromValue = from[i][caption];
+    num? toValue = to[i][caption];
+    if (fromValue != null && toValue != null) {
+      fromResult.add(fromValue);
+      toResult.add(toValue);
+    }
+  }
+  return (fromResult, toResult);
 }
 
 Map<String, num> benchmark(
@@ -758,6 +1128,8 @@ class RawOutput {
   final List<List<String>> snapshotSpecificArguments;
   final List<String> arguments;
   final int core;
+  final bool interleave;
+  final int? seed;
   final DateTime startTime = new DateTime.now();
   final List<Map<String, Object?>> _runs = [];
 
@@ -767,19 +1139,23 @@ class RawOutput {
     required this.snapshotSpecificArguments,
     required this.arguments,
     required this.core,
+    required this.interleave,
+    required this.seed,
   });
 
   /// Records a single run.
   ///
   /// [phase] identifies which set of runs this belongs to (e.g. "default",
-  /// "cache" or "no-gc"), [kind] says what sort of run it was (e.g.
-  /// "measure" or "gc"), and [values] holds the counter values reported for
-  /// the run.
+  /// "cache" or "no-gc"), [kind] says what sort of run it was ("measure",
+  /// "warmup" or "gc"), and [values] holds the counter values reported for
+  /// the run. When runs are interleaved, [positionInRound] is the position
+  /// of this run within its round.
   void addRun({
     required String phase,
     required String kind,
     required int snapshotIndex,
     required int iteration,
+    int? positionInRound,
     required DateTime startTime,
     required DateTime endTime,
     required Map<String, num> values,
@@ -791,6 +1167,7 @@ class RawOutput {
       "snapshotIndex": snapshotIndex,
       "snapshot": snapshots[snapshotIndex],
       "iteration": iteration,
+      "positionInRound": positionInRound,
       "startTime": startTime.toIso8601String(),
       "endTime": endTime.toIso8601String(),
       "values": values,
@@ -804,6 +1181,8 @@ class RawOutput {
       "snapshotSpecificArguments": snapshotSpecificArguments,
       "arguments": arguments,
       "core": core,
+      "interleave": interleave,
+      "seed": seed,
       "startTime": startTime.toIso8601String(),
       "endTime": new DateTime.now().toIso8601String(),
       "runs": _runs,
