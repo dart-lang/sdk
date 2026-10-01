@@ -57,10 +57,20 @@ final class SandboxClient {
       try {
         await _peer.listen();
       } finally {
-        _onClosed();
+        _cleanup();
         _peer.close().ignore();
       }
     });
+  }
+
+  bool _isClosed = false;
+
+  void _cleanup() {
+    if (_isClosed) return;
+    _isClosed = true;
+    _onClosed();
+    unawaited(_consoleController.close());
+    unawaited(_extensionEventController.close());
   }
 
   /// Close the sandbox client, this will NOT remove the iframe.
@@ -70,7 +80,7 @@ final class SandboxClient {
   /// by the worker, only communication with the iframe.
   Future<void> close() async {
     await _peer.close();
-    _onClosed();
+    _cleanup();
   }
 
   Future<T> _sendRequest<T>(
