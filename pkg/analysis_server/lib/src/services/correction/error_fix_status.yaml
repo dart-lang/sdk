@@ -3690,12 +3690,12 @@ doc_directive_unknown:
   status: noFix
 doc_import_cannot_be_deferred:
   status: needsFix
-doc_import_cannot_have_combinators:
-  status: needsFix
 doc_import_cannot_have_configurations:
   status: needsFix
-doc_import_cannot_have_prefix:
+doc_import_in_part_file:
   status: needsFix
+  notes: |-
+    The fix is to move the doc import to the library file.
 duplicate_export:
   status: needsFix
   notes: |-

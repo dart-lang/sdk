@@ -22,6 +22,7 @@ import 'package:analyzer/src/dart/constant/evaluation.dart';
 import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -53,6 +54,7 @@ import 'package:analyzer/src/hint/sdk_constraint_verifier.dart';
 import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer/src/lint/analysis_rule_timers.dart';
 import 'package:analyzer/src/lint/linter_visitor.dart';
+import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:analyzer/src/workspace/pub.dart';
@@ -179,7 +181,7 @@ class LibraryAnalyzer {
           libraryFragment: libraryFragment,
           diagnosticListener: diagnosticListener,
           nameScope: libraryFragment.scope,
-          docImportLibraries: const [],
+          docImportScope: null,
           strictInference: _analysisOptions.strictInference,
           strictCasts: _analysisOptions.strictCasts,
           dataForTesting: inferenceDataForTesting,
@@ -774,6 +776,15 @@ class LibraryAnalyzer {
 
     var containerDiagnosticReporter = fileAnalysis.diagnosticReporter;
 
+    // Parts use the doc import scope of the enclosing file, so build it first.
+    fileAnalysis.docImportScope = _resolveDocImports(
+      fileKind: fileKind,
+      containerUnit: containerUnit,
+      libraryFragment: fileFragment,
+      parent: enclosingFile?.docImportScope,
+      diagnosticReporter: containerDiagnosticReporter,
+    );
+
     var libraryExportIndex = 0;
     var libraryImportIndex = 0;
     var partIndex = 0;
@@ -810,21 +821,124 @@ class LibraryAnalyzer {
         );
       }
     }
+  }
 
-    var docImports = containerUnit.directives
-        .whereType<LibraryDirective>()
-        .firstOrNull
-        ?.documentationComment
-        ?.docImports;
-    if (docImports != null) {
-      for (var i = 0; i < docImports.length; i++) {
-        _resolveLibraryDocImportDirective(
-          directive: docImports[i].import as ImportDirectiveImpl,
-          state: fileKind.docLibraryImports[i],
-          diagnosticReporter: containerDiagnosticReporter,
+  /// Builds the elements of the `@docImport`s of the file of [fileKind],
+  /// resolves their directives, and returns the doc import scope of the file.
+  ///
+  /// The doc imports of a library are on its `library` directive, and the doc
+  /// imports of a part file are on its `part of` directive. The returned scope
+  /// has the [parent] scope of the enclosing file as its parent; if the file
+  /// has no doc imports, [parent] itself is returned.
+  ///
+  /// Doc imports affect only documentation comments, so they are not a part
+  /// of the element model, and we build their elements only when analyzing.
+  DocImportScope? _resolveDocImports({
+    required FileKind fileKind,
+    required CompilationUnitImpl containerUnit,
+    required LibraryFragmentImpl libraryFragment,
+    required DocImportScope? parent,
+    required DiagnosticReporter diagnosticReporter,
+  }) {
+    var directives = containerUnit.directives;
+    Directive? directive = switch (fileKind) {
+      LibraryFileKind() =>
+        directives.whereType<LibraryDirectiveImpl>().firstOrNull,
+      PartOfNameFileKind() =>
+        directives
+            .whereType<PartOfDirectiveImpl>()
+            .where((directive) => directive.libraryName != null)
+            .firstOrNull,
+      PartOfUriFileKind() =>
+        directives
+            .whereType<PartOfDirectiveImpl>()
+            .where((directive) => directive.uri != null)
+            .firstOrNull,
+      _ => null,
+    };
+
+    var docImports = directive?.documentationComment?.docImports;
+    if (docImports == null || docImports.isEmpty) {
+      return parent;
+    }
+
+    if (fileKind is PartFileKind &&
+        !_libraryElement.featureSet.isEnabled(Feature.enhanced_parts)) {
+      for (var docImport in docImports) {
+        diagnosticReporter.report(
+          diag.docImportInPartFile.at(docImport.import.uri),
         );
       }
+      return parent;
     }
+
+    var states = fileKind.docLibraryImports;
+    var elementFactory = _libraryElement.session.elementFactory;
+    var prefixes = <String, DocImportPrefixElementImpl>{};
+    var imports = <LibraryImportImpl>[];
+    for (var i = 0; i < docImports.length; i++) {
+      var state = states[i];
+
+      PrefixFragmentImpl? prefixFragment;
+      if (state.unlinked.prefix case var unlinkedPrefix?) {
+        var unlinkedName = unlinkedPrefix.name;
+        prefixFragment = PrefixFragmentImpl(
+          name: unlinkedName?.name,
+          nameOffset: unlinkedName?.nameOffset,
+          firstTokenOffset: null,
+          isDeferred: unlinkedPrefix.deferredOffset != null,
+        );
+        prefixFragment.offset = unlinkedPrefix.nameOffset;
+        prefixFragment.enclosingFragment = libraryFragment;
+      }
+
+      var import = LibraryImportImpl(
+        isSynthetic: false,
+        combinators: buildNamespaceCombinators(state.unlinked.combinators),
+        importKeywordOffset: state.unlinked.importKeywordOffset,
+        prefix: prefixFragment,
+        uri: buildLibraryImportUri(
+          state: state,
+          elementFactory: elementFactory,
+        ),
+      );
+      import.libraryFragment = libraryFragment;
+      imports.add(import);
+
+      if (prefixFragment != null) {
+        // A prefix without a name cannot be referenced, so gets a unique id.
+        var id = prefixFragment.name ?? '#$i';
+        var prefix = prefixes[id];
+        if (prefix == null) {
+          prefix = DocImportPrefixElementImpl(
+            localId: id,
+            firstFragment: prefixFragment,
+            enclosingPrefix: switch (prefixFragment.name) {
+              var name? => parent?.lookupPrefix(name),
+              null => null,
+            },
+          );
+          prefixes[id] = prefix;
+        } else {
+          prefix.addFragment(prefixFragment);
+        }
+        prefixFragment.element = prefix;
+        prefix.imports.add(import);
+      }
+
+      _resolveLibraryDocImportDirective(
+        directive: docImports[i].import as ImportDirectiveImpl,
+        element: import,
+        state: state,
+        diagnosticReporter: diagnosticReporter,
+      );
+    }
+
+    return DocImportScope(
+      libraryFragment: libraryFragment,
+      parent: parent,
+      imports: imports,
+    );
   }
 
   void _resolveFile(FileAnalysis fileAnalysis) {
@@ -838,20 +952,12 @@ class LibraryAnalyzer {
 
     unit.accept2(ElementBindingVisitor(libraryFragment));
 
-    var docImportLibraries = [
-      for (var import in _library.docLibraryImports)
-        if (import is LibraryImportWithFile)
-          _libraryElement.session.elementFactory.libraryOfUri2(
-            import.importedFile.uri,
-          ),
-    ];
-
     unit.accept2(
       ResolutionVisitor(
         libraryFragment: libraryFragment,
         diagnosticListener: diagnosticListener,
         nameScope: libraryFragment.scope,
-        docImportLibraries: docImportLibraries,
+        docImportScope: fileAnalysis.docImportScope,
         strictInference: _analysisOptions.strictInference,
         strictCasts: _analysisOptions.strictCasts,
         dataForTesting: inferenceDataForTesting,
@@ -902,9 +1008,11 @@ class LibraryAnalyzer {
   /// the [directive] to the [diagnosticReporter].
   void _resolveLibraryDocImportDirective({
     required ImportDirectiveImpl directive,
+    required LibraryImportImpl element,
     required LibraryImportState state,
     required DiagnosticReporter diagnosticReporter,
   }) {
+    directive.libraryImport = element;
     _resolveUriConfigurations(
       configurationNodes: directive.configurations,
       configurationUris: state.uris.configurations,

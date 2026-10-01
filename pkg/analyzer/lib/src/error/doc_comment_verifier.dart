@@ -48,30 +48,6 @@ class DocCommentVerifier {
         ),
       );
     }
-
-    // TODO(srawlins): Support combinators.
-    var combinators = docImport.import.combinators;
-    if (combinators.isNotEmpty) {
-      _diagnosticReporter.report(
-        diag.docImportCannotHaveCombinators.atOffset(
-          offset: combinators.first.offset,
-          length: combinators.last.end - combinators.first.offset,
-        ),
-      );
-    }
-
-    // TODO(srawlins): Support prefixes. This was done temporarily with
-    // https://dart-review.googlesource.com/c/sdk/+/387861, but this was
-    // reverted as it increased memory usage.
-    var prefix = docImport.import.prefixName;
-    if (prefix != null) {
-      _diagnosticReporter.report(
-        diag.docImportCannotHavePrefix.atOffset(
-          offset: prefix.offset,
-          length: prefix.end - prefix.offset,
-        ),
-      );
-    }
   }
 
   void validateArgumentCount(DocDirectiveTag tag) {

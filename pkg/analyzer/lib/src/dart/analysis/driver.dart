@@ -1371,19 +1371,11 @@ class AnalysisDriver {
         }
 
         performance.run('libraryContext', (performance) {
-          libraryContext.load(targetLibrary: library, performance: performance);
+          libraryContext.loadForResolution(
+            targetLibrary: library,
+            performance: performance,
+          );
         });
-
-        for (var import in library.docLibraryImports) {
-          if (import is LibraryImportWithFile) {
-            if (import.importedLibrary case var libraryFileKind?) {
-              libraryContext.load(
-                targetLibrary: libraryFileKind,
-                performance: OperationPerformanceImpl('<root>'),
-              );
-            }
-          }
-        }
 
         var analysisOptions = file.analysisOptions;
         var libraryElement = libraryContext.elementFactory.libraryOfUri2(
@@ -1805,18 +1797,10 @@ class AnalysisDriver {
 
       // Errors are based on elements, so load them.
       performance.run('libraryContext', (performance) {
-        libraryContext.load(targetLibrary: library, performance: performance);
-
-        for (var import in library.docLibraryImports) {
-          if (import is LibraryImportWithFile) {
-            if (import.importedLibrary case var libraryFileKind?) {
-              libraryContext.load(
-                targetLibrary: libraryFileKind,
-                performance: OperationPerformanceImpl('<root>'),
-              );
-            }
-          }
-        }
+        libraryContext.loadForResolution(
+          targetLibrary: library,
+          performance: performance,
+        );
       });
 
       if (withFineDependencies) {
@@ -2069,6 +2053,13 @@ class AnalysisDriver {
     }
     signature.addString(library.file.uriStr);
     signature.addString(library.libraryCycle.apiSignature);
+
+    // Doc imports are not dependencies of the library cycle, but documentation
+    // comments are resolved against the doc-imported libraries.
+    for (var importedLibrary in library.docImportedLibraries) {
+      signature.addString(importedLibrary.libraryCycle.apiSignature);
+    }
+
     signature.addUint32List(library.file.analysisOptions.signature);
     signature.addString(file.uriStr);
     signature.addString(file.contentHash);
@@ -2164,21 +2155,10 @@ class AnalysisDriver {
         workingStatistics?.produceErrorsElementsTimer.start();
         try {
           performance.run('libraryContext', (performance) {
-            libraryContext.load(
+            libraryContext.loadForResolution(
               targetLibrary: library,
               performance: performance,
             );
-
-            for (var import in library.docLibraryImports) {
-              if (import is LibraryImportWithFile) {
-                if (import.importedLibrary case var libraryFileKind?) {
-                  libraryContext.load(
-                    targetLibrary: libraryFileKind,
-                    performance: OperationPerformanceImpl('<root>'),
-                  );
-                }
-              }
-            }
           });
         } finally {
           workingStatistics?.produceErrorsElementsTimer.stop();

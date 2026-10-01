@@ -32,7 +32,7 @@ class AstResolver {
   late final _resolutionVisitor = ResolutionVisitor(
     libraryFragment: _libraryFragment,
     nameScope: _nameScope,
-    docImportLibraries: const [],
+    docImportScope: null,
     diagnosticListener: _diagnosticListener,
     strictInference: analysisOptions.strictInference,
     strictCasts: analysisOptions.strictCasts,

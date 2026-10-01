@@ -20940,6 +20940,347 @@ mixin M {}
     );
   }
 
+  test_dependency_docImport_class_it_remove_importPrefix() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+/// @docImport 'a.dart' as p;
+library;
+
+/// [p.A]
+void f() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredFunctions
+      f: #M0
+    exportMapId: #M1
+    exportMap
+      f: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M2
+        interface: #M3
+      B: #M4
+        interface: #M5
+    exportMapId: #M6
+    exportMap
+      A: #M2
+      B: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M6
+        exportMap
+          A: #M2
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      B: #M4
+        interface: #M5
+    exportMapId: #M7
+    exportMap
+      B: #M4
+  requirements
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M2
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M7
+        exportMap
+          A: <null>
+          A=: <null>
+[status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_docImport_class_it_remove_notUsed_importPrefix() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+/// @docImport 'a.dart' as p;
+library;
+
+/// [p.A]
+void f() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredFunctions
+      f: #M0
+    exportMapId: #M1
+    exportMap
+      f: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M2
+        interface: #M3
+      B: #M4
+        interface: #M5
+    exportMapId: #M6
+    exportMap
+      A: #M2
+      B: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M6
+        exportMap
+          A: #M2
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M2
+        interface: #M3
+    exportMapId: #M7
+    exportMap
+      A: #M2
+  requirements
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_docImport_partOf_class_it_remove() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+/// @docImport 'a.dart';
+part of 'test.dart';
+
+/// [A]
+void f() {}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+part 'part.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredFunctions
+      f: #M0
+    exportMapId: #M1
+    exportMap
+      f: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M2
+        interface: #M3
+      B: #M4
+        interface: #M5
+    exportMapId: #M6
+    exportMap
+      A: #M2
+      B: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/part.dart
+    uri: package:test/part.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M6
+        exportMap
+          A: #M2
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getErrors T1
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      B: #M4
+        interface: #M5
+    exportMapId: #M7
+    exportMap
+      B: #M4
+  requirements
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M2
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #4
+    path: /home/test/lib/part.dart
+    uri: package:test/part.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M7
+        exportMap
+          A: <null>
+          A=: <null>
+[status] idle
+[future] getErrors T2
+  ErrorsResult #5
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
   test_dependency_enum_constant_change_invoked() async {
     await _runChangeScenarioTA(
       initialA: r'''

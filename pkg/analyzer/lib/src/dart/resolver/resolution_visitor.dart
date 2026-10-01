@@ -69,7 +69,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     required LibraryFragmentImpl libraryFragment,
     required DiagnosticListener diagnosticListener,
     required Scope nameScope,
-    required List<LibraryElement> docImportLibraries,
+    required DocImportScope? docImportScope,
     required bool strictInference,
     required bool strictCasts,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
@@ -87,7 +87,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     var scopeContext = ScopeContext(
       libraryFragment: libraryFragment,
       nameScope: nameScope,
-      docImportLibraries: docImportLibraries,
+      docImportScope: docImportScope,
     );
 
     var namedTypeResolver = NamedTypeResolver(

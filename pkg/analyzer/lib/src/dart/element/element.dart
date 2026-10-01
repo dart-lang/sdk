@@ -1494,6 +1494,40 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
   Source get source => libraryFragment.source;
 }
 
+/// The prefix declared by `@docImport`s, such as `io` in
+/// `/// @docImport 'dart:io' as io;`.
+///
+/// Doc imports affect only documentation comments, so they are not a part of
+/// the element model: this element is created when a library is analyzed, and
+/// is not included into [LibraryFragmentImpl.prefixes]. Its [imports] are the
+/// doc imports with this prefix, in the file that declares it.
+class DocImportPrefixElementImpl extends PrefixElementImpl {
+  @override
+  final List<LibraryImportImpl> imports = [];
+
+  /// The doc import prefix with the same name, declared in an enclosing file.
+  ///
+  /// Like an import prefix, the doc import prefix of a part file extends the
+  /// prefix with the same name of the enclosing file, unless it is deferred.
+  final DocImportPrefixElementImpl? enclosingPrefix;
+
+  @override
+  late final PrefixScope scope = PrefixScope(
+    libraryFragment: firstFragment.enclosingFragment,
+    parent: imports.any((import) => import.prefix?.isDeferred ?? false)
+        ? null
+        : enclosingPrefix?.scope,
+    libraryImports: imports,
+    prefix: this,
+  );
+
+  DocImportPrefixElementImpl({
+    required super.localId,
+    required super.firstFragment,
+    required this.enclosingPrefix,
+  });
+}
+
 /// The synthetic element representing the declaration of the type `dynamic`.
 class DynamicElementImpl extends ElementImpl {
   /// The unique instance of this class.

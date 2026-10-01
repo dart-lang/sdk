@@ -4319,18 +4319,6 @@ const DiagnosticWithoutArguments docImportCannotBeDeferred =
     );
 
 /// No parameters.
-const DiagnosticWithoutArguments docImportCannotHaveCombinators =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'doc_import_cannot_have_combinators',
-      problemMessage: "Doc imports can't have show or hide combinators.",
-      correctionMessage: "Try removing the combinator.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'doc_import_cannot_have_combinators',
-      expectedTypes: [],
-    );
-
-/// No parameters.
 const DiagnosticWithoutArguments docImportCannotHaveConfigurations =
     DiagnosticWithoutArgumentsImpl(
       name: 'doc_import_cannot_have_configurations',
@@ -4342,17 +4330,21 @@ const DiagnosticWithoutArguments docImportCannotHaveConfigurations =
       expectedTypes: [],
     );
 
+/// Reported for a doc import on a `part of` directive when the
+/// 'enhanced-parts' language feature is not enabled. Such doc imports are
+/// not used to resolve documentation comments.
+///
 /// No parameters.
-const DiagnosticWithoutArguments docImportCannotHavePrefix =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'doc_import_cannot_have_prefix',
-      problemMessage: "Doc imports can't have prefixes.",
-      correctionMessage: "Try removing the prefix.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.STATIC_WARNING,
-      uniqueName: 'doc_import_cannot_have_prefix',
-      expectedTypes: [],
-    );
+const DiagnosticWithoutArguments
+docImportInPartFile = DiagnosticWithoutArgumentsImpl(
+  name: 'doc_import_in_part_file',
+  problemMessage:
+      "Doc imports in part files require the 'enhanced-parts' language feature.",
+  correctionMessage: "Try moving the doc import to the library file.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'doc_import_in_part_file',
+  expectedTypes: [],
+);
 
 /// No parameters.
 const DiagnosticWithoutArguments dotShorthandMissingContext =

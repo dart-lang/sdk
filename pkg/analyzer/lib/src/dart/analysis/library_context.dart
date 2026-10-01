@@ -154,6 +154,24 @@ class LibraryContext {
     _createElementFactoryTypeProvider();
   }
 
+  /// Load data required to resolve the given [targetLibrary].
+  ///
+  /// In addition to [load], this loads the libraries imported by `@docImport`s,
+  /// which are not dependencies of the library cycle, but documentation
+  /// comments are resolved against them.
+  void loadForResolution({
+    required LibraryFileKind targetLibrary,
+    required OperationPerformanceImpl performance,
+  }) {
+    load(targetLibrary: targetLibrary, performance: performance);
+
+    performance.run('docImportedLibraries', (performance) {
+      for (var importedLibrary in targetLibrary.docImportedLibraries) {
+        load(targetLibrary: importedLibrary, performance: performance);
+      }
+    });
+  }
+
   /// Remove libraries represented by the [removed] files.
   /// If we need these libraries later, we will relink and reattach them.
   void remove(Set<FileState> removed, Set<String> removedKeys) {
