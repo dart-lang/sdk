@@ -23,12 +23,16 @@ final class Sandbox {
   /// successfully started one. Doubles as the "already used" marker for [run].
   FrontendServerCompiler? _compiler;
 
-  Sandbox({
+  Sandbox._(this._client, this._createCompiler);
+
+  static Future<Sandbox> create({
     required MessagePort port,
     required void Function() onClosed,
     required CompilerFactory createCompiler,
-  }) : _client = SandboxClient(port, onClosed),
-       _createCompiler = createCompiler;
+  }) async {
+    final client = SandboxClient(port, onClosed);
+    return Sandbox._(client, createCompiler);
+  }
 
   Future<T> _synced<T>(FutureOr<T> Function() fn) => _pool.withResource(fn);
 

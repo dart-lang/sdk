@@ -560,7 +560,7 @@ class _Workspace {
   Object? _connectSandbox(Parameters params) async {
     final port = params.portAsMessagePort;
     final sandboxId = _worker._nextSandboxId++;
-    final sandbox = _sandboxes[sandboxId] = Sandbox(
+    final sandbox = _sandboxes[sandboxId] = await Sandbox.create(
       port: port,
       createCompiler: _createCompiler,
       onClosed: () => _sandboxes.remove(sandboxId),
