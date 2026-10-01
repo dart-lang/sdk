@@ -3102,6 +3102,50 @@ ASSEMBLER_TEST_RUN(Vorrq, test) {
   }
 }
 
+ASSEMBLER_TEST_GENERATE(Vbicq, assembler) {
+  if (TargetCPUFeatures::neon_supported()) {
+    // Q0
+    __ LoadImmediate(R0, 0x0000fff0);
+    __ vmovsr(S0, R0);
+    __ LoadImmediate(R0, 0x12345678);
+    __ vmovsr(S1, R0);
+    __ LoadImmediate(R0, 0x80000000);
+    __ vmovsr(S2, R0);
+    __ LoadImmediate(R0, 0x000000ff);
+    __ vmovsr(S3, R0);
+
+    // Q1
+    __ LoadImmediate(R0, 0x0000fff1);
+    __ vmovsr(S4, R0);
+    __ LoadImmediate(R0, 0x12345778);
+    __ vmovsr(S5, R0);
+    __ LoadImmediate(R0, 0x80010000);
+    __ vmovsr(S6, R0);
+    __ LoadImmediate(R0, 0x010000ff);
+    __ vmovsr(S7, R0);
+
+    __ vbicq(Q2, Q1, Q0);
+
+    __ vmovrs(R0, S8);
+    __ vmovrs(R1, S9);
+    __ vmovrs(R2, S10);
+    __ vmovrs(R3, S11);
+
+    __ add(R0, R0, Operand(R1));
+    __ add(R0, R0, Operand(R2));
+    __ add(R0, R0, Operand(R3));
+  }
+  __ Ret();
+}
+
+ASSEMBLER_TEST_RUN(Vbicq, test) {
+  EXPECT(test != nullptr);
+  if (TargetCPUFeatures::neon_supported()) {
+    typedef int (*Tst)() DART_UNUSED;
+    EXPECT_EQ(0x01010101, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  }
+}
+
 ASSEMBLER_TEST_GENERATE(Vandq, assembler) {
   if (TargetCPUFeatures::neon_supported()) {
     // Q0
