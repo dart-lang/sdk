@@ -171,27 +171,43 @@ class PubspecTarget {
   /// package without a declared name still has to be reported somehow.
   final String? name;
 
-  /// The names of the packages this one declares a dependency on.
+  /// The names of the packages this one depends on, directly or transitively.
   ///
   /// Dev dependencies are included: they take part in the version solve for
   /// the package that declares them, so they're subject to the same SDK
   /// constraint ordering as regular dependencies.
+  ///
+  /// Transitive dependencies are only known when the package has been
+  /// resolved. They include `dependency_overrides`.
   final Set<String> dependencyNames;
 
-  new({required this.file, required YamlMap pubspec})
-    : name = switch (pubspec['name']) {
-        String name => name,
-        _ => null,
-      },
-      dependencyNames = _dependencyNamesIn(pubspec);
+  /// Creates a target from the parsed [pubspec] in [file].
+  ///
+  /// The [resolvedPackages] are the packages in the package config the package
+  /// is analyzed with. That config can belong to a parent directory and list
+  /// packages this one doesn't depend on, which only holds back more than
+  /// needed.
+  new({
+    required this.file,
+    required YamlMap pubspec,
+    required Packages resolvedPackages,
+  }) : name = switch (pubspec['name']) {
+         String name => name,
+         _ => null,
+       },
+       dependencyNames = _dependencyNamesIn(pubspec, resolvedPackages);
 
   /// The name to show for the package, falling back to the directory it sits
   /// in when it doesn't declare one.
   String get displayName => name ?? file.parent.shortName;
 
-  static Set<String> _dependencyNamesIn(YamlMap pubspec) => {
+  static Set<String> _dependencyNamesIn(
+    YamlMap pubspec,
+    Packages resolvedPackages,
+  ) => {
     for (var section in const ['dependencies', 'dev_dependencies'])
       if (pubspec[section] case YamlMap dependencies)
         ...dependencies.keys.whereType<String>(),
+    for (var package in resolvedPackages.packages) package.name,
   };
 }
