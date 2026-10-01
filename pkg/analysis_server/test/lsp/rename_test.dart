@@ -571,6 +571,48 @@ final a = new MyClass.newName();
     );
   }
 
+  /// Potential references (members with the same name on dynamic or
+  /// unrelated receivers) should not be renamed.
+  ///
+  /// https://github.com/dart-lang/sdk/issues/50343
+  Future<void> test_rename_doesNotRenamePotentialReferences() {
+    const content = '''
+class A {
+  int get origi^nalName => 0;
+}
+
+class B {
+  int get originalName => 0;
+}
+
+void f(A a, B b, dynamic d) {
+  a.originalName;
+  b.originalName;
+  d.originalName;
+}
+''';
+    const expectedContent = '''
+class A {
+  int get newName => 0;
+}
+
+class B {
+  int get originalName => 0;
+}
+
+void f(A a, B b, dynamic d) {
+  a.newName;
+  b.originalName;
+  d.originalName;
+}
+''';
+    return _test_rename_withDocumentChanges(
+      content,
+      'newName',
+      expectedContent,
+    );
+  }
+
   Future<void> test_rename_duplicateName_applyAfterDocumentChanges() async {
     // Perform a refactor that results in a prompt to the user, but then modify
     // the document before accepting/rejecting to make the rename invalid.
