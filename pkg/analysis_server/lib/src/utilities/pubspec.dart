@@ -45,29 +45,30 @@ PubspecEdit? computeEdit(File pubspecFile, Version minimumVersion) {
     return null;
   }
 
-  var length = text.length;
-  String replacement;
+  String newConstraint;
   if (text == 'any' || text.startsWith('^')) {
-    replacement = '^$minimumVersion';
+    newConstraint = '^$minimumVersion';
   } else if (text.startsWith('>')) {
     var constraint = extractor.constraint();
+    if (constraint is! VersionRange) return null;
 
     /// If the [constraint] allows no version at or above [minimumVersion],
     /// replace the whole constraint. e.g., `>=3.12.0 <3.13.0` allows nothing from
     /// 3.13.0 up, so raising its lower bound to 3.13.0 would make it
     /// unsatisfiable.
-    if (constraint != null &&
-        !constraint.allowsAny(
-          VersionRange(min: minimumVersion, includeMin: true),
-        )) {
-      replacement = '^$minimumVersion';
+    if (!constraint.allowsAny(
+      VersionRange(min: minimumVersion, includeMin: true),
+    )) {
+      newConstraint = '^$minimumVersion';
     } else {
-      replacement = '>=$minimumVersion';
-      // Rewrite just the lower bound, leaving any upper bound as written.
-      var spaceOffset = text.indexOf(' ');
-      if (spaceOffset >= 0) {
-        length = spaceOffset;
-      }
+      // Raise the lower bound and keep the upper bound, whatever whitespace
+      // the original constraint was written with.
+      newConstraint = VersionRange(
+        min: minimumVersion,
+        includeMin: true,
+        max: constraint.max,
+        includeMax: constraint.includeMax,
+      ).toString();
     }
   } else {
     return null;
@@ -75,9 +76,8 @@ PubspecEdit? computeEdit(File pubspecFile, Version minimumVersion) {
 
   return PubspecEdit(
     offset: offset,
-    length: length,
-    replacement: replacement,
     originalConstraint: text,
+    newConstraint: newConstraint,
     targetVersion: minimumVersion,
   );
 }
@@ -126,33 +126,23 @@ VersionConstraint? packageSdkConstraint(Folder packageRoot) {
 }
 
 /// The result of computing an edit to a pubspec file's SDK constraint.
-class PubspecEdit {
+///
+/// The edit replaces the whole of [originalConstraint] with [newConstraint].
+class PubspecEdit({
   /// The character offset in the document where the edit should be applied.
-  final int offset;
-
-  /// The length of the text to be replaced.
-  final int length;
-
-  /// The text to be inserted at [offset], replacing [length] characters.
-  final String replacement;
+  required final int offset,
 
   /// The full original SDK constraint text before the edit is applied.
-  final String originalConstraint;
-
-  /// The target version to migrate to.
-  final Version targetVersion;
-
-  new({
-    required this.offset,
-    required this.length,
-    required this.replacement,
-    required this.originalConstraint,
-    required this.targetVersion,
-  });
+  required final String originalConstraint,
 
   /// The full new SDK constraint text after the edit is applied.
-  String get newConstraint =>
-      originalConstraint.replaceRange(0, length, replacement);
+  required final String newConstraint,
+
+  /// The target version to migrate to.
+  required final Version targetVersion,
+}) {
+  /// The length of the text to be replaced.
+  final int length = originalConstraint.length;
 }
 
 /// A target package's `pubspec.yaml` file and the parts of it a migration

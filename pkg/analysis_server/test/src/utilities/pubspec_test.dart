@@ -123,6 +123,18 @@ class PubspecTest with ResourceProviderMixin {
     _assertEdit("'>=2.12.0 <3.0.0'", '>=2.13.0 <3.0.0');
   }
 
+  void test_compound_gt() {
+    _assertEdit("'>2.12.0 <3.0.0'", '>=2.13.0 <3.0.0');
+  }
+
+  void test_compound_noSpace() {
+    _assertEdit("'>=2.12.0<3.0.0'", '>=2.13.0 <3.0.0');
+  }
+
+  void test_compound_spaceAfterOperators() {
+    _assertEdit("'>= 2.12.0 < 3.0.0'", '>=2.13.0 <3.0.0');
+  }
+
   void test_gt() {
     _assertEdit("'>2.12.0'", '>=2.13.0');
   }
