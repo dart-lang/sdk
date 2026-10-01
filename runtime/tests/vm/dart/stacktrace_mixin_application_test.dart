@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 mixin Bar {
   bar() => throw "bar";
@@ -23,6 +24,8 @@ main() {
     //
     // Prior to the fix for issue #36999, this frame would have been named
     // Foo&Baz&Bar.bar rather than simply Bar.bar.
-    Expect.isTrue(stack.contains('#0      Bar.bar'));
+    if (symbolicUnminifiedStackTraces) {
+      Expect.isTrue(stack.contains('#0      Bar.bar'));
+    }
   }
 }

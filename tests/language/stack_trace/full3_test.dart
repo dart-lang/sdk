@@ -11,6 +11,7 @@
 // dart2jsOptions=--disable-inlining --no-minify
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 import 'non_web_helper.dart' if (dart.library.js_interop) 'web_helper.dart';
 
@@ -29,15 +30,17 @@ void func3() {
   try {
     func2();
   } on Object catch (e, s) {
-    var fullTrace = s.toString();
-    Expect.isTrue(fullTrace.contains("func1"));
-    Expect.isTrue(fullTrace.contains("func2"));
-    Expect.isTrue(fullTrace.contains("func3"));
-    Expect.isTrue(fullTrace.contains("func4"));
-    Expect.isTrue(fullTrace.contains("func5"));
-    Expect.isTrue(fullTrace.contains("func6"));
-    Expect.isTrue(fullTrace.contains("func7"));
-    Expect.isTrue(fullTrace.contains("main"));
+    if (symbolicUnminifiedStackTraces) {
+      var fullTrace = s.toString();
+      Expect.isTrue(fullTrace.contains("func1"));
+      Expect.isTrue(fullTrace.contains("func2"));
+      Expect.isTrue(fullTrace.contains("func3"));
+      Expect.isTrue(fullTrace.contains("func4"));
+      Expect.isTrue(fullTrace.contains("func5"));
+      Expect.isTrue(fullTrace.contains("func6"));
+      Expect.isTrue(fullTrace.contains("func7"));
+      Expect.isTrue(fullTrace.contains("main"));
+    }
     throw new Exception("This is not a rethrow");
   }
 }
@@ -53,15 +56,17 @@ int func5() {
   try {
     func4();
   } on Object catch (e, s) {
-    var fullTrace = s.toString();
-    Expect.isFalse(fullTrace.contains("func1"));
-    Expect.isFalse(fullTrace.contains("func2"));
-    Expect.isTrue(fullTrace.contains("func3"));
-    Expect.isTrue(fullTrace.contains("func4"));
-    Expect.isTrue(fullTrace.contains("func5"));
-    Expect.isTrue(fullTrace.contains("func6"));
-    Expect.isTrue(fullTrace.contains("func7"));
-    Expect.isTrue(fullTrace.contains("main"));
+    if (symbolicUnminifiedStackTraces) {
+      var fullTrace = s.toString();
+      Expect.isFalse(fullTrace.contains("func1"));
+      Expect.isFalse(fullTrace.contains("func2"));
+      Expect.isTrue(fullTrace.contains("func3"));
+      Expect.isTrue(fullTrace.contains("func4"));
+      Expect.isTrue(fullTrace.contains("func5"));
+      Expect.isTrue(fullTrace.contains("func6"));
+      Expect.isTrue(fullTrace.contains("func7"));
+      Expect.isTrue(fullTrace.contains("main"));
+    }
   }
   return 1;
 }

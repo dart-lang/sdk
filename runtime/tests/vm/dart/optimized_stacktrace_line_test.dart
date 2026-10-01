@@ -3,12 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test correct source positions in stack trace with optimized functions.
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 // (1) Test normal exception.
 foo(x) => bar(x);
 
 bar(x) {
-  if (x == null) throw 42; // throw at position 11:18
+  if (x == null) throw 42; // throw at position 12:18
   return x + 1;
 }
 
@@ -21,10 +22,12 @@ test1() {
     String s = stacktrace.toString();
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "A");
-    RegExp regex = new RegExp(
-      "optimized_stacktrace_line_test(_none|_01)*\.dart:11",
-    );
-    Expect.isTrue(regex.hasMatch(s), "B");
+    if (symbolicUnminifiedStackTraces) {
+      RegExp regex = new RegExp(
+        "optimized_stacktrace_line_test(_none|_01)*\.dart:12",
+      );
+      Expect.isTrue(regex.hasMatch(s), "B");
+    }
   }
 
   // Optimized.
@@ -36,10 +39,12 @@ test1() {
     String s = stacktrace.toString();
     print(s);
     Expect.isFalse(s.contains("-1:-1"), "C");
-    RegExp regex = new RegExp(
-      "optimized_stacktrace_line_test(_none|_01)*\.dart:11",
-    );
-    Expect.isTrue(regex.hasMatch(s), "D");
+    if (symbolicUnminifiedStackTraces) {
+      RegExp regex = new RegExp(
+        "optimized_stacktrace_line_test(_none|_01)*\.dart:12",
+      );
+      Expect.isTrue(regex.hasMatch(s), "D");
+    }
   }
 }
 
@@ -63,8 +68,10 @@ test2() {
   } catch (e, stacktrace) {
     String s = stacktrace.toString();
     print(s);
-    Expect.isTrue(s.contains("maximus"), "E");
-    Expect.isTrue(s.contains("moritz"), "F");
+    if (symbolicUnminifiedStackTraces) {
+      Expect.isTrue(s.contains("maximus"), "E");
+      Expect.isTrue(s.contains("moritz"), "F");
+    }
     Expect.isFalse(s.contains("-1:-1"), "G");
   }
 
@@ -73,8 +80,10 @@ test2() {
   } catch (e, stacktrace) {
     String s = stacktrace.toString();
     print(s);
-    Expect.isTrue(s.contains("maximus"), "H");
-    Expect.isTrue(s.contains("moritz"), "I");
+    if (symbolicUnminifiedStackTraces) {
+      Expect.isTrue(s.contains("maximus"), "H");
+      Expect.isTrue(s.contains("moritz"), "I");
+    }
     Expect.isFalse(s.contains("-1:-1"), "J");
   }
 }
