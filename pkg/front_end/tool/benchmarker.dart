@@ -115,8 +115,9 @@ void main(List<String> args) {
   }
   String? coreError = checkCore(core);
   if (coreError != null) throw coreError;
+  List<String>? machineWarnings;
   if (checkMachine) {
-    List<String> machineWarnings = checkMachineSetup(core);
+    machineWarnings = checkMachineSetup(core);
     if (machineWarnings.isEmpty) {
       print("Machine setup check: no issues found.");
     } else {
@@ -150,6 +151,7 @@ void main(List<String> args) {
           core: core,
           interleave: interleave,
           seed: interleave ? seed : null,
+          machineCheckWarnings: machineWarnings,
         );
 
   _doRun(
@@ -323,6 +325,7 @@ void _doRun(
       writes = _silentWrite(writes, lines);
     }
     DateTime startTime = new DateTime.now();
+    Map<String, String> scaledCounters = {};
     Map<String, num> benchmarkRun = _benchmark(
       aotRuntime,
       core,
@@ -330,6 +333,7 @@ void _doRun(
       extraVmArguments ?? [],
       usedArgumentsFor(snapshotNum),
       warnings: warnings,
+      scaledCounters: scaledCounters,
       cacheBenchmarking: cacheBenchmarking,
       silent: silent,
     );
@@ -349,6 +353,7 @@ void _doRun(
       startTime: startTime,
       endTime: new DateTime.now(),
       values: benchmarkRun,
+      scaling: scaledCounters,
     );
   }
 
@@ -374,6 +379,8 @@ void _doRun(
       startTime: startTime,
       endTime: new DateTime.now(),
       values: {"combinedGcTimeMs": info.combinedTime, ...info.countWhat},
+      // GC runs don't use `perf`, so there's no counter scaling to report.
+      scaling: null,
     );
   }
 
@@ -891,6 +898,10 @@ late final RegExp _extractPerfNumbers = new RegExp(
   caseSensitive: false,
 );
 
+/// Runs [snapshot] once under `perf stat` and returns the counter values.
+///
+/// If [scaledCounters] is given, the name of each counter that `perf` had
+/// to scale is added to it, mapped to the percentage reported by `perf`.
 Map<String, num> _benchmark(
   String aotRuntime,
   int core,
@@ -899,6 +910,7 @@ Map<String, num> _benchmark(
   List<String> arguments, {
   bool silent = false,
   Warnings? warnings,
+  Map<String, String>? scaledCounters,
   bool cacheBenchmarking = false,
 }) {
   if (!silent) stdout.write(".");
@@ -982,6 +994,7 @@ Map<String, num> _benchmark(
       if (scaling != null) {
         print("WARNING: $caption is scaled at $scaling!");
         warnings?.scalingInEffect = true;
+        scaledCounters?[caption] = scaling;
       }
     }
     String trimmed = line.trim();
@@ -1150,6 +1163,11 @@ class RawOutput {
   final int core;
   final bool interleave;
   final int? seed;
+
+  /// The warnings from the machine setup check, or `null` if the check was
+  /// skipped (with `--no-machine-check`).
+  final List<String>? machineCheckWarnings;
+
   final DateTime startTime = new DateTime.now();
   final List<Map<String, Object?>> _runs = [];
 
@@ -1161,6 +1179,7 @@ class RawOutput {
     required this.core,
     required this.interleave,
     required this.seed,
+    required this.machineCheckWarnings,
   });
 
   /// Records a single run.
@@ -1170,6 +1189,12 @@ class RawOutput {
   /// "warmup" or "gc"), and [values] holds the counter values reported for
   /// the run. When runs are interleaved, [positionInRound] is the position
   /// of this run within its round.
+  ///
+  /// [scaling] maps the name of each counter that `perf` had to scale
+  /// (because it could only count it for part of the run) to the percentage
+  /// of the run it was counted for, as reported by `perf` (e.g. "74.32%").
+  /// The values of such counters are estimated. [scaling] is `null` for runs
+  /// that don't use `perf` (such as GC runs).
   void addRun({
     required String phase,
     required String kind,
@@ -1179,6 +1204,7 @@ class RawOutput {
     required DateTime startTime,
     required DateTime endTime,
     required Map<String, num> values,
+    required Map<String, String>? scaling,
   }) {
     _runs.add({
       "sequence": _runs.length,
@@ -1191,6 +1217,7 @@ class RawOutput {
       "startTime": startTime.toIso8601String(),
       "endTime": endTime.toIso8601String(),
       "values": values,
+      "scaling": scaling,
     });
   }
 
@@ -1203,6 +1230,7 @@ class RawOutput {
       "core": core,
       "interleave": interleave,
       "seed": seed,
+      "machineCheckWarnings": machineCheckWarnings,
       "startTime": startTime.toIso8601String(),
       "endTime": new DateTime.now().toIso8601String(),
       "runs": _runs,
