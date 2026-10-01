@@ -990,7 +990,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
           arg.correspondingParameter?.name != _isLeafParamName) {
         continue;
       }
-      return _maybeGetBoolConstValue(arg.argumentExpression2) ?? false;
+      var value = arg.argumentExpression2.computeConstantValue()?.value;
+      return value?.toBoolValue() ?? false;
     }
     return false;
   }
@@ -1138,15 +1139,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
     }
     return false;
-  }
-
-  /// Get the const bool value of [expr] if it exists.
-  /// Return null if it isn't a const bool.
-  bool? _maybeGetBoolConstValue(Expression expr) {
-    if (expr is BooleanLiteral) {
-      return expr.value;
-    }
-    return null;
   }
 
   _PrimitiveDartType _primitiveNativeType(DartType nativeType) {
