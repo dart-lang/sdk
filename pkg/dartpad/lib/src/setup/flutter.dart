@@ -507,9 +507,18 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
 
   // Copy worker from Dart DartPad SDK.
   print('Copying worker...');
-  for (final f in ['worker.js', 'worker.wasm', 'worker.wasm.map']) {
+  for (final f in [
+    'devtools.html',
+    'worker.js',
+    'worker.wasm',
+    'worker.wasm.map',
+  ]) {
     _copyFile(p.join(ctx.dartDartPadSdk, f), p.join(ctx.flutterAssetDir, f));
   }
+  copyDirectoryContents(
+    p.join(ctx.dartDartPadSdk, 'devtools'),
+    p.join(ctx.flutterAssetDir, 'devtools'),
+  );
 
   // Extract exact hosted package versions from `flutter pub deps --json`
   final depsJson = _runSync(ctx.flutterBin, [

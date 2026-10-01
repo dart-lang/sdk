@@ -23,7 +23,8 @@ environment can use to fetch dependencies, analyze, compile and run Dart code.
 A _DartPad SDK_ is an `assetBaseUrl` that points to a directory that hosts:
  * `worker.js`, script for running a dartpad environment in the browser.
  * `sandbox.js`, script for running compiled code in a sandboxed iframe.
- * SDK specific assets referenced by `worker.js` and `sandbox.js`.
+ * `devtools.html`, page for running Dart DevTools in an iframe.
+ * SDK specific assets referenced by `worker.js`, `sandbox.js`, and `devtools.html`.
 
 The `worker.js` script must export a `Worker` class that can be instantiated as
 follows:
@@ -63,6 +64,20 @@ The attached [MessagePort][2] must be forwarded to the worker as outline in the
 protocol below. The communication protocol between `sandbox.js` and `worker.js`
 is internal, though messages will never carry a `MessagePort`, thus, they can
 be serialized (with care taken to wrap `Uint8Array` instances).
+
+The `devtools.html` page can be loaded in an `<iframe>` as follows:
+```html
+<iframe src="devtools.html"></iframe>
+```
+
+Additional query parameters may also be passed to `devtools.html`, but these
+are not covered by this protocol.
+
+The `devtools.html` page must use [window.postMessage][4] to send
+`{action: 'connect', port: <MessagePort>}` with a [MessagePort][2] attached.
+The attached [MessagePort][2] must be forwarded to the worker via
+`workspace/sandbox/connectServiceProtocol`.
+
 
 
 ## JSON-RPC 2.0 over `MessagePort`

@@ -48,11 +48,12 @@ final class DartPadSdk {
   /// `dart run dartpad setup`).
   ///
   /// A _DartPad SDK_ must contain entrypoints:
-  ///  * `worker.js`, satisfying `doc/worker-protocol.md`, and,
-  ///  * `sandbox.js`.
+  ///  * `worker.js`, satisfying `doc/worker-protocol.md`,
+  ///  * `sandbox.js`, and,
+  ///  * `devtools.html`.
   ///
   /// A _DartPad SDK_ may contain additional assets that are also resolved from
-  /// the [assetBaseUrl] by `worker.js` or `sandbox.js`.
+  /// the [assetBaseUrl] by `worker.js`, `sandbox.js`, or `devtools.html`.
   DartPadSdk({required Uri assetBaseUrl}) {
     if (!assetBaseUrl.path.endsWith('/')) {
       assetBaseUrl = assetBaseUrl.replace(path: '${assetBaseUrl.path}/');
@@ -145,6 +146,57 @@ final class DartPadSdk {
 </html>
 ''';
 
+  Future<MessagePort> _waitForConnectPort(
+    web.Element container,
+    web.HTMLIFrameElement iframe, {
+    required String timeoutMessage,
+  }) async {
+    final completer = Completer<MessagePort>();
+    final sub = web.window.onMessage.listen((event) {
+      if (event.source != iframe.contentWindow ||
+          !event.data.isA<JSObject>() ||
+          completer.isCompleted) {
+        return;
+      }
+      final m = event.data as JSObject;
+      final action = m['action'];
+      if (!action.isA<JSString>()) {
+        return;
+      }
+      switch ((action as JSString).toDart) {
+        case 'connect':
+          final port = m['port'];
+          if (port.isA<web.MessagePort>()) {
+            completer.complete(
+              MessagePortExt.fromMessagePort(port as web.MessagePort),
+            );
+          }
+        case 'error':
+          final message = m['message'];
+          if (message.isA<JSString>()) {
+            final msg = (message as JSString).toDart;
+            completer.completeError(Exception('Failed to load iframe: $msg'));
+          } else {
+            completer.completeError(Exception('Failed to load iframe'));
+          }
+      }
+    });
+
+    container.appendChild(iframe);
+
+    try {
+      return await completer.future.timeout(
+        const Duration(seconds: 120),
+        onTimeout: () => throw TimeoutException(timeoutMessage),
+      );
+    } on Object {
+      iframe.remove();
+      rethrow;
+    } finally {
+      await sub.cancel();
+    }
+  }
+
   /// Create a sandboxed iframe inside [container] for running code from a
   /// [Workspace].
   ///
@@ -179,43 +231,34 @@ final class DartPadSdk {
       headHtml: headHtml,
       bodyHtml: bodyHtml,
     ).toJS;
-    container.appendChild(iframe);
-
-    return await Future(() async {
-      await for (final event in web.window.onMessage) {
-        if (event.source != iframe.contentWindow ||
-            !event.data.isA<JSObject>()) {
-          continue;
-        }
-
-        final m = event.data as JSObject;
-        final action = m['action'];
-        if (!action.isA<JSString>()) {
-          continue;
-        }
-        switch ((action as JSString).toDart) {
-          case 'connect':
-            final port = m['port'];
-            if (port.isA<web.MessagePort>()) {
-              return SandboxedIframe._(
-                iframe,
-                MessagePortExt.fromMessagePort(port as web.MessagePort),
-              );
-            }
-          case 'error':
-            final message = m['message'];
-            if (message.isA<JSString>()) {
-              final msg = (message as JSString).toDart;
-              throw Exception('Failed to load sandboxed iframe: $msg');
-            }
-            throw Exception('Failed to load sandboxed iframe');
-        }
-      }
-      throw AssertionError('unreachable');
-    }).timeout(
-      const Duration(seconds: 120),
-      onTimeout: () => throw TimeoutException('Sandbox creation timed out'),
+    final port = await _waitForConnectPort(
+      container,
+      iframe,
+      timeoutMessage: 'Sandbox creation timed out',
     );
+    return SandboxedIframe._(iframe, port);
+  }
+
+  /// Creates an `<iframe>` inside [container] running Dart DevTools
+  /// (`devtools.html` from `assetBaseUrl`).
+  ///
+  /// The returned [DevToolsIframe] has a [DevToolsIframe.port] that speaks the
+  /// Dart VM Service Protocol (`JSON-RPC 2.0`) and can be passed directly to
+  /// [Sandbox.connectServiceProtocol].
+  Future<DevToolsIframe> createDevToolsIframe(web.Element container) async {
+    final iframe = web.HTMLIFrameElement();
+    iframe.setAttribute(
+      'sandbox',
+      'allow-scripts allow-same-origin allow-popups '
+          'allow-popups-to-escape-sandbox allow-downloads',
+    );
+    iframe.src = _assetBaseUrl.resolve('devtools.html').toString();
+    final port = await _waitForConnectPort(
+      container,
+      iframe,
+      timeoutMessage: 'DevTools creation timed out',
+    );
+    return DevToolsIframe._(iframe, port);
   }
 }
 
@@ -265,6 +308,26 @@ final class SandboxedIframe {
   ///
   /// This removes the `<iframe>` and will invalidate the [Sandbox] returned
   /// from [Workspace.connectSandboxedIframe].
+  Future<void> close() async {
+    _iframe.remove();
+  }
+}
+
+/// An embedded Flutter DevTools `<iframe>` connected over a [MessagePort].
+///
+/// Pass [DevToolsIframe.port] to [Sandbox.connectServiceProtocol] to connect
+/// the DevTools instance to a running [Sandbox]. A [DevToolsIframe] can only
+/// be connected to one [Sandbox].
+final class DevToolsIframe {
+  final web.HTMLIFrameElement _iframe;
+
+  /// [MessagePort] speaking the Dart VM Service Protocol (`JSON-RPC 2.0`),
+  /// ready to be passed to [Sandbox.connectServiceProtocol].
+  final MessagePort port;
+
+  DevToolsIframe._(this._iframe, this.port);
+
+  /// Removes the DevTools `<iframe>` from the DOM.
   Future<void> close() async {
     _iframe.remove();
   }
