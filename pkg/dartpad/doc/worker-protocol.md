@@ -579,28 +579,6 @@ Hot-restarts the currently running application in the sandbox.
 }
 ```
 
-### Method `workspace/sandbox/invokeExtension`
-Invokes a Dart extension method in the sandbox.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "sandboxId": 1,
-  "method": "ext.myExtension",
-  "args": {
-    "key": "value"
-  }
-}
-```
-
-**Result:**
-```js
-{
-  "result": "<json encoded result string>"
-}
-```
-
 ### Method `workspace/sandbox/connectServiceProtocol`
 Connects a [`MessagePort`][2] for [Dart VM Service Protocol][6] communication
 with the sandbox.
@@ -697,19 +675,6 @@ uncaught errors and unhandled promise rejections, which are reported with
   "sandboxId": 1,
   "level": "debug" | "log" | "info" | "warn" | "error",
   "message": "Hello world"
-}
-```
-
-### Notification `workspace/sandbox/extensionEvent`
-Sent by the worker when an extension event is fired in the sandbox.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "sandboxId": 1,
-  "kind": "my.event.kind",
-  "data": { /* JSON object */ }
 }
 ```
 

@@ -155,10 +155,6 @@ class _Session {
       _forwardToWorkspace((ws) => ws._sandboxClose),
     );
     _rpc.registerMethod(
-      'workspace/sandbox/invokeExtension',
-      _forwardToWorkspace((ws) => ws._sandboxInvokeExtension),
-    );
-    _rpc.registerMethod(
       'workspace/sandbox/connectServiceProtocol',
       _forwardToWorkspace((ws) => ws._sandboxConnectServiceProtocol),
     );
@@ -519,14 +515,6 @@ class _Workspace {
         'message': e.message,
       });
     });
-    sandbox.onExtensionEvent.listen((e) {
-      _session._rpc.sendNotification('workspace/sandbox/extensionEvent', {
-        'workspaceId': _workspaceId,
-        'sandboxId': sandboxId,
-        'kind': e.kind,
-        'data': e.data,
-      });
-    });
     return {
       'sandboxId': sandboxId,
       'modes': _worker._config.modes.map((m) => m.mode).toList(),
@@ -575,18 +563,6 @@ class _Workspace {
     final s = _sandboxes.remove(id);
     await s?.close();
     return <String, Object?>{};
-  }
-
-  Object? _sandboxInvokeExtension(Parameters params) async {
-    final s = _getSandbox(params);
-    final method = params['method'].asString;
-    final args = params['args'].asMap as Map<String, Object?>;
-    if (args.values.where((v) => v is! String).isNotEmpty) {
-      throw RpcException.invalidParams('key/values in args must be strings');
-    }
-
-    final result = await s.invokeExtension(method, args.cast());
-    return {'result': result};
   }
 
   Object? _sandboxConnectServiceProtocol(Parameters params) {

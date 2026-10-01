@@ -66,8 +66,6 @@ final class Sandbox {
   Future<T> _synced<T>(FutureOr<T> Function() fn) => _pool.withResource(fn);
 
   Stream<({String level, String message})> get onConsole => _client.onConsole;
-  Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent =>
-      _client.onExtensionEvent;
 
   /// Connects a VM Service Protocol client on [port].
   void connectServiceProtocol(MessagePort port) {
@@ -210,13 +208,7 @@ final class Sandbox {
     return (log: r.log);
   });
 
-  Future<String> invokeExtension(
-    String method,
-    Map<String, String> args,
-  ) async => await _synced(() => _client.invokeExtension(method, args));
-
   bool _isClosed = false;
-
   Future<void> close() async {
     if (_isClosed) return;
     _isClosed = true;

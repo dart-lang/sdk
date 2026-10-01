@@ -50,7 +50,7 @@ final class HotRestartEvent extends ModulesEvent {
   HotRestartEvent._(super.modules) : super._();
 }
 
-/// Triggered by [Sandbox.invokeExtension].
+/// Triggered when a service extension is invoked in the sandbox.
 final class InvokeExtensionEvent extends SandboxEvent {
   final String method;
   final Map<String, dynamic> parameters;
@@ -136,7 +136,7 @@ final class FakeSandboxedIframe {
         parameters: params['args'].asMap.cast<String, dynamic>(),
       );
       _addEvent(event);
-      return 'success';
+      return jsonEncode({'result': 'success'});
     });
 
     unawaited(_peer.listen());

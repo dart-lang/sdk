@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:vm_service/vm_service.dart';
+
 import '../../worker_harness.dart';
 
 void main() {
@@ -18,20 +20,36 @@ void main() {
       ).equals((level: level, message: 'hello ${level.protocolName}'));
     }
 
-    // Test extensionEvent
-    final extensionEventFuture = sandbox.extensionEvents.first;
-    iframe.emitExtensionEvent('ext.testEvent', {'key': 'value'});
-    await check(extensionEventFuture).completes(
-      .it()
-        ..kind.equals('ext.testEvent')
-        ..data.deepEquals({'key': 'value'}),
-    );
+    // Test extensionEvent and callServiceExtension via startServiceProtocol()
+    final service = await sandbox.startServiceProtocol();
+    await service.streamListen(EventStreams.kIsolate);
+    await service.streamListen(EventStreams.kExtension);
 
-    // Test invokeExtension
-    final result = await sandbox.invokeExtension('ext.myMethod', {
-      'arg': 'val',
-    });
-    check(result).equals('success');
+    final extAdded = check(service.onIsolateEvent).withQueue.emitsThrough(
+      .it()
+        ..kind.equals(EventKind.kServiceExtensionAdded)
+        ..extensionRPC.equals('ext.myMethod'),
+    );
+    iframe.emitIsolateStart('workspace:///main.dart', 'console');
+    iframe.emitRegisterExtension('ext.myMethod');
+    await extAdded;
+
+    check(service.onExtensionEvent).withQueue.emitsThrough(
+      .it()
+        ..extensionKind.equals('ext.testEvent')
+        ..extensionData.isNotNull().data.isNotNull().deepEquals({
+          'key': 'value',
+        }),
+    );
+    iframe.emitExtensionEvent('ext.testEvent', {'key': 'value'});
+
+    // Test callServiceExtension
+    final result = await service.callServiceExtension(
+      'ext.myMethod',
+      isolateId: 'isolates/1',
+      args: {'arg': 'val'},
+    );
+    check(result.json?['result']).equals('success');
     await iframe.checkEvent(
       .it()..isA<InvokeExtensionEvent>(
         .it()
@@ -39,6 +57,8 @@ void main() {
           ..parameters.deepEquals({'arg': 'val'}),
       ),
     );
+
+    await service.dispose();
 
     // Test close
     await sandbox.close();

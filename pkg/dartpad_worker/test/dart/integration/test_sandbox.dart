@@ -5,6 +5,8 @@
 @TestOn('browser')
 library;
 
+import 'package:vm_service/vm_service.dart';
+
 import '../../integration_harness.dart';
 
 void main() {
@@ -103,7 +105,13 @@ void main() {
       }
     ''');
 
-    final eventFuture = ctx.sandbox.extensionEvents.first;
+    final service = await ctx.sandbox.startServiceProtocol();
+    await service.streamListen(EventStreams.kExtension);
+    check(service.onExtensionEvent).withQueue.emitsThrough(
+      .it()
+        ..extensionKind.equals('my.custom.event')
+        ..extensionData.isNotNull().data.isNotNull().deepEquals({'foo': 'bar'}),
+    );
 
     await ctx.ws.writeFileFromText('pubspec.yaml', '''
       name: pad
@@ -112,15 +120,10 @@ void main() {
     ''');
     await ctx.ws.pub(command: 'get');
     await ctx.sandbox.run('main.dart', mode: 'console');
-
-    await check(eventFuture).completes(
-      .it()
-        ..kind.equals('my.custom.event')
-        ..data.deepEquals({'foo': 'bar', '__destinationStream': 'Extension'}),
-    );
+    await service.dispose();
   });
 
-  testDartIntegration('sandbox handles invokeExtension', (ctx) async {
+  testDartIntegration('sandbox handles callServiceExtension', (ctx) async {
     await ctx.ws.writeFileFromText('main.dart', '''
       import 'dart:developer';
       import 'dart:convert';
@@ -144,8 +147,15 @@ void main() {
     // Wait for registration!
     await ctx.checkConsole(.it()..contains('extension registered'));
 
-    final response = await ctx.sandbox.invokeExtension('ext.dartpad.test', {});
+    final service = await ctx.sandbox.startServiceProtocol();
+    final vm = await service.getVM();
+    final isolateId = vm.isolates!.first.id!;
+    final response = await service.callServiceExtension(
+      'ext.dartpad.test',
+      isolateId: isolateId,
+    );
 
-    check(response).equals('{"hello":"world"}');
+    check(response.json?['hello']).equals('world');
+    await service.dispose();
   });
 }

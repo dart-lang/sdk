@@ -80,12 +80,6 @@ extension RpcServerChecks on Subject<rpc.Server> {
       });
 }
 
-extension ExtensionEventChecks
-    on Subject<({String kind, Map<String, Object?> data})> {
-  Subject<String> get kind => has((s) => s.kind, 'kind');
-  Subject<Map<String, Object?>> get data => has((s) => s.data, 'data');
-}
-
 extension VmServiceEventChecks on Subject<Event> {
   Subject<String?> get kind => has((e) => e.kind, 'kind');
   Subject<String?> get service => has((e) => e.service, 'service');

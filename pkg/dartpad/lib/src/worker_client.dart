@@ -36,10 +36,6 @@ base class WorkerClient {
     _peer.registerMethod('workspace/languageServer/exited', _handleLsExited);
     _peer.registerMethod('workspace/watcher/events', _handleWatchEvent);
     _peer.registerMethod('workspace/sandbox/console', _handleSandboxConsole);
-    _peer.registerMethod(
-      'workspace/sandbox/extensionEvent',
-      _handleSandboxExtensionEvent,
-    );
     _peer.listen();
   }
 
@@ -73,13 +69,6 @@ base class WorkerClient {
     final level = ConsoleLevel._fromName(params['level'].asString);
     final message = params['message'].asString;
     _sandboxes[id]?._consoleController.add((level: level, message: message));
-  }
-
-  void _handleSandboxExtensionEvent(rpc.Parameters params) {
-    final id = (params['sandboxId'].value as num).toInt();
-    final kind = params['kind'].asString;
-    final data = params['data'].asMap.cast<String, Object?>();
-    _sandboxes[id]?._extensionEventController.add((kind: kind, data: data));
   }
 
   void _handleLsMessage(rpc.Parameters params) {
@@ -556,8 +545,6 @@ final class Sandbox {
 
   final _consoleController =
       StreamController<({ConsoleLevel level, String message})>.broadcast();
-  final _extensionEventController =
-      StreamController<({String kind, Map<String, Object?> data})>.broadcast();
 
   /// A broadcast stream of console messages produced by the running
   /// application.
@@ -566,10 +553,6 @@ final class Sandbox {
   /// output from `main()` is not missed.
   Stream<({ConsoleLevel level, String message})> get console =>
       _consoleController.stream;
-
-  /// A stream of developer extension events fired by the running application.
-  Stream<({String kind, Map<String, Object?> data})> get extensionEvents =>
-      _extensionEventController.stream;
 
   /// Compiles and runs a Dart entrypoint in the sandbox.
   ///
@@ -613,22 +596,6 @@ final class Sandbox {
       {'sandboxId': _id},
     );
     return (log: result['log'] as String);
-  }
-
-  /// Invokes a Dart developer extension method in the sandbox.
-  ///
-  /// [method] is the name of the extension method (e.g.,
-  /// `'ext.flutter.reassemble'`).
-  /// [args] are passed as parameters to the extension method.
-  Future<String> invokeExtension(
-    String method,
-    Map<String, String> args,
-  ) async {
-    final result = await _workspace._request<Map>(
-      'workspace/sandbox/invokeExtension',
-      {'sandboxId': _id, 'method': method, 'args': args},
-    );
-    return result['result'] as String;
   }
 
   /// Connects [port] to the VM Service protocol server for this sandbox.
@@ -680,7 +647,6 @@ final class Sandbox {
 
   void _cleanup() {
     _consoleController.close().ignore();
-    _extensionEventController.close().ignore();
     _workspace._client._sandboxes.remove(_id);
   }
 }
