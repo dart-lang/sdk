@@ -135,7 +135,7 @@ class CommentReferenceResolver {
     // Import usage is tracked by lookups in the prefix scope, which `[math]`
     // alone does not do; without this, the import would be reported unused.
     if (scopeElement is PrefixElementImpl) {
-      scopeElement.scope.notifyPrefixUsedInCommentReference();
+      scopeElement.scope.notifyPrefixUsedWithoutName();
     }
 
     if (scopeElement != null) {

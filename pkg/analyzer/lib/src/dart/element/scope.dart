@@ -229,10 +229,13 @@ class ImportsTrackingOfPrefix {
   /// Excludes elements from deprecated exports.
   final Map<LibraryImportImpl, Set<Element>> importToAccessedElements2 = {};
 
-  /// Usually it is an error to use an import prefix without `.identifier`
-  /// after it, but we allow this in comment references. This makes the
-  /// corresponding group of imports "used".
-  bool hasPrefixUsedInCommentReference = false;
+  /// Whether the prefix is used without naming an element, so no lookup
+  /// tells which of the imports with this prefix is used.
+  ///
+  /// This happens in comment references like `[math]`, where it is allowed,
+  /// and in incomplete code like `math.`, where the parser reports the
+  /// missing name. This makes the whole group of imports "used".
+  bool hasPrefixUsedWithoutName = false;
 
   /// We set it temporarily to `false` while resolving combinators.
   bool active = true;
@@ -317,8 +320,8 @@ class ImportsTrackingOfPrefix {
     }
   }
 
-  void notifyPrefixUsedInCommentReference() {
-    hasPrefixUsedInCommentReference = true;
+  void notifyPrefixUsedWithoutName() {
+    hasPrefixUsedWithoutName = true;
   }
 
   void _buildElementToImportsMap() {
@@ -725,9 +728,11 @@ class PrefixScope implements Scope {
     return ScopeLookupResultImpl(getter: null, setter: null);
   }
 
-  /// Usually this is an error, but we allow it in comment references.
-  void notifyPrefixUsedInCommentReference() {
-    _importsTracking?.notifyPrefixUsedInCommentReference();
+  /// Notifies that the prefix is used without naming an element.
+  ///
+  /// See [ImportsTrackingOfPrefix.hasPrefixUsedWithoutName].
+  void notifyPrefixUsedWithoutName() {
+    _importsTracking?.notifyPrefixUsedWithoutName();
   }
 
   void _add(Element element, bool isFromDeprecatedExport) {

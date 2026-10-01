@@ -366,7 +366,7 @@ class PropertyElementResolver with ScopeHelpers {
   ) {
     var hasRead = node.hasRead;
     var result = _resolveTargetPrefixElement(
-      target: node.importPrefix.element as PrefixElement,
+      target: node.importPrefix.element as PrefixElementImpl,
       nameToken: node.name,
       hasRead: hasRead,
       hasWrite: true,
@@ -389,7 +389,7 @@ class PropertyElementResolver with ScopeHelpers {
     ImportPrefixedNameExpressionImpl node,
   ) {
     var prefix = node.importPrefix;
-    var prefixElement = prefix.element as PrefixElement;
+    var prefixElement = prefix.element as PrefixElementImpl;
 
     var result = _resolveTargetPrefixElement(
       target: prefixElement,
@@ -2127,7 +2127,7 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult _resolveTargetPrefixElement({
-    required PrefixElement target,
+    required PrefixElementImpl target,
     required Token nameToken,
     required bool hasRead,
     required bool hasWrite,
@@ -2149,7 +2149,11 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     if (hasRead && readElement == null || hasWrite && writeElement == null) {
-      if (!_resolver.libraryFragment.shouldIgnoreUndefined(
+      if (nameToken.isSynthetic) {
+        // The parser has already reported the missing name. But the prefix
+        // is still used, so its imports must not be reported as unused.
+        target.scope.notifyPrefixUsedWithoutName();
+      } else if (!_resolver.libraryFragment.shouldIgnoreUndefined(
         prefix: target.name,
         name: name,
       )) {
