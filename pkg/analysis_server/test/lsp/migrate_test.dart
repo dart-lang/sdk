@@ -1922,6 +1922,45 @@ environment:
     );
   }
 
+  Future<void> test_all_doesNotApplyUnrelatedLints() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+
+    writeTestPackageAnalysisOptionsFile(
+      AnalysisOptionsFileConfig(
+        lints: ['use_primary_constructors'],
+      ),
+    );
+
+    newFile(mainFilePath, '''
+class C {
+  int x;
+  C(this.x);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0:
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0''',
+      expectedEdit: '''
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
   Future<void> test_all_multiplePackages() async {
     var otherPackagePath = convertPath('/home/other_package');
     var otherPubspecPath = join(otherPackagePath, 'pubspec.yaml');
