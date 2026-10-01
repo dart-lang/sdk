@@ -456,6 +456,26 @@ var x = math.;
 ''');
   }
 
+  test_library_prefixed_incomplete_invocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+var x = math.(0);
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
+  test_library_prefixed_incomplete_listLiteral() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as math;
+
+var x = math.[0];
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
   test_library_prefixed_incomplete_otherImportNotUsed() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'dart:async';

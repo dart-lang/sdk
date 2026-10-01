@@ -866,8 +866,7 @@ class C<T> {
 }
 
 const x = C<int>.();
-//        ^^^^^^^^
-// [diag.classInstantiationAccessToUnknownMember] The class 'C' doesn't have a constructor named '('.
+//        ^^^^^^^^^
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 //               ^
 // [diag.missingIdentifier] Expected an identifier.
@@ -875,25 +874,29 @@ const x = C<int>.();
 
     var node = result.findNode.singleVariableDeclaration.initializer2!;
     assertResolvedNodeText(node, r'''
-ConstructorTearOff
-  typeReference: ConstructorTypeReference
-    name: C
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    element: <testLibrary>::@class::C
-    type: C<int>
-  selector: ConstructorSelector
-    period: .
-    name2: (
-  element: <null>
-  staticType: InvalidType
-V1: ConstructorReference
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: <testLibrary>::@class::C
+      type: C<int>
+    selector: ConstructorSelector
+      period: .
+      name2: <empty> <synthetic>
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C<int>
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: C
@@ -906,14 +909,17 @@ V1: ConstructorReference
             type: int
         rightBracket: >
       element: <testLibrary>::@class::C
-      type: null
+      type: C<int>
     period: .
     name: SimpleIdentifier
-      token: (
+      token: <empty> <synthetic>
       element: <null>
       staticType: null
     element: <null>
-  staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C<int>
 ''');
   }
 
@@ -1853,8 +1859,7 @@ class C<T> {
 import 'a.dart' as p;
 
 const x = p.C<int>.();
-//        ^^^^^^^^^^
-// [diag.classInstantiationAccessToUnknownMember] The class 'C' doesn't have a constructor named '('.
+//        ^^^^^^^^^^^
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 //                 ^
 // [diag.missingIdentifier] Expected an identifier.
@@ -1863,29 +1868,33 @@ const x = p.C<int>.();
     assertResolvedNodeText(
       result.findNode.singleVariableDeclaration.initializer2!,
       r'''
-ConstructorTearOff
-  typeReference: ConstructorTypeReference
-    importPrefix: ImportPrefixReference
-      name: p
+ConstructorInvocation
+  constructorReference: ConstructorReference2
+    typeReference: ConstructorTypeReference
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
+        element: <testLibraryFragment>::@prefix::p
+      name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+        rightBracket: >
+      element: package:test/a.dart::@class::C
+      type: C<int>
+    selector: ConstructorSelector
       period: .
-      element: <testLibraryFragment>::@prefix::p
-    name: C
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-          element: dart:core::@class::int
-          type: int
-      rightBracket: >
-    element: package:test/a.dart::@class::C
-    type: C<int>
-  selector: ConstructorSelector
-    period: .
-    name2: (
-  element: <null>
-  staticType: InvalidType
-V1: ConstructorReference
+      name2: <empty> <synthetic>
+    element: <null>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C<int>
+V1: InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       importPrefix: ImportPrefixReference
@@ -1902,14 +1911,17 @@ V1: ConstructorReference
             type: int
         rightBracket: >
       element: package:test/a.dart::@class::C
-      type: null
+      type: C<int>
     period: .
     name: SimpleIdentifier
-      token: (
+      token: <empty> <synthetic>
       element: <null>
       staticType: null
     element: <null>
-  staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticType: C<int>
 ''',
     );
   }

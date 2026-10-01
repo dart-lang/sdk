@@ -1,0 +1,9 @@
+import 'dart:math' as math;
+
+main() {}
+
+void f(int a) {}
+
+void g(int? a) {}
+
+void h() {}

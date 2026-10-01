@@ -3764,31 +3764,38 @@ const x = C<int>.();
 
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-ParsedNameAccess
-  operand: ParsedTypeArguments
-    operand: ParsedUnqualifiedName
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedTypeArguments
+      operand: ParsedUnqualifiedName
+        name: C
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    operator: .
+    name: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: InstanceCreationExpression
+  constructorName: ConstructorName
+    type: NamedType
       name: C
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-      rightBracket: >
-  operator: .
-  name: (
-V1: PropertyAccess
-  target: FunctionReference
-    function: SimpleIdentifier
-      token: C
-    typeArguments: TypeArgumentList
-      leftBracket: <
-      arguments
-        NamedType
-          name: int
-      rightBracket: >
-  operator: .
-  propertyName: SimpleIdentifier
-    token: (
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: int
+        rightBracket: >
+    period: .
+    name: SimpleIdentifier
+      token: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
 ''');
   }
 

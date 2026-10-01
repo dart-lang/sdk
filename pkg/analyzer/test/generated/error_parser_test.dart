@@ -2146,13 +2146,13 @@ ParsedNameAccess
   operand: ParsedUnqualifiedName
     name: x
   operator: .
-  name: this
-V1: PropertyAccess
-  target: SimpleIdentifier
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
     token: x
-  operator: .
-  propertyName: SimpleIdentifier
-    token: this
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
 ''',
     );
   }

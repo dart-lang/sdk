@@ -1244,20 +1244,21 @@ ReceiverPropertyExtraction
       type: dynamic
     staticType: dynamic
   operator: .
-  name: this
+  name: <empty> <synthetic>
   resolution: DynamicPropertyReadResolution
     type: dynamic
   staticType: dynamic
-V1: PropertyAccess
-  target: SimpleIdentifier
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
     token: x
     element: <testLibrary>::@function::f::@formalParameter::x
     staticType: dynamic
-  operator: .
-  propertyName: SimpleIdentifier
-    token: this
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
     element: <null>
     staticType: dynamic
+  element: <null>
   staticType: dynamic
 ''',
     );

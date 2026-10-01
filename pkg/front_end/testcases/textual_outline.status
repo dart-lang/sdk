@@ -20,7 +20,6 @@ regress/annotation_on_type_parameter_name_extension_type_constructor: FormatterC
 regress/erroneous_setter: FormatterCrash
 regress/erroneous_setter_2: FormatterCrash
 regress/issue_30994: FormatterCrash
-regress/issue_31198: FormatterCrash
 triple_shift/invalid_operator: FormatterCrash
 
 coverage/digit-separators/separators_errors_test: EmptyOutput

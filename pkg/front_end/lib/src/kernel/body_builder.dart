@@ -2682,8 +2682,11 @@ class BodyBuilderImpl extends StackListenerImpl
     if (send is Selector) {
       Object? receiver = pop();
       push(send.withReceiver(receiver, token.charOffset));
-    } else if (send is IncompleteErrorGenerator) {
-      // Pop the "receiver" and push the error.
+    } else if (send is IncompleteErrorGenerator ||
+        send is ParserErrorGenerator) {
+      // Pop the "receiver" and push the error. A [ParserErrorGenerator] is
+      // for an error that the parser has already reported, e.g. the missing
+      // name in `a.(b)`.
       pop();
       push(send);
     } else {
@@ -2729,6 +2732,11 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? send = pop();
     if (send is Selector) {
       push(send.withReceiver(pop(), token.charOffset, isNullAware: true));
+    } else if (send is ParserErrorGenerator) {
+      // The parser has already reported the error, e.g. the missing name in
+      // `a?.(b)`. Pop the "receiver" and push the error.
+      pop();
+      push(send);
     } else {
       pop();
       token = token.next!;

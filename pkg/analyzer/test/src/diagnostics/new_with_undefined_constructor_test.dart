@@ -186,6 +186,61 @@ f() {
 ''');
   }
 
+  test_named_synthetic() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named();
+}
+f() {
+  new A.();
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_named_synthetic_hasUnnamed() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A();
+}
+f() {
+  new A.();
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_named_synthetic_noKeyword() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named();
+}
+f() {
+  A.();
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_named_synthetic_noKeyword_prefixed() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {
+  A.named();
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart' as lib1;
+f() {
+  lib1.A.();
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
   test_private_named() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {

@@ -8215,7 +8215,9 @@ class Parser {
       } else {
         // Fall through to the recovery code.
       }
-    } else if (kind == OPEN_PAREN_TOKEN) {
+    } else if (kind == OPEN_PAREN_TOKEN && !context.isContinuation) {
+      // Not after a period: in `a.(b)` the name is missing, and the recovery
+      // code below inserts a synthetic name and parses `(b)` as its arguments.
       return parseParenthesizedExpressionFunctionLiteralOrRecordLiteral(
         token,
         constantPatternContext,
