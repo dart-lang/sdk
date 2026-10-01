@@ -38,7 +38,13 @@
     }
   }
 
+  // Promise resolved when `onEntrypointLoaded` finishes `initializeEngine` +
+  // `runApp` (called synchronously by `ui_web.bootstrapEngine()` during
+  // initial `run` and every subsequent `hotRestart`).
+  let appLoaded = null;
+
   async function runFlutter(run) {
+    appLoaded = null;
     if (!self._flutter || !self._flutter.loader) {
       const err = new Error("flutter.js is not loaded!");
       err.name = "SERVER_ERROR";
@@ -58,13 +64,26 @@
         type: 'application/javascript',
       }),
     );
+    self._flutter.buildConfig = {
+      builds: [
+        {
+          compileTarget: 'dartdevc',
+          renderer: 'canvaskit',
+          mainJsPath: url,
+        },
+      ],
+    };
 
-    let engineInitializer;
     try {
-      await self._flutter.loader.loadEntrypoint({
-        entrypointUrl: url,
-        onEntrypointLoaded: (initializer) => {
-          engineInitializer = initializer;
+      await self._flutter.loader.load({
+        config: dartpadFlutterConfiguration,
+        onEntrypointLoaded: (engineInitializer) => {
+          appLoaded = (async () => {
+            const appRunner = await engineInitializer.initializeEngine(
+              dartpadFlutterConfiguration,
+            );
+            await appRunner.runApp();
+          })();
         },
       });
       await ran.promise;
@@ -73,13 +92,11 @@
       URL.revokeObjectURL(url);
     }
 
-    const appRunner = await engineInitializer.initializeEngine(
-      dartpadFlutterConfiguration,
-    );
-    await appRunner.runApp();
+    await appLoaded;
   }
 
   async function hotRestartFlutter(hotRestart) {
+    appLoaded = null;
     // Must run synchronously before `hotRestart()` so
     // `libraryManager.hotRestart()` increments `hotRestartGeneration` in
     // the same synchronous turn as `_hotRestartListeners`, preventing DOM
@@ -87,6 +104,7 @@
     // running microtasks in the dying generation.
     disassemble();
     await hotRestart();
+    await appLoaded;
   }
 
   async function hotReloadFlutter(hotReload) {
