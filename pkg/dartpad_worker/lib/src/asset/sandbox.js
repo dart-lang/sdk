@@ -16,9 +16,10 @@
   ];
   // Execution modes
   self.$dartpadRunModes = self.$dartpadRunModes || {
-    console: async (libraryUri, options) => {
-      self.dartDevEmbedder.runMain(libraryUri, options || {});
-      return { status: 'running' };
+    console: {
+      run: async (run) => await run(),
+      hotRestart: async (hotRestart) => await hotRestart(),
+      hotReload: async (hotReload) => await hotReload(),
     },
   };
 
@@ -438,6 +439,9 @@
     return {};
   };
 
+  // Run mode object from $dartpadRunModes for the currently running app.
+  let activeRunMode = null;
+
   rpcMethods.run = async (params) => {
     const { libraryUri, mode, options = {} } = params;
 
@@ -453,7 +457,8 @@
         errorCode.INVALID_PARAMS
       );
     }
-    if (!self.$dartpadRunModes || !self.$dartpadRunModes[mode]) {
+    const runMode = self.$dartpadRunModes[mode];
+    if (!runMode) {
       throw new RpcError(
         `mode not found: ${mode}`,
         errorCode.INVALID_PARAMS
@@ -467,7 +472,11 @@
       );
     }
 
-    return await self.$dartpadRunModes[mode](libraryUri, options);
+    activeRunMode = runMode;
+    await activeRunMode.run(() => {
+      self.dartDevEmbedder.runMain(libraryUri, options);
+    });
+    return { status: 'running' };
   };
 
   rpcMethods.hotRestart = async (params) => {
@@ -479,20 +488,28 @@
         errorCode.SERVER_ERROR
       );
     }
+    if (!activeRunMode) {
+      throw new RpcError(
+        "No application is running.",
+        errorCode.INVALID_SANDBOX_STATE,
+      );
+    }
 
     // Define the official DDC hook for reloading modules during restart.
     // This is awaited by `hotRestart()`, so `callback()` -- which re-runs
     // `main()` and bumps the generation -- must happen before it returns.
     const reloadModules = async (appName, callback) => {
       await Promise.all(modules.map(loadModule));
-      callback();
+      await activeRunMode.hotRestart(callback);
     };
 
     self.$dartReloadModifiedModules = reloadModules;
-    await self.dartDevEmbedder.hotRestart();
-
-    if (self.$dartReloadModifiedModules === reloadModules) {
-      self.$dartReloadModifiedModules = null;
+    try {
+      await self.dartDevEmbedder.hotRestart();
+    } finally {
+      if (self.$dartReloadModifiedModules === reloadModules) {
+        self.$dartReloadModifiedModules = null;
+      }
     }
     return { generation: self.dartDevEmbedder.hotRestartGeneration };
   };
@@ -507,15 +524,20 @@
         errorCode.SERVER_ERROR
       );
     }
+    if (!activeRunMode) {
+      throw new RpcError(
+        "No application is running.",
+        errorCode.INVALID_SANDBOX_STATE,
+      );
+    }
 
     const filesToLoad = modules.map(({ moduleName, code }) =>
       createAndRegisterBlob(moduleName, code),
     );
 
-    await self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload);
-    if (self.dartDevEmbedder.debugger.extensionNames.includes('ext.flutter.reassemble')) {
-      await self.dartDevEmbedder.debugger.invokeExtension('ext.flutter.reassemble', '{}');
-    }
+    await activeRunMode.hotReload(() =>
+      self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload),
+    );
     return { generation: self.dartDevEmbedder.hotReloadGeneration };
   };
 
