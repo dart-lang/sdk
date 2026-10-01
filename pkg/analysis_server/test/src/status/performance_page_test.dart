@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages/performance_page.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../analysis_server_base.dart';
+import 'test_socket_server.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -27,7 +24,7 @@ class PerformancePageTest extends PubPackageAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    site = DiagnosticsSite(_TestSocketServer(server), []);
+    site = DiagnosticsSite(TestSocketServer(server), []);
     page = PerformancePage(site);
   }
 
@@ -165,17 +162,4 @@ class PerformancePageTest extends PubPackageAnalysisServerTest {
   Future<String> _generate() async {
     return await page.generate({});
   }
-}
-
-class _TestSocketServer implements AbstractSocketServer {
-  @override
-  final AnalysisServer analysisServer;
-
-  new(this.analysisServer);
-
-  @override
-  AnalysisServerOptions get analysisServerOptions => analysisServer.options;
-
-  @override
-  DiagnosticServer? get diagnosticServer => null;
 }
