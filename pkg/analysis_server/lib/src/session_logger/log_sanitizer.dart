@@ -34,6 +34,13 @@ enum IdentifierKind {
       lsp.SymbolKind.Struct,
       lsp.SymbolKind.TypeParameter,
     ],
+    completionItemKinds: [
+      lsp.CompletionItemKind.Class,
+      lsp.CompletionItemKind.Enum,
+      lsp.CompletionItemKind.Interface,
+      lsp.CompletionItemKind.Struct,
+      lsp.CompletionItemKind.TypeParameter,
+    ],
     prefix: 'C',
   ),
   method(
@@ -48,6 +55,11 @@ enum IdentifierKind {
       lsp.SymbolKind.Constructor,
       lsp.SymbolKind.Function,
       lsp.SymbolKind.Method,
+    ],
+    completionItemKinds: [
+      lsp.CompletionItemKind.Constructor,
+      lsp.CompletionItemKind.Function,
+      lsp.CompletionItemKind.Method,
     ],
     prefix: 'm',
   ),
@@ -68,9 +80,21 @@ enum IdentifierKind {
       lsp.SymbolKind.Property,
       lsp.SymbolKind.Variable,
     ],
+    completionItemKinds: [
+      lsp.CompletionItemKind.Constant,
+      lsp.CompletionItemKind.EnumMember,
+      lsp.CompletionItemKind.Field,
+      lsp.CompletionItemKind.Property,
+      lsp.CompletionItemKind.Variable,
+    ],
     prefix: 'v',
   ),
-  unknown(elementKinds: [], symbolKinds: [], prefix: 'a');
+  unknown(
+    elementKinds: [],
+    symbolKinds: [],
+    completionItemKinds: [],
+    prefix: 'a',
+  );
 
   static final Map<String, IdentifierKind> _byElementKindName = {
     for (var value in values)
@@ -82,20 +106,30 @@ enum IdentifierKind {
       for (var kind in value.symbolKinds) kind: value,
   };
 
+  static final Map<lsp.CompletionItemKind, IdentifierKind>
+  _byCompletionItemKind = {
+    for (var value in values)
+      for (var kind in value.completionItemKinds) kind: value,
+  };
+
   /// The DAS protocol element kinds that map to this [IdentifierKind].
   final List<ElementKind> elementKinds;
 
   /// The LSP symbol kinds that map to this [IdentifierKind].
   final List<lsp.SymbolKind> symbolKinds;
 
+  /// The LSP completion item kinds that map to this [IdentifierKind].
+  final List<lsp.CompletionItemKind> completionItemKinds;
+
   /// The prefix character used in sanitized identifiers of this kind.
   final String prefix;
 
-  /// Creates a new identifier kind with the given [elementKinds] and
-  /// [symbolKinds].
+  /// Creates a new identifier kind with the given [elementKinds],
+  /// [symbolKinds], and [completionItemKinds].
   new({
     required this.elementKinds,
     required this.symbolKinds,
+    required this.completionItemKinds,
     required this.prefix,
   });
 
@@ -104,6 +138,21 @@ enum IdentifierKind {
   factory forKind(String? kind) {
     if (kind == null) return unknown;
     return _byElementKindName[kind.toUpperCase()] ?? unknown;
+  }
+
+  /// Returns the [IdentifierKind] for the given LSP [completionItemKind], or
+  /// [unknown] if none match.
+  factory forLspCompletionItemKind(Object? completionItemKind) {
+    return switch (completionItemKind) {
+      lsp.CompletionItemKind() =>
+        _byCompletionItemKind[completionItemKind] ?? unknown,
+      int() =>
+        _byCompletionItemKind[lsp.CompletionItemKind.fromJson(
+              completionItemKind,
+            )] ??
+            unknown,
+      _ => unknown,
+    };
   }
 
   /// Returns the [IdentifierKind] for the given LSP [symbolKind], or
@@ -451,6 +500,12 @@ class LogSanitizer {
     });
   }
 
+  JsonMap _sanitizeCommand(JsonMap command) => Map.of(command)
+    ..updateIfType<List<Object?>>(
+      'arguments',
+      (args) => args.map(_sanitizeJsonValue).toList(),
+    );
+
   String _sanitizeCommandLineArg(String arg) {
     if (arg.startsWith('--') && arg.contains('=')) {
       var eq = arg.indexOf('=');
@@ -461,6 +516,56 @@ class LogSanitizer {
       return sanitizePath(arg);
     }
     return arg.startsWith('--') ? arg : '...';
+  }
+
+  JsonMap _sanitizeCompletionItem(JsonMap item) {
+    var sanitized = Map.of(item);
+    var kind = IdentifierKind.forLspCompletionItemKind(
+      sanitized['kind'] as int?,
+    );
+    sanitized.updateIfType<String>(
+      'label',
+      (label) => sanitizeIdentifier(label, kind: kind),
+    );
+    sanitized.updateIfType<String>('detail', (_) => '<sanitized>');
+    sanitized.updateIfType<JsonMap>('labelDetails', _sanitizeLabelDetails);
+    sanitized.updateIfType('documentation', _sanitizeDocumentation);
+    sanitized.updateIfType<JsonMap>('textEdit', (textEdit) {
+      return Map.of(textEdit)
+        ..updateIfType<String>('newText', sanitizeIdentifier);
+    });
+    sanitized.updateIfType<String>('textEditText', sanitizeIdentifier);
+    sanitized.updateIfType<String>('filterText', sanitizeIdentifier);
+    sanitized.updateIfType<String>('insertText', sanitizeIdentifier);
+    sanitized.updateIfType<JsonMap>('data', _sanitizeCompletionItemData);
+    return sanitized;
+  }
+
+  JsonMap _sanitizeCompletionItemData(JsonMap data) {
+    var sanitized = Map.of(data);
+    sanitized.updateIfType<String>('file', sanitizePath);
+    sanitized.updateIfType<List<Object?>>('importUris', (uris) {
+      return uris.map((u) => u is String ? sanitizePath(u) : u).toList();
+    });
+    sanitized.updateIfType<String>('ref', (ref) {
+      var parts = ref.split(';');
+      if (parts.isEmpty) return ref;
+      var sanitizedParts = <String>[];
+      sanitizedParts.add(sanitizePath(parts[0]));
+      for (var i = 1; i < parts.length; i++) {
+        sanitizedParts.add(sanitizeIdentifier(parts[i]));
+      }
+      return sanitizedParts.join(';');
+    });
+    return sanitized;
+  }
+
+  Object? _sanitizeDocumentation(Object? doc) {
+    if (doc is String) return _sanitizeHoverValue(doc);
+    if (doc is JsonMap) {
+      return Map.of(doc)..updateIfType<String>('value', _sanitizeHoverValue);
+    }
+    return doc;
   }
 
   JsonMap _sanitizeDocumentSymbol(JsonMap symbol) {
@@ -524,6 +629,13 @@ class LogSanitizer {
     };
   }
 
+  JsonMap _sanitizeLabelDetails(JsonMap labelDetails) => Map.of(labelDetails)
+    ..updateIfType<String>('detail', (_) => '<sanitized>')
+    ..updateIfType<String>(
+      'description',
+      (desc) => desc.looksLikePath ? sanitizePath(desc) : desc,
+    );
+
   JsonMap _sanitizeOutline(JsonMap outline) {
     var sanitized = Map.of(outline);
     sanitized.updateIfType<JsonMap>('element', (element) {
@@ -564,6 +676,13 @@ class LogSanitizer {
     var sanitized = Map.of(params);
 
     switch (method) {
+      case 'command/resolve':
+      case 'workspace/executeCommand':
+        sanitized = _sanitizeCommand(sanitized);
+
+      case 'completionItem/resolve':
+        sanitized = _sanitizeCompletionItem(sanitized);
+
       case 'initialize':
         sanitized.updateIfType('rootPath', sanitizePath);
         sanitized.updateIfType('rootUri', sanitizePath);
@@ -601,6 +720,15 @@ class LogSanitizer {
           }).toList();
         });
 
+      case 'textDocument/publishDiagnostics':
+        sanitized.updateIfType('uri', sanitizePath);
+        sanitized.updateIfType<List<Object?>>('diagnostics', (diagnostics) {
+          return diagnostics.map((d) {
+            if (d is! JsonMap) return d;
+            return Map.of(d)..updateIfType('message', _sanitizePathsInText);
+          }).toList();
+        });
+
       case 'textDocument/rename':
         sanitized.updateIfType<JsonMap>(
           'textDocument',
@@ -611,11 +739,14 @@ class LogSanitizer {
       case 'textDocument/prepareRename':
       case 'textDocument/codeAction':
       case 'textDocument/codeLens':
+      case 'textDocument/completion':
       case 'textDocument/hover':
       case 'textDocument/documentHighlight':
       case 'textDocument/documentSymbol':
       case 'textDocument/semanticTokens/full':
+      case 'textDocument/semanticTokens/range':
       case 'textDocument/foldingRange':
+      case 'textDocument/formatting':
       case 'textDocument/inlayHint':
       case 'textDocument/documentLink':
       case 'textDocument/documentColor':
@@ -689,8 +820,6 @@ class LogSanitizer {
       case 'client/unregisterCapability':
       case 'codeAction/resolve':
       case 'codeLens/resolve':
-      case 'command/resolve':
-      case 'completionItem/resolve':
       case 'dart/connectToDtd':
       case 'dart/diagnosticServer':
       case 'dart/openUri':
@@ -720,11 +849,9 @@ class LogSanitizer {
       case 'shutdown':
       case 'telemetry/event':
       case 'textDocument/colorPresentation':
-      case 'textDocument/completion':
       case 'textDocument/declaration':
       case 'textDocument/definition':
       case 'textDocument/diagnostic':
-      case 'textDocument/formatting':
       case 'textDocument/implementation':
       case 'textDocument/inlineCompletion':
       case 'textDocument/inlineValue':
@@ -733,14 +860,12 @@ class LogSanitizer {
       case 'textDocument/onTypeFormatting':
       case 'textDocument/prepareCallHierarchy':
       case 'textDocument/prepareTypeHierarchy':
-      case 'textDocument/publishDiagnostics':
       case 'textDocument/rangeFormatting':
       case 'textDocument/rangesFormatting':
       case 'textDocument/references':
       case 'textDocument/selectionRange':
       case 'textDocument/semanticTokens':
       case 'textDocument/semanticTokens/full/delta':
-      case 'textDocument/semanticTokens/range':
       case 'textDocument/signatureHelp':
       case 'textDocument/typeDefinition':
       case 'textDocument/willSave':
@@ -764,7 +889,6 @@ class LogSanitizer {
       case 'workspace/didCreateFiles':
       case 'workspace/didDeleteFiles':
       case 'workspace/didRenameFiles':
-      case 'workspace/executeCommand':
       case 'workspace/foldingRange/refresh':
       case 'workspace/inlayHint/refresh':
       case 'workspace/inlineValue/refresh':
@@ -796,6 +920,86 @@ class LogSanitizer {
     if (result == null) return null;
 
     switch (requestMethod) {
+      case 'command/resolve':
+        if (result is JsonMap) return _sanitizeCommand(result);
+
+      case 'completionItem/resolve':
+        if (result is JsonMap) return _sanitizeCompletionItem(result);
+
+      case 'textDocument/codeAction':
+        if (result is List<Object?>) {
+          return result.map((item) {
+            if (item is! JsonMap) return item;
+            return Map.of(item)
+              ..updateIfType('title', _sanitizeCodeActionTitle)
+              ..updateIfType<JsonMap>('edit', (edit) {
+                return _sanitizeResult('textDocument/rename', edit);
+              });
+          }).toList();
+        }
+
+      case 'textDocument/codeLens' when result is List<Object?>:
+        return result.map((item) {
+          if (item is! JsonMap) return item;
+          return Map.of(item)..updateIfType<JsonMap>(
+            'command',
+            (command) => Map.of(command)
+              ..updateIfType<List<Object?>>(
+                'arguments',
+                (args) => args.map(_sanitizeJsonValue).toList(),
+              ),
+          );
+        }).toList();
+
+      case 'textDocument/completion':
+        if (result is JsonMap) {
+          return Map.of(result)..updateIfType<List<Object?>>(
+            'items',
+            (items) => items
+                .map(
+                  (item) =>
+                      item is JsonMap ? _sanitizeCompletionItem(item) : item,
+                )
+                .toList(),
+          );
+        } else if (result is List<Object?>) {
+          return result
+              .map(
+                (item) =>
+                    item is JsonMap ? _sanitizeCompletionItem(item) : item,
+              )
+              .toList();
+        }
+
+      case 'textDocument/documentLink' when result is List<Object?>:
+        return result.map((item) {
+          if (item is! JsonMap) return item;
+          return Map.of(item)..updateIfType('target', sanitizePath);
+        }).toList();
+
+      case 'textDocument/documentSymbol' when result is List<Object?>:
+        return [
+          for (var item in result)
+            item is JsonMap ? _sanitizeDocumentSymbol(item) : item,
+        ];
+
+      case 'textDocument/hover':
+        if (result is JsonMap) {
+          return Map.of(result)..updateIfType<JsonMap>(
+            'contents',
+            (contents) =>
+                Map.of(contents)..updateIfType('value', _sanitizeHoverValue),
+          );
+        }
+
+      case 'textDocument/inlayHint':
+        if (result is List<Object?>) {
+          return result.map((item) {
+            if (item is! JsonMap) return item;
+            return Map.of(item)..updateIfType('label', sanitizeTypeString);
+          }).toList();
+        }
+
       case 'textDocument/prepareRename':
         if (result is JsonMap) {
           return Map.of(result)
@@ -840,54 +1044,6 @@ class LogSanitizer {
           }).toList();
         });
         return sanitized;
-
-      case 'textDocument/documentSymbol' when result is List<Object?>:
-        return [
-          for (var item in result)
-            item is JsonMap ? _sanitizeDocumentSymbol(item) : item,
-        ];
-
-      case 'textDocument/hover':
-        if (result is JsonMap) {
-          return Map.of(result)..updateIfType<JsonMap>(
-            'contents',
-            (contents) =>
-                Map.of(contents)..updateIfType('value', _sanitizeHoverValue),
-          );
-        }
-
-      case 'textDocument/inlayHint':
-        if (result is List<Object?>) {
-          return result.map((item) {
-            if (item is! JsonMap) return item;
-            return Map.of(item)..updateIfType('label', sanitizeTypeString);
-          }).toList();
-        }
-
-      case 'textDocument/codeAction':
-        if (result is List<Object?>) {
-          return result.map((item) {
-            if (item is! JsonMap) return item;
-            return Map.of(item)
-              ..updateIfType('title', _sanitizeCodeActionTitle)
-              ..updateIfType<JsonMap>('edit', (edit) {
-                return _sanitizeResult('textDocument/rename', edit);
-              });
-          }).toList();
-        }
-
-      case 'textDocument/codeLens' when result is List<Object?>:
-        return result.map((item) {
-          if (item is! JsonMap) return item;
-          return Map.of(item)..updateIfType<JsonMap>(
-            'command',
-            (command) => Map.of(command)
-              ..updateIfType<List<Object?>>(
-                'arguments',
-                (args) => args.map(_sanitizeJsonValue).toList(),
-              ),
-          );
-        }).toList();
 
       case 'workspace/configuration' when result is List<Object?>:
         return [
