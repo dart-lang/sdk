@@ -749,6 +749,12 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.notEnoughPositionalArgumentsNameSingular: [
     AddMissingClosureParameters.positional,
   ],
+  diag.notEnoughPositionalArgumentsPlural: [
+    AddMissingClosureParameters.positional,
+  ],
+  diag.notEnoughPositionalArgumentsSingular: [
+    AddMissingClosureParameters.positional,
+  ],
   diag.notInitializedNonNullableInstanceField: [
     AddLate.new,
     CreateConstructorForFinalFields.requiredNamed,
