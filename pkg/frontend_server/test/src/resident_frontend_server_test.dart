@@ -98,6 +98,7 @@ void main() async {
           jsonEncode(<String, Object>{
             "success": false,
             "errorMessage": "Unsupported command: null.",
+            "restartMightHelp": false,
           }),
         ),
       );
@@ -113,6 +114,7 @@ void main() async {
           jsonEncode(<String, Object>{
             "success": false,
             "errorMessage": "Unsupported command: not a command.",
+            "restartMightHelp": false,
           }),
         ),
       );
@@ -128,6 +130,7 @@ void main() async {
           jsonEncode(<String, Object>{
             "success": false,
             "errorMessage": "hello is not valid JSON.",
+            "restartMightHelp": false,
           }),
         ),
       );
@@ -145,6 +148,7 @@ void main() async {
             "errorMessage":
                 "'compile' requests must include an 'executable' property and "
                 "an 'output-dill' property.",
+            "restartMightHelp": false,
           }),
         ),
       );

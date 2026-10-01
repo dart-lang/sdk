@@ -496,6 +496,7 @@ class ResidentFrontendServer {
       return _encodeErrorMessage(
         "'$_replaceCachedDillString' requests must include a "
         "'$_replacementDillPathString' property.",
+        restartMightHelp: false,
       );
     }
 
@@ -518,11 +519,14 @@ class ResidentFrontendServer {
           canonicalizedLibraryPath,
         ).cachedDillPath;
       } on Exception catch (e) {
-        return _encodeErrorMessage(e.toString());
+        return _encodeErrorMessage(e.toString(), restartMightHelp: true);
       }
       replacementDillFile.copySync(cachedDillPath);
     } catch (e) {
-      return _encodeErrorMessage('Failed to replace cached dill');
+      return _encodeErrorMessage(
+        'Failed to replace cached dill',
+        restartMightHelp: true,
+      );
     }
 
     if (compilers[canonicalizedLibraryPath] != null) {
@@ -539,6 +543,7 @@ class ResidentFrontendServer {
       return _encodeErrorMessage(
         "'$_compileString' requests must include an '$_executableString' "
         "property and an '$_outputString' property.",
+        restartMightHelp: false,
       );
     }
 
@@ -546,6 +551,7 @@ class ResidentFrontendServer {
       return _encodeErrorMessage(
         "The '$_recordUsesString' property is only supported for "
         "AOT compilation.",
+        restartMightHelp: false,
       );
     }
 
@@ -563,7 +569,7 @@ class ResidentFrontendServer {
         computationResult.cachedCompilerOptionsPath,
       );
     } on Exception catch (e) {
-      return _encodeErrorMessage(e.toString());
+      return _encodeErrorMessage(e.toString(), restartMightHelp: true);
     }
 
     final ArgResults options = _generateCompilerOptions(
@@ -592,6 +598,7 @@ class ResidentFrontendServer {
       } catch (e) {
         return _encodeErrorMessage(
           'Could not write output dill to ${request[_outputString]}.',
+          restartMightHelp: true,
         );
       }
     }
@@ -620,8 +627,10 @@ class ResidentFrontendServer {
         );
       }
     } catch (e, st) {
+      // TODO(jensj): What can throw here?
       return _encodeErrorMessage(
         "Request contains invalid '$_libraryUriString' property: $e\n$st",
+        restartMightHelp: true,
       );
     }
 
@@ -635,7 +644,7 @@ class ResidentFrontendServer {
         computationResult.cachedCompilerOptionsPath,
       );
     } on Exception catch (e) {
-      return _encodeErrorMessage(e.toString());
+      return _encodeErrorMessage(e.toString(), restartMightHelp: true);
     }
     // Make the [ResidentCompiler] output the compiled expression to
     // [compiledExpressionDillPath] to prevent it from overwriting the
@@ -712,22 +721,34 @@ class ResidentFrontendServer {
     try {
       request = jsonDecode(input);
     } on FormatException {
-      return _encodeErrorMessage('$input is not valid JSON.');
+      return _encodeErrorMessage(
+        '$input is not valid JSON.',
+        restartMightHelp: false,
+      );
     }
 
-    switch (request[_commandString]) {
-      case _replaceCachedDillString:
-        return _handleReplaceCachedDillRequest(request);
-      case _compileString:
-        return _handleCompileRequest(request);
-      case _compileExpressionString:
-        return _handleCompileExpressionRequest(request);
-      case _shutdownString:
-        return _shutdownJsonResponse;
-      default:
-        return _encodeErrorMessage(
-          'Unsupported command: ${request[_commandString]}.',
-        );
+    try {
+      switch (request[_commandString]) {
+        case _replaceCachedDillString:
+          return await _handleReplaceCachedDillRequest(request);
+        case _compileString:
+          return await _handleCompileRequest(request);
+        case _compileExpressionString:
+          return await _handleCompileExpressionRequest(request);
+        case _shutdownString:
+          return _shutdownJsonResponse;
+        default:
+          return _encodeErrorMessage(
+            'Unsupported command: ${request[_commandString]}.',
+            restartMightHelp: false,
+          );
+      }
+    } catch (e, st) {
+      return _encodeErrorMessage(
+        "Crash: $e",
+        stackTrace: st,
+        restartMightHelp: false,
+      );
     }
   }
 
@@ -826,9 +847,18 @@ class ResidentFrontendServer {
   }
 
   /// Encodes the [message] in JSON to be sent over the socket.
-  static String _encodeErrorMessage(String message) => jsonEncode(
-    <String, Object>{_successString: false, 'errorMessage': message},
-  );
+  static String _encodeErrorMessage(
+    String message, {
+    required bool restartMightHelp,
+    StackTrace? stackTrace,
+  }) {
+    return jsonEncode(<String, Object>{
+      _successString: false,
+      'errorMessage': message,
+      'restartMightHelp': restartMightHelp,
+      'stackTrace': ?stackTrace?.toString(),
+    });
+  }
 }
 
 /// Closes the ServerSocket and removes the [serverInfoFile] that is used
