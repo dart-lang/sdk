@@ -70,6 +70,8 @@ final class FakeSandboxedIframe {
 
   int _hotReloadGeneration = 0;
   int _hotRestartGeneration = 0;
+  String? _libraryUri;
+  String? _mode;
 
   FakeSandboxedIframe() {
     final controller = StreamChannelController<Uint8List>();
@@ -87,22 +89,33 @@ final class FakeSandboxedIframe {
     });
 
     _peer.registerMethod('run', (Parameters params) {
-      final mode = params['mode'].asString;
-      final libraryUri = params['libraryUri'].asString;
+      final mode = _mode = params['mode'].asString;
+      final libraryUri = _libraryUri = params['libraryUri'].asString;
 
+      emitIsolateStart(libraryUri, mode);
       _addEvent(RunEvent._(libraryUri: libraryUri, mode: mode));
       return <String, dynamic>{};
     });
 
     _peer.registerMethod('hotReload', (Parameters params) {
+      if (_libraryUri == null) {
+        throw InvalidSandboxStateException('No application is running.');
+      }
       _addEvent(HotReloadEvent._(_decodeModules(params)));
       _hotReloadGeneration++;
+      _peer.sendNotification('isolateReload', {});
       return {'generation': _hotReloadGeneration, 'success': true};
     });
 
     _peer.registerMethod('hotRestart', (Parameters params) {
+      final (libraryUri, mode) = (_libraryUri, _mode);
+      if (libraryUri == null || mode == null) {
+        throw InvalidSandboxStateException('No application is running.');
+      }
+      _peer.sendNotification('isolateExit', {});
       _addEvent(HotRestartEvent._(_decodeModules(params)));
       _hotRestartGeneration++;
+      emitIsolateStart(libraryUri, mode);
       return {'generation': _hotRestartGeneration, 'success': true};
     });
 
@@ -162,6 +175,17 @@ final class FakeSandboxedIframe {
 
   void emitConsole(String level, String message) {
     _peer.sendNotification('console', {'level': level, 'message': message});
+  }
+
+  void emitIsolateStart(String entrypointUri, String mode) {
+    _peer.sendNotification('isolateStart', {
+      'entrypointUri': entrypointUri,
+      'mode': mode,
+    });
+  }
+
+  void emitRegisterExtension(String method) {
+    _peer.sendNotification('registerExtension', {'method': method});
   }
 
   void emitExtensionEvent(String kind, Map<String, dynamic> data) {

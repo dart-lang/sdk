@@ -389,7 +389,9 @@
 
   // Inject event handler for extension registration.
   // This is required by DDC's dart:developer patch.
-  self.$emitRegisterEvent = (method) => { };
+  self.$emitRegisterEvent = (method) => {
+    sendNotification('registerExtension', { method });
+  };
 
   // This is required for ddc to not ignore extension events.
   self.$dwdsVersion = '1.0.0';
@@ -478,6 +480,8 @@
 
   // Run mode object from $dartpadRunModes for the currently running app.
   let activeRunMode = null;
+  let activeEntrypointUri = null;
+  let activeMode = null;
 
   rpcMethods.run = async (params) => {
     const { libraryUri, mode, options = {} } = params;
@@ -510,10 +514,18 @@
     }
 
     activeRunMode = runMode;
-    await activeRunMode.run(() => {
-      self.dartDevEmbedder.runMain(libraryUri, options);
-    });
-    return { status: 'running' };
+    activeEntrypointUri = libraryUri;
+    activeMode = mode;
+    sendNotification('isolateStart', { entrypointUri: libraryUri, mode });
+    try {
+      await activeRunMode.run(() => {
+        self.dartDevEmbedder.runMain(libraryUri, options);
+      });
+      return { status: 'running' };
+    } catch (e) {
+      sendNotification('isolateExit', {});
+      throw e;
+    }
   };
 
   rpcMethods.hotRestart = async (params) => {
@@ -537,7 +549,14 @@
     // `main()` and bumps the generation -- must happen before it returns.
     const reloadModules = async (appName, callback) => {
       await Promise.all(modules.map(loadModule));
-      await activeRunMode.hotRestart(callback);
+      await activeRunMode.hotRestart(() => {
+        sendNotification('isolateExit', {});
+        sendNotification('isolateStart', {
+          entrypointUri: activeEntrypointUri,
+          mode: activeMode,
+        });
+        callback();
+      });
     };
 
     self.$dartReloadModifiedModules = reloadModules;
@@ -575,6 +594,7 @@
     await activeRunMode.hotReload(() =>
       self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload),
     );
+    sendNotification('isolateReload', {});
     return { generation: self.dartDevEmbedder.hotReloadGeneration };
   };
 
