@@ -83,6 +83,7 @@ import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -335,7 +336,9 @@ abstract class AnalysisServer {
     this.performanceLogger,
     required bool usePlugins,
     Map<String, String>? environment,
-  }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
+  }) : resourceProvider = OverlayResourceProvider(
+         TimingResourceProvider(baseResourceProvider),
+       ),
        pubApi = PubApi(
          instrumentationService,
          sessionLogger,
@@ -588,6 +591,10 @@ abstract class AnalysisServer {
   @protected
   bool get supportsShowMessageRequest;
 
+  /// Resource operations measured since this server was created.
+  TimingResourceProvider get timingResourceProvider =>
+      resourceProvider.baseProvider as TimingResourceProvider;
+
   /// Return the total time the server's been alive.
   Duration get uptime {
     var start = DateTime.fromMillisecondsSinceEpoch(
@@ -734,7 +741,10 @@ abstract class AnalysisServer {
     if (resourceProvider is OverlayResourceProvider) {
       resourceProvider = resourceProvider.baseProvider;
     }
-    if (resourceProvider is PhysicalResourceProvider) {
+    var baseProvider = resourceProvider is TimingResourceProvider
+        ? resourceProvider.baseProvider
+        : resourceProvider;
+    if (baseProvider is PhysicalResourceProvider) {
       var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
         var fileByteStore = _fileByteStore = EvictingFileByteStore(
@@ -1668,8 +1678,12 @@ extension on OverlayResourceProvider {
   /// The path to the location of the byte store on disk, or `null` if there is
   /// no on-disk byte store.
   String? get byteStorePath {
-    if (baseProvider is PhysicalResourceProvider) {
-      var stateLocation = baseProvider.getStateLocation('.analysis-driver');
+    var provider = baseProvider;
+    var physicalProvider = provider is TimingResourceProvider
+        ? provider.baseProvider
+        : provider;
+    if (physicalProvider is PhysicalResourceProvider) {
+      var stateLocation = provider.getStateLocation('.analysis-driver');
       return stateLocation?.path;
     }
     return null;
