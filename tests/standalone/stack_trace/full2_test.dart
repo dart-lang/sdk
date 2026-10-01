@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 @pragma("vm:entry-point") // Prevent obfuscation.
 void func1() {
@@ -19,15 +20,17 @@ void func3() {
   try {
     func2();
   } on Object catch (e, s) {
-    var fullTrace = s.toString();
-    Expect.isTrue(fullTrace.contains("func1"));
-    Expect.isTrue(fullTrace.contains("func2"));
-    Expect.isTrue(fullTrace.contains("func3"));
-    Expect.isTrue(fullTrace.contains("func4"));
-    Expect.isTrue(fullTrace.contains("func5"));
-    Expect.isTrue(fullTrace.contains("func6"));
-    Expect.isTrue(fullTrace.contains("func7"));
-    Expect.isTrue(fullTrace.contains("main"));
+    if (symbolicUnminifiedStackTraces) {
+      var fullTrace = s.toString();
+      Expect.isTrue(fullTrace.contains("func1"));
+      Expect.isTrue(fullTrace.contains("func2"));
+      Expect.isTrue(fullTrace.contains("func3"));
+      Expect.isTrue(fullTrace.contains("func4"));
+      Expect.isTrue(fullTrace.contains("func5"));
+      Expect.isTrue(fullTrace.contains("func6"));
+      Expect.isTrue(fullTrace.contains("func7"));
+      Expect.isTrue(fullTrace.contains("main"));
+    }
 
     rethrow; // This is a rethrow.
   }
@@ -44,15 +47,17 @@ int func5() {
   try {
     func4();
   } on Object catch (e, s) {
-    var fullTrace = s.toString();
-    Expect.isTrue(fullTrace.contains("func1"));
-    Expect.isTrue(fullTrace.contains("func2"));
-    Expect.isTrue(fullTrace.contains("func3"));
-    Expect.isTrue(fullTrace.contains("func4"));
-    Expect.isTrue(fullTrace.contains("func5"));
-    Expect.isTrue(fullTrace.contains("func6"));
-    Expect.isTrue(fullTrace.contains("func7"));
-    Expect.isTrue(fullTrace.contains("main"));
+    if (symbolicUnminifiedStackTraces) {
+      var fullTrace = s.toString();
+      Expect.isTrue(fullTrace.contains("func1"));
+      Expect.isTrue(fullTrace.contains("func2"));
+      Expect.isTrue(fullTrace.contains("func3"));
+      Expect.isTrue(fullTrace.contains("func4"));
+      Expect.isTrue(fullTrace.contains("func5"));
+      Expect.isTrue(fullTrace.contains("func6"));
+      Expect.isTrue(fullTrace.contains("func7"));
+      Expect.isTrue(fullTrace.contains("main"));
+    }
   }
   return 1;
 }

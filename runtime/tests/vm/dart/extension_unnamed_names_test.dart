@@ -7,14 +7,17 @@
 
 import 'dart:core';
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class C {
   static int tracefunc() {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('C.tracefunc'));
-      Expect.isTrue(s.toString().contains('ext.sfld'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('C.tracefunc'));
+        Expect.isTrue(s.toString().contains('ext.sfld'));
+      }
     }
     return 10;
   }
@@ -27,7 +30,9 @@ extension on C {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('_extension#0.func'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('_extension#0.func'));
+      }
     }
   }
 
@@ -35,7 +40,9 @@ extension on C {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('_extension#0.prop'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('_extension#0.prop'));
+      }
     }
   }
 
@@ -43,7 +50,9 @@ extension on C {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('_extension#0.prop='));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('_extension#0.prop='));
+      }
     }
   }
 
@@ -51,7 +60,9 @@ extension on C {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('_extension#0.+'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('_extension#0.+'));
+      }
     }
   }
 
@@ -59,7 +70,9 @@ extension on C {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('_extension#0.-'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('_extension#0.-'));
+      }
     }
   }
 }
@@ -69,7 +82,9 @@ extension on C {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('_extension#1.bar'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('_extension#1.bar'));
+      }
     }
   }
 }

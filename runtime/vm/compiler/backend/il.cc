@@ -3077,28 +3077,52 @@ Definition* LoadFieldInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  if (instance()->definition()->IsAllocateObject() && IsImmutableLoad()) {
-    StoreFieldInstr* initializing_store = nullptr;
-    for (auto use : instance()->definition()->input_uses()) {
-      if (auto store = use->instruction()->AsStoreField()) {
-        if ((use->use_index() == StoreFieldInstr::kInstancePos) &&
-            store->slot().IsIdentical(slot())) {
-          if (initializing_store == nullptr) {
-            initializing_store = store;
-          } else {
-            initializing_store = nullptr;
-            break;
-          }
+  if (IsImmutableLoad()) {
+    if (auto* alloc = orig_instance->AsAllocation()) {
+      for (intptr_t i = 0; i < alloc->InputCount(); i++) {
+        auto* const input_slot = alloc->SlotForInput(i);
+        if ((input_slot != nullptr) && input_slot->IsIdentical(slot())) {
+          return alloc->InputAt(i)->definition();
         }
       }
     }
 
-    // If we find an initializing store then it *must* by construction
-    // dominate the load.
-    if (initializing_store != nullptr &&
-        initializing_store->is_initialization()) {
-      ASSERT(IsDominatedBy(initializing_store));
-      return initializing_store->value()->definition();
+    if (orig_instance->IsAllocateObject() ||
+        orig_instance->IsAllocateRecord() ||
+        orig_instance->IsAllocateClosure() ||
+        orig_instance->IsAllocateContext()) {
+      // Even for an immutable context slot, there may be multiple stores:
+      // - A non-late `final` variable without an initializer at declaration can
+      //   be initialized across multiple branches (and in JIT mode also has an
+      //   initial `null` store at declaration).
+      // - A final (or effectively final) variable with an initializer
+      //   expression may get its initializer duplicated in the CFG due to
+      //      a) duplicating finally blocks
+      //      b) duplicating late final initializer on each usage site
+      //   while sharing an enclosing `AllocateContext`.
+      StoreFieldInstr* initializing_store = nullptr;
+      for (auto use : orig_instance->input_uses()) {
+        if (auto store = use->instruction()->AsStoreField()) {
+          if ((use->use_index() == StoreFieldInstr::kInstancePos) &&
+              store->slot().IsIdentical(slot())) {
+            if (initializing_store == nullptr) {
+              initializing_store = store;
+            } else {
+              initializing_store = nullptr;
+              break;
+            }
+          }
+        }
+      }
+
+      // If we find a single initializing store then it *must* by construction
+      // dominate the load.
+      if (initializing_store != nullptr) {
+        ASSERT(initializing_store->is_initialization() ||
+               orig_instance->IsAllocateContext());
+        ASSERT(IsDominatedBy(initializing_store));
+        return initializing_store->value()->definition();
+      }
     }
   }
 

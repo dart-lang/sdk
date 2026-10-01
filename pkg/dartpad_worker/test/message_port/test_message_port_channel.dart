@@ -10,7 +10,6 @@ import 'dart:js_interop';
 import 'dart:typed_data';
 
 import 'package:checks/checks.dart';
-import 'package:dartpad_worker/src/util/json_rpc_message_port_channel.dart';
 import 'package:dartpad_worker/src/util/message_port.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:stream_channel/stream_channel.dart';
@@ -27,8 +26,8 @@ void main() {
 
     setUp(() {
       final channel = web.MessageChannel();
-      peer1 = jsonRpcMessagePortChannel(channel.port1);
-      peer2 = jsonRpcMessagePortChannel(channel.port2);
+      peer1 = MessagePortExt.fromMessagePort(channel.port1).jsonRpcChannel();
+      peer2 = MessagePortExt.fromMessagePort(channel.port2).jsonRpcChannel();
     });
 
     tearDown(() {

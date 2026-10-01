@@ -111,20 +111,39 @@ class AddMissingClosureParameters extends ResolvedCorrectionProducer {
     ChangeBuilder builder,
     ArgumentList argumentList,
   ) async {
-    Element? element = switch (argumentList.parent) {
-      MethodInvocation(:var methodName) => methodName.element,
-      InstanceCreationExpression(:var constructorName) =>
-        constructorName.element,
-      DotShorthandInvocation(:var memberName) => memberName.element,
-      DotShorthandConstructorInvocation(:var constructorName) =>
-        constructorName.element,
+    // A function expression invocation's callee is often not an element at
+    // all (for example, a function-typed parameter), so its parameters come
+    // from its invoked type instead.
+    var formalParameters = switch (argumentList.parent) {
+      FunctionExpressionInvocation(:FunctionType staticInvokeType) =>
+        staticInvokeType.formalParameters,
+      MethodInvocation(
+        methodName: SimpleIdentifier(:ExecutableElement element),
+      ) ||
+      InstanceCreationExpression(
+        constructorName: ConstructorName(:ExecutableElement element),
+      ) ||
+      DotShorthandInvocation(
+        memberName: SimpleIdentifier(:ExecutableElement element),
+      ) ||
+      DotShorthandConstructorInvocation(
+        constructorName: SimpleIdentifier(:ExecutableElement element),
+      ) ||
+      EnumConstantArguments(
+        parent: EnumConstantDeclaration(
+          constructorElement: ExecutableElement element,
+        ),
+      ) ||
+      RedirectingConstructorInvocation(:ExecutableElement element) ||
+      SuperConstructorInvocation(
+        :ExecutableElement element,
+      ) => element.formalParameters,
       _ => null,
     };
-    if (element is! ExecutableElement) {
+    if (formalParameters == null) {
       return;
     }
 
-    var formalParameters = element.formalParameters;
     var arguments = argumentList.arguments;
     var positionalArguments = arguments.whereNotType<NamedArgument>().toList();
     var positionalCount = positionalArguments.length;
@@ -170,15 +189,20 @@ class AddMissingClosureParameters extends ResolvedCorrectionProducer {
       return false;
     }
     var existingParameters = parameterList.parameters;
-    var existingPositional = [
-      for (var parameter in existingParameters)
-        if (parameter.isPositional) parameter,
-    ];
-    var existingNamedNames = {
-      for (var p in existingParameters)
-        if (p.isNamed) ?p.name?.lexeme,
-    };
-    var usedNames = {for (var p in existingParameters) ?p.name?.lexeme};
+    var existingPositional = <FormalParameter>[];
+    var existingNamedNames = <String>{};
+    var usedNames = <String>{};
+    for (var parameter in existingParameters) {
+      var name = parameter.name?.lexeme;
+      if (parameter.isPositional) {
+        existingPositional.add(parameter);
+      } else if (name != null) {
+        existingNamedNames.add(name);
+      }
+      if (name != null) {
+        usedNames.add(name);
+      }
+    }
 
     var targetParameters = functionType.formalParameters;
     var positionalTargets = [

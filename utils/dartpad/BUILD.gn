@@ -2,6 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+import("../../build/dart/copy_tree.gni")
 import("../../build/dart/dart_action.gni")
 import("compile_wasm.gni")
 
@@ -58,6 +59,26 @@ copy("copy_sandbox_js") {
   outputs = [ "$root_out_dir/dartpad/sandbox.js" ]
 }
 
+# Copy devtools.html to the dartpad layout
+copy("copy_devtools_html") {
+  sources = [ "../../pkg/dartpad_worker/lib/src/asset/devtools.html" ]
+  outputs = [ "$root_out_dir/dartpad/devtools.html" ]
+}
+
+# Copy prebuilt DevTools web bundle to the dartpad/devtools layout
+copy_tree("copy_devtools") {
+  source = "../../third_party/devtools/web"
+  dest = "$root_out_dir/dartpad/devtools"
+  exclude = "{}"
+}
+
+# Copy devtools.js to the dartpad/devtools layout
+copy("copy_devtools_js") {
+  deps = [ ":copy_devtools" ]
+  sources = [ "../../pkg/dartpad_worker/lib/src/asset/devtools.js" ]
+  outputs = [ "$root_out_dir/dartpad/devtools/devtools.js" ]
+}
+
 copy("copy_dart_sdk_js") {
   deps = [ "../../utils/ddc:ddc_canary_sdk_ddc_module" ]
   sources = [ "$target_gen_dir/../ddc/canary/sdk/ddc/dart_sdk.js" ]
@@ -94,6 +115,9 @@ group("dartpad") {
     ":build_worker_js",
     ":copy_dart_sdk_js",
     ":copy_dart_sdk_js_map",
+    ":copy_devtools",
+    ":copy_devtools_html",
+    ":copy_devtools_js",
     ":copy_sandbox_js",
     ":copy_worker_wasm",
   ]

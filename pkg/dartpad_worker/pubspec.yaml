@@ -13,6 +13,7 @@ dependencies:
   analyzer: any
   args: any
   async: any
+  dart_runtime_service: any
   dartpad: any
   file: any
   frontend_server: any
@@ -26,6 +27,7 @@ dependencies:
   stream_channel: any
   tar: any
   unified_analytics: any
+  vm_service: any
   watcher: any
   web: any
 dev_dependencies:

@@ -4,15 +4,11 @@
 
 import 'dart:ui_web' as ui_web;
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
 
 import 'package:flutter/foundation.dart';
 //import 'package:flutter_web_plugins/flutter_web_plugins.dart';
 
 import '{{entrypoint}}' as entrypoint;
-
-@JS('window')
-external JSObject get _window;
 
 @JS('console.error')
 external void _consoleError(JSString message);
@@ -26,10 +22,6 @@ Future<void> main() async {
     _consoleError(details.toString().toJS);
   };
 
-  // Mock DWDS indicators to allow Flutter to register hot reload 'reassemble'
-  // extension.
-  _window[r'$dwdsVersion'] = true.toJS;
-  _window[r'$emitRegisterEvent'] = ((String _) {}).toJS;
   await ui_web.bootstrapEngine(
     runApp: () {
       entrypoint.main();

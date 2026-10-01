@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:expect/variations.dart';
+
 class NotASubclassOfError {}
 
 fail() => throw "Fail";
@@ -137,6 +139,7 @@ ff3() => gg3();
 gg3() => throw new NotASubclassOfError();
 
 expectTrace(functionNames, stacktrace) {
+  if (!symbolicUnminifiedStackTraces) return;
   // Note we don't expect functionNames to cover the whole trace, only the
   // top portion, because the frames below main are an implementation detail.
   var traceLines = stacktrace.toString().split('\n');

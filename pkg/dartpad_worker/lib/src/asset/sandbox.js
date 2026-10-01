@@ -16,9 +16,10 @@
   ];
   // Execution modes
   self.$dartpadRunModes = self.$dartpadRunModes || {
-    console: async (libraryUri, options) => {
-      self.dartDevEmbedder.runMain(libraryUri, options || {});
-      return { status: 'running' };
+    console: {
+      run: async (run) => await run(),
+      hotRestart: async (hotRestart) => await hotRestart(),
+      hotReload: async (hotReload) => await hotReload(),
     },
   };
 
@@ -272,10 +273,20 @@
   function safeSerialize(arg) {
     if (arg === null) return 'null';
     if (arg === undefined) return 'undefined';
-    if (arg instanceof Error) return arg.stack || arg.toString();
+    if (arg instanceof Error) return renderError(arg);
     if (typeof arg === 'function') return `[Function: ${arg.name || 'anonymous'}]`;
     if (arg instanceof HTMLElement) return `<${arg.tagName.toLowerCase()}>`;
+    if (Array.isArray(arg)) return `[${arg.map(safeSerialize).join(', ')}]`;
     if (typeof arg === 'object') {
+      if (!(arg instanceof Date) &&
+          typeof arg.toString === 'function' &&
+          arg.toString !== Object.prototype.toString) {
+        try {
+          return String(arg);
+        } catch (_) {
+          // Fall through to JSON.stringify.
+        }
+      }
       try {
         return JSON.stringify(arg);
       } catch (_) {
@@ -294,7 +305,7 @@
   };
 
   // Proxy console over RPC
-  for (const level of Object.keys(originalConsole)) {
+  for (const level of ['log', 'info', 'warn', 'error']) {
     console[level] = function (...args) {
       // Format message as a single string
       const message = args.map(safeSerialize).join(' ');
@@ -304,6 +315,33 @@
       originalConsole[level].apply(console, args);
     };
   }
+
+  console.debug = function (...args) {
+    originalConsole.debug.apply(console, args);
+    if (args[0] === 'dart.developer.log' && args[1] && typeof args[1] === 'object') {
+      const items = args[1];
+      sendNotification('log', {
+        message: String(items.message),
+        name: String(items.name),
+        level: items.level,
+        sequenceNumber: items.sequenceNumber,
+        time: items.time?.millisecondsSinceEpoch,
+        error: items.error != null ? safeSerialize(items.error) : undefined,
+        stackTrace:
+            items.stackTrace != null ? String(items.stackTrace) : undefined,
+      });
+      return;
+    }
+    if (args[0] === 'dart.developer.inspect') {
+      sendNotification('console', {
+        level: 'debug',
+        message: safeSerialize(args[1]),
+      });
+      return;
+    }
+    const message = args.map(safeSerialize).join(' ');
+    sendNotification('console', { level: 'debug', message });
+  };
 
   // Render an Javascript `Error` and map to Dart sources.
   function renderError(e) {
@@ -351,7 +389,9 @@
 
   // Inject event handler for extension registration.
   // This is required by DDC's dart:developer patch.
-  self.$emitRegisterEvent = (method) => { };
+  self.$emitRegisterEvent = (method) => {
+    sendNotification('registerExtension', { method });
+  };
 
   // This is required for ddc to not ignore extension events.
   self.$dwdsVersion = '1.0.0';
@@ -438,6 +478,11 @@
     return {};
   };
 
+  // Run mode object from $dartpadRunModes for the currently running app.
+  let activeRunMode = null;
+  let activeEntrypointUri = null;
+  let activeMode = null;
+
   rpcMethods.run = async (params) => {
     const { libraryUri, mode, options = {} } = params;
 
@@ -453,7 +498,8 @@
         errorCode.INVALID_PARAMS
       );
     }
-    if (!self.$dartpadRunModes || !self.$dartpadRunModes[mode]) {
+    const runMode = self.$dartpadRunModes[mode];
+    if (!runMode) {
       throw new RpcError(
         `mode not found: ${mode}`,
         errorCode.INVALID_PARAMS
@@ -467,7 +513,19 @@
       );
     }
 
-    return await self.$dartpadRunModes[mode](libraryUri, options);
+    activeRunMode = runMode;
+    activeEntrypointUri = libraryUri;
+    activeMode = mode;
+    sendNotification('isolateStart', { entrypointUri: libraryUri, mode });
+    try {
+      await activeRunMode.run(() => {
+        self.dartDevEmbedder.runMain(libraryUri, options);
+      });
+      return { status: 'running' };
+    } catch (e) {
+      sendNotification('isolateExit', {});
+      throw e;
+    }
   };
 
   rpcMethods.hotRestart = async (params) => {
@@ -479,20 +537,35 @@
         errorCode.SERVER_ERROR
       );
     }
+    if (!activeRunMode) {
+      throw new RpcError(
+        "No application is running.",
+        errorCode.INVALID_SANDBOX_STATE,
+      );
+    }
 
     // Define the official DDC hook for reloading modules during restart.
     // This is awaited by `hotRestart()`, so `callback()` -- which re-runs
     // `main()` and bumps the generation -- must happen before it returns.
     const reloadModules = async (appName, callback) => {
       await Promise.all(modules.map(loadModule));
-      callback();
+      await activeRunMode.hotRestart(() => {
+        sendNotification('isolateExit', {});
+        sendNotification('isolateStart', {
+          entrypointUri: activeEntrypointUri,
+          mode: activeMode,
+        });
+        callback();
+      });
     };
 
     self.$dartReloadModifiedModules = reloadModules;
-    await self.dartDevEmbedder.hotRestart();
-
-    if (self.$dartReloadModifiedModules === reloadModules) {
-      self.$dartReloadModifiedModules = null;
+    try {
+      await self.dartDevEmbedder.hotRestart();
+    } finally {
+      if (self.$dartReloadModifiedModules === reloadModules) {
+        self.$dartReloadModifiedModules = null;
+      }
     }
     return { generation: self.dartDevEmbedder.hotRestartGeneration };
   };
@@ -507,15 +580,21 @@
         errorCode.SERVER_ERROR
       );
     }
+    if (!activeRunMode) {
+      throw new RpcError(
+        "No application is running.",
+        errorCode.INVALID_SANDBOX_STATE,
+      );
+    }
 
     const filesToLoad = modules.map(({ moduleName, code }) =>
       createAndRegisterBlob(moduleName, code),
     );
 
-    await self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload);
-    if (self.dartDevEmbedder.debugger.extensionNames.includes('ext.flutter.reassemble')) {
-      await self.dartDevEmbedder.debugger.invokeExtension('ext.flutter.reassemble', '{}');
-    }
+    await activeRunMode.hotReload(() =>
+      self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload),
+    );
+    sendNotification('isolateReload', {});
     return { generation: self.dartDevEmbedder.hotReloadGeneration };
   };
 

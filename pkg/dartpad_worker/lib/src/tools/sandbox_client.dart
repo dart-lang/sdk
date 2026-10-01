@@ -11,16 +11,69 @@ import 'package:json_rpc_2/json_rpc_2.dart';
 
 import '../shared.dart';
 import '../util/message_port.dart';
+import '../util/parameters_ext.dart';
+
+/// Structured `dart:developer.log` entry emitted by the sandbox.
+typedef SandboxLogRecord = ({
+  String message,
+  String name,
+  int level,
+  int sequenceNumber,
+  int time,
+  String? error,
+  String? stackTrace,
+});
+
+/// Lifecycle event for the running application in the sandbox.
+sealed class SandboxIsolateEvent {
+  const SandboxIsolateEvent();
+}
+
+/// Fired when `run` or `hotRestart` starts a new application generation.
+final class SandboxIsolateStarted extends SandboxIsolateEvent {
+  final String entrypointUri;
+  final String mode;
+
+  /// Libraries from compiled modules loaded via [SandboxClient.loadModules] or
+  /// [SandboxClient.hotRestart], excluding built-in `dart:*` SDK libraries and
+  /// precompiled `DartPadRunMode.libraries`.
+  final List<String> libraries;
+
+  const SandboxIsolateStarted({
+    required this.entrypointUri,
+    required this.mode,
+    required this.libraries,
+  });
+}
+
+/// Fired when `run` fails or `hotRestart` tears down the previous generation.
+final class SandboxIsolateExited extends SandboxIsolateEvent {
+  const SandboxIsolateExited();
+}
+
+/// Fired when `hotReload` completes.
+final class SandboxIsolateReloaded extends SandboxIsolateEvent {
+  /// Libraries from compiled modules loaded so far, excluding built-in `dart:*`
+  /// SDK libraries and precompiled `DartPadRunMode.libraries`.
+  final List<String> libraries;
+
+  const SandboxIsolateReloaded({required this.libraries});
+}
 
 /// Client for talking to the [MessagePort] posted by `sandbox.js`.
 final class SandboxClient {
   final Peer _peer;
   final void Function() _onClosed;
 
+  final _loadedLibraries = <String>{};
   final _consoleController =
       StreamController<({String level, String message})>.broadcast();
   final _extensionEventController =
       StreamController<({String kind, Map<String, Object?> data})>.broadcast();
+  final _registerExtensionController = StreamController<String>.broadcast();
+  final _logController = StreamController<SandboxLogRecord>.broadcast();
+  final _isolateEventController =
+      StreamController<SandboxIsolateEvent>.broadcast();
 
   /// Create a [SandboxClient] for talking to the `sandbox.js` that posted
   /// [port].
@@ -52,15 +105,64 @@ final class SandboxClient {
       _extensionEventController.add((kind: kind, data: data));
     });
 
+    _peer.registerMethod('registerExtension', (Parameters params) {
+      _registerExtensionController.add(params['method'].asString);
+    });
+
+    _peer.registerMethod('log', (Parameters params) {
+      _logController.add((
+        message: params['message'].asStringOr(''),
+        name: params['name'].asStringOr(''),
+        level: params['level'].asIntOr(0),
+        sequenceNumber: params['sequenceNumber'].asIntOr(0),
+        time: params['time'].asIntOr(DateTime.now().millisecondsSinceEpoch),
+        error: params['error'].asStringOrNull,
+        stackTrace: params['stackTrace'].asStringOrNull,
+      ));
+    });
+
+    _peer.registerMethod('isolateStart', (Parameters params) {
+      _isolateEventController.add(
+        SandboxIsolateStarted(
+          entrypointUri: params['entrypointUri'].asString,
+          mode: params['mode'].asString,
+          libraries: _loadedLibraries.toList(),
+        ),
+      );
+    });
+
+    _peer.registerMethod('isolateExit', (Parameters _) {
+      _isolateEventController.add(const SandboxIsolateExited());
+    });
+
+    _peer.registerMethod('isolateReload', (Parameters _) {
+      _isolateEventController.add(
+        SandboxIsolateReloaded(libraries: _loadedLibraries.toList()),
+      );
+    });
+
     // Start listening
     scheduleMicrotask(() async {
       try {
         await _peer.listen();
       } finally {
-        _onClosed();
+        _cleanup();
         _peer.close().ignore();
       }
     });
+  }
+
+  bool _isClosed = false;
+
+  void _cleanup() {
+    if (_isClosed) return;
+    _isClosed = true;
+    _onClosed();
+    unawaited(_consoleController.close());
+    unawaited(_extensionEventController.close());
+    unawaited(_registerExtensionController.close());
+    unawaited(_logController.close());
+    unawaited(_isolateEventController.close());
   }
 
   /// Close the sandbox client, this will NOT remove the iframe.
@@ -70,7 +172,7 @@ final class SandboxClient {
   /// by the worker, only communication with the iframe.
   Future<void> close() async {
     await _peer.close();
-    _onClosed();
+    _cleanup();
   }
 
   Future<T> _sendRequest<T>(
@@ -94,9 +196,22 @@ final class SandboxClient {
   Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent =>
       _extensionEventController.stream;
 
+  /// Stream of service extension registrations from the sandbox.
+  Stream<String> get onRegisterExtension => _registerExtensionController.stream;
+
+  /// Stream of `dart:developer.log` records from the sandbox.
+  Stream<SandboxLogRecord> get onLog => _logController.stream;
+
+  /// Stream of isolate lifecycle events (`start`, `exit`, `reload`).
+  Stream<SandboxIsolateEvent> get onIsolateEvent =>
+      _isolateEventController.stream;
+
   /// Injects compiled DDC library bundles into the sandbox.
   Future<void> loadModules({required List<CompiledModule> modules}) async {
     assert(modules.isNotEmpty);
+    for (final module in modules) {
+      _loadedLibraries.addAll(module.libraries);
+    }
     await _sendRequest<void>('loadModules', {'modules': modules.toJson()});
   }
 
@@ -114,6 +229,9 @@ final class SandboxClient {
   Future<({int generation})> hotRestart({
     List<CompiledModule> modules = const [],
   }) async {
+    for (final module in modules) {
+      _loadedLibraries.addAll(module.libraries);
+    }
     final r = await _sendRequest<Map>('hotRestart', {
       'modules': modules.toJson(),
     });
@@ -126,6 +244,9 @@ final class SandboxClient {
   Future<({int generation})> hotReload({
     List<CompiledModule> modules = const [],
   }) async {
+    for (final module in modules) {
+      _loadedLibraries.addAll(module.libraries);
+    }
     final r = await _sendRequest<Map>('hotReload', {
       'modules': modules.toJson(),
     });

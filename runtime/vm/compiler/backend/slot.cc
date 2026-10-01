@@ -281,9 +281,12 @@ const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
 const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
                                             const LocalVariable& variable) {
   ASSERT(variable.is_captured());
+  ASSERT(!variable.is_effectively_final() || !variable.is_late());
+  const bool is_immutable = variable.is_effectively_final() ||
+                            (!variable.is_late() && variable.is_final());
   return GetCanonicalSlot(
       thread, Kind::kCapturedVariable,
-      IsImmutableBit::encode(variable.is_final() && !variable.is_late()) |
+      IsImmutableBit::encode(is_immutable) |
           IsCompressedBit::encode(Context::ContainsCompressedPointers()),
       compiler::target::Context::variable_offset(variable.index().value()),
       &variable.name(), *(variable.inferred_type()), kTagged);

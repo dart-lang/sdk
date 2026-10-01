@@ -35,15 +35,23 @@ void main(List<String> args) {
   List<String> arguments = [];
   for (String arg in args) {
     if (arg.startsWith("--iterations=")) {
-      iterations = int.parse(arg.substring("--iterations=".length));
+      iterations = _parseIntOption(arg, "--iterations=");
     } else if (arg.startsWith("--gcs=")) {
-      gcRuns = int.parse(arg.substring("--gcs=".length));
+      gcRuns = _parseIntOption(arg, "--gcs=");
     } else if (arg.startsWith("--core=")) {
-      core = int.parse(arg.substring("--core=".length));
+      core = _parseIntOption(arg, "--core=");
     } else if (arg.startsWith("--aotruntime=")) {
       aotRuntime = arg.substring("--aotruntime=".length);
+      if (aotRuntime.isEmpty) {
+        throw "--aotruntime requires a path to the AOT runtime.";
+      }
     } else if (arg.startsWith("--snapshot=")) {
-      snapshots.add(arg.substring("--snapshot=".length));
+      String snapshot = arg.substring("--snapshot=".length);
+      if (snapshot.isEmpty) {
+        throw "--snapshot requires a file name "
+            "(e.g. --snapshot=pkg/front_end/tool/compile.aot.1).";
+      }
+      snapshots.add(snapshot);
     } else if (arg.startsWith("--arguments=")) {
       arguments.add(arg.substring("--arguments=".length));
     } else if (arg.startsWith("--sarguments=")) {
@@ -56,6 +64,9 @@ void main(List<String> args) {
       );
     } else if (arg.startsWith("--filesize=")) {
       checkFileSize = arg.substring("--filesize=".length);
+      if (checkFileSize.isEmpty) {
+        throw "--filesize requires the name of the file to measure.";
+      }
     } else if (arg == "--cache") {
       doCacheBenchmarkingToo = true;
     } else if (arg == "--no-gc") {
@@ -72,14 +83,9 @@ void main(List<String> args) {
     } else if (arg == "--no-interleave") {
       interleave = false;
     } else if (arg.startsWith("--seed=")) {
-      String value = arg.substring("--seed=".length);
-      seed = int.tryParse(value);
-      if (seed == null) throw "--seed must be an integer (got '$value').";
+      seed = _parseIntOption(arg, "--seed=");
     } else if (arg.startsWith("--warmup=")) {
-      String value = arg.substring("--warmup=".length);
-      int? parsed = int.tryParse(value);
-      if (parsed == null) throw "--warmup must be an integer (got '$value').";
-      warmup = parsed;
+      warmup = _parseIntOption(arg, "--warmup=");
     } else if (arg == "--no-machine-check") {
       checkMachine = false;
     } else if (arg == "--strict") {
@@ -109,8 +115,9 @@ void main(List<String> args) {
   }
   String? coreError = checkCore(core);
   if (coreError != null) throw coreError;
+  List<String>? machineWarnings;
   if (checkMachine) {
-    List<String> machineWarnings = checkMachineSetup(core);
+    machineWarnings = checkMachineSetup(core);
     if (machineWarnings.isEmpty) {
       print("Machine setup check: no issues found.");
     } else {
@@ -144,6 +151,7 @@ void main(List<String> args) {
           core: core,
           interleave: interleave,
           seed: interleave ? seed : null,
+          machineCheckWarnings: machineWarnings,
         );
 
   _doRun(
@@ -219,6 +227,20 @@ void main(List<String> args) {
     print("");
     print("Wrote raw measurements to $rawOutputPath");
   }
+}
+
+/// Parses the value of the integer-valued command line option [arg], which
+/// starts with [prefix] (e.g. `"--warmup="`).
+///
+/// Throws an error message if the value isn't an integer.
+int _parseIntOption(String arg, String prefix) {
+  String value = arg.substring(prefix.length);
+  int? parsed = int.tryParse(value);
+  if (parsed == null) {
+    String option = prefix.substring(0, prefix.length - 1);
+    throw "$option must be an integer (got '$value').";
+  }
+  return parsed;
 }
 
 void _doRun(
@@ -303,6 +325,7 @@ void _doRun(
       writes = _silentWrite(writes, lines);
     }
     DateTime startTime = new DateTime.now();
+    Map<String, String> scaledCounters = {};
     Map<String, num> benchmarkRun = _benchmark(
       aotRuntime,
       core,
@@ -310,6 +333,7 @@ void _doRun(
       extraVmArguments ?? [],
       usedArgumentsFor(snapshotNum),
       warnings: warnings,
+      scaledCounters: scaledCounters,
       cacheBenchmarking: cacheBenchmarking,
       silent: silent,
     );
@@ -329,6 +353,7 @@ void _doRun(
       startTime: startTime,
       endTime: new DateTime.now(),
       values: benchmarkRun,
+      scaling: scaledCounters,
     );
   }
 
@@ -354,6 +379,8 @@ void _doRun(
       startTime: startTime,
       endTime: new DateTime.now(),
       values: {"combinedGcTimeMs": info.combinedTime, ...info.countWhat},
+      // GC runs don't use `perf`, so there's no counter scaling to report.
+      scaling: null,
     );
   }
 
@@ -871,6 +898,10 @@ late final RegExp _extractPerfNumbers = new RegExp(
   caseSensitive: false,
 );
 
+/// Runs [snapshot] once under `perf stat` and returns the counter values.
+///
+/// If [scaledCounters] is given, the name of each counter that `perf` had
+/// to scale is added to it, mapped to the percentage reported by `perf`.
 Map<String, num> _benchmark(
   String aotRuntime,
   int core,
@@ -879,6 +910,7 @@ Map<String, num> _benchmark(
   List<String> arguments, {
   bool silent = false,
   Warnings? warnings,
+  Map<String, String>? scaledCounters,
   bool cacheBenchmarking = false,
 }) {
   if (!silent) stdout.write(".");
@@ -962,6 +994,7 @@ Map<String, num> _benchmark(
       if (scaling != null) {
         print("WARNING: $caption is scaled at $scaling!");
         warnings?.scalingInEffect = true;
+        scaledCounters?[caption] = scaling;
       }
     }
     String trimmed = line.trim();
@@ -1130,6 +1163,11 @@ class RawOutput {
   final int core;
   final bool interleave;
   final int? seed;
+
+  /// The warnings from the machine setup check, or `null` if the check was
+  /// skipped (with `--no-machine-check`).
+  final List<String>? machineCheckWarnings;
+
   final DateTime startTime = new DateTime.now();
   final List<Map<String, Object?>> _runs = [];
 
@@ -1141,6 +1179,7 @@ class RawOutput {
     required this.core,
     required this.interleave,
     required this.seed,
+    required this.machineCheckWarnings,
   });
 
   /// Records a single run.
@@ -1150,6 +1189,12 @@ class RawOutput {
   /// "warmup" or "gc"), and [values] holds the counter values reported for
   /// the run. When runs are interleaved, [positionInRound] is the position
   /// of this run within its round.
+  ///
+  /// [scaling] maps the name of each counter that `perf` had to scale
+  /// (because it could only count it for part of the run) to the percentage
+  /// of the run it was counted for, as reported by `perf` (e.g. "74.32%").
+  /// The values of such counters are estimated. [scaling] is `null` for runs
+  /// that don't use `perf` (such as GC runs).
   void addRun({
     required String phase,
     required String kind,
@@ -1159,6 +1204,7 @@ class RawOutput {
     required DateTime startTime,
     required DateTime endTime,
     required Map<String, num> values,
+    required Map<String, String>? scaling,
   }) {
     _runs.add({
       "sequence": _runs.length,
@@ -1171,6 +1217,7 @@ class RawOutput {
       "startTime": startTime.toIso8601String(),
       "endTime": endTime.toIso8601String(),
       "values": values,
+      "scaling": scaling,
     });
   }
 
@@ -1183,6 +1230,7 @@ class RawOutput {
       "core": core,
       "interleave": interleave,
       "seed": seed,
+      "machineCheckWarnings": machineCheckWarnings,
       "startTime": startTime.toIso8601String(),
       "endTime": new DateTime.now().toIso8601String(),
       "runs": _runs,

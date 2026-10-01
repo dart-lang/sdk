@@ -38,3 +38,9 @@ extension ParametersExt on Parameters {
     );
   }
 }
+
+extension ParameterExt on Parameter {
+  /// Returns [asString], or `null` if the parameter was not passed or is
+  /// `null`.
+  String? get asStringOrNull => valueOr(null) == null ? null : asString;
+}

@@ -1058,6 +1058,61 @@ void g() {
 ''');
   }
 
+  /// The [diag.notEnoughPositionalArgumentsNameSingular] diagnostic is
+  /// reported for an enum constant's arguments (an [EnumConstantArguments])
+  /// just as it is for an [InstanceCreationExpression]; this exercises that
+  /// branch of `_addNewClosureArgument`.
+  Future<void> test_enumConstantArguments() async {
+    await resolveTestCode('''
+enum E {
+  a();
+
+  const E(void Function(int a) callback);
+}
+''');
+    await assertHasFix('''
+enum E {
+  a((a) {});
+
+  const E(void Function(int a) callback);
+}
+''');
+  }
+
+  /// An invocation of a function-typed expression (a
+  /// [FunctionExpressionInvocation]) reports the unnamed
+  /// [diag.notEnoughPositionalArgumentsSingular] diagnostic, since a function
+  /// type's parameter names aren't part of the message; this exercises that
+  /// branch of `_addNewClosureArgument`.
+  Future<void> test_functionExpressionInvocation() async {
+    await resolveTestCode('''
+void g(void Function(void Function(int a) callback) f) {
+  (f)();
+}
+''');
+    await assertHasFix('''
+void g(void Function(void Function(int a) callback) f) {
+  (f)((a) {});
+}
+''');
+  }
+
+  /// The unnamed [diag.notEnoughPositionalArgumentsPlural] diagnostic is
+  /// reported when more than one positional argument is missing from a
+  /// [FunctionExpressionInvocation].
+  Future<void> test_functionExpressionInvocation_plural() async {
+    await resolveTestCode('''
+void g(void Function(void Function(int a) a, void Function(int b) b) f) {
+  (f)();
+}
+''');
+    await assertHasFix('''
+void g(void Function(void Function(int a) a, void Function(int b) b) f) {
+  (f)((a) {});
+}
+''');
+  }
+
   Future<void> test_functionType_argumentsNamed() async {
     newAnalysisOptionsYamlFile(
       testPackageRootPath,
@@ -1320,6 +1375,54 @@ void f(void Function(int a) callback, {int? name}) {}
 
 void g() {
   f((a) {}, name: 1);
+}
+''');
+  }
+
+  /// The [diag.notEnoughPositionalArgumentsNameSingular] diagnostic is
+  /// reported for a redirecting constructor invocation (a
+  /// [RedirectingConstructorInvocation]) just as it is for an
+  /// [InstanceCreationExpression]; this exercises that branch of
+  /// `_addNewClosureArgument`.
+  Future<void> test_redirectingConstructorInvocation() async {
+    await resolveTestCode('''
+class C {
+  C(void Function(int a) callback);
+
+  C.named() : this();
+}
+''');
+    await assertHasFix('''
+class C {
+  C(void Function(int a) callback);
+
+  C.named() : this((a) {});
+}
+''');
+  }
+
+  /// The [diag.notEnoughPositionalArgumentsNameSingular] diagnostic is
+  /// reported for a superclass constructor invocation (a
+  /// [SuperConstructorInvocation]) just as it is for an
+  /// [InstanceCreationExpression]; this exercises that branch of
+  /// `_addNewClosureArgument`.
+  Future<void> test_superConstructorInvocation() async {
+    await resolveTestCode('''
+class A {
+  A(void Function(int a) callback);
+}
+
+class B extends A {
+  B() : super();
+}
+''');
+    await assertHasFix('''
+class A {
+  A(void Function(int a) callback);
+}
+
+class B extends A {
+  B() : super((a) {});
 }
 ''');
   }

@@ -11,6 +11,7 @@
 // dart2jsOptions=--disable-inlining --no-minify
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 @pragma("vm:entry-point") // Prevents obfuscation
 @pragma("wasm:never-inline")
@@ -30,14 +31,16 @@ void func3() {
   try {
     func2();
   } on Object catch (e, s) {
-    var fullTrace = s.toString();
-    Expect.isTrue(fullTrace.contains("func1"));
-    Expect.isTrue(fullTrace.contains("func2"));
-    Expect.isTrue(fullTrace.contains("func3"));
-    Expect.isTrue(fullTrace.contains("func4"));
-    Expect.isTrue(fullTrace.contains("func5"));
-    Expect.isTrue(fullTrace.contains("func6"));
-    Expect.isTrue(fullTrace.contains("main"));
+    if (symbolicUnminifiedStackTraces) {
+      var fullTrace = s.toString();
+      Expect.isTrue(fullTrace.contains("func1"));
+      Expect.isTrue(fullTrace.contains("func2"));
+      Expect.isTrue(fullTrace.contains("func3"));
+      Expect.isTrue(fullTrace.contains("func4"));
+      Expect.isTrue(fullTrace.contains("func5"));
+      Expect.isTrue(fullTrace.contains("func6"));
+      Expect.isTrue(fullTrace.contains("main"));
+    }
   }
 }
 

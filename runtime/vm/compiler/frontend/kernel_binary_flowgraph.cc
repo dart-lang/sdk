@@ -5840,6 +5840,8 @@ Fragment StreamingFlowGraphBuilder::BuildVariable(TokenPosition* position) {
   T.BuildType();  // read type.
   bool has_initializer = (ReadTag() != kNothing);
 
+  if (position != nullptr) *position = helper.position_;
+
   Fragment instructions;
   if (variable->is_late()) {
     // TODO(liama): Treat the field as non-late if the initializer is trivial.
@@ -5848,6 +5850,34 @@ Fragment StreamingFlowGraphBuilder::BuildVariable(TokenPosition* position) {
     }
     instructions += Constant(Object::sentinel());
   } else if (!has_initializer) {
+    // We may have
+    //
+    //   final a;  // <-- `final` but no initializer!
+    //   ...;
+    //   a = ...;
+    //
+    // If the debugger is available one may be able to break in a position after
+    // the variable was declared but before it was initialized. We'd like to see
+    // `null` in that case.
+    //
+    // `null` is the default for variables
+    //   - non captured variable slots will be set to `null` in function
+    //     prologue
+    //   - captured variable slots will be `null` on context allocation
+    //
+    // Though if the variable is inside a loop one would observe in debugger
+    // not `null` but the last loop iteration's value due to
+    //   - non captured: not clearing variable slots
+    //   - captured: cloning context
+    //
+    // => So if we're not in AOT mode we issue an extra null store.
+    // => That means in JIT mode we'll have multiple stores to the context slot
+    //    of an uninitialized final variable (the initial `null` store plus the
+    //    initializing store(s)).
+    //
+    if (FLAG_precompiled_mode && variable->is_final()) {
+      return instructions;
+    }
     instructions += NullConstant();
   } else {
     // Initializer
@@ -5859,7 +5889,6 @@ Fragment StreamingFlowGraphBuilder::BuildVariable(TokenPosition* position) {
   const TokenPosition debug_position = helper.equals_position_.IsReal()
                                            ? helper.equals_position_
                                            : helper.position_;
-  if (position != nullptr) *position = helper.position_;
   if (debug_position.IsDebugPause() && !helper.IsHoisted() &&
       // We always make it possible to add a breakpoint on the equals sign if it
       // exists.

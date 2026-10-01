@@ -23,7 +23,8 @@ environment can use to fetch dependencies, analyze, compile and run Dart code.
 A _DartPad SDK_ is an `assetBaseUrl` that points to a directory that hosts:
  * `worker.js`, script for running a dartpad environment in the browser.
  * `sandbox.js`, script for running compiled code in a sandboxed iframe.
- * SDK specific assets referenced by `worker.js` and `sandbox.js`.
+ * `devtools.html`, page for running Dart DevTools in an iframe.
+ * SDK specific assets referenced by `worker.js`, `sandbox.js`, and `devtools.html`.
 
 The `worker.js` script must export a `Worker` class that can be instantiated as
 follows:
@@ -63,6 +64,20 @@ The attached [MessagePort][2] must be forwarded to the worker as outline in the
 protocol below. The communication protocol between `sandbox.js` and `worker.js`
 is internal, though messages will never carry a `MessagePort`, thus, they can
 be serialized (with care taken to wrap `Uint8Array` instances).
+
+The `devtools.html` page can be loaded in an `<iframe>` as follows:
+```html
+<iframe src="devtools.html"></iframe>
+```
+
+Additional query parameters may also be passed to `devtools.html`, but these
+are not covered by this protocol.
+
+The `devtools.html` page must use [window.postMessage][4] to send
+`{action: 'connect', port: <MessagePort>}` with a [MessagePort][2] attached.
+The attached [MessagePort][2] must be forwarded to the worker via
+`workspace/sandbox/connectServiceProtocol`.
+
 
 
 ## JSON-RPC 2.0 over `MessagePort`
@@ -579,26 +594,27 @@ Hot-restarts the currently running application in the sandbox.
 }
 ```
 
-### Method `workspace/sandbox/invokeExtension`
-Invokes a Dart extension method in the sandbox.
+### Method `workspace/sandbox/connectServiceProtocol`
+Connects a [`MessagePort`][2] for [Dart VM Service Protocol][6] communication
+with the sandbox.
+
+Messages sent or received over `port` must be:
+* [Dart VM Service Protocol][6] [JSON-RPC 2.0][3] strings,
+* binary frames as `Uint8Array`, or,
+* `null` to close the connection.
 
 **Params:**
 ```js
 {
   "workspaceId": 42,
   "sandboxId": 1,
-  "method": "ext.myExtension",
-  "args": {
-    "key": "value"
-  }
+  "port": /* MessagePort instance (transferred) */
 }
 ```
 
 **Result:**
 ```js
-{
-  "result": "<json encoded result string>"
-}
+{} // empty result
 ```
 
 ### Method `workspace/sandbox/close`
@@ -677,19 +693,6 @@ uncaught errors and unhandled promise rejections, which are reported with
 }
 ```
 
-### Notification `workspace/sandbox/extensionEvent`
-Sent by the worker when an extension event is fired in the sandbox.
-
-**Params:**
-```js
-{
-  "workspaceId": 42,
-  "sandboxId": 1,
-  "kind": "my.event.kind",
-  "data": { /* JSON object */ }
-}
-```
-
 ## Error codes
 Errors returned by the worker use the following codes.
 
@@ -732,3 +735,4 @@ Errors returned by the worker use the following codes.
 [3]: https://www.jsonrpc.org/specification
 [4]: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
 [5]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+[6]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md

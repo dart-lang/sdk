@@ -11,6 +11,7 @@ import 'dart:typed_data';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
 import 'package:stream_channel/stream_channel.dart';
+import 'package:vm_service/vm_service.dart' show VmService;
 
 import 'exceptions.dart' show rethrowAsDartPadException;
 import 'message_port/message_port.dart';
@@ -35,10 +36,6 @@ base class WorkerClient {
     _peer.registerMethod('workspace/languageServer/exited', _handleLsExited);
     _peer.registerMethod('workspace/watcher/events', _handleWatchEvent);
     _peer.registerMethod('workspace/sandbox/console', _handleSandboxConsole);
-    _peer.registerMethod(
-      'workspace/sandbox/extensionEvent',
-      _handleSandboxExtensionEvent,
-    );
     _peer.listen();
   }
 
@@ -72,13 +69,6 @@ base class WorkerClient {
     final level = ConsoleLevel._fromName(params['level'].asString);
     final message = params['message'].asString;
     _sandboxes[id]?._consoleController.add((level: level, message: message));
-  }
-
-  void _handleSandboxExtensionEvent(rpc.Parameters params) {
-    final id = (params['sandboxId'].value as num).toInt();
-    final kind = params['kind'].asString;
-    final data = params['data'].asMap.cast<String, Object?>();
-    _sandboxes[id]?._extensionEventController.add((kind: kind, data: data));
   }
 
   void _handleLsMessage(rpc.Parameters params) {
@@ -555,8 +545,6 @@ final class Sandbox {
 
   final _consoleController =
       StreamController<({ConsoleLevel level, String message})>.broadcast();
-  final _extensionEventController =
-      StreamController<({String kind, Map<String, Object?> data})>.broadcast();
 
   /// A broadcast stream of console messages produced by the running
   /// application.
@@ -565,10 +553,6 @@ final class Sandbox {
   /// output from `main()` is not missed.
   Stream<({ConsoleLevel level, String message})> get console =>
       _consoleController.stream;
-
-  /// A stream of developer extension events fired by the running application.
-  Stream<({String kind, Map<String, Object?> data})> get extensionEvents =>
-      _extensionEventController.stream;
 
   /// Compiles and runs a Dart entrypoint in the sandbox.
   ///
@@ -614,20 +598,36 @@ final class Sandbox {
     return (log: result['log'] as String);
   }
 
-  /// Invokes a Dart developer extension method in the sandbox.
+  /// Connects [port] to the VM Service protocol server for this sandbox.
   ///
-  /// [method] is the name of the extension method (e.g.,
-  /// `'ext.flutter.reassemble'`).
-  /// [args] are passed as parameters to the extension method.
-  Future<String> invokeExtension(
-    String method,
-    Map<String, String> args,
-  ) async {
-    final result = await _workspace._request<Map>(
-      'workspace/sandbox/invokeExtension',
-      {'sandboxId': _id, 'method': method, 'args': args},
+  /// Messages sent over [port] are Dart VM Service JSON-RPC 2.0 strings,
+  /// binary frames (`Uint8Array` / [Uint8List]), or `null` to close the
+  /// connection. Multiple clients can be connected to the same [Sandbox]
+  /// simultaneously (for example, an in-Dart [VmService] client and an embedded
+  /// DevTools `<iframe>`).
+  Future<void> connectServiceProtocol(MessagePort port) async {
+    await _workspace._request<void>(
+      'workspace/sandbox/connectServiceProtocol',
+      {'sandboxId': _id, 'port': port},
     );
-    return result['result'] as String;
+  }
+
+  /// Starts a VM Service protocol connection to this sandbox and returns a
+  /// connected [VmService] client.
+  Future<VmService> startServiceProtocol() async {
+    final (clientPort, workerPort) = MessagePortExt.createChannel();
+    try {
+      await connectServiceProtocol(workerPort);
+    } catch (_) {
+      clientPort.close();
+      rethrow;
+    }
+    final channel = clientPort.vmServiceChannel();
+    return VmService(
+      channel.stream,
+      channel.sink.add,
+      disposeHandler: channel.sink.close,
+    );
   }
 
   /// Release resources associated with this [Sandbox].
@@ -647,7 +647,6 @@ final class Sandbox {
 
   void _cleanup() {
     _consoleController.close().ignore();
-    _extensionEventController.close().ignore();
     _workspace._client._sandboxes.remove(_id);
   }
 }
