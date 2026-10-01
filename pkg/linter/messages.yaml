@@ -139,7 +139,7 @@ LinterLintCode:
 
       #### Common fixes
 
-      Put the controlled statement onto a separate, indented, line:
+      Put the controlled statement onto a separate, indented line:
 
       ```dart
       void f(bool b) {
@@ -218,7 +218,7 @@ LinterLintCode:
       void f({required int x, int? y}) {}
       ```
     deprecatedDetails: |-
-      **DO** specify `required` on named parameter before other named parameters.
+      **DO** specify `required` on named parameters before other named parameters.
 
       **BAD:**
       ```dart
@@ -439,7 +439,7 @@ LinterLintCode:
     parameters: none
     sharedName: alwaysSpecifyTypes
     problemMessage: "Missing type annotation."
-    correctionMessage: "Try splitting the declaration and specify the different type annotations."
+    correctionMessage: "Try splitting the declaration and specifying the different type annotations."
     hasPublishedDocs: false
   alwaysUsePackageImports:
     type: lint
@@ -1115,8 +1115,9 @@ LinterLintCode:
 
       **AVOID** catches without on clauses.
 
-      Using catch clauses without on clauses make your code prone to encountering
-      unexpected errors that won't be thrown (and thus will go unnoticed).
+      Using catch clauses without on clauses makes your code
+      prone to encountering unexpected errors that won't be thrown,
+      and thus might go unnoticed.
 
       **BAD:**
       ```dart
@@ -1297,7 +1298,7 @@ LinterLintCode:
       }
       ```
     deprecatedDetails: |-
-      **AVOID** to check if type is `double` or `int`.
+      **AVOID** checking if the type is `double` or `int`.
 
       When compiled to JS, integer values are represented as floats. That can lead to
       some unexpected behavior when using either `is` or `is!` where the type is
@@ -1362,14 +1363,14 @@ LinterLintCode:
       }
       ```
     deprecatedDetails: |-
-      **DO** avoid method calls or accessing properties on an object that is either
+      **DO** avoid calling methods or accessing properties on an object that is either
       explicitly or implicitly statically typed `dynamic`. Dynamic calls are treated
-      slightly different in every runtime environment and compiler, but most
+      slightly differently in every runtime environment and compiler, but most
       production modes (and even some development modes) have both compile size and
       runtime performance penalties associated with dynamic calls.
 
-      Additionally, targets typed `dynamic` disables most static analysis, meaning it
-      is easier to lead to a runtime `NoSuchMethodError` or `TypeError` than properly
+      Additionally, targets typed `dynamic` disable most static analysis, making
+      runtime `NoSuchMethodError` and `TypeError` exceptions more likely than in
       statically typed Dart code.
 
       There is an exception to methods and properties that exist on `Object?`:
@@ -1625,7 +1626,7 @@ LinterLintCode:
     type: lint
     parameters: none
     problemMessage: "Fields in 'const' classes should not have initializers."
-    correctionMessage: "Try converting the field to a getter or initialize the field in the constructors."
+    correctionMessage: "Try converting the field to a getter or initializing the field in the constructors."
     state:
       stable: "2.0"
     # TODO(srawlins): This rule has nothing to do with style. It is to reduce
@@ -2115,7 +2116,7 @@ LinterLintCode:
 
       The following code produces this diagnostic because
       the literal `9007199254740993` (2^53 + 1) can't be
-      represented exactly as a JavaScript `Number` is rounded to
+      represented exactly as a JavaScript `Number` and is rounded to
       `9007199254740992` at run time when compiled to JavaScript:
 
       ```dart
@@ -2779,11 +2780,11 @@ LinterLintCode:
     deprecatedDetails: |-
       **AVOID** returning `null` for `void`.
 
-      In a large variety of languages `void` as return type is used to indicate that
-      a function doesn't return anything. Dart allows returning `null` in functions
-      with `void` return type but it also allow using `return;` without specifying any
-      value. To have a consistent way you should not return `null` and only use an
-      empty return.
+      In a large variety of languages `void` as a return type is
+      used to indicate that a function doesn't return anything.
+      Dart allows returning `null` in functions with a `void` return type,
+      but it also allows using `return;` without specifying any value.
+      For consistency, use an empty `return;` instead of returning `null`.
 
       **BAD:**
       ```dart
@@ -2831,7 +2832,7 @@ LinterLintCode:
       Returning `this` is allowed for:
 
       - operators
-      - methods with a return type different of the current class
+      - methods with a return type different from the current class
       - methods defined in parent classes / mixins or interfaces
       - methods defined in extensions
 
@@ -4088,8 +4089,8 @@ LinterLintCode:
       bool f(List<String> l) => l.contains('1');
       ```
     deprecatedDetails: |-
-      **DON'T** invoke certain collection method with an argument with an unrelated
-      type.
+      **DON'T** invoke certain collection methods with
+      an argument with an unrelated type.
 
       Doing this will invoke `==` on the collection's elements and most likely will
       return `false`.
@@ -4655,10 +4656,10 @@ LinterLintCode:
 
       #### Common fixes
 
-      Whether the dependency should be a regular dependency or dev dependency
-      depends on whether the package is referenced from a public library (one
-      under either `lib` or `bin`), or only private libraries, (such as one
-      under `test`).
+      Whether the dependency should be a regular dependency or a dev dependency
+      depends on whether the package is referenced from a
+      public library (one under either `lib` or `bin`) or only
+      private libraries (such as one under `test`).
 
       If the package is referenced from at least one public library, then add a
       regular dependency on the package to the `pubspec.yaml` file under the
@@ -4892,7 +4893,7 @@ LinterLintCode:
 
       #### Common fixes
 
-      If there isn't on override of either the `debugFillProperties` or
+      If there isn't an override of either the `debugFillProperties` or
       `debugDescribeChildren` method, then add one.
 
       Add a description of the property in the `debugFillProperties` or
@@ -5099,14 +5100,14 @@ LinterLintCode:
     parameters: none
     sharedName: discardedFutures
     problemMessage: "'FutureOr'-returning calls in a non-'async' function."
-    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await'."
+    correctionMessage: "Try making the enclosing function 'async' and awaiting the expression."
     hasPublishedDocs: false
   discardedFutures:
     type: lint
     parameters: none
     sharedName: discardedFutures
     problemMessage: "'Future'-returning calls in a non-'async' function."
-    correctionMessage: "Try converting the enclosing function to be 'async' and then 'await', or wrap the expression in 'unawaited'."
+    correctionMessage: "Try either making the enclosing function 'async' and awaiting the expression or wrapping the expression in 'unawaited'."
     state:
       stable: "2.18"
     categories: [errorProne]
@@ -5151,7 +5152,7 @@ LinterLintCode:
     categories: [errorProne]
     hasPublishedDocs: false
     deprecatedDetails: |-
-      Using values derived from the environment at compile-time, creates
+      Using values derived from the environment at compile time creates
       hidden global state and makes applications hard to understand and maintain.
 
       **DON'T** use `fromEnvironment` or `hasEnvironment` factory constructors.
@@ -6433,8 +6434,8 @@ LinterLintCode:
       With Dart 3.0, these become patterns. The above example prints "Did not match"
       twice because no boolean value can be both true and false.
 
-      Many of invalid cases can be mechanically changed to something that is valid
-      both in Dart today and valid and means the same in Dart 3.0.
+      Many of the invalid cases can be mechanically changed to something that
+      is valid both in Dart today and valid and means the same in Dart 3.0.
 
       **Parenthesized expressions:** Provided the inner expression is one that's not
       broken in Dart 3.0, just discard the parentheses.
@@ -7112,7 +7113,7 @@ LinterLintCode:
     categories: [style]
     hasPublishedDocs: true
     # In the documentation, the `unnecessary_library_name` diagnostic is ignored
-    # because the diagnostic being documented requires the existance of a
+    # because the diagnostic being documented requires the existence of a
     # library name.
     documentation: |-
       #### Description
@@ -7490,7 +7491,7 @@ LinterLintCode:
 
       #### Common fixes
 
-      If the condition is wrong, then correct the condition so that it's value
+      If the condition is wrong, then correct the condition so that its value
       can't be known at compile time:
 
       ```dart
@@ -7577,7 +7578,7 @@ LinterLintCode:
       }
       ```
 
-      **NOTE:** that an exception is made for the common `while (true) { }` idiom,
+      **NOTE:** An exception is made for the common `while (true) { }` idiom,
       which is often reasonably preferred to the equivalent `for (;;)`.
 
       **GOOD:**
@@ -7593,7 +7594,7 @@ LinterLintCode:
     parameters:
       Object p0: undocumented
       Object p1: undocumented
-    problemMessage: "The super parameter named '#p0'' does not share the same name as the corresponding parameter in the super constructor, '#p1'."
+    problemMessage: "The super parameter named '#p0' does not share the same name as the corresponding parameter in the super constructor, '#p1'."
     correctionMessage: "Try using the name of the corresponding parameter in the super constructor."
     state:
       stable: "3.0"
@@ -7734,8 +7735,8 @@ LinterLintCode:
       Add a trailing whitespace to prevent missing whitespace between adjacent
       strings.
 
-      With long text split across adjacent strings it's easy to forget a whitespace
-      between strings.
+      With long text split across adjacent strings it's easy to forget
+      whitespace between strings.
 
       **BAD:**
       ```dart
@@ -8029,9 +8030,9 @@ LinterLintCode:
       }
       ```
     deprecatedDetails: |-
-      **DON'T** use more than one case with same value.
+      **DON'T** use more than one case with the same value.
 
-      This is usually a typo or changed value of constant.
+      This is usually a typo or a changed constant value.
 
       **BAD:**
       ```dart
@@ -8188,10 +8189,11 @@ LinterLintCode:
       those has a name that starts with an underscore, it sends a confusing signal to
       the reader. To avoid that, don't use leading underscores in those names.
 
-      **EXCEPTION:**: An unused parameter can be named `_`, `__`, `___`, etc.  This is
-      common practice in callbacks where you are passed a value but you don't need
-      to use it. Giving it a name that consists solely of underscores is the idiomatic
-      way to indicate that the value isn't used.
+      **EXCEPTION:** An unused parameter can be named `_`, `__`, `___`, etc.
+      This is common practice in callbacks where you are
+      passed a value but you don't need to use it.
+      Giving it a name that consists solely of underscores is
+      the idiomatic way to indicate that the value isn't used.
 
       **BAD:**
       ```dart
@@ -8226,7 +8228,7 @@ LinterLintCode:
     type: lint
     parameters: none
     problemMessage: "Unnecessary comparison to a boolean literal."
-    correctionMessage: "Remove the comparison and use the negate `!` operator if necessary."
+    correctionMessage: "Remove the comparison and use the negation operator `!` if necessary."
     state:
       stable: "3.0"
     categories: [effectiveDart, style]
@@ -9314,14 +9316,14 @@ LinterLintCode:
     categories: [effectiveDart, publicInterface]
     hasPublishedDocs: false
     deprecatedDetails: |-
-      **NOTE:** This lint has been removed because it is has not
+      **NOTE:** This lint has been removed because it has not
       been fully functional since at least Dart 2.0.
       Remove all inclusions of this lint from your analysis options.
 
       **DO** provide doc comments for all public APIs.
 
       As described in the [pub package layout doc](https://dart.dev/tools/pub/package-layout#implementation-files),
-      public APIs consist in everything in your package's `lib` folder, minus
+      public APIs consist of everything in your package's `lib` folder, minus
       implementation files in `lib/src`, adding elements explicitly exported with an
       `export` directive.
 
@@ -9762,8 +9764,9 @@ LinterLintCode:
       }
       ```
     deprecatedDetails: |-
-      When assertions fail it's not always simple to understand why. Adding a message
-      to the `assert` helps the developer to understand why the AssertionError occurs.
+      When assertions fail, it's not always simple to understand why.
+      Adding a message to the `assert` helps the developer to
+      understand why the AssertionError occurs.
 
       **BAD:**
       ```dart
@@ -11318,7 +11321,7 @@ LinterLintCode:
     parameters:
       Object p0: undocumented
     problemMessage: "Use an initializing formal to assign a parameter to a field."
-    correctionMessage: "Try using an initialing formal ('this.#p0') to initialize the field."
+    correctionMessage: "Try using an initializing formal ('this.#p0') to initialize the field."
     state:
       stable: "2.0"
     categories: [brevity, style]
@@ -12605,7 +12608,7 @@ LinterLintCode:
       ```
     deprecatedDetails: |-
       **DO** Remove deprecated elements in breaking version numbers.
-      Breaking version numbers are on the form `x.0.0` or `0.x.0`.
+      Breaking version numbers are of the form `x.0.0` or `0.x.0`.
 
       For example given a package with a `pubspec.yaml` file containing:
 
@@ -12907,8 +12910,8 @@ LinterLintCode:
     deprecatedDetails: |-
       Use `SizedBox` to add whitespace to a layout.
 
-      A `Container` is a heavier Widget than a `SizedBox`, and as bonus, `SizedBox`
-      has a `const` constructor.
+      A `Container` is a heavier Widget than a `SizedBox`,
+      and as a bonus, `SizedBox` has a `const` constructor.
 
       **BAD:**
       ```dart
@@ -13215,8 +13218,8 @@ LinterLintCode:
       );
       ```
 
-      Exception: It's allowed to have parameter with a function expression after the
-      `child` property.
+      Exception: It's allowed to have a parameter with a
+      function expression after the `child` property.
   sortConstructorsFirst:
     type: lint
     parameters: none
@@ -13316,7 +13319,7 @@ LinterLintCode:
     deprecatedDetails: |-
       **DO** sort pub dependencies alphabetically (A to Z) in `pubspec.yaml`.
 
-      Sorting list of pub dependencies makes maintenance easier.
+      Sorting the list of pub dependencies makes maintenance easier.
   sortUnnamedConstructorsFirst:
     type: lint
     parameters: none
@@ -13548,7 +13551,7 @@ LinterLintCode:
     parameters: none
     sharedName: strictTopLevelInference
     problemMessage: "Missing type annotation."
-    correctionMessage: "Try splitting the declaration and specify the different type annotations."
+    correctionMessage: "Try splitting the declaration and specifying the different type annotations."
     hasPublishedDocs: false
   superGoesLast:
     type: lint
@@ -13781,7 +13784,7 @@ LinterLintCode:
     type: lint
     parameters:
       Object p0: undocumented
-    problemMessage: "Use of '#p0' in 'finally' block."
+    problemMessage: "Use of '#p0' in a 'finally' block."
     correctionMessage: "Try moving the '#p0' outside the 'finally' block."
     state:
       stable: "2.0"
@@ -14069,7 +14072,7 @@ LinterLintCode:
 
       If a constructor parameter is using `this.x` to initialize a field, then the
       type of the parameter is understood to be the same type as the field. If a
-      a constructor parameter is using `super.x` to forward to a super constructor,
+      constructor parameter is using `super.x` to forward to a super constructor,
       then the type of the parameter is understood to be the same as the super
       constructor parameter.
 
@@ -14401,7 +14404,7 @@ LinterLintCode:
       with a scheme of at least two characters followed by a colon, like
       `<mailto:mr_example@example.com>`.
 
-      Any other other occurrence of `<word...>` or `</word...>` is likely a mistake
+      Any other occurrence of `<word...>` or `</word...>` is likely a mistake
       and this lint will warn about it.
       If something looks like an HTML tag, meaning it starts with `<` or `</`
       and then a letter, and it has a later matching `>`, then it's considered an
@@ -14565,8 +14568,8 @@ LinterLintCode:
       }
       ```
     deprecatedDetails: |-
-      **NOTE:** As following this lint rule everywhere (specially when not reported) can
-      lead to unexpected errors, this lint has been deprecated.
+      **NOTE:** As following this lint rule everywhere, especially when not reported,
+      can lead to unexpected errors, this lint has been deprecated.
       Remove all inclusions of this lint from your analysis options.
 
       Avoid returning an awaited expression when the expression type is assignable to
@@ -15052,8 +15055,8 @@ LinterLintCode:
 
       #### Example
 
-      The following code produces this diagnostic because the getter/setter pair
-      named `c` only expose the field named `_c`:
+      The following code produces this diagnostic because the
+      getter/setter pair named `c` only exposes the field named `_c`:
 
       ```dart
       class C {
@@ -15177,8 +15180,8 @@ LinterLintCode:
     categories: [style]
     hasPublishedDocs: true
     # In the documentation, the `avoid_function_literals_in_foreach_calls`
-    # diagnostic is ignored because it's a bi-product of the choice of example.
-    # The documentation is more clear if we use a familiar method that taked a
+    # diagnostic is ignored because it's a by-product of the choice of example.
+    # The documentation is clearer if we use a familiar method that takes a
     # function as a parameter, and `forEach` is a reasonable choice. We could
     # remove the ignore by choosing a different method.
     documentation: |-
@@ -15589,7 +15592,7 @@ LinterLintCode:
 
       #### Common fixes
 
-      If it isn't a requirement not invoke the method when the receiver is
+      If it isn't a requirement not to invoke the method when the receiver is
       `null`, then remove the question mark from the invocation:
 
       ```dart
@@ -15854,7 +15857,8 @@ LinterLintCode:
       class D extends C {}
       ```
     deprecatedDetails: |-
-      **DON'T** override a method to do a super method invocation with same parameters.
+      **DON'T** override a method to do a
+      super method invocation with the same parameters.
 
       **BAD:**
       ```dart
@@ -15878,8 +15882,8 @@ LinterLintCode:
 
       It's valid to override a member in the following cases:
 
-      * if a type (return type or a parameter type) is not the exactly the same as the
-        super member,
+      * if a type (return type or a parameter type) is not
+        exactly the same as the super member,
       * if the `covariant` keyword is added to one of the parameters,
       * if documentation comments are present on the member,
       * if the member has annotations other than `@override`,
@@ -16700,7 +16704,7 @@ LinterLintCode:
       Any member declared in an executable library should be used directly inside that
       library.  An executable library is a library that contains a `main` top-level
       function or that contains a top-level function annotated with
-      `@pragma('vm:entry-point')`).  Executable libraries are not usually imported
+      `@pragma('vm:entry-point')`.  Executable libraries are not usually imported
       and it's better to avoid defining unused members.
 
       This rule assumes that an executable library isn't imported by other libraries
@@ -16986,10 +16990,10 @@ LinterLintCode:
 
       #### Common fixes
 
-      If the linted member is or can be private then you may be able
+      If the linted member is or can be private then you might be able
       to enforce that it is never accessed on any other receiver than `this`.
-      This is sufficient to ensure that that the run-time type error does not
-      occur. For example:
+      This is sufficient to ensure that the run-time type error doesn't occur.
+      For example:
 
       ```dart
       class C<X> {
@@ -17300,8 +17304,8 @@ LinterLintCode:
     deprecatedDetails: |-
       **DO** use `ColoredBox` when `Container` has only a `Color`.
 
-      A `Container` is a heavier Widget than a `ColoredBox`, and as bonus,
-      `ColoredBox` has a `const` constructor.
+      A `Container` is a heavier Widget than a `ColoredBox`,
+      and as a bonus, `ColoredBox` has a `const` constructor.
 
       **BAD:**
       ```dart
@@ -17418,8 +17422,8 @@ LinterLintCode:
     deprecatedDetails: |-
       **DO** use `DecoratedBox` when `Container` has only a `Decoration`.
 
-      A `Container` is a heavier Widget than a `DecoratedBox`, and as bonus,
-      `DecoratedBox` has a `const` constructor.
+      A `Container` is a heavier Widget than a `DecoratedBox`,
+      and as a bonus, `DecoratedBox` has a `const` constructor.
 
       **BAD:**
       ```dart
@@ -17794,7 +17798,7 @@ LinterLintCode:
     type: lint
     parameters: none
     problemMessage: "Use 'late' for private members with a non-nullable type."
-    correctionMessage: "Try making adding the modifier 'late'."
+    correctionMessage: "Try adding the 'late' modifier."
     state:
       experimental: "2.10"
     categories: [style]
@@ -18310,7 +18314,7 @@ LinterLintCode:
       }
       ```
     deprecatedDetails: |-
-      "Forwarding constructor"s, that do nothing except forward parameters to their
+      Forwarding constructors that do nothing except forward parameters to their
       superclass constructors should take advantage of super-initializer parameters
       rather than repeating the names of parameters when passing them to the
       superclass constructors.  This makes the code more concise and easier to read
