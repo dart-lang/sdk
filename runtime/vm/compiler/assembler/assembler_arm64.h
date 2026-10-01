@@ -1422,9 +1422,6 @@ class Assembler : public AssemblerBase {
   void vand(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VAND, vd, vn, vm);
   }
-  void vbic(VRegister vd, VRegister vn, VRegister vm) {
-    EmitSIMDThreeSameOp(VBIC, vd, vn, vm);
-  }
   void vorr(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VORR, vd, vn, vm);
   }

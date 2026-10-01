@@ -162,6 +162,147 @@ class LogSanitizerTest {
     ]);
   }
 
+  void test_message_command_resolve() {
+    // Request is processed first to register the method for ID 20.
+    sanitizer.sanitizeMessage({
+      'id': 20,
+      'method': 'command/resolve',
+      'params': {
+        'command': 'dart.edit.organizeImports',
+        'arguments': [
+          {'path': 'file:///test/lib/main.dart', 'autoTriggered': true},
+        ],
+      },
+    });
+
+    var message = {
+      'id': 20,
+      'jsonrpc': '2.0',
+      'result': {
+        'command': 'dart.edit.organizeImports',
+        'arguments': [
+          {'path': 'file:///test/lib/main.dart', 'autoTriggered': true},
+        ],
+      },
+    };
+
+    var result = sanitizer.sanitizeMessage(message);
+    expect(result['result'], {
+      'command': 'dart.edit.organizeImports',
+      'arguments': [
+        {'path': 'file:///p0/p1/p2.dart', 'autoTriggered': true},
+      ],
+    });
+  }
+
+  void test_message_completion() {
+    // Request is processed first to register the method for ID 21.
+    sanitizer.sanitizeMessage({
+      'id': 21,
+      'method': 'textDocument/completion',
+      'params': {
+        'textDocument': {'uri': 'file:///test/lib/main.dart'},
+        'position': {'line': 5, 'character': 10},
+      },
+    });
+
+    var message = {
+      'id': 21,
+      'jsonrpc': '2.0',
+      'result': {
+        'isIncomplete': false,
+        'items': [
+          {
+            'label': 'MyWidget',
+            'kind': 7, // Class
+            'detail': 'Auto import from package:test/widget.dart',
+            'labelDetails': {'description': 'package:test/widget.dart'},
+            'documentation': {
+              'kind': 'markdown',
+              'value': 'Some documentation',
+            },
+            'data': {
+              'file': 'file:///test/lib/main.dart',
+              'importUris': ['package:test/widget.dart'],
+              'ref': 'package:test/widget.dart;MyWidget;helper',
+            },
+          },
+          {
+            'label': 'myFunction',
+            'kind': 3, // Function
+            'documentation': 'Plain text doc',
+          },
+        ],
+      },
+    };
+
+    var result = sanitizer.sanitizeMessage(message);
+    expect(result['result'], {
+      'isIncomplete': false,
+      'items': [
+        {
+          'label': 'C1',
+          'kind': 7,
+          'detail': '<sanitized>',
+          'labelDetails': {'description': 'package:p0/p3.dart'},
+          'documentation': {'kind': 'markdown', 'value': '<18 chars>'},
+          'data': {
+            'file': 'file:///p0/p1/p2.dart',
+            'importUris': ['package:p0/p3.dart'],
+            'ref': 'package:p0/p3.dart;C1;a1',
+          },
+        },
+        {'label': 'm1', 'kind': 3, 'documentation': '<14 chars>'},
+      ],
+    });
+  }
+
+  void test_message_completionItem_resolve() {
+    // Request is processed first to register the method for ID 22.
+    sanitizer.sanitizeMessage({
+      'id': 22,
+      'method': 'completionItem/resolve',
+      'params': {
+        'label': 'MyWidget',
+        'kind': 7,
+        'data': {
+          'file': 'file:///test/lib/main.dart',
+          'importUris': ['package:test/widget.dart'],
+          'ref': 'package:test/widget.dart;MyWidget',
+        },
+      },
+    });
+
+    var message = {
+      'id': 22,
+      'jsonrpc': '2.0',
+      'result': {
+        'label': 'MyWidget',
+        'kind': 7,
+        'detail': 'Auto import from package:test/widget.dart',
+        'documentation': {'kind': 'markdown', 'value': 'Some documentation'},
+        'data': {
+          'file': 'file:///test/lib/main.dart',
+          'importUris': ['package:test/widget.dart'],
+          'ref': 'package:test/widget.dart;MyWidget',
+        },
+      },
+    };
+
+    var result = sanitizer.sanitizeMessage(message);
+    expect(result['result'], {
+      'label': 'C1',
+      'kind': 7,
+      'detail': '<sanitized>',
+      'documentation': {'kind': 'markdown', 'value': '<18 chars>'},
+      'data': {
+        'file': 'file:///p0/p1/p2.dart',
+        'importUris': ['package:p0/p3.dart'],
+        'ref': 'package:p0/p3.dart;C1',
+      },
+    });
+  }
+
   void test_message_didChange_incremental() {
     var message = {
       'jsonrpc': '2.0',
@@ -249,6 +390,42 @@ class LogSanitizerTest {
     });
   }
 
+  void test_message_documentLink() {
+    // Request is processed first to register the method for ID 23.
+    sanitizer.sanitizeMessage({
+      'id': 23,
+      'method': 'textDocument/documentLink',
+      'params': {
+        'textDocument': {'uri': 'file:///test/lib/main.dart'},
+      },
+    });
+
+    var message = {
+      'id': 23,
+      'jsonrpc': '2.0',
+      'result': [
+        {
+          'range': {
+            'start': {'line': 0, 'character': 7},
+            'end': {'line': 0, 'character': 25},
+          },
+          'target': 'file:///test/lib/helper.dart',
+        },
+      ],
+    };
+
+    var result = sanitizer.sanitizeMessage(message);
+    expect(result['result'], [
+      {
+        'range': {
+          'start': {'line': 0, 'character': 7},
+          'end': {'line': 0, 'character': 25},
+        },
+        'target': 'file:///p0/p1/p3.dart',
+      },
+    ]);
+  }
+
   void test_message_documentSymbol() {
     // Request is processed first to register the method for ID 12.
     sanitizer.sanitizeMessage({
@@ -295,6 +472,23 @@ class LogSanitizerTest {
         ],
       },
     ]);
+  }
+
+  void test_message_formatting() {
+    var message = {
+      'id': 24,
+      'method': 'textDocument/formatting',
+      'params': {
+        'textDocument': {'uri': 'file:///test/lib/main.dart'},
+        'options': {'tabSize': 2, 'insertSpaces': true},
+      },
+    };
+
+    var result = sanitizer.sanitizeMessage(message);
+    expect(result['params'], {
+      'textDocument': {'uri': 'file:///p0/p1/p2.dart'},
+      'options': {'tabSize': 2, 'insertSpaces': true},
+    });
   }
 
   void test_message_hover() {
@@ -395,6 +589,41 @@ class LogSanitizerTest {
       'labels': [
         {'label': 'C1'},
         {'label': 'm1(...)'},
+      ],
+    });
+  }
+
+  void test_message_publishDiagnostics() {
+    var message = {
+      'jsonrpc': '2.0',
+      'method': 'textDocument/publishDiagnostics',
+      'params': {
+        'uri': 'file:///test/lib/main.dart',
+        'diagnostics': [
+          {
+            'code': 'unused_import',
+            'message': 'Error in file:///test/lib/helper.dart',
+            'range': {
+              'start': {'line': 0, 'character': 0},
+              'end': {'line': 0, 'character': 20},
+            },
+          },
+        ],
+      },
+    };
+
+    var result = sanitizer.sanitizeMessage(message);
+    expect(result['params'], {
+      'uri': 'file:///p0/p1/p2.dart',
+      'diagnostics': [
+        {
+          'code': 'unused_import',
+          'message': 'Error in file:///p0/p1/p3.dart',
+          'range': {
+            'start': {'line': 0, 'character': 0},
+            'end': {'line': 0, 'character': 20},
+          },
+        },
       ],
     });
   }
@@ -557,6 +786,29 @@ class LogSanitizerTest {
     });
   }
 
+  void test_message_semanticTokens_range() {
+    var message = {
+      'id': 25,
+      'method': 'textDocument/semanticTokens/range',
+      'params': {
+        'textDocument': {'uri': 'file:///test/lib/main.dart'},
+        'range': {
+          'start': {'line': 0, 'character': 0},
+          'end': {'line': 10, 'character': 0},
+        },
+      },
+    };
+
+    var result = sanitizer.sanitizeMessage(message);
+    expect(result['params'], {
+      'textDocument': {'uri': 'file:///p0/p1/p2.dart'},
+      'range': {
+        'start': {'line': 0, 'character': 0},
+        'end': {'line': 10, 'character': 0},
+      },
+    });
+  }
+
   void test_message_unhandled_fallbackScrubbing() {
     var message = {
       'jsonrpc': '2.0',
@@ -578,6 +830,27 @@ class LogSanitizerTest {
       'fullPath': '/p0/p1/p2/p3/p4.dart',
       'count': 42,
       'nested': {'secret': '...', 'path': 'file:///p5/p2/p6.dart'},
+    });
+  }
+
+  void test_message_workspace_executeCommand() {
+    var message = {
+      'jsonrpc': '2.0',
+      'method': 'workspace/executeCommand',
+      'params': {
+        'command': 'dart.edit.organizeImports',
+        'arguments': [
+          {'path': 'file:///test/lib/main.dart', 'autoTriggered': true},
+        ],
+      },
+    };
+
+    var result = sanitizer.sanitizeMessage(message);
+    expect(result['params'], {
+      'command': 'dart.edit.organizeImports',
+      'arguments': [
+        {'path': 'file:///p0/p1/p2.dart', 'autoTriggered': true},
+      ],
     });
   }
 

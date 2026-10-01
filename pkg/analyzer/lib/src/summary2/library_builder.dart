@@ -23,6 +23,7 @@ import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/summary2/reference_resolver.dart';
@@ -30,6 +31,89 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:collection/collection.dart';
+
+/// Builds the URI of the library imported by [state].
+///
+/// The imported library, if any, must be already loaded into the
+/// [elementFactory].
+DirectiveUri buildLibraryImportUri({
+  required LibraryImportState state,
+  required LinkedElementFactory elementFactory,
+}) {
+  switch (state) {
+    case LibraryImportWithFile():
+      var importedLibraryKind = state.importedLibrary;
+      if (importedLibraryKind != null) {
+        var importedFile = importedLibraryKind.file;
+        var importedUri = importedFile.uri;
+        var importedLibrary = elementFactory.libraryOfUri2(importedUri);
+        return DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: importedLibrary.source,
+          library: importedLibrary,
+        );
+      } else {
+        return DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.importedSource,
+        );
+      }
+    case LibraryImportWithInSummarySource():
+      var importedLibrarySource = state.importedLibrarySource;
+      if (importedLibrarySource != null) {
+        var importedUri = importedLibrarySource.uri;
+        var importedLibrary = elementFactory.libraryOfUri2(importedUri);
+        return DirectiveUriWithLibraryImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: importedLibrary.source,
+          library: importedLibrary,
+        );
+      } else {
+        return DirectiveUriWithSourceImpl(
+          relativeUriString: state.selectedUri.relativeUriStr,
+          relativeUri: state.selectedUri.relativeUri,
+          source: state.importedSource,
+        );
+      }
+    default:
+      var selectedUri = state.selectedUri;
+      switch (selectedUri) {
+        case file_state.DirectiveUriWithUri():
+          return DirectiveUriWithRelativeUriImpl(
+            relativeUriString: selectedUri.relativeUriStr,
+            relativeUri: selectedUri.relativeUri,
+          );
+        case file_state.DirectiveUriWithString():
+          return DirectiveUriWithRelativeUriStringImpl(
+            relativeUriString: selectedUri.relativeUriStr,
+          );
+        default:
+          return DirectiveUriImpl();
+      }
+  }
+}
+
+/// Builds the element model combinators from the unlinked [combinators].
+List<NamespaceCombinator> buildNamespaceCombinators(
+  List<UnlinkedCombinator> combinators,
+) {
+  return combinators.map((unlinked) {
+    if (unlinked.isShow) {
+      return ShowElementCombinatorImpl()
+        ..offset = unlinked.keywordOffset
+        ..end = unlinked.endOffset
+        ..shownNames = unlinked.names;
+    } else {
+      return HideElementCombinatorImpl()
+        ..offset = unlinked.keywordOffset
+        ..end = unlinked.endOffset
+        ..hiddenNames = unlinked.names;
+    }
+  }).toFixedList();
+}
 
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({
@@ -410,24 +494,6 @@ class LibraryBuilder {
     }
   }
 
-  List<NamespaceCombinator> _buildCombinators(
-    List<UnlinkedCombinator> combinators2,
-  ) {
-    return combinators2.map((unlinked) {
-      if (unlinked.isShow) {
-        return ShowElementCombinatorImpl()
-          ..offset = unlinked.keywordOffset
-          ..end = unlinked.endOffset
-          ..shownNames = unlinked.names;
-      } else {
-        return HideElementCombinatorImpl()
-          ..offset = unlinked.keywordOffset
-          ..end = unlinked.endOffset
-          ..hiddenNames = unlinked.names;
-      }
-    }).toFixedList();
-  }
-
   /// Builds directive elements, for the library and recursively for its
   /// augmentations.
   void _buildDirectives({
@@ -452,8 +518,6 @@ class LibraryBuilder {
   }
 
   LibraryExportImpl _buildLibraryExport(LibraryExportState state) {
-    var combinators = _buildCombinators(state.unlinked.combinators);
-
     DirectiveUri uri;
     switch (state) {
       case LibraryExportWithFile():
@@ -513,7 +577,7 @@ class LibraryBuilder {
     }
 
     return LibraryExportImpl(
-      combinators: combinators,
+      combinators: buildNamespaceCombinators(state.unlinked.combinators),
       exportKeywordOffset: state.unlinked.exportKeywordOffset,
       uri: uri,
     );
@@ -532,72 +596,15 @@ class LibraryBuilder {
       );
     });
 
-    var combinators = _buildCombinators(state.unlinked.combinators);
-
-    DirectiveUri uri;
-    switch (state) {
-      case LibraryImportWithFile():
-        var importedLibraryKind = state.importedLibrary;
-        if (importedLibraryKind != null) {
-          var importedFile = importedLibraryKind.file;
-          var importedUri = importedFile.uri;
-          var elementFactory = linker.elementFactory;
-          var importedLibrary = elementFactory.libraryOfUri2(importedUri);
-          uri = DirectiveUriWithLibraryImpl(
-            relativeUriString: state.selectedUri.relativeUriStr,
-            relativeUri: state.selectedUri.relativeUri,
-            source: importedLibrary.source,
-            library: importedLibrary,
-          );
-        } else {
-          uri = DirectiveUriWithSourceImpl(
-            relativeUriString: state.selectedUri.relativeUriStr,
-            relativeUri: state.selectedUri.relativeUri,
-            source: state.importedSource,
-          );
-        }
-      case LibraryImportWithInSummarySource():
-        var importedLibrarySource = state.importedLibrarySource;
-        if (importedLibrarySource != null) {
-          var importedUri = importedLibrarySource.uri;
-          var elementFactory = linker.elementFactory;
-          var importedLibrary = elementFactory.libraryOfUri2(importedUri);
-          uri = DirectiveUriWithLibraryImpl(
-            relativeUriString: state.selectedUri.relativeUriStr,
-            relativeUri: state.selectedUri.relativeUri,
-            source: importedLibrary.source,
-            library: importedLibrary,
-          );
-        } else {
-          uri = DirectiveUriWithSourceImpl(
-            relativeUriString: state.selectedUri.relativeUriStr,
-            relativeUri: state.selectedUri.relativeUri,
-            source: state.importedSource,
-          );
-        }
-      default:
-        var selectedUri = state.selectedUri;
-        switch (selectedUri) {
-          case file_state.DirectiveUriWithUri():
-            uri = DirectiveUriWithRelativeUriImpl(
-              relativeUriString: selectedUri.relativeUriStr,
-              relativeUri: selectedUri.relativeUri,
-            );
-          case file_state.DirectiveUriWithString():
-            uri = DirectiveUriWithRelativeUriStringImpl(
-              relativeUriString: selectedUri.relativeUriStr,
-            );
-          default:
-            uri = DirectiveUriImpl();
-        }
-    }
-
     return LibraryImportImpl(
       isSynthetic: state.isSyntheticDartCore,
-      combinators: combinators,
+      combinators: buildNamespaceCombinators(state.unlinked.combinators),
       importKeywordOffset: state.unlinked.importKeywordOffset,
       prefix: prefixFragment,
-      uri: uri,
+      uri: buildLibraryImportUri(
+        state: state,
+        elementFactory: linker.elementFactory,
+      ),
     );
   }
 

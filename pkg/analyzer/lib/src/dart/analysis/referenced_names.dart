@@ -493,29 +493,6 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    // Ignore all declarations.
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    // Prepare name.
-    String name = node.name;
-    // Ignore names shadowed by local elements.
-    if (node.isQualified) {
-      // Cannot be local.
-    } else {
-      if (localScope.contains(name)) {
-        return;
-      }
-      if (importPrefixNames.contains(name)) {
-        return;
-      }
-    }
-    // Do add the name.
-    names.add(name);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     if (includeAnalyzerDiagnosticExpectations) {
       var lexeme = node.literal.lexeme;

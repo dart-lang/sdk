@@ -4227,10 +4227,6 @@ DEFINE_EMIT(SimdBinaryOp,
     break;
     SIMD_OP_SIMPLE_BINARY(EMIT)
 #undef EMIT
-    case SimdOpInstr::kInt32x4AndNot:
-      __ orps(left, right);
-      __ xorps(left, right);
-      break;
     case SimdOpInstr::kFloat32x4Scale:
       __ cvtsd2ss(left, left);
       __ shufps(left, left, compiler::Immediate(0x00));
@@ -4623,7 +4619,6 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Int32x4ShrS)                                                            \
   ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
-  CASE(Int32x4AndNot)                                                          \
   CASE(Float32x4Scale)                                                         \
   CASE(Float32x4ShuffleMix)                                                    \
   CASE(Int32x4ShuffleMix)                                                      \

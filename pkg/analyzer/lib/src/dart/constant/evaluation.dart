@@ -1136,90 +1136,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       evaluateConstant(node.expression2);
 
   @override
-  Constant visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
-    var prefixNode = node.prefix;
-    var prefixElement = prefixNode.element;
-
-    // A top-level constant, imported with a prefix.
-    if (prefixElement is PrefixElement) {
-      if (node.isDeferred) {
-        return _getDeferredLibraryError(node, node.identifier);
-      }
-    } else if (prefixElement is! ExtensionElement) {
-      var prefixResult = evaluateConstant(prefixNode);
-      if (prefixResult is! DartObjectImpl) {
-        return prefixResult;
-      }
-
-      // For example, `String.length`.
-      if (prefixElement is! InterfaceElement) {
-        var propertyAccessResult = _evaluatePropertyAccess(
-          prefixResult,
-          node,
-          propertyName: node.identifier.name,
-          propertyElement: node.identifier.element,
-          isNullAware: false,
-        );
-        if (propertyAccessResult != null) {
-          return propertyAccessResult;
-        }
-      }
-    }
-
-    // Validate prefixed identifier.
-    return _getConstantValue(
-      errorNode: node,
-      expression: node,
-      element: node.identifier.element,
-      tearOffTypeArgumentTypes: node.identifier.tearOffTypeArgumentTypes,
-    );
-  }
-
-  @override
-  Constant visitPropertyAccess(covariant PropertyAccessImpl node) {
-    var target = node.target2;
-    if (target != null) {
-      if (target is PrefixedIdentifierImpl &&
-          (target.element is ExtensionElement ||
-              target.element is ExtensionTypeElement)) {
-        var prefix = target.prefix;
-        if (prefix.element is PrefixElement && target.isDeferred) {
-          return _getDeferredLibraryError(node, target.identifier);
-        }
-
-        // For example, `async.FutureExtensions.wait`.
-        return _getConstantValue(
-          errorNode: node,
-          expression: node,
-          element: node.propertyName.element,
-          tearOffTypeArgumentTypes: node.propertyName.tearOffTypeArgumentTypes,
-        );
-      }
-      var prefixResult = evaluateConstant(target);
-      if (prefixResult is! DartObjectImpl) {
-        return prefixResult;
-      }
-
-      var propertyAccessResult = _evaluatePropertyAccess(
-        prefixResult,
-        node,
-        propertyName: node.propertyName.name,
-        propertyElement: node.propertyName.element,
-        isNullAware: node.isNullAware,
-      );
-      if (propertyAccessResult != null) {
-        return propertyAccessResult;
-      }
-    }
-    return _getConstantValue(
-      errorNode: node,
-      expression: node,
-      element: node.propertyName.element,
-      tearOffTypeArgumentTypes: node.propertyName.tearOffTypeArgumentTypes,
-    );
-  }
-
-  @override
   Constant visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
       _visitNamedFunctionInvocation(node);
 
@@ -1350,26 +1266,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       var set = <DartObjectImpl>{};
       return _buildSetConstant(set, node.elements2, typeSystem, setType);
     }
-  }
-
-  @override
-  Constant visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    if (node.element case FormalParameterElement element) {
-      var value = _lexicalEnvironment?[element.baseElement];
-      if (value != null) {
-        return _instantiateLegacyFunctionType(
-          node.tearOffTypeArgumentTypes,
-          value,
-        );
-      }
-    }
-
-    return _getConstantValue(
-      errorNode: node,
-      expression: node,
-      element: node.element,
-      tearOffTypeArgumentTypes: node.tearOffTypeArgumentTypes,
-    );
   }
 
   @override
@@ -2861,11 +2757,7 @@ class DartObjectComputer {
     if (rawType is FunctionTypeImpl) {
       if (typeArguments.length != rawType.typeParameters.length) {
         InvocationTarget? target;
-        if (node is SimpleIdentifier) {
-          if (node.element case ExecutableElement e) {
-            target = InvocationTargetExecutableElement(e);
-          }
-        } else if (node is UnqualifiedNameExpression) {
+        if (node is UnqualifiedNameExpression) {
           if (node.resolution?.element case ExecutableElement element) {
             target = InvocationTargetExecutableElement(element);
           }

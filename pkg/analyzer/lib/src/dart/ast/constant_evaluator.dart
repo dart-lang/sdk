@@ -661,13 +661,6 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
       node.expression.accept2(this);
 
   @override
-  Object? visitPrefixedIdentifier(PrefixedIdentifier node) =>
-      _getConstantValue(null);
-
-  @override
-  Object? visitPropertyAccess(PropertyAccess node) => _getConstantValue(null);
-
-  @override
   Object? visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) =>
       _getConstantValue(null);
 
@@ -694,10 +687,6 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
     }
     return map;
   }
-
-  @override
-  Object? visitSimpleIdentifier(SimpleIdentifier node) =>
-      _getConstantValue(null);
 
   @override
   Object? visitSimpleStringLiteral(SimpleStringLiteral node) => node.value;

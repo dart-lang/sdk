@@ -882,13 +882,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _elementUsageFrontierDetector.simpleIdentifier(node);
-    _invalidAccessVerifier.verify(node);
-    super.visitSimpleIdentifier(node);
-  }
-
-  @override
   void visitStaticQualifier(StaticQualifier node) {
     _elementUsageFrontierDetector.staticQualifier(node);
     _invalidAccessVerifier.verifyStaticQualifier(node);
@@ -1635,15 +1628,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     var expressions = addTo ?? <Expression, Element>{};
 
     Element? element;
-    if (expression is PropertyAccess) {
-      element = expression.propertyName.element;
-      // Tear-off.
-      if (element is LocalFunctionElement ||
-          element is TopLevelFunctionElement ||
-          element is MethodElement) {
-        element = null;
-      }
-    } else if (expression is MethodInvocation) {
+    if (expression is MethodInvocation) {
       element = expression.methodName.element;
     } else if (expression is NamedFunctionInvocation) {
       element = switch (expression.resolution) {
@@ -1658,14 +1643,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       element = expression.resolution?.elementOrRecovery;
       // An executable name expression is a tear-off, not a value read from a
       // declaration carrying `doNotStore`.
-      if (element is LocalFunctionElement ||
-          element is TopLevelFunctionElement ||
-          element is MethodElement) {
-        element = null;
-      }
-    } else if (expression is Identifier) {
-      element = expression.element;
-      // Tear-off.
       if (element is LocalFunctionElement ||
           element is TopLevelFunctionElement ||
           element is MethodElement) {
@@ -1798,31 +1775,6 @@ class _InvalidAccessVerifier {
          _templateExtension,
        ),
        _inTestDirectory = inTestDirectory;
-
-  /// Produces a warning if [identifier] is accessed from an invalid location.
-  ///
-  /// In particular, a warning is produced in either of the two following cases:
-  ///
-  /// * The element associated with [identifier] is annotated with [internal],
-  ///   and is accessed from outside the package in which the element is
-  ///   declared.
-  /// * The element associated with [identifier] is annotated with [protected],
-  ///   [visibleForTesting], and/or `visibleForTemplate`, and is accessed from a
-  ///   location which is invalid as per the rules of each such annotation.
-  ///   Conversely, if the element is annotated with more than one of these
-  ///   annotations, the access is valid (and no warning is produced) if it
-  ///   conforms to the rules of at least one of the annotations.
-  void verify(SimpleIdentifier identifier) {
-    if (identifier.inDeclarationContext() || identifier.inCommentReference2) {
-      return;
-    }
-
-    _verify(
-      node: identifier,
-      nameToken: identifier.token,
-      element: identifier.writeOrReadElement2,
-    );
-  }
 
   void verifyBinary(BinaryOperatorInvocation node) {
     var element = node.element;
@@ -2074,7 +2026,6 @@ class _InvalidAccessVerifier {
         _ => node.parent2,
       };
       if (parent is MethodInvocation && parent.target2 is SuperExpression ||
-          parent is PropertyAccess && parent.target2 is SuperExpression ||
           parent is ReceiverMethodInvocation &&
               parent.receiver is SuperReference ||
           parent is ReceiverPropertyExtraction &&
@@ -2262,9 +2213,7 @@ class _InvalidAccessVerifier {
     String name;
     SyntacticEntity errorEntity = node;
 
-    if (node is Identifier) {
-      name = node.name;
-    } else if (node is CombinatorName) {
+    if (node is CombinatorName) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is NamedAssignmentTarget) {
@@ -2315,14 +2264,6 @@ class _UsedParameterVisitor extends RecursiveAstVisitor2<void> {
       _usedParameters.contains(parameter);
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.element?.baseElement;
-    if (_parameters.contains(element)) {
-      _usedParameters.add(element as FormalParameterElement);
-    }
-  }
-
-  @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     var element = node.resolution?.element?.baseElement;
     if (_parameters.contains(element)) {
@@ -2332,20 +2273,15 @@ class _UsedParameterVisitor extends RecursiveAstVisitor2<void> {
 }
 
 extension on Expression {
-  /// Whether this is the [PrefixedIdentifier] referring to `double.nan`.
-  // TODO(srawlins): This will return the wrong answer for `prefixed.double.nan`
-  // and for `import 'foo.dart' as double; double.nan`.
+  /// Whether this is a reference to `double.nan`.
   bool get isDoubleNan {
-    var self = this;
-    if (self case ReceiverPropertyExtraction(
+    if (this case ReceiverPropertyExtraction(
       resolution: GetterInvocationResolution(:var element),
     )) {
       return element.name == 'nan' &&
           element.enclosingElement.name == 'double' &&
           element.library.isDartCore;
     }
-    return self is PrefixedIdentifier &&
-        self.prefix.name == 'double' &&
-        self.identifier.name == 'nan';
+    return false;
   }
 }

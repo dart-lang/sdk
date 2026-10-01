@@ -249,12 +249,6 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _checkName(node.name);
-    super.visitSimpleIdentifier(node);
-  }
-
-  @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     _checkName(node.name.lexeme);
   }

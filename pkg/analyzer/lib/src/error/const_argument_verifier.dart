@@ -114,16 +114,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _checkTearoff(node.identifier, node.element);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _checkTearoff(node.propertyName, node.propertyName.element);
-  }
-
-  @override
   void visitReceiverIndexExpression(ReceiverIndexExpression node) {
     _check(arguments: [node.index], errorNode: node.leftBracket);
   }
@@ -141,19 +131,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
       arguments: node.argumentList.arguments2,
       errorNode: node.constructorSelector?.name2 ?? node.thisKeyword,
     );
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var parent = node.parent2;
-    if (parent is PropertyAccess && parent.propertyName == node) return;
-    if (parent is PrefixedIdentifier && parent.identifier == node) return;
-    if (parent is DotShorthandPropertyAccess && parent.propertyName == node) {
-      return;
-    }
-    if (parent is DotShorthandInvocation && parent.memberName == node) return;
-    if (parent is MethodInvocation && parent.methodName == node) return;
-    _checkTearoff(node, node.element);
   }
 
   @override
@@ -231,14 +208,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         // TODO(mosum): Expand the logic to check if the individual interpolation elements are const.
         StringInterpolation() => false,
       };
-    } else if (expression is Identifier) {
-      var element = expression.element;
-      switch (element) {
-        case GetterElement():
-          return element.variable.isConst;
-        case VariableElement():
-          return element.isConst;
-      }
     } else if (expression is NameExpression) {
       var element = expression.resolution?.elementOrRecovery;
       return switch (element) {
@@ -258,15 +227,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
     if (node is DotShorthandNameExpression) return true;
     if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference2) return false;
-    if (node is SimpleIdentifier) {
-      var parent = node.parent2;
-      while (parent is ParenthesizedExpression) {
-        parent = parent.parent2;
-      }
-      if (parent is InvocationExpression) return false;
-      if (node.element is TopLevelFunctionElement) return true;
-      if (node.element is MethodElement) return true;
-    }
     if (node is NameExpression) {
       return node.resolution is ExecutableTearOffResolution;
     }

@@ -1868,6 +1868,18 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     return _apiSignature = builder.toByteList();
   }
 
+  /// The libraries imported by `@docImport`s of the files of this library.
+  ///
+  /// This includes doc imports of part files, even if they are not used
+  /// because the 'enhanced-parts' feature is not enabled.
+  Set<LibraryFileKind> get docImportedLibraries {
+    return {
+      for (var kind in fileKinds)
+        for (var import in kind.docLibraryImports)
+          if (import is LibraryImportWithFile) ?import.importedLibrary,
+    };
+  }
+
   /// The list of files that this library consists of:
   /// - the library file itself;
   /// - the part files, in the depth-first pre-order order.

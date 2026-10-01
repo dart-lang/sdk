@@ -57,11 +57,9 @@ import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/list_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/logical_not_resolver.dart';
 import 'package:analyzer/src/dart/resolver/null_assertion_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
-import 'package:analyzer/src/dart/resolver/simple_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
@@ -236,7 +234,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   late final IncrementOrDecrementResolver _incrementOrDecrementResolver;
   late final LogicalNotResolver _logicalNotResolver;
   late final NullAssertionExpressionResolver _nullAssertionExpressionResolver;
-  late final PrefixedIdentifierResolver _prefixedIdentifierResolver;
   late final UnaryOperatorInvocationResolver _unaryOperatorInvocationResolver;
   late final VariableDeclarationResolver _variableDeclarationResolver;
   late final YieldStatementResolver _yieldStatementResolver;
@@ -276,9 +273,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   late final ConstructorInvocationResolver constructorInvocationResolver =
       ConstructorInvocationResolver(this);
-
-  late final SimpleIdentifierResolver _simpleIdentifierResolver =
-      SimpleIdentifierResolver(this);
 
   late final PropertyElementResolver _propertyElementResolver =
       PropertyElementResolver(this);
@@ -389,7 +383,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     _logicalNotResolver = LogicalNotResolver(this);
     _nullAssertionExpressionResolver = NullAssertionExpressionResolver(this);
-    _prefixedIdentifierResolver = PrefixedIdentifierResolver(this);
     _unaryOperatorInvocationResolver = UnaryOperatorInvocationResolver(this);
     _variableDeclarationResolver = VariableDeclarationResolver(
       resolver: this,
@@ -817,23 +810,11 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }());
     var staticType = replacementExpression.staticType;
     if (staticType == null) {
-      var shouldHaveType = true;
-      if (replacementExpression is IdentifierImpl) {
-        var element = replacementExpression.element;
-        if (element is ExtensionElement ||
-            element is InterfaceElement ||
-            element is PrefixElement ||
-            element is TypeAliasElement) {
-          shouldHaveType = false;
-        }
-      }
-      if (shouldHaveType) {
-        assert(
-          false,
-          'No static type for: '
-          '(${replacementExpression.runtimeType}) $replacementExpression',
-        );
-      }
+      assert(
+        false,
+        'No static type for: '
+        '(${replacementExpression.runtimeType}) $replacementExpression',
+      );
       staticType = operations.unknownType.unwrapTypeSchemaView();
     }
     var flowAnalysisInfo = flowAnalysis.getExpressionInfo(expression);
@@ -1292,11 +1273,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }) {
     expression as ExpressionImpl;
     var isLegacy = !isConstructorTearoffsEnabled;
-    if (isLegacy &&
-        expression is! NameExpressionImpl &&
-        expression is! SimpleIdentifierImpl &&
-        expression is! PrefixedIdentifierImpl &&
-        expression is! PropertyAccessImpl) {
+    if (isLegacy && expression is! NameExpressionImpl) {
       return expression;
     }
 
@@ -1563,134 +1540,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
   }
 
-  /// Resolve LHS [node] of an assignment, an explicit [AssignmentExpression],
-  /// or implicit [IncrementOrDecrementExpression].
-  PropertyElementResolverResult resolveForWrite({
-    required ExpressionImpl node,
-    required bool hasRead,
-  }) {
-    inferenceLogWriter?.enterLValue(node);
-    if (node is IndexExpressionImpl) {
-      var target = node.target2;
-      if (target != null) {
-        analyzeExpression(
-          target,
-          operations.unknownType,
-          continueNullShorting: true,
-        );
-        popRewrite();
-      }
-
-      if (node.isNullAware) {
-        _startNullAwareAccess(
-          node.target2,
-          offset: (node.period ?? node.question ?? node.leftBracket).offset,
-        );
-        nullSafetyDeadCodeVerifier.visitNode(node.index2);
-      }
-
-      var result = _propertyElementResolver.resolveIndexExpression(
-        node: node,
-        hasRead: hasRead,
-        hasWrite: true,
-      );
-
-      analyzeExpression(
-        node.index2,
-        SharedTypeSchemaView(result.indexContextType),
-      );
-      popRewrite();
-      var whyNotPromoted = flowAnalysis.flow?.whyNotPromoted(
-        flowAnalysis.getExpressionInfo(node.index2),
-      );
-      checkIndexExpressionIndex(
-        node.index2,
-        readElement: hasRead
-            ? result.readElement2 as InternalExecutableElement?
-            : null,
-        writeElement: result.writeElement2 as InternalExecutableElement?,
-        whyNotPromoted: whyNotPromoted,
-      );
-
-      inferenceLogWriter?.exitLValue(node);
-      return result;
-    } else if (node is PrefixedIdentifierImpl) {
-      var prefix = node.prefix;
-      analyzeExpression(
-        prefix,
-        operations.unknownType,
-        continueNullShorting: true,
-      );
-      popRewrite();
-
-      // TODO(scheglov): It would be nice to rewrite all such cases.
-      if (prefix.staticType is RecordType) {
-        var propertyAccess = PropertyAccessImpl(
-          target2: prefix,
-          operator: node.period,
-          propertyName: node.identifier,
-        );
-        node.replaceWith(propertyAccess);
-        inferenceLogWriter?.exitLValue(node);
-        return _propertyElementResolver.resolvePropertyAccess(
-          node: propertyAccess,
-          hasRead: hasRead,
-          hasWrite: true,
-        );
-      }
-
-      inferenceLogWriter?.exitLValue(node);
-      return _propertyElementResolver.resolvePrefixedIdentifier(
-        node: node,
-        hasRead: hasRead,
-        hasWrite: true,
-      );
-    } else if (node is PropertyAccessImpl) {
-      if (node.target2 case var target?) {
-        analyzeExpression(
-          target,
-          operations.unknownType,
-          continueNullShorting: true,
-        );
-        popRewrite();
-      }
-      if (node.isNullAware) {
-        _startNullAwareAccess(node.target2, offset: node.operator.offset);
-        nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
-      }
-
-      inferenceLogWriter?.exitLValue(node);
-      return _propertyElementResolver.resolvePropertyAccess(
-        node: node,
-        hasRead: hasRead,
-        hasWrite: true,
-      );
-    } else if (node is SimpleIdentifierImpl) {
-      var result = _propertyElementResolver.resolveSimpleIdentifier(
-        node: node,
-        hasRead: hasRead,
-        hasWrite: true,
-      );
-
-      if (hasRead && result.readElementRequested2 == null) {
-        diagnosticReporter.report(
-          diag.undefinedIdentifier.withArguments(name: node.name).at(node),
-        );
-      }
-
-      inferenceLogWriter?.exitLValue(node);
-      return result;
-    } else {
-      inferenceLogWriter?.exitLValue(node, reanalyzeAsRValue: true);
-      analyzeExpression(
-        node,
-        SharedTypeSchemaView(UnknownInferredType.instance),
-      );
-      popRewrite();
-      return PropertyElementResolverResult();
-    }
-  }
-
   void resolveImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTargetImpl node,
   ) {
@@ -1905,83 +1754,12 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         .resolveUnqualifiedNameReadWriteAssignmentTarget(node);
   }
 
-  void setReadElement(
-    Expression node,
-    Element? element, {
-    required bool atDynamicTarget,
-  }) {
-    var readType = atDynamicTarget
-        ? DynamicTypeImpl.instance
-        : InvalidTypeImpl.instance;
-    if (node is IndexExpression) {
-      if (element is InternalMethodElement) {
-        readType = element.returnType;
-      }
-    } else if (node is PrefixedIdentifier ||
-        node is PropertyAccess ||
-        node is SimpleIdentifier) {
-      if (element is InternalGetterElement) {
-        readType = element.returnType;
-      } else if (element is VariableElement) {
-        readType = localVariableTypeProvider.getType(
-          node as SimpleIdentifierImpl,
-          isRead: true,
-        );
-      }
-    }
-
-    var parent = node.parent2;
-    if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
-      parent.readElement = element;
-      parent.readType = readType;
-    }
-  }
-
   @override
   void setVariableType(PromotableElementImpl variable, SharedTypeView type) {
     if (variable is LocalVariableElementImpl) {
       variable.type = type.unwrapTypeView();
     } else {
       throw UnimplementedError('TODO(paulberry)');
-    }
-  }
-
-  void setWriteElement(
-    Expression node,
-    Element? element, {
-    required bool atDynamicTarget,
-  }) {
-    var writeType = atDynamicTarget
-        ? DynamicTypeImpl.instance
-        : InvalidTypeImpl.instance;
-    if (node is IndexExpression) {
-      if (element is InternalMethodElement) {
-        var parameters = element.formalParameters;
-        if (parameters.length == 2) {
-          writeType = parameters[1].type;
-        }
-      }
-    } else if (node is PrefixedIdentifier ||
-        node is PropertyAccess ||
-        node is SimpleIdentifier) {
-      if (element is InternalSetterElement) {
-        if (element.isOriginVariable) {
-          writeType = element.variable.type;
-        } else {
-          var parameters = element.formalParameters;
-          if (parameters.length == 1) {
-            writeType = parameters[0].type;
-          }
-        }
-      } else if (element is InternalVariableElement) {
-        writeType = element.type;
-      }
-    }
-
-    var parent = node.parent2;
-    if (parent is AssignmentExpressionImpl && parent.leftHandSide2 == node) {
-      parent.writeElement = element;
-      parent.writeType = writeType;
     }
   }
 
@@ -2278,11 +2056,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     var staticType = node.staticType;
     if (staticType != null) {
       var (element, name, errorEntity) = switch (expression) {
-        SimpleIdentifier(:var element, :var name) => (
-          element,
-          name,
-          expression as SyntacticEntity,
-        ),
         UnqualifiedNameExpression(
           :var name,
           resolution: VariableReadResolution(:var element),
@@ -4275,43 +4048,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPrefixedIdentifier(
-    covariant PrefixedIdentifierImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    checkUnreachableNode(node);
-    var rewrittenPropertyAccess = _prefixedIdentifierResolver.resolve(
-      node,
-      contextType: contextType,
-    );
-    if (rewrittenPropertyAccess != null) {
-      _resolvePropertyAccessRhs(
-        rewrittenPropertyAccess,
-        contextType,
-        originalNode: node,
-      );
-      // We did record that `node` was replaced with `rewrittenPropertyAccess`.
-      // But if `rewrittenPropertyAccess` was itself rewritten, replace the
-      // rewrite result of `node`.
-      assert(() {
-        var rewrite = _replacements[rewrittenPropertyAccess];
-        if (rewrite != null) {
-          _replacements[node] = rewrite;
-        }
-        return true;
-      }());
-      inferenceLogWriter?.exitExpression(node);
-      return;
-    }
-    _insertImplicitCallTearOff(
-      insertGenericFunctionInstantiation(node, contextType: contextType),
-      contextType: contextType,
-    );
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
     var primaryConstructorDeclaration = node.declaration;
     if (primaryConstructorDeclaration == null) {
@@ -4382,31 +4118,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   @override
   void visitPrimaryConstructorName(PrimaryConstructorName node) {
     node.visitChildren2(this);
-  }
-
-  @override
-  void visitPropertyAccess(
-    covariant PropertyAccessImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-
-    checkUnreachableNode(node);
-
-    var target = node.target2;
-    if (target != null) {
-      analyzeExpression(
-        target,
-        SharedTypeSchemaView(UnknownInferredType.instance),
-        continueNullShorting: true,
-      );
-      popRewrite();
-    }
-
-    checkUnreachableNode(node.propertyName);
-    _resolvePropertyAccessRhs(node, contextType);
-
-    inferenceLogWriter?.exitExpression(node);
   }
 
   @override
@@ -4677,20 +4388,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   @override
   void visitShowCombinator(ShowCombinator node) {}
-
-  @override
-  void visitSimpleIdentifier(
-    covariant SimpleIdentifierImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    _simpleIdentifierResolver.resolve(node, contextType: contextType);
-    _insertImplicitCallTearOff(
-      insertGenericFunctionInstantiation(node, contextType: contextType),
-      contextType: contextType,
-    );
-    inferenceLogWriter?.exitExpression(node);
-  }
 
   @override
   void visitSimpleStringLiteral(
@@ -5712,70 +5409,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.exitExpression(node);
   }
 
-  void _resolvePropertyAccessRhs(
-    PropertyAccessImpl node,
-    TypeImpl contextType, {
-    PrefixedIdentifierImpl? originalNode,
-  }) {
-    if (node.isNullAware) {
-      _startNullAwareAccess(node.target2, offset: node.operator.offset);
-      nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
-    }
-
-    var result = _propertyElementResolver.resolvePropertyAccess(
-      node: node,
-      hasRead: true,
-      hasWrite: false,
-      originalNode: originalNode,
-    );
-
-    _resolvePropertyAccessRhs_common(
-      result,
-      node,
-      node.propertyName,
-      contextType,
-    );
-    nullSafetyDeadCodeVerifier.verifyPropertyAccess(node);
-  }
-
-  /// Common logic for resolving the V1 property-access representations.
-  void _resolvePropertyAccessRhs_common(
-    PropertyElementResolverResult resolverResult,
-    ExpressionImpl node,
-    SimpleIdentifierImpl propertyName,
-    TypeImpl contextType,
-  ) {
-    var element = resolverResult.readElement2;
-
-    propertyName.element = element;
-
-    DartType type;
-    if (element is MethodElement) {
-      type = element.type;
-    } else if (element is InternalConstructorElement) {
-      type = element.type;
-    } else if (element is GetterElement) {
-      type = resolverResult.getType!;
-    } else if (resolverResult.functionTypeCallType != null) {
-      type = resolverResult.functionTypeCallType!;
-    } else if (resolverResult.recordField != null) {
-      type = resolverResult.recordField!.type;
-    } else if (resolverResult.atDynamicTarget) {
-      type = DynamicTypeImpl.instance;
-    } else {
-      type = InvalidTypeImpl.instance;
-    }
-
-    propertyName.setPseudoExpressionStaticType(type);
-    node.recordStaticType(type, resolver: this);
-    var replacement = insertGenericFunctionInstantiation(
-      node,
-      contextType: contextType,
-    );
-
-    _insertImplicitCallTearOff(replacement, contextType: contextType);
-  }
-
   void _resolveScopeFunctionInvocation(
     NamedFunctionInvocationImpl node, {
     required TypeImpl contextType,
@@ -5863,9 +5496,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           // For this case, `node.isNullAware=true` means that the cascade is
           // null aware, but that has already been taken care of in
           // `visitCascadeExpression`. So there is nothing further to do.
-          break;
-        case SimpleIdentifier(element: InterfaceElement()):
-          // `?.` to access static methods is equivalent to `.`, so do nothing.
           break;
         case SuperReferenceImpl():
           // Preserve null shorting when recovering the invalid `super?.` and
@@ -6155,9 +5785,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       name = nameNode.name.lexeme;
     } else if (nameNode is CallInvocation) {
       var function = nameNode.receiver;
-      if (function is SimpleIdentifier) {
-        name = function.name;
-      } else if (function is UnqualifiedNameExpression) {
+      if (function is UnqualifiedNameExpression) {
         name = function.name.lexeme;
       }
     } else if (nameNode is EnumConstantArguments) {
@@ -6294,12 +5922,6 @@ class SwitchExhaustiveness {
       return _referencedElement(expression.expression2);
     } else if (expression is NameExpression) {
       return expression.resolution?.elementOrRecovery;
-    } else if (expression is PrefixedIdentifier) {
-      return expression.element;
-    } else if (expression is PropertyAccess) {
-      return expression.propertyName.element;
-    } else if (expression is SimpleIdentifier) {
-      return expression.element;
     }
     return null;
   }

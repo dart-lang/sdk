@@ -3355,9 +3355,10 @@ library
                         invokeType: E Function()
                         type: E
                       staticType: E
-                    SimpleIdentifier
-                      token: <empty> @-1 <synthetic>
-                      element: <null>
+                    UnqualifiedNameExpression
+                      name: <empty> @-1 <synthetic>
+                      resolution: InvalidNamedReadResolution
+                        recoveryElement: <null>
                       staticType: InvalidType
                   elements(v1)
                     SimpleIdentifier
@@ -18713,9 +18714,9 @@ library
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
                   staticType: null
               inducedGetter: #F8
               nextFragment: #F9
@@ -18741,9 +18742,9 @@ library
             #F9 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:119) (firstTokenOffset:119) (offset:119)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_3
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
                   staticType: null
               inducedGetter: #F11
               previousFragment: #F7

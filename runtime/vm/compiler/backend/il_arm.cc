@@ -4735,9 +4735,6 @@ DEFINE_EMIT(Simd32x4BinaryOp,
       // Invert the result.
       __ vmvnq(result, result);
       break;
-    case SimdOpInstr::kInt32x4AndNot:
-      __ vbicq(result, left, right);
-      break;
     default:
       UNREACHABLE();
   }
@@ -5298,7 +5295,6 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Int32x4Sub)                                                             \
   CASE(Int32x4Equal)                                                           \
   CASE(Int32x4NotEqual)                                                        \
-  CASE(Int32x4AndNot)                                                          \
   ____(Simd32x4BinaryOp)                                                       \
   CASE(Float64x2Add)                                                           \
   CASE(Float64x2Sub)                                                           \

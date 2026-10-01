@@ -7057,6 +7057,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: i @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C2::@constructor::new::@formalParameter::i
+                      type: int
+                    staticType: int
+                arguments(v1)
                   SimpleIdentifier
                     token: i @-1
                     element: <testLibrary>::@class::C2::@constructor::new::@formalParameter::i
@@ -7084,6 +7091,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: i @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C1::@constructor::new::@formalParameter::i
+                      type: int
+                    staticType: int
+                arguments(v1)
                   SimpleIdentifier
                     token: i @-1
                     element: <testLibrary>::@class::C1::@constructor::new::@formalParameter::i
@@ -7258,6 +7272,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: a @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C::@constructor::c1::@formalParameter::a
+                      type: int
+                    staticType: int
+                arguments(v1)
                   SimpleIdentifier
                     token: a @-1
                     element: <testLibrary>::@class::C::@constructor::c1::@formalParameter::a
@@ -7295,6 +7316,25 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: a @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::a
+                      type: int
+                    staticType: int
+                  UnqualifiedNameExpression
+                    name: b @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::b
+                      type: int?
+                    staticType: int?
+                  UnqualifiedNameExpression
+                    name: c @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::c
+                      type: int
+                    staticType: int
+                arguments(v1)
                   SimpleIdentifier
                     token: a @-1
                     element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::a
@@ -7340,6 +7380,25 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: a @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::a
+                      type: int
+                    staticType: int
+                  UnqualifiedNameExpression
+                    name: b @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::b
+                      type: int?
+                    staticType: int?
+                  UnqualifiedNameExpression
+                    name: c @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::c
+                      type: int
+                    staticType: int
+                arguments(v1)
                   SimpleIdentifier
                     token: a @-1
                     element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::a
@@ -7529,6 +7588,19 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: x @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::B::@constructor::new::@formalParameter::x
+                      type: E
+                    staticType: E
+                  UnqualifiedNameExpression
+                    name: y @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::B::@constructor::new::@formalParameter::y
+                      type: E
+                    staticType: E
+                arguments(v1)
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::x
@@ -8888,6 +8960,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: x @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::MixinApp::@constructor::requiredArg::@formalParameter::x
+                      type: dynamic
+                    staticType: dynamic
+                arguments(v1)
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::requiredArg::@formalParameter::x
@@ -8919,6 +8998,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: x @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::MixinApp::@constructor::positionalArg::@formalParameter::x
+                      type: bool
+                    staticType: bool
+                arguments(v1)
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::positionalArg::@formalParameter::x
@@ -8950,6 +9036,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: x @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2::@formalParameter::x
+                      type: bool
+                    staticType: bool
+                arguments(v1)
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2::@formalParameter::x
@@ -8981,6 +9074,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: x @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::MixinApp::@constructor::namedArg::@formalParameter::x
+                      type: int
+                    staticType: int
+                arguments(v1)
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::namedArg::@formalParameter::x
@@ -9012,6 +9112,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: x @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::MixinApp::@constructor::namedArg2::@formalParameter::x
+                      type: bool
+                    staticType: bool
+                arguments(v1)
                   SimpleIdentifier
                     token: x @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::namedArg2::@formalParameter::x
@@ -9128,6 +9235,19 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: t @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
+                      type: dynamic
+                    staticType: dynamic
+                  UnqualifiedNameExpression
+                    name: l @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
+                      type: List<dynamic>
+                    staticType: List<dynamic>
+                arguments(v1)
                   SimpleIdentifier
                     token: t @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
@@ -9256,6 +9376,19 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: t @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
+                      type: List<U>
+                    staticType: List<U>
+                  UnqualifiedNameExpression
+                    name: l @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
+                      type: List<List<U>>
+                    staticType: List<List<U>>
+                arguments(v1)
                   SimpleIdentifier
                     token: t @-1
                     element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t

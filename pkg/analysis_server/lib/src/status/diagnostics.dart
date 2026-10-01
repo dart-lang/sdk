@@ -37,6 +37,7 @@ import 'package:analysis_server/src/status/pages/lsp_registrations_page.dart';
 import 'package:analysis_server/src/status/pages/memory_and_cpu_page.dart';
 import 'package:analysis_server/src/status/pages/message_scheduler_page.dart';
 import 'package:analysis_server/src/status/pages/not_found_page.dart';
+import 'package:analysis_server/src/status/pages/performance_page.dart';
 import 'package:analysis_server/src/status/pages/plugins_page.dart';
 import 'package:analysis_server/src/status/pages/refactorings_page.dart';
 import 'package:analysis_server/src/status/pages/session_log_page.dart';
@@ -261,6 +262,8 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
 
   String? get navDetail => null;
 
+  String? get navDetailClass => null;
+
   bool get showInNav => true;
 
   /// Information regarding the analysis context currently being displayed.
@@ -319,7 +322,8 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
       );
       var detail = page.navDetail;
       if (detail != null) {
-        buf.write('<span class="counter">$detail</span>');
+        var detailClass = ['counter', ?page.navDetailClass].join(' ');
+        buf.write('<span class="$detailClass">$detail</span>');
       }
       buf.writeln('</a>');
     }
@@ -457,6 +461,11 @@ class DiagnosticsSite extends Site implements AbstractHttpHandler {
   border-radius: 20px;
 }
 
+.counter-red {
+  background-color: #d73a49;
+  color: #fff;
+}
+
 .menu-item .counter {
   float: right;
   margin-left: 5px;
@@ -514,6 +523,7 @@ td.pre {
     pages.add(ContextsPage(this));
     pages.add(EnvironmentVariablesPage(this));
     pages.add(ExceptionsPage(this));
+    pages.add(PerformancePage(this));
     // pages.add(new InstrumentationPage(this));
     if (includeDeveloperSupport) {
       pages.add(AnalyticsPage(this));

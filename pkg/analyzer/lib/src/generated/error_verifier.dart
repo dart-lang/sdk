@@ -1519,12 +1519,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   void visitIfNullAssignment(covariant IfNullAssignmentImpl node) {
     var target = node.target;
     if (target is InvalidExpressionAssignmentTargetImpl) {
-      if (target.expression case SimpleIdentifierImpl(
-        element: ExecutableElement(),
-      )) {
-        _checkForDeadNullCoalesce(target.expression.typeOrThrow, node.value);
-        checkForUseOfVoidResult(target.expression);
-      }
       _constArgumentsVerifier.visitIfNullAssignment(node);
       super.visitIfNullAssignment(node);
       return;
@@ -1936,18 +1930,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _constArgumentsVerifier.visitPrefixedIdentifier(node);
-    if (node.parent2 is! Annotation) {
-      var typeReference = getTypeReference(node.prefix);
-      SimpleIdentifier name = node.identifier;
-      _checkForStaticAccessToInstanceMember(typeReference, name);
-      _checkForInstanceAccessToStaticMember(typeReference, node.prefix, name);
-    }
-    super.visitPrefixedIdentifier(node);
-  }
-
-  @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
     var declaredFragment = node.declaration?.declaredFragment;
     if (declaredFragment == null) {
@@ -2028,35 +2010,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       fieldDeclaration: null,
       primaryConstructor: node,
     );
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _constArgumentsVerifier.visitPropertyAccess(node);
-    var target = node.realTarget2;
-    var typeReference = getTypeReference(target);
-    SimpleIdentifier propertyName = node.propertyName;
-    _checkForStaticAccessToInstanceMember(typeReference, propertyName);
-    _checkForInstanceAccessToStaticMember(
-      typeReference,
-      node.target2,
-      propertyName,
-    );
-    // Note: `node.isNullAware` produces the wrong behavior because it considers
-    // all sections of a null-aware cascade to be null-aware, so it's necessary
-    // to look directly at the operator.
-    var isNullAware =
-        node.operator.type == TokenType.QUESTION_PERIOD ||
-        node.operator.type == TokenType.QUESTION_PERIOD_PERIOD;
-    if (isNullAware) {
-      _checkForUnnecessaryNullAware(
-        target,
-        node.operator,
-        kind: node.isCascaded ? _NullAwareKind.cascaded : _NullAwareKind.access,
-      );
-    }
-    _checkUseVerifier.checkPropertyAccess(node);
-    super.visitPropertyAccess(node);
   }
 
   @override
@@ -2218,29 +2171,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForSetElementTypeNotAssignable3(node);
     }
     super.visitSetOrMapLiteral(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _constArgumentsVerifier.visitSimpleIdentifier(node);
-    _checkForAmbiguousImport(
-      element: node.writeOrReadElement2,
-      name: node.token,
-    );
-    _checkForReferenceBeforeDeclaration(
-      element: node.element,
-      nameToken: node.token,
-    );
-    _checkForInvalidInstanceMemberAccess(node);
-    _checkForTypeParameterReferencedByStatic(
-      element: node.element,
-      name: node.token,
-    );
-    if (!_isUnqualifiedReferenceToNonLocalStaticMemberAllowed(node)) {
-      _checkForUnqualifiedReferenceToNonLocalStaticMember(node);
-    }
-    _checkUseVerifier.checkSimpleIdentifier(node);
-    super.visitSimpleIdentifier(node);
   }
 
   @override
@@ -3182,7 +3112,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     var formalParameter = element;
     formalParameter ??= switch (node) {
       AssignedVariablePattern(:var element) => element,
-      SimpleIdentifier(:var element) => element,
       _ => null,
     };
 
@@ -6011,51 +5940,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  /// Check that the given [typeReference] is not a type reference and that then
-  /// the [name] is reference to an instance member.
-  ///
-  /// See [diag.instanceAccessToStaticMember].
-  void _checkForInstanceAccessToStaticMember(
-    InterfaceElement? typeReference,
-    Expression? target,
-    SimpleIdentifier name,
-  ) {
-    if (_isInComment) {
-      // OK, in comment
-      return;
-    }
-    // prepare member Element
-    var element = name.writeOrReadElement2;
-    if (element is ExecutableElement) {
-      if (!element.isStatic) {
-        // OK, instance member
-        return;
-      }
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement is ExtensionElement) {
-        if (target is ExtensionOverride2) {
-          // OK, target is an extension override
-          return;
-        } else if (target is SimpleIdentifier &&
-            target.element is ExtensionElement) {
-          return;
-        } else if (target is PrefixedIdentifier &&
-            target.element is ExtensionElement) {
-          return;
-        }
-      } else {
-        if (typeReference != null) {
-          // OK, target is a type
-          return;
-        }
-        if (enclosingElement is! InterfaceElement) {
-          // OK, top-level element
-          return;
-        }
-      }
-    }
-  }
-
   /// Verify that if a class is extending an interface class or mixing in an
   /// interface mixin, it must be within the same library as that class or
   /// mixin.
@@ -6177,40 +6061,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         diagnosticReporter.report(diag.instantiateEnum.at(node));
       }
     }
-  }
-
-  /// Verify that if the given [identifier] is part of a constructor
-  /// initializer, then it does not implicitly reference 'this' expression.
-  ///
-  /// See [diag.implicitThisReferenceInInitializer],
-  /// [diag.instanceMemberAccessFromFactory], and
-  /// [diag.instanceMemberAccessFromStatic].
-  void _checkForInvalidInstanceMemberAccess(SimpleIdentifier identifier) {
-    // qualified method invocation
-    var parent = identifier.parent2;
-    if (parent is MethodInvocation) {
-      if (identical(parent.methodName, identifier) &&
-          parent.realTarget2 != null) {
-        return;
-      }
-    }
-    // qualified property access
-    if (parent is PropertyAccess) {
-      if (identical(parent.propertyName, identifier)) {
-        return;
-      }
-    }
-    if (parent is PrefixedIdentifier) {
-      if (identical(parent.identifier, identifier)) {
-        return;
-      }
-    }
-
-    _checkForInvalidInstanceMemberAccess2(
-      entity: identifier,
-      name: identifier.name,
-      element: identifier.writeOrReadElement2,
-    );
   }
 
   void _checkForInvalidInstanceMemberAccess2({
@@ -7649,37 +7499,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  /// Check the given [typeReference] and that the [name] is not a reference to
-  /// an instance member.
-  ///
-  /// See [diag.staticAccessToInstanceMember].
-  void _checkForStaticAccessToInstanceMember(
-    InterfaceElement? typeReference,
-    SimpleIdentifier name,
-  ) {
-    // OK, in comment
-    if (_isInComment) {
-      return;
-    }
-    // OK, target is not a type
-    if (typeReference == null) {
-      return;
-    }
-    // prepare member Element
-    var element = name.element;
-    if (element is ExecutableElement) {
-      // OK, static
-      if (element.isStatic || element is ConstructorElement) {
-        return;
-      }
-      diagnosticReporter.report(
-        diag.staticAccessToInstanceMember
-            .withArguments(name: name.name)
-            .at(name),
-      );
-    }
-  }
-
   void _checkForThrowOfInvalidType(ThrowExpression node) {
     var expression = node.expression2;
     var type = node.expression2.typeOrThrow;
@@ -7891,13 +7710,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         if (target.operator.type == TokenType.QUESTION_PERIOD) {
           return previousShortCircuitingOperator(receiver) ?? target.operator;
         }
-      } else if (target is PropertyAccess) {
-        var operator = target.operator;
-        var type = operator.type;
-        if (type == TokenType.QUESTION_PERIOD) {
-          var realTarget = target.realTarget2;
-          return previousShortCircuitingOperator(realTarget) ?? operator;
-        }
       } else if (target is IndexExpression) {
         if (target.question != null) {
           var realTarget = target.realTarget2;
@@ -7935,19 +7747,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
 
+    // A static member reference, such as `C?.x`, has a `StaticQualifier`
+    // receiver instead of an `InstanceReceiver`, and is checked by the caller.
     if (targetType == null) {
-      // The "target" might be an identifier that names a type, and the rest of
-      // the expression might be a reference to a static member of that type,
-      // e.g. `int?.parse(...)`. In which case the diagnostic should be
-      // reported.
-      if (target is! Identifier) return;
-      var targetElement = target.element;
-      if (targetElement is! InterfaceElement &&
-          targetElement is! ExtensionElement &&
-          targetElement is! TypeAliasElement) {
-        return;
-      }
-    } else if (!typeSystem.isStrictlyNonNullable(targetType)) {
+      return;
+    }
+    if (!typeSystem.isStrictlyNonNullable(targetType)) {
       // The warning shouldn't be reported because the target type is
       // potentially nullable.
       return;
@@ -7985,25 +7790,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     } else {
       diagnosticReporter.report(locatableDiagnostic.at(operator));
     }
-  }
-
-  /// Check that if the given [name] is a reference to a static member it is
-  /// defined in the enclosing class rather than in a superclass.
-  ///
-  /// See
-  /// [diag.unqualifiedReferenceToNonLocalStaticMember].
-  void _checkForUnqualifiedReferenceToNonLocalStaticMember(
-    SimpleIdentifier name,
-  ) {
-    if (name.parent2 is DotShorthandPropertyAccessImpl ||
-        name.parent2 is DotShorthandInvocationImpl) {
-      return;
-    }
-
-    _checkForUnqualifiedReferenceToNonLocalStaticMember2(
-      entity: name,
-      element: name.writeOrReadElement2,
-    );
   }
 
   void _checkForUnqualifiedReferenceToNonLocalStaticMember2({
@@ -8693,41 +8479,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     // constant.
     if (expression is NameExpression) {
       return expression.name.lexeme;
-    } else if (expression is SimpleIdentifier) {
-      return expression.name;
-    } else if (expression is PrefixedIdentifier) {
-      return expression.identifier.name;
-    } else if (expression is PropertyAccess) {
-      return expression.propertyName.name;
     }
     return null;
-  }
-
-  /// Return `true` if the given [identifier] is in a location where it is
-  /// allowed to resolve to a static member of a supertype.
-  bool _isUnqualifiedReferenceToNonLocalStaticMemberAllowed(
-    SimpleIdentifier identifier,
-  ) {
-    if (identifier.inDeclarationContext()) {
-      return true;
-    }
-    var parent = identifier.parent2;
-    if (parent is CommentReference) {
-      return true;
-    }
-    if (parent is MethodInvocation) {
-      return identical(parent.methodName, identifier);
-    }
-    if (parent is PrefixedIdentifier) {
-      return identical(parent.identifier, identifier);
-    }
-    if (parent is PropertyAccess) {
-      return identical(parent.propertyName, identifier);
-    }
-    if (parent is SuperConstructorInvocation) {
-      return identical(parent.constructorName, identifier);
-    }
-    return false;
   }
 
   /// Return `true` if the [importElement] is the internal library `dart:_wasm`
@@ -9006,24 +8759,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     } finally {
       _thisContextStack.removeLast();
     }
-  }
-
-  /// Checks whether the given [expression] is a reference to a class. If it is
-  /// then the element representing the class is returned, otherwise `null` is
-  /// returned.
-  static InterfaceElement? getTypeReference(Expression expression) {
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is InterfaceElement) {
-        return element;
-      } else if (element is TypeAliasElement) {
-        var aliasedType = element.aliasedType;
-        if (aliasedType is InterfaceType) {
-          return aliasedType.element;
-        }
-      }
-    }
-    return null;
   }
 }
 

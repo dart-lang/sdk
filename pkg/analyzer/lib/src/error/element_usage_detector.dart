@@ -521,14 +521,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
   }
 
-  void assignmentExpression(AssignmentExpression node) {
-    var target = node.leftHandSide2;
-    var targetRange = _assignmentTargetRange(target);
-    checkUsage(node.readElement, target, usageRange: targetRange);
-    checkUsage(node.writeElement, target, usageRange: targetRange);
-    checkUsage(node.element, node, usageRange: node.operator.sourceRange);
-  }
-
   void binaryOperatorInvocation(BinaryOperatorInvocation node) {
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
   }
@@ -911,27 +903,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     return true;
   }
 
-  void simpleIdentifier(SimpleIdentifier node) {
-    // Don't report declared identifiers.
-    if (node.inDeclarationContext()) {
-      return;
-    }
-
-    var parent = node.parent2;
-    // Report full SuperConstructorInvocation, not just the constructor name.
-    if (parent is SuperConstructorInvocation &&
-        identical(node, parent.constructorName)) {
-      return;
-    }
-
-    // HideCombinator is forgiving.
-    if (parent is HideCombinator) {
-      return;
-    }
-
-    _simpleIdentifier(node);
-  }
-
   void staticQualifier(StaticQualifier node) {
     checkUsage(node.element, node, usageRange: node.name.sourceRange);
   }
@@ -996,14 +967,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     return _workspacePackage.contains(library.internal.firstFragment.source);
   }
 
-  void _simpleIdentifier(SimpleIdentifier identifier) {
-    checkUsage(
-      identifier.element,
-      identifier,
-      usageRange: identifier.sourceRange,
-    );
-  }
-
   void _visitParametersAndArguments(
     List<FormalParameterElement> parameters,
     List<Argument> arguments,
@@ -1045,8 +1008,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   static SourceRange _assignmentTargetRange(AstNode target) => switch (target) {
     NamedAssignmentTarget(:var name) => name.sourceRange,
-    PrefixedIdentifier(:var identifier) => identifier.sourceRange,
-    PropertyAccess(:var propertyName) => propertyName.sourceRange,
     _ => target.sourceRange,
   };
 

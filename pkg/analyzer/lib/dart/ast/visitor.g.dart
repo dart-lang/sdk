@@ -3000,12 +3000,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   }
 
   @override
-  R? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     node.visitChildren2(this);
     return null;
@@ -3019,12 +3013,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitPrimaryConstructorName(PrimaryConstructorName node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
-  R? visitPropertyAccess(PropertyAccess node) {
     node.visitChildren2(this);
     return null;
   }
@@ -3171,12 +3159,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitShowCombinator(ShowCombinator node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
-  R? visitSimpleIdentifier(SimpleIdentifier node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4580,9 +4562,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   ) => null;
 
   @override
-  R? visitPrefixedIdentifier(PrefixedIdentifier node) => null;
-
-  @override
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node) => null;
 
   @override
@@ -4591,9 +4570,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitPrimaryConstructorName(PrimaryConstructorName node) => null;
-
-  @override
-  R? visitPropertyAccess(PropertyAccess node) => null;
 
   @experimental
   @override
@@ -4676,9 +4652,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitShowCombinator(ShowCombinator node) => null;
-
-  @override
-  R? visitSimpleIdentifier(SimpleIdentifier node) => null;
 
   @override
   R? visitSimpleStringLiteral(SimpleStringLiteral node) => null;
@@ -6010,9 +5983,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   ) => _throw(node);
 
   @override
-  R? visitPrefixedIdentifier(PrefixedIdentifier node) => _throw(node);
-
-  @override
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node) => _throw(node);
 
   @override
@@ -6021,9 +5991,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitPrimaryConstructorName(PrimaryConstructorName node) => _throw(node);
-
-  @override
-  R? visitPropertyAccess(PropertyAccess node) => _throw(node);
 
   @experimental
   @override
@@ -6108,9 +6075,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitShowCombinator(ShowCombinator node) => _throw(node);
-
-  @override
-  R? visitSimpleIdentifier(SimpleIdentifier node) => _throw(node);
 
   @override
   R? visitSimpleStringLiteral(SimpleStringLiteral node) => _throw(node);
@@ -9166,14 +9130,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   }
 
   @override
-  T? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitPrefixedIdentifier(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     stopwatch.start();
     T? result = _baseVisitor.visitPrimaryConstructorBody(node);
@@ -9193,14 +9149,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitPrimaryConstructorName(PrimaryConstructorName node) {
     stopwatch.start();
     T? result = _baseVisitor.visitPrimaryConstructorName(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitPropertyAccess(PropertyAccess node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitPropertyAccess(node);
     stopwatch.stop();
     return result;
   }
@@ -9391,14 +9339,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitShowCombinator(ShowCombinator node) {
     stopwatch.start();
     T? result = _baseVisitor.visitShowCombinator(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitSimpleIdentifier(SimpleIdentifier node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitSimpleIdentifier(node);
     stopwatch.stop();
     return result;
   }
@@ -10949,9 +10889,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   ) => visitNode(node);
 
   @override
-  R? visitPrefixedIdentifier(PrefixedIdentifier node) => visitNode(node);
-
-  @override
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node) =>
       visitNode(node);
 
@@ -10962,9 +10899,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitPrimaryConstructorName(PrimaryConstructorName node) =>
       visitNode(node);
-
-  @override
-  R? visitPropertyAccess(PropertyAccess node) => visitNode(node);
 
   @experimental
   @override
@@ -11052,9 +10986,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitShowCombinator(ShowCombinator node) => visitNode(node);
-
-  @override
-  R? visitSimpleIdentifier(SimpleIdentifier node) => visitNode(node);
 
   @override
   R? visitSimpleStringLiteral(SimpleStringLiteral node) => visitNode(node);

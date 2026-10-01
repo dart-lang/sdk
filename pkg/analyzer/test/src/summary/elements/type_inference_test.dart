@@ -4561,6 +4561,13 @@ library
               argumentList: ArgumentList
                 leftParenthesis: ( @0
                 arguments2
+                  UnqualifiedNameExpression
+                    name: value @-1
+                    resolution: VariableReadResolution
+                      element: <testLibrary>::@class::B::@constructor::new::@formalParameter::value
+                      type: T
+                    staticType: T
+                arguments(v1)
                   SimpleIdentifier
                     token: value @-1
                     element: <testLibrary>::@class::B::@constructor::new::@formalParameter::value

@@ -1013,7 +1013,7 @@ void f() {}
 
   Future<void> test_multiple_import_directives_partFile() async {
     var content = """
-part/*[0*/ of 'part.dart';
+part of/*[0*/ 'part.dart';
 
 import 'dart:async';
 

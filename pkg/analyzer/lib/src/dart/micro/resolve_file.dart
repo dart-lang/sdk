@@ -861,21 +861,10 @@ class FileResolver {
     required OperationPerformanceImpl performance,
   }) {
     performance.run('libraryContext', (performance) {
-      libraryContext!.load(
+      libraryContext!.loadForResolution(
         targetLibrary: libraryKind,
         performance: performance,
       );
-
-      for (var import in libraryKind.docLibraryImports) {
-        if (import is LibraryImportWithFile) {
-          if (import.importedLibrary case var libraryFileKind?) {
-            libraryContext!.load(
-              targetLibrary: libraryFileKind,
-              performance: performance,
-            );
-          }
-        }
-      }
     });
   }
 

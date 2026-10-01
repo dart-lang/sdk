@@ -1319,6 +1319,23 @@ class SecondClass {
     assertHasRegionTarget('FirstClass(', 'FirstClass {');
   }
 
+  Future<void> test_inComment_docImportPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    addTestFile('''
+/// @docImport 'a.dart' as prefix;
+library;
+
+/// [prefix] and [prefix.A].
+void f() {}
+''');
+    await prepareNavigation();
+    assertHasRegionTarget('prefix]', 'prefix;');
+    assertHasRegionTarget('prefix.A]', 'prefix;');
+    assertHasRegion('A].');
+  }
+
   Future<void> test_inComment_enumMember_qualified() async {
     addTestFile('''
 /// [A.one].

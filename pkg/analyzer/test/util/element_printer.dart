@@ -354,7 +354,10 @@ class ElementPrinter {
       fragmentStr = '$libraryStr::@fragment::${_toPosixUriStr(fragmentUriStr)}';
     }
 
-    return '$fragmentStr::@prefix::${element.localId}';
+    var kind = element is DocImportPrefixElementImpl
+        ? '@docImportPrefix'
+        : '@prefix';
+    return '$fragmentStr::$kind::${element.localId}';
   }
 
   String _referenceToString(Reference reference) {

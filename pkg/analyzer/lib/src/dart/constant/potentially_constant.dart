@@ -37,19 +37,6 @@ bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
   return _ConstantTypeChecker(potentially: true).check(node);
 }
 
-bool _isConstantTypeName(Identifier name) {
-  var element = name.element;
-  if (element is InterfaceElement || element is TypeAliasElement) {
-    if (name is PrefixedIdentifier) {
-      if (name.isDeferred) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return false;
-}
-
 class _Collector {
   final FeatureSet featureSet;
   final List<AstNode> nodes = [];
@@ -83,10 +70,6 @@ class _Collector {
           nodes.add(node.dotShorthandPropertyAccess.propertyName);
           return;
       }
-    }
-
-    if (node is DotShorthandPropertyAccess) {
-      return _identifier(node.propertyName);
     }
 
     if (node is ImportPrefixedNameExpression) {
@@ -124,10 +107,6 @@ class _Collector {
         }
       }
       return;
-    }
-
-    if (node is Identifier) {
-      return _identifier(node);
     }
 
     if (node is ConstructorInvocation) {
@@ -210,10 +189,6 @@ class _Collector {
       collect(node.thenExpression2);
       collect(node.elseExpression2);
       return;
-    }
-
-    if (node is PropertyAccess) {
-      return _propertyAccess(node);
     }
 
     if (node is ReceiverPropertyExtraction) {
@@ -304,76 +279,6 @@ class _Collector {
     nodes.add(node);
   }
 
-  void _identifier(Identifier node) {
-    var element = node.element;
-
-    if (node is PrefixedIdentifier) {
-      if (node.isDeferred) {
-        nodes.add(node);
-        return;
-      }
-      if (node.identifier.name == 'length') {
-        collect(node.prefix);
-        return;
-      }
-      if (element is MethodElement && element.isStatic) {
-        if (!_isConstantTypeName(node.prefix)) {
-          nodes.add(node);
-        }
-        return;
-      }
-    }
-
-    if (element is FormalParameterElement) {
-      var enclosing = element.enclosingElement;
-      if (enclosing is ConstructorElement &&
-          isConstConstructorElement(enclosing)) {
-        if (node.thisOrAncestorOfType2<ConstructorInitializer>() != null) {
-          return;
-        }
-        var fieldElement = node
-            .thisOrAncestorOfType2<VariableDeclaration>()
-            ?.declaredFragment
-            ?.element;
-        if (fieldElement is FieldElement &&
-            !fieldElement.isStatic &&
-            !fieldElement.isLate) {
-          return;
-        }
-      }
-      nodes.add(node);
-      return;
-    }
-
-    if (element is VariableElement) {
-      if (!element.isConst) {
-        nodes.add(node);
-      }
-      return;
-    }
-    if (element is GetterElement) {
-      var variable = element.variable;
-      if (!variable.isConst) {
-        nodes.add(node);
-      }
-      return;
-    }
-    if (_isConstantTypeName(node)) {
-      return;
-    }
-    if (element is TopLevelFunctionElement) {
-      return;
-    }
-    if (element is MethodElement && element.isStatic) {
-      return;
-    }
-    if (element is TypeParameterElement &&
-        featureSet.isEnabled(Feature.constructor_tearoffs)) {
-      return;
-    }
-    nodes.add(node);
-  }
-
   void _methodInvocation(MethodInvocation node) {
     var arguments = node.argumentList.arguments2;
     if (arguments.length == 2) {
@@ -443,39 +348,6 @@ class _Collector {
         element is MethodElement && element.isStatic) {
       return;
     }
-    nodes.add(node);
-  }
-
-  void _propertyAccess(PropertyAccess node) {
-    // CascadeExpression is not a constant, so the target is never null.
-    var target = node.target2!;
-
-    if (node.propertyName.name == 'length') {
-      collect(target);
-      return;
-    }
-
-    if (target is PrefixedIdentifier) {
-      if (target.isDeferred) {
-        nodes.add(node);
-        return;
-      }
-
-      var element = node.propertyName.element;
-      if (element is GetterElement) {
-        var variable = element.variable;
-        if (!variable.isConst) {
-          nodes.add(node.propertyName);
-        }
-        return;
-      } else if (element is MethodElement) {
-        if (!element.isStatic) {
-          nodes.add(node.propertyName);
-        }
-        return;
-      }
-    }
-
     nodes.add(node);
   }
 

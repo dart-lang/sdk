@@ -575,14 +575,17 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
         formalParameterElement.type = superFormalParameter.type;
 
         superInvocationArguments.add(
-          SimpleIdentifierImpl(
-              token: StringToken(
+          UnqualifiedNameExpressionImpl(
+              name: StringToken(
                 TokenType.STRING,
                 formalParameterFragment.name ?? '',
                 -1,
               ),
             )
-            ..element = formalParameterElement
+            ..resolution = VariableReadResolutionImpl(
+              element: formalParameterElement,
+              type: formalParameterElement.type,
+            )
             ..setPseudoExpressionStaticType(formalParameterElement.type),
         );
       }
@@ -1489,6 +1492,40 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
 
   @override
   Source get source => libraryFragment.source;
+}
+
+/// The prefix declared by `@docImport`s, such as `io` in
+/// `/// @docImport 'dart:io' as io;`.
+///
+/// Doc imports affect only documentation comments, so they are not a part of
+/// the element model: this element is created when a library is analyzed, and
+/// is not included into [LibraryFragmentImpl.prefixes]. Its [imports] are the
+/// doc imports with this prefix, in the file that declares it.
+class DocImportPrefixElementImpl extends PrefixElementImpl {
+  @override
+  final List<LibraryImportImpl> imports = [];
+
+  /// The doc import prefix with the same name, declared in an enclosing file.
+  ///
+  /// Like an import prefix, the doc import prefix of a part file extends the
+  /// prefix with the same name of the enclosing file, unless it is deferred.
+  final DocImportPrefixElementImpl? enclosingPrefix;
+
+  @override
+  late final PrefixScope scope = PrefixScope(
+    libraryFragment: firstFragment.enclosingFragment,
+    parent: imports.any((import) => import.prefix?.isDeferred ?? false)
+        ? null
+        : enclosingPrefix?.scope,
+    libraryImports: imports,
+    prefix: this,
+  );
+
+  DocImportPrefixElementImpl({
+    required super.localId,
+    required super.firstFragment,
+    required this.enclosingPrefix,
+  });
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
@@ -8190,22 +8227,6 @@ class LibraryFragmentImpl extends FragmentImpl
     }
 
     return false;
-  }
-
-  /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a
-  /// given (possibly prefixed) identifier [node].
-  bool shouldIgnoreUndefinedIdentifier(Identifier node) {
-    if (node is PrefixedIdentifier) {
-      return shouldIgnoreUndefined(
-        prefix: node.prefix.name,
-        name: node.identifier.name,
-      );
-    }
-
-    return shouldIgnoreUndefined(
-      prefix: null,
-      name: (node as SimpleIdentifier).name,
-    );
   }
 
   /// Convenience wrapper around [shouldIgnoreUndefined] that calls it for a

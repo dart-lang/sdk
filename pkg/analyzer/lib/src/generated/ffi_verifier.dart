@@ -481,44 +481,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
-    var element = node.element;
-    if (element != null) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeUnionPointerExtension) {
-        if (element.name == 'ref') {
-          _validateRefPrefixedIdentifier(node);
-        }
-      } else if (enclosingElement.isAddressOfExtension) {
-        if (element.name == 'address') {
-          _validateAddressPrefixedIdentifier(node);
-        }
-      }
-    }
-    super.visitPrefixedIdentifier(node);
-  }
-
-  @override
-  void visitPropertyAccess(covariant PropertyAccessImpl node) {
-    var element = node.propertyName.element;
-    if (element != null) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeUnionPointerExtension) {
-        if (element.name == 'ref') {
-          _validateRefPropertyAccess(node);
-        }
-      } else if (enclosingElement.isAddressOfExtension) {
-        if (element.name == 'address') {
-          _validateAddressPropertyAccess(node);
-        }
-      }
-    }
-    super.visitPropertyAccess(node);
-  }
-
-  @override
   void visitReceiverIndexExpression(
     covariant ReceiverIndexExpressionImpl node,
   ) {
@@ -1028,7 +990,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
           arg.correspondingParameter?.name != _isLeafParamName) {
         continue;
       }
-      return _maybeGetBoolConstValue(arg.argumentExpression2) ?? false;
+      var value = arg.argumentExpression2.computeConstantValue()?.value;
+      return value?.toBoolValue() ?? false;
     }
     return false;
   }
@@ -1176,27 +1139,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
     }
     return false;
-  }
-
-  /// Get the const bool value of [expr] if it exists.
-  /// Return null if it isn't a const bool.
-  bool? _maybeGetBoolConstValue(Expression expr) {
-    if (expr is BooleanLiteral) {
-      return expr.value;
-    }
-    if (expr is Identifier) {
-      var element = expr.element;
-      if (element is VariableElement && element.isConst) {
-        return element.computeConstantValue()?.toBoolValue();
-      }
-      if (element is PropertyAccessorElement) {
-        var variable = element.variable;
-        if (variable.isConst) {
-          return variable.computeConstantValue()?.toBoolValue();
-        }
-      }
-    }
-    return null;
   }
 
   _PrimitiveDartType _primitiveNativeType(DartType nativeType) {
@@ -1361,22 +1303,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _validateAddressPrefixedIdentifier(PrefixedIdentifier node) {
-    var errorNode = node.identifier;
-    _validateAddressPosition(node, errorNode);
-    var extensionName = node.element?.enclosingElement?.name;
-    var receiver = node.prefix;
-    _validateAddressReceiver(node, extensionName, receiver, errorNode);
-  }
-
-  void _validateAddressPropertyAccess(PropertyAccess node) {
-    var errorNode = node.propertyName;
-    _validateAddressPosition(node, errorNode);
-    var extensionName = node.propertyName.element?.enclosingElement?.name;
-    var receiver = node.target2;
-    _validateAddressReceiver(node, extensionName, receiver, errorNode);
-  }
-
   void _validateAddressReceiver(
     Expression node,
     String? extensionName,
@@ -1410,21 +1336,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         if (type?.isTypedData ?? false) {
           return;
         }
-      case PrefixedIdentifier _:
-        // Struct or Union field.
-        var compound = receiver.prefix;
-        var type = compound.staticType;
-        if (type?.isCompoundSubtype ?? false) {
-          return;
-        }
-      case PropertyAccess _:
-        // Struct or Union field.
-        var compound = receiver.target2;
-        var type = compound?.staticType;
-        if (type?.isCompoundSubtype ?? false) {
-          return;
-        }
       case ReceiverPropertyExtraction(receiver: Expression compound):
+        // Struct or Union field.
         if (compound.staticType?.isCompoundSubtype ?? false) {
           return;
         }
@@ -2050,7 +1963,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     var validTarget = false;
 
     var referencedElement = switch (argument) {
-      IdentifierImpl() => argument.element?.nonSynthetic,
       NameExpressionImpl() => argument.resolution?.element?.nonSynthetic,
       _ => null,
     };
@@ -2328,30 +2240,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: '[]')
-            .at(node),
-      );
-    }
-  }
-
-  /// Validate the invocation of the extension method
-  /// `Pointer<T extends Struct>.ref`.
-  void _validateRefPrefixedIdentifier(PrefixedIdentifierImpl node) {
-    var targetType = node.prefix.staticType;
-    if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
-      _diagnosticReporter.report(
-        diag.nonConstantTypeArgument
-            .withArguments(executableName: 'ref')
-            .at(node),
-      );
-    }
-  }
-
-  void _validateRefPropertyAccess(PropertyAccessImpl node) {
-    var targetType = node.realTarget2.typeOrThrow;
-    if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
-      _diagnosticReporter.report(
-        diag.nonConstantTypeArgument
-            .withArguments(executableName: 'ref')
             .at(node),
       );
     }

@@ -331,7 +331,7 @@ class FastaErrorReporter {
         return;
       case PseudoSharedCode.assertAsExpression:
         // Reported as UNDEFINED_IDENTIFIER in
-        // [SimpleIdentifierResolver._resolve1],
+        // [PropertyElementResolver._resolveUnqualifiedNameRead],
         // followed by an EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD error,
         // or followed by an EXPECTED_TOKEN error as seen in
         // `language/constructor/explicit_instantiation_syntax_test`

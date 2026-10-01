@@ -3416,11 +3416,11 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
       int64_t res = 0.0;
       if ((U == 0) && (opcode == 0x3)) {
         if (instr->Bit(23) == 0) {
-          // Format(instr, "vbic 'vd, 'vn, 'vm");
-          res = vn_val & ~vm_val;
+          // Format(instr, "vand 'vd, 'vn, 'vm");
+          res = vn_val & vm_val;
         } else {
-          // Format(instr, "vorn 'vd, 'vn, 'vm");
-          res = vn_val | ~vm_val;
+          // Format(instr, "vorr 'vd, 'vn, 'vm");
+          res = vn_val | vm_val;
         }
       } else if ((U == 1) && (opcode == 0x3)) {
         // Format(instr, "veor 'vd, 'vn, 'vm");

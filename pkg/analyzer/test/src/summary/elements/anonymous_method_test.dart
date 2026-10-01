@@ -74,6 +74,11 @@ library
                 argumentList: ArgumentList
                   leftParenthesis: ( @36
                   arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                  arguments(v1)
                     SimpleIdentifier
                       token: _notSerializableExpression @-1
                       element: <null>
@@ -122,6 +127,11 @@ library
             argumentList: ArgumentList
               leftParenthesis: ( @36
               arguments2
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
+                  staticType: null
+              arguments(v1)
                 SimpleIdentifier
                   token: _notSerializableExpression @-1
                   element: <null>
@@ -177,7 +187,11 @@ library
             AssertInitializer
               assertKeyword: assert @24
               leftParenthesis: ( @30
-              condition2: SimpleIdentifier
+              condition2: UnqualifiedNameExpression
+                name: _notSerializableExpression @-1
+                resolution: <null>
+                staticType: null
+              condition(v1): SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
@@ -236,7 +250,11 @@ library
                 element: <testLibrary>::@class::A::@field::f
                 staticType: null
               equals: = @44
-              expression2: SimpleIdentifier
+              expression2: UnqualifiedNameExpression
+                name: _notSerializableExpression @-1
+                resolution: <null>
+                staticType: null
+              expression(v1): SimpleIdentifier
                 token: _notSerializableExpression @-1
                 element: <null>
                 staticType: null
@@ -264,9 +282,9 @@ library
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::v
           initializer: expression_0
-            SimpleIdentifier
-              token: _notSerializableExpression @-1
-              element: <null>
+            UnqualifiedNameExpression
+              name: _notSerializableExpression @-1
+              resolution: <null>
               staticType: null
           inducedGetter: #F2
       getters
@@ -315,9 +333,9 @@ library
                 #F3 optionalNamed isOriginDeclaration p (nameOffset:22) (firstTokenOffset:15) (offset:22)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::p
                   initializer: expression_0
-                    SimpleIdentifier
-                      token: _notSerializableExpression @-1
-                      element: <null>
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
                       staticType: null
   classes
     isSimplyBounded class A
@@ -354,9 +372,9 @@ library
             #F2 optionalNamed isOriginDeclaration p (nameOffset:15) (firstTokenOffset:8) (offset:15)
               element: <testLibrary>::@function::f::@formalParameter::p
               initializer: expression_0
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
                   staticType: null
   functions
     isOriginDeclaration isStatic f
@@ -394,9 +412,9 @@ library
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: <testLibrary>::@enum::E::@field::v
               initializer: expression_0
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
                   staticType: null
               inducedGetter: #F3
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)

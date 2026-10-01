@@ -1372,13 +1372,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _visitNode(node.prefix);
-    sink.write('.');
-    _visitNode(node.identifier);
-  }
-
-  @override
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.thisKeyword);
@@ -1402,17 +1395,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitPrimaryConstructorName(PrimaryConstructorName node) {
     _visitToken(node.period);
     _visitToken(node.name);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    if (node.isCascaded) {
-      sink.write(node.operator.lexeme);
-    } else {
-      _visitNode(node.target2);
-      sink.write(node.operator.lexeme);
-    }
-    _visitNode(node.propertyName);
   }
 
   @override
@@ -1609,11 +1591,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   void visitShowCombinator(ShowCombinator node) {
     sink.write('show ');
     _visitNodeList(node.names, separator: ', ');
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    sink.write(node.token.lexeme);
   }
 
   @override

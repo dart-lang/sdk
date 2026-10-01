@@ -444,7 +444,7 @@ class _DartUnitFoldingComputerVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPartOfDirective(PartOfDirective node) {
-    _computer._recordDirective(_Directive(node, node.partKeyword));
+    _computer._recordDirective(_Directive(node, node.ofKeyword));
     super.visitPartOfDirective(node);
   }
 

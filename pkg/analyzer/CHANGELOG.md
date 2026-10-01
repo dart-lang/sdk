@@ -57,6 +57,15 @@
   diagnostic for the annotation. For example, for `@A(x)`, where `x` isn't a
   constant, it is now `const_with_non_constant_argument` instead of
   `invalid_constant`.
+* Added support for prefixes in doc imports, such as `/// @docImport 'dart:io' as io;`.
+  Documentation comments can reference `[io.File]`, and the prefix itself as `[io]`.
+  The prefix is a `PrefixElement` whose `imports` are the doc imports with this prefix;
+  it isn't included into `LibraryFragment.prefixes`.
+  Removed the `doc_import_cannot_have_prefix` diagnostic.
+* Names in doc imports are now resolved like names in imports: a name exported by
+  multiple doc-imported libraries is ambiguous instead of resolving to the first one,
+  and `show` / `hide` combinators are applied.
+  Removed the `doc_import_cannot_have_combinators` diagnostic.
 
 ## 14.4.0
 

@@ -1268,18 +1268,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.element;
-    if (element is PromotableElementImpl &&
-        node.inGetterContext() &&
-        node.parent2 is! FormalParameter &&
-        node.parent2 is! CatchClause &&
-        node.parent2 is! CommentReference) {
-      assignedVariables.read(element);
-    }
-  }
-
-  @override
   void visitSwitchExpression(covariant SwitchExpressionImpl node) {
     node.expression2.accept2(this);
 
@@ -1478,29 +1466,6 @@ class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   final FlowAnalysisHelper _manager;
 
   _LocalVariableTypeProvider(this._manager);
-
-  @override
-  TypeImpl getType(SimpleIdentifierImpl node, {required bool isRead}) {
-    var variable = node.element as InternalVariableElement;
-    var flow = _manager.flow;
-    if (variable is PromotableElementImpl && flow != null) {
-      SharedTypeView? promotedType;
-      if (isRead) {
-        ExpressionInfo expressionInfo;
-        (:promotedType, :expressionInfo) = flow.variableRead(
-          variable,
-          offset: node.offset,
-        );
-        _manager.storeExpressionInfo(node, expressionInfo);
-      } else {
-        promotedType = flow.promotedType(variable);
-      }
-      if (promotedType != null) {
-        return promotedType.unwrapTypeView<TypeImpl>();
-      }
-    }
-    return variable.type;
-  }
 
   @override
   TypeImpl getWriteType(InternalVariableElement element) {

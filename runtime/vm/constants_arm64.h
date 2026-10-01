@@ -1032,7 +1032,6 @@ enum SIMDThreeSameOp {
   SIMDThreeSameMask = 0x9f200400,
   SIMDThreeSameFixed = DPSimd1Fixed | B21 | B10,
   VAND = SIMDThreeSameFixed | B30 | B12 | B11,
-  VBIC = SIMDThreeSameFixed | B30 | B22 | B12 | B11,
   VORR = SIMDThreeSameFixed | B30 | B23 | B12 | B11,
   VEOR = SIMDThreeSameFixed | B30 | B29 | B12 | B11,
   VADDW = SIMDThreeSameFixed | B30 | B23 | B15,

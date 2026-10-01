@@ -17,7 +17,6 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -353,66 +352,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
-    }
-    if (node.inCommentReference2) {
-      return;
-    }
-    var element = node.writeOrReadElement2?.baseElement;
-    var variable = element.tryCast<PropertyAccessorElement>()?.variable;
-    bool isIdentifierRead = _isReadIdentifier(node);
-    if (element is PropertyAccessorElement &&
-        isIdentifierRead &&
-        variable is TopLevelVariableElement) {
-      if (element.isOriginVariable) {
-        usedElements.addElement(variable);
-      } else {
-        usedElements.members.add(element);
-        _addMemberAndCorrespondingGetter(element);
-      }
-    } else if (element is LocalVariableElement) {
-      if (isIdentifierRead) {
-        usedElements.addElement(element);
-      }
-    } else {
-      var parent = node.parent2!;
-      _useIdentifierElement(node.readElement2);
-      _useIdentifierElement(node.writeElement2);
-      _useIdentifierElement(node.element);
-      // If [node] is a tear-off, assume all parameters are used.
-      var functionReferenceIsCall =
-          element is ExecutableElement && parent is MethodInvocation;
-      if (element is ExecutableElement &&
-          isIdentifierRead &&
-          !functionReferenceIsCall) {
-        for (var parameter in element.formalParameters) {
-          usedElements.addElement(parameter);
-        }
-      }
-      var enclosingElement = element?.enclosingElement;
-      if (element == null) {
-        if (isIdentifierRead) {
-          usedElements.unresolvedReadMembers.add(node.name);
-        }
-      } else {
-        if (_recordEnumValuesUse(element)) {
-          return;
-        }
-        if ((enclosingElement is InterfaceElement ||
-                enclosingElement is ExtensionElement) &&
-            !identical(element, _enclosingExec)) {
-          usedElements.members.add(element);
-          if (isIdentifierRead) {
-            _addMemberAndCorrespondingGetter(element);
-          }
-        }
-      }
-    }
-  }
-
-  @override
   void visitStaticQualifier(StaticQualifier node) {
     _useIdentifierElement(node.element);
     super.visitStaticQualifier(node);
@@ -659,18 +598,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
       readCountsAsUse:
           node is! UnqualifiedNameExpression || _isUsefulRead(node),
     );
-  }
-
-  /// Returns whether the value of [node] is _only_ being read at this position.
-  ///
-  /// Returns `false` if [node] is not a read access, or if [node] is a combined
-  /// read/write access.
-  static bool _isReadIdentifier(SimpleIdentifier node) {
-    // Not reading at all.
-    if (!node.inGetterContext()) {
-      return false;
-    }
-    return _isUsefulRead(node);
   }
 
   static bool _isUsefulRead(AstNode node) {
@@ -998,32 +925,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     }
 
     super.visitPrimaryConstructorDeclaration(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      var element = node.element;
-      if (element is ConstructorElement) {
-        _visitConstructorElement(element);
-      } else if (element is FieldElement) {
-        _visitFieldElement(element);
-      } else if (element is LocalFunctionElement) {
-        _visitLocalFunctionElement(element);
-      } else if (element is InterfaceElement) {
-        _visitClassElement(element);
-      } else if (element is LocalVariableElement) {
-        _visitLocalVariableElement(element);
-      } else if (element is MethodElement) {
-        _visitMethodElement(element);
-      } else if (element is PropertyAccessorElement) {
-        _visitPropertyAccessorElement(element);
-      } else if (element is TopLevelVariableElement) {
-        _visitTopLevelVariableElement(element);
-      } else if (element is TypeAliasElement) {
-        _visitTypeAliasElement(element);
-      }
-    }
   }
 
   @override

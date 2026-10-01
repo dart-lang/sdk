@@ -146,30 +146,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     required this.eventListener,
   }) : coreLibrary = typeProvider.objectElement.library;
 
-  /// If [node] is used as a read-write target, returns the elements selected
-  /// for its implicit read and write.
-  ({Element? readElement, Element? writeElement})? assignmentTargeting(
-    AstNode node,
-  ) {
-    while (true) {
-      var parent = node.parent2!;
-      switch (parent) {
-        case PrefixedIdentifier() when identical(node, parent.identifier):
-        case PropertyAccess() when identical(node, parent.propertyName):
-          node = parent;
-        case AssignmentExpression() when identical(node, parent.leftHandSide2):
-          return (
-            readElement: parent.readElement,
-            writeElement: parent.writeElement,
-          );
-        case AssignmentTarget():
-          return null;
-        case dynamic(:var runtimeType):
-          throw UnimplementedError('TODO(paulberry): $runtimeType');
-      }
-    }
-  }
-
   _LValueTemplates dispatchAssignmentTarget(AssignmentTarget target) =>
       switch (target) {
         ReceiverIndexAssignmentTarget() => _receiverIndexAssignmentTarget(
@@ -925,36 +901,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  _LValueTemplates? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    var prefix = node.prefix;
-    var prefixElement = prefix.element;
-    switch (prefixElement) {
-      case FormalParameterElement():
-      case LocalVariableElement():
-        dispatchNode(prefix);
-        // Stack: prefix
-        return _PropertyAccessTemplates(node.identifier);
-      case dynamic(:var runtimeType):
-        throw UnimplementedError(
-          'TODO(paulberry): $runtimeType: $prefixElement',
-        );
-    }
-  }
-
-  @override
-  _LValueTemplates visitPropertyAccess(PropertyAccess node) {
-    var previousNestingLevel = ir.nestingLevel;
-    // TODO(paulberry): handle cascades
-    dispatchNode(node.target2!, terminateNullShorting: false);
-    // Stack: target
-    if (node.isNullAware) {
-      nullShortingCheck(previousNestingLevel: previousNestingLevel);
-    }
-    // Stack: BLOCK(1)? target
-    return _PropertyAccessTemplates(node.propertyName);
-  }
-
-  @override
   Null visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
       _visitDirectNamedFunctionInvocation(
         node as ReceiverMethodInvocationImpl,
@@ -991,30 +937,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     // Stack: returnValue
     ir.br(ir.nestingLevel - functionNestingStack.last);
     // Stack: indeterminate
-  }
-
-  @override
-  _LValueTemplates visitSimpleIdentifier(SimpleIdentifier node) {
-    var staticElement = node.element;
-    if (staticElement == null) {
-      if (assignmentTargeting(node) case var assignment?) {
-        staticElement = assignment.readElement ?? assignment.writeElement;
-      }
-    }
-    switch (staticElement) {
-      case FormalParameterElement():
-      case LocalVariableElement():
-        return _LocalTemplates(locals[staticElement]!);
-      case PropertyAccessorElement(isStatic: false):
-        this_();
-        // Stack: this
-        return _PropertyAccessTemplates(node);
-      // Stack: value
-      case dynamic(:var runtimeType):
-        throw UnimplementedError(
-          'TODO(paulberry): $runtimeType: $staticElement',
-        );
-    }
   }
 
   @override
@@ -1471,7 +1393,6 @@ sealed class _LValueTemplates {
 /// Instruction templates for converting a property access to IR.
 class _PropertyAccessTemplates extends _LValueTemplates {
   final String name;
-  final SimpleIdentifier? property;
   final PropertyAccessorElement? readElement;
   final PropertyAccessorElement? writeElement;
 
@@ -1479,34 +1400,15 @@ class _PropertyAccessTemplates extends _LValueTemplates {
   ///
   /// Caller is responsible for ensuring that the target of the property access
   /// is pushed to the stack.
-  _PropertyAccessTemplates(SimpleIdentifier property)
-    : name = property.name,
-      property = property,
-      readElement = null,
-      writeElement = null,
-      super(subexpressionCount: 1);
-
   _PropertyAccessTemplates.direct({
     required this.name,
     this.readElement,
     this.writeElement,
-  }) : property = null,
-       super(subexpressionCount: 1);
+  }) : super(subexpressionCount: 1);
 
   void read(_AstToIRVisitor visitor) {
     // Stack: target
-    var property = this.property;
-    visitor.instanceGet(
-      readElement ??
-          switch (property) {
-            var property? =>
-              (property.element ??
-                      visitor.assignmentTargeting(property)?.readElement)
-                  as PropertyAccessorElement?,
-            _ => null,
-          },
-      name,
-    );
+    visitor.instanceGet(readElement, name);
     // Stack: value
   }
 
@@ -1542,16 +1444,7 @@ class _PropertyAccessTemplates extends _LValueTemplates {
     // Stack: target value
     visitor.ir.shuffle(2, visitor.stackIndices101);
     // Stack: value target value
-    visitor.instanceSet(
-      writeElement ??
-          switch (property) {
-            var property? =>
-              visitor.assignmentTargeting(property)!.writeElement
-                  as PropertyAccessorElement?,
-            null => null,
-          },
-      name,
-    );
+    visitor.instanceSet(writeElement, name);
     // Stack: value returnValue
     visitor.ir.drop();
     // Stack: value

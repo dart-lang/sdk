@@ -1846,12 +1846,12 @@ class _OffsetsApplier extends _OffsetsAstVisitor {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
+  void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
     if (isNotSerializableMarker(node)) {
       return;
     }
 
-    super.visitSimpleIdentifier(node);
+    super.visitUnqualifiedNameExpression(node);
   }
 
   void _applyToEnumConstantInitializer(FieldFragmentImpl fragment) {
@@ -2242,20 +2242,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    node.prefix.accept2(this);
-    _tokenOrNull(node.period);
-    node.identifier.accept2(this);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    node.target2?.accept2(this);
-    _tokenOrNull(node.operator);
-    node.propertyName.accept2(this);
-  }
-
-  @override
   void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
@@ -2366,11 +2352,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);
     super.visitSetOrMapLiteral(node);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _tokenOrNull(node.token);
   }
 
   @override

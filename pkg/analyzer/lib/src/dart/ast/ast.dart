@@ -44825,7 +44825,10 @@ abstract final class PrefixedIdentifier implements Identifier {
   SimpleIdentifier get prefix;
 }
 
+/// The V1 compatibility projection of a qualified name.
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('prefix'),
     GenerateNodeProperty('period'),
@@ -44841,23 +44844,10 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   final Token period;
 
-  AstNodeApi? _astNodeApiOverride;
-
-  ExpressionImpl? _v1ProjectionOrigin;
+  final ExpressionImpl? _v1ProjectionOrigin;
 
   @DoNotGenerate(reason: 'V1 projections synchronize the identifier getter')
   SimpleIdentifierImpl _identifier;
-
-  @generated
-  PrefixedIdentifierImpl({
-    required SimpleIdentifierImpl prefix,
-    required this.period,
-    required SimpleIdentifierImpl identifier,
-  }) : _prefix = prefix,
-       _identifier = identifier {
-    _becomeParentOf12(prefix);
-    _becomeParentOf12(identifier);
-  }
 
   PrefixedIdentifierImpl.v1Projection({
     required SimpleIdentifierImpl prefix,
@@ -44866,7 +44856,6 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     ExpressionImpl? origin,
   }) : _prefix = prefix,
        _identifier = identifier,
-       _astNodeApiOverride = AstNodeApi.v1,
        _v1ProjectionOrigin = origin {
     _becomeParentOf1(prefix);
     _becomeParentOf1(identifier);
@@ -44917,7 +44906,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @DoNotGenerate(reason: 'V1 projections synchronize the identifier getter')
   set identifier(SimpleIdentifierImpl identifier) {
-    _identifier = _becomeParentOf12(identifier);
+    _identifier = _becomeParentOf1(identifier);
   }
 
   @override
@@ -44945,7 +44934,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @generated
   set prefix(SimpleIdentifierImpl prefix) {
-    _prefix = _becomeParentOf12(prefix);
+    _prefix = _becomeParentOf1(prefix);
   }
 
   @override
@@ -44954,9 +44943,9 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     _ => super.staticType,
   };
 
-  @DoNotGenerate(reason: 'Some instances are V1 compatibility projections')
+  @generated
   @override
-  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @override
@@ -44967,10 +44956,9 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 => ChildEntities()
-    ..addNode('prefix', prefix)
-    ..addToken('period', period)
-    ..addNode('identifier', identifier);
+  ChildEntities get _childEntities2 {
+    throw StateError('PrefixedIdentifier is not in the V2 AST view.');
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -44980,8 +44968,9 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitPrefixedIdentifier(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('PrefixedIdentifier is not in the V2 AST view.');
+  }
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() {
@@ -44994,41 +44983,31 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
+    assert(identical(child.parent, this));
     return false;
   }
 
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(prefix, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'prefix'.");
-    }
-    if (identical(identifier, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'identifier'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(prefix, oldNode)) {
-      prefix = newNode as SimpleIdentifierImpl;
-      return;
-    }
-    if (identical(identifier, oldNode)) {
-      identifier = newNode as SimpleIdentifierImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitPrefixedIdentifier(this, contextType: contextType);
+    throw StateError('PrefixedIdentifier is a V1 projection.');
   }
+
+  @override
+  String toSource() =>
+      '${_prefix.toSource()}${period.lexeme}${_identifier.toSource()}';
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -45042,32 +45021,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    prefix.accept2(visitor);
-    identifier.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(SimpleIdentifierImpl)? visitPrefix,
-    void Function(SimpleIdentifierImpl)? visitIdentifier,
-  }) {
-    if (visitPrefix != null) {
-      visitPrefix(prefix);
-    } else {
-      prefix.accept2(visitor);
-    }
-    if (visitIdentifier != null) {
-      visitIdentifier(identifier);
-    } else {
-      identifier.accept2(visitor);
-    }
+    throw StateError('PrefixedIdentifier is not in the V2 AST view.');
   }
 
   @generated
@@ -45085,13 +45039,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (prefix._containsOffset(rangeOffset, rangeEnd)) {
-      return prefix;
-    }
-    if (identifier._containsOffset(rangeOffset, rangeEnd)) {
-      return identifier;
-    }
-    return null;
+    throw StateError('PrefixedIdentifier is not in the V2 AST view.');
   }
 }
 
@@ -46071,41 +46019,28 @@ abstract final class PropertyAccess implements CommentReferableExpression {
   Expression? get target2;
 }
 
+/// The V1 compatibility projection of a property access.
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
-    GenerateNodeProperty(
-      'target2',
-      v1Name: 'target',
-      v1Projection: V1Projection.expression,
-    ),
+    GenerateNodeProperty('target'),
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('propertyName'),
   ],
 )
 final class PropertyAccessImpl extends CommentReferableExpressionImpl
     implements PropertyAccess {
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @DoNotGenerate(reason: 'Initialized by the V1 projection constructors')
   late final Token _operator;
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
-  ExpressionImpl? _target2;
+  @DoNotGenerate(reason: 'Initialized by the V1 projection constructors')
+  final ExpressionImpl? _target2;
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
-  SimpleIdentifierImpl _propertyName;
+  @DoNotGenerate(reason: 'Initialized by the V1 projection constructors')
+  final SimpleIdentifierImpl _propertyName;
 
-  AstNodeImpl? _v1ProjectionOrigin;
-
-  @DoNotGenerate(reason: 'Initializes fields shared with V1 projections')
-  PropertyAccessImpl({
-    required ExpressionImpl? target2,
-    required Token operator,
-    required SimpleIdentifierImpl propertyName,
-  }) : _target2 = target2,
-       _operator = operator,
-       _propertyName = propertyName {
-    _becomeParentOf2AndExisting1(target2);
-    _becomeParentOf12(propertyName);
-  }
+  final AstNodeImpl _v1ProjectionOrigin;
 
   PropertyAccessImpl.v1ProjectionFromCascadeAssignmentTarget(
     CascadePropertyAssignmentTargetImpl origin,
@@ -46177,8 +46112,8 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @generated
   @override
   Token get beginToken {
-    if (target2 case var target2?) {
-      return target2.beginToken;
+    if (target case var target?) {
+      return target.beginToken;
     }
     return operator;
   }
@@ -46248,10 +46183,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   set propertyName(SimpleIdentifierImpl propertyName) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _propertyName = _becomeParentOf12(propertyName);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @override
@@ -46263,11 +46195,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   ExpressionImpl get realTarget2 {
     if (isCascaded) {
-      var target = _ancestorCascade.target2;
-      if (_v1ProjectionOrigin != null) {
-        return V1Projection.toV1Expression(target);
-      }
-      return target;
+      return V1Projection.toV1Expression(_ancestorCascade.target2);
     }
     return target2!;
   }
@@ -46301,10 +46229,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @experimental
   set target2(ExpressionImpl? target2) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _target2 = _becomeParentOf2AndExisting1(target2);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   /// The cascade that contains this [IndexExpression].
@@ -46313,7 +46238,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   CascadeExpressionImpl get _ancestorCascade {
     assert(isCascaded);
     for (
-      var ancestor = (_v1ProjectionOrigin ?? this).parent2!;
+      var ancestor = _v1ProjectionOrigin.parent2!;
       ;
       ancestor = ancestor.parent2!
     ) {
@@ -46323,10 +46248,9 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     }
   }
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @generated
   @override
-  AstNodeApi get _astNodeApi =>
-      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @override
@@ -46335,16 +46259,10 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     ..addToken('operator', operator)
     ..addNode('propertyName', propertyName);
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @override
   ChildEntities get _childEntities2 {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('PropertyAccess is not in the V2 AST view.');
-    }
-    return ChildEntities()
-      ..addNode('target2', target2)
-      ..addToken('operator', operator)
-      ..addNode('propertyName', propertyName);
+    throw StateError('PropertyAccess is not in the V2 AST view.');
   }
 
   @generated
@@ -46352,14 +46270,11 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitPropertyAccess(this);
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('PropertyAccess is not in the V2 AST view.');
-    }
-    return visitor.visitPropertyAccess(this);
+    throw StateError('PropertyAccess is not in the V2 AST view.');
   }
 
   @override
@@ -46372,53 +46287,25 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @DoNotGenerate(reason: 'V1 projection children are value expressions')
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    if (_v1ProjectionOrigin != null) {
-      return true;
-    }
-    assert(identical(child.parent2, this));
-    return false;
+    return true;
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    if (identical(target2, oldNode)) {
-      target2 = null;
-      return;
-    }
-    if (identical(propertyName, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'propertyName'.");
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    if (identical(target2, oldNode)) {
-      target2 = newNode as ExpressionImpl?;
-      return;
-    }
-    if (identical(propertyName, oldNode)) {
-      propertyName = newNode as SimpleIdentifierImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
+  @generated
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('PropertyAccess is a V1 projection.');
-    }
-    resolver.visitPropertyAccess(this, contextType: contextType);
+    throw StateError('PropertyAccess is a V1 projection.');
   }
 
   @override
@@ -46428,8 +46315,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     CascadePropertyExtractionImpl origin =>
       '${operator.lexeme}${origin.name.lexeme}',
     ParsedExpressionImpl origin => origin._toSourceThrough(endToken),
-    var origin? => origin.toSource(),
-    _ => super.toSource(),
+    var origin => origin.toSource(),
   };
 
   @generated
@@ -46440,44 +46326,11 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     propertyName.accept(visitor);
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('PropertyAccess is not in the V2 AST view.');
-    }
-    target2?.accept2(visitor);
-    propertyName.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(ExpressionImpl)? visitTarget2,
-    void Function(SimpleIdentifierImpl)? visitPropertyName,
-  }) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('PropertyAccess is not in the V2 AST view.');
-    }
-    if (target2 case var target2?) {
-      if (visitTarget2 != null) {
-        visitTarget2(target2);
-      } else {
-        target2.accept2(visitor);
-      }
-    }
-    if (visitPropertyName != null) {
-      visitPropertyName(propertyName);
-    } else {
-      propertyName.accept2(visitor);
-    }
+    throw StateError('PropertyAccess is not in the V2 AST view.');
   }
 
   void _attachV1Children() {
@@ -46499,21 +46352,10 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     return null;
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('PropertyAccess is not in the V2 AST view.');
-    }
-    if (target2 case var target2?) {
-      if (target2._containsOffset(rangeOffset, rangeEnd)) {
-        return target2;
-      }
-    }
-    if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
-      return propertyName;
-    }
-    return null;
+    throw StateError('PropertyAccess is not in the V2 AST view.');
   }
 
   static CascadeSectionImpl _cascadeSectionOf(AstNodeImpl origin) {
@@ -51243,16 +51085,19 @@ abstract final class SimpleIdentifier implements Identifier {
   bool inSetterContext();
 }
 
-@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('token')])
+/// The V1 compatibility projection of a name.
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [GenerateNodeProperty('token')],
+)
 final class SimpleIdentifierImpl extends IdentifierImpl
     implements SimpleIdentifier {
   @generated
   @override
   final Token token;
 
-  AstNodeApi? _astNodeApiOverride;
-
-  ExpressionImpl? _v1ProjectionOrigin;
+  final ExpressionImpl? _v1ProjectionOrigin;
 
   /// The element associated with this identifier based on static type
   /// information, or `null` if the AST structure hasn't been resolved or if
@@ -51263,33 +51108,10 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   List<TypeImpl>? tearOffTypeArgumentTypes;
 
-  /// If this identifier is meant to be looked up in the enclosing scope, the
-  /// raw result the scope lookup, prior to figuring out whether a write or a
-  /// read context is intended, and prior to falling back on implicit `this` (if
-  /// appropriate).
-  ///
-  /// Or `null` if this identifier isn't meant to be looked up in the enclosing
-  /// scope.
-  ScopeLookupResult? scopeLookupResult;
-
-  @generated
-  SimpleIdentifierImpl({required this.token});
-
   SimpleIdentifierImpl.v1Projection({
     required this.token,
     ExpressionImpl? origin,
-  }) : _astNodeApiOverride = AstNodeApi.v1,
-       _v1ProjectionOrigin = origin;
-
-  /// The cascade that contains this [SimpleIdentifier].
-  CascadeExpressionImpl? get ancestorCascade {
-    var operatorType = token.previous?.type;
-    if (operatorType == TokenType.PERIOD_PERIOD ||
-        operatorType == TokenType.QUESTION_PERIOD_PERIOD) {
-      return thisOrAncestorOfType2<CascadeExpressionImpl>();
-    }
-    return null;
-  }
+  }) : _v1ProjectionOrigin = origin;
 
   @generated
   @override
@@ -51346,9 +51168,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   Precedence get precedence => Precedence.primary;
 
-  @DoNotGenerate(reason: 'Some instances are V1 compatibility projections')
+  @generated
   @override
-  AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @override
@@ -51356,8 +51178,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
-  ChildEntities get _childEntities2 =>
-      ChildEntities()..addToken('token', token);
+  ChildEntities get _childEntities2 {
+    throw StateError('SimpleIdentifier is not in the V2 AST view.');
+  }
 
   @generated
   @ToBeDeprecated('Use accept2 instead.')
@@ -51367,7 +51190,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSimpleIdentifier(this);
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('SimpleIdentifier is not in the V2 AST view.');
+  }
 
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() {
@@ -51475,15 +51300,30 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
+    assert(identical(child.parent, this));
     return false;
   }
 
   @generated
   @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitSimpleIdentifier(this, contextType: contextType);
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+    throw StateError('SimpleIdentifier is a V1 projection.');
+  }
+
+  @override
+  String toSource() => token.lexeme;
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -51493,12 +51333,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   @experimental
   @override
-  void visitChildren2(AstVisitor2 visitor) {}
-
-  /// Visits the children of this node.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(AstVisitor2 visitor) {}
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('SimpleIdentifier is not in the V2 AST view.');
+  }
 
   @generated
   @override
@@ -51509,7 +51346,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    return null;
+    throw StateError('SimpleIdentifier is not in the V2 AST view.');
   }
 }
 

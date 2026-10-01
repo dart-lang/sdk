@@ -443,17 +443,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    node.prefix.accept2(this);
-    _addElement(node.element);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     _visitNamedFunctionInvocation(node);
   }
@@ -480,11 +469,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     node.visitChildren2(this);
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _addElement(node.element);
   }
 
   @override
