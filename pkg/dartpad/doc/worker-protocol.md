@@ -601,6 +601,29 @@ Invokes a Dart extension method in the sandbox.
 }
 ```
 
+### Method `workspace/sandbox/connectServiceProtocol`
+Connects a [`MessagePort`][2] for [Dart VM Service Protocol][6] communication
+with the sandbox.
+
+Messages sent or received over `port` must be:
+* [Dart VM Service Protocol][6] [JSON-RPC 2.0][3] strings,
+* binary frames as `Uint8Array`, or,
+* `null` to close the connection.
+
+**Params:**
+```js
+{
+  "workspaceId": 42,
+  "sandboxId": 1,
+  "port": /* MessagePort instance (transferred) */
+}
+```
+
+**Result:**
+```js
+{} // empty result
+```
+
 ### Method `workspace/sandbox/close`
 Closes the sandbox, severing its `MessagePort` and releasing resources.
 
@@ -732,3 +755,4 @@ Errors returned by the worker use the following codes.
 [3]: https://www.jsonrpc.org/specification
 [4]: https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage
 [5]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm
+[6]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md

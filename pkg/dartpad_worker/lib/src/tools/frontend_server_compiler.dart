@@ -27,7 +27,7 @@ final class FrontendServerCompiler {
 
   /// Scheme used with `--filesystem-scheme` / `--filesystem-root` for workspace
   /// files outside `lib/`, producing workspace-relative paths in stack traces.
-  static const _scheme = 'workspace';
+  static const scheme = 'workspace';
 
   /// Virtual file system from which files are read, and to which
   /// `frontend_server` writes its output.
@@ -221,7 +221,7 @@ final class FrontendServerCompiler {
   String? _pathFor(Uri uri) {
     // A file that `frontend_server` looked for and didn't find is reported
     // with the scheme it was looked up by.
-    if (uri.isScheme(_scheme)) {
+    if (uri.isScheme(scheme)) {
       return _context.joinAll([_root, ...uri.pathSegments]);
     }
     // Everything else is reported through `asFileUri`, which unwraps the
@@ -257,7 +257,7 @@ final class FrontendServerCompiler {
     for (final MapEntry(key: dill, value: moduleName)
         in config.summaryModules.entries)
       '--import-dill=$dill:module-name=$moduleName',
-    '--filesystem-scheme=$_scheme',
+    '--filesystem-scheme=$scheme',
     '--filesystem-root=$_root',
     '--packages=$packageConfig',
     '--output-dill=$_outputDill',
@@ -290,7 +290,7 @@ final class FrontendServerCompiler {
   }
 
   Uri _workspaceUri(String path) => Uri(
-    scheme: _scheme,
+    scheme: scheme,
     host: '',
     pathSegments: _context.split(_context.relative(path, from: _root)),
   );

@@ -11,6 +11,7 @@ import 'dart:typed_data';
 
 import 'package:json_rpc_2/json_rpc_2.dart' as rpc;
 import 'package:stream_channel/stream_channel.dart';
+import 'package:vm_service/vm_service.dart' show VmService;
 
 import 'exceptions.dart' show rethrowAsDartPadException;
 import 'message_port/message_port.dart';
@@ -628,6 +629,38 @@ final class Sandbox {
       {'sandboxId': _id, 'method': method, 'args': args},
     );
     return result['result'] as String;
+  }
+
+  /// Connects [port] to the VM Service protocol server for this sandbox.
+  ///
+  /// Messages sent over [port] are Dart VM Service JSON-RPC 2.0 strings,
+  /// binary frames (`Uint8Array` / [Uint8List]), or `null` to close the
+  /// connection. Multiple clients can be connected to the same [Sandbox]
+  /// simultaneously (for example, an in-Dart [VmService] client and an embedded
+  /// DevTools `<iframe>`).
+  Future<void> connectServiceProtocol(MessagePort port) async {
+    await _workspace._request<void>(
+      'workspace/sandbox/connectServiceProtocol',
+      {'sandboxId': _id, 'port': port},
+    );
+  }
+
+  /// Starts a VM Service protocol connection to this sandbox and returns a
+  /// connected [VmService] client.
+  Future<VmService> startServiceProtocol() async {
+    final (clientPort, workerPort) = MessagePortExt.createChannel();
+    try {
+      await connectServiceProtocol(workerPort);
+    } catch (_) {
+      clientPort.close();
+      rethrow;
+    }
+    final channel = clientPort.vmServiceChannel();
+    return VmService(
+      channel.stream,
+      channel.sink.add,
+      disposeHandler: channel.sink.close,
+    );
   }
 
   /// Release resources associated with this [Sandbox].

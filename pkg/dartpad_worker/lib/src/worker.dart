@@ -158,6 +158,10 @@ class _Session {
       'workspace/sandbox/invokeExtension',
       _forwardToWorkspace((ws) => ws._sandboxInvokeExtension),
     );
+    _rpc.registerMethod(
+      'workspace/sandbox/connectServiceProtocol',
+      _forwardToWorkspace((ws) => ws._sandboxConnectServiceProtocol),
+    );
     unawaited(() async {
       await _rpc.listen();
       // Delete all workspaces to cleanup resources
@@ -583,6 +587,13 @@ class _Workspace {
 
     final result = await s.invokeExtension(method, args.cast());
     return {'result': result};
+  }
+
+  Object? _sandboxConnectServiceProtocol(Parameters params) {
+    final s = _getSandbox(params);
+    final port = params.portAsMessagePort;
+    s.connectServiceProtocol(port);
+    return <String, Object?>{};
   }
 
   Future<void> _deleteWorkspace() async {

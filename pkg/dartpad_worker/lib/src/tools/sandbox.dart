@@ -6,18 +6,24 @@ import 'dart:async';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/overlay_file_system.dart';
+import 'package:async/async.dart';
+import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:pool/pool.dart';
+import 'package:stream_channel/stream_channel.dart';
 
 import '../shared.dart';
+import '../util/log.dart';
 import '../util/message_port.dart';
 import 'frontend_server_compiler.dart';
 import 'sandbox_client.dart';
+import 'vm_service/vm_service.dart';
 
 final class Sandbox {
   final SandboxClient _client;
   final ResourceProvider _rp;
   final DartPadConfig _config;
   final _pool = Pool(1);
+  final DartRuntimeService _vmService;
 
   /// Compiler for the program running in this sandbox, `null` until [run] has
   /// successfully started one. Doubles as the "already used" marker for [run].
@@ -27,7 +33,7 @@ final class Sandbox {
   /// `null` if no program is running.
   String? get packageConfigPath => _compiler?.packageConfig;
 
-  Sandbox._(this._client, this._rp, this._config);
+  Sandbox._(this._client, this._vmService, this._rp, this._config);
 
   static Future<Sandbox> create({
     required MessagePort port,
@@ -35,8 +41,26 @@ final class Sandbox {
     required DartPadConfig config,
     required void Function() onClosed,
   }) async {
-    final client = SandboxClient(port, onClosed);
-    return Sandbox._(client, resourceProvider, config);
+    Sandbox? sandbox;
+    final client = SandboxClient(port, () {
+      onClosed();
+      sandbox?.close().ignore();
+    });
+    final DartRuntimeService vmService;
+    try {
+      vmService = await createDartPadVmService(
+        client: client,
+        resourceProvider: resourceProvider,
+        config: config,
+        packageConfigPath: () => sandbox?.packageConfigPath,
+        onHotRestart: () => sandbox!.hotRestart(),
+        onHotReload: () => sandbox!.hotReload(),
+      );
+    } catch (_) {
+      await client.close().onError((_, _) {});
+      rethrow;
+    }
+    return sandbox = Sandbox._(client, vmService, resourceProvider, config);
   }
 
   Future<T> _synced<T>(FutureOr<T> Function() fn) => _pool.withResource(fn);
@@ -44,6 +68,32 @@ final class Sandbox {
   Stream<({String level, String message})> get onConsole => _client.onConsole;
   Stream<({String kind, Map<String, Object?> data})> get onExtensionEvent =>
       _client.onExtensionEvent;
+
+  /// Connects a VM Service Protocol client on [port].
+  void connectServiceProtocol(MessagePort port) {
+    _vmService.addArtificialClient(
+      connection: port.vmServiceChannel().transform(
+        StreamChannelTransformer<String, Object?>(
+          StreamTransformer<Object?, String>.fromHandlers(
+            handleData: (data, sink) {
+              if (data is String) {
+                sink.add(data);
+              } else {
+                logWarning(
+                  'Ignoring non-String message on VM Service channel: '
+                  '${data.runtimeType}',
+                );
+              }
+            },
+          ),
+          StreamSinkTransformer<String, Object?>.fromHandlers(
+            handleData: (data, sink) => sink.add(data),
+          ),
+        ),
+      ),
+      name: 'dartpad-client',
+    );
+  }
 
   String _findPackageConfigFromEntrypoint(String entrypoint) {
     var parent = _rp.getFile(entrypoint).parent;
@@ -165,13 +215,18 @@ final class Sandbox {
     Map<String, String> args,
   ) async => await _synced(() => _client.invokeExtension(method, args));
 
+  bool _isClosed = false;
+
   Future<void> close() async {
+    if (_isClosed) return;
+    _isClosed = true;
     _pool.close().ignore();
     final c = _compiler;
     _compiler = null;
-    await Future.wait([
-      if (c != null) Future.sync(c.close),
-      Future.sync(_client.close),
+    await Future.wait<void>([
+      _vmService.shutdown(),
+      if (c != null) c.close(),
+      _client.close(),
     ]);
   }
 }
