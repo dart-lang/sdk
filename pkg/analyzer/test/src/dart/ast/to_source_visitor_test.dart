@@ -75,6 +75,13 @@ var x = math.pi;
     _assertSource('math.pi', result.findNodeV1.singlePrefixedIdentifier);
   }
 
+  test_propertyAccess() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+var x = (0).isEven;
+''');
+    _assertSource('(0).isEven', result.findNodeV1.singlePropertyAccess);
+  }
+
   test_simpleIdentifier() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var foo = 0;

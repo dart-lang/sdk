@@ -213,18 +213,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _checkSinceSdkVersion(node.element, node);
-    super.visitPrefixedIdentifier(node);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _checkSinceSdkVersion(node.propertyName.element, node);
-    super.visitPropertyAccess(node);
-  }
-
-  @override
   void visitReceiverIndexExpression(ReceiverIndexExpression node) {
     _checkIndexRead(node);
     super.visitReceiverIndexExpression(node);

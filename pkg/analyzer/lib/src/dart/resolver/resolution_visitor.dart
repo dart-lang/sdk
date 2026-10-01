@@ -737,28 +737,8 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
-    var newNode = _astRewriter.prefixedIdentifier(nameScope, node);
-    if (newNode != node) {
-      return newNode.accept2(this);
-    }
-
-    node.visitChildrenWithHooks(this, visitIdentifier: (_) {});
-  }
-
-  @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
     _scopeContext.visitPrimaryConstructorBody(node, visitor: this);
-  }
-
-  @override
-  void visitPropertyAccess(covariant PropertyAccessImpl node) {
-    var newNode = _astRewriter.propertyAccess(nameScope, node);
-    if (newNode != node) {
-      return newNode.accept2(this);
-    }
-
-    node.visitChildrenWithHooks(this, visitPropertyName: (_) {});
   }
 
   @override

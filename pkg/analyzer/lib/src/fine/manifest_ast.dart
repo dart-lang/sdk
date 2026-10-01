@@ -443,17 +443,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    node.prefix.accept2(this);
-    _addElement(node.element);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     _visitNamedFunctionInvocation(node);
   }

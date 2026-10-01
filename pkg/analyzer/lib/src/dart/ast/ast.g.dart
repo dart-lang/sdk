@@ -822,15 +822,11 @@ abstract class AstVisitor2<R> {
     PatternVariableDeclarationStatement node,
   );
 
-  R? visitPrefixedIdentifier(PrefixedIdentifier node);
-
   R? visitPrimaryConstructorBody(PrimaryConstructorBody node);
 
   R? visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node);
 
   R? visitPrimaryConstructorName(PrimaryConstructorName node);
-
-  R? visitPropertyAccess(PropertyAccess node);
 
   @experimental
   R? visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node);

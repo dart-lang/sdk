@@ -73,15 +73,6 @@ class UseResultVerifier {
     }
   }
 
-  void checkPropertyAccess(PropertyAccess node) {
-    var element = node.propertyName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
   void checkPropertyExtraction(PropertyExtraction node) {
     if (node.resolution?.element case var element?) {
       _check(node, element, nameToken: node.name);

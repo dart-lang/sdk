@@ -1026,8 +1026,6 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addPrefixedIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addPrimaryConstructorBody(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
@@ -1042,8 +1040,6 @@ abstract class RuleVisitorRegistry2 {
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
-
-  void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addReceiverIndexAssignmentTarget(

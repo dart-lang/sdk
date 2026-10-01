@@ -114,16 +114,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _checkTearoff(node.identifier, node.element);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _checkTearoff(node.propertyName, node.propertyName.element);
-  }
-
-  @override
   void visitReceiverIndexExpression(ReceiverIndexExpression node) {
     _check(arguments: [node.index], errorNode: node.leftBracket);
   }

@@ -37,22 +37,6 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
-    if (_usage == _Usage.reading) {
-      var parent = node.parent2;
-      if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-        // Not reading, skip.
-      } else {
-        if (node.target2 is SuperExpression && node.propertyName.name == name) {
-          hasSuperInvocation = true;
-          return;
-        }
-      }
-    }
-    super.visitPropertyAccess(node);
-  }
-
-  @override
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     if (_usage == _Usage.reading &&
         node.receiver is SuperReference &&

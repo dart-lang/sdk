@@ -925,36 +925,6 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   }
 
   @override
-  _LValueTemplates? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    var prefix = node.prefix;
-    var prefixElement = prefix.element;
-    switch (prefixElement) {
-      case FormalParameterElement():
-      case LocalVariableElement():
-        dispatchNode(prefix);
-        // Stack: prefix
-        return _PropertyAccessTemplates(node.identifier);
-      case dynamic(:var runtimeType):
-        throw UnimplementedError(
-          'TODO(paulberry): $runtimeType: $prefixElement',
-        );
-    }
-  }
-
-  @override
-  _LValueTemplates visitPropertyAccess(PropertyAccess node) {
-    var previousNestingLevel = ir.nestingLevel;
-    // TODO(paulberry): handle cascades
-    dispatchNode(node.target2!, terminateNullShorting: false);
-    // Stack: target
-    if (node.isNullAware) {
-      nullShortingCheck(previousNestingLevel: previousNestingLevel);
-    }
-    // Stack: BLOCK(1)? target
-    return _PropertyAccessTemplates(node.propertyName);
-  }
-
-  @override
   Null visitReceiverMethodInvocation(ReceiverMethodInvocation node) =>
       _visitDirectNamedFunctionInvocation(
         node as ReceiverMethodInvocationImpl,

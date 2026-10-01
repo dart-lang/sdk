@@ -57,7 +57,6 @@ import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/list_pattern_resolver.dart';
 import 'package:analyzer/src/dart/resolver/logical_not_resolver.dart';
 import 'package:analyzer/src/dart/resolver/null_assertion_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/prefixed_identifier_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
@@ -235,7 +234,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   late final IncrementOrDecrementResolver _incrementOrDecrementResolver;
   late final LogicalNotResolver _logicalNotResolver;
   late final NullAssertionExpressionResolver _nullAssertionExpressionResolver;
-  late final PrefixedIdentifierResolver _prefixedIdentifierResolver;
   late final UnaryOperatorInvocationResolver _unaryOperatorInvocationResolver;
   late final VariableDeclarationResolver _variableDeclarationResolver;
   late final YieldStatementResolver _yieldStatementResolver;
@@ -385,7 +383,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     );
     _logicalNotResolver = LogicalNotResolver(this);
     _nullAssertionExpressionResolver = NullAssertionExpressionResolver(this);
-    _prefixedIdentifierResolver = PrefixedIdentifierResolver(this);
     _unaryOperatorInvocationResolver = UnaryOperatorInvocationResolver(this);
     _variableDeclarationResolver = VariableDeclarationResolver(
       resolver: this,
@@ -4143,43 +4140,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitPrefixedIdentifier(
-    covariant PrefixedIdentifierImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-    checkUnreachableNode(node);
-    var rewrittenPropertyAccess = _prefixedIdentifierResolver.resolve(
-      node,
-      contextType: contextType,
-    );
-    if (rewrittenPropertyAccess != null) {
-      _resolvePropertyAccessRhs(
-        rewrittenPropertyAccess,
-        contextType,
-        originalNode: node,
-      );
-      // We did record that `node` was replaced with `rewrittenPropertyAccess`.
-      // But if `rewrittenPropertyAccess` was itself rewritten, replace the
-      // rewrite result of `node`.
-      assert(() {
-        var rewrite = _replacements[rewrittenPropertyAccess];
-        if (rewrite != null) {
-          _replacements[node] = rewrite;
-        }
-        return true;
-      }());
-      inferenceLogWriter?.exitExpression(node);
-      return;
-    }
-    _insertImplicitCallTearOff(
-      insertGenericFunctionInstantiation(node, contextType: contextType),
-      contextType: contextType,
-    );
-    inferenceLogWriter?.exitExpression(node);
-  }
-
-  @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
     var primaryConstructorDeclaration = node.declaration;
     if (primaryConstructorDeclaration == null) {
@@ -4250,31 +4210,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   @override
   void visitPrimaryConstructorName(PrimaryConstructorName node) {
     node.visitChildren2(this);
-  }
-
-  @override
-  void visitPropertyAccess(
-    covariant PropertyAccessImpl node, {
-    TypeImpl contextType = UnknownInferredType.instance,
-  }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
-
-    checkUnreachableNode(node);
-
-    var target = node.target2;
-    if (target != null) {
-      analyzeExpression(
-        target,
-        SharedTypeSchemaView(UnknownInferredType.instance),
-        continueNullShorting: true,
-      );
-      popRewrite();
-    }
-
-    checkUnreachableNode(node.propertyName);
-    _resolvePropertyAccessRhs(node, contextType);
-
-    inferenceLogWriter?.exitExpression(node);
   }
 
   @override
@@ -5564,70 +5499,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     replace(invocation);
     _resolveNamedFunctionInvocation(invocation, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
-  }
-
-  void _resolvePropertyAccessRhs(
-    PropertyAccessImpl node,
-    TypeImpl contextType, {
-    PrefixedIdentifierImpl? originalNode,
-  }) {
-    if (node.isNullAware) {
-      _startNullAwareAccess(node.target2, offset: node.operator.offset);
-      nullSafetyDeadCodeVerifier.visitNode(node.propertyName);
-    }
-
-    var result = _propertyElementResolver.resolvePropertyAccess(
-      node: node,
-      hasRead: true,
-      hasWrite: false,
-      originalNode: originalNode,
-    );
-
-    _resolvePropertyAccessRhs_common(
-      result,
-      node,
-      node.propertyName,
-      contextType,
-    );
-    nullSafetyDeadCodeVerifier.verifyPropertyAccess(node);
-  }
-
-  /// Common logic for resolving the V1 property-access representations.
-  void _resolvePropertyAccessRhs_common(
-    PropertyElementResolverResult resolverResult,
-    ExpressionImpl node,
-    SimpleIdentifierImpl propertyName,
-    TypeImpl contextType,
-  ) {
-    var element = resolverResult.readElement2;
-
-    propertyName.element = element;
-
-    DartType type;
-    if (element is MethodElement) {
-      type = element.type;
-    } else if (element is InternalConstructorElement) {
-      type = element.type;
-    } else if (element is GetterElement) {
-      type = resolverResult.getType!;
-    } else if (resolverResult.functionTypeCallType != null) {
-      type = resolverResult.functionTypeCallType!;
-    } else if (resolverResult.recordField != null) {
-      type = resolverResult.recordField!.type;
-    } else if (resolverResult.atDynamicTarget) {
-      type = DynamicTypeImpl.instance;
-    } else {
-      type = InvalidTypeImpl.instance;
-    }
-
-    propertyName.setPseudoExpressionStaticType(type);
-    node.recordStaticType(type, resolver: this);
-    var replacement = insertGenericFunctionInstantiation(
-      node,
-      contextType: contextType,
-    );
-
-    _insertImplicitCallTearOff(replacement, contextType: contextType);
   }
 
   void _resolveScopeFunctionInvocation(

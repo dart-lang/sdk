@@ -525,11 +525,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitPrefixedIdentifier(PrefixedIdentifier node) {
-    return node.element ?? _visitIdentifier(node.identifier);
-  }
-
-  @override
   Element? visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     return node.declaration?.declaredFragment?.element;
   }

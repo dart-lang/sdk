@@ -81,20 +81,6 @@ class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPropertyAccess(PropertyAccess node) {
-    if (node.target2 is SuperExpression) {
-      var name = node.propertyName.name;
-      if (node.propertyName.inGetterContext()) {
-        _names.add(name);
-      }
-      if (node.propertyName.inSetterContext()) {
-        _names.add('$name=');
-      }
-    }
-    super.visitPropertyAccess(node);
-  }
-
-  @override
   void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
     if (node.receiver is SuperReference) {
       if (node.parent2 is CompoundAssignment ||

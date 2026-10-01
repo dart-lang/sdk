@@ -481,44 +481,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
-    var element = node.element;
-    if (element != null) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeUnionPointerExtension) {
-        if (element.name == 'ref') {
-          _validateRefPrefixedIdentifier(node);
-        }
-      } else if (enclosingElement.isAddressOfExtension) {
-        if (element.name == 'address') {
-          _validateAddressPrefixedIdentifier(node);
-        }
-      }
-    }
-    super.visitPrefixedIdentifier(node);
-  }
-
-  @override
-  void visitPropertyAccess(covariant PropertyAccessImpl node) {
-    var element = node.propertyName.element;
-    if (element != null) {
-      var enclosingElement = element.enclosingElement;
-      if (enclosingElement.isNativeStructPointerExtension ||
-          enclosingElement.isNativeUnionPointerExtension) {
-        if (element.name == 'ref') {
-          _validateRefPropertyAccess(node);
-        }
-      } else if (enclosingElement.isAddressOfExtension) {
-        if (element.name == 'address') {
-          _validateAddressPropertyAccess(node);
-        }
-      }
-    }
-    super.visitPropertyAccess(node);
-  }
-
-  @override
   void visitReceiverIndexExpression(
     covariant ReceiverIndexExpressionImpl node,
   ) {
@@ -1359,22 +1321,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     if (parent is! ArgumentList || !isNativeLeafInvocation) {
       _diagnosticReporter.report(diag.addressPosition.at(errorNode));
     }
-  }
-
-  void _validateAddressPrefixedIdentifier(PrefixedIdentifier node) {
-    var errorNode = node.identifier;
-    _validateAddressPosition(node, errorNode);
-    var extensionName = node.element?.enclosingElement?.name;
-    var receiver = node.prefix;
-    _validateAddressReceiver(node, extensionName, receiver, errorNode);
-  }
-
-  void _validateAddressPropertyAccess(PropertyAccess node) {
-    var errorNode = node.propertyName;
-    _validateAddressPosition(node, errorNode);
-    var extensionName = node.propertyName.element?.enclosingElement?.name;
-    var receiver = node.target2;
-    _validateAddressReceiver(node, extensionName, receiver, errorNode);
   }
 
   void _validateAddressReceiver(
@@ -2328,30 +2274,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       _diagnosticReporter.report(
         diag.nonConstantTypeArgument
             .withArguments(executableName: '[]')
-            .at(node),
-      );
-    }
-  }
-
-  /// Validate the invocation of the extension method
-  /// `Pointer<T extends Struct>.ref`.
-  void _validateRefPrefixedIdentifier(PrefixedIdentifierImpl node) {
-    var targetType = node.prefix.staticType;
-    if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
-      _diagnosticReporter.report(
-        diag.nonConstantTypeArgument
-            .withArguments(executableName: 'ref')
-            .at(node),
-      );
-    }
-  }
-
-  void _validateRefPropertyAccess(PropertyAccessImpl node) {
-    var targetType = node.realTarget2.typeOrThrow;
-    if (!_isValidFfiNativeType(targetType, allowEmptyStruct: true)) {
-      _diagnosticReporter.report(
-        diag.nonConstantTypeArgument
-            .withArguments(executableName: 'ref')
             .at(node),
       );
     }

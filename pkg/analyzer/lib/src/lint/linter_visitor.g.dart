@@ -2297,12 +2297,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _runSubscriptions(node, _registry._forPrefixedIdentifier);
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     _runSubscriptions(node, _registry._forPrimaryConstructorBody);
     node.visitChildren2(this);
@@ -2317,12 +2311,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitPrimaryConstructorName(PrimaryConstructorName node) {
     _runSubscriptions(node, _registry._forPrimaryConstructorName);
-    node.visitChildren2(this);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _runSubscriptions(node, _registry._forPropertyAccess);
     node.visitChildren2(this);
   }
 
@@ -4894,8 +4882,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<PatternVariableDeclarationStatement>>
   _forPatternVariableDeclarationStatement = [];
 
-  final List<_Subscription2<PrefixedIdentifier>> _forPrefixedIdentifier = [];
-
   final List<_Subscription2<PrimaryConstructorBody>>
   _forPrimaryConstructorBody = [];
 
@@ -4904,8 +4890,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<PrimaryConstructorName>>
   _forPrimaryConstructorName = [];
-
-  final List<_Subscription2<PropertyAccess>> _forPropertyAccess = [];
 
   final List<_Subscription2<ReceiverIndexAssignmentTarget>>
   _forReceiverIndexAssignmentTarget = [];
@@ -6342,12 +6326,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addPrefixedIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forPrefixedIdentifier.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
   void addPrimaryConstructorBody(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
@@ -6378,12 +6356,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
     _forPrimaryConstructorName.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
-  }
-
-  @override
-  void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forPropertyAccess.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

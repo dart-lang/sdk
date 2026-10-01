@@ -718,68 +718,6 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  PropertyElementResolverResult resolvePrefixedIdentifier({
-    required PrefixedIdentifierImpl node,
-    required bool hasRead,
-    required bool hasWrite,
-  }) {
-    var prefix = node.prefix;
-    var identifier = node.identifier;
-
-    var prefixElement = prefix.element;
-    if (prefixElement is PrefixElement) {
-      return _resolveTargetPrefixElement(
-        target: prefixElement,
-        nameToken: identifier.token,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-      );
-    }
-
-    return _resolve(
-      node: node,
-      target: prefix,
-      isCascaded: false,
-      isNullAware: false,
-      propertyName: identifier.token,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
-    );
-  }
-
-  PropertyElementResolverResult resolvePropertyAccess({
-    required PropertyAccessImpl node,
-    required bool hasRead,
-    required bool hasWrite,
-    PrefixedIdentifierImpl? originalNode,
-  }) {
-    var target = node.realTarget2;
-    var override = target is InvalidExtensionOverrideExpressionImpl
-        ? target.extensionOverride
-        : null;
-    var propertyName = node.propertyName.token;
-
-    if (override != null) {
-      return _resolveTargetExtensionOverride(
-        target: override,
-        propertyName: propertyName,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-      );
-    }
-
-    return _resolve(
-      node: node,
-      target: target,
-      isCascaded: node.target2 == null,
-      isNullAware: node.isNullAware,
-      propertyName: propertyName,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
-      originalNode: originalNode,
-    );
-  }
-
   /// Resolves the read operation of an ordinary value-producing index
   /// expression.
   IndexReadResolutionImpl? resolveReceiverIndexExpression(
