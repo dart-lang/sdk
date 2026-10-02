@@ -3382,6 +3382,10 @@ class ResolvedNodeTextConfiguration {
   /// should be printer.
   bool withSuperConstructors = false;
 
+  /// If `true`, `scopeLibraries` properties of [PrefixElement]s should be
+  /// printed.
+  bool withImportPrefixScopeLibraries = false;
+
   /// If `true`, print IDs of each token, `previous` and `next` tokens.
   bool withTokenPreviousNext = false;
 }

@@ -9879,6 +9879,11 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   }
 
   @override
+  List<LibraryElementImpl> get scopeLibraries {
+    return scope.libraries;
+  }
+
+  @override
   T? accept<T>(ElementVisitor2<T> visitor) {
     return visitor.visitPrefixElement(this);
   }

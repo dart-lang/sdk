@@ -301,6 +301,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     for (var docDirective in node.docDirectives) {
       _docCommentVerifier.docDirective(docDirective);
     }
+    for (var commentReference in node.references) {
+      _docCommentVerifier.commentReference(commentReference);
+    }
     super.visitComment(node);
   }
 

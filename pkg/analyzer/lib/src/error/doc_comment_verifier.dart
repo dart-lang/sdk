@@ -4,15 +4,63 @@
 
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// Verifies various data parsed in doc comments.
 class DocCommentVerifier {
   final DiagnosticReporter _diagnosticReporter;
 
   DocCommentVerifier(this._diagnosticReporter);
+
+  /// Verifies that [commentReference] references a single element.
+  ///
+  /// A prefix alone, such as `[p]`, references the library imported with
+  /// this prefix, so it is ambiguous if there is more than one.
+  void commentReference(CommentReference commentReference) {
+    String libraryNames(Iterable<LibraryElement> libraries) {
+      var uris = {for (var library in libraries) library.uri.toString()};
+      return (uris.toList()..sort()).quotedAndCommaSeparatedWithAnd;
+    }
+
+    var components = commentReference.components;
+    if (components case [var component]) {
+      if (component.element case PrefixElement prefix) {
+        var libraries = prefix.scopeLibraries;
+        if (libraries.length > 1) {
+          _diagnosticReporter.report(
+            diag.ambiguousCommentReferencePrefix
+                .withArguments(
+                  prefix: component.name.lexeme,
+                  libraries: libraryNames(libraries),
+                )
+                .at(component.name),
+          );
+        }
+        return;
+      }
+    }
+
+    for (var component in components) {
+      if (component.element case MultiplyDefinedElementImpl element) {
+        _diagnosticReporter.report(
+          diag.ambiguousCommentReferenceName
+              .withArguments(
+                name: component.name.lexeme,
+                libraries: libraryNames(
+                  element.conflictingElements.map((e) => e.library).nonNulls,
+                ),
+              )
+              .at(component.name),
+        );
+      }
+    }
+  }
 
   void docDirective(DocDirective docDirective) {
     switch (docDirective) {

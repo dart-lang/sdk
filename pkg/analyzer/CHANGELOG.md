@@ -66,6 +66,15 @@
   multiple doc-imported libraries is ambiguous instead of resolving to the first one,
   and `show` / `hide` combinators are applied.
   Removed the `doc_import_cannot_have_combinators` diagnostic.
+* Added `PrefixElement.scopeLibraries`, the libraries that provide the names
+  in `PrefixElement.scope`. Unlike `imports`, it includes the libraries
+  imported with the same prefix in the enclosing files. When a prefix is used
+  alone, such as `[math]` in a documentation comment, it references the
+  library, if there is exactly one.
+* Added the `ambiguous_comment_reference` warning. It is reported for a name in
+  a comment reference that is imported, or doc-imported, from more than one
+  library, and for a prefix used alone, such as `[p]`, when more than one
+  library is imported with this prefix.
 
 ## 14.4.0
 

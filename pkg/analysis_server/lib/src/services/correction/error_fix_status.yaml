@@ -173,6 +173,16 @@ abstract_super_member_reference:
   notes: |-
     The only fix we could automate is to remove the call to super, which is
     unlikely to be the right solution.
+ambiguous_comment_reference_name:
+  status: needsFix
+  notes: |-
+    For each library, add a fix to hide the name from the other imports or doc
+    imports.
+ambiguous_comment_reference_prefix:
+  status: needsFix
+  notes: |-
+    For each library, add a fix to give its import or doc import a new prefix,
+    and use it in the comment reference.
 ambiguous_export:
   status: needsFix
   notes: |-

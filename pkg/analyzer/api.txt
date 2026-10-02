@@ -6185,6 +6185,7 @@ package:analyzer/dart/element/element.dart:
     imports (getter: List<LibraryImport>)
     library (getter: LibraryElement)
     scope (getter: Scope)
+    scopeLibraries (getter: List<LibraryElement>)
   PrefixFragment (class extends Object implements Fragment, abstract):
     new (constructor: PrefixFragment Function())
     element (getter: PrefixElement)
