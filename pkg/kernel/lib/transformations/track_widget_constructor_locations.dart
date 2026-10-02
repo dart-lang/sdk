@@ -99,7 +99,11 @@ bool _maybeAddNamedParameter(FunctionNode function, NamedParameter parameter) {
     return false;
   }
   parameter.parent = function;
-  function.namedParameters.add(parameter);
+  final NamedParameterList existing = function.namedParameters;
+  function.namedParameters = NamedParameterList.generate(
+    existing.length + 1,
+    (int i) => i < existing.length ? existing[i] : parameter,
+  );
   return true;
 }
 

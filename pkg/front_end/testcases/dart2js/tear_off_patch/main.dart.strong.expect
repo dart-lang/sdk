@@ -21,6 +21,14 @@ static method main() → dynamic {
 }
 
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dart2js/tear_off_patch/patch_lib.dart:28:31: Error: 'Class' can only be implemented once.
+// Try removing 1 of the occurrences.
+// class ClassImpl<T> implements Class<T> {
+//                               ^
+//
 import self as test;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -55,7 +63,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
     return new test::ClassImpl::patched<test::Class::_#redirect2#tearOff::T%>(defaultValue: defaultValue, value: value);
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C13
-class ClassImpl<T extends core::Object? = dynamic> extends core::Object implements test::Class<test::ClassImpl::T%> {
+class ClassImpl<T extends core::Object? = dynamic> extends core::Object implements test::Class<test::ClassImpl::T%>, test::Class<test::ClassImpl::T%> {
   constructor •({core::bool defaultValue = #C14, required test::ClassImpl::T% value}) → test::ClassImpl<test::ClassImpl::T%>
     : super core::Object::•()
     ;

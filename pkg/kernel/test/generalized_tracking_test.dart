@@ -24,12 +24,12 @@ void main() {
   final Constructor creationLocationConstructor = new Constructor(
     new FunctionNode(
       null,
-      namedParameters: [
+      namedParameters: new NamedParameterList(
         new NamedParameter(parameterName: 'file'),
         new NamedParameter(parameterName: 'line'),
         new NamedParameter(parameterName: 'column'),
         new NamedParameter(parameterName: 'name'),
-      ],
+      ),
     ),
     name: new Name('_', developerLib),
     fileUri: developerUri,

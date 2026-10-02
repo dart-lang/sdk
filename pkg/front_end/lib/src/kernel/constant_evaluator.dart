@@ -989,19 +989,19 @@ class ConstantsTransformer extends RemovingTransformer {
           ..parent = patternSwitchCase;
 
         List<int> expressionOffsets = [];
-        List<Expression> expressions = [];
-        for (PatternGuard patternGuard in patternSwitchCase.patternGuards) {
-          ConstantPattern constantPattern =
-              patternGuard.pattern as ConstantPattern;
-          expressionOffsets.add(constantPattern.fileOffset);
-          expressions.add(
-            extern.createConstantExpression(
+        ExpressionList expressions = ExpressionList.mapped(
+          patternSwitchCase.patternGuards,
+          (PatternGuard patternGuard) {
+            ConstantPattern constantPattern =
+                patternGuard.pattern as ConstantPattern;
+            expressionOffsets.add(constantPattern.fileOffset);
+            return extern.createConstantExpression(
               constantPattern.value!,
               constantPattern.expressionType,
               fileOffset: constantPattern.expression.fileOffset,
-            ),
-          );
-        }
+            );
+          },
+        );
         SwitchCase switchCase = extern.createSwitchCase(
           expressions: expressions,
           expressionOffsets: expressionOffsets,
@@ -1291,13 +1291,13 @@ class ConstantsTransformer extends RemovingTransformer {
           ], fileOffset: switchCase.fileOffset);
 
           SwitchCase replacementCase = extern.createSwitchCase(
-            expressions: [
+            expressions: new ExpressionList(
               extern.createIntLiteral(
                 typeEnvironment.coreTypes,
                 continueTargetIndex,
                 fileOffset: node.fileOffset,
               ),
-            ],
+            ),
             expressionOffsets: [node.fileOffset],
             body: extern.createBlock([
               for (VariableDeclaration jointVariableDeclaration
@@ -2061,17 +2061,18 @@ class ConstantsTransformer extends RemovingTransformer {
       bool hasDefaultCase = false;
       for (SwitchExpressionCase switchExpressionCase in node.cases) {
         List<int> expressionOffsets = [];
-        List<Expression> expressions = [];
+        ExpressionList expressions;
         PatternGuard patternGuard = switchExpressionCase.patternGuard;
         Pattern pattern = patternGuard.pattern;
         bool isDefault = false;
         if (pattern is WildcardPattern) {
           isDefault = true;
           hasDefaultCase = true;
+          expressions = ExpressionList.empty;
         } else {
           ConstantPattern constantPattern = pattern as ConstantPattern;
           expressionOffsets.add(constantPattern.fileOffset);
-          expressions.add(
+          expressions = new ExpressionList(
             extern.createConstantExpression(
               constantPattern.value!,
               constantPattern.expressionType,
@@ -2352,13 +2353,10 @@ class ConstantsTransformer extends RemovingTransformer {
       bool allConstant = true;
       bool hasUnevaluated = false;
 
-      List<Constant> positional = [];
-
       for (int i = 0; i < node.positional.length; i++) {
         Expression result = transform(node.positional[i]);
         node.positional[i] = result..parent = node;
         if (allConstant && result is ConstantExpression) {
-          positional.add(result.constant);
           if (result.constant is UnevaluatedConstant) {
             hasUnevaluated = true;
           }
@@ -2386,6 +2384,10 @@ class ConstantsTransformer extends RemovingTransformer {
           // Coverage-ignore-block(suite): Not run.
           return makeConstantExpression(new UnevaluatedConstant(node), node);
         } else {
+          ConstantList positional = ConstantList.mapped(
+            node.positional,
+            (Expression e) => (e as ConstantExpression).constant,
+          );
           Constant constant = constantEvaluator.canonicalize(
             new RecordConstant.fromTypeContext(
               positional,
@@ -3319,7 +3321,7 @@ class ConstantEvaluator
     // constant, so we report an error on the expressions when these are not
     // constants.
 
-    List<Constant>? positional = _evaluatePositionalArguments(node.positional);
+    ConstantList? positional = _evaluatePositionalArguments(node.positional);
     if (positional == null) {
       AbortConstant error = _gotError!;
       _gotError = null;
@@ -3340,11 +3342,11 @@ class ConstantEvaluator
       return unevaluated(
         node,
         new RecordLiteral(
-          [for (Constant c in positional) _wrap(c)],
-          [
+          ExpressionList.mapped(positional, _wrap),
+          new NamedExpressionList.from([
             for (String key in named.keys)
               new NamedExpression(key, _wrap(named[key]!)),
-          ],
+          ]),
           node.recordType,
           isConst: true,
         ),
@@ -4494,7 +4496,7 @@ class ConstantEvaluator
             );
           case 'add':
             if (receiver is MutableListConstant) {
-              receiver.entries.add(other);
+              receiver.mutableEntries.add(other);
               return receiver;
             }
             return new _AbortDueToThrowConstant(node, new UnsupportedError(op));
@@ -5078,22 +5080,19 @@ class ConstantEvaluator
     }
     if (concatenated.length > 1) {
       // Coverage-ignore-block(suite): Not run.
-      final List<Expression> expressions = new List<Expression>.generate(
-        concatenated.length,
-        (int i) {
-          Object value = concatenated[i];
-          if (value is StringBuffer) {
-            return new ConstantExpression(
-              canonicalize(new StringConstant(value.toString())),
-            );
-          } else {
-            // The value is either unevaluated constant or a non-primitive
-            // constant in an unevaluated expression.
-            return _wrap(value as Constant);
-          }
-        },
-        growable: false,
-      );
+      final ExpressionList expressions = ExpressionList.mapped(concatenated, (
+        Object value,
+      ) {
+        if (value is StringBuffer) {
+          return new ConstantExpression(
+            canonicalize(new StringConstant(value.toString())),
+          );
+        } else {
+          // The value is either unevaluated constant or a non-primitive
+          // constant in an unevaluated expression.
+          return _wrap(value as Constant);
+        }
+      });
       return unevaluated(node, new StringConcatenation(expressions));
     }
     return canonicalize(new StringConstant(concatenated.single.toString()));
@@ -5897,11 +5896,10 @@ class ConstantEvaluator
 
   /// Returns the [positional] arguments on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
-  List<Constant>? _evaluatePositionalArguments(List<Expression> positional) {
-    List<Constant> result = new List<Constant>.filled(
+  ConstantList? _evaluatePositionalArguments(List<Expression> positional) {
+    ConstantList result = new ConstantList.filled(
       positional.length,
       dummyConstant,
-      growable: true,
     );
     // These expressions are at the same level, so one of them being
     // unevaluated doesn't mean a sibling is or has an unevaluated child.
@@ -6595,7 +6593,7 @@ class InstanceBuilder {
       typeArguments,
       fieldValues,
       asserts,
-      unusedArguments,
+      new ExpressionList.from(unusedArguments),
     );
   }
 }
@@ -6718,8 +6716,15 @@ class AbortStatus(final AbortConstant error) extends ExecutionStatus;
 class BreakStatus(final LabeledStatement target) extends ExecutionStatus;
 
 /// Mutable lists used within the [ConstantEvaluator].
-class MutableListConstant(super.typeArgument, super.entries)
-    extends ListConstant {
+class MutableListConstant extends ListConstant {
+  final List<Constant> mutableEntries;
+
+  new(DartType typeArgument, this.mutableEntries)
+    : super(typeArgument, ConstantList.empty);
+
+  @override
+  ConstantList get entries => new ConstantList.from(mutableEntries);
+
   @override
   String toString() => 'MutableListConstant(${toStringInternal()})';
 }

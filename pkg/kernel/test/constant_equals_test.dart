@@ -40,9 +40,9 @@ void main() {
     ProcedureKind.Method,
     new FunctionNode(
       null,
-      typeParameters: [
+      typeParameters: new TypeParameterList(
         new TypeParameter('X', const DynamicType(), const DynamicType()),
-      ],
+      ),
     ),
     fileUri: uri,
     isStatic: true,

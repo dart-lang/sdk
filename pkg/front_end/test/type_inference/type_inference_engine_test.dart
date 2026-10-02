@@ -229,7 +229,11 @@ class IncludesTypeParametersCovariantlyTest {
   }
 
   void test_interface_type() {
-    Class cls = new Class(name: 'C', typeParameters: [T, U], fileUri: dummyUri);
+    Class cls = new Class(
+      name: 'C',
+      typeParameters: new TypeParameterList(T, U),
+      fileUri: dummyUri,
+    );
     expect(
       check(
         new InterfaceType(
@@ -355,7 +359,7 @@ class IncludesTypeParametersCovariantlyTest {
         tpt(U),
         Nullability.nonNullable,
       ),
-      typeParameters: [T, U],
+      typeParameters: new TypeParameterList(T, U),
       fileUri: dummyUri,
     );
     expect(

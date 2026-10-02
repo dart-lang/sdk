@@ -31,7 +31,7 @@ void main() {
         Nullability.nonNullable,
         new DartTypeList(new TypeParameterType(param, Nullability.nonNullable)),
       ),
-      typeParameters: [param],
+      typeParameters: new TypeParameterList(param),
       fileUri: dummyUri,
     );
     harness.enclosingLibrary.addTypedef(foo);
@@ -60,7 +60,7 @@ void main() {
           new TypeParameterType(fooParam, Nullability.nonNullable),
         ),
       ),
-      typeParameters: [fooParam],
+      typeParameters: new TypeParameterList(fooParam),
       fileUri: dummyUri,
     );
     var barParam = harness.makeTypeParameter('T');
@@ -73,7 +73,7 @@ void main() {
           new TypeParameterType(barParam, Nullability.nonNullable),
         ),
       ),
-      typeParameters: [barParam],
+      typeParameters: new TypeParameterList(barParam),
       fileUri: dummyUri,
     );
     harness.enclosingLibrary.addTypedef(foo);
@@ -101,7 +101,7 @@ void main() {
         Nullability.nonNullable,
         new DartTypeList(new TypeParameterType(param, Nullability.nonNullable)),
       ),
-      typeParameters: [param],
+      typeParameters: new TypeParameterList(param),
       fileUri: dummyUri,
     );
     harness.enclosingLibrary.addTypedef(foo);

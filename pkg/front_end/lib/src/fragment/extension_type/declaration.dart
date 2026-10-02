@@ -5,6 +5,7 @@
 import 'package:kernel/ast.dart' as ast;
 import 'package:kernel/class_hierarchy.dart';
 
+import '../../base/uri_offset.dart';
 import '../../builder/constructor_reference_builder.dart';
 import '../../builder/metadata_builder.dart';
 import '../../kernel/body_builder_context.dart';
@@ -12,6 +13,10 @@ import '../../source/source_library_builder.dart';
 import '../fragment.dart';
 
 class ExtensionTypeDeclaration(final ExtensionTypeFragment _fragment) {
+  // Coverage-ignore(suite): Not run.
+  /// [UriOffsetLength] for the extension type declaration.
+  UriOffsetLength get uriOffset => _fragment.uriOffset;
+
   int resolveConstructors(SourceLibraryBuilder libraryBuilder) {
     int count = _fragment.constructorReferences.length;
     if (count > 0) {

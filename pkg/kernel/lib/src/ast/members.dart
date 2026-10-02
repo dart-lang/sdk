@@ -1059,7 +1059,7 @@ class Procedure extends Member implements GenericFunction {
   }
 
   @override
-  List<TypeParameter> get typeParameters => function.typeParameters;
+  TypeParameterList get typeParameters => function.typeParameters;
 
   @override
   void bindCanonicalNames(CanonicalName parent) {

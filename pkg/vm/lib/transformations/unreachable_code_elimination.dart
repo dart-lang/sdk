@@ -206,15 +206,17 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
     bool foundMatchingCase = false;
     for (final c in node.cases) {
       if (foundMatchingCase) {
-        c.expressions.clear();
+        c.expressions = ExpressionList.empty;
         continue;
       }
-      c.expressions.retainWhere((e) {
-        if (foundMatchingCase) return false;
-        if (e is! ConstantExpression) return true;
-        foundMatchingCase = e.constant == tested.constant;
-        return foundMatchingCase;
-      });
+      c.expressions = ExpressionList.from(
+        c.expressions.where((e) {
+          if (foundMatchingCase) return false;
+          if (e is! ConstantExpression) return true;
+          foundMatchingCase = e.constant == tested.constant;
+          return foundMatchingCase;
+        }).toList(),
+      );
       if (c.isDefault || c.expressions.isNotEmpty) {
         toKeep.add(c);
       }

@@ -133,6 +133,15 @@ extension type const ExpressionList._(List<Expression> _list)
     );
   }
 
+  @pragma('vm:prefer-inline')
+  static ExpressionList mapped<T>(List<T> list, Expression Function(T) func) {
+    final int length = list.length;
+    if (length == 0) return empty;
+    return ExpressionList._(
+      List<Expression>.generate(length, (i) => func(list[i]), growable: false),
+    );
+  }
+
   /// Copies [expressions] into a new fixed-length list.
   factory from(List<Expression> expressions) {
     if (expressions.isEmpty) return empty;
@@ -236,6 +245,22 @@ extension type const NamedExpressionList._(List<NamedExpression> _list)
     if (length == 0) return empty;
     return NamedExpressionList._(
       List<NamedExpression>.generate(length, generator, growable: false),
+    );
+  }
+
+  @pragma('vm:prefer-inline')
+  static NamedExpressionList mapped<T>(
+    List<T> list,
+    NamedExpression Function(T) func,
+  ) {
+    final int length = list.length;
+    if (length == 0) return empty;
+    return NamedExpressionList._(
+      List<NamedExpression>.generate(
+        length,
+        (i) => func(list[i]),
+        growable: false,
+      ),
     );
   }
 
@@ -1790,14 +1815,11 @@ class Arguments extends TreeNode {
 
   factory forwarded(FunctionNode function) {
     return new Arguments(
-      ExpressionList.generate(
-        function.positionalParameters.length,
-        (i) => new VariableGet(function.positionalParameters[i]),
+      ExpressionList.mapped(function.positionalParameters, VariableGet.new),
+      named: NamedExpressionList.mapped(
+        function.namedParameters,
+        (p) => new NamedExpression(p.parameterName, new VariableGet(p)),
       ),
-      named: NamedExpressionList.generate(function.namedParameters.length, (i) {
-        NamedParameter p = function.namedParameters[i];
-        return new NamedExpression(p.parameterName, new VariableGet(p));
-      }),
       types: DartTypeList.generate(
         function.typeParameters.length,
         (i) => new TypeParameterType.withDefaultNullability(
@@ -3624,7 +3646,7 @@ class ConditionalExpression extends Expression {
 ///
 /// These arise from string interpolations and adjacent string literals.
 class StringConcatenation extends Expression {
-  final List<Expression> expressions;
+  final ExpressionList expressions;
 
   new(this.expressions) {
     setParents(expressions, this);
@@ -3690,7 +3712,7 @@ class StringConcatenation extends Expression {
 /// constants in constant expressions.
 class ListConcatenation extends Expression {
   DartType typeArgument;
-  final List<Expression> lists;
+  final ExpressionList lists;
 
   new(this.lists, {this.typeArgument = const DynamicType()}) {
     setParents(lists, this);
@@ -3760,7 +3782,7 @@ class ListConcatenation extends Expression {
 /// during constant evaluation.
 class SetConcatenation extends Expression {
   DartType typeArgument;
-  final List<Expression> sets;
+  final ExpressionList sets;
 
   new(this.sets, {this.typeArgument = const DynamicType()}) {
     setParents(sets, this);
@@ -3831,7 +3853,7 @@ class SetConcatenation extends Expression {
 class MapConcatenation extends Expression {
   DartType keyType;
   DartType valueType;
-  final List<Expression> maps;
+  final ExpressionList maps;
 
   new(
     this.maps, {
@@ -3911,7 +3933,7 @@ class InstanceCreation extends Expression {
   DartTypeList typeArguments;
   final Map<Reference, Expression> fieldValues;
   final List<AssertStatement> asserts;
-  final List<Expression> unusedArguments;
+  final ExpressionList unusedArguments;
 
   new(
     this.classReference,
@@ -4772,7 +4794,7 @@ class Throw extends Expression {
 class ListLiteral extends Expression {
   bool isConst;
   DartType typeArgument; // Not null, defaults to DynamicType.
-  final List<Expression> expressions;
+  final ExpressionList expressions;
 
   new(
     this.expressions, {
@@ -4837,7 +4859,7 @@ class ListLiteral extends Expression {
 class SetLiteral extends Expression {
   bool isConst;
   DartType typeArgument; // Not null, defaults to DynamicType.
-  final List<Expression> expressions;
+  final ExpressionList expressions;
 
   new(
     this.expressions, {
@@ -5040,8 +5062,8 @@ class MapLiteralEntry extends TreeNode {
 
 class RecordLiteral extends Expression {
   bool isConst;
-  final List<Expression> positional;
-  final List<NamedExpression> named;
+  final ExpressionList positional;
+  final NamedExpressionList named;
   RecordType recordType;
 
   new(this.positional, this.named, this.recordType, {this.isConst = false})
@@ -5273,7 +5295,7 @@ class FunctionExpression extends Expression implements LocalFunction {
   }
 
   @override
-  List<TypeParameter> get typeParameters => function.typeParameters;
+  TypeParameterList get typeParameters => function.typeParameters;
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {

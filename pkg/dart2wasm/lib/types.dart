@@ -216,7 +216,7 @@ class Types {
 
     final names = translator.constants.makeArrayOf(
       translator.coreTypes.stringNonNullableRawType,
-      type.named.map((t) => StringConstant(t.name)).toList(),
+      ConstantList.mapped(type.named, (n) => StringConstant(n.name)),
       mutable: false,
     );
 
@@ -1389,34 +1389,35 @@ class RuntimeTypeInformation {
     rows.sort((Row a, Row b) => -weight(a).compareTo(weight(b)));
     final table = buildRowDisplacementTable(rows, firstAvailable: 1);
     const invalidClassId = 0;
-    final typeRowDisplacementTable = translator.constants.makeArrayOf(wasmI32, [
-      for (final entry in table)
-        translator.constants.makeWasmI32(
+    final typeRowDisplacementTable = translator.constants.makeArrayOf(
+      wasmI32,
+      ConstantList.mapped(
+        table,
+        (entry) => translator.constants.makeWasmI32(
           entry == null ? invalidClassId : entry.$1,
         ),
-    ]);
+      ),
+    );
     final typeRowDisplacementSubstTable = translator.constants.makeArrayOf(
       wasmI16,
-      [
-        for (final entry in table)
-          translator.constants.makeWasmI32(
-            entry == null ? noSubstitutionIndex : entry.$2,
-          ),
-      ],
+      ConstantList.mapped(
+        table,
+        (entry) => translator.constants.makeWasmI32(
+          entry == null ? noSubstitutionIndex : entry.$2,
+        ),
+      ),
     );
     final canonicalSubstitutionTable = translator.constants.makeArrayOf(
       arrayOfType,
-      [for (final sustitution in _substitutionTableByIndex) sustitution],
+      ConstantList.from(_substitutionTableByIndex),
     );
 
     final typeRowDisplacementOffsets = translator.constants.makeArrayOf(
       wasmI32,
-      [
-        for (int classId = 0; classId < translator.classes.length; ++classId)
-          translator.constants.makeWasmI32(
-            rowForSuperclass[classId]?.offset ?? -1,
-          ),
-      ],
+      ConstantList.mapped(
+        rowForSuperclass,
+        (row) => translator.constants.makeWasmI32(row?.offset ?? -1),
+      ),
     );
 
     final typeNames = translator.options.minify
@@ -1436,15 +1437,14 @@ class RuntimeTypeInformation {
     );
 
     final emptyString = StringConstant('');
-    List<StringConstant> nameConstants = [];
-    for (ClassInfo classInfo in translator.classes) {
+    final nameConstants = ConstantList.mapped(translator.classes, (classInfo) {
       Class? cls = classInfo.cls;
       if (cls == null || cls.isAnonymousMixin) {
-        nameConstants.add(emptyString);
+        return emptyString;
       } else {
-        nameConstants.add(StringConstant(cls.name));
+        return StringConstant(cls.name);
       }
-    }
+    });
     return translator.constants.makeArrayOf(stringType, nameConstants);
   }
 

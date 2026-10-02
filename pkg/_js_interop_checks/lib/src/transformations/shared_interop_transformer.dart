@@ -333,20 +333,15 @@ class SharedInteropTransformer extends Transformer {
     final typeArgument = futureType.typeArguments[0];
     final isVoid = typeArgument is VoidType;
 
-    final parameters = <PositionalParameter>[];
-    final callArguments = ExpressionList.generate(
+    final parameters = PositionalParameterList.generate(
       funcType.positionalParameters.length,
-      (i) {
-        final paramType = funcType.positionalParameters[i];
-        final param = PositionalParameter(
-          parameterName: '#param$i',
-          type: paramType,
-          isSynthesized: true,
-        )..fileOffset = invocation.fileOffset;
-        parameters.add(param);
-        return VariableGet(param);
-      },
+      (i) => PositionalParameter(
+        parameterName: '#param$i',
+        type: funcType.positionalParameters[i],
+        isSynthesized: true,
+      )..fileOffset = invocation.fileOffset,
     );
+    final callArguments = ExpressionList.mapped(parameters, VariableGet.new);
 
     assert(funcType.namedParameters.isEmpty);
     assert(funcType.typeParameters.isEmpty);
@@ -665,7 +660,9 @@ class SharedInteropTransformer extends Transformer {
                             interfaceTarget: setter,
                           ),
                         ),
-                        positionalParameters: [setterParameter],
+                        positionalParameters: PositionalParameterList(
+                          setterParameter,
+                        ),
                         returnType: const VoidType(),
                       ),
                     ),
@@ -683,11 +680,16 @@ class SharedInteropTransformer extends Transformer {
         // semantics as methods.
         block.add(
           ExpressionStatement(
-            callMethodVarArgs(getObjectProperty(), 'defineProperty', [
-              VariableGet(jsExporter),
-              toJSString(exportName),
-              VariableGet(getSetMap),
-            ], VoidType()),
+            callMethodVarArgs(
+              getObjectProperty(),
+              'defineProperty',
+              ExpressionList(
+                VariableGet(jsExporter),
+                toJSString(exportName),
+                VariableGet(getSetMap),
+              ),
+              VoidType(),
+            ),
           )..fileOffset = invocation.fileOffset,
         );
       }
@@ -999,7 +1001,7 @@ class SharedInteropTransformer extends Transformer {
   StaticInvocation callMethodVarArgs(
     Expression jsObject,
     String methodName,
-    List<Expression> args,
+    ExpressionList args,
     DartType returnType,
   ) {
     // `jsObject.callMethodVarArgs(methodName.toJS, args)`
@@ -1036,7 +1038,7 @@ class SharedInteropTransformer extends Transformer {
   StaticInvocation getLiteral([Expression? proto]) => callMethodVarArgs(
     getObjectProperty(),
     'create',
-    [asJSObject(proto ?? NullLiteral(), true)],
+    ExpressionList(asJSObject(proto ?? NullLiteral(), true)),
     ExtensionType(_jsObject, Nullability.nonNullable),
   );
 }

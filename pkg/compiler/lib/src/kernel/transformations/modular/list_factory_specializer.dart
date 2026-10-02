@@ -144,7 +144,7 @@ class ListFactorySpecializer extends BaseSpecializer {
         functionType: intLess.getterType as FunctionType,
       ),
       // updates: _i++
-      [
+      ExpressionList(
         VariableSet(
           indexVariable,
           InstanceInvocation(
@@ -160,7 +160,7 @@ class ListFactorySpecializer extends BaseSpecializer {
             ),
           ),
         )..fileOffset = node.fileOffset,
-      ],
+      ),
       // body, e.g. _list[_i] = expression;
       _loopBody(node.fileOffset, listVariable, indexVariable, generator),
     )..fileOffset = node.fileOffset;

@@ -1852,8 +1852,12 @@ class PatternSwitchCase extends TreeNode implements SwitchCase, ScopeProvider {
   }
 
   @override
-  List<Expression> get expressions =>
+  ExpressionList get expressions =>
       throw new UnimplementedError('PatternSwitchCase.expressions');
+
+  @override
+  void set expressions(ExpressionList value) =>
+      throw new UnimplementedError('PatternSwitchCase.expressions=');
 
   @override
   List<int> get expressionOffsets =>

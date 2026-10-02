@@ -126,7 +126,7 @@ class Isolate {
 }
 
 @patch
-abstract class ReceivePort implements Stream<dynamic> {
+abstract class ReceivePort {
   @patch
   factory ReceivePort([String debugName = '']) {
     throw UnsupportedError("ReceivePort");

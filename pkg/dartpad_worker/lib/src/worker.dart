@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:async/async.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:path/path.dart' as p;
@@ -26,6 +27,10 @@ import 'util/parameters_ext.dart';
 final class Worker {
   final ResourceProvider _rp;
   final DartPadConfig _config;
+  final _analysisCache = MemoryCachingByteStore(
+    NullByteStore(),
+    128 * 1024 * 1024,
+  );
   int _nextLanguageServerId = 1;
   int _nextWorkspaceId = 1;
   int _nextWatcherId = 1;
@@ -72,7 +77,7 @@ class _Session {
   _Session(StreamChannel<Object?> channel, this._worker) {
     _rpc = Peer.withoutJson(channel, onUnhandledError: _onUnhandledError);
     _rpc.registerMethod('createWorkspace', _createWorkspace);
-    _rpc.registerMethod('workspace/dispose', _disposeWorkspace);
+    _rpc.registerMethod('workspace/close', _closeWorkspace);
     _rpc.registerMethod(
       'workspace/writeFileFromText',
       _forwardToWorkspace((ws) => ws._writeFileFromText),
@@ -123,16 +128,16 @@ class _Session {
       _forwardToWorkspace((ws) => ws._languageServerMessage),
     );
     _rpc.registerMethod(
-      'workspace/languageServer/stop',
-      _forwardToWorkspace((ws) => ws._stopLanguageServer),
+      'workspace/languageServer/close',
+      _closeInWorkspace((ws) => ws._closeLanguageServer),
     );
     _rpc.registerMethod(
       'workspace/startWatcher',
       _forwardToWorkspace((ws) => ws._watch),
     );
     _rpc.registerMethod(
-      'workspace/watcher/stop',
-      _forwardToWorkspace((ws) => ws._unwatch),
+      'workspace/watcher/close',
+      _closeInWorkspace((ws) => ws._closeWatcher),
     );
     _rpc.registerMethod(
       'workspace/connectSandbox',
@@ -152,7 +157,7 @@ class _Session {
     );
     _rpc.registerMethod(
       'workspace/sandbox/close',
-      _forwardToWorkspace((ws) => ws._sandboxClose),
+      _closeInWorkspace((ws) => ws._sandboxClose),
     );
     _rpc.registerMethod(
       'workspace/sandbox/connectServiceProtocol',
@@ -162,7 +167,7 @@ class _Session {
       await _rpc.listen();
       // Delete all workspaces to cleanup resources
       await Future.wait(
-        _workspaces.values.toList().map((ws) => ws._deleteWorkspace()),
+        _workspaces.values.toList().map((ws) => ws._closeWorkspace()),
       );
     }());
   }
@@ -178,19 +183,16 @@ class _Session {
       workspaceFolder,
       resourceProviderWithCurrentWorkingDirectory(_worker._rp, workspaceFolder),
     );
-    return {
-      'workspaceId': workspaceId,
-      'workspaceFolder': Uri.directory(workspaceFolder).toString(),
-    };
+    return {'workspaceId': workspaceId, 'workspaceFolder': workspaceFolder};
   }
 
-  Object? _disposeWorkspace(Parameters params) async {
+  Object? _closeWorkspace(Parameters params) async {
     final workspace = _workspaces.remove(params['workspaceId'].asNum.toInt());
     if (workspace != null) {
-      await workspace._deleteWorkspace();
+      await workspace._closeWorkspace();
     }
-    // Deleting a workspace that doesn't exist is a no-op
-    // This ensures that deletion is an idempotent operation!
+    // Closing a workspace that doesn't exist is a no-op
+    // This ensures that closing is an idempotent operation!
     return <String, Object?>{};
   }
 
@@ -205,6 +207,21 @@ class _Session {
           'Invalid "workspaceId", no such workspace exists',
           data: {'workspaceId': workspaceId},
         );
+      }
+      return resolveHandler(workspace)(params);
+    };
+  }
+
+  /// Like [_forwardToWorkspace], but for methods closing a resource held by
+  /// the workspace. Closing a workspace closes all its resources, so these
+  /// are a no-op when the workspace doesn't exist.
+  Object? Function(Parameters) _closeInWorkspace(
+    Object? Function(Parameters params) Function(_Workspace ws) resolveHandler,
+  ) {
+    return (Parameters params) async {
+      final workspace = _workspaces[params['workspaceId'].asNum.toInt()];
+      if (workspace == null) {
+        return <String, Object?>{};
       }
       return resolveHandler(workspace)(params);
     };
@@ -233,90 +250,72 @@ class _Workspace {
     this._rp,
   );
 
-  String _resolvePath(Uri u) {
-    final path = _rp.pathContext.fromUri(u);
-    if (_rp.pathContext.isAbsolute(path)) {
-      return _rp.pathContext.normalize(path);
-    }
-    return _rp.pathContext.normalize(
-      _rp.pathContext.join(_workspaceFolder, path),
-    );
-  }
+  String _resolvePath(String path) =>
+      _rp.pathContext.normalize(_rp.pathContext.join(_workspaceFolder, path));
 
   Object? _writeFileFromText(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final text = params['text'].asString;
     try {
       final file = _rp.getFile(path);
       file.writeAsStringSync(text);
     } on FileSystemException catch (e) {
-      throw FileWriteConflictException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileWriteConflictException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _writeFileFromBytes(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final bytes = params.bytesAsUint8List;
     try {
       final file = _rp.getFile(path);
       file.writeAsBytesSync(bytes);
     } on FileSystemException catch (e) {
-      throw FileWriteConflictException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileWriteConflictException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _readFileAsText(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
       return {'text': _rp.getFile(path).readAsStringSync()};
     } on FileSystemException catch (e) {
-      throw FileNotFoundException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException(e.message, data: {'path': path});
     }
   }
 
   Object? _readFileAsBytes(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
       return {'bytes': _rp.getFile(path).readAsBytesSync()};
     } on FileSystemException catch (e) {
-      throw FileNotFoundException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException(e.message, data: {'path': path});
     }
   }
 
   Object? _deleteFileSystemEntity(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
-      _rp.getResource(path).delete();
+      final resource = _rp.getResource(path);
+      // Safe to check before delete: synchronous on an in-memory filesystem.
+      if (resource.exists) {
+        resource.delete();
+      }
     } on FileSystemException catch (e) {
-      throw FileDeletionFailedException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileDeletionFailedException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _stat(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final resource = _rp.getResource(path);
     if (!resource.exists) {
       throw FileNotFoundException(
         'File or directory not found',
-        data: {'resolvedUri': Uri.file(path).toString()},
+        data: {'path': path},
       );
     }
     if (resource is File) {
@@ -329,20 +328,17 @@ class _Workspace {
   }
 
   Object? _createFolder(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
       _rp.getFolder(path).create();
     } on FileSystemException catch (e) {
-      throw FileWriteConflictException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileWriteConflictException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _listDirectory(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final recursive = params['recursive'].asBoolOr(false);
     final ignoreHidden = params['ignoreHidden'].asBoolOr(false);
 
@@ -373,15 +369,12 @@ class _Workspace {
 
       return {'entries': entries};
     } on FileSystemException catch (e) {
-      throw FileNotFoundException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException(e.message, data: {'path': path});
     }
   }
 
   Object? _importTarArchive(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final bytes = params.bytesAsUint8List;
 
     await _rp.getFolder(path).extractTarStream(Stream.value(bytes));
@@ -390,20 +383,17 @@ class _Workspace {
   }
 
   Object? _exportTarArchive(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final folder = _rp.getFolder(path);
     if (!folder.exists) {
-      throw FileNotFoundException(
-        'Directory not found',
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException('Directory not found', data: {'path': path});
     }
 
     return {'bytes': await collectBytes(folder.createTarStream())};
   }
 
   Object? _pub(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final command = params['command'].asString;
     final args = params['args'].asListOr(const <String>[]);
     if (!supportedPubCommands.contains(command)) {
@@ -432,6 +422,7 @@ class _Workspace {
     final ls = _languageServers[languageServerId] = LanguageServer(
       resourceProvider: _rp,
       config: _worker._config,
+      byteStore: _worker._analysisCache,
     );
     ls.messages.listen((m) {
       _session._rpc.sendNotification('workspace/languageServer/message', {
@@ -467,7 +458,7 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  Object? _stopLanguageServer(Parameters params) async {
+  Object? _closeLanguageServer(Parameters params) async {
     final languageServerId = params['languageServerId'].asNum.toInt();
     final languageServer = _languageServers.remove(languageServerId);
     await languageServer?.close();
@@ -475,26 +466,24 @@ class _Workspace {
   }
 
   Object? _watch(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final watcherId = _worker._nextWatcherId++;
 
     _fileWatches[watcherId] = await FileWatch.create(_rp, path, (events) {
       _session._rpc.sendNotification('workspace/watcher/events', {
         'workspaceId': _workspaceId,
         'watcherId': watcherId,
-        'events': events
-            .map((e) => {'type': e.event, 'uri': e.uri.toString()})
-            .toList(),
+        'events': events.map((e) => {'type': e.event, 'path': e.path}).toList(),
       });
     });
 
     return {'watcherId': watcherId};
   }
 
-  Object? _unwatch(Parameters params) async {
+  Object? _closeWatcher(Parameters params) async {
     final watcherId = params['watcherId'].asNum.toInt();
     final fileWatch = _fileWatches.remove(watcherId);
-    await fileWatch?.stop();
+    await fileWatch?.close();
     return <String, Object?>{};
   }
 
@@ -535,7 +524,7 @@ class _Workspace {
 
   Object? _sandboxRun(Parameters params) async {
     final s = _getSandbox(params);
-    final path = _resolvePath(params['path'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final mode = params['mode'].asString;
     final m = _worker._config.modes.where((m) => m.mode == mode).firstOrNull;
     if (m == null) {
@@ -572,15 +561,19 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  Future<void> _deleteWorkspace() async {
+  Future<void> _closeWorkspace() async {
     try {
       await Future.wait([
         ..._languageServers.values.map((ls) => ls.close()),
-        ..._fileWatches.values.map((fw) => fw.stop()),
+        ..._fileWatches.values.map((fw) => fw.close()),
         ..._sandboxes.values.map((s) => s.close()),
       ]);
     } finally {
-      _rp.getFolder(_workspaceFolder).delete();
+      final folder = _rp.getFolder(_workspaceFolder);
+      // Safe to check before delete: synchronous on an in-memory filesystem.
+      if (folder.exists) {
+        folder.delete();
+      }
     }
   }
 }

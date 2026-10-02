@@ -216,11 +216,8 @@ final class SandboxClient {
   }
 
   /// Runs the application using the specified mode.
-  Future<void> run(Uri libraryUri, {required String mode}) async {
-    await _sendRequest<void>('run', {
-      'libraryUri': libraryUri.toString(),
-      'mode': mode,
-    });
+  Future<void> run(String libraryUri, {required String mode}) async {
+    await _sendRequest<void>('run', {'libraryUri': libraryUri, 'mode': mode});
   }
 
   /// Triggers a hot restart, resetting global state.

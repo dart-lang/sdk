@@ -218,7 +218,7 @@ class Class extends NamedNode implements TypeDeclaration {
   Uri fileUri;
 
   @override
-  final List<TypeParameter> typeParameters;
+  TypeParameterList typeParameters;
 
   /// The immediate super type, or `null` if this is the root class.
   Supertype? supertype;
@@ -319,14 +319,14 @@ class Class extends NamedNode implements TypeDeclaration {
     bool isAnonymousMixin = false,
     this.supertype,
     this.mixedInType,
-    List<TypeParameter>? typeParameters,
+    TypeParameterList? typeParameters,
     List<Supertype>? implementedTypes,
     List<Constructor>? constructors,
     List<Procedure>? procedures,
     List<Field>? fields,
     required this.fileUri,
     Reference? reference,
-  }) : this.typeParameters = typeParameters ?? <TypeParameter>[],
+  }) : this.typeParameters = typeParameters ?? TypeParameterList.empty,
        this.implementedTypes = implementedTypes ?? <Supertype>[],
        this._fieldsInternal = fields ?? <Field>[],
        this._constructorsInternal = constructors ?? <Constructor>[],
@@ -612,7 +612,7 @@ class Extension extends NamedNode
 
   /// Type parameters declared on the extension.
   @override
-  final List<TypeParameter> typeParameters;
+  TypeParameterList typeParameters;
 
   /// The type in the 'on clause' of the extension declaration.
   ///
@@ -653,12 +653,12 @@ class Extension extends NamedNode
 
   new({
     required this.name,
-    List<TypeParameter>? typeParameters,
+    TypeParameterList? typeParameters,
     DartType? onType,
     List<ExtensionMemberDescriptor>? memberDescriptors,
     required this.fileUri,
     Reference? reference,
-  }) : this.typeParameters = typeParameters ?? <TypeParameter>[],
+  }) : this.typeParameters = typeParameters ?? TypeParameterList.empty,
        this.memberDescriptors =
            memberDescriptors ?? <ExtensionMemberDescriptor>[],
        super(reference) {
@@ -838,7 +838,7 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
 
   /// Type parameters declared on the extension.
   @override
-  final List<TypeParameter> typeParameters;
+  TypeParameterList typeParameters;
 
   /// The type in the underlying representation of the extension type
   /// declaration.
@@ -894,14 +894,14 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
 
   new({
     required this.name,
-    List<TypeParameter>? typeParameters,
+    TypeParameterList? typeParameters,
     DartType? declaredRepresentationType,
     List<ExtensionTypeMemberDescriptor>? memberDescriptors,
     List<TypeDeclarationType>? implements,
     List<Procedure>? procedures,
     required this.fileUri,
     Reference? reference,
-  }) : this.typeParameters = typeParameters ?? <TypeParameter>[],
+  }) : this.typeParameters = typeParameters ?? TypeParameterList.empty,
        this.memberDescriptors =
            memberDescriptors ?? <ExtensionTypeMemberDescriptor>[],
        this.implements = implements ?? <TypeDeclarationType>[],

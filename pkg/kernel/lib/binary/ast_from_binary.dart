@@ -466,33 +466,24 @@ class BinaryBuilder {
   Constant _readMapConstant() {
     final DartType keyType = readDartType();
     final DartType valueType = readDartType();
-    final int length = readUInt30();
-    final List<ConstantMapEntry> entries = new List<ConstantMapEntry>.generate(
-      length,
-      (_) {
-        final Constant key = readConstantReference();
-        final Constant value = readConstantReference();
-        return new ConstantMapEntry(key, value);
-      },
-      growable: useGrowableLists,
-    );
+    final ConstantMapEntryList entries = _readConstantMapEntryList();
     return new MapConstant(keyType, valueType, entries);
   }
 
   Constant _readListConstant() {
     final DartType typeArgument = readDartType();
-    List<Constant> entries = _readConstantReferenceList();
+    ConstantList entries = _readConstantReferenceList();
     return new ListConstant(typeArgument, entries);
   }
 
   Constant _readSetConstant() {
     final DartType typeArgument = readDartType();
-    List<Constant> entries = _readConstantReferenceList();
+    ConstantList entries = _readConstantReferenceList();
     return new SetConstant(typeArgument, entries);
   }
 
   Constant _readRecordConstant() {
-    List<Constant> positional = _readConstantReferenceList();
+    ConstantList positional = _readConstantReferenceList();
     final int namedLength = readUInt30();
     final List<MapEntry<String, Constant>> named =
         new List<MapEntry<String, Constant>>.generate(namedLength, (_) {
@@ -562,6 +553,22 @@ class BinaryBuilder {
     return new UnevaluatedConstant(expression);
   }
 
+  ConstantMapEntryList _readConstantMapEntryList() {
+    final int length = readUInt30();
+    if (length == 0) return ConstantMapEntryList.empty;
+    if (length == 1) return new ConstantMapEntryList(_readConstantMapEntry());
+    return new ConstantMapEntryList.generate(
+      length,
+      (_) => _readConstantMapEntry(),
+    );
+  }
+
+  ConstantMapEntry _readConstantMapEntry() {
+    final Constant key = readConstantReference();
+    final Constant value = readConstantReference();
+    return new ConstantMapEntry(key, value);
+  }
+
   Constant readConstantReference() {
     final int index = readUInt30();
     Constant constant = _constantTable[index];
@@ -572,18 +579,11 @@ class BinaryBuilder {
     return constant;
   }
 
-  List<Constant> _readConstantReferenceList() {
+  ConstantList _readConstantReferenceList() {
     final int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfConstant;
-    }
-    return new List<Constant>.generate(
-      length,
-      (_) => readConstantReference(),
-      growable: useGrowableLists,
-    );
+    if (length == 0) return ConstantList.empty;
+    if (length == 1) return new ConstantList(readConstantReference());
+    return new ConstantList.generate(length, (_) => readConstantReference());
   }
 
   Uri readUriReference() {
@@ -1496,7 +1496,7 @@ class BinaryBuilder {
   LibraryDependency readLibraryDependency() {
     int fileOffset = readOffset();
     int flags = readByte();
-    List<Expression> annotations = readExpressionList();
+    List<Expression> annotations = readAnnotationList();
     Reference targetLibrary = readNonNullLibraryReference();
     String? prefixName = readStringOrNullIfEmpty();
     List<Combinator> names = readCombinatorList();
@@ -1557,7 +1557,7 @@ class BinaryBuilder {
   }
 
   LibraryPart readLibraryPart() {
-    List<Expression> annotations = readExpressionList();
+    List<Expression> annotations = readAnnotationList();
     String partUri = readStringReference();
     Uri fileUri = readUriReference();
     return new LibraryPart(annotations, partUri, fileUri);
@@ -1577,7 +1577,10 @@ class BinaryBuilder {
       node = new Typedef(name, null, reference: reference, fileUri: fileUri);
     }
     node.annotations = readAnnotationList(node);
-    readAndPushTypeParameterList(node.typeParameters, node);
+    node.typeParameters = readAndPushTypeParameterList(
+      node.typeParameters,
+      node,
+    );
     DartType type = readDartType();
     typeParameterStack.length = 0;
     variableStack.length = 0;
@@ -1636,7 +1639,10 @@ class BinaryBuilder {
 
     assert(typeParameterStack.length == 0);
 
-    readAndPushTypeParameterList(node.typeParameters, node);
+    node.typeParameters = readAndPushTypeParameterList(
+      node.typeParameters,
+      node,
+    );
     Supertype? supertype = readSupertypeOption();
     Supertype? mixedInType = readSupertypeOption();
     node.implementedTypes = readSupertypeList();
@@ -1693,7 +1699,10 @@ class BinaryBuilder {
 
     node.flags = readByte();
 
-    readAndPushTypeParameterList(node.typeParameters, node);
+    node.typeParameters = readAndPushTypeParameterList(
+      node.typeParameters,
+      node,
+    );
     DartType onType = readDartType();
 
     typeParameterStack.length = 0;
@@ -1771,7 +1780,10 @@ class BinaryBuilder {
 
     node.flags = readByte();
 
-    readAndPushTypeParameterList(node.typeParameters, node);
+    node.typeParameters = readAndPushTypeParameterList(
+      node.typeParameters,
+      node,
+    );
     DartType representationType = readDartType();
     String representationName = readStringReference();
     List<TypeDeclarationType> implements =
@@ -2183,15 +2195,15 @@ class BinaryBuilder {
           )
           .toList();
     }
-    List<TypeParameter> typeParameters = readAndPushTypeParameterList();
+    TypeParameterList typeParameters = readAndPushFunctionTypeParameterList();
     int variableStackHeight = variableStack.length;
     // TODO(63493): Remove the next line when the scopes are serialized before
     // function bodies.
     ThisVariable? thisVariable = readAndPushVariableOption() as ThisVariable?;
     readUInt30(); // total parameter count.
     int requiredParameterCount = readUInt30();
-    List<PositionalParameter> positional = readAndPushPositionalParameterList();
-    List<NamedParameter> named = readAndPushNamedParameterList();
+    PositionalParameterList positional = readAndPushPositionalParameterList();
+    NamedParameterList named = readAndPushNamedParameterList();
     DartType returnType = readDartType();
     DartType? futureValueType = readDartTypeOption();
     RedirectingFactoryTarget? redirectingFactoryTarget;
@@ -2360,18 +2372,9 @@ class BinaryBuilder {
     }
   }
 
-  List<Expression> readExpressionList() {
+  ExpressionList readExpressionList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return emptyListOfExpression;
-    }
-    return new List<Expression>.generate(
-      length,
-      (_) => readExpression(),
-      growable: useGrowableLists,
-    );
+    return new ExpressionList.generate(length, (_) => readExpression());
   }
 
   Expression? readExpressionOption() {
@@ -3033,7 +3036,7 @@ class BinaryBuilder {
         growable: false,
       );
     }
-    List<Expression> unusedArguments = readExpressionList();
+    ExpressionList unusedArguments = readExpressionList();
     return new InstanceCreation(
       classReference,
       typeArguments,
@@ -3205,8 +3208,8 @@ class BinaryBuilder {
 
   Expression _readRecordLiteral() {
     int offset = readOffset();
-    List<Expression> positional = readExpressionList();
-    List<NamedExpression> named = readNamedExpressionList();
+    ExpressionList positional = readExpressionList();
+    NamedExpressionList named = readNamedExpressionList();
     RecordType recordType = readDartType() as RecordType;
     return new RecordLiteral(positional, named, recordType, isConst: false)
       ..fileOffset = offset;
@@ -3214,8 +3217,8 @@ class BinaryBuilder {
 
   Expression _readConstRecordLiteral() {
     int offset = readOffset();
-    List<Expression> positional = readExpressionList();
-    List<NamedExpression> named = readNamedExpressionList();
+    ExpressionList positional = readExpressionList();
+    NamedExpressionList named = readNamedExpressionList();
     RecordType recordType = readDartType() as RecordType;
     return new RecordLiteral(positional, named, recordType, isConst: true)
       ..fileOffset = offset;
@@ -3959,7 +3962,7 @@ class BinaryBuilder {
     int scopeSize = readScopeSizeAndAllocateContexts();
     List<VariableDeclaration> variables = readAndPushVariableDeclarationList();
     Expression? condition = readExpressionOption();
-    List<Expression> updates = readExpressionList();
+    ExpressionList updates = readExpressionList();
     Statement body = readStatement();
     Scope? scope = readOptionalScope(scopeSize);
     variableStack.length = variableStackHeight;
@@ -4000,7 +4003,7 @@ class BinaryBuilder {
       cases = new List<SwitchCase>.generate(
         count,
         (_) => new SwitchCase(
-          <Expression>[],
+          ExpressionList.empty,
           <int>[],
           dummyStatement,
           isDefault: false,
@@ -4099,10 +4102,10 @@ class BinaryBuilder {
     int offset = readOffset();
     caseNode.fileOffset = offset;
     int length = readUInt30();
-    for (int i = 0; i < length; ++i) {
+    caseNode.expressions = new ExpressionList.generate(length, (_) {
       caseNode.expressionOffsets.add(readOffset());
-      caseNode.expressions.add(readExpression()..parent = caseNode);
-    }
+      return readExpression()..parent = caseNode;
+    });
     caseNode.isDefault = readByte() == 1;
     caseNode.body = readStatement()..parent = caseNode;
   }
@@ -4442,30 +4445,34 @@ class BinaryBuilder {
     );
   }
 
-  List<TypeParameter> readAndPushTypeParameterList([
-    List<TypeParameter>? list,
-    GenericDeclaration? declaration,
-  ]) {
+  TypeParameterList readAndPushTypeParameterList(
+    TypeParameterList list,
+    GenericDeclaration declaration,
+  ) {
     int length = readUInt30();
-    if (length == 0) {
-      if (list != null) return list;
-      if (useGrowableLists) {
-        return <TypeParameter>[];
-      } else {
-        return emptyListOfTypeParameter;
-      }
-    }
-    if (list == null) {
-      list = new List<TypeParameter>.generate(
+    if (length == 0) return TypeParameterList.empty;
+    if (list.length != length) {
+      list = new TypeParameterList.generate(
         length,
         (_) => new TypeParameter(null, null)..declaration = declaration,
-        growable: useGrowableLists,
       );
-    } else if (list.length != length) {
-      for (int i = 0; i < length; ++i) {
-        list.add(new TypeParameter(null, null)..declaration = declaration);
-      }
     }
+    typeParameterStack.addAll(list);
+    for (int i = 0; i < list.length; ++i) {
+      readTypeParameter(list[i]);
+    }
+    return list;
+  }
+
+  TypeParameterList readAndPushFunctionTypeParameterList() {
+    int length = readUInt30();
+    if (length == 0) {
+      return TypeParameterList.empty;
+    }
+    TypeParameterList list = new TypeParameterList.generate(
+      length,
+      (_) => new TypeParameter(null, null),
+    );
     typeParameterStack.addAll(list);
     for (int i = 0; i < list.length; ++i) {
       readTypeParameter(list[i]);
@@ -4525,31 +4532,17 @@ class BinaryBuilder {
   Arguments readArguments() {
     int numArguments = readUInt30();
     DartTypeList typeArguments = readDartTypeList();
-    int numPositional = readUInt30();
-    ExpressionList positional = ExpressionList.generate(
-      numPositional,
-      (_) => readExpression(),
-    );
-    int numNamed = readUInt30();
-    NamedExpressionList named = NamedExpressionList.generate(
-      numNamed,
-      (_) => readNamedExpression(),
-    );
+    ExpressionList positional = readExpressionList();
+    NamedExpressionList named = readNamedExpressionList();
     assert(numArguments == positional.length + named.length);
     return new Arguments(positional, types: typeArguments, named: named);
   }
 
-  List<NamedExpression> readNamedExpressionList() {
+  NamedExpressionList readNamedExpressionList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost-constant one for the empty list.
-      return emptyListOfNamedExpression;
-    }
-    return new List<NamedExpression>.generate(
+    return new NamedExpressionList.generate(
       length,
       (_) => readNamedExpression(),
-      growable: useGrowableLists,
     );
   }
 
@@ -4585,31 +4578,19 @@ class BinaryBuilder {
     );
   }
 
-  List<PositionalParameter> readAndPushPositionalParameterList() {
+  PositionalParameterList readAndPushPositionalParameterList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfPositionalParameter;
-    }
-    return new List<PositionalParameter>.generate(
+    return new PositionalParameterList.generate(
       length,
       (_) => readAndPushPositionalParameter(),
-      growable: useGrowableLists,
     );
   }
 
-  List<NamedParameter> readAndPushNamedParameterList() {
+  NamedParameterList readAndPushNamedParameterList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfNamedParameter;
-    }
-    return new List<NamedParameter>.generate(
+    return new NamedParameterList.generate(
       length,
       (_) => readAndPushNamedParameter(),
-      growable: useGrowableLists,
     );
   }
 

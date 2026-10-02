@@ -431,7 +431,7 @@ class LateLowering {
               fileOffset,
             ),
           )..fileOffset = fileOffset,
-          positionalParameters: [setterValue],
+          positionalParameters: PositionalParameterList(setterValue),
           returnType: VoidType(),
         )..fileOffset = fileOffset,
         isStatic: true,
@@ -728,7 +728,7 @@ class LateLowering {
         ProcedureKind.Setter,
         FunctionNode(
           body,
-          positionalParameters: [setterValue],
+          positionalParameters: PositionalParameterList(setterValue),
           returnType: VoidType(),
         )..fileOffset = fileOffset,
         fileUri: fileUri,

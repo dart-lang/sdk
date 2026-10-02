@@ -120,7 +120,9 @@ abstract class _Specializer {
       fileUri,
       FunctionNode(
         null,
-        positionalParameters: dartPositionalParameters,
+        positionalParameters: PositionalParameterList.from(
+          dartPositionalParameters,
+        ),
         returnType: function.returnType is VoidType
             ? VoidType()
             : _util.nullableWasmExternRefType,

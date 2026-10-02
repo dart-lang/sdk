@@ -78,6 +78,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     required super.name,
     required super.typeParameters,
     required TypeBuilder underscoreEnumTypeBuilder,
+    required super.interfaceBuilders,
     required super.typeParameterScope,
     required super.nameSpaceBuilder,
     required List<EnumElementFragment> enumElements,
@@ -521,16 +522,18 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
 
       _procedure.function.registerFunctionBody(
         new ReturnStatement(
-          new StringConcatenation([
-            new StringLiteral("${_enumBuilder.cls.demangledName}."),
-            new InstanceGet.byReference(
-              InstanceAccessKind.Instance,
-              new ThisExpression(),
-              nameField.name,
-              interfaceTargetReference: nameField.getterReference,
-              resultType: nameField.getterType,
+          new StringConcatenation(
+            new ExpressionList(
+              new StringLiteral("${_enumBuilder.cls.demangledName}."),
+              new InstanceGet.byReference(
+                InstanceAccessKind.Instance,
+                new ThisExpression(),
+                nameField.name,
+                interfaceTargetReference: nameField.getterReference,
+                resultType: nameField.getterType,
+              ),
             ),
-          ]),
+          ),
         ),
       );
       // TODO(cstefantsova): Verify that null should be passed for
@@ -695,7 +698,7 @@ class _EnumValuesFieldDeclaration
     }
 
     _field!.initializer = new ListLiteral(
-      values,
+      new ExpressionList.from(values),
       typeArgument: instantiateToBounds(
         _sourceEnumBuilder.rawType(Nullability.nonNullable),
         classHierarchy.coreTypes.objectClass,

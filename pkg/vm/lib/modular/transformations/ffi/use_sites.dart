@@ -929,7 +929,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             )..fileOffset = fileOffset,
           ),
         ]),
-        positionalParameters: positionalParameters,
+        positionalParameters: PositionalParameterList.from(
+          positionalParameters,
+        ),
         requiredParameterCount: dartSignature.requiredParameterCount,
         returnType: dartSignature.returnType,
       )..fileOffset = fileOffset,
@@ -1185,7 +1187,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     );
     final handler = FunctionNode(
       handlerBody,
-      positionalParameters: [args],
+      positionalParameters: PositionalParameterList(args),
       returnType: VoidType(),
     )..fileOffset = node.fileOffset;
 
@@ -1763,7 +1765,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             fileOffset: node.fileOffset,
           ),
         ),
-        positionalParameters: [arrayLoadVar, indexLoadVar],
+        positionalParameters: PositionalParameterList(
+          arrayLoadVar,
+          indexLoadVar,
+        ),
         returnType: coreTypes.intNonNullableRawType,
       ),
     );
@@ -1805,7 +1810,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             fileOffset: node.fileOffset,
           ),
         ),
-        positionalParameters: [arrayStoreVar, indexStoreVar, valueStoreVar],
+        positionalParameters: PositionalParameterList(
+          arrayStoreVar,
+          indexStoreVar,
+          valueStoreVar,
+        ),
         returnType: coreTypes.intNonNullableRawType,
       ),
     );
@@ -2244,7 +2253,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       final cloner = CloneProcedureWithoutBody();
       newTarget = cloner.cloneProcedure(target, null);
       newTarget.name = Name(newName);
-      newTarget.function.positionalParameters = newParameters;
+      newTarget.function.positionalParameters = PositionalParameterList.from(
+        newParameters,
+      );
       setParents(newParameters, newTarget.function);
       switch (parent) {
         case Library _:

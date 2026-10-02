@@ -1,0 +1,79 @@
+augment class C1 implements I {
+  String get id => "C1";
+}
+
+augment class C2 implements I {
+  String get id => "C2";
+}
+
+augment class C3 implements I, I {
+  String get id => "C3";
+}
+
+augment enum E1 implements I { ; String get id => "E1"; }
+
+augment enum E2 implements I { ; String get id => "E2"; }
+
+augment enum E3 implements I, I { ; String get id => "E3"; }
+
+augment extension type ET1 implements I {
+  String get id => "ET1";
+}
+
+augment extension type ET2 implements I {
+  String get id => "ET2";
+}
+
+augment extension type ET3 implements I, I {
+  String get id => "ET3";
+}
+
+augment mixin M1 implements I {
+  String get id => "M1";
+}
+
+augment mixin M2 implements I {
+  String get id => "M2";
+}
+
+augment mixin M3 implements I, I {
+  String get id => "M3";
+}
+
+class C1 {}
+
+class C2 implements I {}
+
+class C3 {}
+
+class MA1 = Object with M1;
+
+class MA2 = Object with M2;
+
+class MA3 = Object with M3;
+
+enum E1 { e1; }
+
+enum E2 implements I { e1; }
+
+enum E3 { e1; }
+
+expect(expected, actual) {}
+
+extension type ET1(I v) {}
+
+extension type ET2(I v) implements I {}
+
+extension type ET3(I v) {}
+
+interface class I {
+  String get id => "I";
+}
+
+main() {}
+
+mixin M1 {}
+
+mixin M2 implements I {}
+
+mixin M3 {}

@@ -312,10 +312,14 @@ class _RecordClassGenerator {
   /// Generate a constructor with name `_`. Named fields are passed in sorted
   /// order.
   Constructor _generateConstructor(RecordShape shape, List<Field> fields) {
-    final List<PositionalParameter> positionalParameters = List.generate(
-      fields.length,
-      (i) => PositionalParameter(parameterName: 'field$i', isSynthesized: true),
-    );
+    final PositionalParameterList positionalParameters =
+        PositionalParameterList.generate(
+          fields.length,
+          (i) => PositionalParameter(
+            parameterName: 'field$i',
+            isSynthesized: true,
+          ),
+        );
 
     final List<Initializer> initializers = List.generate(
       fields.length,
@@ -529,7 +533,7 @@ class _RecordClassGenerator {
 
     final FunctionNode function = FunctionNode(
       Block(statements),
-      positionalParameters: [parameter],
+      positionalParameters: PositionalParameterList(parameter),
       returnType: boolType,
     );
 
@@ -642,7 +646,10 @@ class _RecordClassGenerator {
 
     final FunctionNode function = FunctionNode(
       Block(statements),
-      positionalParameters: [typesParameter, namesParameter],
+      positionalParameters: PositionalParameterList(
+        typesParameter,
+        namesParameter,
+      ),
       returnType: boolType,
     );
 
@@ -712,7 +719,7 @@ class _RecordClassGenerator {
       Arguments(
         ExpressionList(
           ListLiteral(
-            fields.map(fieldRuntimeTypeExpr).toList(),
+            ExpressionList.mapped(fields, fieldRuntimeTypeExpr),
             typeArgument: runtimeTypeType,
           ),
         ),
@@ -737,7 +744,7 @@ class _RecordClassGenerator {
 
     final FunctionNode function = FunctionNode(
       Block(statements),
-      positionalParameters: [],
+      positionalParameters: PositionalParameterList.empty,
       returnType: InterfaceType(
         recordRuntimeTypeClass,
         Nullability.nonNullable,
@@ -756,13 +763,17 @@ class _RecordClassGenerator {
   }
 
   Constant _fieldNamesConstant(RecordShape shape) {
+    final iterator = shape.names.iterator;
     return InstanceConstant(
       immutableWasmArrayClass.reference,
       DartTypeList(nonNullableStringType),
       {
         immutableWasmArrayValueField.fieldReference: ListConstant(
           nonNullableStringType,
-          shape.names.map((name) => StringConstant(name)).toList(),
+          ConstantList.generate(shape.names.length, (_) {
+            iterator.moveNext();
+            return StringConstant(iterator.current);
+          }),
         ),
       },
     );

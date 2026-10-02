@@ -331,7 +331,7 @@ class DevCompilerTarget extends Target {
     var ctorArgs = ExpressionList(
       SymbolLiteral(name),
       arguments.types.isNotEmpty
-          ? ListLiteral([for (var t in arguments.types) TypeLiteral(t)])
+          ? ListLiteral(ExpressionList.mapped(arguments.types, TypeLiteral.new))
           : NullLiteral(),
       ListLiteral(arguments.positional),
       arguments.named.isNotEmpty

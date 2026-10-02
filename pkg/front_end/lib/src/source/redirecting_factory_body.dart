@@ -23,22 +23,16 @@ Expression _makeForwardingCall(
   DartTypeList typeArguments,
   FunctionNode function,
 ) {
-  final ExpressionList positional = new ExpressionList.generate(
-    function.positionalParameters.length,
-    (int i) {
-      PositionalParameter v = function.positionalParameters[i];
-      return new VariableGet(v)..fileOffset = v.fileOffset;
-    },
+  final ExpressionList positional = ExpressionList.mapped(
+    function.positionalParameters,
+    (PositionalParameter v) => new VariableGet(v)..fileOffset = v.fileOffset,
   );
-  final NamedExpressionList named = new NamedExpressionList.generate(
-    function.namedParameters.length,
-    (int i) {
-      NamedParameter v = function.namedParameters[i];
-      return new NamedExpression(
-        v.parameterName,
-        new VariableGet(v)..fileOffset = v.fileOffset,
-      )..fileOffset = v.fileOffset;
-    },
+  final NamedExpressionList named = NamedExpressionList.mapped(
+    function.namedParameters,
+    (NamedParameter v) => new NamedExpression(
+      v.parameterName,
+      new VariableGet(v)..fileOffset = v.fileOffset,
+    )..fileOffset = v.fileOffset,
   );
   final Arguments args = new Arguments(
     positional,

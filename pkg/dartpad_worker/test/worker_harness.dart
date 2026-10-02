@@ -66,7 +66,7 @@ void testDartWorker(
     try {
       await body(worker);
     } finally {
-      await worker.dispose();
+      await worker.close();
     }
   });
 }
@@ -90,7 +90,7 @@ void testDartWorkspace(
     try {
       await body(ws);
     } finally {
-      await ws.dispose();
+      await ws.close();
     }
   });
 }
@@ -121,7 +121,7 @@ void testFlutterWorker(
     try {
       await body(worker);
     } finally {
-      await worker.dispose();
+      await worker.close();
     }
   });
 }
@@ -148,7 +148,7 @@ void testFlutterWorkspace(
     try {
       await body(ws);
     } finally {
-      await ws.dispose();
+      await ws.close();
     }
   });
 }

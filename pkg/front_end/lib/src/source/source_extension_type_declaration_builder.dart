@@ -33,6 +33,7 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/kernel_helper.dart';
 import '../type_inference/type_inference_engine.dart';
+import 'check_helper.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
@@ -120,6 +121,10 @@ class SourceExtensionTypeDeclarationBuilder
       reference: indexedContainer?.reference,
     )..fileOffset = nameOffset;
   }
+
+  // Coverage-ignore(suite): Not run.
+  /// [UriOffsetLength] for the introductory declaration.
+  UriOffsetLength get uriOffset => _introductory.uriOffset;
 
   @override
   Iterator<SourceMemberBuilder> get unfilteredMembersIterator =>
@@ -712,8 +717,9 @@ class SourceExtensionTypeDeclarationBuilder
     ClassHierarchyBuilder hierarchyBuilder,
   ) {
     if (interfaceBuilders != null) {
-      Map<TypeDeclarationBuilder, ({int count, int offset})>?
-      duplicationProblems;
+      bool allowRepeatedImplements =
+          libraryBuilder.libraryFeatures.augmentations.isEnabled;
+      Map<TypeDeclarationBuilder, RepeatedImplements>? duplicationProblems;
       Set<TypeDeclarationBuilder> implemented = {};
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         TypeBuilder typeBuilder = interfaceBuilders![i];
@@ -770,37 +776,28 @@ class SourceExtensionTypeDeclarationBuilder
             .computeUnaliasedDeclaration(isUsedAsClass: false);
         if (typeDeclaration is ClassBuilder ||
             typeDeclaration is ExtensionTypeDeclarationBuilder) {
-          if (!implemented.add(typeDeclaration!)) {
+          if (!allowRepeatedImplements &&
+              implemented.contains(typeDeclaration!)) {
             duplicationProblems ??= {};
             switch (duplicationProblems[typeDeclaration]) {
-              case (:var count, :var offset):
-                duplicationProblems[typeDeclaration] = (
-                  count: count + 1,
-                  offset: offset,
-                );
+              case RepeatedImplements problem:
+                problem.extraCount++;
               case null:
-                duplicationProblems[typeDeclaration] = (
-                  count: 1,
-                  offset: typeBuilder.charOffset ?? TreeNode.noOffset,
+                duplicationProblems[typeDeclaration] = new RepeatedImplements(
+                  uriOffset:
+                      typeBuilder
+                          .uriOffset ?? // Coverage-ignore(suite): Not run.
+                      uriOffset,
                 );
             }
+          } else {
+            implemented.add(typeDeclaration!);
           }
         }
       }
 
       if (duplicationProblems != null) {
-        for (var MapEntry(key: typeDeclaration, value: (:count, :offset))
-            in duplicationProblems.entries) {
-          libraryBuilder.addProblem(
-            diag.implementsRepeated.withArguments(
-              name: typeDeclaration.name,
-              extraCount: count,
-            ),
-            offset,
-            noLength,
-            fileUri,
-          );
-        }
+        libraryBuilder.reportImplementsRepeated(duplicationProblems);
       }
     }
   }

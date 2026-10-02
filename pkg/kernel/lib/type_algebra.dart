@@ -115,13 +115,10 @@ bool containsFreeTypeParameters(
 /// The returned object contains the fresh type parameter list as well as a
 /// mapping to be used for replacing other types to use the new type parameters.
 FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
-  List<TypeParameter> freshParameters = new List<TypeParameter>.generate(
-    typeParameters.length,
-    (i) {
-      TypeParameter typeParameter = typeParameters[i];
-      return new TypeParameter(typeParameter.name)..flags = typeParameter.flags;
-    },
-    growable: false,
+  TypeParameterList freshParameters = TypeParameterList.mapped(
+    typeParameters,
+    (TypeParameter typeParameter) =>
+        new TypeParameter(typeParameter.name)..flags = typeParameter.flags,
   );
   DartTypeList freshTypeArguments = DartTypeList.generate(
     freshParameters.length,
@@ -158,7 +155,7 @@ FreshTypeParameters getFreshTypeParameters(List<TypeParameter> typeParameters) {
 
 class FreshTypeParameters {
   /// The newly created type parameters.
-  final List<TypeParameter> freshTypeParameters;
+  final TypeParameterList freshTypeParameters;
 
   /// List of [TypeParameterType]s for [TypeParameter].
   final DartTypeList freshTypeArguments;
@@ -260,13 +257,10 @@ FreshTypeParametersFromStructuralParameters
 getFreshTypeParametersFromStructuralParameters(
   List<StructuralParameter> typeParameters,
 ) {
-  List<TypeParameter> freshParameters = new List<TypeParameter>.generate(
-    typeParameters.length,
-    (i) {
-      StructuralParameter typeParameter = typeParameters[i];
-      return new TypeParameter(typeParameter.name)..flags = typeParameter.flags;
-    },
-    growable: false,
+  TypeParameterList freshParameters = TypeParameterList.mapped(
+    typeParameters,
+    (StructuralParameter typeParameter) =>
+        new TypeParameter(typeParameter.name)..flags = typeParameter.flags,
   );
   DartTypeList freshTypeArguments = DartTypeList.generate(
     freshParameters.length,
@@ -304,7 +298,7 @@ getFreshTypeParametersFromStructuralParameters(
 
 class FreshTypeParametersFromStructuralParameters {
   /// The newly created type parameters.
-  final List<TypeParameter> freshTypeParameters;
+  final TypeParameterList freshTypeParameters;
 
   /// List of [TypeParameterType]s for [TypeParameter].
   final DartTypeList freshTypeArguments;

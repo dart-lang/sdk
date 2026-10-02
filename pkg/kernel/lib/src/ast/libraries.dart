@@ -209,6 +209,9 @@ class Library extends NamedNode
 
   @override
   void addAnnotation(Expression node) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
     node.parent = this;
     annotations.add(node);
   }
@@ -407,7 +410,7 @@ class LibraryDependency extends TreeNode implements Annotatable {
   int flags;
 
   @override
-  final List<Expression> annotations;
+  List<Expression> annotations;
 
   Reference importedLibraryReference;
 
@@ -480,6 +483,9 @@ class LibraryDependency extends TreeNode implements Annotatable {
 
   @override
   void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
     annotations.add(annotation..parent = this);
   }
 
@@ -535,7 +541,7 @@ class LibraryDependency extends TreeNode implements Annotatable {
 /// optionally with metadata.
 class LibraryPart extends TreeNode implements Annotatable {
   @override
-  final List<Expression> annotations;
+  List<Expression> annotations;
 
   final String partUri;
 
@@ -547,6 +553,9 @@ class LibraryPart extends TreeNode implements Annotatable {
 
   @override
   void addAnnotation(Expression annotation) {
+    if (annotations.isEmpty) {
+      annotations = <Expression>[];
+    }
     annotations.add(annotation..parent = this);
   }
 

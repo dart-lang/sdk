@@ -342,13 +342,18 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitStringConcatenation(StringConcatenation node) {
-    return new StringConcatenation(node.expressions.map(clone).toList());
+    return new StringConcatenation(
+      ExpressionList.generate(
+        node.expressions.length,
+        (i) => clone(node.expressions[i]),
+      ),
+    );
   }
 
   @override
   TreeNode visitListConcatenation(ListConcatenation node) {
     return new ListConcatenation(
-      node.lists.map(clone).toList(),
+      ExpressionList.generate(node.lists.length, (i) => clone(node.lists[i])),
       typeArgument: visitType(node.typeArgument),
     );
   }
@@ -356,7 +361,7 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitSetConcatenation(SetConcatenation node) {
     return new SetConcatenation(
-      node.sets.map(clone).toList(),
+      ExpressionList.generate(node.sets.length, (i) => clone(node.sets[i])),
       typeArgument: visitType(node.typeArgument),
     );
   }
@@ -364,7 +369,7 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitMapConcatenation(MapConcatenation node) {
     return new MapConcatenation(
-      node.maps.map(clone).toList(),
+      ExpressionList.generate(node.maps.length, (i) => clone(node.maps[i])),
       keyType: visitType(node.keyType),
       valueType: visitType(node.valueType),
     );
@@ -384,7 +389,10 @@ class CloneVisitorNotMembers
       ),
       fieldValues,
       node.asserts.map(clone).toList(),
-      node.unusedArguments.map(clone).toList(),
+      ExpressionList.generate(
+        node.unusedArguments.length,
+        (i) => clone(node.unusedArguments[i]),
+      ),
     );
   }
 
@@ -432,7 +440,10 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitListLiteral(ListLiteral node) {
     return new ListLiteral(
-      node.expressions.map(clone).toList(),
+      ExpressionList.generate(
+        node.expressions.length,
+        (i) => clone(node.expressions[i]),
+      ),
       typeArgument: visitType(node.typeArgument),
       isConst: node.isConst,
     );
@@ -441,7 +452,10 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitSetLiteral(SetLiteral node) {
     return new SetLiteral(
-      node.expressions.map(clone).toList(),
+      ExpressionList.generate(
+        node.expressions.length,
+        (i) => clone(node.expressions[i]),
+      ),
       typeArgument: visitType(node.typeArgument),
       isConst: node.isConst,
     );
@@ -465,8 +479,14 @@ class CloneVisitorNotMembers
   @override
   TreeNode visitRecordLiteral(RecordLiteral node) {
     return new RecordLiteral(
-      node.positional.map(clone).toList(),
-      node.named.map(clone).toList(),
+      ExpressionList.generate(
+        node.positional.length,
+        (i) => clone(node.positional[i]),
+      ),
+      NamedExpressionList.generate(
+        node.named.length,
+        (i) => clone(node.named[i]),
+      ),
       visitType(node.recordType) as RecordType,
       isConst: node.isConst,
     );
@@ -677,7 +697,10 @@ class CloneVisitorNotMembers
     return new ForStatement(
       variables,
       cloneOptional(node.condition),
-      node.updates.map(clone).toList(),
+      ExpressionList.generate(
+        node.updates.length,
+        (i) => clone(node.updates[i]),
+      ),
       clone(node.body),
     )..scope = clonedScope;
   }
@@ -702,7 +725,10 @@ class CloneVisitorNotMembers
   TreeNode visitSwitchStatement(SwitchStatement node) {
     for (SwitchCase switchCase in node.cases) {
       switchCases[switchCase] = new SwitchCase(
-        switchCase.expressions.map(clone).toList(),
+        new ExpressionList.generate(
+          switchCase.expressions.length,
+          (int i) => clone(switchCase.expressions[i]),
+        ),
         new List<int>.of(switchCase.expressionOffsets),
         dummyStatement,
         isDefault: switchCase.isDefault,
@@ -1034,13 +1060,18 @@ class CloneVisitorNotMembers
     // The scope should be cloned before the rest of the node, since the
     // variables declared in the scope can appear in the node.
     Scope? clonedScope = _cloneScope(node.scope);
-    List<TypeParameter> typeParameters = node.typeParameters
-        .map(clone)
-        .toList();
-    List<PositionalParameter> positional = node.positionalParameters
-        .map(clone)
-        .toList();
-    List<NamedParameter> named = node.namedParameters.map(clone).toList();
+    TypeParameterList typeParameters = TypeParameterList.generate(
+      node.typeParameters.length,
+      (i) => clone(node.typeParameters[i]),
+    );
+    PositionalParameterList positional = PositionalParameterList.generate(
+      node.positionalParameters.length,
+      (i) => clone(node.positionalParameters[i]),
+    );
+    NamedParameterList named = NamedParameterList.generate(
+      node.namedParameters.length,
+      (i) => clone(node.namedParameters[i]),
+    );
     ThisVariable? thisVariable = cloneOptional(node.thisVariable);
     final DartType? futureValueType = node.emittedValueType != null
         ? visitType(node.emittedValueType!)
@@ -1877,11 +1908,15 @@ class CloneProcedureWithoutBody extends CloneVisitorWithMembers {
   }) {
     Procedure cloned = cloneProcedure(node, reference);
     if (positionalParameters != null) {
-      cloned.function.positionalParameters = positionalParameters;
+      cloned.function.positionalParameters = new PositionalParameterList.from(
+        positionalParameters,
+      );
       setParents(positionalParameters, cloned.function);
     }
     if (namedParameters != null) {
-      cloned.function.namedParameters = namedParameters;
+      cloned.function.namedParameters = new NamedParameterList.from(
+        namedParameters,
+      );
       setParents(namedParameters, cloned.function);
     }
     return cloned;

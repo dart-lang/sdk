@@ -149,6 +149,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     required this.nameOffset,
     this.indexedClass,
     required this._supertypeBuilder,
+    required this._interfaceBuilders,
     this._mixedInTypeBuilder,
     required ClassDeclaration introductory,
     List<ClassDeclaration> augmentations = const [],
@@ -171,6 +172,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       cls.hasConstConstructor = declaresConstConstructor;
     }
   }
+
+  // Coverage-ignore(suite): Not run.
+  /// [UriOffsetLength] for the introductory declaration.
+  UriOffsetLength get uriOffset => _introductory.uriOffset;
 
   @override
   Iterator<SourceMemberBuilder> get unfilteredMembersIterator =>
@@ -370,7 +375,6 @@ class SourceClassBuilder extends ClassBuilderImpl
         anonymousMixinBuilder.buildScopes(loader.coreLibrary);
       },
     );
-    _interfaceBuilders = _introductory.interfaces;
   }
 
   void markAsCyclic(ClassBuilder objectClass) {
@@ -1048,9 +1052,10 @@ class SourceClassBuilder extends ClassBuilderImpl
     if (interfaceBuilders == null) return;
 
     // Validate interfaces.
-    Map<ClassBuilder, int>? problems;
-    Map<ClassBuilder, int>? problemsOffsets;
-    Set<ClassBuilder> implemented = new Set<ClassBuilder>();
+    Map<ClassBuilder, RepeatedImplements>? problems;
+    Set<ClassBuilder> implemented = {};
+    bool allowRepeatedImplements =
+        libraryBuilder.libraryFeatures.augmentations.isEnabled;
     for (TypeBuilder type in interfaceBuilders!) {
       TypeDeclarationBuilder? typeDeclaration = type.declaration;
       TypeDeclarationBuilder? unaliasedDeclaration = type
@@ -1073,13 +1078,21 @@ class SourceClassBuilder extends ClassBuilderImpl
             noLength,
             this.fileUri,
           );
-        } else if (implemented.contains(interface)) {
+        } else if (!allowRepeatedImplements &&
+            implemented.contains(interface)) {
           // Aggregate repetitions.
-          problems ??= <ClassBuilder, int>{};
-          problems[interface] ??= 0;
-          problems[interface] = problems[interface]! + 1;
-          problemsOffsets ??= <ClassBuilder, int>{};
-          problemsOffsets[interface] ??= type.charOffset ?? TreeNode.noOffset;
+          problems ??= {};
+          switch (problems[typeDeclaration]) {
+            case RepeatedImplements problem:
+              // Coverage-ignore(suite): Not run.
+              problem.extraCount++;
+            case null:
+              problems[interface] = new RepeatedImplements(
+                uriOffset:
+                    type.uriOffset ?? // Coverage-ignore(suite): Not run.
+                    uriOffset,
+              );
+          }
         } else {
           implemented.add(interface);
         }
@@ -1092,17 +1105,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       }
     }
     if (problems != null) {
-      problems.forEach((ClassBuilder interface, int repetitions) {
-        libraryBuilder.addProblem(
-          diag.implementsRepeated.withArguments(
-            name: interface.name,
-            extraCount: repetitions,
-          ),
-          problemsOffsets![interface]!,
-          noLength,
-          fileUri,
-        );
-      });
+      libraryBuilder.reportImplementsRepeated(problems);
     }
   }
 
@@ -2571,7 +2574,7 @@ TypeBuilder? _applyMixins({
       name: fullname,
       extensionScope: extensionScope,
       compilationUnitScope: compilationUnitScope,
-      interfaces: isMixinDeclaration ? [supertype!, mixin] : null,
+      uriOffset: new UriOffset(fileUri, nameOffset),
       fileUri: fileUri,
       startOffset: computedStartOffset,
       nameOffset: nameOffset,
@@ -2600,6 +2603,7 @@ TypeBuilder? _applyMixins({
       nameOffset: nameOffset,
       indexedClass: indexedClass,
       supertypeBuilder: isMixinDeclaration ? null : supertype,
+      interfaceBuilders: isMixinDeclaration ? [supertype!, mixin] : null,
       mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
       introductory: classDeclaration,
     );

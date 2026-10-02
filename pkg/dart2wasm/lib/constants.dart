@@ -223,9 +223,10 @@ class Constants {
 
   /// Makes a `WasmArray<_Type>` [InstanceConstant].
   InstanceConstant makeTypeArray(Iterable<DartType> types) {
+    final list = types is List<DartType> ? types : types.toList();
     return makeArrayOf(
       translator.typeType,
-      types.map(_lowerTypeToConstant).toList(),
+      ConstantList.mapped(list, _lowerTypeToConstant),
     );
   }
 
@@ -251,13 +252,13 @@ class Constants {
   /// `_FunctionType`.
   InstanceConstant makeNamedParametersArray(FunctionType type) => makeArrayOf(
     translator.namedParameterType,
-    [for (final n in type.namedParameters) makeNamedParameterConstant(n)],
+    ConstantList.mapped(type.namedParameters, makeNamedParameterConstant),
   );
 
   /// Creates a `WasmArray<T>` with the given [Constant]s
   InstanceConstant makeArrayOf(
     InterfaceType elementType,
-    List<Constant> entries, {
+    ConstantList entries, {
     bool mutable = true,
   }) => InstanceConstant(
     mutable
@@ -461,7 +462,7 @@ class Constants {
     ]);
     final names = makeArrayOf(
       coreTypes.stringNonNullableRawType,
-      type.named.map((t) => StringConstant(t.name)).toList(),
+      ConstantList.mapped(type.named, (n) => StringConstant(n.name)),
       mutable: false,
     );
     return _makeTypeConstant(translator.recordTypeClass, type.nullability, {
@@ -1175,7 +1176,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
 
   @override
   ConstantInfo? visitMapConstant(MapConstant constant) {
-    final listElements = List.generate(constant.entries.length * 2, (i) {
+    final listElements = ConstantList.generate(constant.entries.length * 2, (
+      i,
+    ) {
       ConstantMapEntry entry = constant.entries[i >> 1];
       return i.isEven ? entry.key : entry.value;
     });

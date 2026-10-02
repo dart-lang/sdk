@@ -289,7 +289,7 @@ class ForInLowering {
       body.scope = new Scope(contexts: [stmtVariableContext]);
     }
 
-    final forStatement = ForStatement([], condition, [], body)
+    final forStatement = ForStatement([], condition, ExpressionList.empty, body)
       ..fileOffset = stmt.fileOffset
       ..scope = stmt.scope;
 

@@ -16,68 +16,68 @@ abstract final class NativeType {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class _NativeInteger implements SizedNativeType {}
+abstract final class _NativeInteger {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class _NativeDouble implements SizedNativeType {}
+abstract final class _NativeDouble {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int8 implements _NativeInteger {}
+final class Int8 {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int16 implements _NativeInteger {}
+final class Int16 {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int32 implements _NativeInteger {}
+final class Int32 {}
 
 @patch
 @pragma("vm:entry-point")
-final class Int64 implements _NativeInteger {}
+final class Int64 {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint8 implements _NativeInteger {}
+final class Uint8 {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint16 implements _NativeInteger {}
+final class Uint16 {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint32 implements _NativeInteger {}
+final class Uint32 {}
 
 @patch
 @pragma("vm:entry-point")
-final class Uint64 implements _NativeInteger {}
+final class Uint64 {}
 
 @patch
 @pragma("vm:entry-point")
-final class Float implements _NativeDouble {}
+final class Float {}
 
 @patch
 @pragma("vm:entry-point")
-final class Double implements _NativeDouble {}
+final class Double {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class Bool implements SizedNativeType {}
+abstract final class Bool {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class Void implements NativeType {}
+abstract final class Void {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class Handle implements NativeType {}
+abstract final class Handle {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class NativeFunction<T extends Function> implements NativeType {}
+abstract final class NativeFunction<T extends Function> {}
 
 @patch
 @pragma("vm:entry-point")
-abstract final class VarArgs<T extends Record> implements NativeType {}
+abstract final class VarArgs<T extends Record> {}

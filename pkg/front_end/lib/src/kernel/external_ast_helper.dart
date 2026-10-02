@@ -544,7 +544,7 @@ FileUriExpression createFileUriExpression({
 ForStatement createForStatement({
   required List<VariableDeclaration> variables,
   required Expression? condition,
-  required List<Expression> updates,
+  required ExpressionList updates,
   required Statement body,
   required Scope? scope,
   required int fileOffset,
@@ -586,9 +586,15 @@ FunctionNode createFunctionNode(
 }) {
   return new FunctionNode(
       body,
-      typeParameters: typeParameters,
-      positionalParameters: positionalParameters,
-      namedParameters: namedParameters,
+      typeParameters: typeParameters != null
+          ? new TypeParameterList.from(typeParameters)
+          : null,
+      positionalParameters: positionalParameters != null
+          ? new PositionalParameterList.from(positionalParameters)
+          : null,
+      namedParameters: namedParameters != null
+          ? new NamedParameterList.from(namedParameters)
+          : null,
       returnType: returnType,
       requiredParameterCount: requiredParameterCount,
       asyncMarker: asyncMarker,
@@ -1499,7 +1505,7 @@ StaticTearOff createStaticTearOff(Procedure target, {required int fileOffset}) {
 }
 
 Expression createStringConcatenation(
-  List<Expression> expressions, {
+  ExpressionList expressions, {
   required int fileOffset,
 }) {
   return new StringConcatenation(expressions)..fileOffset = fileOffset;
@@ -1545,7 +1551,7 @@ SuperPropertySet createSuperPropertySet(
 /// Creates a switch case for the case [expressions] and their corresponding
 /// file offsets in [expressionOffsets] with the given [body].
 SwitchCase createSwitchCase({
-  required List<Expression> expressions,
+  required ExpressionList expressions,
   required List<int> expressionOffsets,
   required Statement body,
   required bool isDefault,

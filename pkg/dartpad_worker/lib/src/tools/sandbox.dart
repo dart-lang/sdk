@@ -31,7 +31,7 @@ final class Sandbox {
 
   /// Path to `.dart_tool/package_config.json` for the running program, or
   /// `null` if no program is running.
-  String? get packageConfigPath => _compiler?.packageConfig;
+  String? get packageConfigPath => _compiler?.packageConfigPath;
 
   Sandbox._(this._client, this._vmService, this._rp, this._config);
 
@@ -137,7 +137,11 @@ final class Sandbox {
         entrypoint,
         content: entrypointWrapperTemplate.replaceAll(
           '{{entrypoint}}',
-          _rp.pathContext.basename(originalEntrypoint),
+          _rp.pathContext
+              .toUri(_rp.pathContext.basename(originalEntrypoint))
+              .path
+              .replaceAll("'", r"\'")
+              .replaceAll(r'$', r'\$'),
         ),
         modificationStamp: 0,
       );
@@ -145,7 +149,7 @@ final class Sandbox {
 
     return FrontendServerCompiler(
       resourceProvider: rp,
-      packageConfig: _findPackageConfigFromEntrypoint(entrypoint),
+      packageConfigPath: _findPackageConfigFromEntrypoint(entrypoint),
       targetPath: entrypoint,
       config: _config,
     );
@@ -172,7 +176,7 @@ final class Sandbox {
           _compiler = c;
 
           await _client.loadModules(modules: r.modules);
-          await _client.run(Uri.parse(r.entrypointLibraryUri), mode: mode.mode);
+          await _client.run(r.entrypointLibraryUri, mode: mode.mode);
 
           return (log: r.log);
         } catch (_) {

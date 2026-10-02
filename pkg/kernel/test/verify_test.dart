@@ -65,7 +65,10 @@ void main() {
       Procedure(
         new Name('bar'),
         ProcedureKind.Method,
-        FunctionNode(null, positionalParameters: [variable, variable]),
+        FunctionNode(
+          null,
+          positionalParameters: PositionalParameterList(variable, variable),
+        ),
         fileUri: dummyUri,
       )..fileOffset = dummyFileOffset,
     );
@@ -103,7 +106,7 @@ void main() {
       Class(
         name: 'Test',
         supertype: test.objectClass.asRawSupertype,
-        typeParameters: [parameter, parameter],
+        typeParameters: new TypeParameterList(parameter, parameter),
         fileUri: dummyUri,
       )..fileOffset = dummyFileOffset,
     );
@@ -117,7 +120,7 @@ void main() {
         ProcedureKind.Method,
         new FunctionNode(
           new ReturnStatement(new NullLiteral()),
-          typeParameters: [parameter, parameter],
+          typeParameters: new TypeParameterList(parameter, parameter),
         ),
         fileUri: dummyUri,
       )..fileOffset = dummyFileOffset,
@@ -131,7 +134,7 @@ void main() {
       TypeParameter parameter = test.makeTypeParameter();
       test.addNode(
         ListLiteral(
-          [],
+          ExpressionList.empty,
           typeArgument: new TypeParameterType(
             parameter,
             Nullability.nonNullable,
@@ -209,7 +212,7 @@ void main() {
       TypeParameter parameter = test.makeTypeParameter();
       FunctionNode parent = new FunctionNode(
         new EmptyStatement(),
-        typeParameters: [parameter],
+        typeParameters: new TypeParameterList(parameter),
       );
       test.addNode(
         Class(
@@ -332,7 +335,9 @@ void main() {
       ProcedureKind.Method,
       new FunctionNode(
         new EmptyStatement(),
-        positionalParameters: [new PositionalParameter(parameterName: 'p')],
+        positionalParameters: new PositionalParameterList(
+          new PositionalParameter(parameterName: 'p'),
+        ),
       ),
       isStatic: true,
       fileUri: dummyUri,
@@ -376,7 +381,9 @@ void main() {
         ProcedureKind.Method,
         new FunctionNode(
           new EmptyStatement(),
-          positionalParameters: [new PositionalParameter(parameterName: 'p')],
+          positionalParameters: new PositionalParameterList(
+            new PositionalParameter(parameterName: 'p'),
+          ),
         ),
         isStatic: true,
         fileUri: dummyUri,
@@ -425,7 +432,7 @@ void main() {
         ProcedureKind.Method,
         new FunctionNode(
           new EmptyStatement(),
-          typeParameters: [test.makeTypeParameter()],
+          typeParameters: new TypeParameterList(test.makeTypeParameter()),
         ),
         isStatic: true,
         fileUri: dummyUri,
@@ -651,7 +658,7 @@ void main() {
         Nullability.nonNullable,
         new DartTypeList(new TypeParameterType(param, Nullability.nonNullable)),
       ),
-      typeParameters: [param],
+      typeParameters: new TypeParameterList(param),
       fileUri: dummyUri,
     )..fileOffset = dummyFileOffset;
     test.addNode(foo);
@@ -670,7 +677,7 @@ void main() {
         Nullability.nonNullable,
         new DartTypeList(new TypeParameterType(param, Nullability.nonNullable)),
       ),
-      typeParameters: [param],
+      typeParameters: new TypeParameterList(param),
       fileUri: dummyUri,
     )..fileOffset = dummyFileOffset;
     test.addNode(foo);
@@ -682,7 +689,7 @@ void main() {
     var foo = new Typedef(
       'Foo',
       const DynamicType(),
-      typeParameters: [fooParam],
+      typeParameters: new TypeParameterList(fooParam),
       fileUri: dummyUri,
     )..fileOffset = dummyFileOffset;
     var barParam = new TypeParameter('T', null);
@@ -703,7 +710,7 @@ void main() {
           new TypeParameterType(barParam, Nullability.nonNullable),
         ),
       ),
-      typeParameters: [barParam],
+      typeParameters: new TypeParameterList(barParam),
       fileUri: dummyUri,
     )..fileOffset = dummyFileOffset;
     test.enclosingLibrary.addTypedef(foo);
@@ -716,7 +723,7 @@ void main() {
       var foo = new Typedef(
         'Foo',
         const DynamicType(),
-        typeParameters: [fooParam],
+        typeParameters: new TypeParameterList(fooParam),
         fileUri: dummyUri,
       )..fileOffset = dummyFileOffset;
       var barParam = new TypeParameter('T', null);
@@ -737,7 +744,7 @@ void main() {
             new TypeParameterType(barParam, Nullability.nonNullable),
           ),
         ),
-        typeParameters: [barParam],
+        typeParameters: new TypeParameterList(barParam),
         fileUri: dummyUri,
       );
       fooParam.bound = new TypedefType(
@@ -765,7 +772,7 @@ void main() {
         Nullability.nonNullable,
         new DartTypeList(new TypeParameterType(param, Nullability.nonNullable)),
       ),
-      typeParameters: [param],
+      typeParameters: new TypeParameterList(param),
       fileUri: dummyUri,
     )..fileOffset = dummyFileOffset;
     param.bound = new TypedefType(
@@ -784,7 +791,7 @@ void main() {
       var foo = new Typedef(
         'Foo',
         test.otherRawType,
-        typeParameters: [param],
+        typeParameters: new TypeParameterList(param),
         fileUri: dummyUri,
       )..fileOffset = dummyFileOffset;
       var typedefType = new TypedefType(
@@ -812,7 +819,7 @@ void main() {
       var foo = new Typedef(
         'Foo',
         test.otherRawType,
-        typeParameters: [],
+        typeParameters: TypeParameterList.empty,
         fileUri: dummyUri,
       )..fileOffset = dummyFileOffset;
       var field = new Field.mutable(
@@ -834,7 +841,7 @@ void main() {
       var foo = new Typedef(
         'Foo',
         const DynamicType(),
-        typeParameters: [param],
+        typeParameters: new TypeParameterList(param),
         fileUri: dummyUri,
       )..fileOffset = dummyFileOffset;
       param.defaultType = const DynamicType();
@@ -852,7 +859,7 @@ void main() {
       var foo = new Typedef(
         'Foo',
         const DynamicType(),
-        typeParameters: [param],
+        typeParameters: new TypeParameterList(param),
         fileUri: dummyUri,
       )..fileOffset = dummyFileOffset;
       param.bound = const DynamicType();
@@ -1027,7 +1034,7 @@ class TestHarness {
     classTypeParameter = makeTypeParameter('T');
     enclosingClass = new Class(
       name: 'TestClass',
-      typeParameters: [classTypeParameter],
+      typeParameters: new TypeParameterList(classTypeParameter),
       supertype: objectClass.asRawSupertype,
       fileUri: testUri,
     )..fileOffset = dummyFileOffset;
@@ -1046,7 +1053,7 @@ class TestHarness {
     enclosingClass.addProcedure(enclosingMember);
     otherClass = new Class(
       name: 'OtherClass',
-      typeParameters: [makeTypeParameter('OtherT')],
+      typeParameters: new TypeParameterList(makeTypeParameter('OtherT')),
       supertype: objectClass.asRawSupertype,
       fileUri: testUri,
     )..fileOffset = dummyFileOffset;

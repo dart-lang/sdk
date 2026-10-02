@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:async/async.dart';
+import 'package:path/path.dart' as p;
 
 import '../../worker_harness.dart';
 
@@ -17,7 +18,7 @@ void main() {
     await check(changes).emits(
       .it()
         ..isA<FileAddedEvent>()
-        ..uri.equals(ws.workspaceFolder.resolve('main.dart')),
+        ..path.equals(p.posix.join(ws.workspaceFolder, 'main.dart')),
     );
 
     await changes.cancel();
@@ -35,7 +36,7 @@ void main() {
     await check(changes).emits(
       .it()
         ..isA<FileModifiedEvent>()
-        ..uri.equals(ws.workspaceFolder.resolve('main.dart')),
+        ..path.equals(p.posix.join(ws.workspaceFolder, 'main.dart')),
     );
 
     await changes.cancel();
@@ -53,7 +54,7 @@ void main() {
     await check(changes).emits(
       .it()
         ..isA<FileRemovedEvent>()
-        ..uri.equals(ws.workspaceFolder.resolve('main.dart')),
+        ..path.equals(p.posix.join(ws.workspaceFolder, 'main.dart')),
     );
 
     await changes.cancel();
@@ -69,7 +70,7 @@ void main() {
     await check(changes).emits(
       .it()
         ..isA<FileAddedEvent>()
-        ..uri.equals(ws.workspaceFolder.resolve('lib')),
+        ..path.equals(p.posix.join(ws.workspaceFolder, 'lib')),
     );
 
     await ws.deleteFileSystemEntity('lib');
@@ -77,7 +78,7 @@ void main() {
     await check(changes).emits(
       .it()
         ..isA<FileRemovedEvent>()
-        ..uri.equals(ws.workspaceFolder.resolve('lib')),
+        ..path.equals(p.posix.join(ws.workspaceFolder, 'lib')),
     );
 
     await changes.cancel();
@@ -99,7 +100,7 @@ void main() {
     await check(changes).emits(
       .it()
         ..isA<FileModifiedEvent>()
-        ..uri.path.endsWith('main.dart'),
+        ..path.endsWith('main.dart'),
     );
 
     await changes.cancel();
@@ -129,14 +130,14 @@ void main() {
     await check(changes).emitsThrough(
       .it()
         ..isA<FileAddedEvent>()
-        ..uri.path.startsWith('/pub-cache/')
-        ..uri.path.endsWith('pubspec.yaml'),
+        ..path.startsWith('/pub-cache/')
+        ..path.endsWith('pubspec.yaml'),
     );
 
     await check(changes).emitsThrough(
       .it()
         ..isA<FileModifiedEvent>()
-        ..uri.path.endsWith('pubspec.lock'),
+        ..path.endsWith('pubspec.lock'),
     );
 
     await changes.cancel();

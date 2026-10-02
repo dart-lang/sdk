@@ -270,9 +270,9 @@ final class DartPad extends WorkerClient {
   DartPad._(super.channel, this._worker, this._blobUrl);
 
   @override
-  Future<void> dispose() async {
+  Future<void> close() async {
     try {
-      await super.dispose();
+      await super.close();
       _worker.terminate();
     } finally {
       web.URL.revokeObjectURL(_blobUrl);

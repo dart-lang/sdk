@@ -1269,9 +1269,9 @@ class DelayedDynamicInvocation extends AbstractDelayedExpression {
       ),
       _methodName,
       new Arguments(
-        new ExpressionList.generate(
-          _arguments.length,
-          (int i) => _arguments[i].createExpression(
+        ExpressionList.mapped(
+          _arguments,
+          (DelayedExpression argument) => argument.createExpression(
             typeEnvironment,
             effects: effects,
             inCacheInitializer: inCacheInitializer,
@@ -1440,9 +1440,9 @@ class DelayedInstanceInvocation extends AbstractDelayedExpression {
       ),
       _target.name,
       new Arguments(
-        new ExpressionList.generate(
-          _arguments.length,
-          (int i) => _arguments[i].createExpression(
+        ExpressionList.mapped(
+          _arguments,
+          (DelayedExpression argument) => argument.createExpression(
             typeEnvironment,
             effects: effects,
             inCacheInitializer: inCacheInitializer,
@@ -1509,9 +1509,9 @@ class DelayedExtensionInvocation extends AbstractDelayedExpression {
     return new StaticInvocation(
       _target,
       new Arguments(
-        new ExpressionList.generate(
-          _arguments.length,
-          (int i) => _arguments[i].createExpression(
+        ExpressionList.mapped(
+          _arguments,
+          (DelayedExpression argument) => argument.createExpression(
             typeEnvironment,
             effects: effects,
             inCacheInitializer: inCacheInitializer,

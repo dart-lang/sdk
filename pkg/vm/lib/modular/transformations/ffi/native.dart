@@ -617,14 +617,13 @@ class FfiNativeTransformer extends FfiTransformer {
       FunctionNode(
         /*body=*/ null,
         requiredParameterCount: wrappedDartFunctionType.requiredParameterCount,
-        positionalParameters: [
-          for (final positionalParameter
-              in wrappedDartFunctionType.positionalParameters)
-            PositionalParameter(
-              parameterName: '#t${varCounter++}',
-              type: positionalParameter,
-            )..fileOffset = node.fileOffset,
-        ],
+        positionalParameters: PositionalParameterList.mapped(
+          wrappedDartFunctionType.positionalParameters,
+          (DartType positionalParameter) => PositionalParameter(
+            parameterName: '#t${varCounter++}',
+            type: positionalParameter,
+          )..fileOffset = node.fileOffset,
+        ),
         returnType: wrappedDartFunctionType.returnType,
       )..fileOffset = node.fileOffset,
       fileUri: fileUri,
@@ -786,9 +785,9 @@ class FfiNativeTransformer extends FfiTransformer {
     );
 
     final positionalParameters = node.function.positionalParameters;
-    final argumentList = ExpressionList.generate(
-      positionalParameters.length,
-      (i) => VariableGet(positionalParameters[i]),
+    final argumentList = ExpressionList.mapped(
+      positionalParameters,
+      VariableGet.new,
     );
 
     return _transformProcedure(

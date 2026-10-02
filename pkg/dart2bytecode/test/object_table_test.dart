@@ -24,7 +24,7 @@ main() {
     final cls = Class(
       name: name,
       supertype: objectSupertype,
-      typeParameters: typeParameters,
+      typeParameters: TypeParameterList.from(typeParameters),
       fileUri: lib.fileUri,
     );
     cls.parent = lib;

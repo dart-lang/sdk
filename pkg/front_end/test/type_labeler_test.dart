@@ -65,13 +65,16 @@ void main() {
   Class barClass = new Class(
     name: "Bar",
     supertype: objectSuper,
-    typeParameters: [new TypeParameter("X")],
+    typeParameters: new TypeParameterList(new TypeParameter("X")),
     fileUri: myUri,
   )..parent = myLib;
   Class bazClass = new Class(
     name: "Baz",
     supertype: objectSuper,
-    typeParameters: [new TypeParameter("X"), new TypeParameter("Y")],
+    typeParameters: new TypeParameterList(
+      new TypeParameter("X"),
+      new TypeParameter("Y"),
+    ),
     fileUri: myUri,
   )..parent = myLib;
 
@@ -319,7 +322,7 @@ void main() {
   bazClass.fields.add(yField);
   FunctionNode gooFunction = new FunctionNode(
     new EmptyStatement(),
-    typeParameters: [new TypeParameter("V")],
+    typeParameters: new TypeParameterList(new TypeParameter("V")),
   );
   Procedure gooMethod = new Procedure(
     new Name("goo"),
@@ -390,22 +393,38 @@ void main() {
         "{x: Foo/*1*/ {boo: true}, y: Foo/*2*/ {value: 2, next: null}}",
   }, 3);
 
-  Constant listConst = new ListConstant(dynamicType, [intConst, doubleConst]);
+  Constant listConst = new ListConstant(
+    dynamicType,
+    new ConstantList(intConst, doubleConst),
+  );
   check({listConst: "<dynamic>[2, 2.5]"}, 0);
 
-  Constant listBoolConst = new ListConstant(boolType, [falseConst, trueConst]);
+  Constant listBoolConst = new ListConstant(
+    boolType,
+    new ConstantList(falseConst, trueConst),
+  );
   check({listBoolConst: "<bool>[false, true]"}, 0);
 
-  Constant setConst = new SetConstant(dynamicType, [intConst, doubleConst]);
+  Constant setConst = new SetConstant(
+    dynamicType,
+    new ConstantList(intConst, doubleConst),
+  );
   check({setConst: "<dynamic>{2, 2.5}"}, 0);
 
-  Constant setBoolConst = new SetConstant(boolType, [falseConst, trueConst]);
+  Constant setBoolConst = new SetConstant(
+    boolType,
+    new ConstantList(falseConst, trueConst),
+  );
   check({setBoolConst: "<bool>{false, true}"}, 0);
 
-  Constant mapConst = new MapConstant(boolType, numType, [
-    new ConstantMapEntry(trueConst, intConst),
-    new ConstantMapEntry(falseConst, doubleConst),
-  ]);
+  Constant mapConst = new MapConstant(
+    boolType,
+    numType,
+    new ConstantMapEntryList(
+      new ConstantMapEntry(trueConst, intConst),
+      new ConstantMapEntry(falseConst, doubleConst),
+    ),
+  );
   check({mapConst: "<bool, num>{true: 2, false: 2.5}"}, 0);
 
   Constant tearOffConst = new StaticTearOffConstant(gooMethod);

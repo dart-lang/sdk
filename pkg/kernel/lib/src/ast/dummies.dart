@@ -4,14 +4,6 @@
 
 part of '../../ast.dart';
 
-/// Almost const <NamedExpression>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<NamedExpression> emptyListOfNamedExpression = List.filled(
-  0,
-  dummyNamedExpression,
-  growable: false,
-);
-
 /// Almost const <VariableDeclaration>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<VariableDeclaration> emptyListOfVariableDeclaration = List.filled(
@@ -36,35 +28,11 @@ final List<DeclaredVariable> emptyListOfDeclaredVariable = List.filled(
   growable: false,
 );
 
-/// Almost const <PositionalParameter>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<PositionalParameter> emptyListOfPositionalParameter = List.filled(
-  0,
-  dummyPositionalParameter,
-  growable: false,
-);
-
-/// Almost const <NamedParameter>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<NamedParameter> emptyListOfNamedParameter = List.filled(
-  0,
-  dummyNamedParameter,
-  growable: false,
-);
-
 /// Almost const <Combinator>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Combinator> emptyListOfCombinator = List.filled(
   0,
   dummyCombinator,
-  growable: false,
-);
-
-/// Almost const <Expression>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Expression> emptyListOfExpression = List.filled(
-  0,
-  dummyExpression,
   growable: false,
 );
 
@@ -113,22 +81,6 @@ final List<Catch> emptyListOfCatch = List.filled(
 final List<Supertype> emptyListOfSupertype = List.filled(
   0,
   dummySupertype,
-  growable: false,
-);
-
-/// Almost const <TypeParameter>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<TypeParameter> emptyListOfTypeParameter = List.filled(
-  0,
-  dummyTypeParameter,
-  growable: false,
-);
-
-/// Almost const <Constant>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Constant> emptyListOfConstant = List.filled(
-  0,
-  dummyConstant,
   growable: false,
 );
 

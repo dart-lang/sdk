@@ -1315,7 +1315,7 @@ class RegularAbstractOrExternalFieldEncoding implements FieldEncoding {
       ProcedureKind.Setter,
       new FunctionNode(
           null,
-          positionalParameters: [parameter],
+          positionalParameters: new PositionalParameterList(parameter),
           returnType: const VoidType(),
         )
         ..fileOffset = _fragment.nameOffset

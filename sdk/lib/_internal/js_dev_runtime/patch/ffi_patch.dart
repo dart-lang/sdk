@@ -135,7 +135,7 @@ final class Native<T> {
 }
 
 @patch
-final class _ArraySize<T extends NativeType> implements Array<T> {
+final class _ArraySize<T extends NativeType> {
   @patch
   final int _offsetInBytes = 0;
 

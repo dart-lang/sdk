@@ -395,13 +395,7 @@ class TimerCounterInstrumenterConfig implements InstrumenterConfig {
   Arguments createAfterArguments(List<String> namesById) {
     return new Arguments(
       new ExpressionList(
-        new ListLiteral(
-          List.generate(
-            namesById.length,
-            (i) => new StringLiteral(namesById[i]),
-            growable: false,
-          ),
-        ),
+        new ListLiteral(ExpressionList.mapped(namesById, StringLiteral.new)),
       ),
     );
   }

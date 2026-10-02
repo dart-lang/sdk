@@ -1071,10 +1071,7 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    PositionalParameter copyPositionalParameter(
-      PositionalParameter formal, {
-      required bool isPositional,
-    }) {
+    PositionalParameter copyPositionalParameter(PositionalParameter formal) {
       PositionalParameter copy = extern.createPositionalParameter(
         parameterName: formal.parameterName,
         type: const UnknownType(),
@@ -1091,10 +1088,7 @@ class KernelTarget {
       return copy;
     }
 
-    NamedParameter copyNamedParameter(
-      NamedParameter formal, {
-      required bool isPositional,
-    }) {
+    NamedParameter copyNamedParameter(NamedParameter formal) {
       NamedParameter copy = extern.createNamedParameter(
         parameterName: formal.parameterName,
         type: const UnknownType(),
@@ -1124,30 +1118,25 @@ class KernelTarget {
     List<PositionalParameter> superPositional =
         superConstructor.function.positionalParameters;
     List<NamedParameter> superNamed = superConstructor.function.namedParameters;
-    List<PositionalParameter> positionalParameters = [];
-    List<NamedParameter> namedParameters = [];
-    ExpressionList positional = new ExpressionList.generate(
-      superPositional.length,
-      (int i) {
-        PositionalParameter clone = copyPositionalParameter(
-          superPositional[i],
-          isPositional: true,
+    PositionalParameterList positionalParameters =
+        PositionalParameterList.mapped(
+          superPositional,
+          copyPositionalParameter,
         );
-        positionalParameters.add(clone);
-        return new VariableGet(clone);
-      },
+    NamedParameterList namedParameters = NamedParameterList.mapped(
+      superNamed,
+      copyNamedParameter,
     );
-    NamedExpressionList named = new NamedExpressionList.generate(
-      superNamed.length,
-      (int i) {
-        NamedParameter formal = superNamed[i];
-        NamedParameter clone = copyNamedParameter(formal, isPositional: false);
-        namedParameters.add(clone);
-        return new NamedExpression(
-          formal.parameterName,
-          new VariableGet(clone),
-        );
-      },
+    ExpressionList positional = ExpressionList.mapped(
+      positionalParameters,
+      VariableGet.new,
+    );
+    NamedExpressionList named = NamedExpressionList.mapped(
+      namedParameters,
+      (NamedParameter parameter) => new NamedExpression(
+        parameter.parameterName,
+        new VariableGet(parameter),
+      ),
     );
     FunctionNode function = new FunctionNode(
       new EmptyStatement(),

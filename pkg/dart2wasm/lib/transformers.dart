@@ -476,7 +476,7 @@ class _WasmTransformer extends Transformer {
       isAsync
           ? VariableSet(jumpSentinel, AwaitExpression(condition))
           : condition,
-      const [],
+      ExpressionList.empty,
       body,
     );
 
