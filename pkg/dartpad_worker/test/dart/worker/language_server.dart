@@ -438,7 +438,7 @@ void main() {
       for (final lsp in [lsp1, lsp2]) {
         await lsp.sendRequest('initialize', {
           'processId': null,
-          'rootUri': ws.workspaceFolder.toString(),
+          'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
           'capabilities': {
             'textDocument': {
               'hover': {
@@ -450,7 +450,9 @@ void main() {
         lsp.sendNotification('initialized', {});
       }
 
-      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      final fileUri = p.posix.toUri(
+        p.posix.join(ws.workspaceFolder, 'main.dart'),
+      );
       const code = 'void main() { print("hello"); }';
       await ws.writeFileFromText('main.dart', code);
 
@@ -473,8 +475,8 @@ void main() {
           ..contains('void');
       }
     } finally {
-      await ls1.stop();
-      await ls2.stop();
+      await ls1.close();
+      await ls2.close();
     }
   });
 }
