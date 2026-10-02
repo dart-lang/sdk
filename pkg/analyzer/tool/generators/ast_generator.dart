@@ -413,11 +413,13 @@ if (${property.name}.beginToken case var result?) {
         implClass,
         buffer,
         methodName: '_childContainingRange',
+        deprecated: '${_v1TraversalAnnotationCode('_childContainingRange2')}\n',
         propertyNameFor: (property) => property.v1ViewName,
       );
     } else {
       buffer.write('''
 \n@generated
+${_v1TraversalAnnotationCode('_childContainingRange2')}
 @override
 AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
   throw StateError('${implClass.interfaceName} is not in the V1 AST view.');
@@ -438,6 +440,7 @@ AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
         implClass,
         buffer,
         methodName: '_childContainingRange2',
+        deprecated: '',
         propertyNameFor: (property) => property.name,
       );
     } else {
@@ -455,11 +458,12 @@ AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     _ImplClass implClass,
     StringBuffer buffer, {
     required String methodName,
+    required String deprecated,
     required String Function(_Property property) propertyNameFor,
   }) {
     buffer.write('''
 \n  @generated
-  @override
+  $deprecated@override
   AstNodeImpl? $methodName(int rangeOffset, int rangeEnd) {
 ''');
 
@@ -527,6 +531,7 @@ if ($propertyName.$invocation case var result?) {
 
     buffer.write('''
 \n@generated
+${_v1TraversalAnnotationCode('_childEntities2')}
 @override
 ChildEntities get _childEntities =>''');
 
@@ -1162,9 +1167,12 @@ void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     if (implClass.doNotGenerateLookupNames.contains(methodName)) {
       return;
     }
+    var deprecated = viewName == 'V1'
+        ? '${_v1TraversalAnnotationCode('_childEntities2')}\n'
+        : '';
     buffer.write('''
 \n@generated
-@override
+$deprecated@override
 ChildEntities get $methodName {
   throw StateError('${implClass.interfaceName} is not in the $viewName AST view.');
 }
