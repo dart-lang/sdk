@@ -311,6 +311,34 @@ const LinterLintWithoutArguments analyzerPublicApiImplInPublicApi =
       expectedTypes: [],
     );
 
+/// Lint issued if an element annotated with `@ToBeDeprecated` is used from
+/// a declaration that is not itself annotated with `@ToBeDeprecated`.
+///
+/// `@ToBeDeprecated` marks the API, such as the V1 AST, that will become
+/// deprecated once its replacement is stable. Such API should be used only
+/// to implement other API that will be deprecated too, like
+/// `@Deprecated` with `deprecated_member_use_from_same_package`.
+///
+/// Parameters:
+/// String name: the name of the used element
+/// String details: the message of the `@ToBeDeprecated` annotation, preceded
+///                 by a space; or empty if there is no message
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+analyzerToBeDeprecatedUse = LinterLintTemplate(
+  name: 'analyzer_to_be_deprecated_use',
+  problemMessage:
+      "'{0}' is to be deprecated, and should be used only by declarations that "
+      "are also to be deprecated.{1}",
+  correctionMessage:
+      "Try using the replacement, or annotating the enclosing declaration "
+      "with '@ToBeDeprecated'.",
+  uniqueName: 'analyzer_to_be_deprecated_use',
+  withArguments: _withArgumentsAnalyzerToBeDeprecatedUse,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
 /// Parameters:
 /// Object p0: undocumented
 const DiagnosticWithArguments<
@@ -4169,6 +4197,16 @@ LocatableDiagnostic _withArgumentsAnalyzerPublicApiExportsNonPublicName({
 }) {
   return LocatableDiagnosticImpl(diag.analyzerPublicApiExportsNonPublicName, [
     elements,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAnalyzerToBeDeprecatedUse({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(diag.analyzerToBeDeprecatedUse, [
+    name,
+    details,
   ]);
 }
 
