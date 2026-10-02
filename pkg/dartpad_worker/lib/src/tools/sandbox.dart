@@ -176,7 +176,7 @@ final class Sandbox {
           _compiler = c;
 
           await _client.loadModules(modules: r.modules);
-          await _client.run(Uri.parse(r.entrypointLibraryUri), mode: mode.mode);
+          await _client.run(r.entrypointLibraryUri, mode: mode.mode);
 
           return (log: r.log);
         } catch (_) {
