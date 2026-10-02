@@ -2801,15 +2801,15 @@ class _ConstantTreeShaker implements ConstantVisitor<Constant> {
     );
   }
 
-  List<Constant> treeShakeConstantList(List<Constant> original) {
-    List<Constant>? newEntries;
+  ConstantList treeShakeConstantList(ConstantList original) {
+    ConstantList? newEntries;
     for (int i = 0; i < original.length; ++i) {
       final entry = original[i];
       final entryResult = treeShakeConstant(entry);
       if (newEntries != null) {
         newEntries[i] = entryResult;
       } else if (!identical(entryResult, entry)) {
-        newEntries = List.from(original, growable: false);
+        newEntries = ConstantList.from(original);
         newEntries[i] = entryResult;
       }
     }
@@ -2830,17 +2830,15 @@ class _ConstantTreeShaker implements ConstantVisitor<Constant> {
     return newValues ?? original;
   }
 
-  List<ConstantMapEntry> treeShakeMapEntryList(
-    List<ConstantMapEntry> original,
-  ) {
-    List<ConstantMapEntry>? newEntries;
+  ConstantMapEntryList treeShakeMapEntryList(ConstantMapEntryList original) {
+    ConstantMapEntryList? newEntries;
     for (int i = 0; i < original.length; ++i) {
       final entry = original[i];
       final entryResult = treeShakeMapEntry(entry);
       if (newEntries != null) {
         newEntries[i] = entryResult;
       } else if (!identical(entryResult, entry)) {
-        newEntries = List.from(original, growable: false);
+        newEntries = ConstantMapEntryList.from(original);
         newEntries[i] = entryResult;
       }
     }

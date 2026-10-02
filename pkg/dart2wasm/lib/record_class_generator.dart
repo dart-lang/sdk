@@ -756,13 +756,17 @@ class _RecordClassGenerator {
   }
 
   Constant _fieldNamesConstant(RecordShape shape) {
+    final iterator = shape.names.iterator;
     return InstanceConstant(
       immutableWasmArrayClass.reference,
       DartTypeList(nonNullableStringType),
       {
         immutableWasmArrayValueField.fieldReference: ListConstant(
           nonNullableStringType,
-          shape.names.map((name) => StringConstant(name)).toList(),
+          ConstantList.generate(shape.names.length, (_) {
+            iterator.moveNext();
+            return StringConstant(iterator.current);
+          }),
         ),
       },
     );

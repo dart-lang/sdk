@@ -165,7 +165,9 @@ class SnapshotSerializer {
     addBaseObject(const ast.VoidType());
     addBaseObject(const ast.NullType());
     addBaseObject(const ast.NeverType.nonNullable());
-    addBaseObject(ast.ListConstant(const ast.DynamicType(), const []));
+    addBaseObject(
+      ast.ListConstant(const ast.DynamicType(), ast.ConstantList.empty),
+    );
     addBaseObject(UndefinedConstant());
     addBaseObject(ExceptionHandlers(hasAsyncHandler: false));
     addBaseObject(ExceptionHandlers(hasAsyncHandler: true));
@@ -494,7 +496,10 @@ ast.Constant getNameConstant(String name, ast.Library? library) =>
 /// Create a ListConstant from given [elements], wrapping them if needed.
 ast.ListConstant getListConstant(List<Object?> elements) => ast.ListConstant(
   const ast.DynamicType(),
-  [for (final e in elements) e is ast.Constant ? e : WrapperConstant(e)],
+  ast.ConstantList.mapped(
+    elements,
+    (e) => e is ast.Constant ? e : WrapperConstant(e),
+  ),
 );
 
 final class LibraryRefSerializationCluster extends SerializationCluster {
@@ -1109,9 +1114,13 @@ final class MapSerializationCluster extends SerializationCluster {
   @override
   void trace(SnapshotSerializer serializer, Object object) {
     final map = object as ast.MapConstant;
-    final data = ast.ListConstant(const ast.DynamicType(), [
-      for (final entry in map.entries) ...[entry.key, entry.value],
-    ]);
+    final data = ast.ListConstant(
+      const ast.DynamicType(),
+      ast.ConstantList.generate(map.entries.length * 2, (i) {
+        final entry = map.entries[i >> 1];
+        return i.isEven ? entry.key : entry.value;
+      }),
+    );
     _objects.add(map);
     _dataLists.add(data);
     serializer.push(_typeArguments(map));

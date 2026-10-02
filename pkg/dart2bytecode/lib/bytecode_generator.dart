@@ -446,11 +446,11 @@ class BytecodeGenerator extends RecursiveVisitor {
     if (nodes.isEmpty) {
       return const Annotations(null, false);
     }
-    List<Constant> constants = nodes.map(_getConstant).toList();
+    ConstantList constants = ConstantList.mapped(nodes, _getConstant);
     bool hasPragma = constants.any(_isPragma);
     if (!options.emitAnnotations) {
       if (hasPragma) {
-        constants = constants.where(_isPragma).toList();
+        constants = new ConstantList.from(constants.where(_isPragma).toList());
       } else {
         return const Annotations(null, false);
       }
@@ -484,7 +484,10 @@ class BytecodeGenerator extends RecursiveVisitor {
       return const Annotations(null, false);
     }
 
-    List<Constant> functionConstants = annotations.map(_getConstant).toList();
+    ConstantList functionConstants = ConstantList.mapped(
+      annotations,
+      _getConstant,
+    );
     bool hasPragma = functionConstants.any(_isPragma);
     if (!options.emitAnnotations && !hasPragma) {
       return const Annotations(null, false);
@@ -497,9 +500,10 @@ class BytecodeGenerator extends RecursiveVisitor {
     bytecodeComponent.annotations.add(functionDecl);
 
     for (final parameterNodes in parameterNodeLists) {
-      List<Constant> parameterConstants = parameterNodes
-          .map(_getConstant)
-          .toList();
+      ConstantList parameterConstants = ConstantList.mapped(
+        parameterNodes,
+        _getConstant,
+      );
       final parameterObject = objectTable.getHandle(
         new ListConstant(const DynamicType(), parameterConstants),
       )!;
@@ -3198,7 +3202,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (node.expressions.isEmpty) {
       asm.emitPushConstant(
-        cp.addObjectRef(new ListConstant(const DynamicType(), const [])),
+        cp.addObjectRef(
+          new ListConstant(const DynamicType(), ConstantList.empty),
+        ),
       );
     } else {
       asm.emitDup();
@@ -3252,7 +3258,9 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (node.entries.isEmpty) {
       asm.emitPushConstant(
-        cp.addObjectRef(new ListConstant(const DynamicType(), const [])),
+        cp.addObjectRef(
+          new ListConstant(const DynamicType(), ConstantList.empty),
+        ),
       );
     } else {
       _genTypeArguments([const DynamicType()]);

@@ -540,7 +540,9 @@ void main() {
         ConstantValue.fromBool(false): 'false',
         ConstantValue.fromDouble(3.14): '3.14',
         ConstantValue.fromNull(): 'null',
-        ConstantValue(ast.ListConstant(const ast.DynamicType(), [])): null,
+        ConstantValue(
+          ast.ListConstant(const ast.DynamicType(), ast.ConstantList.empty),
+        ): null,
       };
 
       for (final e in testCases.entries) {
@@ -569,7 +571,7 @@ void main() {
             ast.MapConstant(
               const ast.DynamicType(),
               const ast.DynamicType(),
-              [],
+              ast.ConstantMapEntryList.empty,
             ),
           ),
           ConstantValue.fromString(', z = '),

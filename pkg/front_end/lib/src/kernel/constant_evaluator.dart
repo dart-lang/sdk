@@ -2353,13 +2353,10 @@ class ConstantsTransformer extends RemovingTransformer {
       bool allConstant = true;
       bool hasUnevaluated = false;
 
-      List<Constant> positional = [];
-
       for (int i = 0; i < node.positional.length; i++) {
         Expression result = transform(node.positional[i]);
         node.positional[i] = result..parent = node;
         if (allConstant && result is ConstantExpression) {
-          positional.add(result.constant);
           if (result.constant is UnevaluatedConstant) {
             hasUnevaluated = true;
           }
@@ -2387,6 +2384,10 @@ class ConstantsTransformer extends RemovingTransformer {
           // Coverage-ignore-block(suite): Not run.
           return makeConstantExpression(new UnevaluatedConstant(node), node);
         } else {
+          ConstantList positional = ConstantList.mapped(
+            node.positional,
+            (Expression e) => (e as ConstantExpression).constant,
+          );
           Constant constant = constantEvaluator.canonicalize(
             new RecordConstant.fromTypeContext(
               positional,
@@ -3320,7 +3321,7 @@ class ConstantEvaluator
     // constant, so we report an error on the expressions when these are not
     // constants.
 
-    List<Constant>? positional = _evaluatePositionalArguments(node.positional);
+    ConstantList? positional = _evaluatePositionalArguments(node.positional);
     if (positional == null) {
       AbortConstant error = _gotError!;
       _gotError = null;
@@ -4495,7 +4496,7 @@ class ConstantEvaluator
             );
           case 'add':
             if (receiver is MutableListConstant) {
-              receiver.entries.add(other);
+              receiver.mutableEntries.add(other);
               return receiver;
             }
             return new _AbortDueToThrowConstant(node, new UnsupportedError(op));
@@ -5895,11 +5896,10 @@ class ConstantEvaluator
 
   /// Returns the [positional] arguments on success and null on failure.
   /// Note that on failure an errorConstant is saved in [_gotError].
-  List<Constant>? _evaluatePositionalArguments(List<Expression> positional) {
-    List<Constant> result = new List<Constant>.filled(
+  ConstantList? _evaluatePositionalArguments(List<Expression> positional) {
+    ConstantList result = new ConstantList.filled(
       positional.length,
       dummyConstant,
-      growable: true,
     );
     // These expressions are at the same level, so one of them being
     // unevaluated doesn't mean a sibling is or has an unevaluated child.
@@ -6716,8 +6716,15 @@ class AbortStatus(final AbortConstant error) extends ExecutionStatus;
 class BreakStatus(final LabeledStatement target) extends ExecutionStatus;
 
 /// Mutable lists used within the [ConstantEvaluator].
-class MutableListConstant(super.typeArgument, super.entries)
-    extends ListConstant {
+class MutableListConstant extends ListConstant {
+  final List<Constant> mutableEntries;
+
+  new(DartType typeArgument, this.mutableEntries)
+    : super(typeArgument, ConstantList.empty);
+
+  @override
+  ConstantList get entries => new ConstantList.from(mutableEntries);
+
   @override
   String toString() => 'MutableListConstant(${toStringInternal()})';
 }

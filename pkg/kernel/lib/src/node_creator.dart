@@ -2059,28 +2059,41 @@ class NodeCreator {
         return IntConstant(42);
       case ConstantKind.ListConstant:
         return _createOneOf(_pendingConstants, kind, index, [
-          () => ListConstant(_createDartType(), []),
-          () => ListConstant(_createDartType(), [_createConstant()]),
-          () => ListConstant(_createDartType(), [
-            _createConstant(),
-            _createConstant(),
-          ]),
+          () => ListConstant(_createDartType(), ConstantList.empty),
+          () =>
+              ListConstant(_createDartType(), ConstantList(_createConstant())),
+          () => ListConstant(
+            _createDartType(),
+            ConstantList(_createConstant(), _createConstant()),
+          ),
         ]);
       case ConstantKind.MapConstant:
         return _createOneOf(_pendingConstants, kind, index, [
-          () => MapConstant(_createDartType(), _createDartType(), []),
-          () => MapConstant(_createDartType(), _createDartType(), [
-            ConstantMapEntry(_createConstant(), _createConstant()),
-          ]),
-          () => MapConstant(_createDartType(), _createDartType(), [
-            ConstantMapEntry(_createConstant(), _createConstant()),
-            ConstantMapEntry(_createConstant(), _createConstant()),
-          ]),
+          () => MapConstant(
+            _createDartType(),
+            _createDartType(),
+            ConstantMapEntryList.empty,
+          ),
+          () => MapConstant(
+            _createDartType(),
+            _createDartType(),
+            ConstantMapEntryList(
+              ConstantMapEntry(_createConstant(), _createConstant()),
+            ),
+          ),
+          () => MapConstant(
+            _createDartType(),
+            _createDartType(),
+            ConstantMapEntryList(
+              ConstantMapEntry(_createConstant(), _createConstant()),
+              ConstantMapEntry(_createConstant(), _createConstant()),
+            ),
+          ),
         ]);
       case ConstantKind.RecordConstant:
         return _createOneOf(_pendingConstants, kind, index, [
           () => RecordConstant(
-            [],
+            ConstantList.empty,
             {},
             RecordType(
               DartTypeList.empty,
@@ -2089,7 +2102,7 @@ class NodeCreator {
             ),
           ),
           () => RecordConstant(
-            [_createConstant(), _createConstant()],
+            ConstantList(_createConstant(), _createConstant()),
             {},
             RecordType(
               DartTypeList(_createDartType(), _createDartType()),
@@ -2098,7 +2111,7 @@ class NodeCreator {
             ),
           ),
           () => RecordConstant(
-            [],
+            ConstantList.empty,
             {'a': _createConstant(), 'b': _createConstant()},
             RecordType(
               DartTypeList.empty,
@@ -2110,7 +2123,7 @@ class NodeCreator {
             ),
           ),
           () => RecordConstant(
-            [_createConstant()],
+            ConstantList(_createConstant()),
             {'a': _createConstant()},
             RecordType(
               DartTypeList(_createDartType()),
@@ -2125,12 +2138,12 @@ class NodeCreator {
         return RedirectingFactoryTearOffConstant(_needRedirectingFactory());
       case ConstantKind.SetConstant:
         return _createOneOf(_pendingConstants, kind, index, [
-          () => SetConstant(_createDartType(), []),
-          () => SetConstant(_createDartType(), [_createConstant()]),
-          () => SetConstant(_createDartType(), [
-            _createConstant(),
-            _createConstant(),
-          ]),
+          () => SetConstant(_createDartType(), ConstantList.empty),
+          () => SetConstant(_createDartType(), ConstantList(_createConstant())),
+          () => SetConstant(
+            _createDartType(),
+            ConstantList(_createConstant(), _createConstant()),
+          ),
         ]);
       case ConstantKind.StaticTearOffConstant:
         return StaticTearOffConstant(_needProcedure());

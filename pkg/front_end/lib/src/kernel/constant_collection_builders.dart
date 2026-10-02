@@ -138,7 +138,7 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
         return new MutableListConstant(elementType, entries);
       }
       return evaluator.lowerListConstant(
-        new ListConstant(elementType, entries),
+        new ListConstant(elementType, new ConstantList.from(entries)),
       );
     }
     // TODO(kallentu): Handle partially evaluated [isMutable] lists.
@@ -147,7 +147,11 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
       if (part is List<Constant>) {
         if (part.isEmpty) continue;
         // Coverage-ignore-block(suite): Not run.
-        lists.add(new ConstantExpression(new ListConstant(elementType, part)));
+        lists.add(
+          new ConstantExpression(
+            new ListConstant(elementType, new ConstantList.from(part)),
+          ),
+        );
       } else if (part is Constant) {
         lists.add(evaluator._wrap(part));
       } else {
@@ -221,7 +225,10 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     if (parts.length == 1) {
       // Fully evaluated
       List<Constant> entries = parts.single as List<Constant>;
-      SetConstant result = new SetConstant(elementType, entries);
+      SetConstant result = new SetConstant(
+        elementType,
+        new ConstantList.from(entries),
+      );
       return evaluator.lowerSetConstant(result);
     }
     // Coverage-ignore-block(suite): Not run.
@@ -229,7 +236,11 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     for (Object part in parts) {
       if (part is List<Constant>) {
         if (part.isEmpty) continue;
-        sets.add(new ConstantExpression(new SetConstant(elementType, part)));
+        sets.add(
+          new ConstantExpression(
+            new SetConstant(elementType, new ConstantList.from(part)),
+          ),
+        );
       } else if (part is Constant) {
         sets.add(evaluator._wrap(part));
       } else {
@@ -389,7 +400,11 @@ class MapConstantBuilder {
       // Fully evaluated
       List<ConstantMapEntry> entries = parts.single as List<ConstantMapEntry>;
       return evaluator.lowerMapConstant(
-        new MapConstant(keyType, valueType, entries),
+        new MapConstant(
+          keyType,
+          valueType,
+          new ConstantMapEntryList.from(entries),
+        ),
       );
     }
     // Coverage-ignore-block(suite): Not run.
@@ -398,7 +413,13 @@ class MapConstantBuilder {
       if (part is List<ConstantMapEntry>) {
         if (part.isEmpty) continue;
         maps.add(
-          new ConstantExpression(new MapConstant(keyType, valueType, part)),
+          new ConstantExpression(
+            new MapConstant(
+              keyType,
+              valueType,
+              new ConstantMapEntryList.from(part),
+            ),
+          ),
         );
       } else if (part is Constant) {
         maps.add(evaluator._wrap(part));

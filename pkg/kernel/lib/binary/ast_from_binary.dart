@@ -466,33 +466,24 @@ class BinaryBuilder {
   Constant _readMapConstant() {
     final DartType keyType = readDartType();
     final DartType valueType = readDartType();
-    final int length = readUInt30();
-    final List<ConstantMapEntry> entries = new List<ConstantMapEntry>.generate(
-      length,
-      (_) {
-        final Constant key = readConstantReference();
-        final Constant value = readConstantReference();
-        return new ConstantMapEntry(key, value);
-      },
-      growable: useGrowableLists,
-    );
+    final ConstantMapEntryList entries = _readConstantMapEntryList();
     return new MapConstant(keyType, valueType, entries);
   }
 
   Constant _readListConstant() {
     final DartType typeArgument = readDartType();
-    List<Constant> entries = _readConstantReferenceList();
+    ConstantList entries = _readConstantReferenceList();
     return new ListConstant(typeArgument, entries);
   }
 
   Constant _readSetConstant() {
     final DartType typeArgument = readDartType();
-    List<Constant> entries = _readConstantReferenceList();
+    ConstantList entries = _readConstantReferenceList();
     return new SetConstant(typeArgument, entries);
   }
 
   Constant _readRecordConstant() {
-    List<Constant> positional = _readConstantReferenceList();
+    ConstantList positional = _readConstantReferenceList();
     final int namedLength = readUInt30();
     final List<MapEntry<String, Constant>> named =
         new List<MapEntry<String, Constant>>.generate(namedLength, (_) {
@@ -562,6 +553,22 @@ class BinaryBuilder {
     return new UnevaluatedConstant(expression);
   }
 
+  ConstantMapEntryList _readConstantMapEntryList() {
+    final int length = readUInt30();
+    if (length == 0) return ConstantMapEntryList.empty;
+    if (length == 1) return new ConstantMapEntryList(_readConstantMapEntry());
+    return new ConstantMapEntryList.generate(
+      length,
+      (_) => _readConstantMapEntry(),
+    );
+  }
+
+  ConstantMapEntry _readConstantMapEntry() {
+    final Constant key = readConstantReference();
+    final Constant value = readConstantReference();
+    return new ConstantMapEntry(key, value);
+  }
+
   Constant readConstantReference() {
     final int index = readUInt30();
     Constant constant = _constantTable[index];
@@ -572,18 +579,11 @@ class BinaryBuilder {
     return constant;
   }
 
-  List<Constant> _readConstantReferenceList() {
+  ConstantList _readConstantReferenceList() {
     final int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost constant one for the empty list.
-      return emptyListOfConstant;
-    }
-    return new List<Constant>.generate(
-      length,
-      (_) => readConstantReference(),
-      growable: useGrowableLists,
-    );
+    if (length == 0) return ConstantList.empty;
+    if (length == 1) return new ConstantList(readConstantReference());
+    return new ConstantList.generate(length, (_) => readConstantReference());
   }
 
   Uri readUriReference() {

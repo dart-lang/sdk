@@ -108,14 +108,6 @@ final List<TypeParameter> emptyListOfTypeParameter = List.filled(
   growable: false,
 );
 
-/// Almost const <Constant>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Constant> emptyListOfConstant = List.filled(
-  0,
-  dummyConstant,
-  growable: false,
-);
-
 /// Almost const <String>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<String> emptyListOfString = List.filled(0, '', growable: false);

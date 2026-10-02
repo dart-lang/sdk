@@ -1368,10 +1368,13 @@ class FfiTransformer extends Transformer {
     List<int?> values,
     Nullability elementNullability,
   ) => ConstantExpression(
-    ListConstant(coreTypes.intRawType(elementNullability), [
-      for (var v in values)
-        if (v != null) IntConstant(v) else NullConstant(),
-    ]),
+    ListConstant(
+      coreTypes.intRawType(elementNullability),
+      ConstantList.mapped(
+        values,
+        (v) => v != null ? IntConstant(v) : NullConstant(),
+      ),
+    ),
     _listOfIntType(elementNullability),
   );
 

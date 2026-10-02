@@ -138,11 +138,14 @@ class JsTrampolineWrapperData extends JsInteropMemberData {
   }
 
   @override
-  ListConstant get toPragmaValue => ListConstant(DynamicType(), [
-    IntConstant(numJsParameters),
-    BoolConstant(captureThis),
-    BoolConstant(needsCastClosure),
-  ]);
+  ListConstant get toPragmaValue => ListConstant(
+    DynamicType(),
+    ConstantList(
+      IntConstant(numJsParameters),
+      BoolConstant(captureThis),
+      BoolConstant(needsCastClosure),
+    ),
+  );
 
   String jsCode() {
     final jsParameters = <String>[];
