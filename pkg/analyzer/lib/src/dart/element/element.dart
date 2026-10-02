@@ -1594,7 +1594,7 @@ class DynamicFragmentImpl extends FragmentImpl {
   DynamicFragmentImpl._() : super(firstTokenOffset: null);
 
   @override
-  List<Fragment> get children => const [];
+  List<FragmentImpl> get children => const [];
 
   @override
   DynamicElementImpl get element => DynamicElementImpl.instance;
@@ -2159,7 +2159,7 @@ abstract class ElementImpl implements Element {
 
   @override
   @trackedIndirectly
-  List<Element> get children => const [];
+  List<ElementImpl> get children => const [];
 
   @override
   @trackedIndirectly
@@ -2598,7 +2598,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   @override
   @trackedIndirectly
-  List<Element> get children => [
+  List<ElementImpl> get children => [
     ...super.children,
     ...typeParameters,
     ...formalParameters,
@@ -2858,7 +2858,7 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
   ExecutableFragmentImpl({super.firstTokenOffset});
 
   @override
-  List<Fragment> get children => [...typeParameters, ...formalParameters];
+  List<FragmentImpl> get children => [...typeParameters, ...formalParameters];
 
   @override
   ExecutableElementImpl get element;
@@ -3228,7 +3228,7 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   ExtensionFragmentImpl({required super.name});
 
   @override
-  List<Fragment> get children => [
+  List<FragmentImpl> get children => [
     ...fields,
     ...getters,
     ...methods,
@@ -4224,7 +4224,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   }
 
   @override
-  List<Fragment> get children => const [];
+  List<FragmentImpl> get children => const [];
 
   @override
   FormalParameterElementImpl get element => _element;
@@ -4492,6 +4492,9 @@ abstract class FragmentImpl implements Fragment {
 
   /// Initialize a newly created fragment at the given [firstTokenOffset].
   FragmentImpl({this.firstTokenOffset});
+
+  @override
+  List<FragmentImpl> get children;
 
   /// The length of the element's code, or `null` if the element is synthetic.
   int? get codeLength => _codeLength;
@@ -4919,7 +4922,7 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
   GenericFunctionTypeFragmentImpl({super.firstTokenOffset});
 
   @override
-  List<Fragment> get children => [...typeParameters, ...formalParameters];
+  List<FragmentImpl> get children => [...typeParameters, ...formalParameters];
 
   @override
   List<FormalParameterFragmentImpl> get formalParameters {
@@ -5182,7 +5185,7 @@ sealed class InstanceElementImpl extends ElementImpl
 
   @override
   @trackedIndirectly
-  List<Element> get children {
+  List<ElementImpl> get children {
     return [...fields, ...getters, ...setters, ...methods];
   }
 
@@ -5803,7 +5806,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   @trackedIndirectly
-  List<Element> get children {
+  List<ElementImpl> get children {
     return [...super.children, ...constructors];
   }
 
@@ -6252,7 +6255,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
   InterfaceFragmentImpl({required super.name});
 
   @override
-  List<Fragment> get children => [
+  List<FragmentImpl> get children => [
     ...constructors,
     ...fields,
     ...getters,
@@ -6727,7 +6730,7 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   }) : _onSwitchMember = onSwitchMember;
 
   @override
-  List<Fragment> get children => const [];
+  List<FragmentImpl> get children => const [];
 
   @override
   String get displayName => name ?? '';
@@ -6876,7 +6879,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   @trackedIndirectly
-  List<Element> get children {
+  List<ElementImpl> get children {
     return [
       ...classes,
       ...enums,
@@ -7805,7 +7808,7 @@ class LibraryFragmentImpl extends FragmentImpl
   }
 
   @override
-  List<Fragment> get children {
+  List<FragmentImpl> get children {
     return [
       ...classes,
       ...enums,
@@ -8473,7 +8476,7 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
   });
 
   @override
-  List<Fragment> get children => const [];
+  List<FragmentImpl> get children => const [];
 
   @override
   LocalVariableElementImpl get element => _element2;
@@ -9391,7 +9394,7 @@ class MultiplyDefinedElementImpl extends ElementImpl
   MultiplyDefinedElementImpl get baseElement => this;
 
   @override
-  List<Element> get children => const [];
+  List<ElementImpl> get children => const [];
 
   @override
   String get displayName => name;
@@ -9502,7 +9505,7 @@ class MultiplyDefinedFragmentImpl extends FragmentImpl
   MultiplyDefinedFragmentImpl(this.element);
 
   @override
-  List<Fragment> get children => [];
+  List<FragmentImpl> get children => const [];
 
   @override
   String? get documentationComment => null;
@@ -9605,7 +9608,7 @@ class NeverFragmentImpl extends FragmentImpl {
   NeverFragmentImpl._() : super(firstTokenOffset: null);
 
   @override
-  List<Fragment> get children => const [];
+  List<FragmentImpl> get children => const [];
 
   @override
   NeverElementImpl get element => NeverElementImpl.instance;
@@ -9909,7 +9912,7 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
   });
 
   @override
-  List<Fragment> get children => const [];
+  List<FragmentImpl> get children => const [];
 
   @override
   LibraryFragmentImpl get enclosingFragment =>
@@ -10343,7 +10346,7 @@ abstract class PropertyInducingFragmentImpl
   PropertyInducingFragmentImpl({required this.name});
 
   @override
-  List<Fragment> get children => const [];
+  List<FragmentImpl> get children => const [];
 
   @override
   PropertyInducingElementImpl get element;
@@ -11425,7 +11428,7 @@ class TypeAliasFragmentImpl extends FragmentImpl
   TypeAliasFragmentImpl({required this.name, required super.firstTokenOffset});
 
   @override
-  List<Fragment> get children => const [];
+  List<FragmentImpl> get children => const [];
 
   @override
   String get displayName => name ?? '';
@@ -11638,7 +11641,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
     : super(firstTokenOffset: null);
 
   @override
-  List<Fragment> get children => const [];
+  List<FragmentImpl> get children => const [];
 
   @override
   String get displayName => name ?? '';

@@ -27,14 +27,13 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:collection/collection.dart';
 
-Fragment _getEnclosingFragment(
+FragmentImpl _getEnclosingFragment(
   LibraryFragmentImpl libraryFragment,
   int offset,
 ) {
-  Fragment? visitFragment(Fragment fragment) {
-    var fragmentImpl = fragment as FragmentImpl;
-    var codeOffset = fragmentImpl.codeOffset;
-    var codeLength = fragmentImpl.codeLength;
+  FragmentImpl? visitFragment(FragmentImpl fragment) {
+    var codeOffset = fragment.codeOffset;
+    var codeLength = fragment.codeLength;
     if (codeOffset == null || codeLength == null) {
       return null;
     }
