@@ -473,6 +473,18 @@ class _Element2Writer extends _AbstractElementWriter {
         _sink.writelnWithIndent('thisKeywordOffset: $thisKeywordOffset');
       }
 
+      if (f.primaryHeaderCodeRange case var range?) {
+        _sink.writelnWithIndent(
+          'primaryHeaderCodeRange: ${range.offset} + ${range.length}',
+        );
+      }
+
+      if (f.primaryBodyCodeRange case var range?) {
+        _sink.writelnWithIndent(
+          'primaryBodyCodeRange: ${range.offset} + ${range.length}',
+        );
+      }
+
       _writeFragmentList(
         'formalParameters',
         f,

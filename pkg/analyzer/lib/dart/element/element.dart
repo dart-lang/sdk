@@ -2882,6 +2882,18 @@ abstract class PrefixElement implements Element {
   /// prefix. The namespace combinators of the import directives are taken
   /// into account.
   Scope get scope;
+
+  /// The libraries that provide the names in [scope].
+  ///
+  /// Unlike [imports], which are the imports with this prefix in the file
+  /// that declares it, this includes the libraries imported with the same
+  /// prefix in the enclosing files, because [scope] extends their scopes,
+  /// unless this prefix is deferred. The libraries of files that don't exist
+  /// are not included.
+  ///
+  /// When this prefix is used alone, such as `[math]` in a documentation
+  /// comment, it references the library, if there is exactly one.
+  List<LibraryElement> get scopeLibraries;
 }
 
 /// The portion of a [PrefixElement] contributed by a single declaration.

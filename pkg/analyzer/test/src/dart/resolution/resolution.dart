@@ -402,7 +402,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
             nodeTextConfiguration.withInterfaceTypeElements
         ..withRedirectedConstructors =
             nodeTextConfiguration.withRedirectedConstructors
-        ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
+        ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors
+        ..withImportPrefixScopeLibraries =
+            nodeTextConfiguration.withImportPrefixScopeLibraries,
     );
     ResolvedAstPrinter(
       sink: sink,

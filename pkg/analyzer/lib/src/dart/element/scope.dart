@@ -626,6 +626,13 @@ class LocalScope extends EnclosedScope {
 
 class PrefixScope implements Scope {
   final LibraryFragmentImpl libraryFragment;
+
+  /// The scope of the enclosing file that this scope extends: for a prefix,
+  /// the scope of the prefix with the same name, and for the imports without
+  /// a prefix, the scope of such imports.
+  ///
+  /// It is `null` for a deferred prefix, which provides only the names of its
+  /// own library.
   final PrefixScope? parent;
 
   final List<LibraryImportImpl> _importElements = [];
@@ -673,6 +680,18 @@ class PrefixScope implements Scope {
         }
       }
     }
+  }
+
+  /// The libraries imported into this scope, and into [parent].
+  ///
+  /// Excludes the libraries of files that don't exist, because their URIs
+  /// are already reported, and they don't provide any elements.
+  List<LibraryElementImpl> get libraries {
+    return {
+      for (var library in _importedLibraries)
+        if (!library.isOriginNotExistingFile) library,
+      ...?parent?.libraries,
+    }.toList();
   }
 
   LibraryElementImpl get libraryElement {

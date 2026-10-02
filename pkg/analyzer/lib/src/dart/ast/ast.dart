@@ -81,11 +81,7 @@ abstract final class AdjacentStrings implements StringLiteral {
   NodeList<StringLiteral> get strings;
 }
 
-@GenerateNodeImpl(
-  childEntitiesOrder: [
-    GenerateNodeProperty('strings', isInValueExpressionSlot: true),
-  ],
-)
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('strings')])
 final class AdjacentStringsImpl extends StringLiteralImpl
     implements AdjacentStrings {
   @generated
@@ -116,6 +112,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNodeList('strings', strings);
@@ -134,14 +131,6 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAdjacentStrings(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(strings.contains(child));
-    return true;
-  }
 
   @generated
   @override
@@ -210,6 +199,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (strings._elementContainingRange(rangeOffset, rangeEnd)
@@ -280,6 +270,7 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
     _visitCommentAndAnnotations2(visitor);
   }
 
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
@@ -402,7 +393,7 @@ abstract final class Annotation implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('atSign'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty('expression'),
   ],
 )
 final class AnnotationImpl extends AstNodeImpl
@@ -490,6 +481,7 @@ final class AnnotationImpl extends AstNodeImpl
   }
 
   @DoNotGenerate(reason: 'V1 projections expose the legacy child topology')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('atSign', atSign)
@@ -522,14 +514,6 @@ final class AnnotationImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAnnotation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression, child));
-    return true;
-  }
 
   @generated
   @override
@@ -598,6 +582,7 @@ final class AnnotationImpl extends AstNodeImpl
   }
 
   @DoNotGenerate(reason: 'V1 searches the legacy child topology')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name._containsOffset(rangeOffset, rangeEnd)) {
@@ -679,6 +664,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addNode('block', block);
 
@@ -696,13 +682,6 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitAnonymousBlockBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -760,6 +739,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (block._containsOffset(rangeOffset, rangeEnd)) {
@@ -802,7 +782,6 @@ abstract final class AnonymousExpressionBody implements AnonymousMethodBody {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -854,6 +833,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('functionDefinition', functionDefinition)
@@ -876,14 +856,6 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitAnonymousExpressionBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -941,6 +913,7 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -1187,6 +1160,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('target', target)
@@ -1213,13 +1187,6 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitAnonymousMethodInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -1315,6 +1282,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (target case var target?) {
@@ -1419,7 +1387,6 @@ abstract final class ArgumentList implements AstNode {
       'arguments2',
       v1Name: 'arguments',
       v1Projection: V1Projection.argument,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
   ],
@@ -1496,6 +1463,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
@@ -1518,14 +1486,6 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitArgumentList(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(arguments2.contains(child));
-    return true;
-  }
 
   @generated
   @override
@@ -1580,6 +1540,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (arguments._elementContainingRange(rangeOffset, rangeEnd)
@@ -1652,7 +1613,6 @@ abstract final class AsExpression implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('asOperator'),
     GenerateNodeProperty('type'),
@@ -1722,6 +1682,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('expression', expression)
@@ -1744,13 +1705,6 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAsExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -1825,6 +1779,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -1865,14 +1820,12 @@ abstract final class AssertInitializer
       'condition2',
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('comma'),
     GenerateNodeProperty(
       'message2',
       v1Name: 'message',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
   ],
@@ -1964,6 +1917,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('assertKeyword', assertKeyword)
@@ -1992,13 +1946,6 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAssertInitializer(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -2070,6 +2017,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition._containsOffset(rangeOffset, rangeEnd)) {
@@ -2148,14 +2096,12 @@ abstract final class AssertStatement implements Assertion, Statement {
       'condition2',
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('comma'),
     GenerateNodeProperty(
       'message2',
       v1Name: 'message',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('semicolon'),
@@ -2253,6 +2199,7 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('assertKeyword', assertKeyword)
@@ -2283,13 +2230,6 @@ final class AssertStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAssertStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -2361,6 +2301,7 @@ final class AssertStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition._containsOffset(rangeOffset, rangeEnd)) {
@@ -2431,6 +2372,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
 
@@ -2461,13 +2403,6 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
     return resolverVisitor.operations.unknownType.unwrapTypeSchemaView();
   }
 
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -2495,6 +2430,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -2511,6 +2447,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 ///
 ///     assignmentExpression ::=
 ///         [Expression] operator [Expression]
+@ToBeDeprecated('Use AssignmentExpression2 instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssignmentExpression
     implements MethodReferenceExpression, CompoundAssignmentExpression {
@@ -2600,7 +2537,7 @@ abstract base class AssignmentExpression2Impl extends ExpressionImpl
   childEntitiesOrder: [
     GenerateNodeProperty('leftHandSide'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightHandSide', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightHandSide'),
   ],
 )
 final class AssignmentExpressionImpl extends ExpressionImpl
@@ -2764,6 +2701,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('leftHandSide', leftHandSide)
@@ -2774,33 +2712,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   @override
   ChildEntities get _childEntities2 {
     throw StateError('AssignmentExpression is not in the V2 AST view.');
-  }
-
-  /// The parameter element representing the parameter to which the value of the
-  /// right operand is bound, or `null` if the AST structure is not resolved or
-  /// the function being invoked is not known based on static type information.
-  InternalFormalParameterElement? get _staticParameterElementForRightHandSide {
-    Element? executableElement;
-    if (operator.type != TokenType.EQ) {
-      executableElement = element;
-    } else {
-      executableElement = writeElement;
-    }
-
-    if (executableElement is ExecutableElement) {
-      var formalParameters = executableElement.formalParameters;
-      if (formalParameters.isEmpty) {
-        return null;
-      }
-      if (operator.type == TokenType.EQ && leftHandSide2 is IndexExpression) {
-        return formalParameters.length == 2
-            ? (formalParameters[1] as InternalFormalParameterElement)
-            : null;
-      }
-      return formalParameters[0] as InternalFormalParameterElement;
-    }
-
-    return null;
   }
 
   @generated
@@ -2819,12 +2730,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _v1ProjectionOrigin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'V1 projection children have V1 parent pointers')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    return identical(rightHandSide, child);
-  }
 
   @generated
   @override
@@ -2868,6 +2773,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (leftHandSide._containsOffset(rangeOffset, rangeEnd)) {
@@ -2930,21 +2836,19 @@ final class AssignmentExpressionImpl extends ExpressionImpl
           V1Projection.toV1Expression(target.expression),
       };
 
-  static Element? _v1ReadElement(
-    AssignmentTargetImpl target,
-  ) => switch (target) {
-    CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
-    IndexAssignmentTargetImpl target => target._legacyReadElement,
-    ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
-    UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
-    ImportPrefixedAssignmentTargetImpl target => target._legacyReadElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
-    InvalidExpressionAssignmentTargetImpl() ||
-    InvalidExtensionOverrideAssignmentTargetImpl() ||
-    InvalidSuperAssignmentTargetImpl() ||
-    ParsedAssignmentTargetImpl() => null,
-  };
+  static Element? _v1ReadElement(AssignmentTargetImpl target) =>
+      switch (target) {
+        CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
+        IndexAssignmentTargetImpl target => target._legacyReadElement,
+        ReceiverPropertyAssignmentTargetImpl target =>
+          target._legacyReadElement,
+        UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
+        ImportPrefixedAssignmentTargetImpl target => target._legacyReadElement,
+        InvalidExpressionAssignmentTargetImpl() ||
+        InvalidExtensionOverrideAssignmentTargetImpl() ||
+        InvalidSuperAssignmentTargetImpl() ||
+        ParsedAssignmentTargetImpl() => null,
+      };
 
   static TypeImpl? _v1ReadWriteAssignmentWriteType(
     AssignmentTargetImpl target,
@@ -2963,8 +2867,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     ImportPrefixedAssignmentTargetImpl target => target._legacyWriteElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
     InvalidExpressionAssignmentTargetImpl() ||
     InvalidExtensionOverrideAssignmentTargetImpl() ||
     InvalidSuperAssignmentTargetImpl() ||
@@ -3278,9 +3180,10 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   AstNodeApi get _astNodeApi => AstNodeApi.shared;
 
+  @ToBeDeprecated('Use _childEntities2 instead.')
   ChildEntities get _childEntities => ChildEntities();
 
-  ChildEntities get _childEntities2 => _childEntities;
+  ChildEntities get _childEntities2;
 
   /// V1 topology is materialized only when observed. A shared child can be
   /// reached through V2 before its compatibility parent exists, and that
@@ -3313,14 +3216,6 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   Token? findPrevious(Token target) =>
       util.findPrevious(beginToken, target) ??
       _parentInV1?.findPrevious(target);
-
-  /// Returns `true` if [child] is in a slot of this node that allows a value
-  /// expression.
-  ///
-  /// For example, in `a + b`, both `a` and `b` are in value expression slots.
-  /// However, in `x is T`, `T` is in a type reference slot, so it is not
-  /// in a value expression slot.
-  bool isInValueExpressionSlot(AstNode child) => false;
 
   /// Remove [oldNode] from one of this node's nullable child slots.
   ///
@@ -3496,14 +3391,14 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   ///
   /// Returns `null` if none of the children contain the range (which means that
   /// this node is the covering node).
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd);
 
   /// Returns the child of this node that completely contains the range.
   ///
   /// Returns `null` if none of the children contain the range (which means that
   /// this node is the covering node).
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) =>
-      _childContainingRange(rangeOffset, rangeEnd);
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd);
 
   /// Returns whether this node contains the range from [rangeOffset] to
   /// [rangeEnd].
@@ -3612,7 +3507,6 @@ abstract final class AwaitExpression implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -3666,6 +3560,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.prefix;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('awaitKeyword', awaitKeyword)
@@ -3686,14 +3581,6 @@ final class AwaitExpressionImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAwaitExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -3753,6 +3640,7 @@ final class AwaitExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -3775,6 +3663,9 @@ final class AwaitExpressionImpl extends ExpressionImpl
 ///
 ///     binaryExpression ::=
 ///         [Expression] [Token] [Expression]
+@ToBeDeprecated(
+  'Use BinaryOperatorInvocation, LogicalAnd, LogicalOr, or IfNull instead.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BinaryExpression
     implements Expression, MethodReferenceExpression {
@@ -3805,9 +3696,9 @@ abstract final class BinaryExpression
   api: AstNodeApi.v1,
   generateConstructor: false,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftOperand'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightOperand'),
   ],
 )
 final class BinaryExpressionImpl extends ExpressionImpl
@@ -3908,6 +3799,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('leftOperand', leftOperand)
@@ -3935,13 +3827,6 @@ final class BinaryExpressionImpl extends ExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _origin.computeConstantValue();
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return true;
-  }
 
   @generated
   @override
@@ -3985,6 +3870,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
@@ -4057,9 +3943,9 @@ abstract final class BinaryOperatorInvocation implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftOperand'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightOperand'),
   ],
 )
 final class BinaryOperatorInvocationImpl extends ExpressionImpl
@@ -4161,6 +4047,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('BinaryOperatorInvocation is not in the V1 AST view.');
@@ -4185,13 +4072,6 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitBinaryOperatorInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -4265,6 +4145,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('BinaryOperatorInvocation is not in the V1 AST view.');
@@ -4351,6 +4232,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -4373,13 +4255,6 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlockClassBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -4434,6 +4309,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (members._elementContainingRange(rangeOffset, rangeEnd)
@@ -4522,6 +4398,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -4548,13 +4425,6 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlockEnumBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -4625,6 +4495,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constants._elementContainingRange(rangeOffset, rangeEnd)
@@ -4729,6 +4600,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   bool get isSynchronous => keyword?.lexeme != Keyword.ASYNC.lexeme;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -4751,13 +4623,6 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlockFunctionBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -4815,6 +4680,7 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (block._containsOffset(rangeOffset, rangeEnd)) {
@@ -4877,6 +4743,7 @@ final class BlockImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -4899,13 +4766,6 @@ final class BlockImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlock(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -4960,6 +4820,7 @@ final class BlockImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (statements._elementContainingRange(rangeOffset, rangeEnd)
@@ -5027,6 +4888,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   bool get isSynthetic => literal.isSynthetic;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
@@ -5045,13 +4907,6 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBooleanLiteral(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -5075,6 +4930,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -5169,6 +5025,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('breakKeyword', breakKeyword)
@@ -5191,13 +5048,6 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBreakStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -5254,6 +5104,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (label case var label?) {
@@ -5333,6 +5184,7 @@ final class CallInvocationImpl extends FunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CallInvocation is not in the V1 AST view.');
@@ -5356,13 +5208,6 @@ final class CallInvocationImpl extends FunctionInvocationImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCallInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -5453,6 +5298,7 @@ final class CallInvocationImpl extends FunctionInvocationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CallInvocation is not in the V1 AST view.');
@@ -5519,7 +5365,6 @@ abstract final class CascadeExpression implements Expression {
       'target2',
       v1Name: 'target',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('sections'),
   ],
@@ -5595,6 +5440,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @DoNotGenerate(reason: 'Preserves the flat V1 cascade-section topology')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('target', target)
@@ -5615,13 +5461,6 @@ final class CascadeExpressionImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCascadeExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(target2, child);
-  }
 
   @generated
   @override
@@ -5697,6 +5536,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
   }
 
   @DoNotGenerate(reason: 'Preserves the flat V1 cascade-section topology')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (target._containsOffset(rangeOffset, rangeEnd)) {
@@ -5733,7 +5573,7 @@ abstract final class CascadeIndexAssignmentTarget
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket', isSuper: true),
-    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('index', isSuper: true),
     GenerateNodeProperty('rightBracket', isSuper: true),
   ],
 )
@@ -5763,6 +5603,7 @@ final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CascadeIndexAssignmentTarget is not in the V1 AST view.');
@@ -5787,14 +5628,6 @@ final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCascadeIndexAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(index, child));
-    return true;
-  }
 
   @generated
   @override
@@ -5848,6 +5681,7 @@ final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CascadeIndexAssignmentTarget is not in the V1 AST view.');
@@ -5872,7 +5706,7 @@ abstract final class CascadeIndexExpression implements IndexExpression2 {}
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket', isSuper: true),
-    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('index', isSuper: true),
     GenerateNodeProperty('rightBracket', isSuper: true),
   ],
 )
@@ -5902,6 +5736,7 @@ final class CascadeIndexExpressionImpl extends IndexExpression2Impl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CascadeIndexExpression is not in the V1 AST view.');
@@ -5926,14 +5761,6 @@ final class CascadeIndexExpressionImpl extends IndexExpression2Impl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCascadeIndexExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(index, child));
-    return true;
-  }
 
   @generated
   @override
@@ -5993,6 +5820,7 @@ final class CascadeIndexExpressionImpl extends IndexExpression2Impl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CascadeIndexExpression is not in the V1 AST view.');
@@ -6057,6 +5885,7 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CascadeMethodInvocation is not in the V1 AST view.');
@@ -6081,13 +5910,6 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCascadeMethodInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -6164,6 +5986,7 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CascadeMethodInvocation is not in the V1 AST view.');
@@ -6227,6 +6050,7 @@ final class CascadePropertyAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -6258,13 +6082,6 @@ final class CascadePropertyAssignmentTargetImpl
       visitor.visitCascadePropertyAssignmentTarget(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6284,6 +6101,7 @@ final class CascadePropertyAssignmentTargetImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -6338,6 +6156,7 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CascadePropertyExtraction is not in the V1 AST view.');
@@ -6359,13 +6178,6 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCascadePropertyExtraction(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -6391,6 +6203,7 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CascadePropertyExtraction is not in the V1 AST view.');
@@ -6477,6 +6290,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   bool get _bodyIncludesOperator => identical(body.beginToken, operator);
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CascadeSection is not in the V1 AST view.');
@@ -6503,13 +6317,6 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCascadeSection(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -6563,6 +6370,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CascadeSection is not in the V1 AST view.');
@@ -6637,6 +6445,7 @@ final class CaseClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('caseKeyword', caseKeyword)
@@ -6657,13 +6466,6 @@ final class CaseClauseImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCaseClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -6717,6 +6519,7 @@ final class CaseClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -6821,6 +6624,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('pattern', pattern)
@@ -6847,13 +6651,6 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor.analyzeCastPatternSchema().unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -6950,6 +6747,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -7158,6 +6956,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('onKeyword', onKeyword)
@@ -7192,13 +6991,6 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCatchClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -7306,6 +7098,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (exceptionType case var exceptionType?) {
@@ -7394,6 +7187,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
 
@@ -7414,13 +7208,6 @@ final class CatchClauseParameterImpl extends AstNodeImpl
       visitor.visitCatchClauseParameter(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -7436,6 +7223,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -7789,6 +7577,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -7833,13 +7622,6 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitClassDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -7983,6 +7765,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -8302,6 +8085,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -8348,13 +8132,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitClassTypeAlias(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -8462,6 +8239,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -8631,6 +8409,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CombinatorName is not in the V1 AST view.');
@@ -8653,13 +8432,6 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCombinatorName(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -8677,6 +8449,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CombinatorName is not in the V1 AST view.');
@@ -8782,8 +8555,14 @@ final class CommentImpl extends AstNodeImpl
   @override
   NodeListImpl<CommentReferenceImpl> get references => _references;
 
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
+    ..addNodeList('references', references)
+    ..addTokenList('tokens', tokens);
+
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
     ..addNodeList('references', references)
     ..addTokenList('tokens', tokens);
 
@@ -8825,8 +8604,14 @@ final class CommentImpl extends AstNodeImpl
     _references.accept2(visitor);
   }
 
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _references._elementContainingRange(rangeOffset, rangeEnd);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return _references._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
@@ -8979,6 +8764,7 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CommentReferenceComponent is not in the V1 AST view.');
@@ -9005,13 +8791,6 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
       visitor.visitCommentReferenceComponent(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9029,6 +8808,7 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CommentReferenceComponent is not in the V1 AST view.');
@@ -9119,6 +8899,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   Token? get newKeyword => null;
 
   @DoNotGenerate(reason: 'V1 traverses the projected expression')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNode('expression', expression);
@@ -9137,13 +8918,6 @@ final class CommentReferenceImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCommentReference(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -9198,6 +8972,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   }
 
   @DoNotGenerate(reason: 'V1 searches the projected expression')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -9457,6 +9232,7 @@ final class CompilationUnitImpl extends AstNodeImpl
       ..sort(AstNode.LEXICAL_ORDER);
   }
 
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     return ChildEntities()
@@ -9627,6 +9403,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     }
   }
 
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (_scriptTag?._containsOffset(rangeOffset, rangeEnd) ?? false) {
@@ -9760,7 +9537,7 @@ base mixin CompoundAssignmentExpressionImpl
   childEntitiesOrder: [
     GenerateNodeProperty('target', isSuper: true),
     GenerateNodeProperty('operator', isSuper: true),
-    GenerateNodeProperty('value', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('value', isSuper: true),
   ],
 )
 final class CompoundAssignmentImpl extends AssignmentExpression2Impl
@@ -9836,6 +9613,7 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('CompoundAssignment is not in the V1 AST view.');
@@ -9869,13 +9647,6 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCompoundAssignment(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(value, child);
-  }
 
   @generated
   @override
@@ -9949,6 +9720,7 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('CompoundAssignment is not in the V1 AST view.');
@@ -10007,21 +9779,18 @@ abstract final class ConditionalExpression implements Expression {
       'condition2',
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('question'),
     GenerateNodeProperty(
       'thenExpression2',
       v1Name: 'thenExpression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('colon'),
     GenerateNodeProperty(
       'elseExpression2',
       v1Name: 'elseExpression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -10126,6 +9895,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('condition', condition)
@@ -10154,13 +9924,6 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConditionalExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -10250,6 +10013,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition._containsOffset(rangeOffset, rangeEnd)) {
@@ -10327,7 +10091,7 @@ abstract final class Configuration implements AstNode {
     GenerateNodeProperty('leftParenthesis'),
     GenerateNodeProperty('name'),
     GenerateNodeProperty('equalToken'),
-    GenerateNodeProperty('value', isInValueExpressionSlot: true),
+    GenerateNodeProperty('value'),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('uri'),
   ],
@@ -10418,6 +10182,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('ifKeyword', ifKeyword)
@@ -10448,13 +10213,6 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitConfiguration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(value, child);
-  }
 
   @generated
   @override
@@ -10541,6 +10299,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name._containsOffset(rangeOffset, rangeEnd)) {
@@ -10629,7 +10388,6 @@ abstract final class ConstantPattern implements DartPattern {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -10686,6 +10444,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -10712,14 +10471,6 @@ final class ConstantPatternImpl extends DartPatternImpl
     return resolverVisitor
         .analyzeConstantPatternSchema()
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
   }
 
   @generated
@@ -10790,6 +10541,7 @@ final class ConstantPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -11141,6 +10893,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @DoNotGenerate(reason: 'Uses the legacy ConstructorName projection')
   @Deprecated('Use _childEntities2 instead.')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -11185,13 +10938,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -11299,6 +11045,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @DoNotGenerate(reason: 'Uses the legacy ConstructorName projection')
   @Deprecated('Use _childContainingRange2 instead.')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -11400,7 +11147,6 @@ abstract final class ConstructorFieldInitializer
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -11491,6 +11237,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
       );
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
@@ -11519,14 +11266,6 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorFieldInitializer(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -11581,6 +11320,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fieldName._containsOffset(rangeOffset, rangeEnd)) {
@@ -11762,6 +11502,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ConstructorInvocation is not in the V1 AST view.');
@@ -11787,13 +11528,6 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -11886,6 +11620,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ConstructorInvocation is not in the V1 AST view.');
@@ -11913,6 +11648,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
 ///
 ///     constructorName ::=
 ///         type ('.' identifier)?
+@ToBeDeprecated('Use ConstructorReference2 or ConstructorTearOff instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorName
     implements AstNode, ConstructorReferenceNode {
@@ -12046,6 +11782,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('type', type)
@@ -12067,13 +11804,6 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       throw StateError('ConstructorName is not in the V2 AST view.');
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
 
   @generated
   @override
@@ -12119,6 +11849,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   }) => throw StateError('ConstructorName is not in the V2 AST view.');
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type._containsOffset(rangeOffset, rangeEnd)) {
@@ -12256,6 +11987,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ConstructorReference2 is not in the V1 AST view.');
@@ -12279,13 +12011,6 @@ final class ConstructorReference2Impl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorReference2(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -12356,6 +12081,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ConstructorReference2 is not in the V1 AST view.');
@@ -12421,6 +12147,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNode('constructorName', constructorName);
@@ -12452,13 +12179,6 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _expression.computeConstantValue();
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
 
   @generated
   @override
@@ -12501,6 +12221,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
@@ -12606,6 +12327,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
@@ -12628,13 +12350,6 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorSelector(this);
 
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
   @DoNotGenerate(reason: 'Preserves V1 behavior')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
@@ -12653,6 +12368,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name._containsOffset(rangeOffset, rangeEnd)) {
@@ -12778,6 +12494,7 @@ final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ConstructorTearOff is not in the V1 AST view.');
@@ -12801,13 +12518,6 @@ final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorTearOff(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -12881,6 +12591,7 @@ final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ConstructorTearOff is not in the V1 AST view.');
@@ -13015,6 +12726,7 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ConstructorTypeReference is not in the V1 AST view.');
@@ -13039,13 +12751,6 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorTypeReference(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -13119,6 +12824,7 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ConstructorTypeReference is not in the V1 AST view.');
@@ -13222,6 +12928,7 @@ final class ContinueStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('continueKeyword', continueKeyword)
@@ -13244,13 +12951,6 @@ final class ContinueStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitContinueStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -13307,6 +13007,7 @@ final class ContinueStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (label case var label?) {
@@ -13549,6 +13250,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('keyword', keyword)
@@ -13572,13 +13274,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitDeclaredIdentifier(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -13638,6 +13333,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -13755,6 +13451,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -13787,13 +13484,6 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
           type?.typeOrThrow.wrapSharedTypeView(),
         )
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -13878,6 +13568,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type case var type?) {
@@ -13970,6 +13661,7 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
@@ -13994,13 +13686,6 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitDelimitedFormalParameters(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -14064,6 +13749,7 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('DelimitedFormalParameters is not in the V1 AST view.');
@@ -14096,7 +13782,7 @@ abstract final class DirectAssignment implements AssignmentExpression2 {}
   childEntitiesOrder: [
     GenerateNodeProperty('target', isSuper: true),
     GenerateNodeProperty('operator', isSuper: true),
-    GenerateNodeProperty('value', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('value', isSuper: true),
   ],
 )
 final class DirectAssignmentImpl extends AssignmentExpression2Impl
@@ -14145,6 +13831,7 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('DirectAssignment is not in the V1 AST view.');
@@ -14180,13 +13867,6 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDirectAssignment(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(value, child);
-  }
 
   @generated
   @override
@@ -14260,6 +13940,7 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('DirectAssignment is not in the V1 AST view.');
@@ -14347,7 +14028,6 @@ abstract final class DoStatement implements Statement {
       'condition2',
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('semicolon'),
@@ -14434,6 +14114,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('doKeyword', doKeyword)
@@ -14464,13 +14145,6 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDoStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(condition2, child);
-  }
 
   @generated
   @override
@@ -14539,6 +14213,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (body._containsOffset(rangeOffset, rangeEnd)) {
@@ -14569,6 +14244,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 ///
 ///     dotShorthandHead ::=
 ///         '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+@ToBeDeprecated('Use DotShorthandConstructorInvocation2 instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandConstructorInvocation
     extends InvocationExpression
@@ -14743,6 +14419,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -14773,13 +14450,6 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitDotShorthandConstructorInvocation2(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -14861,6 +14531,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -15005,6 +14676,7 @@ final class DotShorthandConstructorInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -15039,13 +14711,6 @@ final class DotShorthandConstructorInvocationImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _v1ProjectionOrigin.computeConstantValue();
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
 
   @generated
   @override
@@ -15093,6 +14758,7 @@ final class DotShorthandConstructorInvocationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
@@ -15155,6 +14821,7 @@ abstract final class DotShorthandExpression implements Expression {
 ///
 ///     dotShorthandHead ::=
 ///         '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+@ToBeDeprecated('Use DotShorthandMethodInvocation instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandInvocation extends InvocationExpression {
   /// The name of the constructor or static method invocation.
@@ -15318,6 +14985,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
@@ -15350,10 +15018,6 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
         var origin? => origin.computeConstantValue(),
         null => super.computeConstantValue(),
       };
-
-  @DoNotGenerate(reason: 'V1 projection children use V1 parent pointers')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => true;
 
   @generated
   @override
@@ -15401,6 +15065,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (memberName._containsOffset(rangeOffset, rangeEnd)) {
@@ -15484,6 +15149,7 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('DotShorthandMethodInvocation is not in the V1 AST view.');
@@ -15509,13 +15175,6 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitDotShorthandMethodInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -15592,6 +15251,7 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('DotShorthandMethodInvocation is not in the V1 AST view.');
@@ -15677,6 +15337,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('DotShorthandNameExpression is not in the V1 AST view.');
@@ -15705,13 +15366,6 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDotShorthandNameExpression(this, contextType: contextType);
   }
@@ -15734,6 +15388,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('DotShorthandNameExpression is not in the V1 AST view.');
@@ -15752,6 +15407,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
 /// also select a static method or constructor tear-off.
 ///
 ///     dotShorthandHead ::= '.' [SimpleIdentifier]
+@ToBeDeprecated('Use DotShorthandNameExpression instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandPropertyAccess extends Expression {
   /// The token representing the period.
@@ -15854,6 +15510,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
@@ -15884,10 +15541,6 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
         var origin? => origin.computeConstantValue(),
         null => super.computeConstantValue(),
       };
-
-  @DoNotGenerate(reason: 'V1 projection children are not value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => false;
 
   @generated
   @override
@@ -15930,6 +15583,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (propertyName._containsOffset(rangeOffset, rangeEnd)) {
@@ -15977,6 +15631,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addTokenList('tokens', tokens);
@@ -15997,13 +15652,6 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDottedName(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -16019,6 +15667,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -16079,6 +15728,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
@@ -16097,13 +15747,6 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDoubleLiteral(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -16127,6 +15770,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -16252,6 +15896,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('semicolon', semicolon);
@@ -16272,13 +15917,6 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyClassBody(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -16294,6 +15932,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -16343,6 +15982,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('semicolon', semicolon);
@@ -16363,13 +16003,6 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyEnumBody(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -16385,6 +16018,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -16433,6 +16067,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('semicolon', semicolon);
@@ -16451,13 +16086,6 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyFunctionBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @override
   TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
@@ -16479,6 +16107,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -16526,6 +16155,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   bool get isSynthetic => semicolon.isSynthetic;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('semicolon', semicolon);
@@ -16546,13 +16176,6 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyStatement(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -16568,6 +16191,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -16694,6 +16318,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeArguments', typeArguments)
@@ -16718,13 +16343,6 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitEnumConstantArguments(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -16814,6 +16432,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
@@ -16942,6 +16561,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -16966,13 +16586,6 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitEnumConstantDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -17032,6 +16645,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -17203,6 +16817,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -17231,13 +16846,6 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEnumDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -17345,6 +16953,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -17514,6 +17123,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('exportKeyword', exportKeyword)
@@ -17540,13 +17150,6 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitExportDirective(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -17635,6 +17238,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -17812,7 +17416,6 @@ abstract final class ExpressionFunctionBody implements FunctionBody {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('semicolon'),
   ],
@@ -17898,6 +17501,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   bool get isSynchronous => keyword?.lexeme != Keyword.ASYNC.lexeme;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -17926,14 +17530,6 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExpressionFunctionBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -17991,6 +17587,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -18034,10 +17631,6 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
       if (identical(parent.index, this)) {
         return parent._staticParameterElementForIndex;
       }
-    } else if (parent is IndexExpressionImpl) {
-      if (identical(parent.index2, this)) {
-        return parent._staticParameterElementForIndex;
-      }
     } else if (parent is IndexAssignmentTargetImpl) {
       if (identical(parent.index, this)) {
         return parent._staticParameterElementForIndex;
@@ -18050,10 +17643,6 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
           return parameters[0];
         }
         return null;
-      }
-    } else if (parent is AssignmentExpressionImpl) {
-      if (identical(parent.rightHandSide2, this)) {
-        return parent._staticParameterElementForRightHandSide;
       }
     } else if (parent is AssignmentExpression2Impl) {
       if (identical(parent.value, this)) {
@@ -18112,38 +17701,19 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     var libraryElement = unitFragment.element;
 
     switch (this) {
-      case AssignmentExpression() ||
-          AwaitExpression() ||
+      case AwaitExpression() ||
           CascadeExpression() ||
           FunctionExpression() ||
           IncrementOrDecrementExpression() ||
           NullAssertionExpression() ||
-          PostfixExpression() ||
           RethrowExpression() ||
-          SuperExpression() ||
           ThisExpression() ||
           ThrowExpression():
         return null;
-      case PrefixExpression(:var operator)
-          when operator.type == TokenType.PLUS_PLUS ||
-              operator.type == TokenType.MINUS_MINUS:
-        return null;
       case ConstructorInvocation(isConst: false) ||
-              DotShorthandConstructorInvocation(isConst: false) ||
-              DotShorthandConstructorInvocation2(isConst: false) ||
-              InstanceCreationExpression(isConst: false)
+              DotShorthandConstructorInvocation2(isConst: false)
           when !inConstantContext:
         return null;
-      case SimpleIdentifier(:var element):
-        if (element case MethodElement(isStatic: false)) {
-          return null;
-        }
-        var variableElement = element is PropertyAccessorElement
-            ? element.variable
-            : element;
-        if (variableElement case VariableElement(isConst: false)) {
-          return null;
-        }
       case UnqualifiedNameExpression(
         resolution: NamedReadResolutionWithElement(:var element),
       ):
@@ -18461,7 +18031,6 @@ abstract final class ExpressionStatement implements Statement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('semicolon'),
   ],
@@ -18520,6 +18089,7 @@ final class ExpressionStatementImpl extends StatementImpl
       _expression2.isSynthetic && (semicolon == null || semicolon!.isSynthetic);
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('expression', expression)
@@ -18541,14 +18111,6 @@ final class ExpressionStatementImpl extends StatementImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExpressionStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -18602,6 +18164,7 @@ final class ExpressionStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -18677,6 +18240,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('extendsKeyword', extendsKeyword)
@@ -18697,13 +18261,6 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitExtendsClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -18757,6 +18314,7 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (superclass._containsOffset(rangeOffset, rangeEnd)) {
@@ -18915,6 +18473,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -18947,13 +18506,6 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExtensionDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -19046,6 +18598,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -19147,6 +18700,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('onKeyword', onKeyword)
@@ -19167,13 +18721,6 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitExtensionOnClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -19227,6 +18774,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (extendedType._containsOffset(rangeOffset, rangeEnd)) {
@@ -19250,6 +18798,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
 ///
 ///     extensionOverride ::=
 ///         [Identifier] [TypeArgumentList]? [ArgumentList]
+@ToBeDeprecated('Use ExtensionOverride2 instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionOverride implements Expression {
   /// The list of arguments to the override.
@@ -19454,6 +19003,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ExtensionOverride2 is not in the V1 AST view.');
@@ -19479,13 +19029,6 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExtensionOverride2(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -19573,6 +19116,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ExtensionOverride2 is not in the V1 AST view.');
@@ -19665,6 +19209,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('importPrefix', importPrefix)
@@ -19690,12 +19235,10 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     throw StateError('ExtensionOverride is not in the V2 AST view.');
   }
 
-  @generated
+  /// In V2, an extension override is a receiver, not an expression, and is
+  /// never a constant.
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
+  AttemptedConstantEvaluationResult? computeConstantValue() => null;
 
   @generated
   @override
@@ -19736,6 +19279,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (importPrefix case var importPrefix?) {
@@ -19921,6 +19465,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -19951,13 +19496,6 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExtensionTypeDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -20047,6 +19585,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -20226,6 +19765,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   bool get isStatic => staticKeyword != null;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -20260,13 +19800,6 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   bool isAbstractWhenAugmentationsEnabled(FeatureSet featureSet) {
     return abstractKeyword != null &&
         featureSet.isEnabled(Feature.augmentations);
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -20324,6 +19857,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -20453,6 +19987,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   Token get name => super.name!;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('requiredKeyword', requiredKeyword)
@@ -20489,13 +20024,6 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFieldFormalParameter(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -20592,6 +20120,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -20726,6 +20255,7 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
     _iterable2 = _becomeParentOf2AndExisting1(iterable2);
   }
 
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('inKeyword', inKeyword)
@@ -20742,6 +20272,7 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
     iterable.accept(visitor);
   }
 
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
@@ -20771,7 +20302,6 @@ abstract final class ForEachPartsWithDeclaration implements ForEachParts {
       v1Name: 'iterable',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -20811,6 +20341,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('loopVariable', loopVariable)
@@ -20835,13 +20366,6 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForEachPartsWithDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(iterable2, child);
-  }
 
   @generated
   @override
@@ -20910,6 +20434,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (loopVariable._containsOffset(rangeOffset, rangeEnd)) {
@@ -20963,7 +20488,6 @@ abstract final class ForEachPartsWithIdentifier implements ForEachParts {
       v1Name: 'iterable',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -21016,6 +20540,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   Element? get writeElement => _write?.elementOrRecovery;
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('identifier', identifier)
@@ -21040,14 +20565,6 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForEachPartsWithIdentifier(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(iterable2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -21106,6 +20623,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (identifier._containsOffset(rangeOffset, rangeEnd)) {
@@ -21154,7 +20672,6 @@ abstract final class ForEachPartsWithPattern implements ForEachParts {
       v1Name: 'iterable',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -21219,6 +20736,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
@@ -21247,13 +20765,6 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForEachPartsWithPattern(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(iterable2, child);
-  }
 
   @generated
   @override
@@ -21338,6 +20849,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (metadata._elementContainingRange(rangeOffset, rangeEnd)
@@ -21393,7 +20905,6 @@ abstract final class ForElement
       'body2',
       v1Name: 'body',
       v1Projection: V1Projection.collectionElement,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -21480,6 +20991,7 @@ final class ForElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('awaitKeyword', awaitKeyword)
@@ -21508,13 +21020,6 @@ final class ForElementImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitForElement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(body2, child);
-  }
 
   @generated
   @override
@@ -21592,6 +21097,7 @@ final class ForElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
@@ -21804,7 +21310,6 @@ abstract final class FormalParameterDefaultClause implements AstNode {
       'value2',
       v1Name: 'value',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -21856,6 +21361,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('separator', separator)
@@ -21878,14 +21384,6 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFormalParameterDefaultClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(value2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -21939,6 +21437,7 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (value._containsOffset(rangeOffset, rangeEnd)) {
@@ -22188,6 +21687,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
     defaultClause?.accept2(visitor);
   }
 
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   @mustCallSuper
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
@@ -22215,6 +21715,17 @@ sealed class FormalParameterImpl extends AstNodeImpl
       }
     }
     return null;
+  }
+
+  /// The generated subclass implementations check the other children.
+  @override
+  @mustCallSuper
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _documentationComment;
+    }
+    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
@@ -22392,6 +21903,7 @@ final class FormalParameterListImpl extends AstNodeImpl
   @override
   Token? get rightDelimiter => delimitedFormalParameters?.rightDelimiter;
 
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
   ChildEntities get _childEntities {
@@ -22434,13 +21946,6 @@ final class FormalParameterListImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFormalParameterList(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -22517,6 +22022,7 @@ final class FormalParameterListImpl extends AstNodeImpl
   }
 
   @DoNotGenerate(reason: 'Preserves the flat V1 child topology')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     // ignore: deprecated_member_use_from_same_package
@@ -22637,6 +22143,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
   NodeListImpl<ExpressionImpl> get updaters2 => _updaters2;
 
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftSeparator', leftSeparator)
@@ -22651,6 +22158,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     updaters.accept(visitor);
   }
 
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition case var condition?) {
@@ -22682,7 +22190,6 @@ abstract final class ForPartsWithDeclarations implements ForParts {
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
     GenerateNodeProperty(
@@ -22690,7 +22197,6 @@ abstract final class ForPartsWithDeclarations implements ForParts {
       v1Name: 'updaters',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -22735,6 +22241,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('variables', variables)
@@ -22763,13 +22270,6 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForPartsWithDeclarations(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return !identical(variables, child);
-  }
 
   @generated
   @override
@@ -22857,6 +22357,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (variables._containsOffset(rangeOffset, rangeEnd)) {
@@ -22918,7 +22419,6 @@ abstract final class ForPartsWithExpression implements ForParts {
       'initialization2',
       v1Name: 'initialization',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('leftSeparator', isSuper: true),
     GenerateNodeProperty(
@@ -22926,7 +22426,6 @@ abstract final class ForPartsWithExpression implements ForParts {
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
     GenerateNodeProperty(
@@ -22934,7 +22433,6 @@ abstract final class ForPartsWithExpression implements ForParts {
       v1Name: 'updaters',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -22993,6 +22491,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('initialization', initialization)
@@ -23021,13 +22520,6 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForPartsWithExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -23118,6 +22610,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (initialization case var initialization?) {
@@ -23178,7 +22671,6 @@ abstract final class ForPartsWithPattern implements ForParts {
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
     GenerateNodeProperty(
@@ -23186,7 +22678,6 @@ abstract final class ForPartsWithPattern implements ForParts {
       v1Name: 'updaters',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -23231,6 +22722,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('variables', variables)
@@ -23258,13 +22750,6 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForPartsWithPattern(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return !identical(variables, child);
-  }
 
   @generated
   @override
@@ -23352,6 +22837,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (variables._containsOffset(rangeOffset, rangeEnd)) {
@@ -23484,6 +22970,7 @@ final class ForStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('awaitKeyword', awaitKeyword)
@@ -23512,13 +22999,6 @@ final class ForStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitForStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -23587,6 +23067,7 @@ final class ForStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
@@ -23821,7 +23302,7 @@ abstract final class FunctionDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('returnType'),
     GenerateNodeProperty('propertyKeyword'),
     GenerateNodeProperty('name'),
-    GenerateNodeProperty('functionExpression', isInValueExpressionSlot: true),
+    GenerateNodeProperty('functionExpression'),
   ],
 )
 final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
@@ -23969,6 +23450,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
       _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -24006,16 +23488,6 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
       throw StateError('FunctionDeclaration is not in the V2 AST view.');
     }
     return visitor.visitFunctionDeclaration(this);
-  }
-
-  @DoNotGenerate(reason: 'V1 projection children are not value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    if (_v1ProjectionOrigin != null) {
-      return false;
-    }
-    assert(identical(child.parent2, this));
-    return identical(functionExpression, child);
   }
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -24113,6 +23585,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -24194,6 +23667,7 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNode('functionDeclaration', functionDeclaration);
@@ -24214,13 +23688,6 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFunctionDeclarationStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -24276,6 +23743,7 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (functionDeclaration._containsOffset(rangeOffset, rangeEnd)) {
@@ -24464,6 +23932,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
       _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeParameters', typeParameters)
@@ -24495,17 +23964,6 @@ final class FunctionExpressionImpl extends ExpressionImpl
       throw StateError('FunctionExpression is not in the V2 AST view.');
     }
     return visitor.visitFunctionExpression(this);
-  }
-
-  @DoNotGenerate(reason: 'V1 projection objects use the V1 parent')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    if (_v1ProjectionOrigin != null) {
-      assert(identical(child.parent, this));
-    } else {
-      assert(identical(child.parent2, this));
-    }
-    return false;
   }
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -24627,6 +24085,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
@@ -24676,6 +24135,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 ///
 ///     functionExpressionInvocation ::=
 ///         [Expression] [TypeArgumentList]? [ArgumentList]
+@ToBeDeprecated('Use CallInvocation instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionExpressionInvocation
     implements InvocationExpression {
@@ -24788,6 +24248,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('function', function)
@@ -24816,13 +24277,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _origin.computeConstantValue();
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
 
   @generated
   @override
@@ -24868,6 +24322,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (function._containsOffset(rangeOffset, rangeEnd)) {
@@ -24922,7 +24377,7 @@ abstract final class FunctionInstantiation implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
     GenerateNodeProperty('typeArguments'),
   ],
 )
@@ -24993,6 +24448,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('FunctionInstantiation is not in the V1 AST view.');
@@ -25016,13 +24472,6 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFunctionInstantiation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(operand, child);
-  }
 
   @generated
   @override
@@ -25096,6 +24545,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('FunctionInstantiation is not in the V1 AST view.');
@@ -25285,6 +24735,9 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
 /// arguments applied to it.
 ///
 /// For example, the expression `print` in `var x = print;`.
+@ToBeDeprecated(
+  'Use FunctionInstantiation or ImplicitFunctionInstantiation instead.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionReference
     implements Expression, CommentReferableExpression {
@@ -25421,6 +24874,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('function', function)
@@ -25447,10 +24901,6 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _v1ProjectionOrigin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => false;
 
   @generated
   @override
@@ -25492,6 +24942,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (function._containsOffset(rangeOffset, rangeEnd)) {
@@ -25624,6 +25075,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -25654,13 +25106,6 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitFunctionTypeAlias(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -25753,6 +25198,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -25882,6 +25328,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeParameters', typeParameters)
@@ -25906,13 +25353,6 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFunctionTypedFormalParameterSuffix(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -25986,6 +25426,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
@@ -26113,9 +25554,6 @@ class GenerateNodeProperty {
   /// specified (because it can be inferred from the public API declaration).
   final Type? type;
 
-  /// Whether the child is in a ValueExpression slot.
-  final bool isInValueExpressionSlot;
-
   const GenerateNodeProperty(
     this.name, {
     this.v1Name,
@@ -26127,7 +25565,6 @@ class GenerateNodeProperty {
     this.superNullAssertOverride = false,
     this.tokenGroupId,
     this.type,
-    this.isInValueExpressionSlot = false,
   });
 }
 
@@ -26281,6 +25718,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('returnType', returnType)
@@ -26308,13 +25746,6 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitGenericFunctionType(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -26404,6 +25835,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (returnType case var returnType?) {
@@ -26553,6 +25985,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -26583,13 +26016,6 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGenericTypeAlias(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -26664,6 +26090,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -26841,6 +26268,7 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities;
 
@@ -26866,13 +26294,6 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGetterDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -26945,6 +26366,7 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('GetterDeclaration is not in the V1 AST view.');
@@ -27068,6 +26490,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('pattern', pattern)
@@ -27088,13 +26511,6 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGuardedPattern(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -27166,6 +26582,7 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -27257,6 +26674,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -27277,13 +26695,6 @@ final class HideCombinatorImpl extends CombinatorImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitHideCombinator(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -27338,6 +26749,7 @@ final class HideCombinatorImpl extends CombinatorImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (hiddenNames._elementContainingRange(rangeOffset, rangeEnd)
@@ -27362,6 +26774,7 @@ final class HideCombinatorImpl extends CombinatorImpl
 ///     identifier ::=
 ///         [SimpleIdentifier]
 ///       | [PrefixedIdentifier]
+@ToBeDeprecated('Use NameExpression instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Identifier implements Expression, CommentReferableExpression {
   /// The element associated with this identifier based on static type
@@ -27438,7 +26851,6 @@ abstract final class IfElement implements CollectionElement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('caseClause'),
     GenerateNodeProperty('rightParenthesis'),
@@ -27446,14 +26858,12 @@ abstract final class IfElement implements CollectionElement {
       'thenElement2',
       v1Name: 'thenElement',
       v1Projection: V1Projection.collectionElement,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('elseKeyword'),
     GenerateNodeProperty(
       'elseElement2',
       v1Name: 'elseElement',
       v1Projection: V1Projection.collectionElement,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -27606,6 +27016,7 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('ifKeyword', ifKeyword)
@@ -27638,15 +27049,6 @@ final class IfElementImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfElement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child) ||
-        identical(thenElement2, child) ||
-        identical(elseElement2, child);
-  }
 
   @generated
   @override
@@ -27760,6 +27162,7 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -27856,7 +27259,7 @@ abstract final class IfNullAssignment implements AssignmentExpression2 {}
   childEntitiesOrder: [
     GenerateNodeProperty('target', isSuper: true),
     GenerateNodeProperty('operator', isSuper: true),
-    GenerateNodeProperty('value', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('value', isSuper: true),
   ],
 )
 final class IfNullAssignmentImpl extends AssignmentExpression2Impl
@@ -27905,6 +27308,7 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('IfNullAssignment is not in the V1 AST view.');
@@ -27940,13 +27344,6 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfNullAssignment(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(value, child);
-  }
 
   @generated
   @override
@@ -28020,6 +27417,7 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('IfNullAssignment is not in the V1 AST view.');
@@ -28041,9 +27439,9 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftOperand'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightOperand'),
   ],
 )
 final class IfNullImpl extends ExpressionImpl implements IfNull {
@@ -28114,6 +27512,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('IfNull is not in the V1 AST view.');
@@ -28137,13 +27536,6 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfNull(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -28217,6 +27609,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('IfNull is not in the V1 AST view.');
@@ -28284,7 +27677,6 @@ abstract final class IfStatement implements Statement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('caseClause'),
     GenerateNodeProperty('rightParenthesis'),
@@ -28422,6 +27814,7 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('ifKeyword', ifKeyword)
@@ -28454,13 +27847,6 @@ final class IfStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -28565,6 +27951,7 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -28662,6 +28049,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('implementsKeyword', implementsKeyword)
@@ -28682,13 +28070,6 @@ final class ImplementsClauseImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitImplementsClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -28743,6 +28124,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (interfaces._elementContainingRange(rangeOffset, rangeEnd)
@@ -28768,6 +28150,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
 /// Objects of this type aren't produced directly by the parser (because the
 /// parser can't tell whether an expression refers to a callable type); they
 /// are produced at resolution time.
+@ToBeDeprecated('Use ImplicitCallTearOff instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ImplicitCallReference
     implements MethodReferenceExpression {
@@ -28885,6 +28268,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('expression', expression)
@@ -28912,10 +28296,6 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _v1ProjectionOrigin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => false;
 
   @generated
   @override
@@ -28954,6 +28334,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -28994,7 +28375,7 @@ abstract final class ImplicitCallTearOff implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
     GenerateNodeProperty('element'),
   ],
 )
@@ -29061,6 +28442,7 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ImplicitCallTearOff is not in the V1 AST view.');
@@ -29083,14 +28465,6 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImplicitCallTearOff(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand, child));
-    return true;
-  }
 
   @generated
   @override
@@ -29150,6 +28524,7 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ImplicitCallTearOff is not in the V1 AST view.');
@@ -29184,7 +28559,7 @@ abstract final class ImplicitFunctionInstantiation implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
     GenerateNodeProperty('typeArgumentTypes', type: List<TypeImpl>),
   ],
 )
@@ -29252,6 +28627,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -29278,14 +28654,6 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImplicitFunctionInstantiation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand, child));
-    return true;
-  }
 
   @generated
   @override
@@ -29347,6 +28715,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -29543,6 +28912,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   };
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('importKeyword', importKeyword)
@@ -29575,13 +28945,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitImportDirective(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -29671,6 +29034,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -29852,6 +29216,7 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -29883,13 +29248,6 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImportPrefixedAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -29945,6 +29303,7 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -30031,6 +29390,7 @@ final class ImportPrefixedFunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -30060,13 +29420,6 @@ final class ImportPrefixedFunctionInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImportPrefixedFunctionInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -30162,6 +29515,7 @@ final class ImportPrefixedFunctionInvocationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -30285,6 +29639,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ImportPrefixedNameExpression is not in the V1 AST view.');
@@ -30310,13 +29665,6 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImportPrefixedNameExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @override
   void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
@@ -30385,6 +29733,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ImportPrefixedNameExpression is not in the V1 AST view.');
@@ -30454,6 +29803,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('name', name)
@@ -30478,13 +29828,6 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
       visitor.visitImportPrefixReference(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -30500,6 +29843,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -30630,6 +29974,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -30672,8 +30017,6 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     ImportPrefixedAssignmentTargetImpl target => target._legacyReadElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
     InvalidExpressionAssignmentTargetImpl() ||
     InvalidExtensionOverrideAssignmentTargetImpl() ||
     InvalidSuperAssignmentTargetImpl() ||
@@ -30691,8 +30034,6 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     ImportPrefixedAssignmentTargetImpl target => target._legacyWriteElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
     InvalidExpressionAssignmentTargetImpl() ||
     InvalidExtensionOverrideAssignmentTargetImpl() ||
     InvalidSuperAssignmentTargetImpl() ||
@@ -30734,13 +30075,6 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitIncrementOrDecrementExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -30818,6 +30152,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -30953,6 +30288,7 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
 ///
 ///     indexExpression ::=
 ///         [Expression] '[' [Expression] ']'
+@ToBeDeprecated('Use IndexExpression2 or IndexAssignmentTarget instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexExpression implements MethodReferenceExpression {
   /// The expression used to compute the index.
@@ -31114,11 +30450,11 @@ sealed class IndexExpression2Impl extends ExpressionImpl
   api: AstNodeApi.v1,
   generateConstructor: false,
   childEntitiesOrder: [
-    GenerateNodeProperty('target', isInValueExpressionSlot: true),
+    GenerateNodeProperty('target'),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('question'),
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('index', isInValueExpressionSlot: true),
+    GenerateNodeProperty('index'),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -31338,6 +30674,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('target', target)
@@ -31351,20 +30688,6 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   ChildEntities get _childEntities2 {
     throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  /// The parameter element representing the parameter to which the value of the
-  /// index expression is bound, or `null` if the AST structure is not resolved,
-  /// or the function being invoked is not known based on static type
-  /// information.
-  InternalFormalParameterElement? get _staticParameterElementForIndex {
-    if (_v1ProjectionOrigin case IndexAssignmentTargetImpl origin) {
-      return origin._staticParameterElementForIndex;
-    }
-    if (_v1ProjectionOrigin case IndexExpression2Impl origin) {
-      return origin._staticParameterElementForIndex;
-    }
-    throw StateError('Unexpected index projection origin.');
   }
 
   @generated
@@ -31395,10 +30718,6 @@ final class IndexExpressionImpl extends ExpressionImpl
   bool inSetterContext() {
     return _v1ProjectionOrigin is IndexAssignmentTargetImpl;
   }
-
-  @DoNotGenerate(reason: 'V1 projection children are value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => true;
 
   @generated
   @override
@@ -31446,6 +30765,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (target case var target?) {
@@ -31636,6 +30956,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -31665,13 +30986,6 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _origin?.computeConstantValue();
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
 
   @generated
   @override
@@ -31719,6 +31033,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName._containsOffset(rangeOffset, rangeEnd)) {
@@ -31865,6 +31180,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
@@ -31891,13 +31207,6 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIntegerLiteral(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @override
   double? parseDoubleValue({required bool negated}) {
@@ -31936,6 +31245,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -32034,7 +31344,6 @@ abstract final class InterpolationExpression implements InterpolationElement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightBracket'),
   ],
@@ -32094,6 +31403,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -32118,14 +31428,6 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInterpolationExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -32179,6 +31481,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -32263,6 +31566,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
       super.parent2 as StringInterpolationImpl;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('contents', contents);
@@ -32293,13 +31597,6 @@ final class InterpolationStringImpl extends InterpolationElementImpl
       visitor.visitInterpolationString(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -32315,6 +31612,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -32376,9 +31674,7 @@ abstract final class InvalidExpressionAssignmentTarget
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
-  ],
+  childEntitiesOrder: [GenerateNodeProperty('expression')],
 )
 final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
     implements InvalidExpressionAssignmentTarget {
@@ -32426,6 +31722,7 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -32452,14 +31749,6 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInvalidExpressionAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression, child));
-    return true;
-  }
 
   @generated
   @override
@@ -32515,6 +31804,7 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -32589,6 +31879,7 @@ final class InvalidExtensionOverrideAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -32615,13 +31906,6 @@ final class InvalidExtensionOverrideAssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInvalidExtensionOverrideAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -32679,6 +31963,7 @@ final class InvalidExtensionOverrideAssignmentTargetImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -32748,6 +32033,7 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -32774,13 +32060,6 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInvalidExtensionOverrideExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -32847,6 +32126,7 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -33070,6 +32350,7 @@ final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('InvalidSuperAssignmentTarget is not in the V1 AST view.');
@@ -33092,13 +32373,6 @@ final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInvalidSuperAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -33152,6 +32426,7 @@ final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('InvalidSuperAssignmentTarget is not in the V1 AST view.');
@@ -33218,6 +32493,7 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('InvalidSuperExpression is not in the V1 AST view.');
@@ -33240,13 +32516,6 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInvalidSuperExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -33306,6 +32575,7 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('InvalidSuperExpression is not in the V1 AST view.');
@@ -33470,7 +32740,6 @@ abstract final class IsExpression implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('isOperator'),
     GenerateNodeProperty('notOperator'),
@@ -33546,6 +32815,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('expression', expression)
@@ -33570,13 +32840,6 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIsExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -33651,6 +32914,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -33759,6 +33023,7 @@ final class LabeledStatementImpl extends StatementImpl
   StatementImpl get unlabeled => _statement.unlabeled;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('labels', labels)
@@ -33779,13 +33044,6 @@ final class LabeledStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLabeledStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -33855,6 +33113,7 @@ final class LabeledStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
@@ -33915,6 +33174,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('name', name)
@@ -33937,13 +33197,6 @@ final class LabelImpl extends AstNodeImpl implements Label {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLabel(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -33959,6 +33212,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -34007,6 +33261,7 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
 
@@ -34025,13 +33280,6 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLabelReference(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -34047,6 +33295,7 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -34137,6 +33386,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('libraryKeyword', libraryKeyword)
@@ -34159,13 +33409,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLibraryDirective(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -34225,6 +33468,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -34286,7 +33530,6 @@ abstract final class ListLiteral implements TypedLiteral {
       v1Name: 'elements',
       v1Projection: V1Projection.collectionElement,
       isNodeListFinal: false,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightBracket'),
   ],
@@ -34345,6 +33588,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -34379,13 +33623,6 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
         ...moreElements,
       ], V1Projection.toV1CollectionElement);
     AstNodeImpl.linkNodeTokens(this);
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return !identical(typeArguments, child);
   }
 
   @generated
@@ -34465,6 +33702,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
@@ -34592,6 +33830,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeArguments', typeArguments)
@@ -34626,13 +33865,6 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
           elements: elements,
         )
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -34720,6 +33952,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
@@ -34803,9 +34036,9 @@ abstract final class LogicalAnd implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftOperand'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightOperand'),
   ],
 )
 final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
@@ -34876,6 +34109,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('LogicalAnd is not in the V1 AST view.');
@@ -34899,13 +34133,6 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalAnd(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -34979,6 +34206,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('LogicalAnd is not in the V1 AST view.');
@@ -35077,6 +34305,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('leftOperand', leftOperand)
@@ -35105,13 +34334,6 @@ final class LogicalAndPatternImpl extends DartPatternImpl
     return resolverVisitor
         .analyzeLogicalAndPatternSchema(leftOperand, rightOperand)
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -35197,6 +34419,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
@@ -35239,7 +34462,7 @@ abstract final class LogicalNot implements Expression {
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
   ],
 )
 final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
@@ -35292,6 +34515,7 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('LogicalNot is not in the V1 AST view.');
@@ -35314,14 +34538,6 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalNot(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand, child));
-    return true;
-  }
 
   @generated
   @override
@@ -35381,6 +34597,7 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('LogicalNot is not in the V1 AST view.');
@@ -35416,9 +34633,9 @@ abstract final class LogicalOr implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftOperand'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightOperand'),
   ],
 )
 final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
@@ -35489,6 +34706,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('LogicalOr is not in the V1 AST view.');
@@ -35512,13 +34730,6 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalOr(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -35592,6 +34803,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('LogicalOr is not in the V1 AST view.');
@@ -35690,6 +34902,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('leftOperand', leftOperand)
@@ -35718,13 +34931,6 @@ final class LogicalOrPatternImpl extends DartPatternImpl
     return resolverVisitor
         .analyzeLogicalOrPatternSchema(leftOperand, rightOperand)
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -35812,6 +35018,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (leftOperand._containsOffset(rangeOffset, rangeEnd)) {
@@ -35875,7 +35082,6 @@ abstract final class MapLiteralEntry implements CollectionElement {
       'key2',
       v1Name: 'key',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('separator'),
     GenerateNodeProperty('valueQuestion'),
@@ -35883,7 +35089,6 @@ abstract final class MapLiteralEntry implements CollectionElement {
       'value2',
       v1Name: 'value',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -35970,6 +35175,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyQuestion', keyQuestion)
@@ -35996,13 +35202,6 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMapLiteralEntry(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -36080,6 +35279,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (key._containsOffset(rangeOffset, rangeEnd)) {
@@ -36160,7 +35360,6 @@ abstract final class MapPatternEntry implements AstNode, MapPatternElement {
       'key2',
       v1Name: 'key',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('separator'),
     GenerateNodeProperty('value'),
@@ -36227,6 +35426,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('key', key)
@@ -36249,13 +35449,6 @@ final class MapPatternEntryImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMapPatternEntry(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(key2, child);
-  }
 
   @generated
   @override
@@ -36324,6 +35517,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (key._containsOffset(rangeOffset, rangeEnd)) {
@@ -36414,6 +35608,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeArguments', typeArguments)
@@ -36455,13 +35650,6 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
           elements: elements,
         )
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -36543,6 +35731,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
@@ -36582,6 +35771,7 @@ sealed class MemberDeclarationImpl extends AnnotatedNodeImpl
     implements MemberDeclaration {
   MemberDeclarationImpl({required super.comment, required super.metadata});
 
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     super._childEntities;
@@ -36841,6 +36031,7 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities;
 
@@ -36868,13 +36059,6 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitMethodDeclaration2(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -36980,6 +36164,7 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('MethodDeclaration2 is not in the V1 AST view.');
@@ -37181,6 +36366,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -37217,13 +36403,6 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMethodDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -37334,6 +36513,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -37458,6 +36638,10 @@ final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
 ///     methodInvocation ::=
 ///         ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]?
 ///         [ArgumentList]
+@ToBeDeprecated(
+  'Use ReceiverMethodInvocation, NamedFunctionInvocation, '
+  'CascadeMethodInvocation, or ImportPrefixedFunctionInvocation instead.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MethodInvocation implements InvocationExpression {
   /// Whether this expression is cascaded.
@@ -37779,6 +36963,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('target', target)
@@ -37811,12 +36996,6 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
         var origin? => origin.computeConstantValue(),
         null => super.computeConstantValue(),
       };
-
-  @DoNotGenerate(reason: 'V1 projection children are value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    return true;
-  }
 
   @generated
   @override
@@ -37867,6 +37046,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (target case var target?) {
@@ -38098,6 +37278,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -38130,13 +37311,6 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMixinDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -38247,6 +37421,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -38353,6 +37528,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('onKeyword', onKeyword)
@@ -38373,13 +37549,6 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMixinOnClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -38434,6 +37603,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (superclassConstraints._elementContainingRange(rangeOffset, rangeEnd)
@@ -38485,7 +37655,6 @@ abstract final class NamedArgument implements Argument {
       'argumentExpression2',
       v1Name: 'argumentExpression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -38542,6 +37711,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('name', name)
@@ -38564,14 +37734,6 @@ final class NamedArgumentImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNamedArgument(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(argumentExpression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -38627,6 +37789,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (argumentExpression._containsOffset(rangeOffset, rangeEnd)) {
@@ -38934,6 +38097,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   AstNodeApi get _astNodeApi => _astNodeApiOverride ?? AstNodeApi.shared;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('importPrefix', importPrefix)
@@ -38967,13 +38131,6 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
       throw StateError('NamedType is not in the V2 AST view.');
     }
     return visitor.visitNamedType(this);
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -39068,6 +38225,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (importPrefix case var importPrefix?) {
@@ -39262,6 +38420,7 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('typeName', typeName)
@@ -39284,13 +38443,6 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitNameWithTypeParameters(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -39347,6 +38499,7 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
@@ -39429,6 +38582,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('nativeKeyword', nativeKeyword)
@@ -39449,13 +38603,6 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNativeClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -39512,6 +38659,7 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name case var name?) {
@@ -39603,6 +38751,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('nativeKeyword', nativeKeyword)
@@ -39626,13 +38775,6 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitNativeFunctionBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -39693,6 +38835,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (stringLiteral case var stringLiteral?) {
@@ -39979,7 +39122,7 @@ abstract final class NullAssertionExpression implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
     GenerateNodeProperty('operator'),
   ],
 )
@@ -40036,6 +39179,7 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('NullAssertionExpression is not in the V1 AST view.');
@@ -40059,14 +39203,6 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitNullAssertionExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand, child));
-    return true;
-  }
 
   @generated
   @override
@@ -40126,6 +39262,7 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('NullAssertionExpression is not in the V1 AST view.');
@@ -40205,6 +39342,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('pattern', pattern)
@@ -40231,13 +39369,6 @@ final class NullAssertPatternImpl extends DartPatternImpl
     return resolverVisitor
         .analyzeNullCheckOrAssertPatternSchema(pattern, isAssert: true)
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -40308,6 +39439,7 @@ final class NullAssertPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -40349,7 +39481,6 @@ abstract final class NullAwareElement implements CollectionElement {
       'value2',
       v1Name: 'value',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -40399,6 +39530,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('question', question)
@@ -40419,14 +39551,6 @@ final class NullAwareElementImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNullAwareElement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(value2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -40489,6 +39613,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (value._containsOffset(rangeOffset, rangeEnd)) {
@@ -40571,6 +39696,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('pattern', pattern)
@@ -40597,13 +39723,6 @@ final class NullCheckPatternImpl extends DartPatternImpl
     return resolverVisitor
         .analyzeNullCheckOrAssertPatternSchema(pattern, isAssert: false)
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -40674,6 +39793,7 @@ final class NullCheckPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -40724,6 +39844,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
@@ -40742,13 +39863,6 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNullLiteral(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -40772,6 +39886,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -40863,6 +39978,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('type', type)
@@ -40893,13 +40009,6 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     return resolverVisitor
         .analyzeObjectPatternSchema(SharedTypeView(type.typeOrThrow))
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -40997,6 +40106,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type._containsOffset(rangeOffset, rangeEnd)) {
@@ -41176,6 +40286,7 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities;
 
@@ -41202,13 +40313,6 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitOperatorDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -41297,6 +40401,7 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('OperatorDeclaration is not in the V1 AST view.');
@@ -41350,7 +40455,6 @@ abstract final class ParenthesizedExpression implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
   ],
@@ -41435,6 +40539,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
@@ -41459,14 +40564,6 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParenthesizedExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -41526,6 +40623,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -41626,6 +40724,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   VariablePatternImpl? get variablePattern => pattern.variablePattern;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
@@ -41656,13 +40755,6 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
     return resolverVisitor
         .dispatchPatternSchema(pattern)
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -41728,6 +40820,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -41819,6 +40912,7 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedCascadeName is not in the V1 AST view.');
@@ -41839,13 +40933,6 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitParsedCascadeName(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
@@ -41871,6 +40958,7 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedCascadeName is not in the V1 AST view.');
@@ -41895,9 +40983,7 @@ abstract final class ParsedDotShorthandExpression implements Expression {
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
-  ],
+  childEntitiesOrder: [GenerateNodeProperty('expression')],
 )
 final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
     implements ParsedDotShorthandExpression {
@@ -41942,6 +41028,7 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
@@ -41964,14 +41051,6 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParsedDotShorthandExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression, child));
-    return true;
-  }
 
   @generated
   @override
@@ -42031,6 +41110,7 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedDotShorthandExpression is not in the V1 AST view.');
@@ -42095,6 +41175,7 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedDotShorthandName is not in the V1 AST view.');
@@ -42118,13 +41199,6 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParsedDotShorthandName(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
@@ -42150,6 +41224,7 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedDotShorthandName is not in the V1 AST view.');
@@ -42298,6 +41373,7 @@ final class ParsedNameAccessAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -42326,13 +41402,6 @@ final class ParsedNameAccessAssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParsedNameAccessAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -42388,6 +41457,7 @@ final class ParsedNameAccessAssignmentTargetImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -42462,6 +41532,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedNameAccess is not in the V1 AST view.');
@@ -42485,13 +41556,6 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitParsedNameAccess(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -42551,6 +41615,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedNameAccess is not in the V1 AST view.');
@@ -42632,6 +41697,7 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedTypeArguments is not in the V1 AST view.');
@@ -42655,13 +41721,6 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParsedTypeArguments(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -42735,6 +41794,7 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedTypeArguments is not in the V1 AST view.');
@@ -42800,6 +41860,7 @@ final class ParsedUnqualifiedNameAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -42827,13 +41888,6 @@ final class ParsedUnqualifiedNameAssignmentTargetImpl
       visitor.visitParsedUnqualifiedNameAssignmentTarget(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -42853,6 +41907,7 @@ final class ParsedUnqualifiedNameAssignmentTargetImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -42907,6 +41962,7 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedUnqualifiedName is not in the V1 AST view.');
@@ -42928,13 +41984,6 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParsedUnqualifiedName(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
@@ -42960,6 +42009,7 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedUnqualifiedName is not in the V1 AST view.');
@@ -43075,6 +42125,7 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ParsedValueArguments is not in the V1 AST view.');
@@ -43098,13 +42149,6 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParsedValueArguments(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -43178,6 +42222,7 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ParsedValueArguments is not in the V1 AST view.');
@@ -43256,6 +42301,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('partKeyword', partKeyword)
@@ -43278,13 +42324,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPartDirective(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -43341,6 +42380,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -43465,6 +42505,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('partKeyword', partKeyword)
@@ -43491,13 +42532,6 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPartOfDirective(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -43575,6 +42609,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -43641,7 +42676,6 @@ abstract final class PatternAssignment implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -43716,6 +42750,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   Precedence get precedence => Precedence.assignment;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('pattern', pattern)
@@ -43738,13 +42773,6 @@ final class PatternAssignmentImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPatternAssignment(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -43819,6 +42847,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -43941,6 +42970,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('name', name)
@@ -43961,13 +42991,6 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPatternField(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -44039,6 +43062,7 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (name case var name?) {
@@ -44115,6 +43139,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('name', name)
@@ -44137,13 +43162,6 @@ final class PatternFieldNameImpl extends AstNodeImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPatternFieldName(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -44159,6 +43177,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -44203,7 +43222,6 @@ abstract final class PatternVariableDeclaration implements AnnotatedNode {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -44291,6 +43309,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('keyword', keyword)
@@ -44317,13 +43336,6 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPatternVariableDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -44395,6 +43407,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -44483,6 +43496,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('declaration', declaration)
@@ -44505,13 +43519,6 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPatternVariableDeclarationStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -44565,6 +43572,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (declaration._containsOffset(rangeOffset, rangeEnd)) {
@@ -44714,6 +43722,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('operand', operand)
@@ -44740,10 +43749,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _origin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'The operand is not a value expression slot')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => false;
 
   @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
   @override
@@ -44785,6 +43790,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (operand._containsOffset(rangeOffset, rangeEnd)) {
@@ -44805,6 +43811,9 @@ final class PostfixExpressionImpl extends ExpressionImpl
 ///
 ///     prefixedIdentifier ::=
 ///         [SimpleIdentifier] '.' [SimpleIdentifier]
+@ToBeDeprecated(
+  'Use ImportPrefixedNameExpression or ReceiverPropertyExtraction instead.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PrefixedIdentifier implements Identifier {
   /// The identifier being prefixed.
@@ -44948,6 +43957,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('prefix', prefix)
@@ -44977,14 +43987,9 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     if (_v1ProjectionOrigin case var origin?) {
       return origin.computeConstantValue();
     }
-    return super.computeConstantValue();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
+    // Without an origin, this identifier is not an expression in V2, for
+    // example the property name in `a.b`, or the assignment target `p.a`.
+    return null;
   }
 
   @generated
@@ -45025,6 +44030,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (prefix._containsOffset(rangeOffset, rangeEnd)) {
@@ -45183,6 +44189,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('operator', operator)
@@ -45209,14 +44216,6 @@ final class PrefixExpressionImpl extends ExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _origin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'The operand is a value expression slot')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => switch (_origin) {
-    IncrementOrDecrementExpressionImpl() => false,
-    LogicalNotImpl() || UnaryOperatorInvocationImpl() => true,
-    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
-  };
 
   @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
   @override
@@ -45258,6 +44257,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (operand._containsOffset(rangeOffset, rangeEnd)) {
@@ -45389,6 +44389,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -45417,13 +44418,6 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPrimaryConstructorBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -45496,6 +44490,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -45702,6 +44697,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -45730,13 +44726,6 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPrimaryConstructorDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -45828,6 +44817,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeParameters case var typeParameters?) {
@@ -45908,6 +44898,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('period', period)
@@ -45932,13 +44923,6 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
       visitor.visitPrimaryConstructorName(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -45954,6 +44938,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -45974,6 +44959,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
 ///
 ///     propertyAccess ::=
 ///         [Expression] '.' [SimpleIdentifier]
+@ToBeDeprecated('Use PropertyExtraction or PropertyAssignmentTarget instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyAccess implements CommentReferableExpression {
   /// Whether this expression is cascaded.
@@ -46253,6 +45239,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('target', target)
@@ -46283,12 +45270,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
         ExpressionImpl origin => origin.computeConstantValue(),
         _ => super.computeConstantValue(),
       };
-
-  @DoNotGenerate(reason: 'V1 projection children are value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    return true;
-  }
 
   @generated
   @override
@@ -46339,6 +45320,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (target case var target?) {
@@ -46464,10 +45446,10 @@ abstract final class ReceiverIndexAssignmentTarget
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('receiver'),
     GenerateNodeProperty('question'),
     GenerateNodeProperty('leftBracket', isSuper: true),
-    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('index', isSuper: true),
     GenerateNodeProperty('rightBracket', isSuper: true),
   ],
 )
@@ -46518,6 +45500,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -46548,13 +45531,6 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverIndexAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -46624,6 +45600,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -46660,10 +45637,10 @@ abstract final class ReceiverIndexExpression implements IndexExpression2 {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('receiver'),
     GenerateNodeProperty('question'),
     GenerateNodeProperty('leftBracket', isSuper: true),
-    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('index', isSuper: true),
     GenerateNodeProperty('rightBracket', isSuper: true),
   ],
 )
@@ -46714,6 +45691,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ReceiverIndexExpression is not in the V1 AST view.');
@@ -46740,13 +45718,6 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverIndexExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @override
   void recordNullShortedType(TypeImpl type) {
@@ -46828,6 +45799,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ReceiverIndexExpression is not in the V1 AST view.');
@@ -46861,7 +45833,7 @@ abstract final class ReceiverMethodInvocation
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('receiver'),
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('name', isSuper: true),
     GenerateNodeProperty('typeArguments', isSuper: true),
@@ -46921,6 +45893,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
@@ -46947,13 +45920,6 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverMethodInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(receiver, child);
-  }
 
   @generated
   @override
@@ -47044,6 +46010,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ReceiverMethodInvocation is not in the V1 AST view.');
@@ -47083,7 +46050,7 @@ abstract final class ReceiverPropertyAssignmentTarget
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('receiver'),
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('name', isSuper: true),
   ],
@@ -47170,6 +46137,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -47202,14 +46170,6 @@ final class ReceiverPropertyAssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverPropertyAssignmentTarget(this);
-
-  @DoNotGenerate(reason: 'Static qualifiers are not value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(receiver, child));
-    return receiver is ExpressionImpl;
-  }
 
   @generated
   @override
@@ -47265,6 +46225,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -47299,7 +46260,7 @@ abstract final class ReceiverPropertyExtraction implements PropertyExtraction {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('receiver'),
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('name', isSuper: true),
   ],
@@ -47389,6 +46350,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('ReceiverPropertyExtraction is not in the V1 AST view.');
@@ -47413,14 +46375,6 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverPropertyExtraction(this);
-
-  @DoNotGenerate(reason: 'Static qualifiers are not value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(receiver, child));
-    return receiver is ExpressionImpl;
-  }
 
   @generated
   @override
@@ -47480,6 +46434,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('ReceiverPropertyExtraction is not in the V1 AST view.');
@@ -47567,7 +46522,6 @@ base mixin RecordLiteralFieldImpl on AstNodeImpl implements RecordLiteralField {
       'fields2',
       v1Name: 'fields',
       v1Projection: V1Projection.recordLiteralField,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
   ],
@@ -47629,6 +46583,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   bool get isConst => constKeyword != null || inConstantContext;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -47653,14 +46608,6 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitRecordLiteral(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(fields2.contains(child));
-    return true;
-  }
 
   @generated
   @override
@@ -47721,6 +46668,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
@@ -47769,7 +46717,6 @@ sealed class RecordLiteralNamedField implements RecordLiteralField {
       'fieldExpression2',
       v1Name: 'fieldExpression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -47826,6 +46773,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('name', name)
@@ -47850,14 +46798,6 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordLiteralNamedField(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(fieldExpression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -47913,6 +46853,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fieldExpression._containsOffset(rangeOffset, rangeEnd)) {
@@ -47994,6 +46935,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   PatternPrecedence get precedence => PatternPrecedence.primary;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
@@ -48027,13 +46969,6 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
           ),
         )
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -48117,6 +47052,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
@@ -48209,6 +47145,7 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
     _type = _becomeParentOf12(type);
   }
 
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addNodeList('metadata', metadata)
@@ -48222,6 +47159,7 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
     type.accept(visitor);
   }
 
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type._containsOffset(rangeOffset, rangeEnd)) {
@@ -48302,6 +47240,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftParenthesis', leftParenthesis)
@@ -48330,13 +47269,6 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordTypeAnnotation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -48410,6 +47342,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (positionalFields._elementContainingRange(rangeOffset, rangeEnd)
@@ -48485,6 +47418,7 @@ final class RecordTypeAnnotationNamedFieldImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
@@ -48509,13 +47443,6 @@ final class RecordTypeAnnotationNamedFieldImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordTypeAnnotationNamedField(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -48585,6 +47512,7 @@ final class RecordTypeAnnotationNamedFieldImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (metadata._elementContainingRange(rangeOffset, rangeEnd)
@@ -48668,6 +47596,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -48692,13 +47621,6 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordTypeAnnotationNamedFields(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -48754,6 +47676,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
@@ -48819,6 +47742,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('metadata', metadata)
@@ -48843,13 +47767,6 @@ final class RecordTypeAnnotationPositionalFieldImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordTypeAnnotationPositionalField(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -48919,6 +47836,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (metadata._elementContainingRange(rangeOffset, rangeEnd)
@@ -49051,6 +47969,7 @@ final class RedirectingConstructorInvocationImpl
   Token? get period => constructorSelector?.period;
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('thisKeyword', thisKeyword)
@@ -49076,13 +47995,6 @@ final class RedirectingConstructorInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRedirectingConstructorInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -49154,6 +48066,7 @@ final class RedirectingConstructorInvocationImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName case var constructorName?) {
@@ -49297,6 +48210,7 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('requiredKeyword', requiredKeyword)
@@ -49329,13 +48243,6 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRegularFormalParameter(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -49432,6 +48339,7 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -49510,7 +48418,6 @@ abstract final class RelationalPattern implements DartPattern {
       'operand2',
       v1Name: 'operand',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -49567,6 +48474,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   PatternPrecedence get precedence => PatternPrecedence.relational;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('operator', operator)
@@ -49593,14 +48501,6 @@ final class RelationalPatternImpl extends DartPatternImpl
     return resolverVisitor
         .analyzeRelationalPatternSchema()
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand2, child));
-    return true;
   }
 
   @generated
@@ -49671,6 +48571,7 @@ final class RelationalPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (operand._containsOffset(rangeOffset, rangeEnd)) {
@@ -49753,6 +48654,7 @@ final class RestPatternElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('operator', operator)
@@ -49774,13 +48676,6 @@ final class RestPatternElementImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRestPatternElement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -49837,6 +48732,7 @@ final class RestPatternElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (pattern case var pattern?) {
@@ -49895,6 +48791,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.assignment;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('rethrowKeyword', rethrowKeyword);
@@ -49913,13 +48810,6 @@ final class RethrowExpressionImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitRethrowExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -49943,6 +48833,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -49983,7 +48874,6 @@ abstract final class ReturnStatement implements Statement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('semicolon'),
   ],
@@ -50042,6 +48932,7 @@ final class ReturnStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('returnKeyword', returnKeyword)
@@ -50064,14 +48955,6 @@ final class ReturnStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitReturnStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -50128,6 +49011,7 @@ final class ReturnStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression case var expression?) {
@@ -50183,6 +49067,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('scriptTag', scriptTag);
@@ -50203,13 +49088,6 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitScriptTag(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -50225,6 +49103,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -50311,7 +49190,6 @@ abstract final class SetOrMapLiteral implements TypedLiteral {
       'elements2',
       v1Name: 'elements',
       v1Projection: V1Projection.collectionElement,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightBracket'),
   ],
@@ -50384,6 +49262,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   bool get isSet => _resolvedKind == _SetOrMapKind.set;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -50429,13 +49308,6 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 
   void becomeUnresolved() {
     _resolvedKind = _SetOrMapKind.unresolved;
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return !identical(typeArguments, child);
   }
 
   @generated
@@ -50515,6 +49387,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeArguments case var typeArguments?) {
@@ -50707,6 +49580,7 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities;
 
@@ -50733,13 +49607,6 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSetterDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -50828,6 +49695,7 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('SetterDeclaration is not in the V1 AST view.');
@@ -50939,6 +49807,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -50959,13 +49828,6 @@ final class ShowCombinatorImpl extends CombinatorImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitShowCombinator(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -51020,6 +49882,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (shownNames._elementContainingRange(rangeOffset, rangeEnd)
@@ -51047,6 +49910,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
 ///     initialCharacter ::= '_' | '$' | letter
 ///
 ///     internalCharacter ::= '_' | '$' | letter | digit
+@ToBeDeprecated('Use NameExpression, or the name token, instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SimpleIdentifier implements Identifier {
   /// Whether this identifier is the "name" part of a prefixed identifier or a
@@ -51173,6 +50037,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addToken('token', token);
 
@@ -51199,7 +50064,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     if (_v1ProjectionOrigin case var origin?) {
       return origin.computeConstantValue();
     }
-    return super.computeConstantValue();
+    // Without an origin, this identifier is not an expression in V2, for
+    // example the property name in `a.b`, or the assignment target `p.a`.
+    return null;
   }
 
   @override
@@ -51299,13 +50166,6 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
@@ -51338,6 +50198,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -51429,6 +50290,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   bool get isSynthetic => literal.isSynthetic;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('literal', literal);
@@ -51452,13 +50314,6 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitSimpleStringLiteral(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -51487,6 +50342,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -51557,7 +50413,6 @@ abstract final class SpreadElement implements CollectionElement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -51613,6 +50468,7 @@ final class SpreadElementImpl extends AstNodeImpl
       spreadOperator.type == TokenType.PERIOD_PERIOD_PERIOD_QUESTION;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('spreadOperator', spreadOperator)
@@ -51633,14 +50489,6 @@ final class SpreadElementImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSpreadElement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -51703,6 +50551,7 @@ final class SpreadElementImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -51861,6 +50710,7 @@ final class StaticQualifierImpl extends NamedReceiverImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('StaticQualifier is not in the V1 AST view.');
@@ -51883,13 +50733,6 @@ final class StaticQualifierImpl extends NamedReceiverImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitStaticQualifier(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -51946,6 +50789,7 @@ final class StaticQualifierImpl extends NamedReceiverImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('StaticQualifier is not in the V1 AST view.');
@@ -52062,6 +50906,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
       elements.last as InterpolationStringImpl;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addNodeList('elements', elements);
@@ -52087,13 +50932,6 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitStringInterpolation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -52159,6 +50997,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (elements._elementContainingRange(rangeOffset, rangeEnd)
@@ -52407,6 +51246,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   Token? get period => constructorSelector?.period;
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('superKeyword', superKeyword)
@@ -52432,13 +51272,6 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitSuperConstructorInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -52510,6 +51343,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 
   @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (constructorName case var constructorName?) {
@@ -52542,6 +51376,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 ///
 ///     superExpression ::=
 ///         'super'
+@ToBeDeprecated('Use SuperReference instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SuperExpression implements Expression {
   /// The token representing the `super` keyword.
@@ -52585,6 +51420,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('superKeyword', superKeyword);
@@ -52607,12 +51443,9 @@ final class SuperExpressionImpl extends ExpressionImpl
     throw StateError('SuperExpression is not in the V2 AST view.');
   }
 
-  @generated
+  /// In V2, `super` is a receiver, not an expression, and is never a constant.
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
+  AttemptedConstantEvaluationResult? computeConstantValue() => null;
 
   @generated
   @override
@@ -52649,6 +51482,7 @@ final class SuperExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -52767,6 +51601,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   Token get name => super.name!;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('requiredKeyword', requiredKeyword)
@@ -52803,13 +51638,6 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitSuperFormalParameter(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -52906,6 +51734,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -53014,6 +51843,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('SuperReference is not in the V1 AST view.');
@@ -53037,13 +51867,6 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSuperReference(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -53061,6 +51884,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('SuperReference is not in the V1 AST view.');
@@ -53095,7 +51919,6 @@ abstract final class SwitchCase implements SwitchMember {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('colon', isSuper: true),
     GenerateNodeProperty('statements', isSuper: true),
@@ -53152,6 +51975,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('labels', labels)
@@ -53178,13 +52002,6 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchCase(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -53270,6 +52087,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
@@ -53348,6 +52166,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('labels', labels)
@@ -53372,13 +52191,6 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchDefault(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -53449,6 +52261,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
@@ -53539,7 +52352,6 @@ abstract final class SwitchExpressionCase implements AstNode {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -53606,6 +52418,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('guardedPattern', guardedPattern)
@@ -53630,13 +52443,6 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitSwitchExpressionCase(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -53705,6 +52511,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
@@ -53737,7 +52544,6 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('leftBracket'),
@@ -53821,6 +52627,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.primary;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('switchKeyword', switchKeyword)
@@ -53851,13 +52658,6 @@ final class SwitchExpressionImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -53933,6 +52733,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -54100,6 +52901,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNodeList('labels', labels)
@@ -54126,13 +52928,6 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchPatternCase(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -54218,6 +53013,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (labels._elementContainingRange(rangeOffset, rangeEnd)
@@ -54306,7 +53102,6 @@ class SwitchStatementCaseGroup {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('leftBracket'),
@@ -54390,6 +53185,7 @@ final class SwitchStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('switchKeyword', switchKeyword)
@@ -54420,13 +53216,6 @@ final class SwitchStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -54496,6 +53285,7 @@ final class SwitchStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -54585,6 +53375,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('poundSign', poundSign)
@@ -54608,13 +53399,6 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSymbolLiteral(this, contextType: contextType);
   }
@@ -54635,6 +53419,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -54699,6 +53484,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.primary;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities =>
       ChildEntities()..addToken('thisKeyword', thisKeyword);
@@ -54717,13 +53503,6 @@ final class ThisExpressionImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitThisExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -54747,6 +53526,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
@@ -54783,7 +53563,6 @@ abstract final class ThrowExpression implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -54837,6 +53616,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   Precedence get precedence => Precedence.assignment;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('throwKeyword', throwKeyword)
@@ -54857,14 +53637,6 @@ final class ThrowExpressionImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitThrowExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -54924,6 +53696,7 @@ final class ThrowExpressionImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -55153,6 +53926,7 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities;
 
@@ -55180,13 +53954,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitTopLevelGetterDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -55293,6 +54060,7 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('TopLevelGetterDeclaration is not in the V1 AST view.');
@@ -55434,6 +54202,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
@@ -55462,13 +54231,6 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitTopLevelVariableDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -55525,6 +54287,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -55658,6 +54421,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('tryKeyword', tryKeyword)
@@ -55684,13 +54448,6 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTryStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -55778,6 +54535,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (body._containsOffset(rangeOffset, rangeEnd)) {
@@ -55951,6 +54709,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -55973,13 +54732,6 @@ final class TypeArgumentListImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTypeArgumentList(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -56034,6 +54786,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (arguments._elementContainingRange(rangeOffset, rangeEnd)
@@ -56118,6 +54871,7 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
     _typeArguments = _becomeParentOf12(typeArguments);
   }
 
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('constKeyword', constKeyword)
@@ -56129,6 +54883,7 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
     _typeArguments?.accept(visitor);
   }
 
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (_typeArguments?._containsOffset(rangeOffset, rangeEnd) ?? false) {
@@ -56199,6 +54954,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()..addNode('type', type);
 
@@ -56215,13 +54971,6 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTypeLiteral(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -56281,6 +55030,7 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type._containsOffset(rangeOffset, rangeEnd)) {
@@ -56394,6 +55144,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('varianceKeyword', varianceKeyword)
@@ -56418,13 +55169,6 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTypeParameter(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -56484,6 +55228,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -56571,6 +55316,7 @@ final class TypeParameterListImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('leftBracket', leftBracket)
@@ -56593,13 +55339,6 @@ final class TypeParameterListImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTypeParameterList(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -56654,6 +55393,7 @@ final class TypeParameterListImpl extends AstNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (typeParameters._elementContainingRange(rangeOffset, rangeEnd)
@@ -56710,7 +55450,7 @@ abstract final class UnaryOperatorInvocation implements Expression {
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
   ],
 )
 final class UnaryOperatorInvocationImpl extends ExpressionImpl
@@ -56780,6 +55520,7 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
@@ -56803,14 +55544,6 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitUnaryOperatorInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand, child));
-    return true;
-  }
 
   @generated
   @override
@@ -56870,6 +55603,7 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('UnaryOperatorInvocation is not in the V1 AST view.');
@@ -56934,6 +55668,7 @@ final class UnqualifiedFunctionInvocationImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -56962,13 +55697,6 @@ final class UnqualifiedFunctionInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitUnqualifiedFunctionInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -57047,6 +55775,7 @@ final class UnqualifiedFunctionInvocationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -57127,6 +55856,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError(
@@ -57162,13 +55892,6 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
       visitor.visitUnqualifiedNameAssignmentTarget(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -57188,6 +55911,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError(
@@ -57273,6 +55997,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities {
     throw StateError('UnqualifiedNameExpression is not in the V1 AST view.');
@@ -57296,13 +56021,6 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitUnqualifiedNameExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @override
   void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
@@ -57334,6 +56052,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   void visitChildrenWithHooks(AstVisitor2 visitor) {}
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     throw StateError('UnqualifiedNameExpression is not in the V1 AST view.');
@@ -57382,6 +56101,7 @@ sealed class UriBasedDirectiveImpl extends DirectiveImpl
     _uri = _becomeParentOf12(uri);
   }
 
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     var childFromSuper = super._childContainingRange(rangeOffset, rangeEnd);
@@ -57909,7 +56629,6 @@ abstract final class VariableDeclaration implements Declaration {
       'initializer2',
       v1Name: 'initializer',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -58023,6 +56742,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('name', name)
@@ -58046,14 +56766,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitVariableDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(initializer2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -58113,6 +56825,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -58278,6 +56991,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('lateKeyword', lateKeyword)
@@ -58304,13 +57018,6 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitVariableDeclarationList(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -58386,6 +57093,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
@@ -58481,6 +57189,7 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('variables', variables)
@@ -58503,13 +57212,6 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitVariableDeclarationStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -58563,6 +57265,7 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (variables._containsOffset(rangeOffset, rangeEnd)) {
@@ -58675,7 +57378,6 @@ abstract final class WhenClause implements AstNode {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -58725,6 +57427,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('whenKeyword', whenKeyword)
@@ -58745,14 +57448,6 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitWhenClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -58806,6 +57501,7 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -58858,7 +57554,6 @@ abstract final class WhileStatement implements Statement {
       'condition2',
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('body'),
@@ -58935,6 +57630,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('whileKeyword', whileKeyword)
@@ -58961,13 +57657,6 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitWhileStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(condition2, child);
-  }
 
   @generated
   @override
@@ -59036,6 +57725,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (condition._containsOffset(rangeOffset, rangeEnd)) {
@@ -59146,6 +57836,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('keyword', keyword)
@@ -59176,13 +57867,6 @@ final class WildcardPatternImpl extends DartPatternImpl
           type?.typeOrThrow.wrapSharedTypeView(),
         )
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -59264,6 +57948,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (type case var type?) {
@@ -59338,6 +58023,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('withKeyword', withKeyword)
@@ -59358,13 +58044,6 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitWithClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -59419,6 +58098,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (mixinTypes._elementContainingRange(rangeOffset, rangeEnd)
@@ -59498,7 +58178,6 @@ abstract final class YieldStatement implements Statement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('semicolon'),
   ],
@@ -59559,6 +58238,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addToken('yieldKeyword', yieldKeyword)
@@ -59583,14 +58263,6 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitYieldStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -59644,6 +58316,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   }
 
   @generated
+  @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     if (expression._containsOffset(rangeOffset, rangeEnd)) {
@@ -59698,6 +58371,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
     return <AstNode>[?comment, ..._metadata]..sort(AstNode.LEXICAL_ORDER);
   }
 
+  @ToBeDeprecated('Use _childEntities2 instead.')
   @override
   @mustCallSuper
   ChildEntities get _childEntities {

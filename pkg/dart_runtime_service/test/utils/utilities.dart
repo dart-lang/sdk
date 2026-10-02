@@ -18,14 +18,16 @@ import 'mocks.dart';
 /// The returned service is automatically cleaned up when the test completes.
 Future<DartRuntimeService> createDartRuntimeServiceForTest({
   required DartRuntimeServiceOptions config,
+  DartRuntimeServiceBackendBuilder? backendBuilder,
 }) async {
   DartRuntimeService? service;
   addTearDown(() async => await service?.shutdown());
 
   service = await DartRuntimeService.initialize(
     config: config,
-    backendBuilder: (frontend) =>
-        FakeDartRuntimeServiceBackend(frontend: frontend),
+    backendBuilder:
+        backendBuilder ??
+        (frontend) => FakeDartRuntimeServiceBackend(frontend: frontend),
   );
   return service;
 }

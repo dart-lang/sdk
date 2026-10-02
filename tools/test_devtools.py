@@ -28,6 +28,36 @@ def run_command(command, cwd, env=None):
     subprocess.run(command, cwd=cwd, env=env, check=True)
 
 
+def setup_mac_chrome_symlinks(chrome_bin):
+    """Ensure ChromeDriver can discover Chrome on macOS via ~/Applications."""
+    curr = chrome_bin
+    app_path = None
+    while curr and curr != '/':
+        if curr.endswith('.app'):
+            app_path = curr
+            break
+        curr = os.path.dirname(curr)
+
+    if not app_path:
+        return
+
+    user_apps = os.path.expanduser('~/Applications')
+    try:
+        os.makedirs(user_apps, exist_ok=True)
+    except Exception:
+        return
+
+    target = os.path.join(user_apps, 'Google Chrome.app')
+    try:
+        if os.path.islink(target) or os.path.isfile(target):
+            os.unlink(target)
+        if not os.path.exists(target):
+            os.symlink(app_path, target)
+            print(f'Symlinked {target} -> {app_path}')
+    except Exception as e:
+        print(f'Warning: Could not create symlink {target} -> {app_path}: {e}')
+
+
 def find_chrome_executable(sdk_root, platform):
     browsers_chrome_dir = os.path.join(sdk_root, 'third_party', 'browsers',
                                        'chrome')
@@ -68,11 +98,6 @@ def main():
     else:
         print(f'Unsupported platform: "{host_os}"\n')
         return 1
-
-    # TODO(srawlins): Enable Windows testing.
-    #if platform == 'windows':
-    #    print('DevTools tests are currently skipped on Windows.')
-    #    return 0
 
     # Set up paths relative to the SDK root.
     sdk_root = utils.DART_DIR
@@ -130,6 +155,8 @@ def main():
         env['CHROME_PATH'] = chrome_bin
         chrome_dir = os.path.dirname(chrome_bin)
         env['PATH'] = f"{chrome_dir}{path_sep}{env.get('PATH', '')}"
+        if platform == 'macos':
+            setup_mac_chrome_symlinks(chrome_bin)
     else:
         print('Warning: Chrome executable not found; web tests may fail.')
 
@@ -143,6 +170,7 @@ def main():
                 'devtools_extensions',
                 'devtools_shared',
         ]:
+            # TODO(srawlins): Enable devtools_extensions integration tests.
             if platform == 'windows':
                 print('DevTools tests are currently skipped on Windows.')
                 return 0
@@ -155,7 +183,7 @@ def main():
 
         jobs.append({'script': 'tool/ci/tool_tests.sh', 'env': {}})
 
-        for bot in ['build_ddc', 'build_dart2js', 'test_ddc', 'test_dart2js']:
+        for bot in ['build_ddc', 'build_dart2js', 'test_ddc']:
             jobs.append({
                 'script': 'tool/ci/bots.sh',
                 'env': {
@@ -164,65 +192,54 @@ def main():
                 }
             })
 
-        # TODO(srawlins): Enable devtools_extensions integration tests.
-        # for bot in ['integration_dart2js', 'integration_dart2wasm']:
-        #     jobs.append({
-        #         'script': 'tool/ci/bots.sh',
-        #         'env': {
-        #             'BOT': bot,
-        #             'DEVTOOLS_PACKAGE': 'devtools_extensions'
-        #         }
-        #     })
-
-        jobs.append({
-            'script': 'tool/ci/bots.sh',
-            'env': {
-                'BOT': 'test_webdriver',
-                'PLATFORM': 'vm'
-            }
-        })
-
-        if platform == 'linux':
-            jobs.append({'script': 'tool/ci/benchmark_size.sh', 'env': {}})
+    test_dart2js_env = {
+        'BOT': 'test_dart2js',
+        'PLATFORM': 'vm',
+    }
+    if platform == 'macos':
+        test_dart2js_env['ONLY_GOLDEN'] = 'true'
+    jobs.append({
+        'script': 'tool/ci/bots.sh',
+        'env': test_dart2js_env,
+    })
 
     if platform == 'macos':
-        jobs.append({
-            'script': 'tool/ci/bots.sh',
-            'env': {
-                'BOT': 'test_dart2js',
-                'PLATFORM': 'vm',
-                'ONLY_GOLDEN': 'true'
-            }
-        })
-
         for bot in ['integration_dart2js', 'integration_dart2wasm']:
-            jobs.append({
-                'script': 'tool/ci/bots.sh',
-                'env': {
-                    'BOT': bot,
-                    'DEVICE': 'flutter',
-                    'DEVTOOLS_PACKAGE': 'devtools_app'
-                }
-            })
-            jobs.append({
-                'script': 'tool/ci/bots.sh',
-                'env': {
-                    'BOT': bot,
-                    'DEVICE': 'flutter-web',
-                    'DEVTOOLS_PACKAGE': 'devtools_app'
-                }
-            })
-            jobs.append({
-                'script': 'tool/ci/bots.sh',
-                'env': {
-                    'BOT': bot,
-                    'DEVICE': 'dart-cli',
-                    'DEVTOOLS_PACKAGE': 'devtools_app'
-                }
-            })
+            for device in ['flutter', 'flutter-web', 'dart-cli']:
+                jobs.append({
+                    'script': 'tool/ci/bots.sh',
+                    'env': {
+                        'BOT': bot,
+                        'DEVICE': device,
+                        'DEVTOOLS_PACKAGE': 'devtools_app'
+                    }
+                })
 
-        # TODO(srawlins): Enable benchmark_performance tests.
-        # jobs.append({'script': 'tool/ci/benchmark_performance.sh', 'env': {}})
+    # TODO(srawlins): Enable devtools_extensions integration tests.
+    # if platform in ['linux', 'windows']:
+    #     for bot in ['integration_dart2js', 'integration_dart2wasm']:
+    #         jobs.append({
+    #             'script': 'tool/ci/bots.sh',
+    #             'env': {
+    #                 'BOT': bot,
+    #                 'DEVTOOLS_PACKAGE': 'devtools_extensions'
+    #             }
+    #         })
+
+    jobs.append({
+        'script': 'tool/ci/bots.sh',
+        'env': {
+            'BOT': 'test_webdriver',
+            'PLATFORM': 'vm'
+        }
+    })
+
+    if platform == 'linux':
+        jobs.append({'script': 'tool/ci/benchmark_size.sh', 'env': {}})
+
+    # TODO(srawlins): Enable benchmark_performance tests.
+    # if platform == 'macos':
+    #     jobs.append({'script': 'tool/ci/benchmark_performance.sh', 'env': {}})
 
     for i, job in enumerate(jobs):
         print(

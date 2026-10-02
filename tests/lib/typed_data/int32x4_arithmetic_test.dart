@@ -176,10 +176,12 @@ void testShift() {
     int shift,
     (int, int, int, int) leftShiftResult,
     (int, int, int, int) rightShiftResult,
+    (int, int, int, int) logicalRightShiftResult,
   ) {
     final (x, y, z, w) = lanes;
     final (lx, ly, lz, lw) = leftShiftResult;
     final (rx, ry, rz, rw) = rightShiftResult;
+    final (ux, uy, uz, uw) = logicalRightShiftResult;
 
     final v = Int32x4(x, y, z, w);
     final l = v << shift;
@@ -192,26 +194,64 @@ void testShift() {
     Expect.equals(ry, r.y);
     Expect.equals(rz, r.z);
     Expect.equals(rw, r.w);
+    final u = v >>> shift;
+    Expect.equals(ux, u.x);
+    Expect.equals(uy, u.y);
+    Expect.equals(uz, u.z);
+    Expect.equals(uw, u.w);
   }
 
   // Small shift, distinct lanes shifted independently.
-  checkShift((1, 2, 3, -1), 4, (16, 32, 48, -16), (0, 0, 0, -1));
+  checkShift(
+    (1, 2, 3, -1),
+    4,
+    (16, 32, 48, -16),
+    (0, 0, 0, -1),
+    (0, 0, 0, 0x0FFFFFFF),
+  );
   // Left shift into the sign bit produces the minimum.
-  checkShift((0x40000000, 0, 0, 0), 1, (min, 0, 0, 0), (0x20000000, 0, 0, 0));
-  // Right shift sign-extends the negative lanes.
-  checkShift((-8, 8, -1, 1024), 1, (-16, 16, -2, 2048), (-4, 4, -1, 512));
+  checkShift(
+    (0x40000000, 0, 0, 0),
+    1,
+    (min, 0, 0, 0),
+    (0x20000000, 0, 0, 0),
+    (0x20000000, 0, 0, 0),
+  );
+  // Right shift sign-extends the negative lanes, logical right shift clears
+  // their sign bit.
+  checkShift(
+    (-8, 8, -1, 1024),
+    1,
+    (-16, 16, -2, 2048),
+    (-4, 4, -1, 512),
+    (0x7FFFFFFC, 4, max, 512),
+  );
   // Arithmetic right shift of odd negatives rounds toward negative infinity,
   // so it differs from truncating division (-7 >> 1 is -4).
-  checkShift((-7, -3, -5, -1), 1, (-14, -6, -10, -2), (-4, -2, -3, -1));
+  checkShift(
+    (-7, -3, -5, -1),
+    1,
+    (-14, -6, -10, -2),
+    (-4, -2, -3, -1),
+    (0x7FFFFFFC, 0x7FFFFFFE, 0x7FFFFFFD, max),
+  );
   // Extremes by one: `<<` overflows (max flips into the sign, min's sign bit
-  // drops), `>>` halves each lane and keeps its sign.
+  // drops), `>>` halves each lane and keeps its sign, `>>>` halves each lane
+  // as if it were unsigned.
   const halved = (min ~/ 2, max ~/ 2, min ~/ 2, max ~/ 2);
-  checkShift((min, max, min, max), 1, (0, -2, 0, -2), halved);
-  // Extremes by 31, all the way onto the sign bit.
-  checkShift((min, max, -1, 1), 31, (0, min, min, min), (-1, 0, -1, 0));
-  // Shifting by zero is the identity.
+  const unsignedHalved = (0x40000000, 0x3FFFFFFF, 0x40000000, 0x3FFFFFFF);
+  checkShift((min, max, min, max), 1, (0, -2, 0, -2), halved, unsignedHalved);
+  // Extremes by 31, all the way onto the sign bit, or down to the lowest bit.
+  checkShift(
+    (min, max, -1, 1),
+    31,
+    (0, min, min, min),
+    (-1, 0, -1, 0),
+    (1, 0, 1, 0),
+  );
+  // Shifting by zero is the identity, a negative lane stays negative.
   const unshifted = (5, min, -7, 0x12345678);
-  checkShift(unshifted, 0, unshifted, unshifted);
+  checkShift(unshifted, 0, unshifted, unshifted, unshifted);
 
   // The shift count is taken modulo 32, matching the WASM i32x4 shift
   // instructions, so out-of-range and negative counts act like their low five
@@ -237,6 +277,10 @@ void testShift() {
     Expect.equals((v >> k).y, (v >> n).y);
     Expect.equals((v >> k).z, (v >> n).z);
     Expect.equals((v >> k).w, (v >> n).w);
+    Expect.equals((v >>> k).x, (v >>> n).x);
+    Expect.equals((v >>> k).y, (v >>> n).y);
+    Expect.equals((v >>> k).z, (v >>> n).z);
+    Expect.equals((v >>> k).w, (v >>> n).w);
   }
 
   // Scalar `int` shifts diverge here: a negative count throws for `int`, but
@@ -244,8 +288,10 @@ void testShift() {
   final int negativeCount = -1;
   Expect.throwsArgumentError(() => 1 << negativeCount);
   Expect.throwsArgumentError(() => 1 >> negativeCount);
+  Expect.throwsArgumentError(() => 1 >>> negativeCount);
   Expect.equals((v << 31).x, (v << negativeCount).x);
   Expect.equals((v >> 31).x, (v >> negativeCount).x);
+  Expect.equals((v >>> 31).x, (v >>> negativeCount).x);
 }
 
 const int53 = 0x20000000000000; // 2^53.

@@ -27,33 +27,50 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:collection/collection.dart';
 
+/// Returns the innermost fragment whose code range contains [offset].
+///
+/// Code ranges of sibling fragments don't overlap, and are inside code ranges
+/// of their parents. So, the innermost fragment is found by walking down the
+/// fragments.
 FragmentImpl _getEnclosingFragment(
   LibraryFragmentImpl libraryFragment,
   int offset,
 ) {
+  /// Returns the code ranges that belong to [fragment].
+  ///
+  /// Usually this is the code range of the fragment. But a primary
+  /// constructor has two code ranges: its name and formal parameters in the
+  /// class header, where the type name and type parameters belong to the
+  /// class; and its body, which is a member of the class body.
+  List<SourceRange> codeRanges(FragmentImpl fragment) {
+    if (fragment is ConstructorFragmentImpl && fragment.isPrimary) {
+      return [?fragment.primaryHeaderCodeRange, ?fragment.primaryBodyCodeRange];
+    }
+
+    if ((fragment.codeOffset, fragment.codeLength) case (
+      var codeOffset?,
+      var codeLength?,
+    )) {
+      return [SourceRange(codeOffset, codeLength)];
+    }
+
+    return const [];
+  }
+
   FragmentImpl? visitFragment(FragmentImpl fragment) {
-    var codeOffset = fragment.codeOffset;
-    var codeLength = fragment.codeLength;
-    if (codeOffset == null || codeLength == null) {
+    if (!codeRanges(fragment).any((range) => range.contains(offset))) {
       return null;
     }
 
-    var codeEnd = codeOffset + codeLength;
-    if (codeOffset <= offset && offset <= codeEnd) {
-      for (var child in fragment.children) {
-        var result = visitFragment(child);
-        if (result != null) {
-          return result;
-        }
+    for (var child in fragment.children) {
+      if (visitFragment(child) case var result?) {
+        return result;
       }
-      return fragment;
     }
-
-    return null;
+    return fragment;
   }
 
-  var result = visitFragment(libraryFragment);
-  return result ?? libraryFragment;
+  return visitFragment(libraryFragment) ?? libraryFragment;
 }
 
 DeclarationKind? _getSearchElementKind(Element element) {

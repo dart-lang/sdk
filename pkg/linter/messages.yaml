@@ -657,6 +657,26 @@ LinterLintCode:
       Such declarations are not meant to be members of the analyzer public API,
       so if they are either declared outside of `package:analyzer/src`, or
       marked with `@AnalyzerPublicApi(...)`, that is almost certainly a mistake.
+  analyzerToBeDeprecatedUse:
+    type: lint
+    parameters:
+      String name: "the name of the used element"
+      String details: "the message of the `@ToBeDeprecated` annotation, preceded by a space; or empty if there is no message"
+    problemMessage: "'#name' is to be deprecated, and should be used only by declarations that are also to be deprecated.#details"
+    correctionMessage: "Try using the replacement, or annotating the enclosing declaration with '@ToBeDeprecated'."
+    hasPublishedDocs: false
+    state:
+      internal: "3.14"
+    categories: [publicInterface]
+    deprecatedDetails: "For internal use only."
+    comment: |-
+      Lint issued if an element annotated with `@ToBeDeprecated` is used from
+      a declaration that is not itself annotated with `@ToBeDeprecated`.
+
+      `@ToBeDeprecated` marks the API, such as the V1 AST, that will become
+      deprecated once its replacement is stable. Such API should be used only
+      to implement other API that will be deprecated too, like
+      `@Deprecated` with `deprecated_member_use_from_same_package`.
   annotateOverrides:
     type: lint
     parameters:

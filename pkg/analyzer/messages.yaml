@@ -25462,6 +25462,31 @@ TodoCode:
     comment: |-
       A TODO comment marked as UNDONE.
 WarningCode:
+  ambiguousCommentReferenceName:
+    type: staticWarning
+    parameters:
+      String name: the ambiguous name
+      String libraries: the names of the libraries containing the conflicting declarations
+    sharedName: ambiguousCommentReference
+    problemMessage: "The name '#name' is ambiguous because it is defined in the libraries #libraries."
+    correctionMessage: "Try using a prefix for one of the import directives, or hiding the name from all but one of the imports."
+    hasPublishedDocs: false
+    comment: |-
+      Reported for a name in a comment reference that is imported, or
+      doc-imported, from more than one library.
+  ambiguousCommentReferencePrefix:
+    type: staticWarning
+    parameters:
+      String prefix: the prefix used alone in the comment reference
+      String libraries: the names of the libraries imported with the prefix
+    sharedName: ambiguousCommentReference
+    problemMessage: "The prefix '#prefix' can't be used to reference a library, because it's used to import more than one library: #libraries."
+    correctionMessage: Try using a prefix that is used to import only one library.
+    hasPublishedDocs: false
+    comment: |-
+      Reported for a comment reference that consists of only an import prefix,
+      such as `[p]`, which references the library imported with this prefix,
+      when more than one library is imported with this prefix.
   argumentTypeNotAssignableToErrorHandler:
     type: staticWarning
     parameters:

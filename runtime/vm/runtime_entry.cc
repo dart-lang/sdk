@@ -2712,9 +2712,9 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
         zone, CheckHashBasedSubtypeTestCache(
                   zone, thread, src_instance, dst_type,
                   instantiator_type_arguments, function_type_arguments, cache));
-    if (!result.IsNull()) {
+    if (result.ptr() == Bool::True().ptr()) {
       // Early exit because an entry already exists in the cache.
-      arguments.SetReturn(result);
+      arguments.SetReturn(src_instance);
       return;
     }
   }

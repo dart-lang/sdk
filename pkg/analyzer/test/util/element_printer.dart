@@ -130,6 +130,11 @@ class ElementPrinter {
         _sink.writeln('Never@-1');
       case PrefixElementImpl element:
         _sink.writeln(_libraryImportPrefixElementToReferenceString(element));
+        if (_configuration.withImportPrefixScopeLibraries) {
+          _sink.withIndent(() {
+            writeElementList2('scopeLibraries', element.scopeLibraries);
+          });
+        }
       default:
         throw UnimplementedError('(${element.runtimeType}) $element');
     }
@@ -430,6 +435,7 @@ class ElementPrinterConfiguration {
   bool withInterfaceTypeElements = false;
   bool withRedirectedConstructors = false;
   bool withSuperConstructors = false;
+  bool withImportPrefixScopeLibraries = false;
 }
 
 class IdMap {

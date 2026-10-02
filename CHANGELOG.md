@@ -56,8 +56,8 @@
 - Added `Int32x4.abs`, which replaces each lane with its absolute value using
   two's complement, so the absolute value of the minimum 32-bit integer yields
   itself.
-- Added the lane-wise shift operators `<<` (left) and `>>` (arithmetic right) to
-  `Int32x4`.
+- Added the lane-wise shift operators `<<` (left), `>>` (arithmetic right) and
+  `>>>` (logical right) to `Int32x4`.
 - Added `Int32x4.andNot`, a lane-wise bit-wise and-not (`this & ~other`).
 - Added `Int32x4.min`, which selects the smaller of each pair of lanes,
   compared as signed 32-bit integers.

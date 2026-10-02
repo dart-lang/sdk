@@ -250,6 +250,58 @@ addressReceiver = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// Reported for a name in a comment reference that is imported, or
+/// doc-imported, from more than one library.
+///
+/// Parameters:
+/// String name: the ambiguous name
+/// String libraries: the names of the libraries containing the conflicting
+///                   declarations
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String libraries,
+  })
+>
+ambiguousCommentReferenceName = DiagnosticWithArguments(
+  name: 'ambiguous_comment_reference',
+  problemMessage:
+      "The name '{0}' is ambiguous because it is defined in the libraries {1}.",
+  correctionMessage:
+      "Try using a prefix for one of the import directives, or hiding the "
+      "name from all but one of the imports.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'ambiguous_comment_reference_name',
+  withArguments: _withArgumentsAmbiguousCommentReferenceName,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Reported for a comment reference that consists of only an import prefix,
+/// such as `[p]`, which references the library imported with this prefix,
+/// when more than one library is imported with this prefix.
+///
+/// Parameters:
+/// String prefix: the prefix used alone in the comment reference
+/// String libraries: the names of the libraries imported with the prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String prefix,
+    required String libraries,
+  })
+>
+ambiguousCommentReferencePrefix = DiagnosticWithArguments(
+  name: 'ambiguous_comment_reference',
+  problemMessage:
+      "The prefix '{0}' can't be used to reference a library, because it's used "
+      "to import more than one library: {1}.",
+  correctionMessage:
+      "Try using a prefix that is used to import only one library.",
+  type: DiagnosticType.STATIC_WARNING,
+  uniqueName: 'ambiguous_comment_reference_prefix',
+  withArguments: _withArgumentsAmbiguousCommentReferencePrefix,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
 /// Parameters:
 /// String name: the name of the ambiguous element
 /// Uri firstUri: the name of the first library in which the type is found
@@ -18860,6 +18912,26 @@ LocatableDiagnostic _withArgumentsAbstractSuperMemberReference({
   return LocatableDiagnosticImpl(diag.abstractSuperMemberReference, [
     memberKind,
     name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAmbiguousCommentReferenceName({
+  required String name,
+  required String libraries,
+}) {
+  return LocatableDiagnosticImpl(diag.ambiguousCommentReferenceName, [
+    name,
+    libraries,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAmbiguousCommentReferencePrefix({
+  required String prefix,
+  required String libraries,
+}) {
+  return LocatableDiagnosticImpl(diag.ambiguousCommentReferencePrefix, [
+    prefix,
+    libraries,
   ]);
 }
 

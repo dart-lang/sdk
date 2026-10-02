@@ -14,6 +14,8 @@ import 'always_use_package_imports_test.dart' as always_use_package_imports;
 import 'analyzer_element_model_tracking_test.dart'
     as analyzer_element_model_tracking;
 import 'analyzer_public_api_test.dart' as analyzer_public_api;
+import 'analyzer_to_be_deprecated_use_test.dart'
+    as analyzer_to_be_deprecated_use;
 import 'annotate_overrides_test.dart' as annotate_overrides;
 import 'annotate_redeclares_test.dart' as annotate_redeclares;
 import 'async_return_with_no_await_test.dart' as async_return_with_no_await;
@@ -360,6 +362,7 @@ void main() {
   always_use_package_imports.main();
   analyzer_element_model_tracking.main();
   analyzer_public_api.main();
+  analyzer_to_be_deprecated_use.main();
   annotate_overrides.main();
   annotate_redeclares.main();
   async_return_with_no_await.main();

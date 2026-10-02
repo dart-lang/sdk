@@ -2029,6 +2029,48 @@ CommentReference
 ''');
   }
 
+  test_class_invalid_ambiguous_unqualified() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/a2.dart', r'''
+class A {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a1.dart';
+//     ^^^^^^^^^
+// [diag.unusedImport] Unused import: 'a1.dart'.
+import 'a2.dart';
+//     ^^^^^^^^^
+// [diag.unusedImport] Unused import: 'a2.dart'.
+
+/// [A]
+//   ^
+// [diag.ambiguousCommentReferenceName] The name 'A' is ambiguous because it is defined in the libraries 'package:test/a1.dart' and 'package:test/a2.dart'.
+void f() {}
+''');
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: A
+      element: multiplyDefinedElement
+        package:test/a1.dart::@class::A
+        package:test/a2.dart::@class::A
+  expression: SimpleIdentifier
+    token: A
+    element: multiplyDefinedElement
+      package:test/a1.dart::@class::A
+      package:test/a2.dart::@class::A
+    staticType: null
+  element: multiplyDefinedElement
+    package:test/a1.dart::@class::A
+    package:test/a2.dart::@class::A
+''');
+  }
+
   test_class_invalid_ambiguousExtension_unqualified() async {
     var result = await resolveTestCodeWithDiagnostics('''
 /// [foo]
@@ -2805,6 +2847,59 @@ CommentReference
 ''');
   }
 
+  test_docImport_class_instanceMethod_invalid_ambiguous_qualified() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+class A {
+  void foo() {}
+}
+''');
+    newFile('$testPackageLibPath/a2.dart', r'''
+class A {
+  void foo() {}
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'a1.dart';
+/// @docImport 'a2.dart';
+library;
+
+/// [A.foo]
+//   ^
+// [diag.ambiguousCommentReferenceName] The name 'A' is ambiguous because it is defined in the libraries 'package:test/a1.dart' and 'package:test/a2.dart'.
+void f() {}
+''');
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: A
+      element: multiplyDefinedElement
+        package:test/a1.dart::@class::A
+        package:test/a2.dart::@class::A
+    CommentReferenceComponent
+      period: .
+      name: foo
+      element: <null>
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: multiplyDefinedElement
+        package:test/a1.dart::@class::A
+        package:test/a2.dart::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  element: <null>
+''');
+  }
+
   test_docImport_class_instanceMethod_qualified() async {
     newFile('$testPackageLibPath/foo.dart', r'''
 class A {
@@ -2846,6 +2941,59 @@ CommentReference
 ''');
   }
 
+  test_docImport_class_invalid_ambiguous_qualified_importPrefix() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/a2.dart', r'''
+class A {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'a1.dart' as p;
+/// @docImport 'a2.dart' as p;
+library;
+
+/// [p.A]
+//     ^
+// [diag.ambiguousCommentReferenceName] The name 'A' is ambiguous because it is defined in the libraries 'package:test/a1.dart' and 'package:test/a2.dart'.
+void f() {}
+''');
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibraryFragment>::@docImportPrefix::p
+    CommentReferenceComponent
+      period: .
+      name: A
+      element: multiplyDefinedElement
+        package:test/a1.dart::@class::A
+        package:test/a2.dart::@class::A
+  expression: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: p
+      element: <testLibraryFragment>::@docImportPrefix::p
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: A
+      element: multiplyDefinedElement
+        package:test/a1.dart::@class::A
+        package:test/a2.dart::@class::A
+      staticType: null
+    element: multiplyDefinedElement
+      package:test/a1.dart::@class::A
+      package:test/a2.dart::@class::A
+    staticType: null
+  element: multiplyDefinedElement
+    package:test/a1.dart::@class::A
+    package:test/a2.dart::@class::A
+''');
+  }
+
   test_docImport_class_invalid_ambiguous_unqualified() async {
     newFile('$testPackageLibPath/a1.dart', r'''
 class A {}
@@ -2859,6 +3007,8 @@ class A {}
 library;
 
 /// [A]
+//   ^
+// [diag.ambiguousCommentReferenceName] The name 'A' is ambiguous because it is defined in the libraries 'package:test/a1.dart' and 'package:test/a2.dart'.
 void f() {}
 ''');
 
@@ -3300,6 +3450,37 @@ Comment
 ''');
   }
 
+  test_docImport_class_unqualified_hideCombinator_ambiguous() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/a2.dart', r'''
+class A {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'a1.dart';
+/// @docImport 'a2.dart' hide A;
+library;
+
+/// [A]
+void f() {}
+''');
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: A
+      element: package:test/a1.dart::@class::A
+  expression: SimpleIdentifier
+    token: A
+    element: package:test/a1.dart::@class::A
+    staticType: null
+  element: package:test/a1.dart::@class::A
+''');
+  }
+
   test_docImport_class_unqualified_inSubpart() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
@@ -3338,6 +3519,39 @@ CommentReference
     element: package:test/a.dart::@class::A
     staticType: null
   element: package:test/a.dart::@class::A
+''');
+  }
+
+  test_docImport_class_unqualified_shadowedByDeclaration() async {
+    newFile('$testPackageLibPath/a1.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/a2.dart', r'''
+class A {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'a1.dart';
+/// @docImport 'a2.dart';
+library;
+
+/// [A]
+void f() {}
+
+class A {}
+''');
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: A
+      element: <testLibrary>::@class::A
+  expression: SimpleIdentifier
+    token: A
+    element: <testLibrary>::@class::A
+    staticType: null
+  element: <testLibrary>::@class::A
 ''');
   }
 
@@ -3693,6 +3907,37 @@ CommentReference
 ''');
   }
 
+  test_docImport_fromExport_unqualified_sameElement() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+export 'a.dart';
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'a.dart';
+/// @docImport 'b.dart';
+library;
+
+/// [A]
+void f() {}
+''');
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: A
+      element: package:test/a.dart::@class::A
+  expression: SimpleIdentifier
+    token: A
+    element: package:test/a.dart::@class::A
+    staticType: null
+  element: package:test/a.dart::@class::A
+''');
+  }
+
   test_docImport_importPrefix_unqualified() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
@@ -3705,6 +3950,8 @@ library;
 void f() {}
 ''');
 
+    nodeTextConfiguration.withImportPrefixScopeLibraries = true;
+
     var node = result.findNode.singleCommentReference;
     assertResolvedNodeText(node, r'''
 CommentReference
@@ -3712,11 +3959,136 @@ CommentReference
     CommentReferenceComponent
       name: p
       element: <testLibraryFragment>::@docImportPrefix::p
+        scopeLibraries
+          package:test/a.dart
   expression: SimpleIdentifier
     token: p
     element: <testLibraryFragment>::@docImportPrefix::p
+      scopeLibraries
+        package:test/a.dart
     staticType: null
   element: <testLibraryFragment>::@docImportPrefix::p
+    scopeLibraries
+      package:test/a.dart
+''');
+  }
+
+  test_docImport_importPrefix_unqualified_shared() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'a.dart' as p;
+/// @docImport 'b.dart' as p;
+library;
+
+/// [p]
+//   ^
+// [diag.ambiguousCommentReferencePrefix] The prefix 'p' can't be used to reference a library, because it's used to import more than one library: 'package:test/a.dart' and 'package:test/b.dart'.
+void f() {}
+''');
+
+    nodeTextConfiguration.withImportPrefixScopeLibraries = true;
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibraryFragment>::@docImportPrefix::p
+        scopeLibraries
+          package:test/a.dart
+          package:test/b.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibraryFragment>::@docImportPrefix::p
+      scopeLibraries
+        package:test/a.dart
+        package:test/b.dart
+    staticType: null
+  element: <testLibraryFragment>::@docImportPrefix::p
+    scopeLibraries
+      package:test/a.dart
+      package:test/b.dart
+''');
+  }
+
+  test_docImport_importPrefix_unqualified_shared_sameLibrary() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+class B {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'a.dart' as p show A;
+/// @docImport 'a.dart' as p show B;
+library;
+
+/// [p]
+void f() {}
+''');
+
+    nodeTextConfiguration.withImportPrefixScopeLibraries = true;
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibraryFragment>::@docImportPrefix::p
+        scopeLibraries
+          package:test/a.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibraryFragment>::@docImportPrefix::p
+      scopeLibraries
+        package:test/a.dart
+    staticType: null
+  element: <testLibraryFragment>::@docImportPrefix::p
+    scopeLibraries
+      package:test/a.dart
+''');
+  }
+
+  test_docImport_importPrefix_unqualified_shared_uriDoesNotExist() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+/// @docImport 'a.dart' as p;
+/// @docImport 'b.dart' as p;
+//             ^^^^^^^^
+// [diag.uriDoesNotExistInDocImport] Target of URI doesn't exist: 'b.dart'.
+library;
+
+/// [p]
+void f() {}
+''');
+
+    nodeTextConfiguration.withImportPrefixScopeLibraries = true;
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibraryFragment>::@docImportPrefix::p
+        scopeLibraries
+          package:test/a.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibraryFragment>::@docImportPrefix::p
+      scopeLibraries
+        package:test/a.dart
+    staticType: null
+  element: <testLibraryFragment>::@docImportPrefix::p
+    scopeLibraries
+      package:test/a.dart
 ''');
   }
 
@@ -4725,6 +5097,81 @@ Comment
         libraryImport: LibraryImport
           uri: DirectiveUriWithLibrary
             uri: package:test/a.dart
+''');
+  }
+
+  test_docImport_partOf_importPrefix_unqualified_extendsLibraryDocImportPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+    var part = getFile('$testPackageLibPath/part.dart');
+    var results = await resolveFilesWithDiagnostics({
+      testFile: r'''
+/// @docImport 'a.dart' as p;
+library;
+
+part 'part.dart';
+
+/// [p]
+void f() {}
+''',
+      part: r'''
+/// @docImport 'b.dart' as p;
+part of 'test.dart';
+
+/// [p]
+//   ^
+// [diag.ambiguousCommentReferencePrefix] The prefix 'p' can't be used to reference a library, because it's used to import more than one library: 'package:test/a.dart' and 'package:test/b.dart'.
+void g() {}
+''',
+    });
+
+    nodeTextConfiguration.withImportPrefixScopeLibraries = true;
+
+    var libraryNode = results[testFile]!.findNode.singleCommentReference;
+    assertResolvedNodeText(libraryNode, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibraryFragment>::@docImportPrefix::p
+        scopeLibraries
+          package:test/a.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibraryFragment>::@docImportPrefix::p
+      scopeLibraries
+        package:test/a.dart
+    staticType: null
+  element: <testLibraryFragment>::@docImportPrefix::p
+    scopeLibraries
+      package:test/a.dart
+''');
+
+    var partNode = results[part]!.findNode.singleCommentReference;
+    assertResolvedNodeText(partNode, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibrary>::@fragment::package:test/part.dart::@docImportPrefix::p
+        scopeLibraries
+          package:test/b.dart
+          package:test/a.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibrary>::@fragment::package:test/part.dart::@docImportPrefix::p
+      scopeLibraries
+        package:test/b.dart
+        package:test/a.dart
+    staticType: null
+  element: <testLibrary>::@fragment::package:test/part.dart::@docImportPrefix::p
+    scopeLibraries
+      package:test/b.dart
+      package:test/a.dart
 ''');
   }
 
@@ -6923,6 +7370,83 @@ CommentReference
 ''');
   }
 
+  test_importPrefix_unqualified() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+
+/// [p]
+void f() {}
+''');
+
+    nodeTextConfiguration.withImportPrefixScopeLibraries = true;
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibraryFragment>::@prefix::p
+        scopeLibraries
+          package:test/a.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibraryFragment>::@prefix::p
+      scopeLibraries
+        package:test/a.dart
+    staticType: null
+  element: <testLibraryFragment>::@prefix::p
+    scopeLibraries
+      package:test/a.dart
+''');
+  }
+
+  test_importPrefix_unqualified_shared() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+import 'b.dart' as p;
+
+/// [p]
+//   ^
+// [diag.ambiguousCommentReferencePrefix] The prefix 'p' can't be used to reference a library, because it's used to import more than one library: 'package:test/a.dart' and 'package:test/b.dart'.
+void f(p.A a, p.B b) {}
+''');
+
+    nodeTextConfiguration.withImportPrefixScopeLibraries = true;
+
+    var node = result.findNode.singleCommentReference;
+    assertResolvedNodeText(node, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibraryFragment>::@prefix::p
+        scopeLibraries
+          package:test/a.dart
+          package:test/b.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibraryFragment>::@prefix::p
+      scopeLibraries
+        package:test/a.dart
+        package:test/b.dart
+    staticType: null
+  element: <testLibraryFragment>::@prefix::p
+    scopeLibraries
+      package:test/a.dart
+      package:test/b.dart
+''');
+  }
+
   test_mixin_instanceGetter_unqualified() async {
     var result = await resolveTestCodeWithDiagnostics('''
 /// [foo]
@@ -7365,6 +7889,151 @@ CommentReference
       staticType: null
     staticType: null
   element: <null>
+''');
+  }
+
+  test_partOf_importPrefix_unqualified_deferred() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+    var part = getFile('$testPackageLibPath/part.dart');
+    var results = await resolveFilesWithDiagnostics({
+      testFile: r'''
+import 'a.dart' as p;
+
+part 'part.dart';
+
+/// [p]
+void f(p.A a) {}
+''',
+      part: r'''
+part of 'test.dart';
+
+import 'b.dart' deferred as p;
+
+/// [p]
+void g() {}
+''',
+    });
+
+    nodeTextConfiguration.withImportPrefixScopeLibraries = true;
+
+    var libraryNode = results[testFile]!.findNode.singleCommentReference;
+    assertResolvedNodeText(libraryNode, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibraryFragment>::@prefix::p
+        scopeLibraries
+          package:test/a.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibraryFragment>::@prefix::p
+      scopeLibraries
+        package:test/a.dart
+    staticType: null
+  element: <testLibraryFragment>::@prefix::p
+    scopeLibraries
+      package:test/a.dart
+''');
+
+    var partNode = results[part]!.findNode.singleCommentReference;
+    assertResolvedNodeText(partNode, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibrary>::@fragment::package:test/part.dart::@prefix::p
+        scopeLibraries
+          package:test/b.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibrary>::@fragment::package:test/part.dart::@prefix::p
+      scopeLibraries
+        package:test/b.dart
+    staticType: null
+  element: <testLibrary>::@fragment::package:test/part.dart::@prefix::p
+    scopeLibraries
+      package:test/b.dart
+''');
+  }
+
+  test_partOf_importPrefix_unqualified_extendsLibraryImportPrefix() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+    var part = getFile('$testPackageLibPath/part.dart');
+    var results = await resolveFilesWithDiagnostics({
+      testFile: r'''
+import 'a.dart' as p;
+
+part 'part.dart';
+
+/// [p]
+void f(p.A a) {}
+''',
+      part: r'''
+part of 'test.dart';
+
+import 'b.dart' as p;
+
+/// [p]
+//   ^
+// [diag.ambiguousCommentReferencePrefix] The prefix 'p' can't be used to reference a library, because it's used to import more than one library: 'package:test/a.dart' and 'package:test/b.dart'.
+void g(p.B b) {}
+''',
+    });
+
+    nodeTextConfiguration.withImportPrefixScopeLibraries = true;
+
+    var libraryNode = results[testFile]!.findNode.singleCommentReference;
+    assertResolvedNodeText(libraryNode, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibraryFragment>::@prefix::p
+        scopeLibraries
+          package:test/a.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibraryFragment>::@prefix::p
+      scopeLibraries
+        package:test/a.dart
+    staticType: null
+  element: <testLibraryFragment>::@prefix::p
+    scopeLibraries
+      package:test/a.dart
+''');
+
+    var partNode = results[part]!.findNode.singleCommentReference;
+    assertResolvedNodeText(partNode, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p
+      element: <testLibrary>::@fragment::package:test/part.dart::@prefix::p
+        scopeLibraries
+          package:test/b.dart
+          package:test/a.dart
+  expression: SimpleIdentifier
+    token: p
+    element: <testLibrary>::@fragment::package:test/part.dart::@prefix::p
+      scopeLibraries
+        package:test/b.dart
+        package:test/a.dart
+    staticType: null
+  element: <testLibrary>::@fragment::package:test/part.dart::@prefix::p
+    scopeLibraries
+      package:test/b.dart
+      package:test/a.dart
 ''');
   }
 

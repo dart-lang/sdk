@@ -31,6 +31,8 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.abstractSuperMemberReference,
   diag.addressPosition,
   diag.addressReceiver,
+  diag.ambiguousCommentReferenceName,
+  diag.ambiguousCommentReferencePrefix,
   diag.ambiguousExport,
   diag.ambiguousExtensionMemberAccessThreeOrMore,
   diag.ambiguousExtensionMemberAccessTwo,

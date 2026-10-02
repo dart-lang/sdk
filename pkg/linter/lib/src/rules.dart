@@ -13,6 +13,7 @@ import 'rules/always_specify_types.dart';
 import 'rules/always_use_package_imports.dart';
 import 'rules/analyzer_element_model_tracking.dart';
 import 'rules/analyzer_public_api.dart';
+import 'rules/analyzer_to_be_deprecated_use.dart';
 import 'rules/annotate_overrides.dart';
 import 'rules/annotate_redeclares.dart';
 import 'rules/async_return_with_no_await.dart';
@@ -284,6 +285,7 @@ void registerLintRules() {
     ..registerLintRule(AlwaysUsePackageImports())
     ..registerLintRule(AnalyzerElementModelTracking())
     ..registerLintRule(AnalyzerPublicApi())
+    ..registerLintRule(AnalyzerToBeDeprecatedUse())
     ..registerLintRule(AnnotateOverrides())
     ..registerLintRule(AnnotateRedeclares())
     ..registerLintRule(AsyncReturnWithNoAwait())

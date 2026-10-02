@@ -44,7 +44,7 @@ class LanguageServer {
     registerBuiltInAssistGenerators();
     registerBuiltInFixGenerators();
 
-    _server = _LspAnalysisServer(
+    _server = lsp.LspAnalysisServer(
       _LspServerCommunicationChannel(_input.stream, _output.sink),
       resourceProvider,
       a.AnalysisServerOptions(),
@@ -57,7 +57,7 @@ class LanguageServer {
       processRunner: null,
       diagnosticServer: null,
       detachableFileSystemManager: null,
-      byteStore: byteStore,
+      providedByteStore: byteStore,
     );
     _server.exited.whenComplete(() {
       if (!_closed.isCompleted) {
@@ -82,29 +82,6 @@ class LanguageServer {
   Stream<Map<String, Object?>> get messages => _output.stream;
 
   Future<void> handle(Map<String, Object?> m) async => _input.add(m);
-}
-
-final class _LspAnalysisServer extends lsp.LspAnalysisServer {
-  final ByteStore _byteStore;
-
-  _LspAnalysisServer(
-    super.channel,
-    super.baseResourceProvider,
-    super.options,
-    super.sdkManager,
-    super.analyticsManager,
-    super.crashReportingAttachmentsBuilder,
-    super.instrumentationService,
-    super.sessionLogger, {
-    super.httpClient,
-    super.processRunner,
-    super.diagnosticServer,
-    super.detachableFileSystemManager,
-    required ByteStore byteStore,
-  }) : _byteStore = byteStore;
-
-  @override
-  ByteStore createByteStore(ResourceProvider resourceProvider) => _byteStore;
 }
 
 final class _LspServerCommunicationChannel

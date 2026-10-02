@@ -834,6 +834,50 @@ import '../file.dart'
     await _initializeAndVerifyTokens(content, expected);
   }
 
+  Future<void> test_directives_inPart() async {
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    var partFileUri = toUri(partFilePath);
+    var nestedFilePath = join(projectFolderPath, 'lib', 'nested.dart');
+    var partContent = '''
+part of 'main.dart';
+import 'dart:math' deferred as math show max;
+export 'dart:async' hide Stream;
+part 'nested.dart';
+void f() {
+  math.max(1, 2);
+}
+''';
+
+    newFile(mainFilePath, "part 'part.dart';\n");
+    newFile(partFilePath, partContent);
+    newFile(nestedFilePath, "part of 'part.dart';\n");
+    await initialize();
+
+    await _verifyTokens(partFileUri, partContent, [
+      Token('part of', .keyword),
+      Token("'main.dart'", .string),
+      Token('import', .keyword),
+      Token("'dart:math'", .string),
+      Token('deferred', .keyword),
+      Token('as', .keyword),
+      Token('math', .variable, [.importPrefix]),
+      Token('show', .keyword),
+      Token('max', .function),
+      Token('export', .keyword),
+      Token("'dart:async'", .string),
+      Token('hide', .keyword),
+      Token('Stream', .class_),
+      Token('part', .keyword),
+      Token("'nested.dart'", .string),
+      Token('void', .keyword, [.void_]),
+      Token('f', .function, [.declaration, .static]),
+      Token('math', .variable, [.importPrefix]),
+      Token('max', .function),
+      Token('1', .number),
+      Token('2', .number),
+    ]);
+  }
+
   Future<void> test_dotShorthand_constructor() async {
     failTestOnErrorDiagnostic = false;
 
