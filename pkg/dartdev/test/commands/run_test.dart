@@ -1136,6 +1136,47 @@ Script2: ${script2.uri}
     },
   );
 
+  for (String? usedResidentFlag in [null, '-r']) {
+    test(
+      'Platform.executableArguments does not contain internal arguments'
+      '${usedResidentFlag != null ? ' (resident ($usedResidentFlag))' : ''}',
+      () async {
+        p = project(
+          mainSrc: '''
+import "dart:convert";
+import "dart:io";
+void main() {
+  print(json.encode(Platform.executableArguments));
+}
+''',
+        );
+        final result = await p.run([
+          '--enable-asserts',
+          'run',
+          if (usedResidentFlag != null) ...[
+            usedResidentFlag,
+            '--$residentCompilerInfoFileOption=$serverInfoFile',
+          ],
+          p.relativeFilePath,
+        ]);
+        expect(result.exitCode, 0, reason: result.stderr.toString());
+        expect(result.stderr, isEmpty);
+        expect(result.stdout, isNotEmpty);
+        List<dynamic> jsonDecoded = json.decode(result.stdout);
+        expect(jsonDecoded, contains('--enable-asserts'));
+        expect(jsonDecoded, isNot(contains(startsWith('--executable_name='))));
+        expect(
+          jsonDecoded,
+          isNot(contains(startsWith('--resolved_executable_name='))),
+        );
+        expect(
+          jsonDecoded,
+          isNot(contains(startsWith('--script_uri_override='))),
+        );
+      },
+    );
+  }
+
   test(
     'resident compiler works with non-ASCII filenames',
     () async {

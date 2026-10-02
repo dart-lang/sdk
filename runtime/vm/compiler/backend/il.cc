@@ -67,13 +67,45 @@ DECLARE_FLAG(bool, use_slow_path);
 // generation is located in il_<arch>.cc
 #define __ compiler->assembler()->
 
-class SubtypeFinder {
+namespace {
+
+class SubtypeVisitor : public ValueObject {
+ public:
+  explicit SubtypeVisitor(Zone* zone)
+      : array_handles_(zone), class_handles_(zone) {}
+
+  template <typename F>
+  void ForEachDirectSubtype(const Class& klass, F&& visit_subtype) {
+    ScopedHandle<GrowableObjectArray> array(&array_handles_);
+    ScopedHandle<Class> subclass_or_implementor(&class_handles_);
+
+    *array = klass.direct_subclasses();
+    if (!array->IsNull()) {
+      for (intptr_t i = 0; i < array->Length(); ++i) {
+        *subclass_or_implementor ^= (*array).At(i);
+        visit_subtype(*subclass_or_implementor);
+      }
+    }
+    *array = klass.direct_implementors();
+    if (!array->IsNull()) {
+      for (intptr_t i = 0; i < array->Length(); ++i) {
+        *subclass_or_implementor ^= (*array).At(i);
+        visit_subtype(*subclass_or_implementor);
+      }
+    }
+  }
+
+ private:
+  ReusableHandleStack<GrowableObjectArray> array_handles_;
+  ReusableHandleStack<Class> class_handles_;
+};
+
+class SubtypeFinder final : public SubtypeVisitor {
  public:
   SubtypeFinder(Zone* zone,
                 GrowableArray<intptr_t>* cids,
                 bool include_abstract)
-      : array_handles_(zone),
-        class_handles_(zone),
+      : SubtypeVisitor(zone),
         cids_(cids),
         include_abstract_(include_abstract) {}
 
@@ -86,31 +118,16 @@ class SubtypeFinder {
       cids_->Add(klass.id());
     }
 
-    ScopedHandle<GrowableObjectArray> array(&array_handles_);
-    ScopedHandle<Class> subclass_or_implementor(&class_handles_);
-
-    *array = klass.direct_subclasses();
-    if (!array->IsNull()) {
-      for (intptr_t i = 0; i < array->Length(); ++i) {
-        *subclass_or_implementor ^= (*array).At(i);
-        ScanImplementorClasses(*subclass_or_implementor);
-      }
-    }
-    *array = klass.direct_implementors();
-    if (!array->IsNull()) {
-      for (intptr_t i = 0; i < array->Length(); ++i) {
-        *subclass_or_implementor ^= (*array).At(i);
-        ScanImplementorClasses(*subclass_or_implementor);
-      }
-    }
+    ForEachDirectSubtype(
+        klass, [&](const auto& subtype) { ScanImplementorClasses(subtype); });
   }
 
  private:
-  ReusableHandleStack<GrowableObjectArray> array_handles_;
-  ReusableHandleStack<Class> class_handles_;
   GrowableArray<intptr_t>* cids_;
   const bool include_abstract_;
 };
+
+}  // namespace
 
 const CidRangeVector& HierarchyInfo::SubtypeRangesForClass(
     const Class& klass,
@@ -300,6 +317,137 @@ void HierarchyInfo::BuildRangesFor(ClassTable* table,
   if (left_cid != -1) {
     ranges->Add(CidRange{left_cid, right_cid});
   }
+}
+
+namespace {
+
+class GuaranteedBaseClassComputeHelper final : public SubtypeVisitor {
+ public:
+  GuaranteedBaseClassComputeHelper(
+      Zone* zone,
+      CidRangeVector* cid_guaranteed_base_class_ranges)
+      : SubtypeVisitor(zone),
+        cid_guaranteed_base_class_ranges_(cid_guaranteed_base_class_ranges) {
+    ASSERT(CompilerState::Current().is_aot());
+  }
+
+  const CidRangeVector& ComputeBaseClassRangeFor(const Class& supertype) {
+    CidRangeVector& base_classes =
+        cid_guaranteed_base_class_ranges_[supertype.id()];
+    if (!base_classes.is_empty() ||
+        (supertype.implementor_cid() == kIllegalCid)) {
+      return base_classes;
+    }
+
+    if (supertype.IsObjectClass() || supertype.IsDynamicClass() ||
+        supertype.IsVoidClass() ||
+        supertype.has_dynamically_extendable_subtypes()) {
+      base_classes.Add({kInstanceCid, kInstanceCid});
+      return base_classes;
+    }
+
+    // If this class is not abstract then the final value of base_classes
+    // is a subset of its supertype chain.
+    if (!supertype.is_abstract()) {
+      AddSuperclassChain(supertype, &base_classes);
+
+      // If there are no implemenations then we are done.
+      if (!supertype.is_implemented()) {
+        return base_classes;
+      }
+    }
+
+    ForEachDirectSubtype(supertype, [&](const auto& subtype) {
+      const auto& subtype_base_classes = ComputeBaseClassRangeFor(subtype);
+      if (subtype_base_classes.is_empty()) {
+        // No concrete subtypes.
+        return;
+      }
+      if (base_classes.is_empty()) {
+        base_classes.AddArray(subtype_base_classes);
+      } else {
+        Intersect(base_classes, subtype_base_classes);
+      }
+    });
+
+    return base_classes;
+  }
+
+ private:
+  // Adds ids of [klass] and all its superclasses to [ranges] as a sorted
+  // list of non-overlapping ranges.
+  void AddSuperclassChain(const Class& klass, CidRangeVector* ranges) {
+    GrowableArray<intptr_t> cids;
+    auto& cls = Class::Handle(klass.ptr());
+    for (; !cls.IsNull(); cls = cls.SuperClass()) {
+      cids.Add(cls.id());
+    }
+    cids.Sort([](const intptr_t* a, const intptr_t* b) {
+      return static_cast<int>(*a) - static_cast<int>(*b);
+    });
+    for (intptr_t cid : cids) {
+      if (!ranges->is_empty() && ranges->Last().cid_end + 1 == cid) {
+        ranges->Last().cid_end = cid;
+      } else {
+        ranges->Add({cid, cid});
+      }
+    }
+  }
+
+  static void Intersect(CidRangeVector& lhs, const CidRangeVector& other) {
+    intptr_t new_i = 0;
+    intptr_t i = 0;
+    intptr_t j = 0;
+    while (i < lhs.length() && j < other.length()) {
+      // In AOT mode classes are sorted in depth first order (with exception of
+      // pinned cids). Most specifically all classes (even pinned ones) satisfy
+      // the following: if C_0 extends C_1, C_1 extends C_2, ... extends C_n and
+      // {C_0.id, ..., C_n.id} is dense interval [S, E], then C_0.id = E,
+      // C_1.id = E-1, ..., C_n = S. This implies that two cid-ranges [S_0, E_0]
+      // and [S_1, E_1] each representing a superclass chain either do not
+      // intersect or S_0 == S_1.
+      if (lhs[i].cid_start == other[j].cid_start) {
+        lhs[new_i].cid_start = lhs[i].cid_start;
+        lhs[new_i].cid_end = Utils::Minimum(lhs[i].cid_end, other[j].cid_end);
+        new_i++;
+        i++;
+        j++;
+        continue;
+      }
+      if (lhs[i].cid_start < other[j].cid_start) {
+        ASSERT(lhs[i].cid_end < other[j].cid_start);
+        i++;
+      } else {
+        ASSERT(other[j].cid_end < lhs[i].cid_start);
+        j++;
+      }
+    }
+    lhs.TruncateTo(new_i);
+  }
+
+  CidRangeVector* cid_guaranteed_base_class_ranges_;
+};
+
+}  // namespace
+
+const CidRangeVector& HierarchyInfo::GuaranteedBaseClassesFor(
+    const Class& supertype) {
+  ClassTable* table = thread()->isolate_group()->class_table();
+
+  if (cid_guaranteed_base_class_ranges_ == nullptr) {
+    cid_guaranteed_base_class_ranges_.reset(
+        new CidRangeVector[table->NumCids()]);
+  }
+
+  SafepointReadRwLocker ml(thread(), thread()->isolate_group()->program_lock());
+  if (!cid_guaranteed_base_class_ranges_[supertype.id()].is_empty() ||
+      supertype.implementor_cid() == kIllegalCid) {
+    return cid_guaranteed_base_class_ranges_[supertype.id()];
+  }
+
+  GuaranteedBaseClassComputeHelper helper(
+      thread()->zone(), cid_guaranteed_base_class_ranges_.get());
+  return helper.ComputeBaseClassRangeFor(supertype);
 }
 
 bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
@@ -4147,8 +4295,7 @@ UnboxInstr* UnboxInstr::Create(Representation to,
   }
 }
 
-bool UnboxInstr::HasMatchingType() {
-  CompileType* type = value()->Type();
+bool UnboxInstr::HasMatchingType(CompileType* type) const {
   switch (representation_) {
     case kUnboxedInt32:
     case kUnboxedUint32:

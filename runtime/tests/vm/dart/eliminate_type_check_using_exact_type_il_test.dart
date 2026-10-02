@@ -50,12 +50,7 @@ void matchIL$StackImpl$push(FlowGraph graph) {
       'arrayLength+1' << match.BinaryInt64Op('arrayLength', match.any),
       match.StoreField('this', 'arrayLength+1', slot: 'arrayLength'),
       // No AssertAssignable between these instructions.
-      'length' <<
-          match.LoadField(
-            'array',
-            slot: 'Array.length',
-            skipUntilMatched: false,
-          ),
+      match.tight(['length' << match.LoadField('array', slot: 'Array.length')]),
       if (is32BitConfiguration) ...[
         'boxed_arrayLength' << match.BoxInt64('arrayLength'),
         match.GenericCheckBound('length', 'boxed_arrayLength'),
