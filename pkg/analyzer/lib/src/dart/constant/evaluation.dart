@@ -3548,8 +3548,6 @@ class _ConstructorInvocationEvaluator {
       Token? keyword;
       if (node is ConstructorInvocation) {
         keyword = node.keyword;
-      } else if (node is DotShorthandConstructorInvocation) {
-        keyword = node.constKeyword;
       } else if (node is DotShorthandConstructorInvocation2) {
         keyword = node.constKeyword;
       }

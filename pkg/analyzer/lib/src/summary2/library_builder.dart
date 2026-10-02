@@ -149,9 +149,15 @@ class LibraryBuilder {
   final LibraryElementImpl element;
   final List<LinkingUnit> units;
 
+  /// The files that already contribute a fragment to the library: the
+  /// defining file, and the part files included so far.
+  ///
   /// Repeated part directives retain their sources, but only the first
-  /// inclusion contributes a fragment and declarations to the library.
-  final Set<FileState> _includedPartFiles = {};
+  /// inclusion contributes a fragment and declarations to the library. The
+  /// defining file is here too, because when a part file is analyzed as a
+  /// library (no library includes it), its part directives can lead back to
+  /// itself through a cycle of parts.
+  late final Set<FileState> _includedFiles = {kind.file};
 
   final Map<EnumFragmentImpl, ImplicitEnumNodes> implicitEnumNodes =
       Map.identity();
@@ -637,7 +643,7 @@ class LibraryBuilder {
     switch (state) {
       case PartIncludeWithFile():
         var includedPart = state.includedPart;
-        if (includedPart != null && _includedPartFiles.add(includedPart.file)) {
+        if (includedPart != null && _includedFiles.add(includedPart.file)) {
           var partFile = includedPart.file;
           var partUnitNode = partFile.parse(
             performance: OperationPerformanceImpl('<root>'),

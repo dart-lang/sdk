@@ -45,11 +45,6 @@ Element? declaredNamedArgumentParameter(
     var invocation = argumentList.parent2;
     if (invocation is ConstructorInvocation) {
       return namedParameterElement(invocation.constructorReference.element);
-    } else if (invocation is MethodInvocation) {
-      var executable = invocation.methodName.element;
-      if (executable is ExecutableElement) {
-        return namedParameterElement(executable);
-      }
     } else if (invocation is NamedFunctionInvocation) {
       var executable = switch (invocation.resolution) {
         ExecutableInvocationResolution(:var element) => element,

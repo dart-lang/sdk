@@ -1446,18 +1446,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
             classElement is ClassElement &&
             !classElement.isDartCoreObject;
       }
-      if (invocation is MethodInvocation &&
-          invocation.target2 is SuperExpression &&
-          invocation.argumentList.arguments2.length == 1) {
-        SimpleIdentifier name = invocation.methodName;
-        if (name.name == MethodElement.NO_SUCH_METHOD_METHOD_NAME) {
-          var methodElement = name.element;
-          var classElement = methodElement?.enclosingElement;
-          return methodElement is MethodElement &&
-              classElement is ClassElement &&
-              !classElement.isDartCoreObject;
-        }
-      }
       return false;
     }
 
@@ -1628,9 +1616,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     var expressions = addTo ?? <Expression, Element>{};
 
     Element? element;
-    if (expression is MethodInvocation) {
-      element = expression.methodName.element;
-    } else if (expression is NamedFunctionInvocation) {
+    if (expression is NamedFunctionInvocation) {
       element = switch (expression.resolution) {
         ExecutableInvocationResolution(:var element) => element,
         InvalidInvocationResolution(
@@ -2025,8 +2011,7 @@ class _InvalidAccessVerifier {
         ReceiverPropertyAssignmentTarget() => node,
         _ => node.parent2,
       };
-      if (parent is MethodInvocation && parent.target2 is SuperExpression ||
-          parent is ReceiverMethodInvocation &&
+      if (parent is ReceiverMethodInvocation &&
               parent.receiver is SuperReference ||
           parent is ReceiverPropertyExtraction &&
               parent.receiver is SuperReference ||

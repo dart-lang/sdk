@@ -176,7 +176,6 @@ class UseResultVerifier {
         parent is AssertStatement ||
         // Node should always be RHS so no need to check for a property
         // assignment.
-        parent is AssignmentExpression ||
         parent is DirectAssignment ||
         parent is IfNullAssignment ||
         parent is BinaryOperatorInvocation ||
@@ -189,12 +188,10 @@ class UseResultVerifier {
         parent is CallInvocation ||
         parent is IfStatement ||
         parent is IndexAssignmentTarget ||
-        parent is IndexExpression ||
         parent is IndexExpression2 ||
         parent is InterpolationExpression ||
         parent is ListLiteral ||
         parent is MapLiteralEntry ||
-        parent is MethodInvocation ||
         parent is NamedArgument ||
         parent is PatternAssignment ||
         parent is PatternVariableDeclaration ||

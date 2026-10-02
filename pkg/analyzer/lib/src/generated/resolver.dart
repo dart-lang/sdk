@@ -5054,10 +5054,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       return;
     }
     TypeImpl context;
-    if (parent is AssignmentExpressionImpl) {
-      if (parent.writeType == null) return;
-      context = parent.writeType!;
-    } else if (parent is AssignmentExpression2Impl) {
+    if (parent is AssignmentExpression2Impl) {
       var writeType = parent.target.write?.acceptedType;
       if (writeType == null) {
         return;
@@ -5797,12 +5794,8 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     } else if (nameNode is EnumConstantDeclaration) {
       var declaredElement = nameNode.declaredFragment!.element;
       name = declaredElement.type.getDisplayString();
-    } else if (nameNode is DotShorthandConstructorInvocation) {
-      name = nameNode.constructorName.name;
     } else if (nameNode is DotShorthandConstructorInvocation2) {
       name = nameNode.name.lexeme;
-    } else if (nameNode is DotShorthandInvocation) {
-      name = nameNode.memberName.name;
     } else {
       throw UnimplementedError('(${nameNode.runtimeType}) $nameNode');
     }

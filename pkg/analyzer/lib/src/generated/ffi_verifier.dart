@@ -1277,8 +1277,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     // Since we are allowing .address.cast(), we need to traverse up one level
     // to get the ffi Invocation (.cast() nested down one level the expression)
     var castElement = switch (parent) {
-      MethodInvocation(:var methodName) when methodName.name == 'cast' =>
-        methodName.element,
       ReceiverMethodInvocation(:var name, :var resolution)
           when name.lexeme == 'cast' =>
         switch (resolution) {
@@ -1294,7 +1292,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     }
     var grandParent = parent?.parent2;
     var isNativeLeafInvocation = switch (grandParent) {
-      MethodInvocation node => node.isNativeLeafInvocation,
       NamedFunctionInvocation node => node.isNativeLeafInvocation,
       _ => false,
     };
@@ -1320,16 +1317,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       case ReceiverIndexExpression(receiver: Expression indexedReceiver):
         // Array or TypedData element.
         var type = indexedReceiver.staticType;
-        if (type?.isArray ?? false) {
-          return;
-        }
-        if (type?.isTypedData ?? false) {
-          return;
-        }
-      case IndexExpression _:
-        // Array or TypedData element.
-        var arrayOrTypedData = receiver.target2;
-        var type = arrayOrTypedData?.staticType;
         if (type?.isArray ?? false) {
           return;
         }
@@ -2592,20 +2579,6 @@ extension on MethodElement {
       if (annotation.isNativeLeaf) {
         return true;
       }
-    }
-    return false;
-  }
-}
-
-extension on MethodInvocation {
-  /// Calls @Native(isLeaf: true) external function.
-  bool get isNativeLeafInvocation {
-    var element = methodName.element;
-    if (element is TopLevelFunctionElement) {
-      return element.isNativeLeaf;
-    }
-    if (element is MethodElement) {
-      return element.isNativeLeaf;
     }
     return false;
   }

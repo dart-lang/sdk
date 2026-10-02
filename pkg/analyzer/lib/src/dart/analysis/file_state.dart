@@ -1883,10 +1883,17 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// The list of files that this library consists of:
   /// - the library file itself;
   /// - the part files, in the depth-first pre-order order.
+  ///
+  /// Each file is visited once, so cycles of parts, e.g. a part file that
+  /// includes itself, which can happen when [asLibrary] is used, terminate.
   List<FileKind> get fileKinds {
     var result = <FileKind>[];
+    var visited = <FileState>{};
 
     void visitParts(FileKind kind) {
+      if (!visited.add(kind.file)) {
+        return;
+      }
       result.add(kind);
       for (var directive in kind.partIncludes) {
         if (directive is PartIncludeWithFile) {
@@ -1904,7 +1911,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   /// The files extracted from [fileKinds].
   List<FileState> get files {
-    return fileKinds.map((kind) => kind.file).toSet().toList();
+    return fileKinds.map((kind) => kind.file).toList();
   }
 
   LibraryCycle? get internal_libraryCycle => _libraryCycle;

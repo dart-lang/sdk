@@ -91,6 +91,7 @@ cc/FlowGraph_PhiUnboxingHeuristic_*: SkipByDesign # Building flow graph is not s
 cc/FullSnapshot: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/IRTest_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/Inliner_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/IsolateReload_ChangeInstanceFormat7: SkipByDesign # Bytecode doesn't support changing type parameters even in unused classes.
 cc/IsolateReload_EnumWithSet: SkipByDesign # Bytecode doesn't support KernelProgramInfo.
 cc/IsolateReload_RegressB179030011: SkipByDesign # Bytecode doesn't support concatenated kernel programs.
 cc/IsolateReload_TypeIdentityParameter: SkipByDesign # dart:mirrors is not supported.

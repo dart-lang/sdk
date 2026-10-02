@@ -308,21 +308,14 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
           if (!_shouldReportEnumIndex(target, element!)) {
             return;
           }
-          if (target is AssignmentExpression) {
-            target = target.leftHandSide2;
-          }
           if (target is ExtensionOverride2) {
             errorEntity = target.name;
           } else if (target is CallInvocation) {
             errorEntity = target.argumentList;
           } else if (target is IndexExpression2) {
             errorEntity = target.leftBracket;
-          } else if (target is IndexExpression) {
-            errorEntity = target.leftBracket;
           } else if (target is IndexAssignmentTarget) {
             errorEntity = target.leftBracket;
-          } else if (target is MethodInvocation) {
-            errorEntity = target.methodName;
           } else if (target is NamedType) {
             errorEntity = target.name;
           } else if (target is PropertyExtraction) {

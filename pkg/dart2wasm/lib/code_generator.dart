@@ -2780,8 +2780,14 @@ abstract class AstCodeGenerator
       int typeCount = type.typeParameters.length;
       int posArgCount = type.positionalParameters.length;
       List<String> argNames = type.namedParameters.map((a) => a.name).toList();
-      ClosureRepresentation representation = translator.closureLayouter
-          .getClosureRepresentation(typeCount, posArgCount, argNames)!;
+      ClosureRepresentation? representation = translator.closureLayouter
+          .getClosureRepresentation(typeCount, posArgCount, argNames);
+      if (representation == null) {
+        // This is a dynamic function instantiation with a signature that
+        // matches no functions in the program.
+        b.unreachable();
+        return voidMarker;
+      }
 
       // Operand closure
       w.RefType closureType = w.RefType.def(

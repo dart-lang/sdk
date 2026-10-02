@@ -7707,7 +7707,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     Token operator, {
     required _NullAwareKind kind,
   }) {
-    if (target is SuperReference || target is SuperExpression) {
+    if (target is SuperReference) {
       return;
     }
 
@@ -7718,22 +7718,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         if (target.operator.type == TokenType.QUESTION_PERIOD) {
           return previousShortCircuitingOperator(receiver) ?? target.operator;
         }
-      } else if (target is IndexExpression) {
-        if (target.question != null) {
-          var realTarget = target.realTarget2;
-          return previousShortCircuitingOperator(realTarget) ?? target.question;
-        }
       } else if (target is ReceiverIndexExpression) {
         if (target.question != null) {
           return previousShortCircuitingOperator(target.receiver) ??
               target.question;
-        }
-      } else if (target is MethodInvocation) {
-        var operator = target.operator;
-        var type = operator?.type;
-        if (type == TokenType.QUESTION_PERIOD) {
-          var realTarget = target.realTarget2;
-          return previousShortCircuitingOperator(realTarget) ?? operator;
         }
       } else if (target is ReceiverMethodInvocation) {
         var operator = target.operator;
@@ -7821,15 +7809,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
     if (element is ExecutableElement && !element.isStatic) {
       return;
-    }
-    if (entity is AstNode) {
-      if (entity.parent2 case MethodInvocation(
-        :var methodName,
-      ) when entity == methodName) {
-        // Invalid methods are reported in
-        // [MethodInvocationResolver._reportInstanceAccessToStaticMember].
-        return;
-      }
     }
     if (_enclosingInstanceElement is ExtensionElementImpl) {
       diagnosticReporter.report(

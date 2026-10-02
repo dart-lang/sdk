@@ -757,26 +757,6 @@ class AstRewriter {
       );
       return receiver;
     }
-    if (parent is AssignmentExpressionImpl &&
-        identical(parent.leftHandSide2, node)) {
-      // For `=` or `??=`, the AST builder creates a DirectAssignmentImpl or
-      // IfNullAssignmentImpl with an InvalidExpressionAssignmentTargetImpl,
-      // which is handled above.
-      assert(
-        parent.operator.type != TokenType.EQ &&
-            parent.operator.type != TokenType.QUESTION_QUESTION_EQ,
-      );
-      parent.replaceWith(
-        CompoundAssignmentImpl(
-          target: InvalidExtensionOverrideAssignmentTargetImpl(
-            extensionOverride: receiver,
-          ),
-          operator: parent.operator,
-          value: parent.rightHandSide2,
-        ),
-      );
-      return receiver;
-    }
     var isReceiver = switch (parent) {
       ParsedNameAccessImpl(:var operand) => identical(operand, node),
       ReceiverPropertyExtractionImpl(:var receiver) => identical(

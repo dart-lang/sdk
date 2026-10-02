@@ -3632,6 +3632,52 @@ part of 'a.dart';
 ''');
   }
 
+  test_getUnitElement_partCycle() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'b.dart';
+part 'b.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'a.dart';
+''');
+
+    var driver = driverFor(a);
+    var collector = DriverEventCollector(driver);
+
+    collector.getUnitElement('A1', a);
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getUnitElement A1
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  flags: isPart
+  enclosing: <null>
+''');
+  }
+
+  test_getUnitElement_partIncludesSelf() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'a.dart';
+part 'a.dart';
+''');
+
+    var driver = driverFor(a);
+    var collector = DriverEventCollector(driver);
+
+    collector.getUnitElement('A1', a);
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getUnitElement A1
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  flags: isPart
+  enclosing: <null>
+''');
+  }
+
   test_hermetic_modifyLibraryFile_resolvePart() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';

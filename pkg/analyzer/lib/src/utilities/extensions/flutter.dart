@@ -234,20 +234,14 @@ extension AstNodeExtension2 on AstNode? {
         continue;
       }
 
-      if (node is AssignmentExpression) {
+      if (node is AssignmentExpression2) {
         return null;
       }
 
       var parent = node.parent2;
 
-      if (parent is AssignmentExpression) {
-        if (parent.rightHandSide2 == node) {
-          return node as Expression;
-        }
-        return null;
-      }
-
       if (parent is ArgumentList ||
+          parent is AssignmentExpression2 && parent.value == node ||
           parent is ConditionalExpression && parent.thenExpression2 == node ||
           parent is ConditionalExpression && parent.elseExpression2 == node ||
           parent is ExpressionFunctionBody && parent.expression2 == node ||
