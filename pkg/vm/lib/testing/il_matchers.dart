@@ -260,6 +260,13 @@ class PrettyPrinter {
       ..write('[')
       ..write(block['o'])
       ..write(']');
+    final loops = block['ls'] as List<dynamic>?;
+    if (loops != null) {
+      for (var i = 0; i < loops.length; i++) {
+        final isHeader = i == 0 && block['lh'] == true;
+        buffer.write(' loop(${loops[i]}${isHeader ? ', h' : ''})');
+      }
+    }
     final defs = block['d'] ?? [];
     if (defs.isNotEmpty) {
       buffer.writeln(' {');
@@ -296,14 +303,7 @@ abstract class Matcher {
   MatchStatus match(Env e, dynamic v);
 }
 
-abstract class ElementMatcher extends Matcher {
-  /// If [skipUntilMatched] is `true` then outer sequence matcher will skip
-  /// elements until it finds match for this matcher or end of the sequence
-  /// is reached.
-  bool get skipUntilMatched;
-
-  ElementMatcher copyWith({bool? skipUntilMatched});
-}
+abstract class ElementMatcher extends Matcher {}
 
 class MatchStatus {
   final String? message;
@@ -329,7 +329,7 @@ class MatchStatus {
 }
 
 /// Matcher which always succeeds.
-class _AnyMatcher implements Matcher {
+class _AnyMatcher implements ElementMatcher {
   const _AnyMatcher();
 
   @override
@@ -366,15 +366,6 @@ class _BoundMatcher<M extends Matcher> implements Matcher {
 class _BoundElementMatcher extends _BoundMatcher<ElementMatcher>
     implements ElementMatcher {
   _BoundElementMatcher(super.name, super.nested);
-
-  @override
-  bool get skipUntilMatched => nested.skipUntilMatched;
-
-  @override
-  ElementMatcher copyWith({bool? skipUntilMatched}) => _BoundElementMatcher(
-    this.name,
-    nested.copyWith(skipUntilMatched: skipUntilMatched),
-  );
 }
 
 /// Matcher which matches a specified value [v].
@@ -500,16 +491,24 @@ class _ListMatcher implements Matcher {
 
 /// A matcher which matches a block of the specified [kind] and contents.
 ///
-/// Contents are specified as a sequence of matchers ([body]). For each of
-/// those matchers a matching block is expected to contain at least one
-/// instruction that matches it. Matching is done in order: first we scan
-/// the block until we find the match for the first matcher in body, then
-/// we continue scanning until we find the match for the second and so on.
+/// Contents are specified as a sequence of matchers ([body]). Matching is
+/// done in order: we let the first matcher consume as much as it wants from
+/// the sequence of instructions, then we switch to the next matcher and so on.
+/// With the exception of `seq(...)` matcher all other matchers consume at
+/// most one matching instruction. `seq(...)` matcher consumes matching
+/// instructions as long as they do not match the next matcher (if any).
+///
+/// For example, `[match.seq(match.any), match.Goto()]` will consume
+/// instructions until it finds `Goto`.
+///
+/// If [isLoopHeader] is not `null` then the block is expected to be (or
+/// not to be) a loop header.
 class _BlockMatcher implements Matcher {
   final String kind;
   final List<ElementMatcher> body;
+  final bool? isLoopHeader;
 
-  _BlockMatcher(this.kind, [this.body = const []]);
+  _BlockMatcher(this.kind, [this.body = const [], this.isLoopHeader]);
 
   @override
   MatchStatus match(Env e, covariant Map<String, dynamic> block) {
@@ -520,15 +519,35 @@ class _BlockMatcher implements Matcher {
       );
     }
 
+    if (isLoopHeader != null && isLoopHeader != (block['lh'] == true)) {
+      return MatchStatus.fail(
+        'Expected B${block['b']} to ${isLoopHeader! ? '' : 'not '}'
+        'be a loop header',
+      );
+    }
+
     final gotBody = [...?block['d'], ...?block['is']];
 
     var matcherIndex = 0;
     for (int i = 0; i < gotBody.length && matcherIndex < body.length; i++) {
       final matcher = body[matcherIndex];
+
+      if (matcher is _SequenceMatcher) {
+        if (matcherIndex + 1 < body.length) {
+          final nextMatcher = body[matcherIndex + 1];
+          if (nextMatcher.match(e, gotBody[i]).isMatch) {
+            matcherIndex += 2;
+            continue;
+          }
+        }
+      }
+
       final result = matcher.match(e, gotBody[i]);
       if (result.isMatch) {
-        matcherIndex++;
-      } else if (!matcher.skipUntilMatched) {
+        if (matcher is! _SequenceMatcher) {
+          matcherIndex++;
+        }
+      } else {
         return MatchStatus.fail(
           'Unmatched instruction: ${body[matcherIndex]} '
           'in block B${block['b']}: '
@@ -536,7 +555,16 @@ class _BlockMatcher implements Matcher {
         );
       }
     }
-    if (matcherIndex != body.length) {
+
+    // We have no more instructions in the body and the current matcher.
+    // Skip trailing seq(...) matchers, as these can consume 0
+    // instructions and we want to see if we have a matcher after these
+    // which requires exactly 1 instruction.
+    while (matcherIndex < body.length &&
+        body[matcherIndex] is _SequenceMatcher) {
+      matcherIndex++;
+    }
+    if (matcherIndex < body.length) {
       return MatchStatus.fail(
         'Unmatched instruction: ${body[matcherIndex]} '
         'in block B${block['b']}',
@@ -544,6 +572,38 @@ class _BlockMatcher implements Matcher {
     }
     return MatchStatus.matched;
   }
+}
+
+/// Matches instructions whose opcode is not in [ops].
+class _NoneOfMatcher implements ElementMatcher {
+  final Set<String> ops;
+
+  _NoneOfMatcher(this.ops);
+
+  @override
+  MatchStatus match(Env e, covariant Map<String, dynamic> instr) {
+    return ops.contains(instr['o'])
+        ? MatchStatus.fail('unexpected instruction ${instr['o']}')
+        : MatchStatus.matched;
+  }
+
+  @override
+  String toString() => 'noneOf($ops)';
+}
+
+/// Matches a sequence of instructions all matching [nested] matcher.
+class _SequenceMatcher implements ElementMatcher {
+  final ElementMatcher nested;
+
+  _SequenceMatcher(this.nested);
+
+  @override
+  MatchStatus match(Env e, covariant Map<String, dynamic> instr) {
+    return nested.match(e, instr);
+  }
+
+  @override
+  String toString() => 'seq($nested)';
 }
 
 class _TryBlockMatcher implements Matcher {
@@ -607,33 +667,20 @@ class _AttributesMatcher implements Matcher {
 class InstructionMatcher implements ElementMatcher {
   final String op;
   final Map<String, Matcher> matchers;
-  final bool skipUntilMatched;
 
   InstructionMatcher({
     required String op,
     List<Matcher>? data,
     List<Matcher>? inputs,
-    required bool skipUntilMatched,
   }) : this._(
          op: op,
          matchers: {
            if (data != null) 'd': _ListMatcher(data),
            if (inputs != null) 'i': _ListMatcher(inputs),
          },
-         skipUntilMatched: skipUntilMatched,
        );
 
-  InstructionMatcher._({
-    required this.op,
-    required this.matchers,
-    required this.skipUntilMatched,
-  });
-
-  InstructionMatcher copyWith({bool? skipUntilMatched}) => InstructionMatcher._(
-    op: this.op,
-    matchers: this.matchers,
-    skipUntilMatched: skipUntilMatched ?? this.skipUntilMatched,
-  );
+  InstructionMatcher._({required this.op, required this.matchers});
 
   @override
   MatchStatus match(Env e, covariant Map<String, dynamic> instr) {
@@ -768,6 +815,13 @@ class _CompileTypeMatcher implements Matcher {
   }
 }
 
+/// Sequence of matchers which should be matched one after another without
+/// inserting implicit wildcard `seq(any)` matchers in between.
+class _TightMatcherSequence {
+  final List<ElementMatcher> matchers;
+  _TightMatcherSequence(this.matchers);
+}
+
 /// This class uses `noSuchMethod` to allow writing code like
 ///
 /// ```
@@ -777,33 +831,40 @@ class _CompileTypeMatcher implements Matcher {
 /// This will produce an instruction matcher which matches opcode `Op` and
 /// expects `in0, ..., inN` to match instructions inputs, while `a0, ...`
 /// matchers are expected to match attributes with names `attr0, ...`.
+///
+/// Block matchers are created with
+///
+/// ```
+/// match.block(kind, [body])
+/// match.block(kind, [body], isLoopHeader: true|false)
+/// ```
 class Matchers {
-  _BlockMatcher block(String kind, [List<dynamic> body = const []]) {
-    return _BlockMatcher(kind, List<ElementMatcher>.from(body));
-  }
-
   _TryBlockMatcher tryBlock({String? tryBody, String? catches}) {
     return _TryBlockMatcher(tryBody, catches);
   }
 
+  ElementMatcher noneOf(Set<String> ops) => _NoneOfMatcher(ops);
+
+  ElementMatcher seq(ElementMatcher nested) => _SequenceMatcher(nested);
+
+  _TightMatcherSequence tight(List<dynamic> nested) =>
+      _TightMatcherSequence(nested.cast<ElementMatcher>());
+
   final _AnyMatcher any = const _AnyMatcher();
 
   // ignore: non_constant_identifier_names
-  InstructionMatcher Goto(String dest, {bool skipUntilMatched = true}) =>
-      InstructionMatcher._(
-        op: 'Goto',
-        matchers: {
-          's': _ListMatcher([_blockRef(dest)]),
-        },
-        skipUntilMatched: skipUntilMatched,
-      );
+  InstructionMatcher Goto(String dest) => InstructionMatcher._(
+    op: 'Goto',
+    matchers: {
+      's': _ListMatcher([_blockRef(dest)]),
+    },
+  );
 
   // ignore: non_constant_identifier_names
   InstructionMatcher Branch(
     Matcher compare, {
     String? ifTrue,
     String? ifFalse,
-    bool skipUntilMatched = true,
   }) => InstructionMatcher._(
     op: 'Branch',
     matchers: {
@@ -813,7 +874,6 @@ class Matchers {
         ifFalse != null ? _blockRef(ifFalse) : any,
       ]),
     },
-    skipUntilMatched: skipUntilMatched,
   );
 
   // ignore: non_constant_identifier_names
@@ -831,7 +891,33 @@ class Matchers {
 
   @override
   Object? noSuchMethod(Invocation invocation) {
-    const specialAttrs = {#T, #skipUntilMatched};
+    if (invocation.memberName == #block) {
+      final unexpected = invocation.namedArguments.keys.toSet()
+        ..remove(#isLoopHeader);
+      if (unexpected.isNotEmpty) {
+        throw ArgumentError('Unexpected named arguments: $unexpected');
+      }
+      final args = invocation.positionalArguments;
+      final bodyMatchers = <ElementMatcher>[];
+      final body = args.length > 1 ? args[1] as List<dynamic> : const [];
+      for (var m in body) {
+        if (m is _TightMatcherSequence) {
+          // Tight subsection inside the block: insert it without interspersing
+          // with seq(any) matchers.
+          bodyMatchers.addAll(m.matchers);
+        } else {
+          bodyMatchers.add(seq(any));
+          bodyMatchers.add(m);
+        }
+      }
+      return _BlockMatcher(
+        args[0] as String,
+        bodyMatchers,
+        invocation.namedArguments[#isLoopHeader] as bool?,
+      );
+    }
+
+    const specialAttrs = {#T};
 
     final data = {
       for (var e in invocation.namedArguments.entries)
@@ -846,10 +932,6 @@ class Matchers {
     final compileTimeMatcher = invocation.namedArguments.containsKey(#T)
         ? invocation.namedArguments[#T] as _CompileTypeMatcher
         : null;
-    final skipUntilMatched =
-        invocation.namedArguments.containsKey(#skipUntilMatched)
-        ? invocation.namedArguments[#skipUntilMatched] as bool
-        : true;
     return InstructionMatcher._(
       op: op,
       matchers: {
@@ -857,7 +939,6 @@ class Matchers {
         if (inputs.isNotEmpty) 'i': _ListMatcher(inputs),
         if (compileTimeMatcher != null) 'T': compileTimeMatcher,
       },
-      skipUntilMatched: skipUntilMatched,
     );
   }
 
@@ -883,18 +964,6 @@ class Matchers {
         'Expected either a Matcher or a String (binding name)',
       );
     }
-  }
-}
-
-extension NoWildcards on List<dynamic> {
-  /// Disable implicit wildcards for the given list of [ElementMatchers].
-  ///
-  /// Creates a copy of the list of [ElementMatchers] with
-  /// [ElementMatcher.skipUtilMatched] set to `false`.
-  List<ElementMatcher> get withoutWildcards {
-    return List<ElementMatcher>.from(
-      this,
-    ).map((m) => m.copyWith(skipUntilMatched: false)).toList(growable: false);
   }
 }
 
