@@ -40,7 +40,7 @@ final class FrontendServerCompiler {
   ///
   /// This file must exist in [resourceProvider], and its grandparent folder is
   /// used as `--filesystem-root`, see [_root].
-  final String packageConfig;
+  final String packageConfigPath;
 
   /// _DartPad SDK_ configuration specifying paths within [resourceProvider].
   ///
@@ -62,19 +62,21 @@ final class FrontendServerCompiler {
 
   FrontendServerClient? _client;
 
-  /// Caller is responsible for resolving [packageConfig]. The compiler assumes
-  /// `ddc_outline.dill` can be found relative to [DartPadConfig.dartSdkPath] as
-  /// specified in [DartPadConfig].
+  /// Caller is responsible for resolving [packageConfigPath]. The compiler
+  /// assumes `ddc_outline.dill` can be found relative to
+  /// [DartPadConfig.dartSdkPath] as specified in [DartPadConfig].
   FrontendServerCompiler({
     required this.resourceProvider,
     required this.targetPath,
-    required this.packageConfig,
+    required this.packageConfigPath,
     required this.config,
   });
 
   Context get _context => resourceProvider.pathContext;
 
-  late final String _root = _context.dirname(_context.dirname(packageConfig));
+  late final String _root = _context.dirname(
+    _context.dirname(packageConfigPath),
+  );
 
   late final String _outputFolder = _context.join(
     _root,
@@ -236,7 +238,7 @@ final class FrontendServerCompiler {
   void _updateSourceStamps() {
     // The package config is not reported as a dependency, but invalidating it
     // is how `frontend_server` is told to reload it, e.g. after a `pub get`.
-    _trackedSources.putIfAbsent(packageConfig, () => null);
+    _trackedSources.putIfAbsent(packageConfigPath, () => null);
     for (final path in _trackedSources.keys) {
       final file = resourceProvider.getFile(path);
       // A tracked source that no longer exists stays invalidated until
@@ -259,7 +261,7 @@ final class FrontendServerCompiler {
       '--import-dill=$dill:module-name=$moduleName',
     '--filesystem-scheme=$scheme',
     '--filesystem-root=$_root',
-    '--packages=$packageConfig',
+    '--packages=$packageConfigPath',
     '--output-dill=$_outputDill',
     '--target=dartdevc',
     '--dartdevc-module-format=ddc',
@@ -277,8 +279,8 @@ final class FrontendServerCompiler {
   String _entrypointUri() {
     // Reloaded on every compilation because `pub get` can change it.
     final packages = PackageConfig.parseString(
-      resourceProvider.getFile(packageConfig).readAsStringSync(),
-      _context.toUri(packageConfig),
+      resourceProvider.getFile(packageConfigPath).readAsStringSync(),
+      _context.toUri(packageConfigPath),
     );
     final fileUri = _context.toUri(targetPath);
     final uri =

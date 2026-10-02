@@ -31,7 +31,7 @@ final class Sandbox {
 
   /// Path to `.dart_tool/package_config.json` for the running program, or
   /// `null` if no program is running.
-  String? get packageConfigPath => _compiler?.packageConfig;
+  String? get packageConfigPath => _compiler?.packageConfigPath;
 
   Sandbox._(this._client, this._vmService, this._rp, this._config);
 
@@ -149,7 +149,7 @@ final class Sandbox {
 
     return FrontendServerCompiler(
       resourceProvider: rp,
-      packageConfig: _findPackageConfigFromEntrypoint(entrypoint),
+      packageConfigPath: _findPackageConfigFromEntrypoint(entrypoint),
       targetPath: entrypoint,
       config: _config,
     );
