@@ -1,4 +1,4 @@
-## 4.0.1-wip
+## 4.1.0
 
 - Support running from standalone CLI executables and respect `sdkRoot` when
   locating SDK tools and snapshots.
