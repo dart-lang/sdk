@@ -99,6 +99,16 @@ class IlTestPrinter : public AllStatic {
       writer->PrintProperty("tryBody", try_entry->try_body()->block_id());
       writer->PrintProperty("catches", try_entry->catch_target()->block_id());
     }
+    if (auto loop = block->loop_info()) {
+      writer->OpenArray("ls");
+      for (LoopInfo* l = loop; l != nullptr; l = l->outer()) {
+        writer->PrintValue(l->id());
+      }
+      writer->CloseArray();
+      if (loop->header() == block) {
+        writer->PrintPropertyBool("lh", true);
+      }
+    }
     writer->OpenArray("is");
     if (auto join = block->AsJoinEntry()) {
       for (PhiIterator it(join); !it.Done(); it.Advance()) {
