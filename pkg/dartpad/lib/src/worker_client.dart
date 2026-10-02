@@ -42,14 +42,14 @@ base class WorkerClient {
   Future<void> get done => _peer.done;
 
   /// Closes the connection to the worker.
-  Future<void> dispose() async {
+  Future<void> close() async {
     await _peer.close();
   }
 
   /// Creates a workspace in the worker.
   ///
   /// A [Workspace] is allocated a unique folder [Workspace.workspaceFolder].
-  /// Disposing of a workspace using [Workspace.dispose] deletes the
+  /// Closing a workspace using [Workspace.close] deletes the
   /// _workspace folder_ and any [LanguageServer] and [Sandbox]
   /// started within said workspace.
   ///
@@ -287,11 +287,9 @@ final class Workspace {
   ///
   /// While sandboxes are controlled through the worker, the [SandboxedIframe]
   /// will have to be removed using [SandboxedIframe.close].
-  Future<void> dispose() async {
+  Future<void> close() async {
     try {
-      await _client._peer.request<void>('workspace/dispose', {
-        'workspaceId': id,
-      });
+      await _client._peer.request<void>('workspace/close', {'workspaceId': id});
     } finally {
       final watchers = _client._watchers.values
           .where((w) => w.workspace == this)
@@ -357,10 +355,10 @@ final class LanguageServer {
   /// JSON values returned by [json] codec from `dart:convert`.
   StreamChannel<Object?> get languageServerChannel => _channel;
 
-  /// Stops the language server.
-  Future<void> stop() async {
+  /// Closes the language server.
+  Future<void> close() async {
     try {
-      await _client._peer.request<void>('workspace/languageServer/stop', {
+      await _client._peer.request<void>('workspace/languageServer/close', {
         'workspaceId': workspace.id,
         'languageServerId': id,
       });
@@ -441,7 +439,7 @@ final class WorkspaceWatcher {
     if (_controller.isClosed) return;
     _watcherId.future.then((watcherId) async {
       try {
-        await workspace._request<Map>('workspace/watcher/stop', {
+        await workspace._request<Map>('workspace/watcher/close', {
           'watcherId': watcherId,
         });
       } finally {

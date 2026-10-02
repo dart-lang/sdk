@@ -26,7 +26,7 @@ void main() {
       ..containsKey('hoverProvider')
       ..containsKey('completionProvider');
 
-    await ls.stop();
+    await ls.close();
   });
 
   testFlutterWorkspace('hover flutter widget', (ws) async {
@@ -78,7 +78,7 @@ void main() {
       ..contains('Center')
       ..contains('Widget');
 
-    await ls.stop();
+    await ls.close();
   });
 
   testFlutterWorkspace('diagnostics report errors in flutter code', (ws) async {
@@ -126,6 +126,6 @@ void main() {
         ),
     );
 
-    await ls.stop();
+    await ls.close();
   });
 }

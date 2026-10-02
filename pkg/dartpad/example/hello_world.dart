@@ -45,6 +45,6 @@ Future<void> main() async {
   // Cleanup
   await sandbox.close();
   await iframe.close();
-  await ws.dispose();
-  await dartpad.dispose();
+  await ws.close();
+  await dartpad.close();
 }

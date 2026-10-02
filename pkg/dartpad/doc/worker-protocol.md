@@ -196,7 +196,7 @@ Creates workspace with a dedicated `workspaceFolder`.
 }
 ```
 
-### Method `workspace/dispose`
+### Method `workspace/close`
 Deletes the workspace and all associated resources.
 
 **Params:**
@@ -464,7 +464,7 @@ Sends an LSP message to a running language server.
 {} // empty result
 ```
 
-### Method `workspace/languageServer/stop`
+### Method `workspace/languageServer/close`
 
 **Params:**
 ```js
@@ -499,7 +499,7 @@ Initiates a file system watcher for a given path.
 }
 ```
 
-### Method `workspace/watcher/stop`
+### Method `workspace/watcher/close`
 
 Terminates an active watcher.
 

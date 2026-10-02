@@ -27,7 +27,7 @@ void main() {
       ..containsKey('hoverProvider')
       ..containsKey('completionProvider');
 
-    await ls.stop();
+    await ls.close();
   });
 
   testDartWorkspace('publishDiagnostics reports syntax errors', (ws) async {
@@ -72,7 +72,7 @@ void main() {
         ),
     );
 
-    await ls.stop();
+    await ls.close();
   });
 
   testDartWorkspace('hover returns information', (ws) async {
@@ -117,7 +117,7 @@ void main() {
       ..contains('print')
       ..contains('void');
 
-    await ls.stop();
+    await ls.close();
   });
 
   testDartWorkspace('diagnostics update after didChange', (ws) async {
@@ -168,7 +168,7 @@ void main() {
       .it()..isA<Map>()['diagnostics'].isA<List>().isEmpty,
     );
 
-    await ls.stop();
+    await ls.close();
   });
 
   testDartWorkspace('publishDiagnostics reports lints', (ws) async {
@@ -218,7 +218,7 @@ linter:
           ),
       );
     } finally {
-      await ls.stop();
+      await ls.close();
     }
   });
 
@@ -277,7 +277,7 @@ linter:
           ),
       );
     } finally {
-      await ls.stop();
+      await ls.close();
     }
   });
 
@@ -357,7 +357,7 @@ linter:
           ),
       );
     } finally {
-      await ls.stop();
+      await ls.close();
     }
   });
 
@@ -421,7 +421,7 @@ void main() {
           ..contains('JSUint8Array')
           ..contains('bytes');
       } finally {
-        await ls.stop();
+        await ls.close();
       }
     },
   );

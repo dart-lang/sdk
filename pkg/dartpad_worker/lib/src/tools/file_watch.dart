@@ -29,7 +29,7 @@ final class FileWatch {
     try {
       await watcher.ready;
     } catch (_) {
-      await fw.stop();
+      await fw.close();
       rethrow;
     }
     return fw;
@@ -61,7 +61,7 @@ final class FileWatch {
     _sendEvents(events);
   }
 
-  Future<void> stop() async {
+  Future<void> close() async {
     await _subscription.cancel();
     if (_buffer.isNotEmpty) {
       _flush();

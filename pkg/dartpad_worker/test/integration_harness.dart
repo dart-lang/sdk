@@ -81,8 +81,8 @@ void testDartIntegration(
     } finally {
       await sandbox.close();
       await iframe.close();
-      await workspace.dispose();
-      await dartpad.dispose();
+      await workspace.close();
+      await dartpad.close();
     }
   });
 }
@@ -120,8 +120,8 @@ void testFlutterIntegration(
     } finally {
       await sandbox.close();
       await iframe.close();
-      await workspace.dispose();
-      await dartpad.dispose();
+      await workspace.close();
+      await dartpad.close();
     }
   });
 }

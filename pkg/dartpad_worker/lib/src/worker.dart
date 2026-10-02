@@ -72,7 +72,7 @@ class _Session {
   _Session(StreamChannel<Object?> channel, this._worker) {
     _rpc = Peer.withoutJson(channel, onUnhandledError: _onUnhandledError);
     _rpc.registerMethod('createWorkspace', _createWorkspace);
-    _rpc.registerMethod('workspace/dispose', _disposeWorkspace);
+    _rpc.registerMethod('workspace/close', _closeWorkspace);
     _rpc.registerMethod(
       'workspace/writeFileFromText',
       _forwardToWorkspace((ws) => ws._writeFileFromText),
@@ -123,16 +123,16 @@ class _Session {
       _forwardToWorkspace((ws) => ws._languageServerMessage),
     );
     _rpc.registerMethod(
-      'workspace/languageServer/stop',
-      _releaseInWorkspace((ws) => ws._stopLanguageServer),
+      'workspace/languageServer/close',
+      _closeInWorkspace((ws) => ws._closeLanguageServer),
     );
     _rpc.registerMethod(
       'workspace/startWatcher',
       _forwardToWorkspace((ws) => ws._watch),
     );
     _rpc.registerMethod(
-      'workspace/watcher/stop',
-      _releaseInWorkspace((ws) => ws._unwatch),
+      'workspace/watcher/close',
+      _closeInWorkspace((ws) => ws._closeWatcher),
     );
     _rpc.registerMethod(
       'workspace/connectSandbox',
@@ -152,7 +152,7 @@ class _Session {
     );
     _rpc.registerMethod(
       'workspace/sandbox/close',
-      _releaseInWorkspace((ws) => ws._sandboxClose),
+      _closeInWorkspace((ws) => ws._sandboxClose),
     );
     _rpc.registerMethod(
       'workspace/sandbox/connectServiceProtocol',
@@ -162,7 +162,7 @@ class _Session {
       await _rpc.listen();
       // Delete all workspaces to cleanup resources
       await Future.wait(
-        _workspaces.values.toList().map((ws) => ws._deleteWorkspace()),
+        _workspaces.values.toList().map((ws) => ws._closeWorkspace()),
       );
     }());
   }
@@ -181,13 +181,13 @@ class _Session {
     return {'workspaceId': workspaceId, 'workspaceFolder': workspaceFolder};
   }
 
-  Object? _disposeWorkspace(Parameters params) async {
+  Object? _closeWorkspace(Parameters params) async {
     final workspace = _workspaces.remove(params['workspaceId'].asNum.toInt());
     if (workspace != null) {
-      await workspace._deleteWorkspace();
+      await workspace._closeWorkspace();
     }
-    // Deleting a workspace that doesn't exist is a no-op
-    // This ensures that deletion is an idempotent operation!
+    // Closing a workspace that doesn't exist is a no-op
+    // This ensures that closing is an idempotent operation!
     return <String, Object?>{};
   }
 
@@ -207,10 +207,10 @@ class _Session {
     };
   }
 
-  /// Like [_forwardToWorkspace], but for methods releasing a resource held by
-  /// the workspace. Disposing a workspace releases all its resources, so these
+  /// Like [_forwardToWorkspace], but for methods closing a resource held by
+  /// the workspace. Closing a workspace closes all its resources, so these
   /// are a no-op when the workspace doesn't exist.
-  Object? Function(Parameters) _releaseInWorkspace(
+  Object? Function(Parameters) _closeInWorkspace(
     Object? Function(Parameters params) Function(_Workspace ws) resolveHandler,
   ) {
     return (Parameters params) async {
@@ -452,7 +452,7 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  Object? _stopLanguageServer(Parameters params) async {
+  Object? _closeLanguageServer(Parameters params) async {
     final languageServerId = params['languageServerId'].asNum.toInt();
     final languageServer = _languageServers.remove(languageServerId);
     await languageServer?.close();
@@ -474,10 +474,10 @@ class _Workspace {
     return {'watcherId': watcherId};
   }
 
-  Object? _unwatch(Parameters params) async {
+  Object? _closeWatcher(Parameters params) async {
     final watcherId = params['watcherId'].asNum.toInt();
     final fileWatch = _fileWatches.remove(watcherId);
-    await fileWatch?.stop();
+    await fileWatch?.close();
     return <String, Object?>{};
   }
 
@@ -555,11 +555,11 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  Future<void> _deleteWorkspace() async {
+  Future<void> _closeWorkspace() async {
     try {
       await Future.wait([
         ..._languageServers.values.map((ls) => ls.close()),
-        ..._fileWatches.values.map((fw) => fw.stop()),
+        ..._fileWatches.values.map((fw) => fw.close()),
         ..._sandboxes.values.map((s) => s.close()),
       ]);
     } finally {
