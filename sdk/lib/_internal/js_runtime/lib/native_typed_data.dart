@@ -2038,6 +2038,17 @@ final class NativeInt32x4 implements Int32x4 {
     );
   }
 
+  Int32x4 operator >>>(int shiftAmount) {
+    // `>>>` is the zero-filling (logical) shift on 32-bit integers. Its result
+    // is unsigned, so `| 0` reinterprets it as the signed lane value.
+    return NativeInt32x4._truncated(
+      JS('int', '(# >>> #) | 0', x, shiftAmount),
+      JS('int', '(# >>> #) | 0', y, shiftAmount),
+      JS('int', '(# >>> #) | 0', z, shiftAmount),
+      JS('int', '(# >>> #) | 0', w, shiftAmount),
+    );
+  }
+
   /// Extract the top bit from each lane return them in the first 4 bits.
   int get signMask {
     int mx = (x & 0x80000000) >> 31;

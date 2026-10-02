@@ -2271,6 +2271,16 @@ final class _Int32x4 implements Int32x4 {
     return Int32x4(x >> n, y >> n, z >> n, w >> n);
   }
 
+  Int32x4 operator >>>(int shiftAmount) {
+    final int n = shiftAmount & 31;
+    return Int32x4(
+      x.toUnsigned(32) >> n,
+      y.toUnsigned(32) >> n,
+      z.toUnsigned(32) >> n,
+      w.toUnsigned(32) >> n,
+    );
+  }
+
   @pragma("vm:recognized", "other")
   Int32x4 equal(Int32x4 other) => Int32x4(
     x == other.x ? -1 : 0,
