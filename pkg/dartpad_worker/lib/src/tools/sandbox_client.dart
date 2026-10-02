@@ -142,14 +142,10 @@ final class SandboxClient {
     });
 
     // Start listening
-    scheduleMicrotask(() async {
-      try {
-        await _peer.listen();
-      } finally {
-        _cleanup();
-        _peer.close().ignore();
-      }
-    });
+    _peer.listen().whenComplete(() {
+      _cleanup();
+      _peer.close().ignore();
+    }).ignore();
   }
 
   bool _isClosed = false;
@@ -167,12 +163,15 @@ final class SandboxClient {
 
   /// Close the sandbox client, this will NOT remove the iframe.
   ///
-  /// Closing the [SandboxClient] just closes the [MessagePort], it doesn't not
+  /// Closing the [SandboxClient] just closes the [MessagePort], it does not
   /// delete the iframe from the page. The life-cycle of the iframe is not owned
   /// by the worker, only communication with the iframe.
   Future<void> close() async {
-    await _peer.close();
-    _cleanup();
+    try {
+      await _peer.close();
+    } finally {
+      _cleanup();
+    }
   }
 
   Future<T> _sendRequest<T>(
