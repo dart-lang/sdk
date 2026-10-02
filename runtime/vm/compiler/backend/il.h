@@ -11312,6 +11312,7 @@ class LoadThreadInstr : public TemplateDefinition<0, NoThrow, PureAndMovable> {
   M(2, _, Int32x4NotEqual, (Int32x4, Int32x4), Int32x4)                        \
   M(2, _, Int32x4Shl, (Int32x4, Int32), Int32x4)                               \
   M(2, _, Int32x4ShrS, (Int32x4, Int32), Int32x4)                              \
+  M(2, _, Int32x4AndNot, (Int32x4, Int32x4), Int32x4)                          \
   M(2, _, Float32x4GreaterThan, (Float32x4, Float32x4), Int32x4)               \
   M(2, _, Float32x4GreaterThanOrEqual, (Float32x4, Float32x4), Int32x4)        \
   M(2, _, Float32x4LessThan, (Float32x4, Float32x4), Int32x4)                  \
