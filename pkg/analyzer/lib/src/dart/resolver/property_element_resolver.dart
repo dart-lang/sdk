@@ -13,14 +13,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
-import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/assignment_verifier.dart';
@@ -493,111 +491,6 @@ class PropertyElementResolver with ScopeHelpers {
       result.setter2,
       atDynamicTarget: false,
       isInvalid: result.needsSetterError || receiverType is InvalidType,
-    );
-  }
-
-  PropertyElementResolverResult resolveIndexExpression({
-    required IndexExpressionImpl node,
-    required bool hasRead,
-    required bool hasWrite,
-  }) {
-    var target = node.realTarget2;
-    var override = target is InvalidExtensionOverrideExpressionImpl
-        ? target.extensionOverride
-        : null;
-
-    if (override != null) {
-      var result = _extensionResolver.getOverrideMember(override, '[]');
-
-      // TODO(scheglov): Change ExtensionResolver to set `needsGetterError`.
-      if (hasRead &&
-          result.getter2 == null &&
-          result != ExtensionResolutionError.ambiguous) {
-        // Extension overrides can only refer to named extensions, so it is safe
-        // to assume that `target.staticElement!.name` is non-`null`.
-        _reportUnresolvedIndex(
-          node,
-          diag.undefinedExtensionOperator.withArguments(
-            operator: '[]',
-            extensionName: override.element.name!,
-          ),
-        );
-      }
-
-      if (hasWrite &&
-          result.setter2 == null &&
-          result != ExtensionResolutionError.ambiguous) {
-        // Extension overrides can only refer to named extensions, so it is safe
-        // to assume that `target.staticElement!.name` is non-`null`.
-        _reportUnresolvedIndex(
-          node,
-          diag.undefinedExtensionOperator.withArguments(
-            operator: '[]=',
-            extensionName: override.element.name!,
-          ),
-        );
-      }
-
-      return _toIndexResult(
-        result,
-        atDynamicTarget: false,
-        hasRead: hasRead,
-        hasWrite: hasWrite,
-      );
-    }
-
-    var targetType = target.typeOrThrow;
-    targetType = _typeSystem.resolveToBound(targetType);
-
-    if (targetType is VoidType) {
-      // TODO(scheglov): Report directly in TypePropertyResolver?
-      _reportUnresolvedIndex(node, diag.useOfVoidResult);
-      return PropertyElementResolverResult();
-    }
-
-    if (identical(targetType, NeverTypeImpl.instance)) {
-      // TODO(scheglov): Report directly in TypePropertyResolver?
-      diagnosticReporter.report(diag.receiverOfTypeNever.at(target));
-      return PropertyElementResolverResult();
-    }
-
-    if (node.isNullAware) {
-      if (target is ExtensionOverride2) {
-        // https://github.com/dart-lang/language/pull/953
-      } else {
-        targetType = _typeSystem.promoteToNonNull(targetType);
-      }
-    }
-
-    var result = _resolver.typePropertyResolver.resolve(
-      receiver: target,
-      receiverType: targetType,
-      name: '[]',
-      hasRead: hasRead,
-      hasWrite: hasWrite,
-      propertyErrorEntity: node.leftBracket,
-      nameErrorEntity: target,
-    );
-
-    if (hasRead && result.needsGetterError) {
-      _reportUnresolvedIndex(
-        node,
-        diag.undefinedOperator.withArguments(operator: '[]', type: targetType),
-      );
-    }
-
-    if (hasWrite && result.needsSetterError) {
-      _reportUnresolvedIndex(
-        node,
-        diag.undefinedOperator.withArguments(operator: '[]=', type: targetType),
-      );
-    }
-
-    return _toIndexResult(
-      result,
-      atDynamicTarget: targetType is DynamicType,
-      hasRead: hasRead,
-      hasWrite: hasWrite,
     );
   }
 
@@ -2423,27 +2316,6 @@ class PropertyElementResolver with ScopeHelpers {
 
     return InvalidNamedWriteResolutionImpl(
       recoveryElement: writeElementRequested ?? writeElementRecovery,
-    );
-  }
-
-  PropertyElementResolverResult _toIndexResult(
-    SimpleResolutionResult result, {
-    required bool atDynamicTarget,
-    required bool hasRead,
-    required bool hasWrite,
-  }) {
-    var readElement = result.getter2;
-    var writeElement = result.setter2;
-
-    var contextType = hasRead
-        ? readElement?.firstParameterType
-        : writeElement?.firstParameterType;
-
-    return PropertyElementResolverResult(
-      atDynamicTarget: atDynamicTarget,
-      readElementRequested2: readElement,
-      writeElementRequested2: writeElement,
-      indexContextType: contextType ?? UnknownInferredType.instance,
     );
   }
 }
