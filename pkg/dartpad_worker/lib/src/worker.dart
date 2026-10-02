@@ -124,7 +124,7 @@ class _Session {
     );
     _rpc.registerMethod(
       'workspace/languageServer/stop',
-      _forwardToWorkspace((ws) => ws._stopLanguageServer),
+      _releaseInWorkspace((ws) => ws._stopLanguageServer),
     );
     _rpc.registerMethod(
       'workspace/startWatcher',
@@ -132,7 +132,7 @@ class _Session {
     );
     _rpc.registerMethod(
       'workspace/watcher/stop',
-      _forwardToWorkspace((ws) => ws._unwatch),
+      _releaseInWorkspace((ws) => ws._unwatch),
     );
     _rpc.registerMethod(
       'workspace/connectSandbox',
@@ -152,7 +152,7 @@ class _Session {
     );
     _rpc.registerMethod(
       'workspace/sandbox/close',
-      _forwardToWorkspace((ws) => ws._sandboxClose),
+      _releaseInWorkspace((ws) => ws._sandboxClose),
     );
     _rpc.registerMethod(
       'workspace/sandbox/connectServiceProtocol',
@@ -202,6 +202,21 @@ class _Session {
           'Invalid "workspaceId", no such workspace exists',
           data: {'workspaceId': workspaceId},
         );
+      }
+      return resolveHandler(workspace)(params);
+    };
+  }
+
+  /// Like [_forwardToWorkspace], but for methods releasing a resource held by
+  /// the workspace. Disposing a workspace releases all its resources, so these
+  /// are a no-op when the workspace doesn't exist.
+  Object? Function(Parameters) _releaseInWorkspace(
+    Object? Function(Parameters params) Function(_Workspace ws) resolveHandler,
+  ) {
+    return (Parameters params) async {
+      final workspace = _workspaces[params['workspaceId'].asNum.toInt()];
+      if (workspace == null) {
+        return <String, Object?>{};
       }
       return resolveHandler(workspace)(params);
     };

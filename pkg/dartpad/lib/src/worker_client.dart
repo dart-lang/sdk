@@ -24,7 +24,7 @@ base class WorkerClient {
   final rpc.Peer _peer;
   final _languageServers = <int, LanguageServer>{};
   final _sandboxes = <int, Sandbox>{};
-  final _watchers = <int, Sink<FileChangeEvent>>{};
+  final _watchers = <int, WorkspaceWatcher>{};
 
   /// Creates a client that communicates over [channel].
   ///
@@ -85,13 +85,13 @@ base class WorkerClient {
   void _handleWatchEvent(rpc.Parameters params) {
     final watcherId = (params['watcherId'].value as num).toInt();
     final events = params['events'].asList;
-    final controller = _watchers[watcherId];
-    if (controller != null) {
+    final watcher = _watchers[watcherId];
+    if (watcher != null) {
       for (final e in events) {
         final map = e as Map;
         final type = map['type'] as String;
         final path = map['path'] as String;
-        controller.add(switch (type) {
+        watcher._controller.add(switch (type) {
           'add' => FileAddedEvent(path),
           'modify' => FileModifiedEvent(path),
           'remove' => FileRemovedEvent(path),
@@ -293,6 +293,26 @@ final class Workspace {
         'workspaceId': id,
       });
     } finally {
+      final watchers = _client._watchers.values
+          .where((w) => w.workspace == this)
+          .toList();
+      for (final w in watchers) {
+        try {
+          w._cleanup();
+        } catch (_) {
+          // ignore
+        }
+      }
+      final languageServers = _client._languageServers.values
+          .where((ls) => ls.workspace == this)
+          .toList();
+      for (final ls in languageServers) {
+        try {
+          ls._cleanup();
+        } catch (_) {
+          // ignore
+        }
+      }
       final sandboxes = _client._sandboxes.values
           .where((s) => s._workspace == this)
           .toList();
@@ -344,8 +364,6 @@ final class LanguageServer {
         'workspaceId': workspace.id,
         'languageServerId': id,
       });
-    } catch (_) {
-      // Ignore if already closed
     } finally {
       _cleanup();
     }
@@ -357,8 +375,8 @@ final class LanguageServer {
 
   void _cleanup() {
     _client._languageServers.remove(id);
-    _incomingMessages.close();
-    _outgoingMessages.close();
+    _incomingMessages.close().ignore();
+    _outgoingMessages.close().ignore();
   }
 }
 
@@ -413,13 +431,14 @@ final class WorkspaceWatcher {
           'path': path,
         });
         final watcherId = (result['watcherId'] as num).toInt();
-        workspace._client._watchers[watcherId] = _controller;
+        workspace._client._watchers[watcherId] = this;
         return watcherId;
       }),
     );
   }
 
   void _onCancel() {
+    if (_controller.isClosed) return;
     _watcherId.future.then((watcherId) async {
       try {
         await workspace._request<Map>('workspace/watcher/stop', {
@@ -430,6 +449,11 @@ final class WorkspaceWatcher {
       }
     }).ignore();
     _watcherId = Completer();
+  }
+
+  void _cleanup() {
+    workspace._client._watchers.removeWhere((_, w) => w == this);
+    _controller.close().ignore();
   }
 }
 
@@ -637,8 +661,6 @@ final class Sandbox {
       await _workspace._request<Map>('workspace/sandbox/close', {
         'sandboxId': _id,
       });
-    } catch (_) {
-      // Ignore if already closed
     } finally {
       _cleanup();
     }
