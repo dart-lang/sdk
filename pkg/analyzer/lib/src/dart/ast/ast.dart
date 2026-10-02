@@ -2511,6 +2511,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
 ///
 ///     assignmentExpression ::=
 ///         [Expression] operator [Expression]
+@ToBeDeprecated('Use AssignmentExpression2 instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class AssignmentExpression
     implements MethodReferenceExpression, CompoundAssignmentExpression {
@@ -3775,6 +3776,9 @@ final class AwaitExpressionImpl extends ExpressionImpl
 ///
 ///     binaryExpression ::=
 ///         [Expression] [Token] [Expression]
+@ToBeDeprecated(
+  'Use BinaryOperatorInvocation, LogicalAnd, LogicalOr, or IfNull instead.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class BinaryExpression
     implements Expression, MethodReferenceExpression {
@@ -11913,6 +11917,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
 ///
 ///     constructorName ::=
 ///         type ('.' identifier)?
+@ToBeDeprecated('Use ConstructorReference2 or ConstructorTearOff instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorName
     implements AstNode, ConstructorReferenceNode {
@@ -14569,6 +14574,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
 ///
 ///     dotShorthandHead ::=
 ///         '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+@ToBeDeprecated('Use DotShorthandConstructorInvocation2 instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandConstructorInvocation
     extends InvocationExpression
@@ -15155,6 +15161,7 @@ abstract final class DotShorthandExpression implements Expression {
 ///
 ///     dotShorthandHead ::=
 ///         '.' [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+@ToBeDeprecated('Use DotShorthandMethodInvocation instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandInvocation extends InvocationExpression {
   /// The name of the constructor or static method invocation.
@@ -15752,6 +15759,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
 /// also select a static method or constructor tear-off.
 ///
 ///     dotShorthandHead ::= '.' [SimpleIdentifier]
+@ToBeDeprecated('Use DotShorthandNameExpression instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DotShorthandPropertyAccess extends Expression {
   /// The token representing the period.
@@ -19250,6 +19258,7 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
 ///
 ///     extensionOverride ::=
 ///         [Identifier] [TypeArgumentList]? [ArgumentList]
+@ToBeDeprecated('Use ExtensionOverride2 instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ExtensionOverride implements Expression {
   /// The list of arguments to the override.
@@ -24676,6 +24685,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 ///
 ///     functionExpressionInvocation ::=
 ///         [Expression] [TypeArgumentList]? [ArgumentList]
+@ToBeDeprecated('Use CallInvocation instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionExpressionInvocation
     implements InvocationExpression {
@@ -25285,6 +25295,9 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
 /// arguments applied to it.
 ///
 /// For example, the expression `print` in `var x = print;`.
+@ToBeDeprecated(
+  'Use FunctionInstantiation or ImplicitFunctionInstantiation instead.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FunctionReference
     implements Expression, CommentReferableExpression {
@@ -27362,6 +27375,7 @@ final class HideCombinatorImpl extends CombinatorImpl
 ///     identifier ::=
 ///         [SimpleIdentifier]
 ///       | [PrefixedIdentifier]
+@ToBeDeprecated('Use NameExpression instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class Identifier implements Expression, CommentReferableExpression {
   /// The element associated with this identifier based on static type
@@ -28768,6 +28782,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
 /// Objects of this type aren't produced directly by the parser (because the
 /// parser can't tell whether an expression refers to a callable type); they
 /// are produced at resolution time.
+@ToBeDeprecated('Use ImplicitCallTearOff instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ImplicitCallReference
     implements MethodReferenceExpression {
@@ -30953,6 +30968,7 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
 ///
 ///     indexExpression ::=
 ///         [Expression] '[' [Expression] ']'
+@ToBeDeprecated('Use IndexExpression2 or IndexAssignmentTarget instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class IndexExpression implements MethodReferenceExpression {
   /// The expression used to compute the index.
@@ -37458,6 +37474,10 @@ final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
 ///     methodInvocation ::=
 ///         ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]?
 ///         [ArgumentList]
+@ToBeDeprecated(
+  'Use ReceiverMethodInvocation, NamedFunctionInvocation, '
+  'CascadeMethodInvocation, or ImportPrefixedFunctionInvocation instead.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class MethodInvocation implements InvocationExpression {
   /// Whether this expression is cascaded.
@@ -44805,6 +44825,9 @@ final class PostfixExpressionImpl extends ExpressionImpl
 ///
 ///     prefixedIdentifier ::=
 ///         [SimpleIdentifier] '.' [SimpleIdentifier]
+@ToBeDeprecated(
+  'Use ImportPrefixedNameExpression or ReceiverPropertyExtraction instead.',
+)
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PrefixedIdentifier implements Identifier {
   /// The identifier being prefixed.
@@ -45974,6 +45997,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
 ///
 ///     propertyAccess ::=
 ///         [Expression] '.' [SimpleIdentifier]
+@ToBeDeprecated('Use PropertyExtraction or PropertyAssignmentTarget instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class PropertyAccess implements CommentReferableExpression {
   /// Whether this expression is cascaded.
@@ -51047,6 +51071,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
 ///     initialCharacter ::= '_' | '$' | letter
 ///
 ///     internalCharacter ::= '_' | '$' | letter | digit
+@ToBeDeprecated('Use NameExpression, or the name token, instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SimpleIdentifier implements Identifier {
   /// Whether this identifier is the "name" part of a prefixed identifier or a
@@ -52542,6 +52567,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 ///
 ///     superExpression ::=
 ///         'super'
+@ToBeDeprecated('Use SuperReference instead.')
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SuperExpression implements Expression {
   /// The token representing the `super` keyword.
