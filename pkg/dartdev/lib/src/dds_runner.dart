@@ -10,7 +10,7 @@ import 'package:path/path.dart';
 
 import 'sdk.dart';
 
-class DDSRunner {
+final class DDSRunner {
   Uri? ddsUri;
 
   Future<bool> start({
@@ -33,7 +33,7 @@ class DDSRunner {
     var snapshotName = fullSdk
         ? sdk.ddsAotSnapshot
         : absolute(sdkDir, 'dds_aot.dart.snapshot');
-    final isAot = checkArtifactExists(snapshotName) ? true : false;
+    final isAot = checkArtifactExists(snapshotName);
     if (!isAot) {
       printError('Unable to find snapshot for the development server');
       return false;
@@ -69,10 +69,34 @@ class DDSRunner {
               stdoutSub.cancel();
             }
           });
+    } else {
+      unawaited(process.stdout.drain());
     }
 
-    // DDS will close stderr once it's finished launching.
-    final launchResult = await process.stderr.transform(utf8.decoder).join();
+    final completer = Completer<String>();
+    process.stderr
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen(
+          (line) {
+            if (!completer.isCompleted) {
+              completer.complete(line);
+            }
+          },
+          onError: (Object e, StackTrace st) {
+            if (!completer.isCompleted) {
+              completer.completeError(e, st);
+            }
+          },
+          onDone: () {
+            if (!completer.isCompleted) {
+              completer.complete('');
+            }
+          },
+          cancelOnError: false,
+        );
+
+    final launchResult = await completer.future;
 
     try {
       final result = json.decode(launchResult) as Map<String, dynamic>;

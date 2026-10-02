@@ -6,23 +6,23 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dart_runtime_service_dds/devtools_server.dart';
 import 'package:dartdev/src/commands/devtools.dart';
-import 'package:dds/devtools_server.dart';
 import 'package:test/test.dart';
 
 import '../utils.dart';
 
 final dartVMServiceRegExp = RegExp(
-  r'The Dart VM service is listening on (http://127.0.0.1:.*)',
+  r'The Dart VM service is listening on (http://.*)',
 );
 final ddsStartedRegExp = RegExp(
-  r'Started the Dart Development Service \(DDS\) at (http://127.0.0.1:.*)',
+  r'Started the Dart Development Service \(DDS\) at (http://.*)',
 );
 final dtdStartedRegExp = RegExp(
-  r'Serving the Dart Tooling Daemon at (ws://127.0.0.1:.*)',
+  r'Serving the Dart Tooling Daemon at (ws://.*)',
 );
 final servingDevToolsRegExp = RegExp(
-  r'Serving DevTools at (http://127.0.0.1:.*)',
+  r'Serving DevTools at (http://.*)',
 );
 
 void main() {

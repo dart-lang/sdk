@@ -10,8 +10,8 @@ import 'dart:isolate';
 /// Contains methods used to communicate DartDev results back to the VM.
 ///
 /// Messages are received in runtime/bin/dartdev_isolate.cc.
-abstract class VmInteropHandler {
-  static final Map<String, String> _environmentOverrides = {};
+abstract final class VmInteropHandler {
+  static final Map<String, String> _environmentOverrides = <String, String>{};
 
   /// Environment variables that have been modified via [setEnvironmentVariable].
   ///
