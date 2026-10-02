@@ -72,7 +72,7 @@ async function copyToClipboard() {
   }
 }
 async function copySanitizedToClipboard() {
-  var copyText = document.getElementById("sanitizedSessionLogContent");
+  const copyText = document.getElementById("sanitizedSessionLogContent");
   if (copyText) {
     try {
       await navigator.clipboard.writeText(copyText.textContent ?? copyText.innerText);
@@ -96,11 +96,34 @@ function downloadSessionLog() {
     URL.revokeObjectURL(url);
   }
 }
+function downloadSanitizedSessionLog() {
+  const content = document.getElementById("sanitizedSessionLogContent");
+  if (content) {
+    const blob = new Blob([content.textContent], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    a.href = url;
+    a.download = "sanitized_session_log_" + timestamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+}
 </script>
 <p>
   <button class="btn" onclick="copyToClipboard()">Copy log to clipboard</button>
-  <button class="btn" onclick="downloadSessionLog()">Download log</button></p>
+  <button class="btn" onclick="downloadSessionLog()">Download log</button>
+</p>
+<p>
+  Logs are sanitized using an automated tool which may unintentionally leave
+  some sensitive information in the log, like snippets of code and file names.
+  Be sure to review the sanitized log for sensitive information before sharing.
+</p>
+<p>
   <button class="btn" onclick="copySanitizedToClipboard()">Copy sanitized log to clipboard</button>
+  <button class="btn" onclick="downloadSanitizedSessionLog()">Download sanitized log</button>
 </p>
 ''');
 

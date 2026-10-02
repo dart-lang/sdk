@@ -285,6 +285,22 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
     }
   }
 
+  String formatAdditional(RequestPerformance performance) {
+    var additional = performance
+        .additionalTimings
+        ?.timingsInMilliseconds
+        .entries
+        .map((entry) => '${entry.key}: ${printMilliseconds(entry.value)}');
+    return additional?.join(', ') ?? '';
+  }
+
+  String formatExcludingAdditional(RequestPerformance performance) {
+    var totalAdditional = performance.additionalTimings?.totalTime ?? 0;
+    return printMilliseconds(
+      performance.performance.elapsed.inMilliseconds - totalAdditional,
+    );
+  }
+
   String formatLatencyTiming(int elapsed, int? latency) {
     var buffer = StringBuffer();
     buffer.write(printMilliseconds(elapsed));

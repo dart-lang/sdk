@@ -924,16 +924,19 @@ class AstBuilder extends StackListener {
         token,
         token,
       );
+      // The expression is dropped. Its first token, e.g. `[` in `a.[0]`, is
+      // not a name, so the missing name is synthetic.
+      var name = parser.rewriter.insertSyntheticIdentifier(dot);
       if (receiver != null) {
         push(
           ParsedNameAccessImpl(
             operand: _toInstanceReceiver(receiver),
             operator: dot,
-            name: token,
+            name: name,
           ),
         );
       } else {
-        push(ParsedCascadeNameImpl(name: token));
+        push(ParsedCascadeNameImpl(name: name));
       }
     }
   }

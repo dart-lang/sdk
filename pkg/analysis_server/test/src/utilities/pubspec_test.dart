@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/utilities/pubspec.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
@@ -98,7 +99,11 @@ dependencies:
 
   PubspecTarget _target(String content) {
     var file = newFile(convertPath('/home/package_dir/pubspec.yaml'), content);
-    return PubspecTarget(file: file, pubspec: loadYamlNode(content) as YamlMap);
+    return PubspecTarget(
+      file: file,
+      pubspec: loadYamlNode(content) as YamlMap,
+      resolvedPackages: Packages.empty,
+    );
   }
 }
 
@@ -116,6 +121,18 @@ class PubspecTest with ResourceProviderMixin {
 
   void test_compound() {
     _assertEdit("'>=2.12.0 <3.0.0'", '>=2.13.0 <3.0.0');
+  }
+
+  void test_compound_gt() {
+    _assertEdit("'>2.12.0 <3.0.0'", '>=2.13.0 <3.0.0');
+  }
+
+  void test_compound_noSpace() {
+    _assertEdit("'>=2.12.0<3.0.0'", '>=2.13.0 <3.0.0');
+  }
+
+  void test_compound_spaceAfterOperators() {
+    _assertEdit("'>= 2.12.0 < 3.0.0'", '>=2.13.0 <3.0.0');
   }
 
   void test_gt() {

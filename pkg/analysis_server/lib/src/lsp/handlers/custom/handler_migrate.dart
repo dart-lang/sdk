@@ -18,6 +18,7 @@ import 'package:analysis_server/src/lsp/progress.dart';
 import 'package:analysis_server/src/utilities/pubspec.dart';
 import 'package:analysis_server/src/utilities/source_change_merger.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -170,7 +171,20 @@ class MigrateHandler
             ' migrated independently.',
           );
         }
-        targets.add(PubspecTarget(file: pubspecFile, pubspec: pubspec));
+        var resolvedPackages =
+            server.contextManager
+                .getContextFor(path)
+                ?.contextRoot
+                .workspace
+                .packages ??
+            Packages.empty;
+        targets.add(
+          PubspecTarget(
+            file: pubspecFile,
+            pubspec: pubspec,
+            resolvedPackages: resolvedPackages,
+          ),
+        );
       } catch (e) {
         return error(
           ErrorCodes.InvalidParams,

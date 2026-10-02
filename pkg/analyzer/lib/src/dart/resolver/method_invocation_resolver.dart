@@ -143,14 +143,19 @@ class MethodInvocationResolver with ScopeHelpers {
       );
       return;
     }
-    if (element is! InternalExecutableElement &&
-        !_libraryFragment.shouldIgnoreUndefined(
-          prefix: prefix.name,
-          name: name.lexeme,
-        )) {
-      diagnosticReporter.report(
-        diag.undefinedFunction.withArguments(name: name.lexeme).at(name),
-      );
+    if (element is! InternalExecutableElement) {
+      if (name.isSynthetic) {
+        // The parser has already reported the missing name. But the prefix
+        // is still used, so its imports must not be reported as unused.
+        prefix.scope.notifyPrefixUsedWithoutName();
+      } else if (!_libraryFragment.shouldIgnoreUndefined(
+        prefix: prefix.name,
+        name: name.lexeme,
+      )) {
+        diagnosticReporter.report(
+          diag.undefinedFunction.withArguments(name: name.lexeme).at(name),
+        );
+      }
     }
     _resolveNamedInvocation(
       node,
@@ -874,7 +879,8 @@ class MethodInvocationResolver with ScopeHelpers {
       );
       return;
     }
-    if (element == null) {
+    // For a synthetic name, the parser has already reported that it is missing.
+    if (element == null && !name.isSynthetic) {
       if (namespace is ExtensionElement) {
         diagnosticReporter.report(
           diag.undefinedExtensionMethod

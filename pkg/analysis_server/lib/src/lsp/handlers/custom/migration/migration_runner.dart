@@ -194,7 +194,7 @@ class MigrationRunner({
     await builder.addYamlFileEdit(pubspecFile.path, (builder) {
       builder.addSimpleReplacement(
         SourceRange(versionBumpEdit.offset, versionBumpEdit.length),
-        versionBumpEdit.replacement,
+        versionBumpEdit.newConstraint,
       );
     });
   }

@@ -102,18 +102,21 @@ class ContextsPage extends DiagnosticPageWithNav {
     }
     buf.writeln('</p>');
 
-    buf.writeln('</div>');
-
     h3('Plugins');
     var optionsData = collectOptionsData(driver);
     p(optionsData.plugins.toList().join(', '));
 
-    var priorityFiles = driver.priorityFiles;
-    var addedFiles = driver.addedFiles.toList();
-    var knownFiles = driver.knownFiles.map((f) => f.path).toSet();
-    var implicitFiles = knownFiles.difference(driver.addedFiles).toList();
-    addedFiles.sort();
-    implicitFiles.sort();
+    var contextRoot = driver.analysisContext!.contextRoot;
+    var priorityFiles =
+        driver.priorityFiles.where(contextRoot.isAnalyzed).toList()..sort();
+    var addedFiles = driver.addedFiles.where(contextRoot.isAnalyzed).toList()
+      ..sort();
+    var knownFiles = driver.knownFiles
+        .map((f) => f.path)
+        .where(contextRoot.isAnalyzed)
+        .toSet();
+    var implicitFiles = knownFiles.difference(driver.addedFiles).toList()
+      ..sort();
 
     h3('Context files');
 
@@ -177,7 +180,6 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     h3('Largest library cycles');
     Set<LibraryCycle> cycles = {};
-    var contextRoot = driver.analysisContext!.contextRoot;
     var pathContext = contextRoot.resourceProvider.pathContext;
     for (var filePath in contextRoot.analyzedFiles()) {
       if (!file_paths.isDart(pathContext, filePath)) continue;

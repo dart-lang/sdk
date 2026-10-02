@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_runn
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/utilities/pubspec.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:linter/src/rules.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -642,6 +643,53 @@ environment:
     );
   }
 
+  /// A dependency reached only through a package that isn't being migrated is
+  /// still held back.
+  ///
+  /// The declared dependencies of `app` name `middle`, which isn't a target,
+  /// so following names alone stops the walk before it reaches `leaf`.
+  ///
+  /// A `*` marks a migration target:
+  ///
+  /// ```
+  /// app* ---> middle ---> leaf*
+  ///   |
+  ///   +-----> blocker
+  /// ```
+  Future<void> test_stop_dependencyBehindNonTargetPackage() async {
+    var leaf = _createPackageFolder('leaf', sdkConstraint: '^3.11.0');
+    // `middle` exists only so `app` has a dependency to reach `leaf`.
+    _createPackageFolder(
+      'middle',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['leaf'],
+    );
+    // `blocker` forbids 3.12.0, so `app` stops in the first round.
+    _createPackageFolder('blocker', sdkConstraint: '>=3.11.0 <3.12.0');
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['middle', 'blocker'],
+      resolvedPackages: ['leaf'],
+    );
+    await initialize(workspaceFolders: [app, leaf]);
+
+    await _assertMigrationResult(
+      uris: [app, leaf],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0: Skipped
+    Incompatible dependencies:
+      - blocker
+
+leaf:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.''',
+    );
+  }
+
   /// A dependency that isn't being migrated is already fixed where it is, so
   /// a stop has nothing to hold back.
   Future<void> test_stop_dependencyOutsideMigration() async {
@@ -799,6 +847,10 @@ base:
   /// Dependencies must be created first: their folders have to exist for the
   /// package config to point at them.
   ///
+  /// [resolvedPackages] are added to `.dart_tool/package_config.json` without
+  /// being declared in `pubspec.yaml`, standing in for the transitive
+  /// dependencies `pub get` resolves.
+  ///
   /// Pass `writePackageConfig: false` to leave the package without a
   /// `.dart_tool/package_config.json`, which is what makes its bump step fail.
   Uri _createPackageFolder(
@@ -806,6 +858,7 @@ base:
     required String sdkConstraint,
     List<String> dependencies = const [],
     List<String> devDependencies = const [],
+    List<String> resolvedPackages = const [],
     bool writePackageConfig = true,
   }) {
     var pubspec = StringBuffer('''
@@ -829,7 +882,11 @@ environment:
     var pubspecPath = join(packagePath, 'pubspec.yaml');
     if (writePackageConfig) {
       var config = PackageConfigFileBuilder();
-      for (var dependency in [...dependencies, ...devDependencies]) {
+      for (var dependency in [
+        ...dependencies,
+        ...devDependencies,
+        ...resolvedPackages,
+      ]) {
         config.add(
           name: dependency,
           rootFolder: resourceProvider.getFolder(
@@ -1748,7 +1805,11 @@ environment:
 
     var pubspecFile = resourceProvider.getFile(pubspecFilePath);
     var pubspecYaml = loadYaml(pubspecFile.readAsStringSync()) as YamlMap;
-    var pubspecTarget = PubspecTarget(file: pubspecFile, pubspec: pubspecYaml);
+    var pubspecTarget = PubspecTarget(
+      file: pubspecFile,
+      pubspec: pubspecYaml,
+      resolvedPackages: Packages.empty,
+    );
 
     var summaryBuilder = MigrationSummaryBuilder(
       apply: true,

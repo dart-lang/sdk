@@ -38,6 +38,32 @@ f() {
 ''');
   }
 
+  test_class_named_synthetic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A.named();
+}
+f() {
+  return const A.();
+//               ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_class_named_synthetic_typeArguments() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A<T> {
+  const A.named();
+}
+f() {
+  return const A<int>.();
+//                    ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
   test_class_nonFunctionTypedef() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

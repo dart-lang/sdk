@@ -2436,6 +2436,333 @@ CompilationUnit
 ''');
   }
 
+  void test_period_missingName_cascade_parenthesized() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a..b.(0);
+//           ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+CascadeExpression
+  target2: ParsedUnqualifiedName
+    name: a
+  target(v1): SimpleIdentifier
+    token: a
+  sections
+    CascadeSection
+      operator: ..
+      body: ParsedValueArguments
+        operand: ParsedNameAccess
+          operand: ParsedCascadeName
+            name: b
+          operator: .
+          name: <empty> <synthetic>
+        argumentList: ArgumentList
+          leftParenthesis: (
+          arguments2
+            IntegerLiteral
+              literal: 0
+          rightParenthesis: )
+  cascadeSections
+    MethodInvocation
+      target: PropertyAccess
+        operator: ..
+        propertyName: SimpleIdentifier
+          token: b
+      operator: .
+      methodName: SimpleIdentifier
+        token: <empty> <synthetic>
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+''');
+  }
+
+  void test_period_missingName_listLiteral() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.[0];
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: a
+  operator: .
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
+''');
+  }
+
+  void test_period_missingName_listLiteral_typed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.<int>[];
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: a
+  operator: .
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
+''');
+  }
+
+  void test_period_missingName_parenthesized() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.(0);
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: a
+    operator: .
+    name: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+  operator: .
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+    rightParenthesis: )
+''');
+  }
+
+  void test_period_missingName_parenthesized_empty() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.();
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: a
+    operator: .
+    name: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+  operator: .
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+''');
+  }
+
+  void test_period_missingName_parenthesized_named() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.(0, b: 1);
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: a
+    operator: .
+    name: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+      NamedArgument
+        name: b
+        colon: :
+        argumentExpression2: IntegerLiteral
+          literal: 1
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+  operator: .
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+      NamedArgument
+        name: b
+        colon: :
+        argumentExpression: IntegerLiteral
+          literal: 1
+    rightParenthesis: )
+''');
+  }
+
+  void test_period_missingName_parenthesized_nullAware() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a?.(0);
+//         ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedValueArguments
+  operand: ParsedNameAccess
+    operand: ParsedUnqualifiedName
+      name: a
+    operator: ?.
+    name: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments2
+      IntegerLiteral
+        literal: 0
+    rightParenthesis: )
+V1: MethodInvocation
+  target: SimpleIdentifier
+    token: a
+  operator: ?.
+  methodName: SimpleIdentifier
+    token: <empty> <synthetic>
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+    rightParenthesis: )
+''');
+  }
+
+  void test_period_missingName_parenthesized_selector() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.b.(0).c;
+//          ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedNameAccess
+  operand: ParsedValueArguments
+    operand: ParsedNameAccess
+      operand: ParsedNameAccess
+        operand: ParsedUnqualifiedName
+          name: a
+        operator: .
+        name: b
+      operator: .
+      name: <empty> <synthetic>
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments2
+        IntegerLiteral
+          literal: 0
+      rightParenthesis: )
+  operator: .
+  name: c
+V1: PropertyAccess
+  target: MethodInvocation
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: a
+      period: .
+      identifier: SimpleIdentifier
+        token: b
+    operator: .
+    methodName: SimpleIdentifier
+      token: <empty> <synthetic>
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 0
+      rightParenthesis: )
+  operator: .
+  propertyName: SimpleIdentifier
+    token: c
+''');
+  }
+
+  void test_period_missingName_setOrMapLiteral() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a.{};
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: a
+  operator: .
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
+''');
+  }
+
+  void test_period_missingName_stringLiteral() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var x = a."s";
+//        ^^^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    assertParsedNodeText(node, r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: a
+  operator: .
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
+''');
+  }
+
   void test_plus() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 f() => x +

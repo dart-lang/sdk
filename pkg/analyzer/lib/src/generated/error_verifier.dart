@@ -4746,6 +4746,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
     // report as named or default constructor absence
     var selector = constructorReference.selector;
+    // The parser has already reported the missing name.
+    if (selector != null && selector.name2.isSynthetic) {
+      return;
+    }
     var className = [
       if (typeReference.importPrefix case var prefix?) prefix.name.lexeme,
       typeReference.name.lexeme,
@@ -6761,6 +6765,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
     // report as named or default constructor absence
     var selector = constructorReference.selector;
+    // The parser has already reported the missing name.
+    if (selector != null && selector.name2.isSynthetic) {
+      return;
+    }
     var className = [
       if (typeReference.importPrefix case var prefix?) prefix.name.lexeme,
       typeReference.name.lexeme,

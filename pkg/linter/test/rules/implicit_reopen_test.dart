@@ -189,6 +189,17 @@ class C extends I {}
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/59124
+  test_class_classInterface_withMixinOn() async {
+    await assertDiagnosticsFromMarkup(r'''
+interface class I {}
+
+mixin M on I {}
+
+class [!C!] extends I with M {}
+''');
+  }
+
   test_classBase_classFinal() async {
     await assertDiagnosticsFromMarkup(r'''
 final class F {}

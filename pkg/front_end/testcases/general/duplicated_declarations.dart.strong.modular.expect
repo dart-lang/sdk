@@ -302,14 +302,6 @@ library;
 //   C.this();
 //     ^^^^
 //
-// pkg/front_end/testcases/general/duplicated_declarations.dart:40:5: Error: The 'records' language feature is disabled for this library.
-// Try removing the `@dart=` annotation or setting the language version to 3.0 or higher.
-//   C.();
-//     ^
-// pkg/front_end/testcases/general/duplicated_declarations.dart:5:1: Context: This is the annotation that opts out this library from the 'records' language feature.
-// // @dart=2.16
-// ^^^^^^^^^^^^^
-//
 // pkg/front_end/testcases/general/duplicated_declarations.dart:40:5: Error: Expected an identifier, but got '('.
 // Try inserting an identifier before '('.
 //   C.();
@@ -474,8 +466,7 @@ static method foo() → dynamic {
   invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:39:5: Error: Expected identifier, but got 'this'.
   C.this();
     ^^^^";
-  invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:40:5: Error: Expected an identifier, but got '('.
-Try inserting an identifier before '('.
+  invalid-expression "pkg/front_end/testcases/general/duplicated_declarations.dart:40:5: Error: This couldn't be parsed.
   C.();
     ^";
 }

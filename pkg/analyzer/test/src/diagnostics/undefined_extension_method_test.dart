@@ -116,6 +116,15 @@ void f() {
 ''');
   }
 
+  test_static_synthetic() async {
+    await resolveTestCodeWithDiagnostics('''
+extension E on Object {}
+var a = E.(0);
+//        ^
+// [diag.missingIdentifier] Expected an identifier.
+''');
+  }
+
   test_static_withInference() async {
     await resolveTestCodeWithDiagnostics('''
 extension E on Object {}

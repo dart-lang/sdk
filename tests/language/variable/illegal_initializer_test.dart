@@ -42,7 +42,6 @@ class B extends A {
       //       ^
       // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
       // [cfe] Expected '.' before this.
-      // [cfe] Expected an identifier, but got ''.
 }
 
 main() {

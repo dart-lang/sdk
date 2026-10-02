@@ -1732,8 +1732,8 @@ class C {
   void m() {}
 }
 ''');
-    node as ReceiverPropertyExtraction;
-    expect(node.name.lexeme, '(');
+    node as ReceiverMethodInvocation;
+    expect(node.name.isSynthetic, isTrue);
   }
 
   Future<void> test_between_identifierAndComma_arguments() async {

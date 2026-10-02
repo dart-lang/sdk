@@ -954,8 +954,13 @@ abstract class AnalysisServer {
       return null;
     }
 
-    var result = session.getParsedUnit(path);
-    return result is ParsedUnitResult ? result : null;
+    try {
+      RequestPerformanceAdditionalTimings.current?.pushAnalysis();
+      var result = session.getParsedUnit(path);
+      return result is ParsedUnitResult ? result : null;
+    } finally {
+      RequestPerformanceAdditionalTimings.current?.popAnalysis();
+    }
   }
 
   /// Return the resolved library for the library containing the file with the
@@ -971,12 +976,15 @@ abstract class AnalysisServer {
       return null;
     }
     try {
+      RequestPerformanceAdditionalTimings.current?.pushAnalysis();
       return await driver.currentSession.getResolvedContainingLibrary(path);
     } on InconsistentAnalysisException {
       return null;
     } catch (exception, stackTrace) {
       instrumentationService.logException(exception, stackTrace);
       sessionLogger.logException(exception: exception, stackTrace: stackTrace);
+    } finally {
+      RequestPerformanceAdditionalTimings.current?.popAnalysis();
     }
     return null;
   }
@@ -988,7 +996,7 @@ abstract class AnalysisServer {
     String path, {
     bool sendCachedToStream = false,
     bool interactive = true,
-  }) {
+  }) async {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
@@ -998,21 +1006,21 @@ abstract class AnalysisServer {
       return Future.value();
     }
 
-    return driver
-        .getResolvedUnit(
-          path,
-          sendCachedToStream: sendCachedToStream,
-          interactive: interactive,
-        )
-        .then((value) => value is ResolvedUnitResult ? value : null)
-        .catchError((Object exception, StackTrace stackTrace) {
-          instrumentationService.logException(exception, stackTrace);
-          sessionLogger.logException(
-            exception: exception,
-            stackTrace: stackTrace,
-          );
-          return null;
-        });
+    try {
+      RequestPerformanceAdditionalTimings.current?.pushAnalysis();
+      var value = await driver.getResolvedUnit(
+        path,
+        sendCachedToStream: sendCachedToStream,
+        interactive: interactive,
+      );
+      return value is ResolvedUnitResult ? value : null;
+    } catch (exception, stackTrace) {
+      instrumentationService.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
+      return null;
+    } finally {
+      RequestPerformanceAdditionalTimings.current?.popAnalysis();
+    }
   }
 
   /// Gets the version of a document known to the server, returning a

@@ -75,6 +75,38 @@ f(C c) {
 ''');
   }
 
+  test_emptyName() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(int a) {
+  a.(0);
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_emptyName_argumentsResolved() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(int a) {
+  a.(unresolved);
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+//   ^^^^^^^^^^
+// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+}
+''');
+  }
+
+  test_emptyName_nullAware() async {
+    await resolveTestCodeWithDiagnostics('''
+void f(int? a) {
+  a?.(0);
+//   ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
   test_extensionMethodHiddenByStaticSetter() async {
     await resolveTestCodeWithDiagnostics('''
 class C {
