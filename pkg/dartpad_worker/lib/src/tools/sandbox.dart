@@ -137,7 +137,11 @@ final class Sandbox {
         entrypoint,
         content: entrypointWrapperTemplate.replaceAll(
           '{{entrypoint}}',
-          _rp.pathContext.basename(originalEntrypoint),
+          _rp.pathContext
+              .toUri(_rp.pathContext.basename(originalEntrypoint))
+              .path
+              .replaceAll("'", r"\'")
+              .replaceAll(r'$', r'\$'),
         ),
         modificationStamp: 0,
       );
