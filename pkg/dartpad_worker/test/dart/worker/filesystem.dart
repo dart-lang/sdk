@@ -61,7 +61,7 @@ void main() {
       await ws.writeFileFromText('myfolder/file1.txt', 'one');
       await ws.writeFileFromText('myfolder/file2.txt', 'two');
 
-      final entries = await ws.listDirectory(uri: 'myfolder');
+      final entries = await ws.listDirectory('myfolder');
       check(entries).length.equals(2);
       check(
         entries.any((e) => e.path == 'file1.txt' && e.type == 'file'),
@@ -73,7 +73,7 @@ void main() {
 
     testDartWorkspace('can list recursively', (ws) async {
       await ws.writeFileFromText('a/b/c.txt', 'deep');
-      final entries = await ws.listDirectory(uri: 'a', recursive: true);
+      final entries = await ws.listDirectory('a', recursive: true);
       check(entries).length.equals(2); // b and b/c.txt
       check(entries.any((e) => e.path == 'b' && e.type == 'folder')).isTrue;
       check(entries.any((e) => e.path == 'b/c.txt' && e.type == 'file')).isTrue;
@@ -83,10 +83,10 @@ void main() {
       await ws.writeFileFromText('.hidden', 'secret');
       await ws.writeFileFromText('visible', 'hello');
 
-      final all = await ws.listDirectory(uri: '.', ignoreHidden: false);
+      final all = await ws.listDirectory('.', ignoreHidden: false);
       check(all.any((e) => e.path == '.hidden')).isTrue;
 
-      final visible = await ws.listDirectory(uri: '.', ignoreHidden: true);
+      final visible = await ws.listDirectory('.', ignoreHidden: true);
       check(visible.any((e) => e.path == '.hidden')).isFalse;
       check(visible.any((e) => e.path == 'visible')).isTrue;
     });
@@ -111,9 +111,7 @@ void main() {
       await ws.createFolder('myfolder');
       await ws.writeFileFromText('myfolder/file.txt', 'inside');
       await ws.deleteFileSystemEntity('myfolder');
-      await check(
-        ws.listDirectory(uri: 'myfolder'),
-      ).throws<FileNotFoundException>();
+      await check(ws.listDirectory('myfolder')).throws<FileNotFoundException>();
     });
   });
 

@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:path/path.dart' as p;
 
 import '../../worker_harness.dart';
 
@@ -16,7 +17,7 @@ void main() {
 
     final r = await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': <String, Object?>{},
     });
 
@@ -35,7 +36,7 @@ void main() {
 
     await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': {
         'textDocument': {
           'hover': {
@@ -46,7 +47,9 @@ void main() {
     });
     lsp.sendNotification('initialized', {});
 
-    final fileUri = ws.workspaceFolder.resolve('main.dart');
+    final fileUri = p.posix.toUri(
+      p.posix.join(ws.workspaceFolder, 'main.dart'),
+    );
     final code = [
       'import \'package:flutter/material.dart\';',
       '',
@@ -85,7 +88,7 @@ void main() {
 
     await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': {
         'textDocument': {'publishDiagnostics': <String, Object?>{}},
       },
@@ -96,7 +99,9 @@ void main() {
       lsp,
     ).withNotificationQueue('textDocument/publishDiagnostics');
 
-    final fileUri = ws.workspaceFolder.resolve('main.dart');
+    final fileUri = p.posix.toUri(
+      p.posix.join(ws.workspaceFolder, 'main.dart'),
+    );
     final code = '''
       import 'package:flutter/material.dart';
 

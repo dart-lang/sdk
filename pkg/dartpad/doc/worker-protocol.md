@@ -192,7 +192,7 @@ Creates workspace with a dedicated `workspaceFolder`.
   // The workspaceId is a unique number identifying the workspace created
   "workspaceId": 42,
   // Folder on the shared file-system dedicated to this workspace
-  "workspaceFolder": "file:///workspace/pad_42/",
+  "workspaceFolder": "/workspace/pad_42",
 }
 ```
 
@@ -219,9 +219,9 @@ Parent directories will be automatically created.
 ```js
 {
   "workspaceId": 42,
-  // URI of the file that you want to write.
-  // Can be absolute file:// or relative to workspaceFolder
-  "uri": "bin/hello.dart",
+  // Path of the file that you want to write.
+  // Can be absolute or relative to workspaceFolder
+  "path": "bin/hello.dart",
   // Text that should be written to the file.
   // This will be written as UTF-8.
   "text": "void main() => print('hello world');",
@@ -239,7 +239,7 @@ Parent directories will be automatically created.
 ```js
 {
   "workspaceId": 42,
-  "uri": "bin/hello.dart",
+  "path": "bin/hello.dart",
   // Bytes that should be written to the file as a special `bytes` parameter.
   "bytes": /* Uint8Array instance */,
 }
@@ -256,7 +256,7 @@ Parent directories will be automatically created.
 ```js
 {
   "workspaceId": 42,
-  "uri": "bin/hello.dart",
+  "path": "bin/hello.dart",
 }
 ```
 
@@ -273,7 +273,7 @@ Parent directories will be automatically created.
 ```js
 {
   "workspaceId": 42,
-  "uri": "bin/hello.dart",
+  "path": "bin/hello.dart",
 }
 ```
 
@@ -290,8 +290,8 @@ Parent directories will be automatically created.
 ```js
 {
   "workspaceId": 42,
-  // URI of the file or folder that you want to delete.
-  "uri": "bin/hello.dart",
+  // Path of the file or folder that you want to delete.
+  "path": "bin/hello.dart",
 }
 ```
 
@@ -307,7 +307,7 @@ Get information about a file or folder.
 ```js
 {
   "workspaceId": 42,
-  "uri": "bin/hello.dart",
+  "path": "bin/hello.dart",
 }
 ```
 
@@ -327,7 +327,7 @@ Get information about a file or folder.
 ```js
 {
   "workspaceId": 42,
-  "uri": "lib",
+  "path": "lib",
 }
 ```
 
@@ -342,7 +342,7 @@ Get information about a file or folder.
 ```js
 {
   "workspaceId": 42,
-  "uri": "lib",
+  "path": "lib",
   // Whether to list recursively (default: false)
   "recursive": true,
   // Whether to ignore hidden files (starting with .) (default: false)
@@ -353,7 +353,7 @@ Get information about a file or folder.
 **Result:**
 ```js
 {
-  // List of entries. Paths are relative to the uri listed.
+  // List of entries. Paths are relative to the path listed.
   "entries": [
     {"path": "main.dart", "type": "file"},
     {"path": "src", "type": "folder"}
@@ -369,7 +369,7 @@ Import a tar archive (uncompressed) into the workspace.
 {
   "workspaceId": 42,
   // Path where to extract the archive.
-  "uri": ".",
+  "path": ".",
   // Tar archive as a special `bytes` parameter.
   "bytes": /* Uint8Array instance */
 }
@@ -388,7 +388,7 @@ Export a directory as a tar archive (uncompressed).
 {
   "workspaceId": 42,
   // Directory to export.
-  "uri": "."
+  "path": "."
 }
 ```
 
@@ -408,7 +408,7 @@ Runs `pub` in the specified directory.
 {
   "workspaceId": 42,
   // Directory to run pub in.
-  "uri": ".",
+  "path": ".",
   // Command to run.
   "command": "get" | "add" | "downgrade" | "outdated" | "upgrade" | "remove" | "unpack",
   // Arguments to pass to the pub command (optional)
@@ -481,13 +481,13 @@ Sends an LSP message to a running language server.
 
 ### Method `workspace/startWatcher`
 
-Initiates a file system watcher for a given URI.
+Initiates a file system watcher for a given path.
 
 **Params:**
 ```js
 {
   "workspaceId": 42,
-  "uri": ".",
+  "path": ".",
 }
 ```
 
@@ -647,7 +647,7 @@ Sent when changes occur within the watched paths.
   "events": [
     {
       "type": "add" | "modify" | "remove",
-      "uri": "file:///workspace/pad_42/lib/main.dart"
+      "path": "/workspace/pad_42/lib/main.dart"
     }
   ]
 }

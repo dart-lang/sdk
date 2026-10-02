@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:path/path.dart' as p;
 
 import '../../worker_harness.dart';
 
@@ -17,7 +18,7 @@ void main() {
 
     final r = await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': <String, Object?>{},
     });
 
@@ -36,7 +37,7 @@ void main() {
 
     await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': {
         'textDocument': {'publishDiagnostics': <String, Object?>{}},
       },
@@ -47,7 +48,9 @@ void main() {
       lsp,
     ).withNotificationQueue('textDocument/publishDiagnostics');
 
-    final fileUri = ws.workspaceFolder.resolve('main.dart');
+    final fileUri = p.posix.toUri(
+      p.posix.join(ws.workspaceFolder, 'main.dart'),
+    );
     final code = 'void main() { print("hello") }'; // Missing semicolon
 
     lsp.sendNotification('textDocument/didOpen', {
@@ -79,7 +82,7 @@ void main() {
 
     await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': {
         'textDocument': {
           'hover': {
@@ -90,7 +93,9 @@ void main() {
     });
     lsp.sendNotification('initialized', {});
 
-    final fileUri = ws.workspaceFolder.resolve('main.dart');
+    final fileUri = p.posix.toUri(
+      p.posix.join(ws.workspaceFolder, 'main.dart'),
+    );
     final code = 'void main() { print("hello"); }';
     await ws.writeFileFromText('main.dart', code);
 
@@ -122,7 +127,7 @@ void main() {
 
     await lsp.sendRequest('initialize', {
       'processId': null,
-      'rootUri': ws.workspaceFolder.toString(),
+      'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
       'capabilities': {
         'textDocument': {'publishDiagnostics': <String, Object?>{}},
       },
@@ -133,7 +138,9 @@ void main() {
       lsp,
     ).withNotificationQueue('textDocument/publishDiagnostics');
 
-    final fileUri = ws.workspaceFolder.resolve('main.dart').toString();
+    final fileUri = p.posix
+        .toUri(p.posix.join(ws.workspaceFolder, 'main.dart'))
+        .toString();
 
     // Open with error
     lsp.sendNotification('textDocument/didOpen', {
@@ -172,7 +179,7 @@ void main() {
 
       await lsp.sendRequest('initialize', {
         'processId': null,
-        'rootUri': ws.workspaceFolder.toString(),
+        'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
         'capabilities': {
           'textDocument': {'publishDiagnostics': <String, Object?>{}},
         },
@@ -189,7 +196,9 @@ linter:
     - prefer_single_quotes
 ''');
 
-      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      final fileUri = p.posix.toUri(
+        p.posix.join(ws.workspaceFolder, 'main.dart'),
+      );
       final code = 'void main() { print("hello"); }';
 
       lsp.sendNotification('textDocument/didOpen', {
@@ -222,7 +231,7 @@ linter:
 
       await lsp.sendRequest('initialize', {
         'processId': null,
-        'rootUri': ws.workspaceFolder.toString(),
+        'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
         'capabilities': {
           'textDocument': {
             'codeAction': {
@@ -238,7 +247,9 @@ linter:
 
       lsp.sendNotification('initialized', {});
 
-      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      final fileUri = p.posix.toUri(
+        p.posix.join(ws.workspaceFolder, 'main.dart'),
+      );
       final code = 'void main() { print("hello"); }';
 
       lsp.sendNotification('textDocument/didOpen', {
@@ -288,7 +299,7 @@ linter:
 
       await lsp.sendRequest('initialize', {
         'processId': null,
-        'rootUri': ws.workspaceFolder.toString(),
+        'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
         'capabilities': {
           'textDocument': {
             'publishDiagnostics': <String, Object?>{},
@@ -310,7 +321,9 @@ linter:
     - prefer_single_quotes
 ''');
 
-      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      final fileUri = p.posix.toUri(
+        p.posix.join(ws.workspaceFolder, 'main.dart'),
+      );
       final code = 'void main() { print("hello"); }';
 
       lsp.sendNotification('textDocument/didOpen', {
@@ -358,7 +371,7 @@ linter:
 
         await lsp.sendRequest('initialize', {
           'processId': null,
-          'rootUri': ws.workspaceFolder.toString(),
+          'rootUri': p.posix.toUri(ws.workspaceFolder).toString(),
           'capabilities': {
             'textDocument': {
               'publishDiagnostics': <String, Object?>{},
@@ -370,7 +383,9 @@ linter:
         });
         lsp.sendNotification('initialized', {});
 
-        final fileUri = ws.workspaceFolder.resolve('main.dart');
+        final fileUri = p.posix.toUri(
+          p.posix.join(ws.workspaceFolder, 'main.dart'),
+        );
         const code = '''
 import 'dart:js_interop';
 import 'dart:typed_data';

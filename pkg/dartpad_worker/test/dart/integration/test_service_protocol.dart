@@ -6,6 +6,7 @@
 library;
 
 import 'package:dartpad_worker/src/util/message_port.dart';
+import 'package:path/path.dart' as p;
 import 'package:vm_service/vm_service.dart';
 import 'package:web/web.dart' as web;
 
@@ -127,11 +128,11 @@ void main() {
         service.getObject(isolateId, 'objects/non-existent'),
       ).throws<SentinelException>();
 
-      final mainFileUri = ctx.ws.workspaceFolder
-          .resolve('main.dart')
+      final mainFileUri = p.posix
+          .toUri(p.posix.join(ctx.ws.workspaceFolder, 'main.dart'))
           .toString();
-      final fooFileUri = ctx.ws.workspaceFolder
-          .resolve('lib/foo.dart')
+      final fooFileUri = p.posix
+          .toUri(p.posix.join(ctx.ws.workspaceFolder, 'lib/foo.dart'))
           .toString();
 
       final resolvedUris = await service.lookupResolvedPackageUris(isolateId, [

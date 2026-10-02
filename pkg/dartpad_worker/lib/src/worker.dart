@@ -178,10 +178,7 @@ class _Session {
       workspaceFolder,
       resourceProviderWithCurrentWorkingDirectory(_worker._rp, workspaceFolder),
     );
-    return {
-      'workspaceId': workspaceId,
-      'workspaceFolder': Uri.directory(workspaceFolder).toString(),
-    };
+    return {'workspaceId': workspaceId, 'workspaceFolder': workspaceFolder};
   }
 
   Object? _disposeWorkspace(Parameters params) async {
@@ -233,90 +230,68 @@ class _Workspace {
     this._rp,
   );
 
-  String _resolvePath(Uri u) {
-    final path = _rp.pathContext.fromUri(u);
-    if (_rp.pathContext.isAbsolute(path)) {
-      return _rp.pathContext.normalize(path);
-    }
-    return _rp.pathContext.normalize(
-      _rp.pathContext.join(_workspaceFolder, path),
-    );
-  }
+  String _resolvePath(String path) =>
+      _rp.pathContext.normalize(_rp.pathContext.join(_workspaceFolder, path));
 
   Object? _writeFileFromText(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final text = params['text'].asString;
     try {
       final file = _rp.getFile(path);
       file.writeAsStringSync(text);
     } on FileSystemException catch (e) {
-      throw FileWriteConflictException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileWriteConflictException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _writeFileFromBytes(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final bytes = params.bytesAsUint8List;
     try {
       final file = _rp.getFile(path);
       file.writeAsBytesSync(bytes);
     } on FileSystemException catch (e) {
-      throw FileWriteConflictException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileWriteConflictException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _readFileAsText(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
       return {'text': _rp.getFile(path).readAsStringSync()};
     } on FileSystemException catch (e) {
-      throw FileNotFoundException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException(e.message, data: {'path': path});
     }
   }
 
   Object? _readFileAsBytes(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
       return {'bytes': _rp.getFile(path).readAsBytesSync()};
     } on FileSystemException catch (e) {
-      throw FileNotFoundException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException(e.message, data: {'path': path});
     }
   }
 
   Object? _deleteFileSystemEntity(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
       _rp.getResource(path).delete();
     } on FileSystemException catch (e) {
-      throw FileDeletionFailedException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileDeletionFailedException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _stat(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final resource = _rp.getResource(path);
     if (!resource.exists) {
       throw FileNotFoundException(
         'File or directory not found',
-        data: {'resolvedUri': Uri.file(path).toString()},
+        data: {'path': path},
       );
     }
     if (resource is File) {
@@ -329,20 +304,17 @@ class _Workspace {
   }
 
   Object? _createFolder(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
       _rp.getFolder(path).create();
     } on FileSystemException catch (e) {
-      throw FileWriteConflictException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileWriteConflictException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _listDirectory(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final recursive = params['recursive'].asBoolOr(false);
     final ignoreHidden = params['ignoreHidden'].asBoolOr(false);
 
@@ -373,15 +345,12 @@ class _Workspace {
 
       return {'entries': entries};
     } on FileSystemException catch (e) {
-      throw FileNotFoundException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException(e.message, data: {'path': path});
     }
   }
 
   Object? _importTarArchive(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final bytes = params.bytesAsUint8List;
 
     await _rp.getFolder(path).extractTarStream(Stream.value(bytes));
@@ -390,20 +359,17 @@ class _Workspace {
   }
 
   Object? _exportTarArchive(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final folder = _rp.getFolder(path);
     if (!folder.exists) {
-      throw FileNotFoundException(
-        'Directory not found',
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException('Directory not found', data: {'path': path});
     }
 
     return {'bytes': await collectBytes(folder.createTarStream())};
   }
 
   Object? _pub(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final command = params['command'].asString;
     final args = params['args'].asListOr(const <String>[]);
     if (!supportedPubCommands.contains(command)) {
@@ -475,16 +441,14 @@ class _Workspace {
   }
 
   Object? _watch(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final watcherId = _worker._nextWatcherId++;
 
     _fileWatches[watcherId] = await FileWatch.create(_rp, path, (events) {
       _session._rpc.sendNotification('workspace/watcher/events', {
         'workspaceId': _workspaceId,
         'watcherId': watcherId,
-        'events': events
-            .map((e) => {'type': e.event, 'uri': e.uri.toString()})
-            .toList(),
+        'events': events.map((e) => {'type': e.event, 'path': e.path}).toList(),
       });
     });
 
@@ -535,7 +499,7 @@ class _Workspace {
 
   Object? _sandboxRun(Parameters params) async {
     final s = _getSandbox(params);
-    final path = _resolvePath(params['path'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final mode = params['mode'].asString;
     final m = _worker._config.modes.where((m) => m.mode == mode).firstOrNull;
     if (m == null) {

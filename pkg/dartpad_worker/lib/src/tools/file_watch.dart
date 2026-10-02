@@ -10,23 +10,22 @@ import 'package:watcher/watcher.dart' show ChangeType, WatchEvent;
 /// Watches a file or folder for changes.
 final class FileWatch {
   late final StreamSubscription<WatchEvent> _subscription;
-  final ResourceProvider _rp;
-  final void Function(List<({String event, Uri uri})>) _sendEvents;
+  final void Function(List<({String event, String path})>) _sendEvents;
 
   final List<WatchEvent> _buffer = [];
   bool _flushScheduled = false;
 
-  FileWatch._(this._rp, Stream<WatchEvent> changes, this._sendEvents) {
+  FileWatch._(Stream<WatchEvent> changes, this._sendEvents) {
     _subscription = changes.listen(_onEvent);
   }
 
   static Future<FileWatch> create(
     ResourceProvider rp,
     String path,
-    void Function(List<({String event, Uri uri})>) sendEvents,
+    void Function(List<({String event, String path})>) sendEvents,
   ) async {
     final watcher = rp.getResource(path).watch();
-    final fw = FileWatch._(rp, watcher.changes, sendEvents);
+    final fw = FileWatch._(watcher.changes, sendEvents);
     try {
       await watcher.ready;
     } catch (_) {
@@ -55,7 +54,7 @@ final class FileWatch {
         ChangeType.REMOVE => 'remove',
         _ => 'modify',
       };
-      return (event: type, uri: _rp.pathContext.toUri(e.path));
+      return (event: type, path: e.path);
     }).toList();
     _buffer.clear();
 

@@ -17,11 +17,7 @@ import 'package:vm_service/vm_service.dart';
 export 'package:checks/checks.dart';
 
 extension FileChangeEventChecks on Subject<FileChangeEvent> {
-  Subject<Uri> get uri => has((e) => e.uri, 'uri');
-}
-
-extension UriChecks on Subject<Uri> {
-  Subject<String> get path => has((u) => u.path, 'path');
+  Subject<String> get path => has((e) => e.path, 'path');
 }
 
 extension ResourceChecks on Subject<Resource> {
