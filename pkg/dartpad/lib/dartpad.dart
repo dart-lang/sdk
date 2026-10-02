@@ -24,6 +24,7 @@ export 'package:vm_service/vm_service.dart'
 export 'src/dartpad_config.dart' show DartPadConfig;
 export 'src/exceptions.dart' hide rethrowAsDartPadException;
 export 'src/message_port/message_port.dart' show MessagePort;
+export 'src/version_info.dart' show VersionInfo;
 
 export 'src/worker_client.dart'
     show

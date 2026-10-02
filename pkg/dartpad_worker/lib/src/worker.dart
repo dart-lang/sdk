@@ -23,6 +23,7 @@ import 'tools/language_server.dart';
 import 'tools/pub.dart';
 import 'tools/sandbox.dart';
 import 'util/parameters_ext.dart';
+import 'worker_protocol_version.dart';
 
 final class Worker {
   final ResourceProvider _rp;
@@ -100,6 +101,8 @@ final class Worker {
     }
 
     final version = createVersionInfo(
+      workerProtocolMajor: workerProtocolMajorVersion,
+      workerProtocolMinor: workerProtocolMinorVersion,
       modes: [for (final m in config.modes) m.mode],
       dartVersion: dartVersion,
       dartRevision: dartRevision,
@@ -121,6 +124,7 @@ class _Session {
 
   _Session(StreamChannel<Object?> channel, this._worker) {
     _rpc = Peer.withoutJson(channel, onUnhandledError: _onUnhandledError);
+    _rpc.registerMethod('version', _version);
     _rpc.registerMethod('createWorkspace', _createWorkspace);
     _rpc.registerMethod('workspace/close', _closeWorkspace);
     _rpc.registerMethod(
@@ -216,6 +220,8 @@ class _Session {
       );
     }());
   }
+
+  Map<String, Object?> _version(Parameters _) => _worker._version.toJson();
 
   Object? _createWorkspace(Parameters params) async {
     final workspaceId = _worker._nextWorkspaceId++;

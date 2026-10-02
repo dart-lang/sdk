@@ -2,8 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 /// Version and capability metadata for a _DartPad SDK_.
 final class VersionInfo {
+  /// Major version of the worker protocol.
+  final int workerProtocolMajor;
+
+  /// Minor version of the worker protocol.
+  final int workerProtocolMinor;
+
   /// Run modes supported by this DartPad SDK (e.g. `['console']`).
   final List<String> modes;
 
@@ -17,21 +25,65 @@ final class VersionInfo {
   final Map<String, String> properties;
 
   VersionInfo._({
+    required this.workerProtocolMajor,
+    required this.workerProtocolMinor,
     required List<String> modes,
     required this.dartVersion,
     required this.dartRevision,
     Map<String, String> properties = const {},
   }) : modes = List.unmodifiable(modes),
        properties = Map.unmodifiable(properties);
+
+  factory VersionInfo.fromJson(Map<String, Object?> json) {
+    if (json
+        case {
+          'workerProtocolMajor': final num workerProtocolMajor,
+          'workerProtocolMinor': final num workerProtocolMinor,
+          'modes': final List<Object?> modes,
+          'dartVersion': final String dartVersion,
+          'dartRevision': final String dartRevision,
+          'properties': final Map<Object?, Object?> properties,
+        }
+        when modes.every((m) => m is String) &&
+            properties.entries.every(
+              (e) => e.key is String && e.value is String,
+            )) {
+      return VersionInfo._(
+        workerProtocolMajor: workerProtocolMajor.toInt(),
+        workerProtocolMinor: workerProtocolMinor.toInt(),
+        modes: modes.cast<String>(),
+        dartVersion: dartVersion,
+        dartRevision: dartRevision,
+        properties: properties.cast<String, String>(),
+      );
+    }
+    throw FormatException('Invalid VersionInfo JSON: $json');
+  }
+
+  Map<String, Object?> toJson() => {
+    'workerProtocolMajor': workerProtocolMajor,
+    'workerProtocolMinor': workerProtocolMinor,
+    'modes': modes,
+    'dartVersion': dartVersion,
+    'dartRevision': dartRevision,
+    'properties': properties,
+  };
+
+  @override
+  String toString() => 'VersionInfo(${jsonEncode(toJson())})';
 }
 
 /// Creates a [VersionInfo] instance.
 VersionInfo createVersionInfo({
+  required int workerProtocolMajor,
+  required int workerProtocolMinor,
   required List<String> modes,
   required String dartVersion,
   required String dartRevision,
   Map<String, String> properties = const {},
 }) => VersionInfo._(
+  workerProtocolMajor: workerProtocolMajor,
+  workerProtocolMinor: workerProtocolMinor,
   modes: modes,
   dartVersion: dartVersion,
   dartRevision: dartRevision,

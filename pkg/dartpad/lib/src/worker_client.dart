@@ -18,6 +18,7 @@ import 'message_port/message_port.dart';
 import 'shared.dart';
 
 export 'exceptions.dart' hide rethrowAsDartPadException;
+export 'version_info.dart' show VersionInfo;
 
 /// Client for talking to `shared_worker.dart`.
 base class WorkerClient {
@@ -44,6 +45,12 @@ base class WorkerClient {
   /// Closes the connection to the worker.
   Future<void> close() async {
     await _peer.close();
+  }
+
+  /// Version and capability metadata for the worker.
+  Future<VersionInfo> version() async {
+    final result = await _peer.request<Map>('version', {});
+    return VersionInfo.fromJson(result.cast<String, Object?>());
   }
 
   /// Creates a workspace in the worker.
