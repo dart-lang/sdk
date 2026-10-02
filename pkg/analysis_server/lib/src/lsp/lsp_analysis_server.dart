@@ -149,6 +149,7 @@ class LspAnalysisServer extends AnalysisServer {
     this.detachableFileSystemManager,
     super.enableBlazeWatcher,
     super.dartFixPromptManager,
+    super.providedByteStore,
     super.pluginManager,
     super.messageSchedulerListener,
     super.performanceLogger,
