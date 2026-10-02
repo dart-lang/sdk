@@ -285,6 +285,7 @@ Parent directories will be automatically created.
 ```
 
 ### Method `workspace/deleteFileSystemEntity`
+Deletes a file or folder. Does nothing if there is nothing to delete.
 
 **Params:**
 ```js

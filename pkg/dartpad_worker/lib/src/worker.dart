@@ -278,7 +278,11 @@ class _Workspace {
   Object? _deleteFileSystemEntity(Parameters params) async {
     final path = _resolvePath(params['path'].asString);
     try {
-      _rp.getResource(path).delete();
+      final resource = _rp.getResource(path);
+      // Safe to check before delete: synchronous on an in-memory filesystem.
+      if (resource.exists) {
+        resource.delete();
+      }
     } on FileSystemException catch (e) {
       throw FileDeletionFailedException(e.message, data: {'path': path});
     }
@@ -544,7 +548,11 @@ class _Workspace {
         ..._sandboxes.values.map((s) => s.close()),
       ]);
     } finally {
-      _rp.getFolder(_workspaceFolder).delete();
+      final folder = _rp.getFolder(_workspaceFolder);
+      // Safe to check before delete: synchronous on an in-memory filesystem.
+      if (folder.exists) {
+        folder.delete();
+      }
     }
   }
 }
