@@ -545,7 +545,7 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   List<VariableDeclaration> get variableInitializations => variables;
 
   Expression? condition; // May be null.
-  final List<Expression> updates; // May be empty, but not null.
+  final ExpressionList updates; // May be empty, but not null.
 
   @override
   Statement body;
@@ -909,7 +909,7 @@ class SwitchStatement extends Statement {
 ///
 /// This is a potential target of [ContinueSwitchStatement].
 class SwitchCase extends TreeNode {
-  final List<Expression> expressions;
+  ExpressionList expressions;
   final List<int> expressionOffsets;
   late Statement body;
   bool isDefault;
@@ -928,7 +928,7 @@ class SwitchCase extends TreeNode {
 
   new defaultCase(Statement? body)
     : isDefault = true,
-      expressions = <Expression>[],
+      expressions = ExpressionList.empty,
       expressionOffsets = <int>[] {
     if (body != null) {
       this.body = body..parent = this;

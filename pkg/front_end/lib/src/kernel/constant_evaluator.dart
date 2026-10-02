@@ -989,19 +989,19 @@ class ConstantsTransformer extends RemovingTransformer {
           ..parent = patternSwitchCase;
 
         List<int> expressionOffsets = [];
-        List<Expression> expressions = [];
-        for (PatternGuard patternGuard in patternSwitchCase.patternGuards) {
-          ConstantPattern constantPattern =
-              patternGuard.pattern as ConstantPattern;
-          expressionOffsets.add(constantPattern.fileOffset);
-          expressions.add(
-            extern.createConstantExpression(
+        ExpressionList expressions = ExpressionList.mapped(
+          patternSwitchCase.patternGuards,
+          (PatternGuard patternGuard) {
+            ConstantPattern constantPattern =
+                patternGuard.pattern as ConstantPattern;
+            expressionOffsets.add(constantPattern.fileOffset);
+            return extern.createConstantExpression(
               constantPattern.value!,
               constantPattern.expressionType,
               fileOffset: constantPattern.expression.fileOffset,
-            ),
-          );
-        }
+            );
+          },
+        );
         SwitchCase switchCase = extern.createSwitchCase(
           expressions: expressions,
           expressionOffsets: expressionOffsets,
@@ -1291,13 +1291,13 @@ class ConstantsTransformer extends RemovingTransformer {
           ], fileOffset: switchCase.fileOffset);
 
           SwitchCase replacementCase = extern.createSwitchCase(
-            expressions: [
+            expressions: new ExpressionList(
               extern.createIntLiteral(
                 typeEnvironment.coreTypes,
                 continueTargetIndex,
                 fileOffset: node.fileOffset,
               ),
-            ],
+            ),
             expressionOffsets: [node.fileOffset],
             body: extern.createBlock([
               for (VariableDeclaration jointVariableDeclaration
@@ -2061,17 +2061,18 @@ class ConstantsTransformer extends RemovingTransformer {
       bool hasDefaultCase = false;
       for (SwitchExpressionCase switchExpressionCase in node.cases) {
         List<int> expressionOffsets = [];
-        List<Expression> expressions = [];
+        ExpressionList expressions;
         PatternGuard patternGuard = switchExpressionCase.patternGuard;
         Pattern pattern = patternGuard.pattern;
         bool isDefault = false;
         if (pattern is WildcardPattern) {
           isDefault = true;
           hasDefaultCase = true;
+          expressions = ExpressionList.empty;
         } else {
           ConstantPattern constantPattern = pattern as ConstantPattern;
           expressionOffsets.add(constantPattern.fileOffset);
-          expressions.add(
+          expressions = new ExpressionList(
             extern.createConstantExpression(
               constantPattern.value!,
               constantPattern.expressionType,
@@ -3340,11 +3341,11 @@ class ConstantEvaluator
       return unevaluated(
         node,
         new RecordLiteral(
-          [for (Constant c in positional) _wrap(c)],
-          [
+          ExpressionList.mapped(positional, _wrap),
+          new NamedExpressionList.from([
             for (String key in named.keys)
               new NamedExpression(key, _wrap(named[key]!)),
-          ],
+          ]),
           node.recordType,
           isConst: true,
         ),
@@ -5078,22 +5079,19 @@ class ConstantEvaluator
     }
     if (concatenated.length > 1) {
       // Coverage-ignore-block(suite): Not run.
-      final List<Expression> expressions = new List<Expression>.generate(
-        concatenated.length,
-        (int i) {
-          Object value = concatenated[i];
-          if (value is StringBuffer) {
-            return new ConstantExpression(
-              canonicalize(new StringConstant(value.toString())),
-            );
-          } else {
-            // The value is either unevaluated constant or a non-primitive
-            // constant in an unevaluated expression.
-            return _wrap(value as Constant);
-          }
-        },
-        growable: false,
-      );
+      final ExpressionList expressions = ExpressionList.mapped(concatenated, (
+        Object value,
+      ) {
+        if (value is StringBuffer) {
+          return new ConstantExpression(
+            canonicalize(new StringConstant(value.toString())),
+          );
+        } else {
+          // The value is either unevaluated constant or a non-primitive
+          // constant in an unevaluated expression.
+          return _wrap(value as Constant);
+        }
+      });
       return unevaluated(node, new StringConcatenation(expressions));
     }
     return canonicalize(new StringConstant(concatenated.single.toString()));
@@ -6595,7 +6593,7 @@ class InstanceBuilder {
       typeArguments,
       fieldValues,
       asserts,
-      unusedArguments,
+      new ExpressionList.from(unusedArguments),
     );
   }
 }

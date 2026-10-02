@@ -459,15 +459,18 @@ class VmTarget extends Target {
 
     // The 0-element list must be exactly 'const[]'.
     if (elements.isEmpty) {
-      return new ListLiteral([], typeArgument: typeArgument)..isConst = true;
+      return new ListLiteral(ExpressionList.empty, typeArgument: typeArgument)
+        ..isConst = true;
     }
 
     return new StaticInvocation(
       coreTypes.listUnmodifiableConstructor,
       new Arguments(
         ExpressionList(
-          new ListLiteral(elements, typeArgument: typeArgument)
-            ..fileOffset = offset,
+          new ListLiteral(
+            new ExpressionList.from(elements),
+            typeArgument: typeArgument,
+          )..fileOffset = offset,
         ),
         types: DartTypeList(typeArgument),
       ),

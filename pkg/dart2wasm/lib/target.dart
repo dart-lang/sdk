@@ -523,7 +523,9 @@ class WasmTarget extends Target {
         Arguments(
           ExpressionList(
             SymbolLiteral(name),
-            ListLiteral(arguments.types.map((t) => TypeLiteral(t)).toList()),
+            ListLiteral(
+              ExpressionList.mapped(arguments.types, TypeLiteral.new),
+            ),
             ListLiteral(arguments.positional),
             MapLiteral(
               List<MapLiteralEntry>.from(

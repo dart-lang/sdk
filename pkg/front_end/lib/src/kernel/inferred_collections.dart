@@ -74,7 +74,7 @@ class InferredPatternForElement({
   required final Expression? condition,
 
   /// The expressions occurring in the updates part of the for-element.
-  required final List<Expression> updates,
+  required final ExpressionList updates,
 
   /// The body of the for-element.
   required final InferredElement body,
@@ -122,7 +122,7 @@ class InferredForElement({
   required final Expression? condition,
 
   /// The expressions occurring in the updates part of the for-element.
-  required final List<Expression> updates,
+  required final ExpressionList updates,
 
   /// The body of the for-element.
   required final InferredElement body,

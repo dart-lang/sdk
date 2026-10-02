@@ -3522,23 +3522,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return inferElement(body, context);
   }
 
-  List<Expression> _inferForUpdates({
+  ExpressionList _inferForUpdates({
     required InternalNode node,
     required List<InternalExpression> updates,
   }) {
     flowAnalysis.for_updaterBegin();
-    List<Expression> inferredUpdates = new List.filled(
-      updates.length,
-      dummyExpression,
-    );
-    for (int index = 0; index < updates.length; index++) {
+    ExpressionList inferredUpdates = ExpressionList.mapped(updates, (
+      InternalExpression update,
+    ) {
       ExpressionInferenceResult updateResult = inferExpression(
-        updates[index],
+        update,
         const UnknownType(),
         isVoidAllowed: true,
       );
-      inferredUpdates[index] = updateResult.expression;
-    }
+      return updateResult.expression;
+    });
     flowAnalysis.for_end();
     return inferredUpdates;
   }
@@ -3561,7 +3559,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       body: node.body,
     );
 
-    List<Expression> updates = _inferForUpdates(
+    ExpressionList updates = _inferForUpdates(
       node: node,
       updates: node.updates,
     );
@@ -3608,7 +3606,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       body: node.body,
     );
 
-    List<Expression> updates = _inferForUpdates(
+    ExpressionList updates = _inferForUpdates(
       node: node,
       updates: node.updates,
     );
@@ -4977,7 +4975,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       context: context,
     );
 
-    List<Expression> updates = _inferForUpdates(
+    ExpressionList updates = _inferForUpdates(
       node: node,
       updates: node.updates,
     );
@@ -5098,7 +5096,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       context: context,
     );
 
-    List<Expression> updates = _inferForUpdates(
+    ExpressionList updates = _inferForUpdates(
       node: node,
       updates: node.updates,
     );
@@ -10018,18 +10016,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InternalStringConcatenation node,
     DartType typeContext,
   ) {
-    List<Expression> expressions = new List.filled(
-      node.expressions.length,
-      dummyExpression,
-    );
-    for (int index = 0; index < node.expressions.length; index++) {
+    ExpressionList expressions = ExpressionList.mapped(node.expressions, (
+      InternalExpression expression,
+    ) {
       ExpressionInferenceResult result = inferExpression(
-        node.expressions[index],
+        expression,
         const UnknownType(),
         isVoidAllowed: false,
       );
-      expressions[index] = result.expression;
-    }
+      return result.expression;
+    });
     Expression replacement = extern.createStringConcatenation(
       expressions,
       fileOffset: node.fileOffset,
@@ -11100,15 +11096,21 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     int positionalIndex = 0;
-    List<Expression> positional = [];
-    List<NamedExpression>? named;
+    ExpressionList positional = new ExpressionList.filled(
+      positionalFieldCount,
+      dummyExpression,
+    );
+    NamedExpressionList named = NamedExpressionList.empty;
 
     List<CachedExpression>? hoistedExpressions;
 
     Map<String, NamedRecordResult> namedResults = {};
 
-    List<DartType> positionalTypes = [];
-    List<NamedType> namedTypes = [];
+    DartTypeList positionalTypes = new DartTypeList.filled(
+      positionalFieldCount,
+      dummyDartType,
+    );
+    NamedDartTypeList namedTypes = NamedDartTypeList.empty;
 
     for (RecordField field in fields) {
       switch (field) {
@@ -11130,10 +11132,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 expressionResult;
           }
 
-          positionalTypes.add(
-            expressionResult.postCoercionType ?? expressionResult.inferredType,
-          );
-          positional.add(expressionResult.expression);
+          positionalTypes[positionalIndex] =
+              expressionResult.postCoercionType ??
+              expressionResult.inferredType;
+          positional[positionalIndex] = expressionResult.expression;
           positionalIndex++;
         case NamedRecordField():
           DartType contextType =
@@ -11248,18 +11250,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             positionalIndex--;
         }
       }
-      namedTypes = new List<NamedType>.generate(sortedNames.length, (
+      namedTypes = new NamedDartTypeList.generate(sortedNames.length, (
         int index,
       ) {
         String name = sortedNames[index];
         return new NamedType(name, namedResults[name]!.type);
       });
-      named = new List<NamedExpression>.generate(sortedNames.length, (
-        int index,
-      ) {
-        String name = sortedNames[index];
-        return namedResults[name]!.expression;
-      });
+      named = NamedExpressionList.mapped(
+        sortedNames,
+        (String name) => namedResults[name]!.expression,
+      );
     }
 
     DartType type;
@@ -11277,10 +11277,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       result = new RecordLiteral(
         positional,
-        named ?? [],
+        named,
         type = new RecordType(
-          new DartTypeList.from(positionalTypes),
-          new NamedDartTypeList.from(namedTypes),
+          positionalTypes,
+          namedTypes,
           Nullability.nonNullable,
         ),
         isConst: node.isConst,
@@ -11580,10 +11580,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           ]),
         );
 
-        List<Expression> expressions = new List.filled(
+        ExpressionList expressions = new ExpressionList.filled(
           case_.expressions.length,
           dummyExpression,
-          growable: true,
         );
         for (int i = case_.expressions.length - 1; i >= 0; i--) {
           expressions[i] = popRewrite() as Expression; // CaseHead

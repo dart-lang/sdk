@@ -517,10 +517,7 @@ class JsUtilOptimizer extends Transformer {
         final function = node.function;
         final (receiver, positional) = _splitOutReceiver(
           staticReceiver,
-          ExpressionList.generate(
-            function.positionalParameters.length,
-            (i) => VariableGet(function.positionalParameters[i]),
-          ),
+          ExpressionList.mapped(function.positionalParameters, VariableGet.new),
           selectors,
         );
         assert(positional.length == 1);
@@ -604,10 +601,7 @@ class JsUtilOptimizer extends Transformer {
         final function = node.function;
         final (receiver, positional) = _splitOutReceiver(
           staticReceiver,
-          ExpressionList.generate(
-            function.positionalParameters.length,
-            (i) => VariableGet(function.positionalParameters[i]),
-          ),
+          ExpressionList.mapped(function.positionalParameters, VariableGet.new),
           selectors,
         );
         final callMethodInvocation = StaticInvocation(
@@ -968,7 +962,7 @@ class JsUtilOptimizer extends Transformer {
       if (argumentsList.expressions.length >= callUncheckedTargets.length) {
         return node;
       }
-      callUncheckedArguments = ExpressionList.from(argumentsList.expressions);
+      callUncheckedArguments = argumentsList.expressions;
       entryType = argumentsList.typeArgument;
     } else if (argumentsList is ConstantExpression &&
         argumentsList.constant is ListConstant) {
@@ -976,15 +970,10 @@ class JsUtilOptimizer extends Transformer {
       if (argumentsListConstant.entries.length >= callUncheckedTargets.length) {
         return node;
       }
-      callUncheckedArguments = ExpressionList.generate(
-        argumentsListConstant.entries.length,
-        (i) {
-          final constant = argumentsListConstant.entries[i];
-          return ConstantExpression(
-            constant,
-            constant.getType(_staticTypeContext),
-          );
-        },
+      callUncheckedArguments = ExpressionList.mapped(
+        argumentsListConstant.entries,
+        (constant) =>
+            ConstantExpression(constant, constant.getType(_staticTypeContext)),
       );
       entryType = argumentsListConstant.typeArgument;
     } else {

@@ -1126,29 +1126,23 @@ class KernelTarget {
     List<NamedParameter> superNamed = superConstructor.function.namedParameters;
     List<PositionalParameter> positionalParameters = [];
     List<NamedParameter> namedParameters = [];
-    ExpressionList positional = new ExpressionList.generate(
-      superPositional.length,
-      (int i) {
-        PositionalParameter clone = copyPositionalParameter(
-          superPositional[i],
-          isPositional: true,
-        );
-        positionalParameters.add(clone);
-        return new VariableGet(clone);
-      },
-    );
-    NamedExpressionList named = new NamedExpressionList.generate(
-      superNamed.length,
-      (int i) {
-        NamedParameter formal = superNamed[i];
-        NamedParameter clone = copyNamedParameter(formal, isPositional: false);
-        namedParameters.add(clone);
-        return new NamedExpression(
-          formal.parameterName,
-          new VariableGet(clone),
-        );
-      },
-    );
+    ExpressionList positional = ExpressionList.mapped(superPositional, (
+      PositionalParameter formal,
+    ) {
+      PositionalParameter clone = copyPositionalParameter(
+        formal,
+        isPositional: true,
+      );
+      positionalParameters.add(clone);
+      return new VariableGet(clone);
+    });
+    NamedExpressionList named = NamedExpressionList.mapped(superNamed, (
+      NamedParameter formal,
+    ) {
+      NamedParameter clone = copyNamedParameter(formal, isPositional: false);
+      namedParameters.add(clone);
+      return new NamedExpression(formal.parameterName, new VariableGet(clone));
+    });
     FunctionNode function = new FunctionNode(
       new EmptyStatement(),
       positionalParameters: positionalParameters,

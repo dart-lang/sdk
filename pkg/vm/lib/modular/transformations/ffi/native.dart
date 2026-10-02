@@ -786,9 +786,9 @@ class FfiNativeTransformer extends FfiTransformer {
     );
 
     final positionalParameters = node.function.positionalParameters;
-    final argumentList = ExpressionList.generate(
-      positionalParameters.length,
-      (i) => VariableGet(positionalParameters[i]),
+    final argumentList = ExpressionList.mapped(
+      positionalParameters,
+      VariableGet.new,
     );
 
     return _transformProcedure(

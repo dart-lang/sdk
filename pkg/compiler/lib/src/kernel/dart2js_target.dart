@@ -239,9 +239,7 @@ class Dart2jsTarget extends Target {
         ir.ExpressionList(
           ir.StringLiteral(name)..fileOffset = offset,
           ir.ListLiteral(
-            arguments.types
-                .map<ir.Expression>((t) => ir.TypeLiteral(t))
-                .toList(),
+            ir.ExpressionList.mapped(arguments.types, ir.TypeLiteral.new),
           ),
           ir.ListLiteral(arguments.positional)..fileOffset = offset,
           ir.MapLiteral(

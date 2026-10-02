@@ -1496,7 +1496,7 @@ class BinaryBuilder {
   LibraryDependency readLibraryDependency() {
     int fileOffset = readOffset();
     int flags = readByte();
-    List<Expression> annotations = readExpressionList();
+    List<Expression> annotations = readAnnotationList();
     Reference targetLibrary = readNonNullLibraryReference();
     String? prefixName = readStringOrNullIfEmpty();
     List<Combinator> names = readCombinatorList();
@@ -1557,7 +1557,7 @@ class BinaryBuilder {
   }
 
   LibraryPart readLibraryPart() {
-    List<Expression> annotations = readExpressionList();
+    List<Expression> annotations = readAnnotationList();
     String partUri = readStringReference();
     Uri fileUri = readUriReference();
     return new LibraryPart(annotations, partUri, fileUri);
@@ -2360,18 +2360,9 @@ class BinaryBuilder {
     }
   }
 
-  List<Expression> readExpressionList() {
+  ExpressionList readExpressionList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      return emptyListOfExpression;
-    }
-    return new List<Expression>.generate(
-      length,
-      (_) => readExpression(),
-      growable: useGrowableLists,
-    );
+    return new ExpressionList.generate(length, (_) => readExpression());
   }
 
   Expression? readExpressionOption() {
@@ -3033,7 +3024,7 @@ class BinaryBuilder {
         growable: false,
       );
     }
-    List<Expression> unusedArguments = readExpressionList();
+    ExpressionList unusedArguments = readExpressionList();
     return new InstanceCreation(
       classReference,
       typeArguments,
@@ -3205,8 +3196,8 @@ class BinaryBuilder {
 
   Expression _readRecordLiteral() {
     int offset = readOffset();
-    List<Expression> positional = readExpressionList();
-    List<NamedExpression> named = readNamedExpressionList();
+    ExpressionList positional = readExpressionList();
+    NamedExpressionList named = readNamedExpressionList();
     RecordType recordType = readDartType() as RecordType;
     return new RecordLiteral(positional, named, recordType, isConst: false)
       ..fileOffset = offset;
@@ -3214,8 +3205,8 @@ class BinaryBuilder {
 
   Expression _readConstRecordLiteral() {
     int offset = readOffset();
-    List<Expression> positional = readExpressionList();
-    List<NamedExpression> named = readNamedExpressionList();
+    ExpressionList positional = readExpressionList();
+    NamedExpressionList named = readNamedExpressionList();
     RecordType recordType = readDartType() as RecordType;
     return new RecordLiteral(positional, named, recordType, isConst: true)
       ..fileOffset = offset;
@@ -3959,7 +3950,7 @@ class BinaryBuilder {
     int scopeSize = readScopeSizeAndAllocateContexts();
     List<VariableDeclaration> variables = readAndPushVariableDeclarationList();
     Expression? condition = readExpressionOption();
-    List<Expression> updates = readExpressionList();
+    ExpressionList updates = readExpressionList();
     Statement body = readStatement();
     Scope? scope = readOptionalScope(scopeSize);
     variableStack.length = variableStackHeight;
@@ -4000,7 +3991,7 @@ class BinaryBuilder {
       cases = new List<SwitchCase>.generate(
         count,
         (_) => new SwitchCase(
-          <Expression>[],
+          ExpressionList.empty,
           <int>[],
           dummyStatement,
           isDefault: false,
@@ -4099,10 +4090,10 @@ class BinaryBuilder {
     int offset = readOffset();
     caseNode.fileOffset = offset;
     int length = readUInt30();
-    for (int i = 0; i < length; ++i) {
+    caseNode.expressions = new ExpressionList.generate(length, (_) {
       caseNode.expressionOffsets.add(readOffset());
-      caseNode.expressions.add(readExpression()..parent = caseNode);
-    }
+      return readExpression()..parent = caseNode;
+    });
     caseNode.isDefault = readByte() == 1;
     caseNode.body = readStatement()..parent = caseNode;
   }
@@ -4525,31 +4516,17 @@ class BinaryBuilder {
   Arguments readArguments() {
     int numArguments = readUInt30();
     DartTypeList typeArguments = readDartTypeList();
-    int numPositional = readUInt30();
-    ExpressionList positional = ExpressionList.generate(
-      numPositional,
-      (_) => readExpression(),
-    );
-    int numNamed = readUInt30();
-    NamedExpressionList named = NamedExpressionList.generate(
-      numNamed,
-      (_) => readNamedExpression(),
-    );
+    ExpressionList positional = readExpressionList();
+    NamedExpressionList named = readNamedExpressionList();
     assert(numArguments == positional.length + named.length);
     return new Arguments(positional, types: typeArguments, named: named);
   }
 
-  List<NamedExpression> readNamedExpressionList() {
+  NamedExpressionList readNamedExpressionList() {
     int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use an
-      // almost-constant one for the empty list.
-      return emptyListOfNamedExpression;
-    }
-    return new List<NamedExpression>.generate(
+    return new NamedExpressionList.generate(
       length,
       (_) => readNamedExpression(),
-      growable: useGrowableLists,
     );
   }
 

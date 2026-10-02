@@ -4,14 +4,6 @@
 
 part of '../../ast.dart';
 
-/// Almost const <NamedExpression>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<NamedExpression> emptyListOfNamedExpression = List.filled(
-  0,
-  dummyNamedExpression,
-  growable: false,
-);
-
 /// Almost const <VariableDeclaration>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<VariableDeclaration> emptyListOfVariableDeclaration = List.filled(
@@ -57,14 +49,6 @@ final List<NamedParameter> emptyListOfNamedParameter = List.filled(
 final List<Combinator> emptyListOfCombinator = List.filled(
   0,
   dummyCombinator,
-  growable: false,
-);
-
-/// Almost const <Expression>[], but not const in an attempt to avoid
-/// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<Expression> emptyListOfExpression = List.filled(
-  0,
-  dummyExpression,
   growable: false,
 );
 

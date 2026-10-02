@@ -114,7 +114,9 @@ class NodeCreator {
     if (_neededSwitchCases.isNotEmpty) {
       statement = SwitchStatement(NullLiteral(), [
         ..._neededSwitchCases,
-        SwitchCase([NullLiteral()], [TreeNode.noOffset], Block([statement])),
+        SwitchCase(ExpressionList(NullLiteral()), [
+          TreeNode.noOffset,
+        ], Block([statement])),
       ]);
     }
     _neededSwitchCases.clear();
@@ -770,11 +772,9 @@ class NodeCreator {
     for (SwitchCase switchCase in _neededSwitchCases) {
       return switchCase;
     }
-    SwitchCase switchCase = SwitchCase(
-      [NullLiteral()],
-      [TreeNode.noOffset],
-      EmptyStatement(),
-    );
+    SwitchCase switchCase = SwitchCase(ExpressionList(NullLiteral()), [
+      TreeNode.noOffset,
+    ], EmptyStatement());
     _neededSwitchCases.add(switchCase);
     return switchCase;
   }
@@ -914,7 +914,7 @@ class NodeCreator {
           DartTypeList.empty,
           {},
           [],
-          [],
+          ExpressionList.empty,
         )..fileOffset = _needFileOffset();
       case ExpressionKind.InstanceGet:
         return InstanceGet(
@@ -996,34 +996,38 @@ class NodeCreator {
         )..fileOffset = _needFileOffset();
       case ExpressionKind.ListConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () =>
-              ListConcatenation([], typeArgument: _createDartType())
-                ..fileOffset = _needFileOffset(),
-          () => ListConcatenation([
-            _createExpression(),
-          ], typeArgument: _createDartType())..fileOffset = _needFileOffset(),
-          () => ListConcatenation([
-            _createExpression(),
-            _createExpression(),
-          ], typeArgument: _createDartType())..fileOffset = _needFileOffset(),
+          () => ListConcatenation(
+            ExpressionList.empty,
+            typeArgument: _createDartType(),
+          )..fileOffset = _needFileOffset(),
+          () => ListConcatenation(
+            ExpressionList(_createExpression()),
+            typeArgument: _createDartType(),
+          )..fileOffset = _needFileOffset(),
+          () => ListConcatenation(
+            ExpressionList(_createExpression(), _createExpression()),
+            typeArgument: _createDartType(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.ListLiteral:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () =>
-              ListLiteral([], typeArgument: _createDartType(), isConst: false)
-                ..fileOffset = _needFileOffset(),
           () => ListLiteral(
-            [_createExpression()],
+            ExpressionList.empty,
             typeArgument: _createDartType(),
             isConst: false,
           )..fileOffset = _needFileOffset(),
           () => ListLiteral(
-            [_createExpression(), _createExpression()],
+            ExpressionList(_createExpression()),
             typeArgument: _createDartType(),
             isConst: false,
           )..fileOffset = _needFileOffset(),
           () => ListLiteral(
-            [_createExpression(), _createExpression()],
+            ExpressionList(_createExpression(), _createExpression()),
+            typeArgument: _createDartType(),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => ListLiteral(
+            ExpressionList(_createExpression(), _createExpression()),
             typeArgument: _createDartType(),
             isConst: true,
           )..fileOffset = _needFileOffset(),
@@ -1053,17 +1057,17 @@ class NodeCreator {
       case ExpressionKind.MapConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [
           () => MapConcatenation(
-            [],
+            ExpressionList.empty,
             keyType: _createDartType(),
             valueType: _createDartType(),
           )..fileOffset = _needFileOffset(),
           () => MapConcatenation(
-            [_createExpression()],
+            ExpressionList(_createExpression()),
             keyType: _createDartType(),
             valueType: _createDartType(),
           )..fileOffset = _needFileOffset(),
           () => MapConcatenation(
-            [_createExpression(), _createExpression()],
+            ExpressionList(_createExpression(), _createExpression()),
             keyType: _createDartType(),
             valueType: _createDartType(),
           )..fileOffset = _needFileOffset(),
@@ -1108,34 +1112,38 @@ class NodeCreator {
         return Rethrow()..fileOffset = _needFileOffset();
       case ExpressionKind.SetConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () =>
-              SetConcatenation([], typeArgument: _createDartType())
-                ..fileOffset = _needFileOffset(),
-          () => SetConcatenation([
-            _createExpression(),
-          ], typeArgument: _createDartType())..fileOffset = _needFileOffset(),
-          () => SetConcatenation([
-            _createExpression(),
-            _createExpression(),
-          ], typeArgument: _createDartType())..fileOffset = _needFileOffset(),
+          () => SetConcatenation(
+            ExpressionList.empty,
+            typeArgument: _createDartType(),
+          )..fileOffset = _needFileOffset(),
+          () => SetConcatenation(
+            ExpressionList(_createExpression()),
+            typeArgument: _createDartType(),
+          )..fileOffset = _needFileOffset(),
+          () => SetConcatenation(
+            ExpressionList(_createExpression(), _createExpression()),
+            typeArgument: _createDartType(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.SetLiteral:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () =>
-              SetLiteral([], typeArgument: _createDartType(), isConst: false)
-                ..fileOffset = _needFileOffset(),
           () => SetLiteral(
-            [_createExpression()],
+            ExpressionList.empty,
             typeArgument: _createDartType(),
             isConst: false,
           )..fileOffset = _needFileOffset(),
           () => SetLiteral(
-            [_createExpression(), _createExpression()],
+            ExpressionList(_createExpression()),
             typeArgument: _createDartType(),
             isConst: false,
           )..fileOffset = _needFileOffset(),
           () => SetLiteral(
-            [_createExpression(), _createExpression()],
+            ExpressionList(_createExpression(), _createExpression()),
+            typeArgument: _createDartType(),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => SetLiteral(
+            ExpressionList(_createExpression(), _createExpression()),
             typeArgument: _createDartType(),
             isConst: true,
           )..fileOffset = _needFileOffset(),
@@ -1152,13 +1160,15 @@ class NodeCreator {
         return StaticTearOff(_needProcedure())..fileOffset = _needFileOffset();
       case ExpressionKind.StringConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => StringConcatenation([])..fileOffset = _needFileOffset(),
           () =>
-              StringConcatenation([_createExpression()])
+              StringConcatenation(ExpressionList.empty)
                 ..fileOffset = _needFileOffset(),
           () =>
-              StringConcatenation([_createExpression(), _createExpression()])
+              StringConcatenation(ExpressionList(_createExpression()))
                 ..fileOffset = _needFileOffset(),
+          () => StringConcatenation(
+            ExpressionList(_createExpression(), _createExpression()),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.StringLiteral:
         return StringLiteral('foo');
@@ -1297,8 +1307,8 @@ class NodeCreator {
       case ExpressionKind.RecordLiteral:
         return _createOneOf(_pendingExpressions, kind, index, [
           () => RecordLiteral(
-            [_createExpression()],
-            [],
+            ExpressionList(_createExpression()),
+            NamedExpressionList.empty,
             RecordType(
               DartTypeList(_createDartType()),
               NamedDartTypeList.empty,
@@ -1307,8 +1317,8 @@ class NodeCreator {
             isConst: false,
           )..fileOffset = _needFileOffset(),
           () => RecordLiteral(
-            [],
-            [NamedExpression('foo', _createExpression())],
+            ExpressionList.empty,
+            NamedExpressionList(NamedExpression('foo', _createExpression())),
             RecordType(
               DartTypeList.empty,
               NamedDartTypeList(NamedType('foo', _createDartType())),
@@ -1317,8 +1327,8 @@ class NodeCreator {
             isConst: false,
           )..fileOffset = _needFileOffset(),
           () => RecordLiteral(
-            [_createExpression()],
-            [NamedExpression('foo', _createExpression())],
+            ExpressionList(_createExpression()),
+            NamedExpressionList(NamedExpression('foo', _createExpression())),
             RecordType(
               DartTypeList(_createDartType()),
               NamedDartTypeList(NamedType('foo', _createDartType())),
@@ -1327,8 +1337,8 @@ class NodeCreator {
             isConst: false,
           )..fileOffset = _needFileOffset(),
           () => RecordLiteral(
-            [_createExpression()],
-            [],
+            ExpressionList(_createExpression()),
+            NamedExpressionList.empty,
             RecordType(
               DartTypeList(_createDartType()),
               NamedDartTypeList.empty,
@@ -1686,7 +1696,7 @@ class NodeCreator {
       case StatementKind.ForStatement:
         return _createOneOf(_pendingStatements, kind, index, [
           () =>
-              ForStatement([], null, [], _createStatement())
+              ForStatement([], null, ExpressionList.empty, _createStatement())
                 ..fileOffset = _needFileOffset(),
           () => ForStatement(
             [
@@ -1696,7 +1706,7 @@ class NodeCreator {
               ),
             ],
             _createExpression(),
-            [_createExpression()],
+            ExpressionList(_createExpression()),
             _createStatement(),
           )..fileOffset = _needFileOffset(),
           () => ForStatement(
@@ -1711,7 +1721,7 @@ class NodeCreator {
               ),
             ],
             _createExpression(),
-            [_createExpression(), _createExpression()],
+            ExpressionList(_createExpression(), _createExpression()),
             _createStatement(),
           )..fileOffset = _needFileOffset(),
         ]);
@@ -2411,11 +2421,9 @@ class NodeCreator {
         ]);
       case NodeKind.SwitchCase:
         // TODO(johnniwinther): Add non-trivial cases.
-        return SwitchCase(
-          [NullLiteral()],
-          [TreeNode.noOffset],
-          _createStatement(),
-        )..fileOffset = _needFileOffset();
+        return SwitchCase(ExpressionList(NullLiteral()), [
+          TreeNode.noOffset,
+        ], _createStatement())..fileOffset = _needFileOffset();
       case NodeKind.NominalParameter:
         return TypeParameter('foo', _createDartType(), _createDartType())
           ..fileOffset = _needFileOffset();

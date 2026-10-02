@@ -113,7 +113,7 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
 
   @override
   ListLiteral makeLiteral(List<Expression> elements) =>
-      new ListLiteral(elements, isConst: true);
+      new ListLiteral(new ExpressionList.from(elements), isConst: true);
 
   @override
   AbortConstant? addConstant(Constant constant, TreeNode context) {
@@ -156,7 +156,10 @@ class ListConstantBuilder extends _ListOrSetConstantBuilder<ListLiteral> {
     }
     return evaluator.unevaluated(
       original,
-      new ListConcatenation(lists, typeArgument: elementType),
+      new ListConcatenation(
+        new ExpressionList.from(lists),
+        typeArgument: elementType,
+      ),
     );
   }
 }
@@ -171,7 +174,7 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
   @override
   // Coverage-ignore(suite): Not run.
   SetLiteral makeLiteral(List<Expression> elements) =>
-      new SetLiteral(elements, isConst: true);
+      new SetLiteral(new ExpressionList.from(elements), isConst: true);
 
   @override
   AbortConstant? addConstant(Constant constant, TreeNode context) {
@@ -235,7 +238,10 @@ class SetConstantBuilder extends _ListOrSetConstantBuilder<SetLiteral> {
     }
     return evaluator.unevaluated(
       original,
-      new SetConcatenation(sets, typeArgument: elementType),
+      new SetConcatenation(
+        new ExpressionList.from(sets),
+        typeArgument: elementType,
+      ),
     );
   }
 }
@@ -402,7 +408,11 @@ class MapConstantBuilder {
     }
     return evaluator.unevaluated(
       original,
-      new MapConcatenation(maps, keyType: keyType, valueType: valueType),
+      new MapConcatenation(
+        new ExpressionList.from(maps),
+        keyType: keyType,
+        valueType: valueType,
+      ),
     );
   }
 }

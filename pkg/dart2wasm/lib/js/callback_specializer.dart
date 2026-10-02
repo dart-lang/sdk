@@ -246,14 +246,16 @@ class CallbackSpecializer {
     body.add(
       ExpressionStatement(
         Throw(
-          StringConcatenation([
-            StringLiteral(
-              'Too few arguments passed. '
-              'Expected ${function.requiredParameterCount} or more, got ',
+          StringConcatenation(
+            ExpressionList(
+              StringLiteral(
+                'Too few arguments passed. '
+                'Expected ${function.requiredParameterCount} or more, got ',
+              ),
+              VariableGet(argumentsLength),
+              StringLiteral(' instead.'),
             ),
-            VariableGet(argumentsLength),
-            StringLiteral(' instead.'),
-          ]),
+          ),
         ),
       ),
     );

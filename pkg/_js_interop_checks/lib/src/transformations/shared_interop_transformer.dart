@@ -683,11 +683,16 @@ class SharedInteropTransformer extends Transformer {
         // semantics as methods.
         block.add(
           ExpressionStatement(
-            callMethodVarArgs(getObjectProperty(), 'defineProperty', [
-              VariableGet(jsExporter),
-              toJSString(exportName),
-              VariableGet(getSetMap),
-            ], VoidType()),
+            callMethodVarArgs(
+              getObjectProperty(),
+              'defineProperty',
+              ExpressionList(
+                VariableGet(jsExporter),
+                toJSString(exportName),
+                VariableGet(getSetMap),
+              ),
+              VoidType(),
+            ),
           )..fileOffset = invocation.fileOffset,
         );
       }
@@ -999,7 +1004,7 @@ class SharedInteropTransformer extends Transformer {
   StaticInvocation callMethodVarArgs(
     Expression jsObject,
     String methodName,
-    List<Expression> args,
+    ExpressionList args,
     DartType returnType,
   ) {
     // `jsObject.callMethodVarArgs(methodName.toJS, args)`
@@ -1036,7 +1041,7 @@ class SharedInteropTransformer extends Transformer {
   StaticInvocation getLiteral([Expression? proto]) => callMethodVarArgs(
     getObjectProperty(),
     'create',
-    [asJSObject(proto ?? NullLiteral(), true)],
+    ExpressionList(asJSObject(proto ?? NullLiteral(), true)),
     ExtensionType(_jsObject, Nullability.nonNullable),
   );
 }

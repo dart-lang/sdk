@@ -131,7 +131,7 @@ void main() {
       TypeParameter parameter = test.makeTypeParameter();
       test.addNode(
         ListLiteral(
-          [],
+          ExpressionList.empty,
           typeArgument: new TypeParameterType(
             parameter,
             Nullability.nonNullable,

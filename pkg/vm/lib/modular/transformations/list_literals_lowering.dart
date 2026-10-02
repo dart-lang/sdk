@@ -57,10 +57,7 @@ class ListLiteralsLowering {
       final factory = getSpecializedFactory(length);
       return StaticInvocation(
         factory,
-        Arguments(
-          ExpressionList.from(node.expressions),
-          types: DartTypeList(node.typeArgument),
-        ),
+        Arguments(node.expressions, types: DartTypeList(node.typeArgument)),
       )..fileOffset = node.fileOffset;
     }
     return node;

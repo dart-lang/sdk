@@ -712,7 +712,7 @@ class _RecordClassGenerator {
       Arguments(
         ExpressionList(
           ListLiteral(
-            fields.map(fieldRuntimeTypeExpr).toList(),
+            ExpressionList.mapped(fields, fieldRuntimeTypeExpr),
             typeArgument: runtimeTypeType,
           ),
         ),
