@@ -586,9 +586,15 @@ FunctionNode createFunctionNode(
 }) {
   return new FunctionNode(
       body,
-      typeParameters: typeParameters,
-      positionalParameters: positionalParameters,
-      namedParameters: namedParameters,
+      typeParameters: typeParameters != null
+          ? new TypeParameterList.from(typeParameters)
+          : null,
+      positionalParameters: positionalParameters != null
+          ? new PositionalParameterList.from(positionalParameters)
+          : null,
+      namedParameters: namedParameters != null
+          ? new NamedParameterList.from(namedParameters)
+          : null,
       returnType: returnType,
       requiredParameterCount: requiredParameterCount,
       asyncMarker: asyncMarker,

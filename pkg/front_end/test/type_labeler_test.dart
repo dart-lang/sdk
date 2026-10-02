@@ -65,13 +65,16 @@ void main() {
   Class barClass = new Class(
     name: "Bar",
     supertype: objectSuper,
-    typeParameters: [new TypeParameter("X")],
+    typeParameters: new TypeParameterList(new TypeParameter("X")),
     fileUri: myUri,
   )..parent = myLib;
   Class bazClass = new Class(
     name: "Baz",
     supertype: objectSuper,
-    typeParameters: [new TypeParameter("X"), new TypeParameter("Y")],
+    typeParameters: new TypeParameterList(
+      new TypeParameter("X"),
+      new TypeParameter("Y"),
+    ),
     fileUri: myUri,
   )..parent = myLib;
 
@@ -319,7 +322,7 @@ void main() {
   bazClass.fields.add(yField);
   FunctionNode gooFunction = new FunctionNode(
     new EmptyStatement(),
-    typeParameters: [new TypeParameter("V")],
+    typeParameters: new TypeParameterList(new TypeParameter("V")),
   );
   Procedure gooMethod = new Procedure(
     new Name("goo"),

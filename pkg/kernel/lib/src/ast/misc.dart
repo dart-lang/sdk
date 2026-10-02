@@ -154,7 +154,7 @@ abstract class NamedNode extends TreeNode {
 /// Declaration that can introduce [TypeParameter]s.
 sealed class GenericDeclaration implements TreeNode {
   /// The type parameters introduced by this declaration.
-  List<TypeParameter> get typeParameters;
+  TypeParameterList get typeParameters;
 }
 
 /// Functions that can introduce [TypeParameter]s.

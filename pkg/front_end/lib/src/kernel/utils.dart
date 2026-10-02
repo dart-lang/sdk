@@ -212,11 +212,11 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
       typeParams: typeParams,
     );
 
-    for (TypeParameter typeParam in realClass.typeParameters) {
-      fakeClass.typeParameters.add(
-        typeParam.accept<TreeNode>(cloner) as TypeParameter,
-      );
-    }
+    fakeClass.typeParameters = TypeParameterList.mapped(
+      realClass.typeParameters,
+      (TypeParameter typeParam) =>
+          typeParam.accept<TreeNode>(cloner) as TypeParameter,
+    );
 
     if (realClass.supertype != null) {
       // supertype is null for Object.

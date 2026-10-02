@@ -460,7 +460,7 @@ class H extends self::G implements self::C, self::A {}
     return addClass(
       new Class(
         name: name,
-        typeParameters: typeParameters,
+        typeParameters: new TypeParameterList.from(typeParameters),
         supertype: supertype,
         implementedTypes: implementedTypes,
         fileUri: library.fileUri,
@@ -507,9 +507,9 @@ class H extends self::G implements self::C, self::A {}
       new FunctionNode(
         body,
         returnType: const VoidType(),
-        positionalParameters: [
+        positionalParameters: new PositionalParameterList(
           new PositionalParameter(parameterName: '_', type: type),
-        ],
+        ),
       ),
       fileUri: library.fileUri,
     );
@@ -777,7 +777,7 @@ class C extends self::B {
     var b = addClass(
       new Class(
         name: 'B',
-        typeParameters: [bT],
+        typeParameters: new TypeParameterList(bT),
         supertype: new Supertype(a, new DartTypeList(bTT, bool)),
         fileUri: library.fileUri,
       ),
@@ -828,7 +828,7 @@ class C extends self::B<core::int> {}
     var b = addClass(
       new Class(
         name: 'B',
-        typeParameters: [bT],
+        typeParameters: new TypeParameterList(bT),
         supertype: objectSuper,
         implementedTypes: [new Supertype(a, new DartTypeList(bTT, bool))],
         fileUri: library.fileUri,
@@ -881,7 +881,7 @@ class C implements self::B<core::int> {}
     var b = addClass(
       new Class(
         name: 'B',
-        typeParameters: [bT],
+        typeParameters: new TypeParameterList(bT),
         supertype: objectSuper,
         mixedInType: new Supertype(a, new DartTypeList(bTT, bool)),
         fileUri: library.fileUri,
@@ -1747,7 +1747,7 @@ class B extends self::A {
     var b = addClass(
       new Class(
         name: 'B',
-        typeParameters: [bT],
+        typeParameters: new TypeParameterList(bT),
         supertype: new Supertype(a, new DartTypeList(bTT, bool)),
         fileUri: library.fileUri,
       ),

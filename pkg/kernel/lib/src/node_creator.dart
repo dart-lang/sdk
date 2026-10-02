@@ -207,13 +207,18 @@ class NodeCreator {
           _addExpression(
             statements,
             FunctionExpression(
-              FunctionNode(null, positionalParameters: [variable]),
+              FunctionNode(
+                null,
+                positionalParameters: PositionalParameterList(variable),
+              ),
             ),
           );
         case NamedParameter():
           _addExpression(
             statements,
-            FunctionExpression(FunctionNode(null, namedParameters: [variable])),
+            FunctionExpression(
+              FunctionNode(null, namedParameters: NamedParameterList(variable)),
+            ),
           );
       }
     }
@@ -346,7 +351,7 @@ class NodeCreator {
               FunctionExpression(
                 FunctionNode(
                   Block([]),
-                  typeParameters: [node as TypeParameter],
+                  typeParameters: TypeParameterList(node as TypeParameter),
                 ),
               ),
             );
@@ -2372,17 +2377,17 @@ class NodeCreator {
               FunctionNode(_createStatement())..fileOffset = _needFileOffset(),
           () => FunctionNode(
             _createStatement(),
-            positionalParameters: [
+            positionalParameters: PositionalParameterList(
               _createVariableFromKind(VariableKind.PositionalParameter)
                   as PositionalParameter,
-            ],
+            ),
           )..fileOffset = _needFileOffset(),
           () => FunctionNode(
             _createStatement(),
-            namedParameters: [
+            namedParameters: NamedParameterList(
               _createVariableFromKind(VariableKind.NamedParameter)
                   as NamedParameter,
-            ],
+            ),
           )..fileOffset = _needFileOffset(),
           () => FunctionNode(
             _createStatement(),

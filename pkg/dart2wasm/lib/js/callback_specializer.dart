@@ -271,12 +271,12 @@ class CallbackSpecializer {
       node.fileUri,
       FunctionNode(
         functionTrampolineBody,
-        positionalParameters: [
+        positionalParameters: PositionalParameterList.from([
           callbackVariable,
           argumentsLengthWasmI32,
           if (castClosureArguments.isNotEmpty) castClosure,
           ...positionalParameters,
-        ],
+        ]),
         returnType: _util.nullableWasmExternRefType,
       )..fileOffset = node.fileOffset,
       isExternal: false,
@@ -327,7 +327,7 @@ class CallbackSpecializer {
       node.fileUri,
       FunctionNode(
         null,
-        positionalParameters: [
+        positionalParameters: PositionalParameterList(
           PositionalParameter(
             parameterName: 'wasmFunction',
             type: _util.nonNullableWasmFuncRefType,
@@ -338,13 +338,14 @@ class CallbackSpecializer {
             type: _util.nonNullableWasmExternRefType,
             isSynthesized: true,
           ),
-          if (needsCastClosure)
-            PositionalParameter(
-              parameterName: 'castClosure',
-              type: _util.nonNullableWasmExternRefType,
-              isSynthesized: true,
-            ),
-        ],
+          needsCastClosure
+              ? PositionalParameter(
+                  parameterName: 'castClosure',
+                  type: _util.nonNullableWasmExternRefType,
+                  isSynthesized: true,
+                )
+              : null,
+        ),
         returnType: _util.nonNullableWasmExternRefType,
       ),
       isExternal: true,
@@ -407,7 +408,9 @@ class CallbackSpecializer {
         : FunctionExpression(
             FunctionNode(
               Block(casts),
-              positionalParameters: castClosureParameters,
+              positionalParameters: PositionalParameterList.from(
+                castClosureParameters,
+              ),
               returnType: VoidType(),
             ),
           );

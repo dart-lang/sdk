@@ -332,7 +332,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       returnType.registerInferredType(type);
       _constructor.function.fileOffset = formalsOffset;
       _constructor.function.fileEndOffset = _constructor.fileEndOffset;
-      _constructor.function.typeParameters = const <TypeParameter>[];
+      _constructor.function.typeParameters = TypeParameterList.empty;
       _constructor.isConst = isConst;
       _constructor.isExternal = _isExternal;
 

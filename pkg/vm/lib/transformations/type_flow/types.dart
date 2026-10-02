@@ -1078,33 +1078,33 @@ class Closure {
         ? member.enclosingClass!.typeParameters
         : functionNode.typeParameters;
     final freshTypeParameters = getFreshTypeParameters(typeParameters);
-    List<PositionalParameter> convertPositionalParameters(
+    PositionalParameterList convertPositionalParameters(
       List<PositionalParameter> params,
-    ) => [
-      for (final p in params)
-        PositionalParameter(
-          parameterName: p.parameterName,
-          defaultValue: (p.defaultValue != null)
-              ? ConstantExpression(
-                  (p.defaultValue as ConstantExpression).constant,
-                )
-              : null,
-          type: freshTypeParameters.substitute(p.type),
-        )..flags = p.flags,
-    ];
-    List<NamedParameter> convertNamedParameters(List<NamedParameter> params) =>
-        [
-          for (final p in params)
-            NamedParameter(
-              parameterName: p.parameterName,
-              defaultValue: (p.defaultValue != null)
-                  ? ConstantExpression(
-                      (p.defaultValue as ConstantExpression).constant,
-                    )
-                  : null,
-              type: freshTypeParameters.substitute(p.type),
-            )..flags = p.flags,
-        ];
+    ) => PositionalParameterList.mapped(
+      params,
+      (PositionalParameter p) => PositionalParameter(
+        parameterName: p.parameterName,
+        defaultValue: (p.defaultValue != null)
+            ? ConstantExpression(
+                (p.defaultValue as ConstantExpression).constant,
+              )
+            : null,
+        type: freshTypeParameters.substitute(p.type),
+      )..flags = p.flags,
+    );
+    NamedParameterList convertNamedParameters(List<NamedParameter> params) =>
+        NamedParameterList.mapped(
+          params,
+          (NamedParameter p) => NamedParameter(
+            parameterName: p.parameterName,
+            defaultValue: (p.defaultValue != null)
+                ? ConstantExpression(
+                    (p.defaultValue as ConstantExpression).constant,
+                  )
+                : null,
+            type: freshTypeParameters.substitute(p.type),
+          )..flags = p.flags,
+        );
     return Procedure(
       Name.callName,
       ProcedureKind.Method,

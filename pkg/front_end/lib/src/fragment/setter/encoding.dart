@@ -319,10 +319,9 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
         type: const DynamicType(),
         fileOffset: TreeNode.noOffset,
       );
-      function.positionalParameters.clear();
-      function.positionalParameters.add(parameter);
+      function.positionalParameters = new PositionalParameterList(parameter);
       parameter.parent = function;
-      function.namedParameters.clear();
+      function.namedParameters = NamedParameterList.empty;
       function.requiredParameterCount = 1;
     }
     MemberName memberName = nameScheme.getProcedureMemberName(
@@ -626,11 +625,12 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         type: const DynamicType(),
         fileOffset: TreeNode.noOffset,
       );
-      function.positionalParameters.clear();
-      function.positionalParameters.add(thisParameter);
-      function.positionalParameters.add(parameter);
+      function.positionalParameters = new PositionalParameterList(
+        thisParameter,
+        parameter,
+      );
       parameter.parent = function;
-      function.namedParameters.clear();
+      function.namedParameters = NamedParameterList.empty;
       function.requiredParameterCount = 2;
     }
     if (_fragment.returnType is! InferableTypeBuilder) {

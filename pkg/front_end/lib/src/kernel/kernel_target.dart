@@ -1071,10 +1071,7 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    PositionalParameter copyPositionalParameter(
-      PositionalParameter formal, {
-      required bool isPositional,
-    }) {
+    PositionalParameter copyPositionalParameter(PositionalParameter formal) {
       PositionalParameter copy = extern.createPositionalParameter(
         parameterName: formal.parameterName,
         type: const UnknownType(),
@@ -1091,10 +1088,7 @@ class KernelTarget {
       return copy;
     }
 
-    NamedParameter copyNamedParameter(
-      NamedParameter formal, {
-      required bool isPositional,
-    }) {
+    NamedParameter copyNamedParameter(NamedParameter formal) {
       NamedParameter copy = extern.createNamedParameter(
         parameterName: formal.parameterName,
         type: const UnknownType(),
@@ -1124,25 +1118,26 @@ class KernelTarget {
     List<PositionalParameter> superPositional =
         superConstructor.function.positionalParameters;
     List<NamedParameter> superNamed = superConstructor.function.namedParameters;
-    List<PositionalParameter> positionalParameters = [];
-    List<NamedParameter> namedParameters = [];
-    ExpressionList positional = ExpressionList.mapped(superPositional, (
-      PositionalParameter formal,
-    ) {
-      PositionalParameter clone = copyPositionalParameter(
-        formal,
-        isPositional: true,
-      );
-      positionalParameters.add(clone);
-      return new VariableGet(clone);
-    });
-    NamedExpressionList named = NamedExpressionList.mapped(superNamed, (
-      NamedParameter formal,
-    ) {
-      NamedParameter clone = copyNamedParameter(formal, isPositional: false);
-      namedParameters.add(clone);
-      return new NamedExpression(formal.parameterName, new VariableGet(clone));
-    });
+    PositionalParameterList positionalParameters =
+        PositionalParameterList.mapped(
+          superPositional,
+          copyPositionalParameter,
+        );
+    NamedParameterList namedParameters = NamedParameterList.mapped(
+      superNamed,
+      copyNamedParameter,
+    );
+    ExpressionList positional = ExpressionList.mapped(
+      positionalParameters,
+      VariableGet.new,
+    );
+    NamedExpressionList named = NamedExpressionList.mapped(
+      namedParameters,
+      (NamedParameter parameter) => new NamedExpression(
+        parameter.parameterName,
+        new VariableGet(parameter),
+      ),
+    );
     FunctionNode function = new FunctionNode(
       new EmptyStatement(),
       positionalParameters: positionalParameters,

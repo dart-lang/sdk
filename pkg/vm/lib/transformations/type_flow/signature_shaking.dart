@@ -527,8 +527,8 @@ class _Transform extends RecursiveVisitor {
 
     assert(requiredParameterCount <= positional.length);
     function.requiredParameterCount = requiredParameterCount;
-    function.positionalParameters = positional;
-    function.namedParameters = named;
+    function.positionalParameters = PositionalParameterList.from(positional);
+    function.namedParameters = NamedParameterList.from(named);
 
     shaker.typeFlowAnalysis.adjustFunctionParameters(member);
 

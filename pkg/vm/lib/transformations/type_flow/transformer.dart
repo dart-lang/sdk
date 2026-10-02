@@ -1235,7 +1235,7 @@ class FieldMorpher {
         ProcedureKind.Setter,
         new FunctionNode(
           null,
-          positionalParameters: [parameter],
+          positionalParameters: PositionalParameterList(parameter),
           returnType: const VoidType(),
         )..fileOffset = field.fileOffset,
         isAbstract: isAbstract,
@@ -2295,7 +2295,7 @@ class _TreeShakerPass2 extends RemovingTransformer {
           .objectClass
           .asRawSupertype;
       node.implementedTypes.clear();
-      node.typeParameters.clear();
+      node.typeParameters = TypeParameterList.empty;
       node.isAbstract = true;
       node.isEnum = false;
       node.isEliminatedMixin = false;

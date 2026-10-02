@@ -243,7 +243,9 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
       ProcedureKind.Method,
       FunctionNode(
         null,
-        positionalParameters: wasmImportProcedureArgs,
+        positionalParameters: PositionalParameterList.from(
+          wasmImportProcedureArgs,
+        ),
         returnType: isVoidReturn ? wasmVoidType : retWasmType,
       ),
       fileUri: node.fileUri,

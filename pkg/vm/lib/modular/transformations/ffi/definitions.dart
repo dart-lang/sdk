@@ -608,7 +608,10 @@ class _FfiDefinitionTransformer extends FfiTransformer {
     final Constructor ctor = Constructor(
       FunctionNode(
         EmptyStatement(),
-        positionalParameters: [typedDataBase, offsetInBytes],
+        positionalParameters: PositionalParameterList(
+          typedDataBase,
+          offsetInBytes,
+        ),
         returnType: InterfaceType(node, Nullability.nonNullable),
       ),
       name: name,
@@ -668,7 +671,11 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       final Constructor ctor = Constructor(
         FunctionNode(
           EmptyStatement(),
-          positionalParameters: [typedData, offset, sizeInBytes],
+          positionalParameters: PositionalParameterList(
+            typedData,
+            offset,
+            sizeInBytes,
+          ),
           returnType: InterfaceType(node, Nullability.nonNullable),
         ),
         name: name,
@@ -1141,7 +1148,7 @@ class _FfiDefinitionTransformer extends FfiTransformer {
         FunctionNode(
           setterStatement,
           returnType: VoidType(),
-          positionalParameters: [argument],
+          positionalParameters: PositionalParameterList(argument),
         ),
         fileUri: field.fileUri,
         reference: setterReference,

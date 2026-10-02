@@ -82,14 +82,13 @@ class SourceNominalParameterBuilder extends NominalParameterBuilder {
     (_augmentations ??= []).add(augmentation);
   }
 
-  static List<TypeParameter>? typeParametersFromBuilders(
+  static TypeParameterList? typeParametersFromBuilders(
     List<SourceNominalParameterBuilder>? builders,
   ) {
     if (builders == null) return null;
-    return new List<TypeParameter>.generate(
-      builders.length,
-      (int i) => builders[i].parameter,
-      growable: true,
+    return TypeParameterList.mapped(
+      builders,
+      (SourceNominalParameterBuilder builder) => builder.parameter,
     );
   }
 }

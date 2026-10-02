@@ -67,7 +67,7 @@ main() {
     final Class c1 = new Class(name: 'C1', fileUri: dummyUri);
     final Class c2 = new Class(
       name: 'C2',
-      typeParameters: [new TypeParameter('E')],
+      typeParameters: new TypeParameterList(new TypeParameter('E')),
       fileUri: dummyUri,
     );
 

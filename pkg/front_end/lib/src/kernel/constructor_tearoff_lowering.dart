@@ -343,13 +343,12 @@ FreshTypeParameters _createFreshTypeParameters(
   FreshTypeParameters freshTypeParameters;
   if (originalTypeParameters.isNotEmpty) {
     freshTypeParameters = getFreshTypeParameters(originalTypeParameters);
-    List<TypeParameter> typeParameters =
-        freshTypeParameters.freshTypeParameters;
-    newFunctionNode.typeParameters.addAll(typeParameters);
+    TypeParameterList typeParameters = freshTypeParameters.freshTypeParameters;
+    newFunctionNode.typeParameters = typeParameters;
     setParents(typeParameters, newFunctionNode);
   } else {
     freshTypeParameters = new FreshTypeParameters(
-      const <TypeParameter>[],
+      TypeParameterList.empty,
       DartTypeList.empty,
       Substitution.empty,
     );
@@ -394,21 +393,18 @@ DelayedDefaultValueCloner _createParameters(
     );
   }
 
-  for (PositionalParameter constructorParameter
-      in function.positionalParameters) {
-    PositionalParameter tearOffParameter = createTearOffPositionalParameter(
-      constructorParameter,
-    );
-    tearOff.function.positionalParameters.add(tearOffParameter);
-    tearOffParameter.parent = tearOff.function;
-  }
-  for (NamedParameter constructorParameter in function.namedParameters) {
-    NamedParameter tearOffParameter = createTearOffNamedParameter(
-      constructorParameter,
-    );
-    tearOff.function.namedParameters.add(tearOffParameter);
-    tearOffParameter.parent = tearOff.function;
-  }
+  tearOff.function.positionalParameters = PositionalParameterList.mapped(
+    function.positionalParameters,
+    (PositionalParameter constructorParameter) =>
+        createTearOffPositionalParameter(constructorParameter)
+          ..parent = tearOff.function,
+  );
+  tearOff.function.namedParameters = NamedParameterList.mapped(
+    function.namedParameters,
+    (NamedParameter constructorParameter) =>
+        createTearOffNamedParameter(constructorParameter)
+          ..parent = tearOff.function,
+  );
   tearOff.function.returnType = substitution.substituteType(
     function.returnType,
   );

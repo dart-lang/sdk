@@ -1511,7 +1511,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   }
 
   @override
-  List<TypeParameter> get typeParameters => function.typeParameters;
+  TypeParameterList get typeParameters => function.typeParameters;
 
   @override
   R accept<R>(StatementVisitor<R> v) => v.visitFunctionDeclaration(this);

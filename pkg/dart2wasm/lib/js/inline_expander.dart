@@ -65,7 +65,9 @@ class InlineExpander {
       node.location!.file,
       FunctionNode(
         null,
-        positionalParameters: dartPositionalParameters,
+        positionalParameters: PositionalParameterList.from(
+          dartPositionalParameters,
+        ),
         returnType: resultType,
       ),
       isExternal: true,

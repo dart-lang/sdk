@@ -1617,7 +1617,7 @@ class InternalLateVariable extends InternalDeclaredVariable {
                     isSetEncoding: isSetEncoding,
                   )
             ..fileOffset = fileOffset,
-          positionalParameters: [setterParameter],
+          positionalParameters: new PositionalParameterList(setterParameter),
         ),
       )
       // TODO(johnniwinther): Reinsert the file offset when the vm doesn't

@@ -48,6 +48,7 @@ import 'package:kernel/kernel.dart'
         Node,
         Nullability,
         PositionalParameter,
+        PositionalParameterList,
         Procedure,
         ProcedureKind,
         Reference,
@@ -56,6 +57,7 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter,
+        TypeParameterList,
         TypeParameterType,
         Variable,
         Version,
@@ -2266,8 +2268,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ProcedureKind.Method,
         new FunctionNode(
           new ReturnStatement(compiledExpression),
-          typeParameters: typeDefinitions,
-          positionalParameters: parameters.allPositionalParameters,
+          typeParameters: new TypeParameterList.from(typeDefinitions),
+          positionalParameters: new PositionalParameterList.from(
+            parameters.allPositionalParameters,
+          ),
         ),
         isStatic: isStatic,
         fileUri: debugLibrary.fileUri,

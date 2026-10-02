@@ -1060,13 +1060,18 @@ class CloneVisitorNotMembers
     // The scope should be cloned before the rest of the node, since the
     // variables declared in the scope can appear in the node.
     Scope? clonedScope = _cloneScope(node.scope);
-    List<TypeParameter> typeParameters = node.typeParameters
-        .map(clone)
-        .toList();
-    List<PositionalParameter> positional = node.positionalParameters
-        .map(clone)
-        .toList();
-    List<NamedParameter> named = node.namedParameters.map(clone).toList();
+    TypeParameterList typeParameters = TypeParameterList.generate(
+      node.typeParameters.length,
+      (i) => clone(node.typeParameters[i]),
+    );
+    PositionalParameterList positional = PositionalParameterList.generate(
+      node.positionalParameters.length,
+      (i) => clone(node.positionalParameters[i]),
+    );
+    NamedParameterList named = NamedParameterList.generate(
+      node.namedParameters.length,
+      (i) => clone(node.namedParameters[i]),
+    );
     ThisVariable? thisVariable = cloneOptional(node.thisVariable);
     final DartType? futureValueType = node.emittedValueType != null
         ? visitType(node.emittedValueType!)
@@ -1903,11 +1908,15 @@ class CloneProcedureWithoutBody extends CloneVisitorWithMembers {
   }) {
     Procedure cloned = cloneProcedure(node, reference);
     if (positionalParameters != null) {
-      cloned.function.positionalParameters = positionalParameters;
+      cloned.function.positionalParameters = new PositionalParameterList.from(
+        positionalParameters,
+      );
       setParents(positionalParameters, cloned.function);
     }
     if (namedParameters != null) {
-      cloned.function.namedParameters = namedParameters;
+      cloned.function.namedParameters = new NamedParameterList.from(
+        namedParameters,
+      );
       setParents(namedParameters, cloned.function);
     }
     return cloned;
