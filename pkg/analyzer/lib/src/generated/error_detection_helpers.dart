@@ -245,10 +245,7 @@ mixin ErrorDetectionHelpers {
       return false;
     }
 
-    if (expression is MethodInvocation) {
-      SimpleIdentifier methodName = expression.methodName;
-      diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
-    } else if (expression is NamedFunctionInvocation) {
+    if (expression is NamedFunctionInvocation) {
       diagnosticReporter.report(diag.useOfVoidResult.at(expression.name));
     } else {
       diagnosticReporter.report(diag.useOfVoidResult.at(expression));

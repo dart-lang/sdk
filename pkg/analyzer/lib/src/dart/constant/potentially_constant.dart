@@ -86,13 +86,6 @@ class _Collector {
       return _nameExpression(node, node.resolution);
     }
 
-    if (node is DotShorthandConstructorInvocation) {
-      if (!node.isConst) {
-        nodes.add(node);
-      }
-      return;
-    }
-
     if (node is DotShorthandConstructorInvocation2) {
       if (!node.isConst) {
         nodes.add(node);
@@ -127,10 +120,6 @@ class _Collector {
 
     if (node is RecordLiteral) {
       return _recordLiteral(node);
-    }
-
-    if (node is MethodInvocation) {
-      return _methodInvocation(node);
     }
 
     if (node is NamedFunctionInvocation) {
@@ -254,12 +243,6 @@ class _Collector {
       return;
     }
 
-    if (node is FunctionReference) {
-      _typeArgumentList(node.typeArguments);
-      collect(node.function2);
-      return;
-    }
-
     if (node is ImplicitFunctionInstantiation) {
       collect(node.operand);
       return;
@@ -276,20 +259,6 @@ class _Collector {
       return;
     }
 
-    nodes.add(node);
-  }
-
-  void _methodInvocation(MethodInvocation node) {
-    var arguments = node.argumentList.arguments2;
-    if (arguments.length == 2) {
-      var element = node.methodName.element;
-      if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
-        collect(arguments[0]);
-        collect(arguments[1]);
-        return;
-      }
-    }
-    // TODO(srawlins): collect type arguments.
     nodes.add(node);
   }
 

@@ -597,11 +597,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     String displayName = element.displayName;
     if (element is LibraryElement) {
       displayName = element.uri.toString();
-    } else if (node is MethodInvocation &&
-        displayName == MethodElement.CALL_METHOD_NAME) {
-      var invokeType = node.staticInvokeType as InterfaceType;
-      var invokeClass = invokeType.element;
-      displayName = '${invokeClass.name}.${element.displayName}';
     }
 
     for (var reportThis in givesNonNullResults) {

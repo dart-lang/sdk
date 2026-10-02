@@ -1636,10 +1636,6 @@ class PropertyElementResolver with ScopeHelpers {
         leftBracket,
         rightBracket,
       ),
-      IndexExpression(:var leftBracket, :var rightBracket) => (
-        leftBracket,
-        rightBracket,
-      ),
       _ => throw StateError('Not an index node: ${node.runtimeType}'),
     };
     var offset = leftBracket.offset;

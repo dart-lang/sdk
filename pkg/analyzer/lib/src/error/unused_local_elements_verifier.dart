@@ -6,7 +6,6 @@ import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -612,13 +611,6 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
         // v++;
         // ++v;
         return false;
-      }
-      if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-        // v ??= doSomething();
-        //   vs.
-        // v += 2;
-        var operatorType = parent.operator.type;
-        return operatorType == TokenType.QUESTION_QUESTION_EQ;
       }
     }
     // OK

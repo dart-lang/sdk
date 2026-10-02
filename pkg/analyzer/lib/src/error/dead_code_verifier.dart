@@ -419,7 +419,6 @@ class NullSafetyDeadCodeVerifier {
     var first = node.sections.firstOrNull;
     var body = first?.body;
     if (body is CascadePropertyExtraction ||
-        body is MethodInvocation ||
         body is CascadeMethodInvocation ||
         body is CascadeIndexExpression) {
       _verifyUnassignedVariable(node, node.target2, first!.operator);
@@ -496,12 +495,10 @@ class NullSafetyDeadCodeVerifier {
     if (target != null && element is PromotableElementImpl) {
       if (flowAnalysis.isDefinitelyUnassigned(target, element)) {
         var parent = node.parent2;
-        while (parent is MethodInvocation ||
-            parent is FunctionInvocation ||
+        while (parent is FunctionInvocation ||
             parent is ParsedExpression ||
             parent is PropertyExtraction ||
-            parent is IndexExpression2 ||
-            parent is IndexExpression) {
+            parent is IndexExpression2) {
           node = parent!;
           parent = node.parent2;
         }
