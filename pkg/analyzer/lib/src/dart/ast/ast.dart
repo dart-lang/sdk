@@ -19274,6 +19274,11 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     throw StateError('ExtensionOverride is not in the V2 AST view.');
   }
 
+  /// In V2, an extension override is a receiver, not an expression, and is
+  /// never a constant.
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() => null;
+
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -44039,7 +44044,9 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
     if (_v1ProjectionOrigin case var origin?) {
       return origin.computeConstantValue();
     }
-    return super.computeConstantValue();
+    // Without an origin, this identifier is not an expression in V2, for
+    // example the property name in `a.b`, or the assignment target `p.a`.
+    return null;
   }
 
   @generated
@@ -50114,7 +50121,9 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     if (_v1ProjectionOrigin case var origin?) {
       return origin.computeConstantValue();
     }
-    return super.computeConstantValue();
+    // Without an origin, this identifier is not an expression in V2, for
+    // example the property name in `a.b`, or the assignment target `p.a`.
+    return null;
   }
 
   @override
@@ -51490,6 +51499,10 @@ final class SuperExpressionImpl extends ExpressionImpl
   E? accept2<E>(AstVisitor2<E> visitor) {
     throw StateError('SuperExpression is not in the V2 AST view.');
   }
+
+  /// In V2, `super` is a receiver, not an expression, and is never a constant.
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() => null;
 
   @generated
   @override
