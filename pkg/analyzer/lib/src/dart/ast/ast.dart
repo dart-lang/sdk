@@ -2714,33 +2714,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     throw StateError('AssignmentExpression is not in the V2 AST view.');
   }
 
-  /// The parameter element representing the parameter to which the value of the
-  /// right operand is bound, or `null` if the AST structure is not resolved or
-  /// the function being invoked is not known based on static type information.
-  InternalFormalParameterElement? get _staticParameterElementForRightHandSide {
-    Element? executableElement;
-    if (operator.type != TokenType.EQ) {
-      executableElement = element;
-    } else {
-      executableElement = writeElement;
-    }
-
-    if (executableElement is ExecutableElement) {
-      var formalParameters = executableElement.formalParameters;
-      if (formalParameters.isEmpty) {
-        return null;
-      }
-      if (operator.type == TokenType.EQ && leftHandSide2 is IndexExpression) {
-        return formalParameters.length == 2
-            ? (formalParameters[1] as InternalFormalParameterElement)
-            : null;
-      }
-      return formalParameters[0] as InternalFormalParameterElement;
-    }
-
-    return null;
-  }
-
   @generated
   @ToBeDeprecated('Use accept2 instead.')
   @override
@@ -17662,10 +17635,6 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
       if (identical(parent.index, this)) {
         return parent._staticParameterElementForIndex;
       }
-    } else if (parent is IndexExpressionImpl) {
-      if (identical(parent.index2, this)) {
-        return parent._staticParameterElementForIndex;
-      }
     } else if (parent is IndexAssignmentTargetImpl) {
       if (identical(parent.index, this)) {
         return parent._staticParameterElementForIndex;
@@ -17678,10 +17647,6 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
           return parameters[0];
         }
         return null;
-      }
-    } else if (parent is AssignmentExpressionImpl) {
-      if (identical(parent.rightHandSide2, this)) {
-        return parent._staticParameterElementForRightHandSide;
       }
     } else if (parent is AssignmentExpression2Impl) {
       if (identical(parent.value, this)) {
@@ -30731,20 +30696,6 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   ChildEntities get _childEntities2 {
     throw StateError('IndexExpression is not in the V2 AST view.');
-  }
-
-  /// The parameter element representing the parameter to which the value of the
-  /// index expression is bound, or `null` if the AST structure is not resolved,
-  /// or the function being invoked is not known based on static type
-  /// information.
-  InternalFormalParameterElement? get _staticParameterElementForIndex {
-    if (_v1ProjectionOrigin case IndexAssignmentTargetImpl origin) {
-      return origin._staticParameterElementForIndex;
-    }
-    if (_v1ProjectionOrigin case IndexExpression2Impl origin) {
-      return origin._staticParameterElementForIndex;
-    }
-    throw StateError('Unexpected index projection origin.');
   }
 
   @generated
