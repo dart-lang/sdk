@@ -3842,6 +3842,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 2
               nextFragment: #F8
           getters
             #F4 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -3960,6 +3961,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 19
+              primaryHeaderCodeRange: 6 + 2
+              primaryBodyCodeRange: 19 + 20
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
@@ -4080,6 +4083,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 34
+              primaryHeaderCodeRange: 6 + 2
+              primaryBodyCodeRange: 34 + 13
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
@@ -4248,6 +4253,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 53
+              primaryHeaderCodeRange: 6 + 2
+              primaryBodyCodeRange: 34 + 32
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
@@ -4429,6 +4436,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 41
+              primaryHeaderCodeRange: 6 + 7
+              primaryBodyCodeRange: 27 + 19
               formalParameters
                 #F7 requiredPositional isOriginDeclaration x (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
@@ -4563,6 +4572,8 @@ library
               typeNameOffset: 5
               periodOffset: 6
               thisKeywordOffset: 33
+              primaryHeaderCodeRange: 6 + 8
+              primaryBodyCodeRange: 33 + 20
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::v
@@ -4785,6 +4796,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 19
+              primaryHeaderCodeRange: 6 + 2
+              primaryBodyCodeRange: 19 + 20
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
@@ -4905,6 +4918,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 27
+              primaryHeaderCodeRange: 6 + 7
+              primaryBodyCodeRange: 27 + 21
               formalParameters
                 #F7 requiredPositional isOriginDeclaration x (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
@@ -5058,6 +5073,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 18
               formalParameters
                 #F9 optionalNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5192,6 +5208,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 18
               formalParameters
                 #F9 optionalPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5329,6 +5346,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 26
               formalParameters
                 #F9 requiredNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:27) (firstTokenOffset:8) (offset:27)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5463,6 +5481,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 60
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:58) (firstTokenOffset:10) (offset:58)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5649,6 +5668,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 57
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:57) (firstTokenOffset:10) (offset:57)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5832,6 +5852,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 13
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:7) (offset:15)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -6001,6 +6022,7 @@ library
               element: <testLibrary>::@enum::B::@constructor::new
               typeName: B
               typeNameOffset: 38
+              primaryHeaderCodeRange: 39 + 11
               formalParameters
                 #F13 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:46) (firstTokenOffset:40) (offset:46)
                   element: <testLibrary>::@enum::B::@constructor::new::@formalParameter::foo
@@ -6162,6 +6184,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 9 + 13
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:18) (firstTokenOffset:10) (offset:18)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -6301,6 +6324,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 10
               formalParameters
                 #F9 requiredPositional hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:12) (firstTokenOffset:7) (offset:12)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -6431,6 +6455,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 11
               formalParameters
                 #F7 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -6547,6 +6572,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 9
               formalParameters
                 #F7 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -6663,6 +6689,7 @@ library
               typeName: A
               typeNameOffset: 11
               periodOffset: 12
+              primaryHeaderCodeRange: 12 + 8
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::A::@getter::v
@@ -6772,6 +6799,7 @@ library
               typeName: A
               typeNameOffset: 5
               periodOffset: 6
+              primaryHeaderCodeRange: 6 + 8
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v
@@ -6908,6 +6936,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 21
+              primaryHeaderCodeRange: 30 + 20
               formalParameters
                 #F10 optionalPositional isOriginDeclaration x (nameOffset:41) (firstTokenOffset:32) (offset:41)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
@@ -7136,6 +7165,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 34 + 10
               formalParameters
                 #F9 requiredPositional isOriginDeclaration t (nameOffset:37) (firstTokenOffset:35) (offset:37)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::t
@@ -7260,6 +7290,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 11
+              primaryHeaderCodeRange: 12 + 2
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v
@@ -7365,6 +7396,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 2
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@getter::v
@@ -22701,6 +22733,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 9
               formalParameters
                 #F9 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
@@ -22848,6 +22881,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 15
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
@@ -23006,6 +23040,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 9
               formalParameters
                 #F9 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
@@ -23187,6 +23222,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 10
               formalParameters
                 #F9 requiredPositional isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:7) (offset:12)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
@@ -23324,6 +23360,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 9
               formalParameters
                 #F9 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo

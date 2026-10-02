@@ -19,6 +19,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
@@ -1155,6 +1156,21 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   @override
   int? thisKeywordOffset;
+
+  /// The code range of the part of [PrimaryConstructorDeclaration] that
+  /// belongs to this fragment: the constructor name and formal parameters.
+  ///
+  /// The type name and type parameters belong to the class, so this range is
+  /// shorter than [codeOffset] and [codeLength], which cover all of the
+  /// [PrimaryConstructorDeclaration].
+  SourceRange? primaryHeaderCodeRange;
+
+  /// The code range of the [PrimaryConstructorBody], if this fragment is
+  /// based on [PrimaryConstructorDeclaration] and has the body.
+  ///
+  /// The body is a member of the class body, so it is separate from
+  /// [primaryHeaderCodeRange] in the class header.
+  SourceRange? primaryBodyCodeRange;
 
   @override
   ConstructorFragmentImpl? previousFragment;

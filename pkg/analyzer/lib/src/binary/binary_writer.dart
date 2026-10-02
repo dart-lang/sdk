@@ -5,6 +5,7 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/string_table.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
@@ -186,6 +187,10 @@ class BinaryWriter {
     }
   }
 
+  void writeOptionalSourceRange(SourceRange? value) {
+    writeOptionalObject(value, writeSourceRange);
+  }
+
   void writeOptionalStringReference(String? value) {
     if (value != null) {
       writeBool(true);
@@ -229,6 +234,11 @@ class BinaryWriter {
     } else {
       writeBool(false);
     }
+  }
+
+  void writeSourceRange(SourceRange value) {
+    writeUint30(value.offset);
+    writeUint30(value.length);
   }
 
   void writeStringList(List<String> values) {

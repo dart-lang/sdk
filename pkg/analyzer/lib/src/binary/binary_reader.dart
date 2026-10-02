@@ -6,6 +6,7 @@ import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/binary/string_table.dart';
 import 'package:analyzer/src/fine/manifest_id.dart';
@@ -140,6 +141,10 @@ class BinaryReader {
     }
   }
 
+  SourceRange? readOptionalSourceRange() {
+    return readOptionalObject(readSourceRange);
+  }
+
   String? readOptionalStringReference() {
     if (readBool()) {
       return readStringReference();
@@ -178,6 +183,12 @@ class BinaryReader {
     } else {
       return null;
     }
+  }
+
+  SourceRange readSourceRange() {
+    var offset = readUint30();
+    var length = readUint30();
+    return SourceRange(offset, length);
   }
 
   String readStringReference() {

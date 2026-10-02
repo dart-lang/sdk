@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -257,6 +258,8 @@ class InformativeDataApplier {
       fragment.nameEnd = info.nameEnd;
       fragment.nameOffset = info.nameOffset;
       fragment.thisKeywordOffset = info.thisKeywordOffset;
+      fragment.primaryHeaderCodeRange = info.primaryHeaderCodeRange;
+      fragment.primaryBodyCodeRange = info.primaryBodyCodeRange;
       fragment.documentationComment = info.documentationComment;
 
       DeferredResolutionReadingHelper.withoutLoadingResolution(() {
@@ -784,6 +787,8 @@ class _InfoBuilder {
       periodOffset: node.period?.offset,
       nameEnd: (node.name ?? node.typeName2)?.end,
       thisKeywordOffset: null,
+      primaryHeaderCodeRange: null,
+      primaryBodyCodeRange: null,
     );
   }
 
@@ -1076,6 +1081,7 @@ class _InfoBuilder {
     PrimaryConstructorDeclaration node, {
     required PrimaryConstructorBody? body,
   }) {
+    var headerOffset = (node.constructorName ?? node.formalParameters).offset;
     return _InfoConstructorDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -1095,6 +1101,13 @@ class _InfoBuilder {
       periodOffset: node.constructorName?.period.offset,
       nameEnd: (node.constructorName?.name ?? node.typeName).end,
       thisKeywordOffset: body?.thisKeyword.offset,
+      primaryHeaderCodeRange: SourceRange(
+        headerOffset,
+        node.end - headerOffset,
+      ),
+      primaryBodyCodeRange: body != null
+          ? SourceRange(body.offset, body.length)
+          : null,
     );
   }
 
@@ -1246,6 +1259,8 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
   final int? periodOffset;
   final int? nameEnd;
   final int? thisKeywordOffset;
+  final SourceRange? primaryHeaderCodeRange;
+  final SourceRange? primaryBodyCodeRange;
 
   _InfoConstructorDeclaration({
     required super.firstTokenOffset,
@@ -1262,6 +1277,8 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
     required this.periodOffset,
     required this.nameEnd,
     required this.thisKeywordOffset,
+    required this.primaryHeaderCodeRange,
+    required this.primaryBodyCodeRange,
   });
 
   _InfoConstructorDeclaration.read(super.reader)
@@ -1271,6 +1288,8 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
       periodOffset = reader.readOptionalUint30(),
       nameEnd = reader.readOptionalUint30(),
       thisKeywordOffset = reader.readOptionalUint30(),
+      primaryHeaderCodeRange = reader.readOptionalSourceRange(),
+      primaryBodyCodeRange = reader.readOptionalSourceRange(),
       super.read();
 
   @override
@@ -1281,6 +1300,8 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
     writer.writeOptionalUint30(periodOffset);
     writer.writeOptionalUint30(nameEnd);
     writer.writeOptionalUint30(thisKeywordOffset);
+    writer.writeOptionalSourceRange(primaryHeaderCodeRange);
+    writer.writeOptionalSourceRange(primaryBodyCodeRange);
     super.write(writer);
   }
 }

@@ -1008,6 +1008,7 @@ library
               element: <testLibrary>::@extensionType::E::@constructor::new
               typeName: E
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
@@ -1026,6 +1027,7 @@ library
               element: <testLibrary>::@extensionType::E#1::@constructor::new
               typeName: E
               typeNameOffset: 44
+              primaryHeaderCodeRange: 45 + 11
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:53) (firstTokenOffset:46) (offset:53)
                   element: <testLibrary>::@extensionType::E#1::@constructor::new::@formalParameter::it

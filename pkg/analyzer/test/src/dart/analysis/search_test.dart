@@ -73,6 +73,9 @@ class SearchTest extends PubPackageResolutionTest {
   late AnalysisDriver driver = driverFor(testFile);
   Set<Uri>? includedLibraryUris;
 
+  /// Whether to print the enclosing fragment of each search result.
+  bool withEnclosingFragment = false;
+
   String get testUriStr => 'package:test/test.dart';
 
   void assertDeclarationsText(
@@ -1423,6 +1426,22 @@ class A {}
     await assertDirectSubtypeReferencesText(element, '');
   }
 
+  test_scenario_ClassElement_hierarchy_class_extends_implicitObject_primaryConstructor() async {
+    includedLibraryUris = {Uri.parse(testUriStr)};
+    withEnclosingFragment = true;
+
+    var result = await resolveTestCode('''
+class A();
+void f(Object _) {}
+''');
+    var element = result.typeProvider.objectType.element;
+    await assertDirectSubtypeReferencesText(element, r'''
+class A();
+      ^0 REFERENCE_IN_EXTENDS_CLAUSE qualified, enclosing: class A
+void f(Object _) {}
+''');
+  }
+
   test_scenario_ClassElement_hierarchy_class_implements() async {
     var result = await resolveTestCode(r'''
 import 'test.dart' as p;
@@ -2497,6 +2516,30 @@ void f() {
   List<p.A> v4;
          ^ REFERENCE qualified
 }
+''');
+  }
+
+  test_searchReferences_ClassElement_reference_primaryConstructor() async {
+    withEnclosingFragment = true;
+
+    var result = await resolveTestCode('''
+class A {}
+class B<T extends A>(A a, {A? b});
+class C<T extends A>.named(final A a);
+class D<T extends A> {}
+''');
+    var element = result.findElement.class_('A');
+    await assertElementReferencesText(element, r'''
+class A {}
+class B<T extends A>(A a, {A? b});
+                  ^ REFERENCE, enclosing: type parameter T
+                     ^ REFERENCE, enclosing: formal parameter a
+                           ^ REFERENCE, enclosing: formal parameter b
+class C<T extends A>.named(final A a);
+                  ^ REFERENCE, enclosing: type parameter T
+                                 ^ REFERENCE, enclosing: formal parameter a
+class D<T extends A> {}
+                  ^ REFERENCE, enclosing: type parameter T
 ''');
   }
 
@@ -9606,6 +9649,81 @@ void f() {
 ''');
   }
 
+  test_searchReferences_TopLevelFunctionElement_primaryConstructorBody() async {
+    withEnclosingFragment = true;
+
+    var result = await resolveTestCode('''
+int foo() => 0;
+class A {
+  A(int _);
+}
+class B(int x) extends A {
+  final int y;
+  this : y = foo(), super(foo()) {
+    foo();
+  }
+  void m() {
+    foo();
+  }
+}
+class C {
+  final int y;
+  C() : y = foo() {
+    foo();
+  }
+}
+''');
+    var element = result.findElement.topFunction('foo');
+    await assertElementReferencesText(element, r'''
+int foo() => 0;
+class A {
+  A(int _);
+}
+class B(int x) extends A {
+  final int y;
+  this : y = foo(), super(foo()) {
+             ^^^ INVOCATION, enclosing: constructor B.new
+                          ^^^ INVOCATION, enclosing: constructor B.new
+    foo();
+    ^^^ INVOCATION, enclosing: constructor B.new
+  }
+  void m() {
+    foo();
+    ^^^ INVOCATION, enclosing: method m
+  }
+}
+class C {
+  final int y;
+  C() : y = foo() {
+            ^^^ INVOCATION, enclosing: constructor C.new
+    foo();
+    ^^^ INVOCATION, enclosing: constructor C.new
+  }
+}
+''');
+  }
+
+  test_searchReferences_TopLevelFunctionElement_primaryConstructorBody_comment() async {
+    withEnclosingFragment = true;
+
+    var result = await resolveTestCode('''
+int foo() => 0;
+class A() {
+  /// [foo]
+  this;
+}
+''');
+    var element = result.findElement.topFunction('foo');
+    await assertElementReferencesText(element, r'''
+int foo() => 0;
+class A() {
+  /// [foo]
+       ^^^ REFERENCE, enclosing: constructor A.new
+  this;
+}
+''');
+  }
+
   test_searchReferences_TopLevelFunctionElement_unqualified_ifNull() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
@@ -10666,6 +10784,18 @@ class NoMatchABCDEF {}
         }
         if (!result.isResolved) {
           buffer.write(' unresolved');
+        }
+        if (withEnclosingFragment) {
+          var element = result.enclosingFragment.element;
+          buffer.write(', enclosing: ');
+          // TODO(scheglov): Remove the exception when the display name of
+          // `ElementKind.PARAMETER` is changed to "formal parameter".
+          buffer.write(switch (element) {
+            FormalParameterElement() => 'formal parameter',
+            _ => element.kind.displayName,
+          });
+          buffer.write(' ');
+          buffer.write(element.displayName);
         }
         (annotationsByPath[unitPath] ??= []).add(
           _SearchAnnotation(
