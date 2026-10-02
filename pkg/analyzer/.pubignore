@@ -1,0 +1,11 @@
+# Publish only what package consumers need; everything else in this
+# directory is SDK-repo development material.
+/*
+!/lib/
+!/doc/
+!/example/
+!/CHANGELOG.md
+!/LICENSE
+!/README.md
+!/pubspec.yaml
+!/analysis_options.yaml
