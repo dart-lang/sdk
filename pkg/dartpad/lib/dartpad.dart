@@ -61,7 +61,17 @@ final class DartPadSdk {
     _assetBaseUrl = Uri.base.resolveUri(assetBaseUrl);
   }
 
-  Future<DartPad> dedicatedWorker({Uri? pubHostedUrl}) async {
+  /// Creates a worker and waits for its session handshake.
+  ///
+  /// Completing [abortTrigger], normally or with an error, while initialization
+  /// is pending terminates the native worker and fails the returned future with
+  /// a [StateError]. Once startup succeeds, the caller owns the worker and must
+  /// use [DartPad.close]; completing [abortTrigger] then has no effect.
+  Future<DartPad> dedicatedWorker({
+    Uri? pubHostedUrl,
+    Future<void>? abortTrigger,
+  }) async {
+    StateError cancelled() => StateError('DartPad worker startup was aborted.');
     // The assetBaseUrl might be on a different origin, so we'll create a small
     // blob object URL importing worker.js and setting up a session.
     //
@@ -77,19 +87,51 @@ final class DartPadSdk {
         web.BlobPropertyBag(type: 'application/javascript'),
       ),
     );
-    final worker = web.Worker(
-      blobUrl.toJS,
-      web.WorkerOptions(name: 'dartpad-worker', type: 'module'),
-    );
-    worker.addEventListener(
-      'error',
-      (web.Event event) {
-        web.console.error('Unhandled error from worker:'.toJS);
-        web.console.error(event);
-      }.toJS,
-    );
+    final web.Worker worker;
+    try {
+      worker = web.Worker(
+        blobUrl.toJS,
+        web.WorkerOptions(name: 'dartpad-worker', type: 'module'),
+      );
+    } catch (_) {
+      web.URL.revokeObjectURL(blobUrl);
+      rethrow;
+    }
+    var stopped = false;
+    void stop() {
+      if (!stopped) {
+        stopped = true;
+        worker.terminate();
+        web.URL.revokeObjectURL(blobUrl);
+      }
+    }
+
     final session = Completer<web.MessagePort>();
+    var aborted = false;
+    void abortStartup() {
+      aborted = true;
+      stop();
+      if (!session.isCompleted) {
+        session.completeError(cancelled());
+      }
+    }
+
+    final onError = ((web.Event event) {
+      web.console.error('Unhandled error from worker:'.toJS);
+      web.console.error(event);
+      if (!session.isCompleted) {
+        session.completeError(StateError('Failed loading DartPad worker.'));
+      }
+    }).toJS;
+    worker.addEventListener('error', onError);
     worker.onmessage = (web.MessageEvent event) {
+      if (session.isCompleted) {
+        // A handshake queued before cancellation may still transfer a port.
+        for (var i = 0; i < event.ports.length; i++) {
+          event.ports[i].close();
+        }
+        return;
+      }
       final data = event.data as JSObject?;
       final action = data?['action'] as JSString?;
       switch (action?.toDart) {
@@ -102,11 +144,33 @@ final class DartPadSdk {
       }
     }.toJS;
 
-    return DartPad._(
-      MessagePortExt.fromMessagePort(await session.future).jsonRpcChannel(),
-      worker,
-      blobUrl,
+    // A cancellable subscription releases the callback when startup settles,
+    // even if the caller never completes the abort trigger.
+    final abortSubscription = abortTrigger?.asStream().listen(
+      (_) => abortStartup(),
+      onError: (Object error, StackTrace stackTrace) => abortStartup(),
     );
+    web.MessagePort? port;
+    try {
+      port = await session.future;
+      // Cover cancellation between the handshake and this continuation.
+      if (aborted) {
+        throw cancelled();
+      }
+      return DartPad._(
+        MessagePortExt.fromMessagePort(port).jsonRpcChannel(),
+        worker,
+        blobUrl,
+      );
+    } catch (_) {
+      port?.close();
+      worker.removeEventListener('error', onError);
+      stop();
+      rethrow;
+    } finally {
+      worker.onmessage = null;
+      await abortSubscription?.cancel();
+    }
   }
 
   String _workerLoader(Uri workerJs, Map<String, Object?> options) =>
