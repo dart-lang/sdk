@@ -129,6 +129,12 @@ static void hot_reload_rollback_test_mode_callback(
 DEFINE_BOOL_OPTION_CB(hot_reload_rollback_test_mode,
                       hot_reload_rollback_test_mode_callback);
 
+static bool IsInternalExecutableArgument(const char* arg) {
+  return IsOption(arg, "executable-name") ||
+         IsOption(arg, "resolved-executable-name") ||
+         IsOption(arg, "script-uri-override");
+}
+
 bool Options::ParseArguments(int argc,
                              char** argv,
                              bool vm_run_app_snapshot,
@@ -190,7 +196,26 @@ bool Options::ParseArguments(int argc,
   }
 
   // The arguments to the VM are at positions 1 through i-1 in argv.
-  Platform::SetExecutableArguments(i, argv);
+  intptr_t filtered_count = 0;
+  for (intptr_t j = 1; j < i; j++) {
+    if (!IsInternalExecutableArgument(argv[j])) {
+      filtered_count++;
+    }
+  }
+  if (filtered_count == i - 1) {
+    Platform::SetExecutableArguments(i, argv);
+  } else {
+    char** filtered_argv = new char*[filtered_count + 1];
+    filtered_argv[0] = argv[0];
+    intptr_t idx = 1;
+    for (intptr_t j = 1; j < i; j++) {
+      if (!IsInternalExecutableArgument(argv[j])) {
+        filtered_argv[idx++] = argv[j];
+      }
+    }
+    ASSERT(idx == filtered_count + 1);
+    Platform::SetExecutableArguments(filtered_count + 1, filtered_argv);
+  }
 
   // Get the script name.
   if (i < argc) {
