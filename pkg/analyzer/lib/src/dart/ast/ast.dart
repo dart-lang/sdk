@@ -2836,21 +2836,19 @@ final class AssignmentExpressionImpl extends ExpressionImpl
           V1Projection.toV1Expression(target.expression),
       };
 
-  static Element? _v1ReadElement(
-    AssignmentTargetImpl target,
-  ) => switch (target) {
-    CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
-    IndexAssignmentTargetImpl target => target._legacyReadElement,
-    ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
-    UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
-    ImportPrefixedAssignmentTargetImpl target => target._legacyReadElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
-    InvalidExpressionAssignmentTargetImpl() ||
-    InvalidExtensionOverrideAssignmentTargetImpl() ||
-    InvalidSuperAssignmentTargetImpl() ||
-    ParsedAssignmentTargetImpl() => null,
-  };
+  static Element? _v1ReadElement(AssignmentTargetImpl target) =>
+      switch (target) {
+        CascadePropertyAssignmentTargetImpl target => target._legacyReadElement,
+        IndexAssignmentTargetImpl target => target._legacyReadElement,
+        ReceiverPropertyAssignmentTargetImpl target =>
+          target._legacyReadElement,
+        UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
+        ImportPrefixedAssignmentTargetImpl target => target._legacyReadElement,
+        InvalidExpressionAssignmentTargetImpl() ||
+        InvalidExtensionOverrideAssignmentTargetImpl() ||
+        InvalidSuperAssignmentTargetImpl() ||
+        ParsedAssignmentTargetImpl() => null,
+      };
 
   static TypeImpl? _v1ReadWriteAssignmentWriteType(
     AssignmentTargetImpl target,
@@ -2869,8 +2867,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
     ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     ImportPrefixedAssignmentTargetImpl target => target._legacyWriteElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
     InvalidExpressionAssignmentTargetImpl() ||
     InvalidExtensionOverrideAssignmentTargetImpl() ||
     InvalidSuperAssignmentTargetImpl() ||
@@ -30021,8 +30017,6 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     ReceiverPropertyAssignmentTargetImpl target => target._legacyReadElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyReadElement,
     ImportPrefixedAssignmentTargetImpl target => target._legacyReadElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
     InvalidExpressionAssignmentTargetImpl() ||
     InvalidExtensionOverrideAssignmentTargetImpl() ||
     InvalidSuperAssignmentTargetImpl() ||
@@ -30040,8 +30034,6 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     ReceiverPropertyAssignmentTargetImpl target => target._legacyWriteElement,
     UnqualifiedNameAssignmentTargetImpl target => target._legacyWriteElement,
     ImportPrefixedAssignmentTargetImpl target => target._legacyWriteElement,
-    InvalidExpressionAssignmentTargetImpl(expression: IdentifierImpl element) =>
-      element.element,
     InvalidExpressionAssignmentTargetImpl() ||
     InvalidExtensionOverrideAssignmentTargetImpl() ||
     InvalidSuperAssignmentTargetImpl() ||
