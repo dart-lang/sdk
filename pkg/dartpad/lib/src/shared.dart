@@ -7,3 +7,4 @@
 library;
 
 export 'exceptions.dart' hide rethrowAsDartPadException;
+export 'version_info.dart';

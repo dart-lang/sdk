@@ -27,6 +27,7 @@ import 'util/parameters_ext.dart';
 final class Worker {
   final ResourceProvider _rp;
   final DartPadConfig _config;
+  final VersionInfo _version;
   final _analysisCache = MemoryCachingByteStore(
     NullByteStore(),
     128 * 1024 * 1024,
@@ -36,7 +37,15 @@ final class Worker {
   int _nextWatcherId = 1;
   int _nextSandboxId = 1;
 
-  Worker._(this._rp, this._config);
+  Worker._(this._rp, this._config, this._version);
+
+  static String _readRequiredFile(ResourceProvider rp, String path) {
+    final file = rp.getFile(path);
+    if (!file.exists) {
+      throw FormatException('sdk.tar must contain $path');
+    }
+    return file.readAsStringSync().trim();
+  }
 
   static Future<Worker> create(
     Stream<List<int>> sdkTarStream, {
@@ -51,17 +60,53 @@ final class Worker {
         'sdk.tar must contain ${DartPadConfig.defaultDartPadConfigPath}',
       );
     }
+    final DartPadConfig config;
     try {
-      final config = DartPadConfig.fromJson(
+      config = DartPadConfig.fromJson(
         jsonDecode(configFile.readAsStringSync()) as Map<String, Object?>,
       ).copyWith(pubHostedUrl: pubHostedUrl);
-
-      return Worker._(rp, config);
     } catch (e) {
       throw FormatException(
         'Error reading ${DartPadConfig.defaultDartPadConfigPath}: $e',
       );
     }
+
+    final dartVersion = _readRequiredFile(
+      rp,
+      rp.pathContext.join(config.dartSdkPath, 'version'),
+    );
+    final dartRevision = _readRequiredFile(
+      rp,
+      rp.pathContext.join(config.dartSdkPath, 'revision'),
+    );
+
+    final properties = <String, String>{};
+    if (config.flutterSdkPath case final flutterSdkPath?) {
+      final flutterVersionPath = rp.pathContext.join(
+        flutterSdkPath,
+        'bin',
+        'cache',
+        'flutter.version.json',
+      );
+      final flutterVersionContent = _readRequiredFile(rp, flutterVersionPath);
+      final Map<String, Object?> flutterVersionJson;
+      try {
+        flutterVersionJson =
+            jsonDecode(flutterVersionContent) as Map<String, Object?>;
+      } catch (e) {
+        throw FormatException('Error reading $flutterVersionPath: $e');
+      }
+      properties.addAll(extractFlutterVersionProperties(flutterVersionJson));
+    }
+
+    final version = createVersionInfo(
+      modes: [for (final m in config.modes) m.mode],
+      dartVersion: dartVersion,
+      dartRevision: dartRevision,
+      properties: properties,
+    );
+
+    return Worker._(rp, config, version);
   }
 
   void session(StreamChannel<Object?> channel) {
@@ -412,6 +457,7 @@ class _Workspace {
       command: command,
       args: args.whereType<String>().toList(),
       config: _worker._config,
+      version: _worker._version,
     );
 
     return {'log': log};
@@ -494,6 +540,7 @@ class _Workspace {
       port: port,
       resourceProvider: _rp,
       config: _worker._config,
+      version: _worker._version,
       onClosed: () => _sandboxes.remove(sandboxId),
     );
     sandbox.onConsole.listen((e) {

@@ -595,6 +595,10 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
     target: '/sdk/bin/cache/dart-sdk/version',
     source: p.join(webSdk.dartSdkRoot, 'version'),
   );
+  tar.addFile(
+    target: '/sdk/bin/cache/dart-sdk/revision',
+    source: p.join(webSdk.dartSdkRoot, 'revision'),
+  );
 
   // Add the ddc_outline.dill which contains dart:ui
   tar.addFile(

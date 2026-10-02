@@ -30,6 +30,7 @@ Future<DartRuntimeService> createDartPadVmService({
   required SandboxClient client,
   required ResourceProvider resourceProvider,
   required DartPadConfig config,
+  required VersionInfo version,
   required String? Function() packageConfigPath,
   required Future<void> Function() onHotRestart,
   required Future<void> Function() onHotReload,
@@ -43,9 +44,8 @@ Future<DartRuntimeService> createDartPadVmService({
     client: client,
     resourceProvider: resourceProvider,
     config: config,
+    version: version,
     packageConfigPath: packageConfigPath,
-    dartSdkVersion: _readDartSdkVersion(resourceProvider, config),
-    flutterVersion: _readFlutterVersion(resourceProvider, config),
     onHotRestart: onHotRestart,
     onHotReload: onHotReload,
   ),
@@ -56,8 +56,7 @@ Future<DartRuntimeService> createDartPadVmService({
 final class _DartPadVmServiceBackend
     extends DartRuntimeServiceBackend<IsolateManager> {
   final SandboxClient _client;
-  final String _dartSdkVersion;
-  final Map<String, Object?>? _flutterVersion;
+  final VersionInfo _version;
   final Future<void> Function() _onHotRestart;
   final Future<void> Function() _onHotReload;
 
@@ -73,14 +72,12 @@ final class _DartPadVmServiceBackend
     required SandboxClient client,
     required ResourceProvider resourceProvider,
     required DartPadConfig config,
+    required VersionInfo version,
     required String? Function() packageConfigPath,
-    required String dartSdkVersion,
-    required Map<String, Object?>? flutterVersion,
     required Future<void> Function() onHotRestart,
     required Future<void> Function() onHotReload,
   }) : _client = client,
-       _dartSdkVersion = dartSdkVersion,
-       _flutterVersion = flutterVersion,
+       _version = version,
        _onHotRestart = onHotRestart,
        _onHotReload = onHotReload {
     isolateManager = createSandboxIsolateManager(
@@ -103,7 +100,7 @@ final class _DartPadVmServiceBackend
       service: frontend,
       onHotReload: _onHotReload,
       onHotRestart: _onHotRestart,
-      flutterVersion: _flutterVersion,
+      flutterVersion: _buildFlutterVersion(_version),
     );
   }
 
@@ -187,7 +184,7 @@ final class _DartPadVmServiceBackend
       hostCPU: 'DWDS',
       operatingSystem: 'web',
       targetCPU: 'Web',
-      version: _dartSdkVersion,
+      version: _version.dartVersion,
       pid: -1,
       startTime: _vmStartTimeMillis,
       isolates: [for (final i in isolates) i.isolateRef],
@@ -279,39 +276,22 @@ final class _DartPadVmServiceBackend
   }
 }
 
-// TODO(jonasfj): Refactor so that this is read after sdk.tar is unpacked
-String _readDartSdkVersion(ResourceProvider rp, DartPadConfig config) {
-  final file = rp.getFile(rp.pathContext.join(config.dartSdkPath, 'version'));
-  if (!file.exists) {
-    throw StateError(
-      'Missing Dart SDK version file at "${file.path}" in sdk.tar',
-    );
-  }
-  return file.readAsStringSync().trim();
-}
-
-Map<String, Object?>? _readFlutterVersion(
-  ResourceProvider rp,
-  DartPadConfig config,
-) {
-  final flutterSdkPath = config.flutterSdkPath;
-  if (flutterSdkPath == null) return null;
-  final file = rp.getFile(
-    rp.pathContext.join(flutterSdkPath, 'bin', 'cache', 'flutter.version.json'),
-  );
-  if (!file.exists) return null;
-  String? shortRev(Object? rev) => rev is String && rev.isNotEmpty
+Map<String, Object?>? _buildFlutterVersion(VersionInfo version) {
+  final flutterVersion = version.properties['flutterVersion'];
+  if (flutterVersion == null) return null;
+  String? shortRev(String? rev) => rev != null && rev.isNotEmpty
       ? (rev.length > 10 ? rev.substring(0, 10) : rev)
       : null;
-  final raw = jsonDecode(file.readAsStringSync()) as Map<String, Object?>;
-  final frameworkShort =
-      raw['frameworkRevisionShort'] ?? shortRev(raw['frameworkRevision']);
-  final engineShort =
-      raw['engineRevisionShort'] ?? shortRev(raw['engineRevision']);
+  final flutterRevision = version.properties['flutterRevision'];
+  final engineRevision = version.properties['engineRevision'];
   return <String, Object?>{
     'type': 'FlutterVersion',
-    ...raw,
-    'frameworkRevisionShort': ?frameworkShort,
-    'engineRevisionShort': ?engineShort,
+    'frameworkVersion': flutterVersion,
+    'flutterVersion': flutterVersion,
+    'frameworkRevision': ?flutterRevision,
+    'frameworkRevisionShort': ?shortRev(flutterRevision),
+    'engineRevision': ?engineRevision,
+    'engineRevisionShort': ?shortRev(engineRevision),
+    'dartSdkVersion': version.dartVersion,
   };
 }

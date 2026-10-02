@@ -39,6 +39,7 @@ final class Sandbox {
     required MessagePort port,
     required ResourceProvider resourceProvider,
     required DartPadConfig config,
+    required VersionInfo version,
     required void Function() onClosed,
   }) async {
     Sandbox? sandbox;
@@ -52,6 +53,7 @@ final class Sandbox {
         client: client,
         resourceProvider: resourceProvider,
         config: config,
+        version: version,
         packageConfigPath: () => sandbox?.packageConfigPath,
         onHotRestart: () => sandbox!.hotRestart(),
         onHotReload: () => sandbox!.hotReload(),

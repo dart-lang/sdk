@@ -95,12 +95,7 @@ List<String> _requiredFilesFromSdk(Uri sdkPath) {
         final rel = f.uri.path.substring(sdkPath.path.length);
         return !excludedInternalDirs.any(rel.startsWith);
       })
-      .map((f) => f.uri)
-      .followedBy([
-        sdkPath.resolve('lib/_internal/allowed_experiments.json'),
-        sdkPath.resolve('version'),
-      ])
-      .map((u) => u.path);
+      .map((f) => f.uri.path);
 
   return {
     ...dartFilesForAnalyzer,
@@ -108,5 +103,6 @@ List<String> _requiredFilesFromSdk(Uri sdkPath) {
     sdkPath.resolve('lib/_internal/ddc_outline.dill').path,
     sdkPath.resolve('lib/libraries.json').path,
     sdkPath.resolve('version').path,
+    sdkPath.resolve('revision').path,
   }.map((path) => path.substring(sdkPath.path.length)).toList();
 }

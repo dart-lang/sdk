@@ -20,6 +20,7 @@ final class DartPadConfig {
   ///
   /// This is the Dart SDK, it is expected to contain at-least:
   ///  * `version`
+  ///  * `revision`
   ///  * `lib/libraries.json`
   ///  * `lib/_internal/ddc_outline.dill`
   ///  * `lib/_internal/allowed_experiments.json`
