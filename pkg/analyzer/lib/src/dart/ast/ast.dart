@@ -3305,7 +3305,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   @ToBeDeprecated('Use _childEntities2 instead.')
   ChildEntities get _childEntities => ChildEntities();
 
-  ChildEntities get _childEntities2 => _childEntities;
+  ChildEntities get _childEntities2;
 
   /// V1 topology is materialized only when observed. A shared child can be
   /// reached through V2 before its compatibility parent exists, and that
@@ -3528,8 +3528,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   ///
   /// Returns `null` if none of the children contain the range (which means that
   /// this node is the covering node).
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) =>
-      _childContainingRange(rangeOffset, rangeEnd);
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd);
 
   /// Returns whether this node contains the range from [rangeOffset] to
   /// [rangeEnd].
@@ -8865,6 +8864,11 @@ final class CommentImpl extends AstNodeImpl
     ..addNodeList('references', references)
     ..addTokenList('tokens', tokens);
 
+  @override
+  ChildEntities get _childEntities2 => ChildEntities()
+    ..addNodeList('references', references)
+    ..addTokenList('tokens', tokens);
+
   @ToBeDeprecated('Use accept2 instead.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitComment(this);
@@ -8906,6 +8910,11 @@ final class CommentImpl extends AstNodeImpl
   @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return _references._elementContainingRange(rangeOffset, rangeEnd);
+  }
+
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return _references._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
@@ -22408,6 +22417,17 @@ sealed class FormalParameterImpl extends AstNodeImpl
       }
     }
     return null;
+  }
+
+  /// The generated subclass implementations check the other children.
+  @override
+  @mustCallSuper
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _documentationComment;
+    }
+    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
   }
 }
 
