@@ -24,6 +24,7 @@ A _DartPad SDK_ is an `assetBaseUrl` that points to a directory that hosts:
  * `worker.js`, script for running a dartpad environment in the browser.
  * `sandbox.js`, script for running compiled code in a sandboxed iframe.
  * `devtools.html`, page for running Dart DevTools in an iframe.
+ * `version.json`, protocol version, SDK versions and capabilities.
  * SDK specific assets referenced by `worker.js`, `sandbox.js`, and `devtools.html`.
 
 The `worker.js` script must export a `Worker` class that can be instantiated as
@@ -77,6 +78,9 @@ The `devtools.html` page must use [window.postMessage][4] to send
 `{action: 'connect', port: <MessagePort>}` with a [MessagePort][2] attached.
 The attached [MessagePort][2] must be forwarded to the worker via
 `workspace/sandbox/connectServiceProtocol`.
+
+The `version.json` file contains the same metadata JSON object as returned by
+the `version` RPC method (see below).
 
 
 

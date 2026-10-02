@@ -14,6 +14,7 @@ import 'package:tar/tar.dart';
 import 'package:yaml/yaml.dart';
 
 import '../dartpad_config.dart';
+import '../version_info.dart';
 import 'dart.dart';
 
 /// Command to build a DartPad SDK for Flutter.
@@ -693,6 +694,35 @@ Future<void> _buildFlutterDartPadSdk(_BuildContext ctx) async {
   );
 
   await tar.close();
+
+  final dartVersionInfo = VersionInfo.fromJson(
+    jsonDecode(
+          File(p.join(ctx.dartDartPadSdk, 'version.json')).readAsStringSync(),
+        )
+        as Map<String, Object?>,
+  );
+  final flutterVersionJson =
+      jsonDecode(
+            File(
+              p.join(ctx.flutterRoot, 'bin', 'cache', 'flutter.version.json'),
+            ).readAsStringSync(),
+          )
+          as Map<String, Object?>;
+  final versionInfo = createVersionInfo(
+    workerProtocolMajor: dartVersionInfo.workerProtocolMajor,
+    workerProtocolMinor: dartVersionInfo.workerProtocolMinor,
+    modes: ['console', 'flutter'],
+    dartVersion: File(
+      p.join(webSdk.dartSdkRoot, 'version'),
+    ).readAsStringSync().trim(),
+    dartRevision: File(
+      p.join(webSdk.dartSdkRoot, 'revision'),
+    ).readAsStringSync().trim(),
+    properties: extractFlutterVersionProperties(flutterVersionJson),
+  );
+  File(p.join(ctx.flutterAssetDir, 'version.json')).writeAsStringSync(
+    '${const JsonEncoder.withIndent('  ').convert(versionInfo.toJson())}\n',
+  );
 
   print('\nSuccessfully built Flutter DartPad SDK in ${ctx.flutterAssetDir}');
 }

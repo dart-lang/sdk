@@ -50,8 +50,9 @@ final class DartPadSdk {
   ///
   /// A _DartPad SDK_ must contain entrypoints:
   ///  * `worker.js`, satisfying `doc/worker-protocol.md`,
-  ///  * `sandbox.js`, and,
-  ///  * `devtools.html`.
+  ///  * `sandbox.js`,
+  ///  * `devtools.html`, and,
+  ///  * `version.json`.
   ///
   /// A _DartPad SDK_ may contain additional assets that are also resolved from
   /// the [assetBaseUrl] by `worker.js`, `sandbox.js`, or `devtools.html`.
