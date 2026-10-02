@@ -723,6 +723,7 @@ class Assembler : public AssemblerBase {
   void vorrq(QRegister qd, QRegister qn, QRegister qm);
   void vornq(QRegister qd, QRegister qn, QRegister qm);
   void vandq(QRegister qd, QRegister qn, QRegister qm);
+  void vbicq(QRegister qd, QRegister qn, QRegister qm);
   void vmvnq(QRegister qd, QRegister qm);
 
   void vcnt(DRegister dd, DRegister dm);
