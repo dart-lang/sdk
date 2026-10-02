@@ -78,6 +78,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
     required super.name,
     required super.typeParameters,
     required TypeBuilder underscoreEnumTypeBuilder,
+    required super.interfaceBuilders,
     required super.typeParameterScope,
     required super.nameSpaceBuilder,
     required List<EnumElementFragment> enumElements,

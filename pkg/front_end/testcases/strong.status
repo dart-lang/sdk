@@ -127,6 +127,7 @@ augmentations/constructor_declarations: SemiFuzzFailure
 augmentations/enum_declarations: SemiFuzzFailure
 augmentations/extension_declarations: SemiFuzzFailure
 augmentations/extension_type_declarations: SemiFuzzFailure
+augmentations/implements: SemiFuzzFailure
 augmentations/mixin_declarations: SemiFuzzFailure
 augmentations/property_declarations: SemiFuzzFailure
 augmentations/top_level_declarations: SemiFuzzFailure

@@ -408,6 +408,7 @@ class BuilderFactory {
     List<Fragment>? augmentations,
   ) {
     TypeBuilder? supertypeBuilder = fragment.supertype;
+    List<TypeBuilder>? interfaceBuilders = fragment.interfaces?.toList();
     if (augmentations != null) {
       for (Fragment augmentation in augmentations) {
         augmentation as ClassFragment;
@@ -431,6 +432,12 @@ class BuilderFactory {
           } else {
             supertypeBuilder = augmentationSupertype;
           }
+        }
+
+        List<TypeBuilder>? augmentationInterfaceBuilders =
+            augmentation.interfaces;
+        if (augmentationInterfaceBuilders != null) {
+          (interfaceBuilders ??= []).addAll(augmentationInterfaceBuilders);
         }
       }
     }
@@ -463,6 +470,7 @@ class BuilderFactory {
             introductory: introductory,
             augmentations: augmentations,
             supertypeBuilder: supertypeBuilder,
+            interfaceBuilders: interfaceBuilders,
           ),
       setBuilder: (fragment, builder) => fragment.builder = builder,
       // TODO(johnniwinther): Use a distinct message for patch/augmentation
@@ -781,6 +789,19 @@ class BuilderFactory {
     EnumFragment fragment,
     List<Fragment>? augmentations,
   ) {
+    List<TypeBuilder>? interfaceBuilders = fragment.interfaces?.toList();
+    if (augmentations != null) {
+      for (Fragment augmentation in augmentations) {
+        augmentation as EnumFragment;
+
+        List<TypeBuilder>? augmentationInterfaceBuilders =
+            augmentation.interfaces;
+        if (augmentationInterfaceBuilders != null) {
+          (interfaceBuilders ??= []).addAll(augmentationInterfaceBuilders);
+        }
+      }
+    }
+
     String name = fragment.name;
     IndexedClass? indexedClass = _indexedLibrary?.lookupIndexedClass(name);
     List<EnumElementFragment> enumElements = [];
@@ -804,6 +825,7 @@ class BuilderFactory {
             name: name,
             typeParameters: nominalParameters,
             underscoreEnumTypeBuilder: _loader.target.underscoreEnumType,
+            interfaceBuilders: interfaceBuilders,
             enumElements: enumElements,
             libraryBuilder: _enclosingLibraryBuilder,
             fileUri: fragment.fileUri,
@@ -879,6 +901,19 @@ class BuilderFactory {
     ExtensionTypeFragment fragment,
     List<Fragment>? augmentations,
   ) {
+    List<TypeBuilder>? interfaceBuilders = fragment.interfaces?.toList();
+    if (augmentations != null) {
+      for (Fragment augmentation in augmentations) {
+        augmentation as ExtensionTypeFragment;
+
+        List<TypeBuilder>? augmentationInterfaceBuilders =
+            augmentation.interfaces;
+        if (augmentationInterfaceBuilders != null) {
+          (interfaceBuilders ??= []).addAll(augmentationInterfaceBuilders);
+        }
+      }
+    }
+
     IndexedContainer? indexedContainer = _indexedLibrary
         ?.lookupIndexedExtensionTypeDeclaration(fragment.name);
     List<PrimaryConstructorFieldFragment> primaryConstructorFields =
@@ -909,7 +944,7 @@ class BuilderFactory {
             endOffset: fragment.endOffset,
             modifiers: modifiers,
             typeParameters: nominalParameters,
-            interfaceBuilders: fragment.interfaces,
+            interfaceBuilders: interfaceBuilders,
             nameSpaceBuilder: nameSpaceBuilder,
             introductory: introductory,
             augmentations: augmentations,
@@ -1124,6 +1159,19 @@ class BuilderFactory {
     MixinFragment fragment,
     List<Fragment>? augmentations,
   ) {
+    List<TypeBuilder>? interfaceBuilders = fragment.interfaces?.toList();
+    if (augmentations != null) {
+      for (Fragment augmentation in augmentations) {
+        augmentation as MixinFragment;
+
+        List<TypeBuilder>? augmentationInterfaceBuilders =
+            augmentation.interfaces;
+        if (augmentationInterfaceBuilders != null) {
+          (interfaceBuilders ??= []).addAll(augmentationInterfaceBuilders);
+        }
+      }
+    }
+
     String name = fragment.name;
     IndexedClass? indexedClass = _indexedLibrary?.lookupIndexedClass(name);
     _createDeclarationBuilder(
@@ -1151,6 +1199,7 @@ class BuilderFactory {
             introductory: introductory,
             augmentations: augmentations,
             supertypeBuilder: fragment.supertype,
+            interfaceBuilders: interfaceBuilders,
           ),
       setBuilder: (fragment, builder) => fragment.builder = builder,
       // TODO(johnniwinther): Use a distinct message for patch/augmentation
@@ -1164,7 +1213,8 @@ class BuilderFactory {
     NamedMixinApplicationFragment fragment,
   ) {
     List<TypeBuilder> mixins = fragment.mixins.toList();
-    TypeBuilder supertype = fragment.supertype;
+    TypeBuilder supertypeBuilder = fragment.supertype;
+    List<TypeBuilder>? interfaceBuilders = fragment.interfaces;
     TypeBuilder mixin = mixins.removeLast();
     ClassDeclaration classDeclaration = new NamedMixinApplication(
       fragment,
@@ -1203,7 +1253,8 @@ class BuilderFactory {
       indexedClass: referencesFromIndexedClass,
       mixedInTypeBuilder: mixin,
       introductory: classDeclaration,
-      supertypeBuilder: supertype,
+      supertypeBuilder: supertypeBuilder,
+      interfaceBuilders: interfaceBuilders,
     );
     _mixinApplications[classBuilder] = mixin;
     fragment.builder = classBuilder;

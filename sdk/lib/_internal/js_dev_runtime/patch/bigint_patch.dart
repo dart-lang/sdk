@@ -5,7 +5,7 @@
 part of 'core_patch.dart';
 
 @patch
-class BigInt implements Comparable<BigInt> {
+class BigInt {
   @patch
   static BigInt get zero => _BigIntImpl.zero;
   @patch

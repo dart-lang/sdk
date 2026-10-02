@@ -6,12 +6,6 @@ library;
 //   new Class1a();
 //       ^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extends_implements/main.dart:13:23: Error: A value of type 'Class3b' can't be assigned to a variable of type 'Interface'.
-//  - 'Class3b' is from 'dart:test'.
-//  - 'Interface' is from 'dart:test'.
-//   Interface c3b = new Class3b();
-//                       ^
-//
 // pkg/front_end/testcases/general/patch_extends_implements/main.dart:15:19: Error: A value of type 'Class4b' can't be assigned to a variable of type 'Mixin'.
 //  - 'Class4b' is from 'dart:test'.
 //  - 'Mixin' is from 'dart:test'.
@@ -29,11 +23,7 @@ static method test() → dynamic {
   test::SuperClass c2a = new test::Class2a::•();
   test::SuperClass c2b = new test::Class2b::•();
   test::Interface c3a = new test::Class3a::•();
-  test::Interface c3b = invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/main.dart:13:23: Error: A value of type 'Class3b' can't be assigned to a variable of type 'Interface'.
- - 'Class3b' is from 'dart:test'.
- - 'Interface' is from 'dart:test'.
-  Interface c3b = new Class3b();
-                      ^" in new test::Class3b::•() as{TypeError} test::Interface;
+  test::Interface c3b = new test::Class3b::•();
   test::Mixin c4a = new test::Class4a::•();
   test::Mixin c4b = invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/main.dart:15:19: Error: A value of type 'Class4b' can't be assigned to a variable of type 'Mixin'.
  - 'Class4b' is from 'dart:test'.
@@ -45,12 +35,6 @@ static method test() → dynamic {
 library;
 //
 // Problems in library:
-//
-// pkg/front_end/testcases/general/patch_extends_implements/patch_lib.dart:44:23: Error: The constructor function type 'Class5bImpl Function()' isn't a subtype of 'Class5b Function()'.
-//  - 'Class5bImpl' is from 'dart:test'.
-//  - 'Class5b' is from 'dart:test'.
-//   factory Class5b() = Class5bImpl;
-//                       ^
 //
 // pkg/front_end/testcases/general/patch_extends_implements/patch_lib.dart:53:23: Error: The constructor function type 'Class5cImpl Function()' isn't a subtype of 'Class5c Function()'.
 //  - 'Class5cImpl' is from 'dart:test'.
@@ -119,7 +103,7 @@ class Class3a extends core::Object implements test::Interface {
     ;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C1
-class Class3b extends core::Object {
+class Class3b extends core::Object implements test::Interface {
   synthetic constructor •() → test::Class3b
     : super core::Object::•()
     ;
@@ -151,15 +135,11 @@ class Class5aImpl extends core::Object implements test::Class5a {
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class5b extends core::Object {
   @#C1
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •() → test::Class5b
-    return invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/patch_lib.dart:44:23: Error: The constructor function type 'Class5bImpl Function()' isn't a subtype of 'Class5b Function()'.
- - 'Class5bImpl' is from 'dart:test'.
- - 'Class5b' is from 'dart:test'.
-  factory Class5b() = Class5bImpl;
-                      ^";
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •() → test::Class5b /* redirection-target: test::Class5bImpl::• */
+    return new test::Class5bImpl::•();
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C1
-class Class5bImpl extends core::Object {
+class Class5bImpl extends core::Object implements test::Class5b {
   synthetic constructor •() → test::Class5bImpl
     : super core::Object::•()
     ;

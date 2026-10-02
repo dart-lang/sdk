@@ -236,7 +236,7 @@ external dynamic _nativeIsolateGroupBoundClosureFunction<NS extends Function>(
 @patch
 @pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
-final class Pointer<T extends NativeType> implements SizedNativeType {
+final class Pointer<T extends NativeType> {
   @patch
   @pragma('dyn-module:language-impl:callable')
   factory Pointer.fromAddress(int ptr) => _fromAddress(ptr);
@@ -1878,7 +1878,7 @@ abstract final class NativeApi {
 // patch class of [Array].
 
 @patch
-final class _ArraySize<T extends NativeType> implements Array<T> {
+final class _ArraySize<T extends NativeType> {
   _checkIndex(int index) => throw UnsupportedError('_ArraySize._checkIndex');
 
   List<int> get _nestedDimensions =>

@@ -25,7 +25,7 @@ bool isCurrentHotRestartGeneration(int generation) =>
     generation == dart.hotRestartGeneration();
 
 @patch
-class Symbol implements core.Symbol {
+class Symbol {
   @patch
   const Symbol(String name) : this._name = name;
 

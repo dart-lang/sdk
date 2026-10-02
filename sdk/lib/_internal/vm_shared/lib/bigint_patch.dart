@@ -39,7 +39,7 @@ import "dart:typed_data" show Endian, Uint8List, Uint32List;
  */
 
 @patch
-class BigInt implements Comparable<BigInt> {
+class BigInt {
   @patch
   static BigInt get zero => _BigIntImpl.zero;
   @patch

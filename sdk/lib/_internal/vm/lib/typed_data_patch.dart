@@ -36,7 +36,7 @@ import 'dart:math' show Random;
 /// There are no parts in patch library:
 
 @patch
-class ByteData implements TypedData {
+class ByteData {
   @patch
   @pragma("vm:recognized", "other")
   factory ByteData(int length) {

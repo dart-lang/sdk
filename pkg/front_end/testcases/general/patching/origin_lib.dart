@@ -8,7 +8,9 @@ external void set topLevelSetter(int value);
 
 external void topLevelMethod(int value);
 
-class Class {
+abstract class Interface {}
+
+class Class implements Interface {
   external Class(int value);
 
   external Class.redirecting(int value);
