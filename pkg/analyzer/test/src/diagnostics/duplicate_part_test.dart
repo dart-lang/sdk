@@ -73,4 +73,13 @@ part 'b.dart';
 ''',
     });
   }
+
+  test_part_includesSelf_noLibrary() async {
+    await resolveTestCodeWithDiagnostics(r'''
+part of 'test.dart';
+part 'test.dart';
+//   ^^^^^^^^^^^
+// [diag.duplicatePart] The library already contains a part with the URI 'package:test/test.dart'.
+''');
+  }
 }
