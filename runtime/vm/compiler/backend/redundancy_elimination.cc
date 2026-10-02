@@ -517,6 +517,9 @@ class Place : public ValueObject {
     switch (kind()) {
       case kInstanceField:
         return instance_field().is_immutable();
+      case kIndexed:
+      case kConstantIndexed:
+        return instance()->Type()->ToCid() == kImmutableArrayCid;
       default:
         return false;
     }
