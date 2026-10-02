@@ -81,11 +81,7 @@ abstract final class AdjacentStrings implements StringLiteral {
   NodeList<StringLiteral> get strings;
 }
 
-@GenerateNodeImpl(
-  childEntitiesOrder: [
-    GenerateNodeProperty('strings', isInValueExpressionSlot: true),
-  ],
-)
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('strings')])
 final class AdjacentStringsImpl extends StringLiteralImpl
     implements AdjacentStrings {
   @generated
@@ -135,14 +131,6 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAdjacentStrings(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(strings.contains(child));
-    return true;
-  }
 
   @generated
   @override
@@ -405,7 +393,7 @@ abstract final class Annotation implements AstNode {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('atSign'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty('expression'),
   ],
 )
 final class AnnotationImpl extends AstNodeImpl
@@ -526,14 +514,6 @@ final class AnnotationImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAnnotation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression, child));
-    return true;
-  }
 
   @generated
   @override
@@ -705,13 +685,6 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(block, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'block'.");
@@ -809,7 +782,6 @@ abstract final class AnonymousExpressionBody implements AnonymousMethodBody {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -884,14 +856,6 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitAnonymousExpressionBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -1226,13 +1190,6 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(target2, oldNode)) {
       target2 = null;
@@ -1430,7 +1387,6 @@ abstract final class ArgumentList implements AstNode {
       'arguments2',
       v1Name: 'arguments',
       v1Projection: V1Projection.argument,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
   ],
@@ -1530,14 +1486,6 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitArgumentList(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(arguments2.contains(child));
-    return true;
-  }
 
   @generated
   @override
@@ -1665,7 +1613,6 @@ abstract final class AsExpression implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('asOperator'),
     GenerateNodeProperty('type'),
@@ -1758,13 +1705,6 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAsExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -1880,14 +1820,12 @@ abstract final class AssertInitializer
       'condition2',
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('comma'),
     GenerateNodeProperty(
       'message2',
       v1Name: 'message',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
   ],
@@ -2008,13 +1946,6 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAssertInitializer(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -2165,14 +2096,12 @@ abstract final class AssertStatement implements Assertion, Statement {
       'condition2',
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('comma'),
     GenerateNodeProperty(
       'message2',
       v1Name: 'message',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('semicolon'),
@@ -2301,13 +2230,6 @@ final class AssertStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAssertStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -2481,13 +2403,6 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
     return resolverVisitor.operations.unknownType.unwrapTypeSchemaView();
   }
 
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
   @override
   PatternResult resolvePattern(
     ResolverVisitor resolverVisitor,
@@ -2622,7 +2537,7 @@ abstract base class AssignmentExpression2Impl extends ExpressionImpl
   childEntitiesOrder: [
     GenerateNodeProperty('leftHandSide'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightHandSide', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightHandSide'),
   ],
 )
 final class AssignmentExpressionImpl extends ExpressionImpl
@@ -2842,12 +2757,6 @@ final class AssignmentExpressionImpl extends ExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _v1ProjectionOrigin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'V1 projection children have V1 parent pointers')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    return identical(rightHandSide, child);
-  }
 
   @generated
   @override
@@ -3339,14 +3248,6 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
       util.findPrevious(beginToken, target) ??
       _parentInV1?.findPrevious(target);
 
-  /// Returns `true` if [child] is in a slot of this node that allows a value
-  /// expression.
-  ///
-  /// For example, in `a + b`, both `a` and `b` are in value expression slots.
-  /// However, in `x is T`, `T` is in a type reference slot, so it is not
-  /// in a value expression slot.
-  bool isInValueExpressionSlot(AstNode child) => false;
-
   /// Remove [oldNode] from one of this node's nullable child slots.
   ///
   /// Throws an [ArgumentError] if [oldNode] is not a child of this node, and an
@@ -3637,7 +3538,6 @@ abstract final class AwaitExpression implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -3712,14 +3612,6 @@ final class AwaitExpressionImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitAwaitExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -3835,9 +3727,9 @@ abstract final class BinaryExpression
   api: AstNodeApi.v1,
   generateConstructor: false,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftOperand'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightOperand'),
   ],
 )
 final class BinaryExpressionImpl extends ExpressionImpl
@@ -3969,13 +3861,6 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return true;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
@@ -4089,9 +3974,9 @@ abstract final class BinaryOperatorInvocation implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftOperand'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightOperand'),
   ],
 )
 final class BinaryOperatorInvocationImpl extends ExpressionImpl
@@ -4218,13 +4103,6 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitBinaryOperatorInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -4411,13 +4289,6 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (members.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -4585,13 +4456,6 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlockEnumBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -4793,13 +4657,6 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(block, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'block'.");
@@ -4940,13 +4797,6 @@ final class BlockImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBlock(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -5091,13 +4941,6 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitBooleanLiteral(this, contextType: contextType);
   }
@@ -5236,13 +5079,6 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitBreakStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -5406,13 +5242,6 @@ final class CallInvocationImpl extends FunctionInvocationImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(receiver, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'receiver'.");
@@ -5567,7 +5396,6 @@ abstract final class CascadeExpression implements Expression {
       'target2',
       v1Name: 'target',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('sections'),
   ],
@@ -5664,13 +5492,6 @@ final class CascadeExpressionImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCascadeExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(target2, child);
-  }
 
   @generated
   @override
@@ -5783,7 +5604,7 @@ abstract final class CascadeIndexAssignmentTarget
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket', isSuper: true),
-    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('index', isSuper: true),
     GenerateNodeProperty('rightBracket', isSuper: true),
   ],
 )
@@ -5838,14 +5659,6 @@ final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCascadeIndexAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(index, child));
-    return true;
-  }
 
   @generated
   @override
@@ -5924,7 +5737,7 @@ abstract final class CascadeIndexExpression implements IndexExpression2 {}
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket', isSuper: true),
-    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('index', isSuper: true),
     GenerateNodeProperty('rightBracket', isSuper: true),
   ],
 )
@@ -5979,14 +5792,6 @@ final class CascadeIndexExpressionImpl extends IndexExpression2Impl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCascadeIndexExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(index, child));
-    return true;
-  }
 
   @generated
   @override
@@ -6136,13 +5941,6 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCascadeMethodInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -6315,13 +6113,6 @@ final class CascadePropertyAssignmentTargetImpl
       visitor.visitCascadePropertyAssignmentTarget(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -6418,13 +6209,6 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCascadePropertyExtraction(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -6564,13 +6348,6 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCascadeSection(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -6720,13 +6497,6 @@ final class CaseClauseImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCaseClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -6912,13 +6682,6 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   @override
   TypeImpl computePatternSchema(ResolverVisitor resolverVisitor) {
     return resolverVisitor.analyzeCastPatternSchema().unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -7262,13 +7025,6 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(exceptionType, oldNode)) {
       exceptionType = null;
@@ -7481,13 +7237,6 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCatchClauseParameter(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -7904,13 +7653,6 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitClassDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -8424,13 +8166,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(typeParameters, oldNode)) {
       typeParameters = null;
@@ -8726,13 +8461,6 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCombinatorName(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -9094,13 +8822,6 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
       visitor.visitCommentReferenceComponent(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -9228,13 +8949,6 @@ final class CommentReferenceImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCommentReference(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -9854,7 +9568,7 @@ base mixin CompoundAssignmentExpressionImpl
   childEntitiesOrder: [
     GenerateNodeProperty('target', isSuper: true),
     GenerateNodeProperty('operator', isSuper: true),
-    GenerateNodeProperty('value', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('value', isSuper: true),
   ],
 )
 final class CompoundAssignmentImpl extends AssignmentExpression2Impl
@@ -9964,13 +9678,6 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitCompoundAssignment(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(value, child);
-  }
 
   @generated
   @override
@@ -10103,21 +9810,18 @@ abstract final class ConditionalExpression implements Expression {
       'condition2',
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('question'),
     GenerateNodeProperty(
       'thenExpression2',
       v1Name: 'thenExpression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('colon'),
     GenerateNodeProperty(
       'elseExpression2',
       v1Name: 'elseExpression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -10251,13 +9955,6 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConditionalExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -10425,7 +10122,7 @@ abstract final class Configuration implements AstNode {
     GenerateNodeProperty('leftParenthesis'),
     GenerateNodeProperty('name'),
     GenerateNodeProperty('equalToken'),
-    GenerateNodeProperty('value', isInValueExpressionSlot: true),
+    GenerateNodeProperty('value'),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('uri'),
   ],
@@ -10547,13 +10244,6 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitConfiguration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(value, child);
-  }
 
   @generated
   @override
@@ -10729,7 +10419,6 @@ abstract final class ConstantPattern implements DartPattern {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -10813,14 +10502,6 @@ final class ConstantPatternImpl extends DartPatternImpl
     return resolverVisitor
         .analyzeConstantPatternSchema()
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
   }
 
   @generated
@@ -11291,13 +10972,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(parameters, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'parameters'.");
@@ -11504,7 +11178,6 @@ abstract final class ConstructorFieldInitializer
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -11624,14 +11297,6 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorFieldInitializer(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -11894,13 +11559,6 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -12180,13 +11838,6 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
@@ -12394,13 +12045,6 @@ final class ConstructorReference2Impl extends AstNodeImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(typeReference, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'typeReference'.");
@@ -12566,13 +12210,6 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _expression.computeConstantValue();
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
 
   @generated
   @override
@@ -12744,13 +12381,6 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorSelector(this);
 
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
   @DoNotGenerate(reason: 'Preserves V1 behavior')
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
@@ -12919,13 +12549,6 @@ final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitConstructorTearOff(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -13162,13 +12785,6 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(importPrefix, oldNode)) {
       importPrefix = null;
@@ -13366,13 +12982,6 @@ final class ContinueStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitContinueStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -13699,13 +13308,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(type, oldNode)) {
       type = null;
@@ -13917,13 +13519,6 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(type, oldNode)) {
       type = null;
@@ -14125,13 +13720,6 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (formalParameters.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -14225,7 +13813,7 @@ abstract final class DirectAssignment implements AssignmentExpression2 {}
   childEntitiesOrder: [
     GenerateNodeProperty('target', isSuper: true),
     GenerateNodeProperty('operator', isSuper: true),
-    GenerateNodeProperty('value', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('value', isSuper: true),
   ],
 )
 final class DirectAssignmentImpl extends AssignmentExpression2Impl
@@ -14310,13 +13898,6 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDirectAssignment(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(value, child);
-  }
 
   @generated
   @override
@@ -14478,7 +14059,6 @@ abstract final class DoStatement implements Statement {
       'condition2',
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('semicolon'),
@@ -14596,13 +14176,6 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDoStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(condition2, child);
-  }
 
   @generated
   @override
@@ -14911,13 +14484,6 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(typeArguments, oldNode)) {
       typeArguments = null;
@@ -15176,13 +14742,6 @@ final class DotShorthandConstructorInvocationImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _v1ProjectionOrigin.computeConstantValue();
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
 
   @generated
   @override
@@ -15491,10 +15050,6 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
         null => super.computeConstantValue(),
       };
 
-  @DoNotGenerate(reason: 'V1 projection children use V1 parent pointers')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => true;
-
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -15651,13 +15206,6 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitDotShorthandMethodInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -15849,13 +15397,6 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitDotShorthandNameExpression(this, contextType: contextType);
   }
@@ -16032,10 +15573,6 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
         null => super.computeConstantValue(),
       };
 
-  @DoNotGenerate(reason: 'V1 projection children are not value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => false;
-
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -16146,13 +15683,6 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDottedName(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -16248,13 +15778,6 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitDoubleLiteral(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -16425,13 +15948,6 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyClassBody(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -16518,13 +16034,6 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyEnumBody(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -16608,13 +16117,6 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyFunctionBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @override
   TypeImpl resolve(ResolverVisitor resolver, TypeImpl? imposedType) =>
@@ -16703,13 +16205,6 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -16879,13 +16374,6 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitEnumConstantArguments(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -17129,13 +16617,6 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitEnumConstantDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -17396,13 +16877,6 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEnumDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -17710,13 +17184,6 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(uri, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'uri'.");
@@ -17980,7 +17447,6 @@ abstract final class ExpressionFunctionBody implements FunctionBody {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('semicolon'),
   ],
@@ -18095,14 +17561,6 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExpressionFunctionBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -18631,7 +18089,6 @@ abstract final class ExpressionStatement implements Statement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('semicolon'),
   ],
@@ -18712,14 +18169,6 @@ final class ExpressionStatementImpl extends StatementImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExpressionStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -18870,13 +18319,6 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitExtendsClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -19125,13 +18567,6 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(typeParameters, oldNode)) {
       typeParameters = null;
@@ -19344,13 +18779,6 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitExtensionOnClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -19662,13 +19090,6 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(importPrefix, oldNode)) {
       importPrefix = null;
@@ -19870,13 +19291,6 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) {
     throw StateError('ExtensionOverride is not in the V2 AST view.');
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
   }
 
   @generated
@@ -20135,13 +19549,6 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitExtensionTypeDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -20450,13 +19857,6 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(fields, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'fields'.");
@@ -20677,13 +20077,6 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFieldFormalParameter(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -20962,7 +20355,6 @@ abstract final class ForEachPartsWithDeclaration implements ForEachParts {
       v1Name: 'iterable',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -21027,13 +20419,6 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForEachPartsWithDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(iterable2, child);
-  }
 
   @generated
   @override
@@ -21156,7 +20541,6 @@ abstract final class ForEachPartsWithIdentifier implements ForEachParts {
       v1Name: 'iterable',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -21234,14 +20618,6 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForEachPartsWithIdentifier(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(iterable2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -21349,7 +20725,6 @@ abstract final class ForEachPartsWithPattern implements ForEachParts {
       v1Name: 'iterable',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -21443,13 +20818,6 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForEachPartsWithPattern(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(iterable2, child);
-  }
 
   @generated
   @override
@@ -21590,7 +20958,6 @@ abstract final class ForElement
       'body2',
       v1Name: 'body',
       v1Projection: V1Projection.collectionElement,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -21706,13 +21073,6 @@ final class ForElementImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitForElement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(body2, child);
-  }
 
   @generated
   @override
@@ -22003,7 +21363,6 @@ abstract final class FormalParameterDefaultClause implements AstNode {
       'value2',
       v1Name: 'value',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -22078,14 +21437,6 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFormalParameterDefaultClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(value2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -22651,13 +22002,6 @@ final class FormalParameterListImpl extends AstNodeImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (requiredPositionalFormalParameters.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -22899,7 +22243,6 @@ abstract final class ForPartsWithDeclarations implements ForParts {
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
     GenerateNodeProperty(
@@ -22907,7 +22250,6 @@ abstract final class ForPartsWithDeclarations implements ForParts {
       v1Name: 'updaters',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -22981,13 +22323,6 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForPartsWithDeclarations(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return !identical(variables, child);
-  }
 
   @generated
   @override
@@ -23137,7 +22472,6 @@ abstract final class ForPartsWithExpression implements ForParts {
       'initialization2',
       v1Name: 'initialization',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('leftSeparator', isSuper: true),
     GenerateNodeProperty(
@@ -23145,7 +22479,6 @@ abstract final class ForPartsWithExpression implements ForParts {
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
     GenerateNodeProperty(
@@ -23153,7 +22486,6 @@ abstract final class ForPartsWithExpression implements ForParts {
       v1Name: 'updaters',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -23241,13 +22573,6 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForPartsWithExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -23399,7 +22724,6 @@ abstract final class ForPartsWithPattern implements ForParts {
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightSeparator', isSuper: true),
     GenerateNodeProperty(
@@ -23407,7 +22731,6 @@ abstract final class ForPartsWithPattern implements ForParts {
       v1Name: 'updaters',
       v1Projection: V1Projection.expression,
       isSuper: true,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -23480,13 +22803,6 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitForPartsWithPattern(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return !identical(variables, child);
-  }
 
   @generated
   @override
@@ -23736,13 +23052,6 @@ final class ForStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitForStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -24046,7 +23355,7 @@ abstract final class FunctionDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('returnType'),
     GenerateNodeProperty('propertyKeyword'),
     GenerateNodeProperty('name'),
-    GenerateNodeProperty('functionExpression', isInValueExpressionSlot: true),
+    GenerateNodeProperty('functionExpression'),
   ],
 )
 final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
@@ -24232,16 +23541,6 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
       throw StateError('FunctionDeclaration is not in the V2 AST view.');
     }
     return visitor.visitFunctionDeclaration(this);
-  }
-
-  @DoNotGenerate(reason: 'V1 projection children are not value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    if (_v1ProjectionOrigin != null) {
-      return false;
-    }
-    assert(identical(child.parent2, this));
-    return identical(functionExpression, child);
   }
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -24442,13 +23741,6 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFunctionDeclarationStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -24725,17 +24017,6 @@ final class FunctionExpressionImpl extends ExpressionImpl
       throw StateError('FunctionExpression is not in the V2 AST view.');
     }
     return visitor.visitFunctionExpression(this);
-  }
-
-  @DoNotGenerate(reason: 'V1 projection objects use the V1 parent')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    if (_v1ProjectionOrigin != null) {
-      assert(identical(child.parent, this));
-    } else {
-      assert(identical(child.parent2, this));
-    }
-    return false;
   }
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -25052,13 +24333,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
@@ -25156,7 +24430,7 @@ abstract final class FunctionInstantiation implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
     GenerateNodeProperty('typeArguments'),
   ],
 )
@@ -25251,13 +24525,6 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitFunctionInstantiation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(operand, child);
-  }
 
   @generated
   @override
@@ -25688,10 +24955,6 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _v1ProjectionOrigin.computeConstantValue();
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => false;
-
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -25896,13 +25159,6 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitFunctionTypeAlias(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -26153,13 +25409,6 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(typeParameters, oldNode)) {
       typeParameters = null;
@@ -26358,9 +25607,6 @@ class GenerateNodeProperty {
   /// specified (because it can be inferred from the public API declaration).
   final Type? type;
 
-  /// Whether the child is in a ValueExpression slot.
-  final bool isInValueExpressionSlot;
-
   const GenerateNodeProperty(
     this.name, {
     this.v1Name,
@@ -26372,7 +25618,6 @@ class GenerateNodeProperty {
     this.superNullAssertOverride = false,
     this.tokenGroupId,
     this.type,
-    this.isInValueExpressionSlot = false,
   });
 }
 
@@ -26554,13 +25799,6 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitGenericFunctionType(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -26831,13 +26069,6 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGenericTypeAlias(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -27119,13 +26350,6 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(returnType, oldNode)) {
       returnType = null;
@@ -27343,13 +26567,6 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(pattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'pattern'.");
@@ -27534,13 +26751,6 @@ final class HideCombinatorImpl extends CombinatorImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (names.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -27694,7 +26904,6 @@ abstract final class IfElement implements CollectionElement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('caseClause'),
     GenerateNodeProperty('rightParenthesis'),
@@ -27702,14 +26911,12 @@ abstract final class IfElement implements CollectionElement {
       'thenElement2',
       v1Name: 'thenElement',
       v1Projection: V1Projection.collectionElement,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('elseKeyword'),
     GenerateNodeProperty(
       'elseElement2',
       v1Name: 'elseElement',
       v1Projection: V1Projection.collectionElement,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -27895,15 +27102,6 @@ final class IfElementImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfElement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child) ||
-        identical(thenElement2, child) ||
-        identical(elseElement2, child);
-  }
 
   @generated
   @override
@@ -28114,7 +27312,7 @@ abstract final class IfNullAssignment implements AssignmentExpression2 {}
   childEntitiesOrder: [
     GenerateNodeProperty('target', isSuper: true),
     GenerateNodeProperty('operator', isSuper: true),
-    GenerateNodeProperty('value', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('value', isSuper: true),
   ],
 )
 final class IfNullAssignmentImpl extends AssignmentExpression2Impl
@@ -28199,13 +27397,6 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfNullAssignment(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(value, child);
-  }
 
   @generated
   @override
@@ -28301,9 +27492,9 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftOperand'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightOperand'),
   ],
 )
 final class IfNullImpl extends ExpressionImpl implements IfNull {
@@ -28398,13 +27589,6 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfNull(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -28546,7 +27730,6 @@ abstract final class IfStatement implements Statement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('caseClause'),
     GenerateNodeProperty('rightParenthesis'),
@@ -28717,13 +27900,6 @@ final class IfStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIfStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -28947,13 +28123,6 @@ final class ImplementsClauseImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitImplementsClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -29181,10 +28350,6 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _v1ProjectionOrigin.computeConstantValue();
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => false;
-
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -29263,7 +28428,7 @@ abstract final class ImplicitCallTearOff implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
     GenerateNodeProperty('element'),
   ],
 )
@@ -29353,14 +28518,6 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImplicitCallTearOff(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand, child));
-    return true;
-  }
 
   @generated
   @override
@@ -29455,7 +28612,7 @@ abstract final class ImplicitFunctionInstantiation implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
     GenerateNodeProperty('typeArgumentTypes', type: List<TypeImpl>),
   ],
 )
@@ -29550,14 +28707,6 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImplicitFunctionInstantiation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand, child));
-    return true;
-  }
 
   @generated
   @override
@@ -29849,13 +28998,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitImportDirective(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -30162,13 +29304,6 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(importPrefix, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'importPrefix'.");
@@ -30338,13 +29473,6 @@ final class ImportPrefixedFunctionInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImportPrefixedFunctionInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -30591,13 +29719,6 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImportPrefixedNameExpression(this);
 
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
   @override
   void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
     super.recordStaticType(type, resolver: resolver);
@@ -30758,13 +29879,6 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImportPrefixReference(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -31018,13 +30132,6 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitIncrementOrDecrementExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -31400,11 +30507,11 @@ sealed class IndexExpression2Impl extends ExpressionImpl
   api: AstNodeApi.v1,
   generateConstructor: false,
   childEntitiesOrder: [
-    GenerateNodeProperty('target', isInValueExpressionSlot: true),
+    GenerateNodeProperty('target'),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('question'),
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('index', isInValueExpressionSlot: true),
+    GenerateNodeProperty('index'),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -31683,10 +30790,6 @@ final class IndexExpressionImpl extends ExpressionImpl
     return _v1ProjectionOrigin is IndexAssignmentTargetImpl;
   }
 
-  @DoNotGenerate(reason: 'V1 projection children are value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => true;
-
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -31957,13 +31060,6 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
@@ -32183,13 +31279,6 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIntegerLiteral(this);
 
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
   @override
   double? parseDoubleValue({required bool negated}) {
     var value = _parseDoubleValue(_lexemeWithoutSeparators);
@@ -32326,7 +31415,6 @@ abstract final class InterpolationExpression implements InterpolationElement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightBracket'),
   ],
@@ -32411,14 +31499,6 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInterpolationExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -32588,13 +31668,6 @@ final class InterpolationStringImpl extends InterpolationElementImpl
       visitor.visitInterpolationString(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -32672,9 +31745,7 @@ abstract final class InvalidExpressionAssignmentTarget
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
-  ],
+  childEntitiesOrder: [GenerateNodeProperty('expression')],
 )
 final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
     implements InvalidExpressionAssignmentTarget {
@@ -32749,14 +31820,6 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInvalidExpressionAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression, child));
-    return true;
-  }
 
   @generated
   @override
@@ -32917,13 +31980,6 @@ final class InvalidExtensionOverrideAssignmentTargetImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(extensionOverride, oldNode)) {
       throw UnsupportedError(
@@ -33075,13 +32131,6 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInvalidExtensionOverrideExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -33398,13 +32447,6 @@ final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(superReference, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'superReference'.");
@@ -33545,13 +32587,6 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitInvalidSuperExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -33776,7 +32811,6 @@ abstract final class IsExpression implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('isOperator'),
     GenerateNodeProperty('notOperator'),
@@ -33877,13 +32911,6 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitIsExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -34091,13 +33118,6 @@ final class LabeledStatementImpl extends StatementImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (labels.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -34248,13 +33268,6 @@ final class LabelImpl extends AstNodeImpl implements Label {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLabel(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -34336,13 +33349,6 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLabelReference(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -34477,13 +33483,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(name, oldNode)) {
       name = null;
@@ -34602,7 +33601,6 @@ abstract final class ListLiteral implements TypedLiteral {
       v1Name: 'elements',
       v1Projection: V1Projection.collectionElement,
       isNodeListFinal: false,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightBracket'),
   ],
@@ -34696,13 +33694,6 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
         ...moreElements,
       ], V1Projection.toV1CollectionElement);
     AstNodeImpl.linkNodeTokens(this);
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return !identical(typeArguments, child);
   }
 
   @generated
@@ -34949,13 +33940,6 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(typeArguments, oldNode)) {
       typeArguments = null;
@@ -35123,9 +34107,9 @@ abstract final class LogicalAnd implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftOperand'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightOperand'),
   ],
 )
 final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
@@ -35220,13 +34204,6 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalAnd(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -35432,13 +34409,6 @@ final class LogicalAndPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(leftOperand, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'leftOperand'.");
@@ -35563,7 +34533,7 @@ abstract final class LogicalNot implements Expression {
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
   ],
 )
 final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
@@ -35639,14 +34609,6 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalNot(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand, child));
-    return true;
-  }
 
   @generated
   @override
@@ -35742,9 +34704,9 @@ abstract final class LogicalOr implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('leftOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('leftOperand'),
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('rightOperand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('rightOperand'),
   ],
 )
 final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
@@ -35839,13 +34801,6 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalOr(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -36051,13 +35006,6 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(leftOperand, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'leftOperand'.");
@@ -36205,7 +35153,6 @@ abstract final class MapLiteralEntry implements CollectionElement {
       'key2',
       v1Name: 'key',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('separator'),
     GenerateNodeProperty('valueQuestion'),
@@ -36213,7 +35160,6 @@ abstract final class MapLiteralEntry implements CollectionElement {
       'value2',
       v1Name: 'value',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -36327,13 +35273,6 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMapLiteralEntry(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -36492,7 +35431,6 @@ abstract final class MapPatternEntry implements AstNode, MapPatternElement {
       'key2',
       v1Name: 'key',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('separator'),
     GenerateNodeProperty('value'),
@@ -36582,13 +35520,6 @@ final class MapPatternEntryImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMapPatternEntry(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(key2, child);
-  }
 
   @generated
   @override
@@ -36790,13 +35721,6 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
           elements: elements,
         )
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -37209,13 +36133,6 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(returnType, oldNode)) {
       returnType = null;
@@ -37557,13 +36474,6 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMethodDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -38158,12 +37068,6 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
         null => super.computeConstantValue(),
       };
 
-  @DoNotGenerate(reason: 'V1 projection children are value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    return true;
-  }
-
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -38481,13 +37385,6 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(typeParameters, oldNode)) {
       typeParameters = null;
@@ -38726,13 +37623,6 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (superclassConstraints.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -38836,7 +37726,6 @@ abstract final class NamedArgument implements Argument {
       'argumentExpression2',
       v1Name: 'argumentExpression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -38916,14 +37805,6 @@ final class NamedArgumentImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNamedArgument(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(argumentExpression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -39325,13 +38206,6 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(importPrefix, oldNode)) {
       importPrefix = null;
@@ -39643,13 +38517,6 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(typeParameters, oldNode)) {
       typeParameters = null;
@@ -39807,13 +38674,6 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNativeClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -39986,13 +38846,6 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitNativeFunctionBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -40340,7 +39193,7 @@ abstract final class NullAssertionExpression implements Expression {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
     GenerateNodeProperty('operator'),
   ],
 )
@@ -40421,14 +39274,6 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitNullAssertionExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand, child));
-    return true;
-  }
 
   @generated
   @override
@@ -40599,13 +39444,6 @@ final class NullAssertPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(pattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'pattern'.");
@@ -40714,7 +39552,6 @@ abstract final class NullAwareElement implements CollectionElement {
       'value2',
       v1Name: 'value',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -40785,14 +39622,6 @@ final class NullAwareElementImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNullAwareElement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(value2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -40969,13 +39798,6 @@ final class NullCheckPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(pattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'pattern'.");
@@ -41112,13 +39934,6 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNullLiteral(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -41265,13 +40080,6 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
     return resolverVisitor
         .analyzeObjectPatternSchema(SharedTypeView(type.typeOrThrow))
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -41579,13 +40387,6 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(returnType, oldNode)) {
       returnType = null;
@@ -41725,7 +40526,6 @@ abstract final class ParenthesizedExpression implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
   ],
@@ -41835,14 +40635,6 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParenthesizedExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -42038,13 +40830,6 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(pattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'pattern'.");
@@ -42220,13 +41005,6 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitParsedCascadeName(this);
 
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
@@ -42276,9 +41054,7 @@ abstract final class ParsedDotShorthandExpression implements Expression {
 
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
-  childEntitiesOrder: [
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
-  ],
+  childEntitiesOrder: [GenerateNodeProperty('expression')],
 )
 final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
     implements ParsedDotShorthandExpression {
@@ -42346,14 +41122,6 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParsedDotShorthandExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression, child));
-    return true;
-  }
 
   @generated
   @override
@@ -42502,13 +41270,6 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParsedDotShorthandName(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
@@ -42715,13 +41476,6 @@ final class ParsedNameAccessAssignmentTargetImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(operand, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'operand'.");
@@ -42873,13 +41627,6 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitParsedNameAccess(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -43048,13 +41795,6 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(operand, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'operand'.");
@@ -43219,13 +41959,6 @@ final class ParsedUnqualifiedNameAssignmentTargetImpl
       visitor.visitParsedUnqualifiedNameAssignmentTarget(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -43322,13 +42055,6 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParsedUnqualifiedName(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
@@ -43494,13 +42220,6 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitParsedValueArguments(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -43676,13 +42395,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPartDirective(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -43894,13 +42606,6 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(uri, oldNode)) {
       uri = null;
@@ -44042,7 +42747,6 @@ abstract final class PatternAssignment implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -44140,13 +42844,6 @@ final class PatternAssignmentImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPatternAssignment(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -44368,13 +43065,6 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(name, oldNode)) {
       name = null;
@@ -44543,13 +43233,6 @@ final class PatternFieldNameImpl extends AstNodeImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitPatternFieldName(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -44610,7 +43293,6 @@ abstract final class PatternVariableDeclaration implements AnnotatedNode {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -44725,13 +43407,6 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPatternVariableDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -44915,13 +43590,6 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPatternVariableDeclarationStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -45152,10 +43820,6 @@ final class PostfixExpressionImpl extends ExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _origin.computeConstantValue();
-
-  @DoNotGenerate(reason: 'The operand is not a value expression slot')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => false;
 
   @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
   @override
@@ -45399,13 +44063,6 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
@@ -45629,14 +44286,6 @@ final class PrefixExpressionImpl extends ExpressionImpl
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       _origin.computeConstantValue();
 
-  @DoNotGenerate(reason: 'The operand is a value expression slot')
-  @override
-  bool isInValueExpressionSlot(AstNode child) => switch (_origin) {
-    IncrementOrDecrementExpressionImpl() => false,
-    LogicalNotImpl() || UnaryOperatorInvocationImpl() => true,
-    _ => throw StateError('Unexpected PrefixExpression origin: $_origin'),
-  };
-
   @DoNotGenerate(reason: 'A V1 projection cannot be mutated')
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -45838,13 +44487,6 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPrimaryConstructorBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -46156,13 +44798,6 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(typeParameters, oldNode)) {
       typeParameters = null;
@@ -46355,13 +44990,6 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitPrimaryConstructorName(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -46712,12 +45340,6 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
         _ => super.computeConstantValue(),
       };
 
-  @DoNotGenerate(reason: 'V1 projection children are value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    return true;
-  }
-
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -46893,10 +45515,10 @@ abstract final class ReceiverIndexAssignmentTarget
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('receiver'),
     GenerateNodeProperty('question'),
     GenerateNodeProperty('leftBracket', isSuper: true),
-    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('index', isSuper: true),
     GenerateNodeProperty('rightBracket', isSuper: true),
   ],
 )
@@ -46978,13 +45600,6 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverIndexAssignmentTarget(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @generated
   @override
@@ -47091,10 +45706,10 @@ abstract final class ReceiverIndexExpression implements IndexExpression2 {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('receiver'),
     GenerateNodeProperty('question'),
     GenerateNodeProperty('leftBracket', isSuper: true),
-    GenerateNodeProperty('index', isSuper: true, isInValueExpressionSlot: true),
+    GenerateNodeProperty('index', isSuper: true),
     GenerateNodeProperty('rightBracket', isSuper: true),
   ],
 )
@@ -47172,13 +45787,6 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverIndexExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return true;
-  }
 
   @override
   void recordNullShortedType(TypeImpl type) {
@@ -47294,7 +45902,7 @@ abstract final class ReceiverMethodInvocation
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('receiver'),
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('name', isSuper: true),
     GenerateNodeProperty('typeArguments', isSuper: true),
@@ -47381,13 +45989,6 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverMethodInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(receiver, child);
-  }
 
   @generated
   @override
@@ -47518,7 +46119,7 @@ abstract final class ReceiverPropertyAssignmentTarget
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('receiver'),
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('name', isSuper: true),
   ],
@@ -47639,14 +46240,6 @@ final class ReceiverPropertyAssignmentTargetImpl
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverPropertyAssignmentTarget(this);
 
-  @DoNotGenerate(reason: 'Static qualifiers are not value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(receiver, child));
-    return receiver is ExpressionImpl;
-  }
-
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
@@ -47736,7 +46329,7 @@ abstract final class ReceiverPropertyExtraction implements PropertyExtraction {
 @GenerateNodeImpl(
   api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('receiver', isInValueExpressionSlot: true),
+    GenerateNodeProperty('receiver'),
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('name', isSuper: true),
   ],
@@ -47851,14 +46444,6 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitReceiverPropertyExtraction(this);
-
-  @DoNotGenerate(reason: 'Static qualifiers are not value expressions')
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(receiver, child));
-    return receiver is ExpressionImpl;
-  }
 
   @generated
   @override
@@ -48006,7 +46591,6 @@ base mixin RecordLiteralFieldImpl on AstNodeImpl implements RecordLiteralField {
       'fields2',
       v1Name: 'fields',
       v1Projection: V1Projection.recordLiteralField,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
   ],
@@ -48093,14 +46677,6 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitRecordLiteral(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(fields2.contains(child));
-    return true;
-  }
 
   @generated
   @override
@@ -48210,7 +46786,6 @@ sealed class RecordLiteralNamedField implements RecordLiteralField {
       'fieldExpression2',
       v1Name: 'fieldExpression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -48292,14 +46867,6 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordLiteralNamedField(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(fieldExpression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -48471,13 +47038,6 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
           ),
         )
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
   }
 
   @generated
@@ -48781,13 +47341,6 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (positionalFields.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -48959,13 +47512,6 @@ final class RecordTypeAnnotationNamedFieldImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordTypeAnnotationNamedField(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -49147,13 +47693,6 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (fields.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -49297,13 +47836,6 @@ final class RecordTypeAnnotationPositionalFieldImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRecordTypeAnnotationPositionalField(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -49532,13 +48064,6 @@ final class RedirectingConstructorInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitRedirectingConstructorInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -49790,13 +48315,6 @@ final class RegularFormalParameterImpl extends FormalParameterImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(type, oldNode)) {
       type = null;
@@ -49969,7 +48487,6 @@ abstract final class RelationalPattern implements DartPattern {
       'operand2',
       v1Name: 'operand',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -50053,14 +48570,6 @@ final class RelationalPatternImpl extends DartPatternImpl
     return resolverVisitor
         .analyzeRelationalPatternSchema()
         .unwrapTypeSchemaView();
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand2, child));
-    return true;
   }
 
   @generated
@@ -50239,13 +48748,6 @@ final class RestPatternElementImpl extends AstNodeImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(pattern, oldNode)) {
       pattern = null;
@@ -50380,13 +48882,6 @@ final class RethrowExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitRethrowExpression(this, contextType: contextType);
   }
@@ -50448,7 +48943,6 @@ abstract final class ReturnStatement implements Statement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('semicolon'),
   ],
@@ -50530,14 +49024,6 @@ final class ReturnStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitReturnStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -50671,13 +49157,6 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitScriptTag(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {}
@@ -50780,7 +49259,6 @@ abstract final class SetOrMapLiteral implements TypedLiteral {
       'elements2',
       v1Name: 'elements',
       v1Projection: V1Projection.collectionElement,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightBracket'),
   ],
@@ -50899,13 +49377,6 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 
   void becomeUnresolved() {
     _resolvedKind = _SetOrMapKind.unresolved;
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return !identical(typeArguments, child);
   }
 
   @generated
@@ -51208,13 +49679,6 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(returnType, oldNode)) {
       returnType = null;
@@ -51433,13 +49897,6 @@ final class ShowCombinatorImpl extends CombinatorImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitShowCombinator(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -51776,13 +50233,6 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     throw UnsupportedError('A V1 projection cannot be mutated.');
   }
@@ -51934,13 +50384,6 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSimpleStringLiteral(this, contextType: contextType);
   }
@@ -52037,7 +50480,6 @@ abstract final class SpreadElement implements CollectionElement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -52114,14 +50556,6 @@ final class SpreadElementImpl extends AstNodeImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSpreadElement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -52369,13 +50803,6 @@ final class StaticQualifierImpl extends NamedReceiverImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(importPrefix, oldNode)) {
       importPrefix = null;
@@ -52572,13 +50999,6 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitStringInterpolation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -52922,13 +51342,6 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(constructorSelector, oldNode)) {
       constructorSelector = null;
@@ -53095,13 +51508,6 @@ final class SuperExpressionImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) {
     throw StateError('SuperExpression is not in the V2 AST view.');
-  }
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
   }
 
   @generated
@@ -53295,13 +51701,6 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitSuperFormalParameter(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -53531,13 +51930,6 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSuperReference(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -53590,7 +51982,6 @@ abstract final class SwitchCase implements SwitchMember {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('colon', isSuper: true),
     GenerateNodeProperty('statements', isSuper: true),
@@ -53674,13 +52065,6 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchCase(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -53873,13 +52257,6 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (labels.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -54038,7 +52415,6 @@ abstract final class SwitchExpressionCase implements AstNode {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -54130,13 +52506,6 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitSwitchExpressionCase(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -54238,7 +52607,6 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('leftBracket'),
@@ -54353,13 +52721,6 @@ final class SwitchExpressionImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -54633,13 +52994,6 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (labels.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -54811,7 +53165,6 @@ class SwitchStatementCaseGroup {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('leftBracket'),
@@ -54926,13 +53279,6 @@ final class SwitchStatementImpl extends StatementImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitSwitchStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(expression2, child);
-  }
 
   @generated
   @override
@@ -55116,13 +53462,6 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitSymbolLiteral(this, contextType: contextType);
   }
@@ -55230,13 +53569,6 @@ final class ThisExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     resolver.visitThisExpression(this, contextType: contextType);
   }
@@ -55294,7 +53626,6 @@ abstract final class ThrowExpression implements Expression {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -55369,14 +53700,6 @@ final class ThrowExpressionImpl extends ExpressionImpl
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitThrowExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -55697,13 +54020,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(returnType, oldNode)) {
       returnType = null;
@@ -55981,13 +54297,6 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(variables, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'variables'.");
@@ -56202,13 +54511,6 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitTryStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -56496,13 +54798,6 @@ final class TypeArgumentListImpl extends AstNodeImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (arguments.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -56742,13 +55037,6 @@ final class TypeLiteralImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(type, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'type'.");
@@ -56947,13 +55235,6 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(bound, oldNode)) {
       bound = null;
@@ -57124,13 +55405,6 @@ final class TypeParameterListImpl extends AstNodeImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (typeParameters.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -57239,7 +55513,7 @@ abstract final class UnaryOperatorInvocation implements Expression {
   api: AstNodeApi.v2,
   childEntitiesOrder: [
     GenerateNodeProperty('operator'),
-    GenerateNodeProperty('operand', isInValueExpressionSlot: true),
+    GenerateNodeProperty('operand'),
   ],
 )
 final class UnaryOperatorInvocationImpl extends ExpressionImpl
@@ -57333,14 +55607,6 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitUnaryOperatorInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(operand, child));
-    return true;
-  }
 
   @generated
   @override
@@ -57494,13 +55760,6 @@ final class UnqualifiedFunctionInvocationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitUnqualifiedFunctionInvocation(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @generated
   @override
@@ -57696,13 +55955,6 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
       visitor.visitUnqualifiedNameAssignmentTarget(this);
 
   @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
   @override
   void visitChildren(AstVisitor visitor) {
@@ -57832,13 +56084,6 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitUnqualifiedNameExpression(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
 
   @override
   void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
@@ -58447,7 +56692,6 @@ abstract final class VariableDeclaration implements Declaration {
       'initializer2',
       v1Name: 'initializer',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -58585,14 +56829,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitVariableDeclaration(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(initializer2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -58848,13 +57084,6 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(type, oldNode)) {
       type = null;
@@ -59049,13 +57278,6 @@ final class VariableDeclarationStatementImpl extends StatementImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(variables, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'variables'.");
@@ -59219,7 +57441,6 @@ abstract final class WhenClause implements AstNode {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
   ],
 )
@@ -59290,14 +57511,6 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitWhenClause(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
@@ -59404,7 +57617,6 @@ abstract final class WhileStatement implements Statement {
       'condition2',
       v1Name: 'condition',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('rightParenthesis'),
     GenerateNodeProperty('body'),
@@ -59508,13 +57720,6 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitWhileStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return identical(condition2, child);
-  }
 
   @generated
   @override
@@ -59729,13 +57934,6 @@ final class WildcardPatternImpl extends DartPatternImpl
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (identical(type, oldNode)) {
       type = null;
@@ -59912,13 +58110,6 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
 
   @generated
   @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    return false;
-  }
-
-  @generated
-  @override
   void removeChild(AstNodeImpl oldNode) {
     if (mixinTypes.containsChild(oldNode)) {
       throw UnsupportedError(
@@ -60050,7 +58241,6 @@ abstract final class YieldStatement implements Statement {
       'expression2',
       v1Name: 'expression',
       v1Projection: V1Projection.expression,
-      isInValueExpressionSlot: true,
     ),
     GenerateNodeProperty('semicolon'),
   ],
@@ -60136,14 +58326,6 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitYieldStatement(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent2, this));
-    assert(identical(expression2, child));
-    return true;
-  }
 
   @generated
   @override
