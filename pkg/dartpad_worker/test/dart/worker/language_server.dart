@@ -425,4 +425,56 @@ void main() {
       }
     },
   );
+
+  testDartWorkspace('two language servers in same workspace', (ws) async {
+    final ls1 = await ws.startLanguageServer();
+    final ls2 = await ws.startLanguageServer();
+    try {
+      final lsp1 = Peer.withoutJson(ls1.languageServerChannel);
+      unawaited(lsp1.listen());
+      final lsp2 = Peer.withoutJson(ls2.languageServerChannel);
+      unawaited(lsp2.listen());
+
+      for (final lsp in [lsp1, lsp2]) {
+        await lsp.sendRequest('initialize', {
+          'processId': null,
+          'rootUri': ws.workspaceFolder.toString(),
+          'capabilities': {
+            'textDocument': {
+              'hover': {
+                'contentFormat': ['plaintext'],
+              },
+            },
+          },
+        });
+        lsp.sendNotification('initialized', {});
+      }
+
+      final fileUri = ws.workspaceFolder.resolve('main.dart');
+      const code = 'void main() { print("hello"); }';
+      await ws.writeFileFromText('main.dart', code);
+
+      for (final lsp in [lsp1, lsp2]) {
+        lsp.sendNotification('textDocument/didOpen', {
+          'textDocument': {
+            'uri': fileUri.toString(),
+            'languageId': 'dart',
+            'version': 1,
+            'text': code,
+          },
+        });
+
+        final hover = await lsp.sendRequest('textDocument/hover', {
+          'textDocument': {'uri': fileUri.toString()},
+          'position': {'line': 0, 'character': 15},
+        });
+        check(hover).isA<Map>()['contents'].isA<Map>()['value'].isA<String>()
+          ..contains('print')
+          ..contains('void');
+      }
+    } finally {
+      await ls1.stop();
+      await ls2.stop();
+    }
+  });
 }

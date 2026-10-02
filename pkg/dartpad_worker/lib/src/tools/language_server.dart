@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/correction/fix_internal.dart'
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:dartpad/src/dartpad_config.dart';
 import 'package:linter/src/rules.dart' as linter;
@@ -37,12 +38,13 @@ class LanguageServer {
   LanguageServer({
     required ResourceProvider resourceProvider,
     required DartPadConfig config,
+    required ByteStore byteStore,
   }) {
     linter.registerLintRules();
     registerBuiltInAssistGenerators();
     registerBuiltInFixGenerators();
 
-    _server = lsp.LspAnalysisServer(
+    _server = _LspAnalysisServer(
       _LspServerCommunicationChannel(_input.stream, _output.sink),
       resourceProvider,
       a.AnalysisServerOptions(),
@@ -55,6 +57,7 @@ class LanguageServer {
       processRunner: null,
       diagnosticServer: null,
       detachableFileSystemManager: null,
+      byteStore: byteStore,
     );
     _server.exited.whenComplete(() {
       if (!_closed.isCompleted) {
@@ -79,6 +82,29 @@ class LanguageServer {
   Stream<Map<String, Object?>> get messages => _output.stream;
 
   Future<void> handle(Map<String, Object?> m) async => _input.add(m);
+}
+
+final class _LspAnalysisServer extends lsp.LspAnalysisServer {
+  final ByteStore _byteStore;
+
+  _LspAnalysisServer(
+    super.channel,
+    super.baseResourceProvider,
+    super.options,
+    super.sdkManager,
+    super.analyticsManager,
+    super.crashReportingAttachmentsBuilder,
+    super.instrumentationService,
+    super.sessionLogger, {
+    super.httpClient,
+    super.processRunner,
+    super.diagnosticServer,
+    super.detachableFileSystemManager,
+    required ByteStore byteStore,
+  }) : _byteStore = byteStore;
+
+  @override
+  ByteStore createByteStore(ResourceProvider resourceProvider) => _byteStore;
 }
 
 final class _LspServerCommunicationChannel

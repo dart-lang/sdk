@@ -9,6 +9,7 @@ import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:async/async.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:path/path.dart' as p;
@@ -26,6 +27,10 @@ import 'util/parameters_ext.dart';
 final class Worker {
   final ResourceProvider _rp;
   final DartPadConfig _config;
+  final _analysisCache = MemoryCachingByteStore(
+    NullByteStore(),
+    128 * 1024 * 1024,
+  );
   int _nextLanguageServerId = 1;
   int _nextWorkspaceId = 1;
   int _nextWatcherId = 1;
@@ -417,6 +422,7 @@ class _Workspace {
     final ls = _languageServers[languageServerId] = LanguageServer(
       resourceProvider: _rp,
       config: _worker._config,
+      byteStore: _worker._analysisCache,
     );
     ls.messages.listen((m) {
       _session._rpc.sendNotification('workspace/languageServer/message', {
