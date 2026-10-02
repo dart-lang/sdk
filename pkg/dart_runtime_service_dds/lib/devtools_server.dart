@@ -325,13 +325,6 @@ final class DevToolsServer implements drs.DevToolsServer {
 
     final buildDir = customDevToolsPath ?? _getDevToolsAssetPath().toFilePath();
 
-    handler ??= await drs.defaultHandler(
-      buildDir: buildDir,
-      clientManager: clientManager,
-      dtd: dtdInfo,
-      devtoolsExtensionsManager: ExtensionsManager(),
-    );
-
     HttpServer? server;
     SocketException? ex;
     while (server == null && numPortsToTry >= 0) {
@@ -355,6 +348,19 @@ final class DevToolsServer implements drs.DevToolsServer {
 
     // Type promote server.
     server!;
+
+    // Built after binding so the Host and Origin checks in [drs.defaultHandler]
+    // can accept this server's own address, which is only known once a port has
+    // actually been assigned.
+    final serverUri = Uri(scheme: 'http', host: hostname, port: server.port);
+
+    handler ??= await drs.defaultHandler(
+      buildDir: buildDir,
+      clientManager: clientManager,
+      dtd: dtdInfo,
+      devtoolsExtensionsManager: ExtensionsManager(),
+      serverUri: serverUri,
+    );
 
     if (allowEmbedding) {
       server.defaultResponseHeaders.remove('x-frame-options', 'SAMEORIGIN');
