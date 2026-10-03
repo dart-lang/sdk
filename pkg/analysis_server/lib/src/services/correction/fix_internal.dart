@@ -322,7 +322,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.avoidUnusedConstructorParameters: [RemoveUnusedParameter.new],
   diag.avoidUnnecessaryContainers: [FlutterRemoveWidget.new],
   diag.avoidVoidAsync: [ReplaceReturnTypeFuture.new],
-  diag.awaitOnlyFutures: [RemoveKeyword.awaitKeyword],
+  diag.awaitOnlyFutures: [RemoveKeyword.awaitOnlyFutures],
   diag.cascadeInvocations: [ConvertToCascade.new],
   diag.castNullableToNonNullable: [AddNullCheck.withoutAssignabilityCheck],
   diag.combinatorsOrdering: [SortCombinators.new],
