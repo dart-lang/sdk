@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 /// A computer for [CompilationUnit] outline.
@@ -131,7 +132,7 @@ class DartUnitOutlineComputer {
       ElementKind.CLASS,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(node.metadata),
         isAbstract: node.abstractKeyword != null,
       ),
@@ -148,7 +149,7 @@ class DartUnitOutlineComputer {
       ElementKind.CLASS_TYPE_ALIAS,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(node.metadata),
         isAbstract: node.abstractKeyword != null,
       ),
@@ -167,7 +168,7 @@ class DartUnitOutlineComputer {
     var constructorNameToken = constructor?.constructorName?.name;
     var isPrivate = false;
     if (constructorNameToken != null) {
-      isPrivate = Identifier.isPrivateName(constructorNameToken.lexeme);
+      isPrivate = constructorNameToken.lexeme.isPrivateName;
     }
     var element = Element(
       ElementKind.CONSTRUCTOR,
@@ -200,7 +201,7 @@ class DartUnitOutlineComputer {
     var isPrivate = false;
     if (constructorNameToken != null) {
       var constructorName = constructorNameToken.lexeme;
-      isPrivate = Identifier.isPrivateName(constructorName);
+      isPrivate = constructorName.isPrivateName;
       if (constructorName != 'new') {
         name += '.$constructorName';
       }
@@ -251,7 +252,7 @@ class DartUnitOutlineComputer {
       ElementKind.FIELD,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(parameter.metadata),
         isFinal: parameter.isFinal,
       ),
@@ -268,7 +269,7 @@ class DartUnitOutlineComputer {
       ElementKind.ENUM_CONSTANT,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(node.metadata),
       ),
       location: _getLocationToken(nameToken),
@@ -283,7 +284,7 @@ class DartUnitOutlineComputer {
       ElementKind.ENUM,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(node.metadata),
       ),
       location: _getLocationToken(nameToken),
@@ -311,7 +312,7 @@ class DartUnitOutlineComputer {
       ElementKind.EXTENSION,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(node.metadata),
       ),
       location: location,
@@ -331,7 +332,7 @@ class DartUnitOutlineComputer {
       ElementKind.EXTENSION_TYPE,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(node.metadata),
       ),
       location: _getLocationToken(nameToken),
@@ -360,7 +361,7 @@ class DartUnitOutlineComputer {
       kind,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(function.metadata),
         isStatic: isStatic,
       ),
@@ -384,7 +385,7 @@ class DartUnitOutlineComputer {
       ElementKind.FUNCTION_TYPE_ALIAS,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(node.metadata),
       ),
       location: _getLocationToken(nameToken),
@@ -410,7 +411,7 @@ class DartUnitOutlineComputer {
           : ElementKind.TYPE_ALIAS,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(node.metadata),
       ),
       aliasedType: _safeToSource(aliasedType),
@@ -446,7 +447,7 @@ class DartUnitOutlineComputer {
       kind,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(method.metadata),
         isAbstract: !method.isComplete,
         isStatic: method.isStatic,
@@ -468,7 +469,7 @@ class DartUnitOutlineComputer {
       ElementKind.MIXIN,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(node.metadata),
       ),
       location: _getLocationToken(nameToken),
@@ -491,7 +492,7 @@ class DartUnitOutlineComputer {
     var isPrivate = false;
     if (constructorName != null) {
       var constructorNameName = constructorName.name.lexeme;
-      isPrivate = Identifier.isPrivateName(constructorNameName);
+      isPrivate = constructorNameName.isPrivateName;
       name += '.$constructorNameName';
       offset = constructorName.offset;
       length = constructorName.length;
@@ -538,7 +539,7 @@ class DartUnitOutlineComputer {
       kind,
       name,
       Element.makeFlags(
-        isPrivate: Identifier.isPrivateName(name),
+        isPrivate: name.isPrivateName,
         isDeprecated: _hasDeprecated(variable.metadata),
         isStatic: isStatic,
         isConst: variable.isConst,

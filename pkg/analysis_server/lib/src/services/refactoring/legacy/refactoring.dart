@@ -37,7 +37,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 
 /// [Refactoring] to convert getters into normal [MethodDeclaration]s.
 abstract class ConvertGetterToMethodRefactoring implements Refactoring {
-  /// Returns a new [ConvertMethodToGetterRefactoring] instance for converting
+  /// Returns a new [ConvertGetterToMethodRefactoring] instance for converting
   /// [element] and all the corresponding hierarchy elements.
   factory(
     RefactoringWorkspace workspace,

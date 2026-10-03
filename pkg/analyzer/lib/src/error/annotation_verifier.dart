@@ -558,7 +558,7 @@ class AnnotationVerifier {
         var variableElement = variable.declaredTopLevelVariableElement;
 
         var variableName = variableElement.name;
-        if (variableName != null && Identifier.isPrivateName(variableName)) {
+        if (variableName != null && variableName.isPrivateName) {
           reportInvalidAnnotation(variableName);
         }
       }
@@ -571,7 +571,7 @@ class AnnotationVerifier {
         }
 
         var fieldName = fieldElement.name;
-        if (fieldName != null && Identifier.isPrivateName(fieldName)) {
+        if (fieldName != null && fieldName.isPrivateName) {
           reportInvalidAnnotation(fieldName);
         }
       }
@@ -592,7 +592,7 @@ class AnnotationVerifier {
         }
 
         var name = declaredElement.name;
-        if (name != null && Identifier.isPrivateName(name)) {
+        if (name != null && name.isPrivateName) {
           reportInvalidAnnotation(name);
         }
       }

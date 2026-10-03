@@ -134,7 +134,8 @@ class CreateGetter extends CreateFieldOrGetter {
       return;
     }
     var nameNode = node;
-    if (nameNode is! SimpleIdentifier || nameNode.annotationContainingName != null) {
+    if (nameNode is! SimpleIdentifier ||
+        nameNode.annotationContainingName != null) {
       return;
     }
     _getterName = nameNode.name;

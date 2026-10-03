@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -216,7 +217,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         // We can't convert a private named parameter to an initializing formal
         // unless those are supported in this library.
         if (!isEnabled(Feature.private_named_parameters) &&
-            Identifier.isPrivateName(fieldName)) {
+            fieldName.isPrivateName) {
           return;
         }
         references = findParameterReferences(

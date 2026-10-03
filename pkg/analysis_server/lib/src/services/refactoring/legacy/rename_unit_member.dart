@@ -13,10 +13,10 @@ import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Checks if creating a top-level function with the given [name] in [library]
@@ -316,7 +316,7 @@ class _RenameUnitMemberValidator extends _BaseUnitMemberValidator {
 
   /// Validates if any usage of [element] renamed to [name] will be invisible.
   void _validateWillBeInvisible() {
-    if (!Identifier.isPrivateName(name)) {
+    if (!name.isPrivateName) {
       return;
     }
     for (var reference in references) {

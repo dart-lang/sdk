@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type.dart' // ignore: implementation_i
 import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 
+import 'analyzer.dart';
 import 'util/scope.dart';
 
 class EnumLikeTypeDescription {
@@ -765,7 +766,7 @@ extension TokenExtension on Token? {
   /// Whether the given identifier has a private name.
   bool get isPrivate {
     var self = this;
-    return self != null && Identifier.isPrivateName(self.lexeme);
+    return self != null && self.lexeme.isPrivateName;
   }
 }
 

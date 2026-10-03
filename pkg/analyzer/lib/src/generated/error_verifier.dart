@@ -57,6 +57,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/util/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 /// Check that none of the type [parameters] references itself in its bound.
@@ -6635,7 +6636,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       LibraryElement library,
       NamedType namedType,
     ) {
-      if (Identifier.isPrivateName(name)) {
+      if (name.isPrivateName) {
         Map<String, String> names = mixedInNames.putIfAbsent(library, () => {});
         var conflictingName = names[name];
         if (conflictingName != null) {

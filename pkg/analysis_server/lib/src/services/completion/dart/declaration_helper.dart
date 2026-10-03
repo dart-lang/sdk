@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 
 /// A helper class that produces candidate suggestions for all of the
@@ -3276,7 +3277,7 @@ extension on Element {
       return true;
     }
     var name = this.name;
-    return name != null && !Identifier.isPrivateName(name);
+    return name != null && !name.isPrivateName;
   }
 }
 

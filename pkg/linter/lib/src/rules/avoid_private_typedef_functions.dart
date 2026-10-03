@@ -67,7 +67,7 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
 
   void _countAndReport(Token identifier) {
     var name = identifier.lexeme;
-    if (!Identifier.isPrivateName(name)) return;
+    if (!name.isPrivateName) return;
 
     var visitor = _CountVisitor(name);
     for (var unit in context.allUnits) {
