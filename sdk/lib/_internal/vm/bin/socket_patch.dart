@@ -2263,6 +2263,34 @@ class _RawServerSocket extends Stream<RawSocket>
 
   bool get _closedReadEventSent => _socket.closedReadEventSent;
 
+  Object get _nativeSocket => _socket;
+
+  void _syncNativeSocketState(bool wantsWrite, bool hasPendingWrite) {
+    if (!_socket.isClosing && !_socket.isClosed) {
+      _socket.available = _socket._nativeAvailable();
+    }
+    _socket.writeAvailable = !wantsWrite && !hasPendingWrite;
+  }
+
+  void _recordNativeSocketIO(int readBytes, int writeBytes) {
+    if (!const bool.fromEnvironment("dart.vm.product")) {
+      if (readBytes > 0) {
+        _SocketProfile.collectStatistic(
+          _socket.id,
+          _SocketProfileType.readBytes,
+          readBytes,
+        );
+      }
+      if (writeBytes > 0) {
+        _SocketProfile.collectStatistic(
+          _socket.id,
+          _SocketProfileType.writeBytes,
+          writeBytes,
+        );
+      }
+    }
+  }
+
   void set _owner(owner) {
     _socket.owner = owner;
   }
@@ -2476,6 +2504,34 @@ class _RawSocket extends Stream<RawSocketEvent>
   }
 
   bool get _closedReadEventSent => _socket.closedReadEventSent;
+
+  Object get _nativeSocket => _socket;
+
+  void _syncNativeSocketState(bool wantsWrite, bool hasPendingWrite) {
+    if (!_socket.isClosing && !_socket.isClosed) {
+      _socket.available = _socket._nativeAvailable();
+    }
+    _socket.writeAvailable = !wantsWrite && !hasPendingWrite;
+  }
+
+  void _recordNativeSocketIO(int readBytes, int writeBytes) {
+    if (!const bool.fromEnvironment("dart.vm.product")) {
+      if (readBytes > 0) {
+        _SocketProfile.collectStatistic(
+          _socket.id,
+          _SocketProfileType.readBytes,
+          readBytes,
+        );
+      }
+      if (writeBytes > 0) {
+        _SocketProfile.collectStatistic(
+          _socket.id,
+          _SocketProfileType.writeBytes,
+          writeBytes,
+        );
+      }
+    }
+  }
 
   void set _owner(owner) {
     _socket.owner = owner;
