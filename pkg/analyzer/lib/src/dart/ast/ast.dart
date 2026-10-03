@@ -14620,6 +14620,9 @@ final class DotShorthandConstructorInvocationImpl
   ExpressionImpl get function => constructorName;
 
   @override
+  bool get inConstantContext => constantContext(includeSelf: false) != null;
+
+  @override
   bool get isConst => _v1ProjectionOrigin.isConst;
 
   @override
@@ -14881,7 +14884,8 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
+      _v1ProjectionOrigin?.inConstantContext ??
+      constantContext(includeSelf: false) != null;
 
   @DoNotGenerate(reason: 'V1 projections update from their V2 origin')
   @override
@@ -15443,7 +15447,8 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
+      _v1ProjectionOrigin?.inConstantContext ??
+      constantContext(includeSelf: false) != null;
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -17632,12 +17637,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
   ExpressionImpl get fieldExpression2 => this;
 
   @override
-  bool get inConstantContext {
-    if (_astNodeApi == AstNodeApi.v1) {
-      return constantContext(includeSelf: false) != null;
-    }
-    return constantContext2(includeSelf: false) != null;
-  }
+  bool get inConstantContext => constantContext2(includeSelf: false) != null;
 
   @override
   bool get isAssignable => false;
@@ -17788,6 +17788,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
   /// if the constness is implicit.
   ///
   /// Returns `null` if node is not in the constant context.
+  @ToBeDeprecated('Use constantContext2 instead.')
   (AstNode, Token?)? constantContext({required bool includeSelf}) {
     AstNode? current = this;
     if (!includeSelf) {
@@ -19153,6 +19154,9 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   ImportPrefixReferenceImpl? get importPrefix =>
       _becomeParentOf1(_origin.importPrefix);
+
+  @override
+  bool get inConstantContext => constantContext(includeSelf: false) != null;
 
   @override
   bool get isNullAware => _origin.isNullAware;
@@ -30505,7 +30509,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   bool get inConstantContext => switch (_v1ProjectionOrigin) {
     IndexExpression2Impl origin => origin.inConstantContext,
-    _ => super.inConstantContext,
+    _ => constantContext(includeSelf: false) != null,
   };
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
@@ -36741,7 +36745,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   bool get inConstantContext =>
       _v1ProjectionOrigin?.inConstantContext ??
       _parsedExpressionOrigin?.inConstantContext ??
-      super.inConstantContext;
+      constantContext(includeSelf: false) != null;
 
   @override
   bool get isCascaded =>
@@ -43865,7 +43869,8 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
+      _v1ProjectionOrigin?.inConstantContext ??
+      constantContext(includeSelf: false) != null;
 
   @override
   bool get isDeferred {
@@ -45065,7 +45070,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   bool get inConstantContext => switch (_v1ProjectionOrigin) {
     ExpressionImpl origin => origin.inConstantContext,
-    _ => super.inConstantContext,
+    _ => constantContext(includeSelf: false) != null,
   };
 
   @override
@@ -49935,7 +49940,8 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
+      _v1ProjectionOrigin?.inConstantContext ??
+      constantContext(includeSelf: false) != null;
 
   @override
   bool get isQualified {
@@ -51347,6 +51353,9 @@ final class SuperExpressionImpl extends ExpressionImpl
   Token get endToken {
     return superKeyword;
   }
+
+  @override
+  bool get inConstantContext => constantContext(includeSelf: false) != null;
 
   @override
   Precedence get precedence => Precedence.primary;
