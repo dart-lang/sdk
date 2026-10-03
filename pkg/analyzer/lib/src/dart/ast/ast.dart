@@ -411,6 +411,7 @@ final class AnnotationImpl extends AstNodeImpl
 
   /// The legacy V1 children, derived from the tokens of [expression] when
   /// they are first observed.
+  @ToBeDeprecated('Part of the V1 projection.')
   _AnnotationV1Children? _v1Children;
 
   @DoNotGenerate(
@@ -499,6 +500,7 @@ final class AnnotationImpl extends AstNodeImpl
 
   /// The legacy V1 children, with the elements of their identifiers
   /// updated from the current resolution of [expression].
+  @ToBeDeprecated('Part of the V1 projection.')
   _AnnotationV1Children get _v1 {
     var children = _v1Children ??= _AnnotationV1Children._of(this);
     children._updateElements(expression);
@@ -574,6 +576,7 @@ final class AnnotationImpl extends AstNodeImpl
   /// A shared node inside [expression], such as the argument list, is moved
   /// between canonical V2 parents during resolution, which clears its V1
   /// parent; observing the V1 topology links it again.
+  @ToBeDeprecated('Part of the V1 projection.')
   void _attachV1Children() {
     name;
     typeArguments;
@@ -2540,6 +2543,7 @@ abstract base class AssignmentExpression2Impl extends ExpressionImpl
     GenerateNodeProperty('rightHandSide'),
   ],
 )
+@ToBeDeprecated('Use AssignmentExpression2Impl instead.')
 final class AssignmentExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl
     implements AssignmentExpression {
@@ -3701,6 +3705,10 @@ abstract final class BinaryExpression
     GenerateNodeProperty('rightOperand'),
   ],
 )
+@ToBeDeprecated(
+  'Use BinaryOperatorInvocationImpl, LogicalAndImpl, LogicalOrImpl, or '
+  'IfNullImpl instead.',
+)
 final class BinaryExpressionImpl extends ExpressionImpl
     implements BinaryExpression {
   final ExpressionImpl _origin;
@@ -3963,6 +3971,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   @override
   InternalMethodElement? element;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
@@ -3983,6 +3992,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   BinaryExpressionImpl get binaryExpression =>
       _binaryExpression ??= BinaryExpressionImpl._operator(this);
 
@@ -4023,10 +4033,9 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   @override
   InstanceReceiverImpl get leftOperand => _leftOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set leftOperand(InstanceReceiverImpl leftOperand) {
     _leftOperand = _becomeParentOf2(leftOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @override
@@ -4036,10 +4045,9 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   @override
   ExpressionImpl get rightOperand => _rightOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set rightOperand(ExpressionImpl rightOperand) {
     _rightOperand = _becomeParentOf2(rightOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @generated
@@ -5173,10 +5181,9 @@ final class CallInvocationImpl extends FunctionInvocationImpl
   @override
   InstanceReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(InstanceReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    _functionExpressionInvocation?._attachV1Children();
   }
 
   @generated
@@ -5855,6 +5862,7 @@ abstract final class CascadeMethodInvocation
 )
 final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
     implements CascadeMethodInvocation {
+  @ToBeDeprecated('Part of the V1 projection.')
   MethodInvocationImpl? _methodInvocation;
 
   @generated
@@ -5877,6 +5885,7 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
+  @ToBeDeprecated('Part of the V1 projection.')
   MethodInvocationImpl get methodInvocation => _methodInvocation ??=
       MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
 
@@ -6024,6 +6033,7 @@ abstract final class CascadePropertyAssignmentTarget
 final class CascadePropertyAssignmentTargetImpl
     extends PropertyAssignmentTargetImpl
     implements CascadePropertyAssignmentTarget {
+  @ToBeDeprecated('Part of the V1 projection.')
   PropertyAccessImpl? _propertyAccess;
 
   @generated
@@ -6042,6 +6052,7 @@ final class CascadePropertyAssignmentTargetImpl
   }
 
   /// The cached V1 compatibility projection for this target.
+  @ToBeDeprecated('Part of the V1 projection.')
   PropertyAccessImpl get propertyAccess => _propertyAccess ??=
       PropertyAccessImpl.v1ProjectionFromCascadeAssignmentTarget(this);
 
@@ -6130,6 +6141,7 @@ abstract final class CascadePropertyExtraction implements PropertyExtraction {}
 )
 final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
     implements CascadePropertyExtraction {
+  @ToBeDeprecated('Part of the V1 projection.')
   PropertyAccessImpl? _propertyAccess;
 
   @generated
@@ -6148,6 +6160,7 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   PropertyAccessImpl get propertyAccess => _propertyAccess ??=
       PropertyAccessImpl.v1ProjectionFromCascadeExtraction(this);
 
@@ -8362,6 +8375,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
 
   Element? _setterElement;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl? _v1Projection;
 
   @generated
@@ -8395,6 +8409,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
     _updateV1Projection();
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl get v1Projection {
     var result = _v1Projection ??= SimpleIdentifierImpl.v1Projection(
       token: name,
@@ -8461,6 +8476,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
     return null;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   void _updateV1Projection() {
     var element = _element ?? _setterElement;
     if (element is PropertyAccessorElement) {
@@ -8713,6 +8729,7 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
 
   ScopeLookupResult? scopeLookupResult;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl? _v1Projection;
 
   @generated
@@ -8751,6 +8768,7 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
   @override
   bool get isSynthetic => name.isSynthetic;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl get v1Projection {
     var result = _v1Projection ??= SimpleIdentifierImpl.v1Projection(
       token: name,
@@ -9542,6 +9560,7 @@ base mixin CompoundAssignmentExpressionImpl
 )
 final class CompoundAssignmentImpl extends AssignmentExpression2Impl
     implements CompoundAssignment {
+  @ToBeDeprecated('Part of the V1 projection.')
   AssignmentExpressionImpl? _assignmentExpression;
 
   @override
@@ -9558,6 +9577,7 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   });
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   AssignmentExpressionImpl get assignmentExpression => _assignmentExpression ??=
       AssignmentExpressionImpl.v1ProjectionFromCompound(this);
 
@@ -9592,20 +9612,6 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   @override
   Token get endToken {
     return value.endToken;
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set target(AssignmentTargetImpl target) {
-    super.target = target;
-    _assignmentExpression?._attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set value(ExpressionImpl value) {
-    super.value = value;
-    _assignmentExpression?._attachV1Children();
   }
 
   @generated
@@ -10733,6 +10739,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @generated
   FunctionBodyImpl _body;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   late final SimpleIdentifierImpl? _typeName = switch (typeName2) {
     var typeName? => _becomeParentOf1(
       SimpleIdentifierImpl.v1Projection(token: typeName),
@@ -10878,10 +10885,12 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'Projects the canonical V2 constructor reference')
   @Deprecated('Use factoryRedirectionTarget instead.')
   @override
+  @ToBeDeprecated('Use factoryRedirectionTarget instead.')
   ConstructorNameImpl? get redirectedConstructor =>
       _becomeParentOf1(factoryRedirectionTarget?.constructorName);
 
   @override
+  @ToBeDeprecated('Use typeName2 instead.')
   SimpleIdentifierImpl? get typeName {
     var result = _typeName;
     var fragment = declaredFragment;
@@ -10984,6 +10993,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(reason: 'Visits the legacy ConstructorName projection')
   @Deprecated('Use visitChildren2 instead.')
   @override
+  @ToBeDeprecated('Use visitChildren2 instead.')
   void visitChildren(AstVisitor visitor) {
     _visitCommentAndAnnotations(visitor);
     typeName?.accept(visitor);
@@ -11173,6 +11183,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   InternalFieldElement? _fieldElement;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl? _fieldName;
 
   @generated
@@ -11230,6 +11241,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   }
 
   @override
+  @ToBeDeprecated('Use fieldName2 instead.')
   SimpleIdentifierImpl get fieldName =>
       _fieldName ??= _becomeParentOf1<SimpleIdentifierImpl>(
         SimpleIdentifierImpl.v1Projection(token: fieldName2)
@@ -11404,6 +11416,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   @generated
   ArgumentListImpl _argumentList;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   InstanceCreationExpressionImpl? _instanceCreationExpression;
 
   @generated
@@ -11470,6 +11483,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
+  @ToBeDeprecated('Part of the V1 projection.')
   InstanceCreationExpressionImpl get instanceCreationExpression =>
       _instanceCreationExpression ??= InstanceCreationExpressionImpl._(this);
 
@@ -11491,10 +11505,9 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   @generated
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set typeArguments(TypeArgumentListImpl? typeArguments) {
     _typeArguments = _becomeParentOf2(typeArguments);
-    _instanceCreationExpression?._becomeParentOf1(typeArguments);
   }
 
   @generated
@@ -11672,6 +11685,9 @@ abstract final class ConstructorName
     GenerateNodeProperty('period', isTokenFinal: false),
     GenerateNodeProperty('name'),
   ],
+)
+@ToBeDeprecated(
+  'Use ConstructorReference2Impl or ConstructorTearOffImpl instead.',
 )
 final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   final _ConstructorReferenceV2Origin? _origin;
@@ -11928,6 +11944,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
   InternalConstructorElement? _element;
 
   /// The cached V1 compatibility projection for this reference.
+  @ToBeDeprecated('Part of the V1 projection.')
   late final ConstructorNameImpl constructorName = ConstructorNameImpl._(this);
 
   @generated
@@ -12289,6 +12306,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 
   AstNodeApi? _astNodeApiOverride;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl? _name;
 
   InternalConstructorElement? _element;
@@ -12317,6 +12335,7 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   }
 
   @override
+  @ToBeDeprecated('Use name2 instead.')
   SimpleIdentifierImpl get name =>
       _name ??= _becomeParentOf1<SimpleIdentifierImpl>(
         SimpleIdentifierImpl.v1Projection(token: name2)..element = _element,
@@ -12429,8 +12448,10 @@ final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
 
   InternalConstructorElement? _element;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ConstructorReferenceImpl? _constructorReference;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   late final ConstructorNameImpl constructorName = ConstructorNameImpl._(this);
 
   @generated
@@ -12449,6 +12470,7 @@ final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
     return typeReference.beginToken;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ConstructorReferenceImpl get constructorReference {
     return _constructorReference ??= ConstructorReferenceImpl._(this);
   }
@@ -13787,6 +13809,7 @@ abstract final class DirectAssignment implements AssignmentExpression2 {}
 )
 final class DirectAssignmentImpl extends AssignmentExpression2Impl
     implements DirectAssignment {
+  @ToBeDeprecated('Part of the V1 projection.')
   AssignmentExpressionImpl? _assignmentExpression;
 
   @generated
@@ -13797,6 +13820,7 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   });
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   AssignmentExpressionImpl get assignmentExpression => _assignmentExpression ??=
       AssignmentExpressionImpl.v1ProjectionFromDirect(this);
 
@@ -13810,20 +13834,6 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   @override
   Token get endToken {
     return value.endToken;
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set target(AssignmentTargetImpl target) {
-    super.target = target;
-    _assignmentExpression?._attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set value(ExpressionImpl value) {
-    super.value = value;
-    _assignmentExpression?._attachV1Children();
   }
 
   @generated
@@ -14336,6 +14346,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   @override
   InternalConstructorElement? element;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   DotShorthandConstructorInvocationImpl? _dotShorthandConstructorInvocation;
 
   @generated
@@ -14386,6 +14397,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
+  @ToBeDeprecated('Part of the V1 projection.')
   DotShorthandConstructorInvocationImpl
   get dotShorthandConstructorInvocation => _dotShorthandConstructorInvocation ??=
       DotShorthandConstructorInvocationImpl.v1ProjectionFromConstructorInvocation(
@@ -14565,6 +14577,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
     GenerateNodeProperty('argumentList', isSuper: true),
   ],
 )
+@ToBeDeprecated('Use DotShorthandConstructorInvocation2Impl instead.')
 final class DotShorthandConstructorInvocationImpl
     extends InvocationExpressionImpl
     implements DotShorthandConstructorInvocation {
@@ -14650,6 +14663,9 @@ final class DotShorthandConstructorInvocationImpl
 
   @override
   ExpressionImpl get function => constructorName;
+
+  @override
+  bool get inConstantContext => constantContext(includeSelf: false) != null;
 
   @override
   bool get isConst => _v1ProjectionOrigin.isConst;
@@ -14841,6 +14857,7 @@ abstract final class DotShorthandInvocation extends InvocationExpression {
     GenerateNodeProperty('argumentList', isSuper: true),
   ],
 )
+@ToBeDeprecated('Use DotShorthandMethodInvocationImpl instead.')
 final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     implements DotShorthandInvocation {
   @generated
@@ -14913,7 +14930,8 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
+      _v1ProjectionOrigin?.inConstantContext ??
+      constantContext(includeSelf: false) != null;
 
   @DoNotGenerate(reason: 'V1 projections update from their V2 origin')
   @override
@@ -15117,6 +15135,7 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   DotShorthandContextResolutionImpl? shorthandContext;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   DotShorthandInvocationImpl? _dotShorthandInvocation;
 
   @generated
@@ -15134,6 +15153,7 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
+  @ToBeDeprecated('Part of the V1 projection.')
   DotShorthandInvocationImpl get dotShorthandInvocation =>
       _dotShorthandInvocation ??=
           DotShorthandInvocationImpl.v1ProjectionFromMethodInvocation(this);
@@ -15307,6 +15327,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   @override
   NamedReadResolutionImpl? resolution;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   DotShorthandPropertyAccessImpl? _dotShorthandPropertyAccess;
 
   @generated
@@ -15319,6 +15340,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   DotShorthandPropertyAccessImpl get dotShorthandPropertyAccess =>
       _dotShorthandPropertyAccess ??=
           DotShorthandPropertyAccessImpl.v1ProjectionFromNameExpression(this);
@@ -15425,6 +15447,7 @@ abstract final class DotShorthandPropertyAccess extends Expression {
     GenerateNodeProperty('propertyName'),
   ],
 )
+@ToBeDeprecated('Use DotShorthandNameExpressionImpl instead.')
 final class DotShorthandPropertyAccessImpl extends ExpressionImpl
     implements DotShorthandPropertyAccess {
   @generated
@@ -15475,7 +15498,8 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
+      _v1ProjectionOrigin?.inConstantContext ??
+      constantContext(includeSelf: false) != null;
 
   @override
   Precedence get precedence => Precedence.postfix;
@@ -17664,12 +17688,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
   ExpressionImpl get fieldExpression2 => this;
 
   @override
-  bool get inConstantContext {
-    if (_astNodeApi == AstNodeApi.v1) {
-      return constantContext(includeSelf: false) != null;
-    }
-    return constantContext2(includeSelf: false) != null;
-  }
+  bool get inConstantContext => constantContext2(includeSelf: false) != null;
 
   @override
   bool get isAssignable => false;
@@ -17820,6 +17839,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
   /// if the constness is implicit.
   ///
   /// Returns `null` if node is not in the constant context.
+  @ToBeDeprecated('Use constantContext2 instead.')
   (AstNode, Token?)? constantContext({required bool includeSelf}) {
     AstNode? current = this;
     if (!includeSelf) {
@@ -18908,6 +18928,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   @override
   final ExtensionElementImpl element;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExtensionOverrideImpl? _v1Projection;
 
   /// Compatibility data for the V1 expression view, not a receiver value type.
@@ -18990,6 +19011,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
     _typeArguments = _becomeParentOf2(typeArguments);
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExtensionOverrideImpl get v1Projection {
     var result = _v1Projection ??= ExtensionOverrideImpl.v1Projection(this);
     if (legacyStaticType case var type?) {
@@ -19152,6 +19174,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
     GenerateNodeProperty('argumentList'),
   ],
 )
+@ToBeDeprecated('Use ExtensionOverride2Impl instead.')
 final class ExtensionOverrideImpl extends ExpressionImpl
     implements ExtensionOverride {
   final ExtensionOverride2Impl _origin;
@@ -19185,6 +19208,9 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   ImportPrefixReferenceImpl? get importPrefix =>
       _becomeParentOf1(_origin.importPrefix);
+
+  @override
+  bool get inConstantContext => constantContext(includeSelf: false) != null;
 
   @override
   bool get isNullAware => _origin.isNullAware;
@@ -20501,6 +20527,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 
   NamedWriteResolutionImpl? _write;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl? _identifier;
 
   @generated
@@ -20523,6 +20550,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 
   @override
+  @ToBeDeprecated('Use identifier2 instead.')
   SimpleIdentifierImpl get identifier =>
       _identifier ??= _becomeParentOf1<SimpleIdentifierImpl>(
         SimpleIdentifierImpl.v1Projection(token: identifier2)
@@ -24165,6 +24193,7 @@ abstract final class FunctionExpressionInvocation
     GenerateNodeProperty('argumentList'),
   ],
 )
+@ToBeDeprecated('Use CallInvocationImpl instead.')
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     implements FunctionExpressionInvocation {
   final CallInvocationImpl _origin;
@@ -24439,6 +24468,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
     _invalidateV1Projection();
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl get v1Projection {
     return _v1Projection ??= _createV1Projection();
   }
@@ -24563,6 +24593,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
     return null;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl _createV1Projection() {
     if (operand case ImplicitCallTearOffImpl tearOff) {
       return ImplicitCallReferenceImpl.v1Projection(
@@ -24665,6 +24696,7 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
   /// `dynamic` and core `Function` here.
   TypeImpl? staticInvokeType;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   FunctionExpressionInvocationImpl? _functionExpressionInvocation;
 
   FunctionInvocationImpl({
@@ -24698,6 +24730,7 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
+  @ToBeDeprecated('Part of the V1 projection.')
   FunctionExpressionInvocationImpl get functionExpressionInvocation =>
       _functionExpressionInvocation ??= switch (this) {
         CallInvocationImpl origin => FunctionExpressionInvocationImpl._(origin),
@@ -24776,6 +24809,10 @@ abstract final class FunctionReference
     GenerateNodeProperty('function'),
     GenerateNodeProperty('typeArguments'),
   ],
+)
+@ToBeDeprecated(
+  'Use FunctionInstantiationImpl or ImplicitFunctionInstantiationImpl '
+  'instead.',
 )
 final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     implements FunctionReference {
@@ -26793,6 +26830,7 @@ sealed class Identifier implements Expression, CommentReferableExpression {
   static bool isPrivateName(String name) => name.isNotEmpty && name[0] == "_";
 }
 
+@ToBeDeprecated('Use NameExpressionImpl instead.')
 sealed class IdentifierImpl extends CommentReferableExpressionImpl
     implements Identifier {
   @override
@@ -27264,6 +27302,7 @@ abstract final class IfNullAssignment implements AssignmentExpression2 {}
 )
 final class IfNullAssignmentImpl extends AssignmentExpression2Impl
     implements IfNullAssignment {
+  @ToBeDeprecated('Part of the V1 projection.')
   AssignmentExpressionImpl? _assignmentExpression;
 
   @generated
@@ -27274,6 +27313,7 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   });
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   AssignmentExpressionImpl get assignmentExpression => _assignmentExpression ??=
       AssignmentExpressionImpl.v1ProjectionFromIfNull(this);
 
@@ -27287,20 +27327,6 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   @override
   Token get endToken {
     return value.endToken;
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set target(AssignmentTargetImpl target) {
-    super.target = target;
-    _assignmentExpression?._attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set value(ExpressionImpl value) {
-    super.value = value;
-    _assignmentExpression?._attachV1Children();
   }
 
   @generated
@@ -27455,6 +27481,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   @generated
   ExpressionImpl _rightOperand;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
@@ -27475,6 +27502,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   }
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   BinaryExpressionImpl get binaryExpression =>
       _binaryExpression ??= BinaryExpressionImpl._ifNull(this);
 
@@ -27488,10 +27516,9 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   @override
   ExpressionImpl get leftOperand => _leftOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set leftOperand(ExpressionImpl leftOperand) {
     _leftOperand = _becomeParentOf2(leftOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @override
@@ -27501,10 +27528,9 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   @override
   ExpressionImpl get rightOperand => _rightOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set rightOperand(ExpressionImpl rightOperand) {
     _rightOperand = _becomeParentOf2(rightOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @generated
@@ -28182,6 +28208,7 @@ abstract final class ImplicitCallReference
     GenerateNodeProperty('typeArgumentTypes', type: List<DartType>),
   ],
 )
+@ToBeDeprecated('Use ImplicitCallTearOffImpl instead.')
 final class ImplicitCallReferenceImpl extends ExpressionImpl
     implements ImplicitCallReference {
   @generated
@@ -28388,6 +28415,7 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   @override
   final MethodElement element;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ImplicitCallReferenceImpl? _v1Projection;
 
   @generated
@@ -28428,6 +28456,7 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   @override
   Precedence get precedence => operand.precedence;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ImplicitCallReferenceImpl get v1Projection {
     return _v1Projection ??= ImplicitCallReferenceImpl.v1Projection(
       origin: this,
@@ -28618,6 +28647,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   @override
   Precedence get precedence => operand.precedence;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl get v1Projection {
     return _v1Projection ??= _createV1Projection();
   }
@@ -28732,6 +28762,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
     return null;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl _createV1Projection() {
     var operand = this.operand;
     if (operand is ConstructorTearOffImpl) {
@@ -28866,6 +28897,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   LibraryImportImpl? _libraryImport;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl? _prefix;
 
   @generated
@@ -28903,6 +28935,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   }
 
   @override
+  @ToBeDeprecated('Use prefixName instead.')
   SimpleIdentifierImpl? get prefix => _prefix ??= switch (prefixName) {
     null => null,
     var prefixName => _becomeParentOf1(
@@ -29169,6 +29202,7 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   NamedWriteResolutionImpl? write;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   PrefixedIdentifierImpl? _prefixedIdentifier;
 
   @generated
@@ -29201,6 +29235,7 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   /// The cached identifier used only by the V1 compatibility projection.
+  @ToBeDeprecated('Part of the V1 projection.')
   PrefixedIdentifierImpl get prefixedIdentifier {
     var result = _prefixedIdentifier ??= PrefixedIdentifierImpl.v1Projection(
       prefix: SimpleIdentifierImpl.v1Projection(token: importPrefix.name),
@@ -29348,6 +29383,7 @@ final class ImportPrefixedFunctionInvocationImpl
   @generated
   ImportPrefixReferenceImpl _importPrefix;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   MethodInvocationImpl? _methodInvocation;
 
   @generated
@@ -29382,6 +29418,7 @@ final class ImportPrefixedFunctionInvocationImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
+  @ToBeDeprecated('Part of the V1 projection.')
   MethodInvocationImpl get methodInvocation => _methodInvocation ??=
       MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
 
@@ -29573,6 +29610,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
   NamedReadResolutionImpl? _resolution;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   PrefixedIdentifierImpl? _prefixedIdentifier;
 
   @generated
@@ -29608,6 +29646,7 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   Precedence get precedence => Precedence.postfix;
 
   /// The cached identifier used only by the V1 compatibility projection.
+  @ToBeDeprecated('Part of the V1 projection.')
   PrefixedIdentifierImpl get prefixedIdentifier {
     var result = _prefixedIdentifier ??= PrefixedIdentifierImpl.v1Projection(
       prefix: SimpleIdentifierImpl.v1Projection(token: importPrefix.name),
@@ -29956,12 +29995,12 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   @override
   AssignmentTargetImpl get target => _target;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set target(AssignmentTargetImpl target) {
     _target = _becomeParentOf2(target);
-    _attachV1ProjectionChildren();
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl get v1Projection => _v1Projection ??= switch (position) {
     IncrementOrDecrementPosition.prefix =>
       PrefixExpressionImpl.v1ProjectionFromIncrementOrDecrement(this),
@@ -29995,6 +30034,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
         ..addToken('operator', operator),
   };
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl get _legacyOperand => switch (target) {
     ParsedAssignmentTargetImpl target => target.v1Projection,
     InvalidExtensionOverrideAssignmentTargetImpl target =>
@@ -30138,6 +30178,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     }
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   void _attachV1ProjectionChildren() {
     switch (_v1Projection) {
       case PrefixExpressionImpl projection:
@@ -30226,6 +30267,7 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   IndexWriteResolutionImpl? write;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   IndexExpressionImpl? _indexExpression;
 
   IndexAssignmentTargetImpl({
@@ -30245,6 +30287,7 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   /// The cached V1 compatibility projection for this target.
+  @ToBeDeprecated('Part of the V1 projection.')
   IndexExpressionImpl get indexExpression =>
       _indexExpression ??= switch (this) {
         CascadeIndexAssignmentTargetImpl origin =>
@@ -30403,6 +30446,7 @@ sealed class IndexExpression2Impl extends ExpressionImpl
   @override
   IndexReadResolutionImpl? resolution;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   IndexExpressionImpl? _indexExpression;
 
   IndexExpression2Impl({
@@ -30422,6 +30466,7 @@ sealed class IndexExpression2Impl extends ExpressionImpl
   }
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   IndexExpressionImpl get indexExpression =>
       _indexExpression ??= switch (this) {
         CascadeIndexExpressionImpl origin =>
@@ -30457,6 +30502,9 @@ sealed class IndexExpression2Impl extends ExpressionImpl
     GenerateNodeProperty('index'),
     GenerateNodeProperty('rightBracket'),
   ],
+)
+@ToBeDeprecated(
+  'Use IndexExpression2Impl or IndexAssignmentTargetImpl instead.',
 )
 final class IndexExpressionImpl extends ExpressionImpl
     implements IndexExpression {
@@ -30554,7 +30602,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   @override
   bool get inConstantContext => switch (_v1ProjectionOrigin) {
     IndexExpression2Impl origin => origin.inConstantContext,
-    _ => super.inConstantContext,
+    _ => constantContext(includeSelf: false) != null,
   };
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
@@ -30875,6 +30923,7 @@ abstract final class InstanceCreationExpression implements Expression {
     GenerateNodeProperty('argumentList'),
   ],
 )
+@ToBeDeprecated('Use ConstructorInvocationImpl instead.')
 final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
   final ConstructorInvocationImpl? _origin;
@@ -34052,6 +34101,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   @generated
   ExpressionImpl _rightOperand;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
@@ -34072,6 +34122,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   }
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   BinaryExpressionImpl get binaryExpression =>
       _binaryExpression ??= BinaryExpressionImpl._and(this);
 
@@ -34085,10 +34136,9 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   @override
   ExpressionImpl get leftOperand => _leftOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set leftOperand(ExpressionImpl leftOperand) {
     _leftOperand = _becomeParentOf2(leftOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @override
@@ -34098,10 +34148,9 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   @override
   ExpressionImpl get rightOperand => _rightOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set rightOperand(ExpressionImpl rightOperand) {
     _rightOperand = _becomeParentOf2(rightOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @generated
@@ -34473,6 +34522,7 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   @generated
   ExpressionImpl _operand;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   PrefixExpressionImpl? _prefixExpression;
 
   @generated
@@ -34497,16 +34547,16 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   @override
   ExpressionImpl get operand => _operand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set operand(ExpressionImpl operand) {
     _operand = _becomeParentOf2(operand);
-    _prefixExpression?._attachV1Children();
   }
 
   @override
   Precedence get precedence => Precedence.prefix;
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   PrefixExpressionImpl get prefixExpression => _prefixExpression ??=
       PrefixExpressionImpl.v1ProjectionFromLogicalNot(this);
 
@@ -34649,6 +34699,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   @generated
   ExpressionImpl _rightOperand;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
@@ -34669,6 +34720,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   }
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   BinaryExpressionImpl get binaryExpression =>
       _binaryExpression ??= BinaryExpressionImpl._or(this);
 
@@ -34682,10 +34734,9 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   @override
   ExpressionImpl get leftOperand => _leftOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set leftOperand(ExpressionImpl leftOperand) {
     _leftOperand = _becomeParentOf2(leftOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @override
@@ -34695,10 +34746,9 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   @override
   ExpressionImpl get rightOperand => _rightOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set rightOperand(ExpressionImpl rightOperand) {
     _rightOperand = _becomeParentOf2(rightOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @generated
@@ -36704,6 +36754,11 @@ abstract final class MethodInvocation implements InvocationExpression {
     GenerateNodeProperty('argumentList', isSuper: true),
   ],
 )
+@ToBeDeprecated(
+  'Use ReceiverMethodInvocationImpl, NamedFunctionInvocationImpl, '
+  'CascadeMethodInvocationImpl, or ImportPrefixedFunctionInvocationImpl '
+  'instead.',
+)
 final class MethodInvocationImpl extends InvocationExpressionImpl
     implements MethodInvocation {
   @DoNotGenerate(reason: 'Stores the projected target')
@@ -36795,7 +36850,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
   bool get inConstantContext =>
       _v1ProjectionOrigin?.inConstantContext ??
       _parsedExpressionOrigin?.inConstantContext ??
-      super.inConstantContext;
+      constantContext(includeSelf: false) != null;
 
   @override
   bool get isCascaded =>
@@ -39135,6 +39190,7 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   @override
   final Token operator;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   PostfixExpressionImpl? _postfixExpression;
 
   @generated
@@ -39161,13 +39217,13 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get operand => _operand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set operand(ExpressionImpl operand) {
     _operand = _becomeParentOf2(operand);
-    _postfixExpression?._attachV1Children();
   }
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   PostfixExpressionImpl get postfixExpression => _postfixExpression ??=
       PostfixExpressionImpl.v1ProjectionFromNullAssertion(this);
 
@@ -40852,6 +40908,7 @@ sealed class ParsedAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   ReadResolutionImpl? get read => null;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl get v1Projection => _v1Projection ??= switch (this) {
     ParsedUnqualifiedNameAssignmentTargetImpl(:var name) =>
       SimpleIdentifierImpl.v1Projection(token: name),
@@ -41272,6 +41329,7 @@ sealed class ParsedExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl get v1Projection =>
       _v1Projection ??= _ParsedExpressionBuilder(this).build();
 
@@ -43626,6 +43684,10 @@ abstract final class PostfixExpression
     GenerateNodeProperty('operator'),
   ],
 )
+@ToBeDeprecated(
+  'Use NullAssertionExpressionImpl or IncrementOrDecrementExpressionImpl '
+  'instead.',
+)
 final class PostfixExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl
     implements PostfixExpression {
@@ -43844,6 +43906,10 @@ abstract final class PrefixedIdentifier implements Identifier {
     GenerateNodeProperty('identifier'),
   ],
 )
+@ToBeDeprecated(
+  'Use ImportPrefixedNameExpressionImpl or ReceiverPropertyExtractionImpl '
+  'instead.',
+)
 final class PrefixedIdentifierImpl extends IdentifierImpl
     implements PrefixedIdentifier {
   @generated
@@ -43920,7 +43986,8 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
+      _v1ProjectionOrigin?.inConstantContext ??
+      constantContext(includeSelf: false) != null;
 
   @override
   bool get isDeferred {
@@ -44084,6 +44151,10 @@ abstract final class PrefixExpression
     GenerateNodeProperty('operator'),
     GenerateNodeProperty('operand'),
   ],
+)
+@ToBeDeprecated(
+  'Use LogicalNotImpl, UnaryOperatorInvocationImpl, or '
+  'IncrementOrDecrementExpressionImpl instead.',
 )
 final class PrefixExpressionImpl extends ExpressionImpl
     with CompoundAssignmentExpressionImpl
@@ -45015,6 +45086,9 @@ abstract final class PropertyAccess implements CommentReferableExpression {
     GenerateNodeProperty('propertyName'),
   ],
 )
+@ToBeDeprecated(
+  'Use PropertyExtractionImpl or PropertyAssignmentTargetImpl instead.',
+)
 final class PropertyAccessImpl extends CommentReferableExpressionImpl
     implements PropertyAccess {
   @DoNotGenerate(reason: 'Initialized by the V1 projection constructors')
@@ -45120,7 +45194,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
   @override
   bool get inConstantContext => switch (_v1ProjectionOrigin) {
     ExpressionImpl origin => origin.inConstantContext,
-    _ => super.inConstantContext,
+    _ => constantContext(includeSelf: false) != null,
   };
 
   @override
@@ -45489,10 +45563,9 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   @override
   InstanceReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(InstanceReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    _indexExpression?._attachV1Children();
   }
 
   @generated
@@ -45680,10 +45753,9 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   @override
   InstanceReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(InstanceReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    _indexExpression?._attachV1Children();
   }
 
   @generated
@@ -45849,6 +45921,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   final Token operator;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   MethodInvocationImpl? _methodInvocation;
 
   @generated
@@ -45875,6 +45948,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
+  @ToBeDeprecated('Part of the V1 projection.')
   MethodInvocationImpl get methodInvocation => _methodInvocation ??=
       MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
 
@@ -45882,10 +45956,9 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   NamedReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(NamedReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    _methodInvocation?._attachV1Children();
   }
 
   @generated
@@ -46092,14 +46165,12 @@ final class ReceiverPropertyAssignmentTargetImpl
   @override
   NamedReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(NamedReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    if (_v1Projection case PropertyAccessImpl projection) {
-      projection._attachV1Children();
-    }
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl get v1Projection {
     var target = V1Projection.toV1NamedReceiver(receiver);
     var previous = _v1Projection;
@@ -46301,14 +46372,12 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   @override
   NamedReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(NamedReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    if (_v1Projection case PropertyAccessImpl projection) {
-      projection._attachV1Children();
-    }
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl get v1Projection {
     var target = V1Projection.toV1NamedReceiver(receiver);
     var previous = _v1Projection;
@@ -47945,6 +48014,7 @@ final class RedirectingConstructorInvocationImpl
   }
 
   @override
+  @ToBeDeprecated('Use constructorSelector instead.')
   SimpleIdentifierImpl? get constructorName =>
       _becomeParentOf1(constructorSelector?.name);
 
@@ -49955,6 +50025,7 @@ abstract final class SimpleIdentifier implements Identifier {
   generateConstructor: false,
   childEntitiesOrder: [GenerateNodeProperty('token')],
 )
+@ToBeDeprecated('Use NameExpressionImpl, or the name token, instead.')
 final class SimpleIdentifierImpl extends IdentifierImpl
     implements SimpleIdentifier {
   @generated
@@ -49999,7 +50070,8 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @override
   bool get inConstantContext =>
-      _v1ProjectionOrigin?.inConstantContext ?? super.inConstantContext;
+      _v1ProjectionOrigin?.inConstantContext ??
+      constantContext(includeSelf: false) != null;
 
   @override
   bool get isQualified {
@@ -50654,6 +50726,7 @@ final class StaticQualifierImpl extends NamedReceiverImpl
 
   ScopeLookupResult? scopeLookupResult;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   IdentifierImpl? _v1Projection;
 
   @generated
@@ -50688,6 +50761,7 @@ final class StaticQualifierImpl extends NamedReceiverImpl
     _importPrefix = _becomeParentOf2(importPrefix);
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   IdentifierImpl get v1Projection {
     if (_v1Projection case var result?) {
       return result;
@@ -51222,6 +51296,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   }
 
   @override
+  @ToBeDeprecated('Use constructorSelector instead.')
   SimpleIdentifierImpl? get constructorName =>
       _becomeParentOf1(constructorSelector?.name);
 
@@ -51388,6 +51463,7 @@ abstract final class SuperExpression implements Expression {
   generateConstructor: false,
   childEntitiesOrder: [GenerateNodeProperty('superKeyword')],
 )
+@ToBeDeprecated('Use SuperReferenceImpl instead.')
 final class SuperExpressionImpl extends ExpressionImpl
     implements SuperExpression {
   @generated
@@ -51411,6 +51487,9 @@ final class SuperExpressionImpl extends ExpressionImpl
   Token get endToken {
     return superKeyword;
   }
+
+  @override
+  bool get inConstantContext => constantContext(includeSelf: false) != null;
 
   @override
   Precedence get precedence => Precedence.primary;
@@ -51803,6 +51882,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   @override
   final Token superKeyword;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SuperExpressionImpl? _v1Projection;
 
   /// Retained solely for the historical V1 expression view.
@@ -51830,6 +51910,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
     if (type != null) _v1Projection?.setPseudoExpressionStaticType(type);
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SuperExpressionImpl get v1Projection {
     var result = _v1Projection ??= SuperExpressionImpl.v1Projection(this);
     if (legacyStaticType case var type?) {
@@ -53857,10 +53938,9 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   @override
   FunctionBodyImpl get body => _body;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set body(FunctionBodyImpl body) {
     _body = _becomeParentOf2(body);
-    _v1Projection?.functionExpression._attachV1Children();
   }
 
   @generated
@@ -53891,31 +53971,28 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   FormalParameterListImpl? get recoveryFormalParameters =>
       _recoveryFormalParameters;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set recoveryFormalParameters(
     FormalParameterListImpl? recoveryFormalParameters,
   ) {
     _recoveryFormalParameters = _becomeParentOf2(recoveryFormalParameters);
-    _v1Projection?.functionExpression._attachV1Children();
   }
 
   @generated
   TypeParameterListImpl? get recoveryTypeParameters => _recoveryTypeParameters;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set recoveryTypeParameters(TypeParameterListImpl? recoveryTypeParameters) {
     _recoveryTypeParameters = _becomeParentOf2(recoveryTypeParameters);
-    _v1Projection?.functionExpression._attachV1Children();
   }
 
   @generated
   @override
   TypeAnnotationImpl? get returnType => _returnType;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set returnType(TypeAnnotationImpl? returnType) {
     _returnType = _becomeParentOf2(returnType);
-    _v1Projection?._attachV1Children();
   }
 
   FunctionDeclarationImpl get v1Projection =>
@@ -55465,6 +55542,7 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   @override
   InternalMethodElement? element;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   PrefixExpressionImpl? _prefixExpression;
 
   @generated
@@ -55491,16 +55569,16 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   @override
   InstanceReceiverImpl get operand => _operand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set operand(InstanceReceiverImpl operand) {
     _operand = _becomeParentOf2(operand);
-    _prefixExpression?._attachV1Children();
   }
 
   @override
   Precedence get precedence => Precedence.prefix;
 
   /// The cached V1 compatibility projection for this expression.
+  @ToBeDeprecated('Part of the V1 projection.')
   PrefixExpressionImpl get prefixExpression => _prefixExpression ??=
       PrefixExpressionImpl.v1ProjectionFromUnaryOperatorInvocation(this);
 
@@ -55638,6 +55716,7 @@ final class UnqualifiedFunctionInvocationImpl
     implements UnqualifiedFunctionInvocation {
   ScopeLookupResult? scopeLookupResult;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   MethodInvocationImpl? _methodInvocation;
 
   @generated
@@ -55660,6 +55739,7 @@ final class UnqualifiedFunctionInvocationImpl
   }
 
   /// The cached V1 compatibility projection for this invocation.
+  @ToBeDeprecated('Part of the V1 projection.')
   MethodInvocationImpl get methodInvocation => _methodInvocation ??=
       MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(this);
 
@@ -55824,6 +55904,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   NamedWriteResolutionImpl? write;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl? _simpleIdentifier;
 
   @generated
@@ -55842,6 +55923,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   }
 
   /// The cached identifier used only by the V1 compatibility projection.
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl get simpleIdentifier {
     var result = _simpleIdentifier ??= SimpleIdentifierImpl.v1Projection(
       token: name,
@@ -55949,6 +56031,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   @DoNotGenerate(reason: 'Stores the canonical typed read resolution')
   NamedReadResolutionImpl? _resolution;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl? _simpleIdentifier;
 
   @generated
@@ -55982,6 +56065,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   }
 
   /// The cached identifier used only by the V1 compatibility projection.
+  @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl get simpleIdentifier {
     var result = _simpleIdentifier ??= SimpleIdentifierImpl.v1Projection(
       token: name,
@@ -56199,6 +56283,7 @@ enum V1Projection {
     return node;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static SimpleIdentifierImpl toV1CombinatorName(CombinatorNameImpl node) {
     return node.v1Projection;
   }
@@ -56262,6 +56347,7 @@ enum V1Projection {
   /// Materializes the V2-only region containing [node]. Shared nodes delimit
   /// these regions; projection constructors establish the internal V1 links,
   /// including links that skip or expand canonical nodes.
+  @ToBeDeprecated('Part of the V1 projection.')
   static void _materializeEnclosingTree(AstNodeImpl node) {
     var root = node;
     while (root._parent2?._astNodeApi == AstNodeApi.v2) {
@@ -56290,6 +56376,7 @@ enum V1Projection {
     }
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static ExpressionImpl _parsedProperty(
     AstNodeImpl origin,
     ExpressionImpl operand,
@@ -56317,6 +56404,7 @@ enum V1Projection {
 
   /// Existing origin fields let a projection requested directly from its
   /// canonical node discover its parent without retaining another tree link.
+  @ToBeDeprecated('Part of the V1 projection.')
   static AstNodeImpl? _sourceOf(AstNodeImpl node) => switch (node) {
     AssignmentExpressionImpl() => node._v1ProjectionOrigin,
     BinaryExpressionImpl() => node._origin,
@@ -56347,6 +56435,7 @@ enum V1Projection {
     _ => null,
   };
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static ExpressionImpl? _toV1Expression(
     ExpressionImpl node, {
     required bool createIfAbsent,
@@ -56495,6 +56584,7 @@ enum V1Projection {
     return node;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static bool _usesPrefixedIdentifier(
     NamedReceiverImpl receiver,
     Token operator,
@@ -58481,6 +58571,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
 /// parsed expression and the canonical expression that replaces it during
 /// resolution have the same V1 children. The type arguments and the arguments
 /// are the shared nodes inside the expression.
+@ToBeDeprecated('Part of the V1 projection.')
 final class _AnnotationV1Children {
   final IdentifierImpl name;
   final SimpleIdentifierImpl _nameHead;
@@ -58816,6 +58907,7 @@ class _Generated {
 /// Builds a V1 projection from parsed syntax, preserving canonical ownership.
 ///
 /// This builder performs syntactic grouping without name lookup or inference.
+@ToBeDeprecated('Part of the V1 projection.')
 class _ParsedExpressionBuilder {
   final ParsedExpressionImpl chain;
 
