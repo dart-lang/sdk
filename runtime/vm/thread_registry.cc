@@ -116,11 +116,11 @@ void ThreadRegistry::FlushMarkingStacks() {
   }
 }
 
-intptr_t ThreadRegistry::StealActiveMutators(ThreadPool* pool) {
+intptr_t ThreadRegistry::StealActiveMutators(ThreadPool* pool, intptr_t limit) {
   MonitorLocker ml(threads_lock());
   intptr_t count = 0;
   Thread* thread = active_list_;
-  while (thread != nullptr) {
+  while (thread != nullptr && (limit == 0 || count < limit)) {
     if (thread->TryStealActiveMutator()) {
       pool->MarkWorkerAsBlocked(thread->os_thread());
       count++;
