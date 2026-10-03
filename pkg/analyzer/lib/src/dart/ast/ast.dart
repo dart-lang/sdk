@@ -8392,7 +8392,6 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
 
   set element(Element? value) {
     _element = value;
-    _updateV1Projection();
   }
 
   @generated
@@ -8406,7 +8405,6 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
 
   set setterElement(Element? value) {
     _setterElement = value;
-    _updateV1Projection();
   }
 
   @ToBeDeprecated('Part of the V1 projection.')
@@ -8756,7 +8754,6 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
 
   set element(Element? value) {
     _element = value;
-    _v1Projection?.element = value;
   }
 
   @generated
@@ -11237,7 +11234,6 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   set fieldElement(InternalFieldElement? value) {
     _fieldElement = value;
-    _fieldName?.element = value;
   }
 
   @override
@@ -12325,7 +12321,6 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 
   set element(InternalConstructorElement? element) {
     _element = element;
-    _name?.element = element;
   }
 
   @generated
@@ -18932,7 +18927,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   ExtensionOverrideImpl? _v1Projection;
 
   /// Compatibility data for the V1 expression view, not a receiver value type.
-  TypeImpl? _legacyStaticType;
+  TypeImpl? legacyStaticType;
 
   @override
   List<DartType>? typeArgumentTypes;
@@ -18993,13 +18988,6 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
     var nextType = argumentList.endToken.next!.type;
     return nextType == TokenType.QUESTION_PERIOD ||
         nextType == TokenType.QUESTION;
-  }
-
-  TypeImpl? get legacyStaticType => _legacyStaticType;
-
-  set legacyStaticType(TypeImpl? type) {
-    _legacyStaticType = type;
-    if (type != null) _v1Projection?.setPseudoExpressionStaticType(type);
   }
 
   @generated
@@ -20530,6 +20518,8 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl? _identifier;
 
+  TypeImpl? _identifierStaticType;
+
   @generated
   ForEachPartsWithIdentifierImpl({
     required this.identifier2,
@@ -20554,7 +20544,8 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   SimpleIdentifierImpl get identifier =>
       _identifier ??= _becomeParentOf1<SimpleIdentifierImpl>(
         SimpleIdentifierImpl.v1Projection(token: identifier2)
-          ..element = writeElement,
+          ..element = writeElement
+          ..setPseudoExpressionStaticType(_identifierStaticType),
       );
 
   @override
@@ -20562,7 +20553,6 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
 
   set write(NamedWriteResolutionImpl? value) {
     _write = value;
-    _identifier?.element = writeElement;
   }
 
   Element? get writeElement => _write?.elementOrRecovery;
@@ -20614,7 +20604,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   }
 
   void setIdentifierStaticType(TypeImpl type) {
-    identifier.setPseudoExpressionStaticType(type);
+    _identifierStaticType = type;
   }
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
@@ -23914,6 +23904,14 @@ final class FunctionExpressionImpl extends ExpressionImpl
     return body.endToken;
   }
 
+  /// A projection has no V2 parent to walk, and the body of a top-level
+  /// getter is never in a constant context.
+  @override
+  bool get inConstantContext => switch (_v1ProjectionOrigin) {
+    TopLevelGetterDeclarationImpl() => false,
+    _ => super.inConstantContext,
+  };
+
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   FormalParameterListImpl? get parameters => switch (_v1ProjectionOrigin) {
@@ -23993,6 +23991,15 @@ final class FunctionExpressionImpl extends ExpressionImpl
     }
     return visitor.visitFunctionExpression(this);
   }
+
+  /// A projection has no V2 ancestors to find the unit, and a function
+  /// expression is never a constant.
+  @override
+  AttemptedConstantEvaluationResult? computeConstantValue() =>
+      switch (_v1ProjectionOrigin) {
+        TopLevelGetterDeclarationImpl() => null,
+        _ => super.computeConstantValue(),
+      };
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
   @override
@@ -24344,12 +24351,6 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     throw StateError('FunctionExpressionInvocation is not in the V2 AST view.');
   }
 
-  void _attachV1Children() {
-    _becomeParentOf1(function);
-    _becomeParentOf1(typeArguments);
-    _becomeParentOf1(argumentList);
-  }
-
   @generated
   @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
@@ -24449,10 +24450,9 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   @override
   ExpressionImpl get operand => _operand;
 
-  @DoNotGenerate(reason: 'Rebuilds the V1 view when a child changes')
+  @generated
   set operand(ExpressionImpl operand) {
     _operand = _becomeParentOf2(operand);
-    _invalidateV1Projection();
   }
 
   @override
@@ -24462,10 +24462,9 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   @override
   TypeArgumentListImpl get typeArguments => _typeArguments;
 
-  @DoNotGenerate(reason: 'Rebuilds the V1 view when a child changes')
+  @generated
   set typeArguments(TypeArgumentListImpl typeArguments) {
     _typeArguments = _becomeParentOf2(typeArguments);
-    _invalidateV1Projection();
   }
 
   @ToBeDeprecated('Part of the V1 projection.')
@@ -24606,15 +24605,6 @@ final class FunctionInstantiationImpl extends ExpressionImpl
     }
     return FunctionReferenceImpl.v1ProjectionFromInstantiation(this);
   }
-
-  void _invalidateV1Projection() {
-    var previousProjection = _v1Projection;
-    if (previousProjection != null) {
-      _v1Projection = null;
-      v1Projection._parent = previousProjection._parent;
-      previousProjection._parent = null;
-    }
-  }
 }
 
 /// A tear-off of `call` through the core `Function` interface.
@@ -24713,20 +24703,6 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
 
   set argumentList(ArgumentListImpl argumentList) {
     _argumentList = _becomeParentOf2(argumentList);
-    _functionExpressionInvocation?._attachV1Children();
-    switch (this) {
-      case CascadeMethodInvocationImpl invocation:
-        invocation._methodInvocation?._attachV1Children();
-      case ImportPrefixedFunctionInvocationImpl invocation:
-        invocation._methodInvocation?._attachV1Children();
-      case DotShorthandMethodInvocationImpl invocation:
-        invocation._dotShorthandInvocation?._attachV1Children();
-      case ReceiverMethodInvocationImpl invocation:
-        invocation._methodInvocation?._attachV1Children();
-      case UnqualifiedFunctionInvocationImpl invocation:
-        invocation._methodInvocation?._attachV1Children();
-      case CallInvocationImpl():
-    }
   }
 
   /// The cached V1 compatibility projection for this invocation.
@@ -24747,20 +24723,6 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
 
   set typeArguments(TypeArgumentListImpl? typeArguments) {
     _typeArguments = _becomeParentOf2(typeArguments);
-    _functionExpressionInvocation?._attachV1Children();
-    switch (this) {
-      case CascadeMethodInvocationImpl invocation:
-        invocation._methodInvocation?._attachV1Children();
-      case ImportPrefixedFunctionInvocationImpl invocation:
-        invocation._methodInvocation?._attachV1Children();
-      case DotShorthandMethodInvocationImpl invocation:
-        invocation._dotShorthandInvocation?._attachV1Children();
-      case ReceiverMethodInvocationImpl invocation:
-        invocation._methodInvocation?._attachV1Children();
-      case UnqualifiedFunctionInvocationImpl invocation:
-        invocation._methodInvocation?._attachV1Children();
-      case CallInvocationImpl():
-    }
   }
 }
 
@@ -28442,15 +28404,9 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   @override
   ExpressionImpl get operand => _operand;
 
-  @DoNotGenerate(reason: 'Rebuilds the V1 view when the operand changes')
+  @generated
   set operand(ExpressionImpl operand) {
     _operand = _becomeParentOf2(operand);
-    var previousProjection = _v1Projection;
-    if (previousProjection != null) {
-      _v1Projection = null;
-      v1Projection._parent = previousProjection._parent;
-      previousProjection._parent = null;
-    }
   }
 
   @override
@@ -28633,15 +28589,9 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   @override
   ExpressionImpl get operand => _operand;
 
-  @DoNotGenerate(reason: 'Rebuilds the V1 view when the operand changes')
+  @generated
   set operand(ExpressionImpl operand) {
     _operand = _becomeParentOf2(operand);
-    var previousProjection = _v1Projection;
-    if (previousProjection != null) {
-      _v1Projection = null;
-      v1Projection._parent = previousProjection._parent;
-      previousProjection._parent = null;
-    }
   }
 
   @override
@@ -28931,7 +28881,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
 
   set libraryImport(LibraryImportImpl? value) {
     _libraryImport = value;
-    _prefix?.element = value?.prefix?.element;
   }
 
   @override
@@ -29666,11 +29615,6 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
 
   set resolution(NamedReadResolutionImpl? value) {
     _resolution = value;
-    if (_prefixedIdentifier case var identifier?) {
-      identifier.identifier.element = _legacyReadElement;
-      identifier.identifier.setPseudoExpressionStaticType(value?.type);
-      identifier.setPseudoExpressionStaticType(value?.type);
-    }
   }
 
   @generated
@@ -29704,15 +29648,6 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitImportPrefixedNameExpression(this);
-
-  @override
-  void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
-    super.recordStaticType(type, resolver: resolver);
-    if (_prefixedIdentifier case var identifier?) {
-      identifier.identifier.setPseudoExpressionStaticType(type);
-      identifier.setPseudoExpressionStaticType(type);
-    }
-  }
 
   @generated
   @override
@@ -30178,20 +30113,6 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     }
   }
 
-  @ToBeDeprecated('Part of the V1 projection.')
-  void _attachV1ProjectionChildren() {
-    switch (_v1Projection) {
-      case PrefixExpressionImpl projection:
-        projection._attachV1Children();
-      case PostfixExpressionImpl projection:
-        projection._attachV1Children();
-      case ExpressionImpl projection:
-        throw StateError('Unexpected V1 projection: $projection');
-      case null:
-        break;
-    }
-  }
-
   @generated
   @ToBeDeprecated('Use _childContainingRange2 instead.')
   @override
@@ -30283,7 +30204,6 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
 
   set index(ExpressionImpl index) {
     _index = _becomeParentOf2(index);
-    _indexExpression?._attachV1Children();
   }
 
   /// The cached V1 compatibility projection for this target.
@@ -30462,7 +30382,6 @@ sealed class IndexExpression2Impl extends ExpressionImpl
 
   set index(ExpressionImpl index) {
     _index = _becomeParentOf2(index);
-    _indexExpression?._attachV1Children();
   }
 
   /// The cached V1 compatibility projection for this expression.
@@ -31758,12 +31677,9 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   ExpressionImpl get expression => _expression;
 
-  @DoNotGenerate(reason: 'Keeps an enclosing V1 projection synchronized')
+  @generated
   set expression(ExpressionImpl expression) {
     _expression = _becomeParentOf2(expression);
-    if (parent2 case IncrementOrDecrementExpressionImpl parent) {
-      parent._attachV1ProjectionChildren();
-    }
   }
 
   @generated
@@ -47985,7 +47901,7 @@ final class RedirectingConstructorInvocationImpl
   @override
   ConstructorElementImpl? element;
 
-  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @DoNotGenerate(reason: 'The constructor selector is only in the V2 AST view')
   RedirectingConstructorInvocationImpl({
     required this.thisKeyword,
     required ConstructorSelectorImpl? constructorSelector,
@@ -47994,7 +47910,6 @@ final class RedirectingConstructorInvocationImpl
        _argumentList = argumentList {
     constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
     _becomeParentOf2(constructorSelector);
-    _becomeParentOf1(constructorSelector?._name);
     _becomeParentOf12(argumentList);
   }
 
@@ -48022,11 +47937,10 @@ final class RedirectingConstructorInvocationImpl
   @override
   ConstructorSelectorImpl? get constructorSelector => _constructorSelector;
 
-  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @DoNotGenerate(reason: 'The constructor selector is only in the V2 AST view')
   set constructorSelector(ConstructorSelectorImpl? constructorSelector) {
     constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
     _constructorSelector = _becomeParentOf2(constructorSelector);
-    _becomeParentOf1(constructorSelector?._name);
   }
 
   @generated
@@ -51267,7 +51181,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @override
   InternalConstructorElement? element;
 
-  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @DoNotGenerate(reason: 'The constructor selector is only in the V2 AST view')
   SuperConstructorInvocationImpl({
     required this.superKeyword,
     required ConstructorSelectorImpl? constructorSelector,
@@ -51276,7 +51190,6 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
        _argumentList = argumentList {
     constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
     _becomeParentOf2(constructorSelector);
-    _becomeParentOf1(constructorSelector?._name);
     _becomeParentOf12(argumentList);
   }
 
@@ -51304,11 +51217,10 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   @override
   ConstructorSelectorImpl? get constructorSelector => _constructorSelector;
 
-  @DoNotGenerate(reason: 'Preserves V1 constructor-name topology')
+  @DoNotGenerate(reason: 'The constructor selector is only in the V2 AST view')
   set constructorSelector(ConstructorSelectorImpl? constructorSelector) {
     constructorSelector?._astNodeApiOverride = AstNodeApi.v2;
     _constructorSelector = _becomeParentOf2(constructorSelector);
-    _becomeParentOf1(constructorSelector?._name);
   }
 
   @generated
@@ -51886,7 +51798,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   SuperExpressionImpl? _v1Projection;
 
   /// Retained solely for the historical V1 expression view.
-  TypeImpl? _legacyStaticType;
+  TypeImpl? legacyStaticType;
 
   @generated
   SuperReferenceImpl({required this.superKeyword});
@@ -51901,13 +51813,6 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   @override
   Token get endToken {
     return superKeyword;
-  }
-
-  TypeImpl? get legacyStaticType => _legacyStaticType;
-
-  set legacyStaticType(TypeImpl? type) {
-    _legacyStaticType = type;
-    if (type != null) _v1Projection?.setPseudoExpressionStaticType(type);
   }
 
   @ToBeDeprecated('Part of the V1 projection.')
@@ -56060,8 +55965,6 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
 
   set resolution(NamedReadResolutionImpl? value) {
     _resolution = value;
-    _simpleIdentifier?.element = _legacyReadElement;
-    _simpleIdentifier?.setPseudoExpressionStaticType(value?.type);
   }
 
   /// The cached identifier used only by the V1 compatibility projection.
@@ -56105,12 +56008,6 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   @override
   E? accept2<E>(AstVisitor2<E> visitor) =>
       visitor.visitUnqualifiedNameExpression(this);
-
-  @override
-  void recordStaticType(DartType type, {required ResolverVisitor resolver}) {
-    super.recordStaticType(type, resolver: resolver);
-    _simpleIdentifier?.setPseudoExpressionStaticType(type);
-  }
 
   @generated
   @override
