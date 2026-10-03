@@ -29,6 +29,7 @@ import 'package:analysis_server/src/status/pages/exception_page.dart';
 import 'package:analysis_server/src/status/pages/exceptions_page.dart';
 import 'package:analysis_server/src/status/pages/feedback_page.dart';
 import 'package:analysis_server/src/status/pages/file_byte_store_timing_page.dart';
+import 'package:analysis_server/src/status/pages/file_io_timing_page.dart';
 import 'package:analysis_server/src/status/pages/fixes_page.dart';
 import 'package:analysis_server/src/status/pages/legacy_plugins_page.dart';
 import 'package:analysis_server/src/status/pages/lsp_capabilities_page.dart';
@@ -593,6 +594,7 @@ td.pre {
     pages.add(AnalysisDriverPage(this));
     pages.add(AssistsPage(this));
     pages.add(FileByteStoreTimingPage(this));
+    pages.add(FileIoTimingPage(this));
     pages.add(CodeCompletionPage(this));
     pages.add(FixesPage(this));
     pages.add(MessageSchedulerPage(this));

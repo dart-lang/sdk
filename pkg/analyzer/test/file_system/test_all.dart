@@ -10,6 +10,7 @@ import 'physical_file_system_test.dart' as physical_file_system;
 import 'physical_resource_provider_watch_test.dart'
     as physical_resource_provider_watch_test;
 import 'resource_uri_resolver_test.dart' as resource_uri_resolver;
+import 'timing_resource_provider_test.dart' as timing_resource_provider;
 
 main() {
   defineReflectiveSuite(() {
@@ -18,5 +19,6 @@ main() {
     physical_file_system.main();
     physical_resource_provider_watch_test.main();
     resource_uri_resolver.main();
+    timing_resource_provider.main();
   }, name: 'file system');
 }
