@@ -259,10 +259,10 @@ class DeprecatedFunctionalityVerifier {
         case var redirectedConstructor?) {
       var SourceRange(offset: errorOffset, length: errorLength) =
           node.errorRange;
-      var positionalArgumentCount = node.parameters.parameters
+      var positionalArgumentCount = node.parameters.allFormalParameters
           .where((p) => p.isPositional)
           .length;
-      var namedArgumentNames = node.parameters.parameters
+      var namedArgumentNames = node.parameters.allFormalParameters
           .where((p) => p.isNamed)
           .map((p) => p.name?.lexeme)
           .nonNulls

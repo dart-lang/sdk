@@ -1851,6 +1851,7 @@ package:analyzer/dart/ast/ast.dart:
     value (getter: Expression)
     value2 (getter: Expression, experimental)
   FormalParameterList (class extends Object implements AstNode, abstract, final):
+    allFormalParameters (getter: List<FormalParameter>, experimental)
     delimitedFormalParameters (getter: DelimitedFormalParameters?, experimental)
     leftDelimiter (getter: Token?)
     leftParenthesis (getter: Token)

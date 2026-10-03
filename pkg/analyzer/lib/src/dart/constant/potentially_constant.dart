@@ -454,7 +454,7 @@ class _ConstantTypeChecker {
       }
     }
 
-    var formalParameters = node.parameters.parameters;
+    var formalParameters = node.parameters.allFormalParameters;
     for (var formalParameter in formalParameters) {
       if (formalParameter is RegularFormalParameter &&
           formalParameter.functionTypedSuffix == null) {

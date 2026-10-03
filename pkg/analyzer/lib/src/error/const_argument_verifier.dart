@@ -32,7 +32,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
 
   @override
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
-    var parameters = node.parameters?.parameters;
+    var parameters = node.parameters?.allFormalParameters;
     if (parameters == null || parameters.isEmpty) {
       return;
     }

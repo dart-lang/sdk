@@ -797,7 +797,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
           checkUsage(redirectedParameter, node, usageRange: node.sourceRange);
         } else {
           // Positional.
-          var position = parameterList.parameters.indexOf(node);
+          var position = parameterList.allFormalParameters.indexOf(node);
           if (position < 0) return;
           if (position >= redirectedConstructor.formalParameters.length) {
             return;

@@ -735,7 +735,7 @@ class _InfoBuilder {
 
     void addFormalParameters(FormalParameterList? formalParameters) {
       if (formalParameters != null) {
-        for (var parameter in formalParameters.parameters) {
+        for (var parameter in formalParameters.allFormalParameters) {
           parameter.metadata.accept2(collector);
           addFormalParameters(parameter.functionTypedSuffix?.formalParameters);
           if (parameter.defaultClause case var defaultClause?) {
@@ -892,7 +892,7 @@ class _InfoBuilder {
     if (node == null) {
       return [];
     }
-    var parameters = node.parameters;
+    var parameters = node.allFormalParameters;
     return List.generate(
       parameters.length,
       (index) => _buildFormalParameter(parameters[index]),

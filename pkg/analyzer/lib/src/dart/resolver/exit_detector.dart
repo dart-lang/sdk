@@ -6,12 +6,14 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:analyzer/src/dart/element/type.dart';
 
 /// Instances of the class `ExitDetector` determine whether the visited AST node
 /// is guaranteed to terminate by executing a `return` statement, `throw`
 /// expression, `rethrow` expression, or simple infinite loop such as
 /// `while(true)`.
+@ToBeDeprecated('Needs a V2 replacement.')
 class ExitDetector extends GeneralizingAstVisitor<bool> {
   /// Set to `true` when a `break` is encountered, and reset to `false` when a
   /// `do`, `while`, `for` or `switch` block is entered.

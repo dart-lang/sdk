@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 
 /// Instances of the class [ConstantEvaluator] evaluate constant expressions to
 /// produce their compile-time value.
@@ -93,6 +94,7 @@ import 'package:analyzer/dart/element/element.dart';
 /// indicate various conditions encountered during evaluation. These are
 /// documented with the static fields that define those values.
 @Deprecated('This has no uses in package:analyzer and not exhaustive.')
+@ToBeDeprecated('Use ConstantEvaluator2 instead.')
 class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   /// The value returned for expressions (or non-expression nodes) that are not
   /// compile-time constant expressions.
@@ -597,7 +599,7 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
   @override
   Object? visitListLiteral(ListLiteral node) {
     List<Object?> list = <Object>[];
-    for (CollectionElement element in node.elements) {
+    for (CollectionElement element in node.elements2) {
       if (element is Expression) {
         var value = element.accept2(this);
         if (identical(value, NOT_A_CONSTANT)) {
@@ -658,7 +660,7 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
 
   @override
   Object? visitParenthesizedExpression(ParenthesizedExpression node) =>
-      node.expression.accept2(this);
+      node.expression2.accept2(this);
 
   @override
   Object? visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) =>
@@ -670,10 +672,10 @@ class ConstantEvaluator2 extends UnifyingAstVisitor2<Object> {
     // didn't add support for set literals. As a result, this assumes that we're
     // looking at a map literal until we prove otherwise.
     Map<String, Object?> map = HashMap<String, Object>();
-    for (CollectionElement element in node.elements) {
+    for (CollectionElement element in node.elements2) {
       if (element is MapLiteralEntry) {
-        var key = element.key.accept2(this);
-        var value = element.value.accept2(this);
+        var key = element.key2.accept2(this);
+        var value = element.value2.accept2(this);
         if (key is String && !identical(value, NOT_A_CONSTANT)) {
           map[key] = value;
         } else {

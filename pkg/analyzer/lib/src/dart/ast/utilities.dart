@@ -20,6 +20,7 @@ export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 /// - Offsets that fall between the name and type/formal parameter list of a
 ///   declaration will return the declaration node and not the parameter list
 ///   node.
+@ToBeDeprecated('Use NodeLocator2 instead.')
 class NodeLocator extends UnifyingAstVisitor<void> {
   /// The inclusive start offset of the range used to identify the node.
   final int _startOffset;
@@ -322,6 +323,7 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
 ///
 /// Completion test code coverage is 95%. The two basic blocks that are not
 /// executed cannot be executed. They are included for future reference.
+@ToBeDeprecated('Use ScopedNameFinder2 instead.')
 class ScopedNameFinder extends GeneralizingAstVisitor<void>
     with _ScopedNameFinderMixin {
   @override
@@ -393,7 +395,7 @@ mixin _ScopedNameFinderMixin {
 
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (!identical(immediateChild, node.parameters)) {
-      _addParameters(node.parameters.parameters);
+      _addParameters(node.parameters.allFormalParameters);
     }
     _declarationNode = node;
   }
@@ -428,7 +430,7 @@ mixin _ScopedNameFinderMixin {
   void visitFunctionExpression(FunctionExpression node) {
     var parameters = node.parameters;
     if (parameters != null && !identical(immediateChild, parameters)) {
-      _addParameters(parameters.parameters);
+      _addParameters(parameters.allFormalParameters);
     }
     visitNode(node);
   }
@@ -437,7 +439,7 @@ mixin _ScopedNameFinderMixin {
     _declarationNode = node;
     var parameters = node.parameters;
     if (parameters != null && !identical(immediateChild, parameters)) {
-      _addParameters(parameters.parameters);
+      _addParameters(parameters.allFormalParameters);
     }
   }
 
@@ -456,7 +458,7 @@ mixin _ScopedNameFinderMixin {
     _declarationNode = node;
   }
 
-  void _addParameters(NodeList<FormalParameter> vars) {
+  void _addParameters(List<FormalParameter> vars) {
     for (FormalParameter var2 in vars) {
       _addToScope(var2.name);
     }

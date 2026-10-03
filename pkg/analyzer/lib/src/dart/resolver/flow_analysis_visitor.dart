@@ -1103,7 +1103,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     node.target2?.accept2(this);
     var parameters = node.parameters;
     if (parameters != null) {
-      for (var parameter in parameters.parameters) {
+      for (var parameter in parameters.allFormalParameters) {
         var element = parameter.declaredFragment?.element;
         if (element is FormalParameterElementImpl) {
           assignedVariables.declare(element);

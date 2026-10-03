@@ -607,7 +607,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     required bool isExternal,
   }) {
     var formalParameters =
-        formalParameterList?.parameters ?? <FormalParameter>[];
+        formalParameterList?.allFormalParameters ?? <FormalParameter>[];
     var hadNativeAnnotation = false;
 
     for (var annotation in declarationElement.metadata.annotations) {

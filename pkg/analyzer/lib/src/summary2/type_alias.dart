@@ -67,7 +67,7 @@ class _Finder {
   }
 
   void _formalParameterList(FormalParameterList node) {
-    for (var parameter in node.parameters) {
+    for (var parameter in node.allFormalParameters) {
       _formalParameter(parameter);
     }
   }

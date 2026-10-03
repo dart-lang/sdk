@@ -645,7 +645,7 @@ class TypeArgumentsVerifier {
           }
         }
       case GenericFunctionType(:var returnType, :var parameters):
-        for (var parameter in parameters.parameters) {
+        for (var parameter in parameters.allFormalParameters) {
           if (parameter case RegularFormalParameter(
             functionTypedSuffix: null,
             type: var typeAnnotation?,
