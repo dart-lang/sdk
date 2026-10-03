@@ -24,6 +24,7 @@ export 'package:vm_service/vm_service.dart'
 export 'src/dartpad_config.dart' show DartPadConfig;
 export 'src/exceptions.dart' hide rethrowAsDartPadException;
 export 'src/message_port/message_port.dart' show MessagePort;
+export 'src/version_info.dart' show VersionInfo;
 
 export 'src/worker_client.dart'
     show
@@ -49,8 +50,9 @@ final class DartPadSdk {
   ///
   /// A _DartPad SDK_ must contain entrypoints:
   ///  * `worker.js`, satisfying `doc/worker-protocol.md`,
-  ///  * `sandbox.js`, and,
-  ///  * `devtools.html`.
+  ///  * `sandbox.js`,
+  ///  * `devtools.html`, and,
+  ///  * `version.json`.
   ///
   /// A _DartPad SDK_ may contain additional assets that are also resolved from
   /// the [assetBaseUrl] by `worker.js`, `sandbox.js`, or `devtools.html`.
@@ -61,7 +63,14 @@ final class DartPadSdk {
     _assetBaseUrl = Uri.base.resolveUri(assetBaseUrl);
   }
 
-  Future<DartPad> dedicatedWorker({Uri? pubHostedUrl}) async {
+  /// Starts a dedicated Web Worker running the DartPad SDK.
+  ///
+  /// If [abort] is completed before the worker finishes initializing, the
+  /// worker is terminated and [dedicatedWorker] throws a [StateError].
+  Future<DartPad> dedicatedWorker({
+    Uri? pubHostedUrl,
+    Completer<void>? abort,
+  }) async {
     // The assetBaseUrl might be on a different origin, so we'll create a small
     // blob object URL importing worker.js and setting up a session.
     //
@@ -90,6 +99,7 @@ final class DartPadSdk {
     );
     final session = Completer<web.MessagePort>();
     worker.onmessage = (web.MessageEvent event) {
+      if (session.isCompleted) return;
       final data = event.data as JSObject?;
       final action = data?['action'] as JSString?;
       switch (action?.toDart) {
@@ -102,8 +112,23 @@ final class DartPadSdk {
       }
     }.toJS;
 
+    var ok = false;
+    try {
+      await Future.any([
+        session.future,
+        ?abort?.future.then((_) => throw StateError('Worker creation aborted')),
+      ]);
+      ok = true;
+    } finally {
+      if (!ok) {
+        worker.terminate();
+        web.URL.revokeObjectURL(blobUrl);
+      }
+    }
+
+    final port = await session.future;
     return DartPad._(
-      MessagePortExt.fromMessagePort(await session.future).jsonRpcChannel(),
+      MessagePortExt.fromMessagePort(port).jsonRpcChannel(),
       worker,
       blobUrl,
     );

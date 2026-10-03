@@ -35,12 +35,20 @@ action("build_worker_js") {
          rebase_path(inputs, root_build_dir)
 }
 
-# Action to build the sdk.tar file
+# Action to build the sdk.tar and version.json files
 prebuilt_dart_action("build_sdk_tar") {
   script = "../../pkg/dartpad_worker/tool/build_dart_sdk_tar.dart"
 
-  output = "$root_out_dir/dartpad/sdk.tar"
-  outputs = [ output ]
+  inputs = [
+    "../../pkg/dartpad/lib/src/dartpad_config.dart",
+    "../../pkg/dartpad/lib/src/version_info.dart",
+    "../../pkg/dartpad_worker/lib/src/worker_protocol_version.dart",
+  ]
+
+  outputs = [
+    "$root_out_dir/dartpad/sdk.tar",
+    "$root_out_dir/dartpad/version.json",
+  ]
 
   # This script reads most of the SDK lib directory.
   # We don't list every file in 'inputs' to avoid GN churn,
@@ -48,7 +56,7 @@ prebuilt_dart_action("build_sdk_tar") {
   deps = [ "../../sdk:create_sdk" ]
 
   args = [
-    "--output=" + rebase_path(output, root_build_dir),
+    "--output=" + rebase_path("$root_out_dir/dartpad", root_build_dir),
     "--sdk-root=" + rebase_path("$root_out_dir/dart-sdk", root_build_dir),
   ]
 }

@@ -207,6 +207,21 @@ class A {
     return _test_prepare(content, 'aaaa');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/53947
+  Future<void> test_prepare_namedArgument_functionTypedField() {
+    const content = '''
+class A {
+  final void Function({int test}) f;
+  A(this.f);
+  void m() {
+    f(te^st: 3);
+  }
+}
+''';
+
+    return _test_prepare(content, null);
+  }
+
   Future<void> test_prepare_sdkClass() async {
     const content = '''
 final a = new [!Ob^ject!]();

@@ -1313,6 +1313,187 @@ void f(int /*[0*/_/*0]*/) {}
 ''', allOfKind: .Write);
   }
 
+  Future<void> test_part_export_show() async {
+    var aFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    newFile(aFilePath, 'class A {}');
+    newFile(mainFilePath, "part 'part.dart';");
+
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    await _testMarkedContent(
+      '''
+part of 'main.dart';
+import 'a.dart';
+export 'a.dart' show /*[0*/A/*0]*/;
+
+void f(/*[1*/A/*1]*/ a) {}
+''',
+      filePath: partFilePath,
+      allOfKind: .Read,
+    );
+  }
+
+  Future<void> test_part_import_hide() async {
+    var aFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    newFile(aFilePath, 'class A {} class B {}');
+    newFile(mainFilePath, "part 'part.dart';");
+
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    await _testMarkedContent(
+      '''
+part of 'main.dart';
+import 'a.dart' hide /*[0*/A/*0]*/;
+import 'a.dart' as a;
+
+void f(a./*[1*/A/*1]*/ a1) {}
+''',
+      filePath: partFilePath,
+      allOfKind: .Read,
+    );
+  }
+
+  Future<void> test_part_import_nested() async {
+    var aFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    newFile(aFilePath, 'class A {}');
+    newFile(mainFilePath, "part 'part.dart';");
+
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    newFile(partFilePath, '''
+part of 'main.dart';
+part 'subpart.dart';
+''');
+
+    var subpartFilePath = join(projectFolderPath, 'lib', 'subpart.dart');
+    await _testMarkedContent(
+      '''
+part of 'part.dart';
+import 'a.dart' show /*[0*/A/*0]*/;
+
+void f(/*[1*/A/*1]*/ a) {}
+''',
+      filePath: subpartFilePath,
+      allOfKind: .Read,
+    );
+  }
+
+  Future<void> test_part_import_prefix() async {
+    var aFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    newFile(aFilePath, 'class A {}');
+    newFile(mainFilePath, "part 'part.dart';");
+
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    await _testMarkedContent(
+      '''
+part of 'main.dart';
+import 'a.dart' as /*[0*/p/*0]*/;
+
+void f() {
+  /*[1*/p/*1]*/.A();
+}
+''',
+      filePath: partFilePath,
+      allOfKind: .Read,
+    );
+  }
+
+  Future<void> test_part_import_shadow() async {
+    var a1FilePath = join(projectFolderPath, 'lib', 'a1.dart');
+    var a2FilePath = join(projectFolderPath, 'lib', 'a2.dart');
+    newFile(a1FilePath, 'class A {}');
+    newFile(a2FilePath, 'class A {}');
+    newFile(mainFilePath, '''
+import 'a1.dart';
+part 'part.dart';
+''');
+
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    await _testMarkedContent(
+      '''
+part of 'main.dart';
+import 'a2.dart' show /*[0*/A/*0]*/;
+
+void f(/*[1*/A/*1]*/ a) {}
+''',
+      filePath: partFilePath,
+      allOfKind: .Read,
+    );
+  }
+
+  Future<void> test_part_import_show() async {
+    var aFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    newFile(aFilePath, 'class A {}');
+    newFile(mainFilePath, "part 'part.dart';");
+
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    await _testMarkedContent(
+      '''
+part of 'main.dart';
+import 'a.dart' show /*[0*/A/*0]*/;
+
+void f(/*[1*/A/*1]*/ a) {
+  /*[2*/A/*2]*/? a2;
+}
+''',
+      filePath: partFilePath,
+      allOfKind: .Read,
+    );
+  }
+
+  Future<void> test_part_import_show_extension() async {
+    var aFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    newFile(aFilePath, 'extension Ext on int { void foo() {} }');
+    newFile(mainFilePath, "part 'part.dart';");
+
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    await _testMarkedContent(
+      '''
+part of 'main.dart';
+import 'a.dart' show /*[0*/Ext/*0]*/;
+
+void f() {
+  /*[1*/Ext/*1]*/(1).foo();
+}
+''',
+      filePath: partFilePath,
+      kinds: {0: .Read, 1: .Write},
+    );
+  }
+
+  Future<void> test_part_import_show_multiple() async {
+    var aFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    newFile(aFilePath, 'class A {} class B {}');
+    newFile(mainFilePath, "part 'part.dart';");
+
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    await _testMarkedContent(
+      '''
+part of 'main.dart';
+import 'a.dart' show /*[0*/A/*0]*/, B;
+
+void f(/*[1*/A/*1]*/ a) {}
+''',
+      filePath: partFilePath,
+      allOfKind: .Read,
+    );
+  }
+
+  Future<void> test_part_import_show_typeAlias() async {
+    var aFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    newFile(aFilePath, 'typedef IntList = List<int>;');
+    newFile(mainFilePath, "part 'part.dart';");
+
+    var partFilePath = join(projectFolderPath, 'lib', 'part.dart');
+    await _testMarkedContent(
+      '''
+part of 'main.dart';
+import 'a.dart' show /*[0*/IntList/*0]*/;
+
+void f(/*[1*/IntList/*1]*/ list) {}
+''',
+      filePath: partFilePath,
+      allOfKind: .Read,
+    );
+  }
+
   Future<void> test_pattern_assignment() async {
     await _testMarkedContent(
       '''
@@ -2068,6 +2249,7 @@ void f() {
   /// [kinds].
   Future<void> _testMarkedContent(
     String content, {
+    String? filePath,
     DocumentHighlightKind? allOfKind,
     Map<int, DocumentHighlightKind>? kinds,
   }) async {
@@ -2101,15 +2283,17 @@ void f() {
       }
     }
 
+    var fileUri = filePath != null ? toUri(filePath) : mainFileUri;
+    newFile(filePath ?? mainFilePath, code.code);
     await initialize();
-    await openFile(mainFileUri, code.code);
+    await openFile(fileUri, code.code);
 
     var positions = code.positions.isNotEmpty
         ? code.positions.map((position) => position.position)
         : code.ranges.expand((range) => [range.range.start, range.range.end]);
 
     for (var position in positions) {
-      var highlights = (await getDocumentHighlights(mainFileUri, position))!;
+      var highlights = (await getDocumentHighlights(fileUri, position))!;
 
       if (code.ranges.isEmpty) {
         expect(highlights, isEmpty);

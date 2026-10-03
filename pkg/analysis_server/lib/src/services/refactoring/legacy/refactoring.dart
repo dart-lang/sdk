@@ -415,7 +415,11 @@ class RefactoringWorkspace {
     if (element is MockLibraryImportElement) {
       return containsFile(element.libraryFragment.source.fullName);
     }
-    return containsFile(element.firstFragment.libraryFragment!.source.fullName);
+    var libraryFragment = element.firstFragment.libraryFragment;
+    if (libraryFragment == null) {
+      return false;
+    }
+    return containsFile(libraryFragment.source.fullName);
   }
 
   /// Whether the file with the given [path] is in a context root.
@@ -528,6 +532,13 @@ abstract class RenameRefactoring implements Refactoring {
       }
     }
     if (element is FormalParameterElement) {
+      // A parameter of a function type that is reached through an invocation
+      // (for example `f(name: 0)` where `f` has a function type) has no
+      // declaration fragment, so it can't be renamed.
+      // https://github.com/dart-lang/sdk/issues/53947
+      if (element.firstFragment.libraryFragment == null) {
+        return null;
+      }
       return RenameParameterRefactoringImpl(
         workspace,
         sessionHelper,
@@ -577,10 +588,12 @@ abstract class RenameRefactoring implements Refactoring {
     AstNode node,
     Element? element,
   ) {
-    if (node case SimpleIdentifier(
-      parent: Annotation(),
-      element: TypeParameterizedElement typeParameterizedElement,
-    ) when element is ConstructorElement) {
+    if (node
+        case SimpleIdentifier(
+          parent: Annotation(),
+          element: TypeParameterizedElement typeParameterizedElement,
+        )
+        when element is ConstructorElement) {
       element = typeParameterizedElement;
     }
     if (node is ClassNamePart) {

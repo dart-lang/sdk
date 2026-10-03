@@ -6,6 +6,7 @@ import 'worker/compile.dart' as flutter_compile;
 import 'worker/hot_reload.dart' as flutter_hotreload;
 import 'worker/language_server.dart' as flutter_languageserver;
 import 'worker/pub.dart' as flutter_pub;
+import 'worker/version.dart' as flutter_version;
 
 /// Compiling these workers tests is slow, so we've combined them all into
 /// one test suite.
@@ -14,4 +15,5 @@ final testFiles = [
   ('flutter/worker/hot_reload.dart', flutter_hotreload.main),
   ('flutter/worker/language_server.dart', flutter_languageserver.main),
   ('flutter/worker/pub.dart', flutter_pub.main),
+  ('flutter/worker/version.dart', flutter_version.main),
 ];

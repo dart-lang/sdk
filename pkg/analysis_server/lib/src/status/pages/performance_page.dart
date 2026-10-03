@@ -8,10 +8,12 @@ import 'dart:math' as math;
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/status/utilities/library_cycle_extensions.dart';
+import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:path/path.dart' as path;
 
 /// A diagnostic page reporting performance-related health checks and
 /// diagnostics.
@@ -36,6 +38,8 @@ class PerformancePage extends DiagnosticPageWithNav {
 
   @override
   String? get navDetailClass => 'counter-red';
+
+  path.Context get pathContext => server.resourceProvider.pathContext;
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
@@ -74,8 +78,8 @@ class PerformancePage extends DiagnosticPageWithNav {
     return [
       _ContextsPerformanceComponent(this),
       _LibraryCyclesPerformanceComponent(this),
+      _NodeModulesPerformanceComponent(this),
       // TODO(srawlins): Check for slow file reads.
-      // TODO(srawlins): Check for presence of node_modules directories.
       // TODO(srawlins): Check for symlink explosions.
     ];
   }
@@ -258,6 +262,149 @@ class _LibraryCyclesPerformanceComponent implements _PerformanceComponent {
         raw: true,
       );
     }
+  }
+}
+
+/// Information about an unexcluded `node_modules` directory in an analysis context.
+class _NodeModulesDirectoryInfo {
+  final String contextPath;
+  final String nodeModulesPath;
+
+  new({required this.contextPath, required this.nodeModulesPath});
+}
+
+/// Component reporting on unexcluded `node_modules` directories.
+class _NodeModulesPerformanceComponent implements _PerformanceComponent {
+  final PerformancePage page;
+  final List<_NodeModulesDirectoryInfo> nodeModulesDirectories = [];
+
+  new(this.page) {
+    for (var entry in page.driverMap.entries) {
+      var contextFolder = entry.key;
+      var driver = entry.value;
+      var contextRoot = driver.analysisContext?.contextRoot;
+      if (contextRoot == null) continue;
+
+      var foundPaths = _findNodeModules(contextRoot);
+      for (var path in foundPaths) {
+        nodeModulesDirectories.add(
+          _NodeModulesDirectoryInfo(
+            contextPath: contextFolder.path,
+            nodeModulesPath: path,
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  bool get hasPotentialProblem => nodeModulesDirectories.isNotEmpty;
+
+  @override
+  String get title => 'node_modules Directories';
+
+  @override
+  void render(PerformancePage page) {
+    if (hasPotentialProblem) {
+      var count = nodeModulesDirectories.length;
+      page.p(
+        'Detected <strong>$count</strong> unexcluded <code>node_modules</code> '
+        'director${count == 1 ? 'y' : 'ies'} within analyzed contexts:',
+        raw: true,
+      );
+
+      var pathContext = page.pathContext;
+
+      page.buf.writeln('<ul>');
+      for (var info in nodeModulesDirectories) {
+        var _NodeModulesDirectoryInfo(:contextPath, :nodeModulesPath) = info;
+        var relativePath = pathContext.isWithin(contextPath, nodeModulesPath)
+            ? pathContext.relative(nodeModulesPath, from: contextPath)
+            : nodeModulesPath;
+        var contextHref =
+            'contexts?context=${Uri.encodeQueryComponent(contextPath)}';
+        var contextName = pathContext.basename(contextPath);
+
+        page.buf.write('<li>');
+        page.buf.write(
+          '<code>${escape(relativePath)}</code> in context '
+          '<a href="$contextHref"><code>${escape(contextName)}</code></a>',
+        );
+        page.buf.write('</li>');
+      }
+      page.buf.writeln('</ul>');
+
+      page.p(
+        'The analysis server can spend significant time and memory watching and '
+        'scanning large directory trees like <code>node_modules</code>. Consider '
+        'excluding them in your <code>analysis_options.yaml</code> file:',
+        raw: true,
+      );
+      page.pre(() {
+        page.buf.writeln('analyzer:');
+        page.buf.writeln('  exclude:');
+        page.buf.writeln('    - "**/node_modules/**"');
+      });
+    } else {
+      page.p(
+        'No unexcluded <code>node_modules</code> directories were detected in '
+        'analyzed contexts.',
+        raw: true,
+      );
+      page.p(
+        'Directories named <code>node_modules</code> can contain tens of '
+        'thousands of files. If present, they should be excluded in '
+        '<code>analysis_options.yaml</code> to avoid slowing down analysis.',
+        raw: true,
+      );
+    }
+  }
+
+  static List<String> _findNodeModules(ContextRoot contextRoot) {
+    var results = <String>[];
+    var visited = <String>{};
+
+    void searchFolder(Folder folder) {
+      String canonicalPath;
+      try {
+        canonicalPath = folder.resolveSymbolicLinksSync().path;
+      } on FileSystemException {
+        return;
+      }
+      if (!visited.add(canonicalPath)) return;
+
+      List<Folder> children;
+      try {
+        children = folder.getChildren().whereType<Folder>().toList();
+      } on FileSystemException {
+        return;
+      }
+
+      for (var child in children) {
+        var basename = child.shortName;
+        if (basename.startsWith('.')) continue;
+
+        if (basename == 'node_modules') {
+          if (contextRoot.isAnalyzed(child.path)) {
+            results.add(child.path);
+          }
+          // Do not recurse into 'node_modules'.
+          continue;
+        }
+
+        if (contextRoot.isAnalyzed(child.path)) {
+          searchFolder(child);
+        }
+      }
+    }
+
+    for (var included in contextRoot.included) {
+      if (included is Folder) {
+        searchFolder(included);
+      }
+    }
+
+    return results;
   }
 }
 

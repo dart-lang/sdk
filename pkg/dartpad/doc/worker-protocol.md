@@ -1,8 +1,8 @@
 # DartPad SDK Protocol
 
-This document specifies what a "DartPad SDK" is, how it is instantiated, and how
-one interacts with it. `package:dartpad` is the official client for this
-protocol.
+This document specifies version `1.0` of what a "DartPad SDK" is, how it is
+instantiated, and how one interacts with it. `package:dartpad` is the official
+client for this protocol.
 
 At a high-level a _DartPad SDK_ provides a worker that a dartpad-like
 environment can use to fetch dependencies, analyze, compile and run Dart code.
@@ -24,6 +24,7 @@ A _DartPad SDK_ is an `assetBaseUrl` that points to a directory that hosts:
  * `worker.js`, script for running a dartpad environment in the browser.
  * `sandbox.js`, script for running compiled code in a sandboxed iframe.
  * `devtools.html`, page for running Dart DevTools in an iframe.
+ * `version.json`, protocol version, SDK versions and capabilities.
  * SDK specific assets referenced by `worker.js`, `sandbox.js`, and `devtools.html`.
 
 The `worker.js` script must export a `Worker` class that can be instantiated as
@@ -77,6 +78,9 @@ The `devtools.html` page must use [window.postMessage][4] to send
 `{action: 'connect', port: <MessagePort>}` with a [MessagePort][2] attached.
 The attached [MessagePort][2] must be forwarded to the worker via
 `workspace/sandbox/connectServiceProtocol`.
+
+The `version.json` file contains the same metadata JSON object as returned by
+the `version` RPC method (see below).
 
 
 
@@ -175,6 +179,36 @@ prefixed `workspace/` require a `workspaceId` parameter.
 | `workspace/languageServer/` | `workspaceId` and `languageServerId` |
 | `workspace/watcher/` | `workspaceId` and `watcherId` |
 | `workspace/sandbox/` | `workspaceId` and `sandboxId` |
+
+
+### Method `version`
+
+Returns version and capability metadata for the worker.
+
+**Params:**
+```js
+{}
+```
+
+**Result:**
+```js
+{
+  // Major and minor version of this worker protocol.
+  "workerProtocolMajor": 1,
+  "workerProtocolMinor": 0,
+  // Run modes supported by this DartPad SDK.
+  "modes": ["console", "flutter"],
+  // Version and git commit revision of the Dart SDK.
+  "dartVersion": "3.14.0-241.0.dev",
+  "dartRevision": "de21baa35ba96c5fd5ab7b98b3b22c175f805363",
+  // Additional key-value metadata properties for this DartPad SDK.
+  "properties": {
+    "flutterVersion": "3.48.0-1.0.pre-827",
+    "flutterRevision": "12384f9e87f79205076ce1990e8b7cd31cffb397",
+    "engineRevision": "c3edad8766a937c49d66380894017cad401aab51",
+  },
+}
+```
 
 
 ### Method `createWorkspace`

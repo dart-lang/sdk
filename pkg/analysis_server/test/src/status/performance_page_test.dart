@@ -159,6 +159,68 @@ class PerformancePageTest extends PubPackageAnalysisServerTest {
     );
   }
 
+  Future<void> test_nodeModules_excluded() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageRootPath/node_modules/pkg/index.js', 'console.log();');
+    writeTestPackageAnalysisOptionsFile('''
+analyzer:
+  exclude:
+    - 'node_modules/**'
+''');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, isNull);
+
+    var html = await _generate();
+    expect(html, contains('All Clear:'));
+    expect(
+      html,
+      contains(
+        'No unexcluded <code>node_modules</code> directories were detected',
+      ),
+    );
+  }
+
+  Future<void> test_nodeModules_nested() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile(
+      '$testPackageRootPath/web/node_modules/pkg/index.js',
+      'console.log();',
+    );
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, '1');
+
+    var html = await _generate();
+    expect(html, contains('Potential Problems'));
+    expect(html, contains('<code>web&#47;node_modules</code> in context'));
+  }
+
+  Future<void> test_nodeModules_notExcluded() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageRootPath/node_modules/pkg/index.js', 'console.log();');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(page.navDetail, '1');
+    expect(page.navDetailClass, 'counter-red');
+
+    var html = await _generate();
+    expect(html, contains('<span class="counter counter-red">1</span>'));
+    expect(html, contains('Potential Problems'));
+    expect(html, contains('node_modules Directories'));
+    expect(
+      html,
+      contains(
+        'Detected <strong>1</strong> unexcluded <code>node_modules</code> directory',
+      ),
+    );
+    expect(html, contains('<code>node_modules</code> in context'));
+    expect(html, contains('**/node_modules/**'));
+  }
+
   Future<String> _generate() async {
     return await page.generate({});
   }

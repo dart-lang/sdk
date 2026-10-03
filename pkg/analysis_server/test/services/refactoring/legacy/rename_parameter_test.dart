@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
+import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:linter/src/lint_names.dart';
 import 'package:test/test.dart';
@@ -288,6 +290,28 @@ class B extends A {
   }
 }
 ''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/53947
+  Future<void> test_namedArgument_functionTypedField() async {
+    await indexTestUnit('''
+class A {
+  final void Function({int test}) f;
+  A(this.f);
+  void m() {
+    f(test: 3);
+  }
+}
+''');
+    var element = ElementLocator.locate(findNode.any('test: 3'));
+    expect(element, isNotNull);
+    var workspace = RefactoringWorkspace([driverFor(testFile)], searchEngine);
+    var refactoring = RenameRefactoring.create(
+      workspace,
+      testAnalysisResult,
+      element,
+    );
+    expect(refactoring, isNull);
   }
 }
 
