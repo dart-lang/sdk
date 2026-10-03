@@ -1356,11 +1356,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       return;
     }
 
-    if (parameters.parameters.length != 1) {
+    if (parameters.allFormalParameters.length != 1) {
       return;
     }
 
-    var parameter = parameters.parameters.first;
+    var parameter = parameters.allFormalParameters.first;
     var parameterElement = parameter.declaredFragment!.element;
 
     var type = parameterElement.type;
@@ -1537,7 +1537,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       return;
     }
 
-    var implicitlyTypedParameters = parameterList.parameters
+    var implicitlyTypedParameters = parameterList.allFormalParameters
         .whereType<RegularFormalParameterImpl>()
         .where(
           (p) =>

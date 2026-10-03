@@ -395,7 +395,7 @@ mixin _ScopedNameFinderMixin {
 
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (!identical(immediateChild, node.parameters)) {
-      _addParameters(node.parameters.parameters);
+      _addParameters(node.parameters.allFormalParameters);
     }
     _declarationNode = node;
   }
@@ -430,7 +430,7 @@ mixin _ScopedNameFinderMixin {
   void visitFunctionExpression(FunctionExpression node) {
     var parameters = node.parameters;
     if (parameters != null && !identical(immediateChild, parameters)) {
-      _addParameters(parameters.parameters);
+      _addParameters(parameters.allFormalParameters);
     }
     visitNode(node);
   }
@@ -439,7 +439,7 @@ mixin _ScopedNameFinderMixin {
     _declarationNode = node;
     var parameters = node.parameters;
     if (parameters != null && !identical(immediateChild, parameters)) {
-      _addParameters(parameters.parameters);
+      _addParameters(parameters.allFormalParameters);
     }
   }
 
@@ -458,7 +458,7 @@ mixin _ScopedNameFinderMixin {
     _declarationNode = node;
   }
 
-  void _addParameters(NodeList<FormalParameter> vars) {
+  void _addParameters(List<FormalParameter> vars) {
     for (FormalParameter var2 in vars) {
       _addToScope(var2.name);
     }

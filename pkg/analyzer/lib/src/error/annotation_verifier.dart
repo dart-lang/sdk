@@ -676,7 +676,7 @@ class AnnotationVerifier {
         return null;
       }
 
-      for (var parameter in parameterList.parameters) {
+      for (var parameter in parameterList.allFormalParameters) {
         if (parameter.name?.lexeme == unlessParam) {
           return null;
         }

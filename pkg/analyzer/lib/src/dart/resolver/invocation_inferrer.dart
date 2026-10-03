@@ -31,7 +31,7 @@ Set<Object> _computeExplicitlyTypedParameterSet(
   FunctionExpression functionExpression,
 ) {
   List<FormalParameter> parameters =
-      functionExpression.parameters?.parameters ?? const [];
+      functionExpression.parameters?.allFormalParameters ?? const [];
   Set<Object> result = {};
   int unnamedParameterIndex = 0;
   for (var formalParameter in parameters) {

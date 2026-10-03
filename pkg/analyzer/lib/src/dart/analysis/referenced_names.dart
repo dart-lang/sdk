@@ -191,7 +191,7 @@ class _LocalNameScope {
 
   void addFormalParameters(FormalParameterList? parameterList) {
     if (parameterList != null) {
-      for (var p in parameterList.parameters) {
+      for (var p in parameterList.allFormalParameters) {
         add(p.name);
       }
     }

@@ -21778,6 +21778,13 @@ sealed class FormalParameterImpl extends AstNodeImpl
 ///         '{' [FormalParameter] (',' [FormalParameter])* '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FormalParameterList implements AstNode {
+  /// All formal parameters, in lexical order.
+  ///
+  /// These are the [requiredPositionalFormalParameters], followed by the
+  /// formal parameters of [delimitedFormalParameters].
+  @experimental
+  List<FormalParameter> get allFormalParameters;
+
   /// The optional positional or named formal parameters, or `null` if there
   /// are no delimited formal parameters.
   @experimental
@@ -21799,10 +21806,7 @@ abstract final class FormalParameterList implements AstNode {
   List<FormalParameterFragment?> get parameterFragments;
 
   /// The parameters associated with the method.
-  @ToBeDeprecated(
-    'Use requiredPositionalFormalParameters and delimitedFormalParameters '
-    'instead',
-  )
+  @ToBeDeprecated('Use allFormalParameters instead.')
   NodeList<FormalParameter> get parameters;
 
   /// The required positional formal parameters at the start of this list.
@@ -21846,15 +21850,14 @@ final class FormalParameterListImpl extends AstNodeImpl
   @DoNotGenerate(reason: 'The V2 child has custom parent handling')
   DelimitedFormalParametersImpl? _delimitedFormalParameters;
 
-  @Deprecated(
-    'Use requiredPositionalFormalParameters and delimitedFormalParameters '
-    'instead',
-  )
+  @Deprecated('Use allFormalParameters instead.')
   @override
   late final NodeListImpl<FormalParameterImpl> parameters =
       _FormalParameterListV1NodeList(this);
 
   /// A fixed-length view of all formal parameters, in lexical order.
+  @experimental
+  @override
   late final List<FormalParameterImpl> allFormalParameters =
       _FormalParameterListView(this);
 

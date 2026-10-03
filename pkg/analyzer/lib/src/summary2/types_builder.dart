@@ -251,7 +251,7 @@ class TypesBuilder {
   List<InternalFormalParameterElement> _formalParameters(
     FormalParameterList node,
   ) {
-    return node.parameters.asImpl.map((parameter) {
+    return node.allFormalParameters.asImpl.map((parameter) {
       return parameter.declaredFragment!.element;
     }).toFixedList();
   }

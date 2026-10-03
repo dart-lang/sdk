@@ -64,7 +64,7 @@ class MemberDuplicateDefinitionVerifier {
         elementContext.constructorNames.add(primaryConstructorName);
       }
 
-      var formals = primaryConstructor.formalParameters.parameters;
+      var formals = primaryConstructor.formalParameters.allFormalParameters;
       for (var formalNode in formals) {
         var formalFragment = formalNode.declaredFragment;
         if (formalFragment is FieldFormalParameterFragmentImpl &&

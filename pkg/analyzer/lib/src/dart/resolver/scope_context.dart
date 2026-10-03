@@ -604,7 +604,7 @@ extension<E extends AstNode> on NodeList<E> {
 
 extension LocalScopeExtension on LocalScope {
   void addFormalParameterList(FormalParameterList node) {
-    for (var formalParameter in node.parameters) {
+    for (var formalParameter in node.allFormalParameters) {
       add(formalParameter.declaredFragment!.element);
     }
   }

@@ -88,7 +88,7 @@ class WidgetPreviewVerifier {
     node.arguments!.accept2(visitor);
   }
 
-  bool _hasRequiredParameters(NodeList<FormalParameter> parameters) {
+  bool _hasRequiredParameters(List<FormalParameter> parameters) {
     return parameters.any((e) => e.isRequired);
   }
 
@@ -158,7 +158,7 @@ class WidgetPreviewVerifier {
     return !_isPrivateContext(name: name, node: declaration) &&
         element.isWidget &&
         !(element.isAbstract && !isFactory) &&
-        !_hasRequiredParameters(parameters.parameters);
+        !_hasRequiredParameters(parameters.allFormalParameters);
   }
 
   /// Returns true if `declaration` is a valid top-level function target for a
@@ -178,7 +178,7 @@ class WidgetPreviewVerifier {
       :var externalKeyword,
       :NamedType returnType,
       functionExpression: FunctionExpression(
-        parameters: FormalParameterList(:var parameters),
+        parameters: FormalParameterList(:var allFormalParameters),
       ),
     )) {
       return !_isPrivateContext(name: name.lexeme, node: declaration) &&
@@ -186,7 +186,7 @@ class WidgetPreviewVerifier {
           declaration.parent2 is! FunctionDeclarationStatement &&
           externalKeyword == null &&
           returnType.isValidWidgetPreviewReturnType &&
-          !_hasRequiredParameters(parameters);
+          !_hasRequiredParameters(allFormalParameters);
     }
     return false;
   }
@@ -208,7 +208,7 @@ class WidgetPreviewVerifier {
       :var externalKeyword,
       :var name,
       :NamedType returnType,
-      parameters: FormalParameterList(:var parameters),
+      parameters: FormalParameterList(:var allFormalParameters),
     )) {
       return !_isPrivateContext(name: name.lexeme, node: declaration) &&
           isStatic &&
@@ -216,7 +216,7 @@ class WidgetPreviewVerifier {
           declaration.parent2 is! FunctionDeclarationStatement &&
           externalKeyword == null &&
           returnType.isValidWidgetPreviewReturnType &&
-          !_hasRequiredParameters(parameters);
+          !_hasRequiredParameters(allFormalParameters);
     }
     return false;
   }

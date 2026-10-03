@@ -653,7 +653,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
           allowedTypeParameters: allowedTypeParameters,
         );
       }
-      for (var parameter in type.parameters.parameters) {
+      for (var parameter in type.parameters.allFormalParameters) {
         // In a generic function type, [parameter] can only be a non
         // function-typed regular formal parameter.
         if (parameter is RegularFormalParameter &&

@@ -7206,7 +7206,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return;
     }
 
-    NodeList<FormalParameter> formalParameters = parameterList.parameters;
+    var formalParameters = parameterList.allFormalParameters;
     for (FormalParameter formalParameter in formalParameters) {
       if (!formalParameter.isRequiredPositional) {
         diagnosticReporter.report(
@@ -7893,7 +7893,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     if (parameterList == null) {
       return false;
     }
-    int numParameters = parameterList.parameters.length;
+    int numParameters = parameterList.allFormalParameters.length;
     // prepare operator name
     var nameToken = declaration.name;
     var name = nameToken.lexeme;
@@ -8350,7 +8350,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
 
-    NodeList<FormalParameter> parameters = node.parameters;
+    var parameters = node.allFormalParameters;
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
       var parameter = parameters[i];
@@ -8417,7 +8417,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       return false;
     }();
 
-    for (var parameter in node.parameters) {
+    for (var parameter in node.allFormalParameters) {
       _checkForDefaultValueAlreadySpecifiedInAugmentationChain(parameter);
       _checkForDefaultValueInRedirectingFactoryConstructor(parameter);
 
