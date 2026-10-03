@@ -35,6 +35,7 @@ class ElementLocatorV2 {
 }
 
 /// V1 visitor that maps nodes to elements.
+@ToBeDeprecated('Use _ElementMapperV2 instead.')
 class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitAnnotation(Annotation node) {

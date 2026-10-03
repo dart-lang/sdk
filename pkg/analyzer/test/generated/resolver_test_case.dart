@@ -37,7 +37,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
       return '[$elementsStr]';
     }
 
-    SimpleIdentifier identifier = result.findNode.simple(name);
+    SimpleIdentifier identifier = result.findNodeV1.simple(name);
     var functionType = _getFunctionTypedElementType(identifier);
     assertType(functionType, type);
     expect(identifier.staticType, isNull);
@@ -55,7 +55,7 @@ class StaticTypeAnalyzer2TestShared extends PubPackageResolutionTest {
     String name,
     String type,
   ) {
-    SimpleIdentifier identifier = result.findNode.simple(name);
+    SimpleIdentifier identifier = result.findNodeV1.simple(name);
     assertType(identifier.staticType, type);
   }
 
