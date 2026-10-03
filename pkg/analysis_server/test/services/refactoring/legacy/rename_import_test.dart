@@ -411,4 +411,103 @@ void f() {
       MockLibraryImportElement(directive.libraryImport!),
     );
   }
+
+  Future<void> test_createChange_usedInPart() async {
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'test.dart';
+void f() {
+  myAsync.Future? f;
+}
+''');
+    await indexTestUnit('''
+import 'dart:async' as myAsync;
+part 'part.dart';
+''');
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+
+    await assertSuccessfulRefactoring('''
+import 'dart:async' as newName;
+part 'part.dart';
+''');
+    assertFileChangeResult('$testPackageLibPath/part.dart', '''
+part of 'test.dart';
+void f() {
+  newName.Future? f;
+}
+''');
+  }
+
+  Future<void> test_createChange_subpart_nonPrefixedImport() async {
+    newFile('$testPackageLibPath/main.dart', '''
+part 'test.dart';
+''');
+    await indexTestUnit('''
+part of 'main.dart';
+import 'dart:math';
+void f() {
+  Random? r;
+}
+''');
+    _createRefactoring("import 'dart:math'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+
+    return assertSuccessfulRefactoring('''
+part of 'main.dart';
+import 'dart:math' as newName;
+void f() {
+  newName.Random? r;
+}
+''');
+  }
+
+  Future<void> test_createChange_subpart_prefixedImport() async {
+    newFile('$testPackageLibPath/main.dart', '''
+part 'test.dart';
+''');
+    await indexTestUnit('''
+part of 'main.dart';
+import 'dart:math' as myMath;
+void f() {
+  myMath.Random? r;
+}
+''');
+    _createRefactoring("import 'dart:math'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+
+    return assertSuccessfulRefactoring('''
+part of 'main.dart';
+import 'dart:math' as newName;
+void f() {
+  newName.Random? r;
+}
+''');
+  }
+
+  Future<void> test_createChange_subpart_removePrefix() async {
+    newFile('$testPackageLibPath/main.dart', '''
+part 'test.dart';
+''');
+    await indexTestUnit('''
+part of 'main.dart';
+import 'dart:math' as myMath;
+void f() {
+  myMath.Random? r;
+}
+''');
+    _createRefactoring("import 'dart:math'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = '';
+
+    return assertSuccessfulRefactoring('''
+part of 'main.dart';
+import 'dart:math';
+void f() {
+  Random? r;
+}
+''');
+  }
 }
