@@ -4023,10 +4023,9 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   @override
   InstanceReceiverImpl get leftOperand => _leftOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set leftOperand(InstanceReceiverImpl leftOperand) {
     _leftOperand = _becomeParentOf2(leftOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @override
@@ -4036,10 +4035,9 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   @override
   ExpressionImpl get rightOperand => _rightOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set rightOperand(ExpressionImpl rightOperand) {
     _rightOperand = _becomeParentOf2(rightOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @generated
@@ -5173,10 +5171,9 @@ final class CallInvocationImpl extends FunctionInvocationImpl
   @override
   InstanceReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(InstanceReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    _functionExpressionInvocation?._attachV1Children();
   }
 
   @generated
@@ -9594,20 +9591,6 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
     return value.endToken;
   }
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set target(AssignmentTargetImpl target) {
-    super.target = target;
-    _assignmentExpression?._attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set value(ExpressionImpl value) {
-    super.value = value;
-    _assignmentExpression?._attachV1Children();
-  }
-
   @generated
   @override
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
@@ -11491,10 +11474,9 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   @generated
   TypeArgumentListImpl? get typeArguments => _typeArguments;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set typeArguments(TypeArgumentListImpl? typeArguments) {
     _typeArguments = _becomeParentOf2(typeArguments);
-    _instanceCreationExpression?._becomeParentOf1(typeArguments);
   }
 
   @generated
@@ -13810,20 +13792,6 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   @override
   Token get endToken {
     return value.endToken;
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set target(AssignmentTargetImpl target) {
-    super.target = target;
-    _assignmentExpression?._attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set value(ExpressionImpl value) {
-    super.value = value;
-    _assignmentExpression?._attachV1Children();
   }
 
   @generated
@@ -27289,20 +27257,6 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
     return value.endToken;
   }
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set target(AssignmentTargetImpl target) {
-    super.target = target;
-    _assignmentExpression?._attachV1Children();
-  }
-
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
-  @override
-  set value(ExpressionImpl value) {
-    super.value = value;
-    _assignmentExpression?._attachV1Children();
-  }
-
   @generated
   @override
   AstNodeApi get _astNodeApi => AstNodeApi.v2;
@@ -27488,10 +27442,9 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   @override
   ExpressionImpl get leftOperand => _leftOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set leftOperand(ExpressionImpl leftOperand) {
     _leftOperand = _becomeParentOf2(leftOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @override
@@ -27501,10 +27454,9 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   @override
   ExpressionImpl get rightOperand => _rightOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set rightOperand(ExpressionImpl rightOperand) {
     _rightOperand = _becomeParentOf2(rightOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @generated
@@ -29956,10 +29908,9 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   @override
   AssignmentTargetImpl get target => _target;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set target(AssignmentTargetImpl target) {
     _target = _becomeParentOf2(target);
-    _attachV1ProjectionChildren();
   }
 
   ExpressionImpl get v1Projection => _v1Projection ??= switch (position) {
@@ -34085,10 +34036,9 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   @override
   ExpressionImpl get leftOperand => _leftOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set leftOperand(ExpressionImpl leftOperand) {
     _leftOperand = _becomeParentOf2(leftOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @override
@@ -34098,10 +34048,9 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   @override
   ExpressionImpl get rightOperand => _rightOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set rightOperand(ExpressionImpl rightOperand) {
     _rightOperand = _becomeParentOf2(rightOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @generated
@@ -34497,10 +34446,9 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   @override
   ExpressionImpl get operand => _operand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set operand(ExpressionImpl operand) {
     _operand = _becomeParentOf2(operand);
-    _prefixExpression?._attachV1Children();
   }
 
   @override
@@ -34682,10 +34630,9 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   @override
   ExpressionImpl get leftOperand => _leftOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set leftOperand(ExpressionImpl leftOperand) {
     _leftOperand = _becomeParentOf2(leftOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @override
@@ -34695,10 +34642,9 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   @override
   ExpressionImpl get rightOperand => _rightOperand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set rightOperand(ExpressionImpl rightOperand) {
     _rightOperand = _becomeParentOf2(rightOperand);
-    _binaryExpression?._attachV1Children();
   }
 
   @generated
@@ -39161,10 +39107,9 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   @override
   ExpressionImpl get operand => _operand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set operand(ExpressionImpl operand) {
     _operand = _becomeParentOf2(operand);
-    _postfixExpression?._attachV1Children();
   }
 
   /// The cached V1 compatibility projection for this expression.
@@ -45489,10 +45434,9 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   @override
   InstanceReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(InstanceReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    _indexExpression?._attachV1Children();
   }
 
   @generated
@@ -45680,10 +45624,9 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   @override
   InstanceReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(InstanceReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    _indexExpression?._attachV1Children();
   }
 
   @generated
@@ -45882,10 +45825,9 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   @override
   NamedReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(NamedReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    _methodInvocation?._attachV1Children();
   }
 
   @generated
@@ -46092,12 +46034,9 @@ final class ReceiverPropertyAssignmentTargetImpl
   @override
   NamedReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(NamedReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    if (_v1Projection case PropertyAccessImpl projection) {
-      projection._attachV1Children();
-    }
   }
 
   ExpressionImpl get v1Projection {
@@ -46301,12 +46240,9 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   @override
   NamedReceiverImpl get receiver => _receiver;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set receiver(NamedReceiverImpl receiver) {
     _receiver = _becomeParentOf2(receiver);
-    if (_v1Projection case PropertyAccessImpl projection) {
-      projection._attachV1Children();
-    }
   }
 
   ExpressionImpl get v1Projection {
@@ -53857,10 +53793,9 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   @override
   FunctionBodyImpl get body => _body;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set body(FunctionBodyImpl body) {
     _body = _becomeParentOf2(body);
-    _v1Projection?.functionExpression._attachV1Children();
   }
 
   @generated
@@ -53891,31 +53826,28 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   FormalParameterListImpl? get recoveryFormalParameters =>
       _recoveryFormalParameters;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set recoveryFormalParameters(
     FormalParameterListImpl? recoveryFormalParameters,
   ) {
     _recoveryFormalParameters = _becomeParentOf2(recoveryFormalParameters);
-    _v1Projection?.functionExpression._attachV1Children();
   }
 
   @generated
   TypeParameterListImpl? get recoveryTypeParameters => _recoveryTypeParameters;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set recoveryTypeParameters(TypeParameterListImpl? recoveryTypeParameters) {
     _recoveryTypeParameters = _becomeParentOf2(recoveryTypeParameters);
-    _v1Projection?.functionExpression._attachV1Children();
   }
 
   @generated
   @override
   TypeAnnotationImpl? get returnType => _returnType;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set returnType(TypeAnnotationImpl? returnType) {
     _returnType = _becomeParentOf2(returnType);
-    _v1Projection?._attachV1Children();
   }
 
   FunctionDeclarationImpl get v1Projection =>
@@ -55491,10 +55423,9 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   @override
   InstanceReceiverImpl get operand => _operand;
 
-  @DoNotGenerate(reason: 'Keeps the cached V1 projection synchronized')
+  @generated
   set operand(InstanceReceiverImpl operand) {
     _operand = _becomeParentOf2(operand);
-    _prefixExpression?._attachV1Children();
   }
 
   @override
