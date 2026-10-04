@@ -63,6 +63,19 @@ class Foo {
 ''');
   }
 
+  test_method_importPrefixed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart' as meta;
+
+class Foo {
+  @meta.UseResult.unless(parameterDefined: 'undef')
+//                                         ^^^^^^^
+// [diag.undefinedReferencedParameter] The parameter 'undef' isn't defined by 'foo'.
+  int foo([int? value]) => value ?? 0;
+}
+''');
+  }
+
   test_method_parameterDefined() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';

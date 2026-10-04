@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 
@@ -67,7 +68,7 @@ class JsInteropVerifier {
           if (annotation.elementAnnotation?.isJS ?? false) {
             _diagnosticReporter.report(
               diag.jsInteropExtensionConstructorJsAnnotationHasNoEffect.at(
-                annotation.name,
+                annotation.nameEntity,
               ),
             );
           }

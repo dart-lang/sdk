@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -80,6 +81,68 @@ DartType? _writeType(AstNode node) {
     return _writeType(parent);
   }
   return null;
+}
+
+/// The range from [_begin] to [_end], both tokens included.
+class _TokenRange extends SyntacticEntity {
+  final Token _begin;
+  final Token _end;
+
+  _TokenRange(this._begin, this._end);
+
+  @override
+  int get end => _end.end;
+
+  @override
+  int get length => end - offset;
+
+  @override
+  int get offset => _begin.offset;
+}
+
+extension AnnotationExtension on Annotation {
+  /// The arguments of the annotation's constructor invocation, or `null` if
+  /// the annotation is not a constructor invocation.
+  ArgumentList? get argumentList {
+    return switch (expression) {
+      ConstructorInvocation(:var argumentList) => argumentList,
+      _ => null,
+    };
+  }
+
+  /// The annotation's name, to report diagnostics about the annotation at,
+  /// such as `A` in `@A()`, `p.A` in `@p.A.named()`, or `A.named` in
+  /// `@A.named()`.
+  ///
+  /// See [_nameTokens].
+  SyntacticEntity get nameEntity {
+    var (head, tail) = _nameTokens;
+    return _TokenRange(head, tail ?? head);
+  }
+
+  /// The source of [nameEntity].
+  String get nameSource {
+    var (head, tail) = _nameTokens;
+    return tail == null ? head.lexeme : '${head.lexeme}.${tail.lexeme}';
+  }
+
+  /// The tokens of the annotation's name: the first token of
+  /// [Annotation.expression], and the token after the following period, if
+  /// any.
+  ///
+  /// This is a syntactic approximation: for `@A.named()` it is `A.named`, but
+  /// for `@p.A.named()` it is `p.A`.
+  (Token, Token?) get _nameTokens {
+    var head = expression.beginToken;
+    var end = expression.endToken;
+    if (!identical(head, end)) {
+      var period = head.next!;
+      if (period.type == TokenType.PERIOD && !identical(period, end)) {
+        return (head, period.next!);
+      }
+    }
+    return (head, null);
+  }
 }
 
 extension ArgumentListExtension on ArgumentList {
