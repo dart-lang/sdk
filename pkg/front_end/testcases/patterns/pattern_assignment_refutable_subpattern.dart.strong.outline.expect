@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method orPattern(core::List<core::Object?> list) → dynamic
+  ;
+static method nullCheckPattern(core::List<core::Object?> list) → dynamic
+  ;

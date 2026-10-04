@@ -438,13 +438,15 @@ mixin TypeAnalyzer<
 
     SharedTypeView variableDeclaredType = operations.variableType(variable);
     Node? irrefutableContext = context.irrefutableContext;
-    assert(
-      irrefutableContext != null,
-      'Assigned variables must only appear in irrefutable pattern contexts',
-    );
     Error? patternTypeMismatchInIrrefutableContextError;
-    if (irrefutableContext != null &&
-        matchedValueType is! SharedDynamicType &&
+    if (irrefutableContext == null) {
+      // Assigned variables only appear in pattern assignments, which are
+      // irrefutable contexts. But if a refutable pattern (such as a logical-or
+      // pattern) appears in a pattern assignment, an error is reported and the
+      // context is made refutable (see [MatchContext.makeRefutable]), to avoid
+      // cascading errors.
+      errors.assertInErrorRecovery();
+    } else if (matchedValueType is! SharedDynamicType &&
         matchedValueType is! SharedInvalidType &&
         !operations.isSubtypeOf(matchedValueType, variableDeclaredType)) {
       patternTypeMismatchInIrrefutableContextError = errors
