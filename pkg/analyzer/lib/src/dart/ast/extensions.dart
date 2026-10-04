@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:collection/collection.dart';
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+@ToBeDeprecated('Used only for the V1 AST.')
 Element? _readElement(AstNode node) {
   var parent = node.parent;
 
@@ -34,6 +35,7 @@ Element? _readElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+@ToBeDeprecated('Used only for the V1 AST.')
 Element? _writeElement(AstNode node) {
   var parent = node.parent;
 
@@ -57,6 +59,7 @@ Element? _writeElement(AstNode node) {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+@ToBeDeprecated('Used only for the V1 AST.')
 DartType? _writeType(AstNode node) {
   var parent = node.parent;
 
@@ -81,6 +84,7 @@ DartType? _writeType(AstNode node) {
 
 extension ArgumentListExtension on ArgumentList {
   /// Returns the named argument with the given [name], or `null` if none.
+  @ToBeDeprecated('Use byName2 instead.')
   NamedArgument? byName(String name) => arguments
       .whereType<NamedArgument>()
       .firstWhereOrNull((e) => e.name.lexeme == name);
@@ -91,6 +95,7 @@ extension ArgumentListExtension on ArgumentList {
       .firstWhereOrNull((e) => e.name.lexeme == name);
 
   /// Returns the argument with the given [index], or `null` if none.
+  @ToBeDeprecated('Use elementAtOrNull2 instead.')
   Argument? elementAtOrNull(int index) {
     if (index < arguments.length) {
       return arguments[index];
@@ -178,6 +183,7 @@ extension ExpressionImplExtension on ExpressionImpl {
 }
 
 extension FormalParameterExtension on FormalParameter {
+  @ToBeDeprecated('Use isOfLocalFunction2 instead.')
   bool get isOfLocalFunction {
     return thisOrAncestorOfType<FunctionBody>() != null;
   }
@@ -186,6 +192,7 @@ extension FormalParameterExtension on FormalParameter {
     return thisOrAncestorOfType2<FunctionBody>() != null;
   }
 
+  @ToBeDeprecated('Use parentFormalParameterList2 instead.')
   FormalParameterList get parentFormalParameterList {
     return switch (parent) {
       FormalParameterList parent => parent,
@@ -211,6 +218,7 @@ extension FormalParameterExtension on FormalParameter {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+@ToBeDeprecated('Use NameExpression or NamedAssignmentTarget instead.')
 extension IdentifierExtension on Identifier {
   Element? get readElement {
     return _readElement(this);
@@ -230,6 +238,7 @@ extension IdentifierExtension on Identifier {
 }
 
 // TODO(scheglov): https://github.com/dart-lang/sdk/issues/43608
+@ToBeDeprecated('Use IndexExpression2 or IndexAssignmentTarget instead.')
 extension IndexExpressionExtension on IndexExpression {
   Element? get writeOrReadElement {
     return _writeElement(this) ?? element;
