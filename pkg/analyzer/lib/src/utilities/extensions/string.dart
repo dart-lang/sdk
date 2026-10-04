@@ -126,6 +126,10 @@ extension StringExtension on String {
     r"[\x00-\x1F\x7F'$\\]",
   );
 
+  /// Whether this is a name that is private to the library in which it's
+  /// declared.
+  bool get isPrivateName => startsWith('_');
+
   String? get nullIfEmpty {
     return isNotEmpty ? this : null;
   }

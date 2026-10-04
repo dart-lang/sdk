@@ -8,6 +8,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// Helper for verifying the validity of @Preview(...) applications.
 ///
@@ -95,7 +96,7 @@ class WidgetPreviewVerifier {
   /// Returns whether [name] is private or `node.parent` is a [ClassDeclaration]
   /// that has a private name.
   bool _isPrivateContext({required String? name, required AstNode node}) {
-    if (name != null && Identifier.isPrivateName(name)) return true;
+    if (name != null && name.isPrivateName) return true;
 
     var parent = node.parent2?.parent2;
     if (parent == null) return false;
@@ -110,7 +111,7 @@ class WidgetPreviewVerifier {
     };
     if (nameToken == null) return false;
 
-    return Identifier.isPrivateName(nameToken.lexeme);
+    return nameToken.lexeme.isPrivateName;
   }
 
   /// Returns true if `node.parent` is a supported context for defining widget
@@ -254,7 +255,7 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor
   }
 
   void _checkName(String name) {
-    if (Identifier.isPrivateName(name)) {
+    if (name.isPrivateName) {
       diagnosticReporter.report(
         diag.invalidWidgetPreviewPrivateArgument
             .withArguments(

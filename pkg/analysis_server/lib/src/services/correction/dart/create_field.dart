@@ -147,7 +147,8 @@ class CreateField extends CreateFieldOrGetter {
 
   Future<void> _proposeFromIdentifier(ChangeBuilder builder) async {
     var nameNode = node;
-    if (nameNode is! SimpleIdentifier || nameNode.annotationContainingName != null) {
+    if (nameNode is! SimpleIdentifier ||
+        nameNode.annotationContainingName != null) {
       return;
     }
     _fieldName = nameNode.name;

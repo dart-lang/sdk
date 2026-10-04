@@ -36,7 +36,8 @@ class CreateExtensionGetter extends _CreateExtensionMember {
   Future<void> compute(ChangeBuilder builder) async {
     var addStaticKeyword = inStaticContext;
     var nameNode = node;
-    if (nameNode is! SimpleIdentifier || nameNode.annotationContainingName != null) {
+    if (nameNode is! SimpleIdentifier ||
+        nameNode.annotationContainingName != null) {
       return;
     }
     if (!nameNode.inGetterContext()) {

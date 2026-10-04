@@ -62,6 +62,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -2270,7 +2271,7 @@ abstract class ElementImpl implements Element {
     if (name == null) {
       return true;
     }
-    return Identifier.isPrivateName(name);
+    return name.isPrivateName;
   }
 
   @override
@@ -2383,7 +2384,7 @@ abstract class ElementImpl implements Element {
   @trackedIncludedInId
   bool isAccessibleIn(LibraryElement library) {
     var name = this.name;
-    if (name == null || Identifier.isPrivateName(name)) {
+    if (name == null || name.isPrivateName) {
       return library == this.library;
     }
     return true;
@@ -3262,7 +3263,7 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   @override
   bool get isPrivate {
     var name = this.name;
-    return name == null || Identifier.isPrivateName(name);
+    return name == null || name.isPrivateName;
   }
 
   @override
@@ -4632,7 +4633,7 @@ abstract class FragmentImpl implements Fragment {
     if (name == null) {
       return false;
     }
-    return Identifier.isPrivateName(name);
+    return name.isPrivateName;
   }
 
   /// Whether the element is public.
@@ -5462,7 +5463,7 @@ sealed class InstanceElementImpl extends ElementImpl
   @trackedIncludedInId
   bool isAccessibleIn(LibraryElement library) {
     var name = this.name;
-    if (name != null && Identifier.isPrivateName(name)) {
+    if (name != null && name.isPrivateName) {
       return library == this.library;
     }
     return true;

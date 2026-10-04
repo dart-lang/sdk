@@ -51,6 +51,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/lint/constants.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:meta/meta.dart';
 
 part 'ast.g.dart';
@@ -26792,7 +26793,8 @@ sealed class Identifier implements Expression, CommentReferableExpression {
 
   /// Returns `true` if the given [name] is visible only within the library in
   /// which it's declared.
-  static bool isPrivateName(String name) => name.isNotEmpty && name[0] == "_";
+  @ToBeDeprecated("Use name.startsWith('_') instead.")
+  static bool isPrivateName(String name) => name.isPrivateName;
 }
 
 @ToBeDeprecated('Use NameExpressionImpl instead.')

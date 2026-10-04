@@ -156,8 +156,7 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
       if (constructor == null) return;
       if (!constructor.isConst) return;
       var name = namePart.constructorName?.name.lexeme;
-      if (classElement.isPublic &&
-          (name == null || !Identifier.isPrivateName(name))) {
+      if (classElement.isPublic && (name == null || !name.isPrivateName)) {
         return;
       }
       for (var parameter in namePart.formalParameters.parameters) {
@@ -204,8 +203,7 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
         if (constructor == null) return;
         if (!constructor.isFactory && !constructor.isConst) return;
         var name = member.name?.lexeme;
-        if (classElement.isPublic &&
-            (name == null || !Identifier.isPrivateName(name))) {
+        if (classElement.isPublic && (name == null || !name.isPrivateName)) {
           return;
         }
       }

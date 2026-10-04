@@ -60,7 +60,7 @@ class _Visitor(final AnalysisRule rule, final RuleContext context)
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
     for (var variable in node.fields.variables) {
-      if (Identifier.isPrivateName(variable.name.lexeme) || node.isStatic) {
+      if (variable.name.lexeme.isPrivateName || node.isStatic) {
         _visit(variable);
       }
     }

@@ -17,6 +17,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
 /// An [AstVisitor2] that fills [UsedLocalElements].
@@ -230,11 +231,11 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    if (!Identifier.isPrivateName(node.name.lexeme)) {
+    if (!node.name.lexeme.isPrivateName) {
       var type = node.type.type;
       if (type is InterfaceTypeImpl) {
         for (var constructor in type.constructors) {
-          if (!Identifier.isPrivateName(constructor.name!)) {
+          if (!constructor.name!.isPrivateName) {
             usedElements.addElement(constructor);
           }
         }

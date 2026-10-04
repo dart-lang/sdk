@@ -229,6 +229,21 @@ import 'part.dart';
 ''');
   }
 
+  Future<void> test_inPartFile() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+part 'test.dart';
+''');
+    await resolveTestCode(r'''
+part of 'lib.dart';
+
+import 'dart:math';
+''');
+    await assertHasFix('''
+part of 'lib.dart';
+
+''');
+  }
+
   test_internalLibraryImport() async {
     await resolveTestCode('''
 import 'dart:_internal';
