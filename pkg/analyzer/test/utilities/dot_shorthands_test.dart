@@ -378,7 +378,7 @@ Set<E> e = {.b};
     bool expected,
   ) {
     var initializer = result.findNode.singleVariableDeclaration.initializer2!;
-    expect(hasDependentDotShorthand(initializer), expected, reason: 'V2');
+    expect(hasDependentDotShorthand2(initializer), expected, reason: 'V2');
 
     var projection = V1Projection.toV1Expression(initializer as ExpressionImpl);
     expect(hasDependentDotShorthand(projection), expected, reason: 'V1');
@@ -528,7 +528,7 @@ A result = accept(.named());
   }
 
   void _assertIsDotShorthand(Expression node, bool expected) {
-    expect(isDotShorthand(node), expected, reason: 'V2');
+    expect(isDotShorthand2(node), expected, reason: 'V2');
 
     var projection = V1Projection.toV1Expression(node as ExpressionImpl);
     expect(isDotShorthand(projection), expected, reason: 'V1');
