@@ -96,14 +96,18 @@ bool hasDependentDotShorthand(AstNode node) {
     // Type arguments to the constructor are explicitly given. We know that no
     // inference information is required from any parent declared types.
     if (type.typeArguments != null) return false;
-
-    for (var argument in argumentList.arguments2) {
-      var parameterTypeParameters = _findTypeParametersForFormalParameter(
-        argument.correspondingParameter,
-      );
-      if (parameterTypeParameters.isEmpty) continue;
-      if (hasDependentDotShorthand(argument)) return true;
-    }
+    return _constructorArgumentsHaveDependentDotShorthand(
+      argumentList.arguments2,
+    );
+  } else if (node case InstanceCreationExpression(
+    constructorName: ConstructorName(:var type),
+    :var argumentList,
+  )) {
+    // The V1 projection of a constructor invocation.
+    if (type.typeArguments != null) return false;
+    return _constructorArgumentsHaveDependentDotShorthand(
+      argumentList.arguments,
+    );
   }
   return false;
 }
@@ -130,6 +134,21 @@ bool isDotShorthand(AstNode node) {
         return true;
     }
     current = _selectorOperand(current);
+  }
+  return false;
+}
+
+/// Whether any of [arguments] of a constructor invocation, which has no
+/// explicit type arguments, has a dot shorthand that relies on inferring them.
+bool _constructorArgumentsHaveDependentDotShorthand(
+  Iterable<Argument> arguments,
+) {
+  for (var argument in arguments) {
+    var parameterTypeParameters = _findTypeParametersForFormalParameter(
+      argument.correspondingParameter,
+    );
+    if (parameterTypeParameters.isEmpty) continue;
+    if (hasDependentDotShorthand(argument)) return true;
   }
   return false;
 }

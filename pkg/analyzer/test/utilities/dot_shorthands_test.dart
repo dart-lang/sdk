@@ -19,13 +19,11 @@ main() {
 @reflectiveTest
 class HasDependentDotShorthandTest extends PubPackageResolutionTest {
   void assertHasDependentDotShorthand(TestResolvedUnitResult result) async {
-    var initializer = result.findNode.singleVariableDeclaration.initializer2;
-    expect(hasDependentDotShorthand(initializer!), isTrue);
+    _assertHasDependentDotShorthand(result, true);
   }
 
   void assertHasNoDependentDotShorthand(TestResolvedUnitResult result) async {
-    var initializer = result.findNode.singleVariableDeclaration.initializer2;
-    expect(hasDependentDotShorthand(initializer!), isFalse);
+    _assertHasDependentDotShorthand(result, false);
   }
 
   test_constructorInvocation() async {
@@ -373,6 +371,17 @@ enum E { a, b, c }
 Set<E> e = {.b};
 ''');
     assertHasDependentDotShorthand(result);
+  }
+
+  void _assertHasDependentDotShorthand(
+    TestResolvedUnitResult result,
+    bool expected,
+  ) {
+    var initializer = result.findNode.singleVariableDeclaration.initializer2!;
+    expect(hasDependentDotShorthand(initializer), expected, reason: 'V2');
+
+    var projection = V1Projection.toV1Expression(initializer as ExpressionImpl);
+    expect(hasDependentDotShorthand(projection), expected, reason: 'V1');
   }
 }
 
