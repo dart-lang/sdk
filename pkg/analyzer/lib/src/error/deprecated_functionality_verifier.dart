@@ -83,22 +83,6 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
   }
 
-  void dotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    var element = node.element;
-    if (element is! ConstructorElement) return;
-    _checkForDeprecatedOptional(
-      element: element,
-      argumentList: node.argumentList,
-      errorEntity: node.constructorName,
-    );
-    _checkForDeprecatedInstantiate(
-      element: element.enclosingElement,
-      errorNode: node.constructorName,
-    );
-  }
-
   void dotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -112,16 +96,6 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedInstantiate(
       element: element.enclosingElement,
       errorNode: node.name,
-    );
-  }
-
-  void dotShorthandInvocation(DotShorthandInvocation node) {
-    var element = node.memberName.element;
-    if (element is! ExecutableElement) return;
-    _checkForDeprecatedOptional(
-      element: element,
-      argumentList: node.argumentList,
-      errorEntity: node.memberName,
     );
   }
 

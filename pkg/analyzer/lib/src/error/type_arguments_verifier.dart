@@ -234,14 +234,6 @@ class TypeArgumentsVerifier {
     );
   }
 
-  void checkFunctionReference(FunctionReference node) {
-    _checkInvocationTypeArguments(
-      node.typeArguments?.arguments,
-      node.function2.staticType,
-      node.staticType,
-    );
-  }
-
   void checkListLiteral(ListLiteral node) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {

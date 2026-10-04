@@ -432,20 +432,12 @@ class NullSafetyDeadCodeVerifier {
     verifier.nextCatchClause(node);
   }
 
-  void verifyIndexExpression(IndexExpression node) {
-    _verifyUnassignedVariable(node, node.target2, node.question);
-  }
-
   void verifyNullAwareAccess(
     AstNode node,
     Expression receiver,
     Token operator,
   ) {
     _verifyUnassignedVariable(node, receiver, operator);
-  }
-
-  void verifyPropertyAccess(PropertyAccess node) {
-    _verifyUnassignedVariable(node, node.target2, node.operator);
   }
 
   void verifyReceiverIndexExpression(ReceiverIndexExpression node) {

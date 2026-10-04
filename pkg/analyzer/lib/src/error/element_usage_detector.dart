@@ -681,22 +681,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     );
   }
 
-  void dotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    if (node.element?.enclosingElement case var interfaceElement?) {
-      // A dot-shorthand constructor invocation contains an implicit reference
-      // to the interface on which the constructor was declared.
-      checkUsage(
-        interfaceElement,
-        node,
-        usageRange: _rangeBetween(node.period, node.constructorName),
-        usageKind: ElementUsageKind.implicitTypeReference,
-      );
-    }
-    _invocationArguments(node.constructorName.element, node.argumentList);
-  }
-
   void dotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
@@ -711,20 +695,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
     checkUsage(element, node, usageRange: node.name.sourceRange);
     _invocationArguments(element, node.argumentList);
-  }
-
-  void dotShorthandInvocation(DotShorthandInvocation node) {
-    if (node.memberName.element?.enclosingElement case var interfaceElement?) {
-      // A dot-shorthand invocation contains an implicit reference to the
-      // interface on which the constructor was declared.
-      checkUsage(
-        interfaceElement,
-        node,
-        usageRange: _rangeBetween(node.period, node.memberName),
-        usageKind: ElementUsageKind.implicitTypeReference,
-      );
-    }
-    _invocationArguments(node.memberName.element, node.argumentList);
   }
 
   void dotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
@@ -749,30 +719,12 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     namedFunctionInvocation(node);
   }
 
-  void dotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    if (node.propertyName.element?.enclosingElement
-        case var interfaceElement?) {
-      // A dot-shorthand property access contains an implicit reference to the
-      // interface on which the constructor was declared.
-      checkUsage(
-        interfaceElement,
-        node,
-        usageRange: _rangeBetween(node.period, node.propertyName),
-        usageKind: ElementUsageKind.implicitTypeReference,
-      );
-    }
-  }
-
   void exportDirective(ExportDirective node) {
     checkUsage(
       node.libraryExport?.exportedLibrary,
       node,
       usageRange: node.sourceRange,
     );
-  }
-
-  void extensionOverride(ExtensionOverride node) {
-    checkUsage(node.element, node, usageRange: node.name.sourceRange);
   }
 
   void extensionOverride2(ExtensionOverride2 node) {
@@ -826,10 +778,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
     _checkAssignmentTarget(node.target);
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
-  }
-
-  void indexExpression(IndexExpression node) {
-    checkUsage(node.element, node, usageRange: node.sourceRange);
   }
 
   void indexExpression2(IndexExpression2 node) {
