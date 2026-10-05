@@ -65,12 +65,6 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
     )) {
       element = readElement;
       promotedType = type;
-    } else if (node is SimpleIdentifier && node.inGetterContext()) {
-      element = _readElement(node);
-      if (element is LocalVariableElement ||
-          element is FormalParameterElement) {
-        promotedType = _readType(node);
-      }
     } else if (node is IfNullAssignment || node is CompoundAssignment) {
       var target = (node as AssignmentExpression2).target;
       if (target is UnqualifiedNameAssignmentTarget) {
@@ -107,28 +101,6 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
       computeForNode(node, computeDefaultNodeId(node));
     }
     super.visitUnqualifiedNameAssignmentTarget(node);
-  }
-
-  static Element? _readElement(SimpleIdentifier node) {
-    var parent = node.parent2;
-    if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-      return parent.readElement;
-    } else if (parent is PrefixExpression) {
-      return parent.readElement;
-    } else {
-      return node.element;
-    }
-  }
-
-  static DartType? _readType(SimpleIdentifier node) {
-    var parent = node.parent2;
-    if (parent is AssignmentExpression && parent.leftHandSide2 == node) {
-      return parent.readType;
-    } else if (parent is PrefixExpression) {
-      return parent.readType;
-    } else {
-      return node.staticType;
-    }
   }
 }
 

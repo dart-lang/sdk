@@ -84,7 +84,6 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, AstNode node) {
     var element = switch (node) {
-      Identifier(:var element) => element,
       UnqualifiedNameExpression(
         resolution: NamedReadResolutionWithElement(:var element),
       ) =>
