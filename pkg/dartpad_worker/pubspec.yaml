@@ -13,6 +13,7 @@ dependencies:
   analyzer: any
   args: any
   async: any
+  clock: any
   dart_runtime_service: any
   dartpad: any
   file: any
@@ -33,6 +34,7 @@ dependencies:
 dev_dependencies:
   checks: any
   collection: any
+  fake_async: any
   pub_semver: any
   shelf: any
   shelf_static: any

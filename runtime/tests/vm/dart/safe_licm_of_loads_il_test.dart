@@ -337,6 +337,8 @@ void expectHoisted(FlowGraph graph, Set<String> slots) {
     (b) => b['o'] == 'FunctionEntry',
   );
 
+  slots = slots.map(graph.rename).toSet();
+
   final hoisted = <String>{};
   final notHoisted = <String>[];
   for (final block in graph.blocks()) {

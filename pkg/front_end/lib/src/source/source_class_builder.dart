@@ -129,8 +129,12 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   TypeBuilder? _supertypeBuilder;
 
+  /// The types in the with clauses of this class.
+  List<TypeBuilder>? _mixedInTypeBuilders;
+
   List<TypeBuilder>? _interfaceBuilders;
 
+  /// If this class is a mixin application, this is the type that is mixed in.
   TypeBuilder? _mixedInTypeBuilder;
 
   final IndexedClass? indexedClass;
@@ -149,6 +153,7 @@ class SourceClassBuilder extends ClassBuilderImpl
     required this.nameOffset,
     this.indexedClass,
     required this._supertypeBuilder,
+    required this._mixedInTypeBuilders,
     required this._interfaceBuilders,
     this._mixedInTypeBuilder,
     required ClassDeclaration introductory,
@@ -354,7 +359,7 @@ class SourceClassBuilder extends ClassBuilderImpl
       fileUri: _introductory.fileUri,
       indexedLibrary: indexedLibrary,
       supertype: _supertypeBuilder,
-      mixins: _introductory.mixedInTypes,
+      mixins: _mixedInTypeBuilders,
       mixinApplications: mixinApplications,
       startOffset: _introductory.startOffset,
       nameOffset: _introductory.nameOffset,
@@ -2603,6 +2608,7 @@ TypeBuilder? _applyMixins({
       nameOffset: nameOffset,
       indexedClass: indexedClass,
       supertypeBuilder: isMixinDeclaration ? null : supertype,
+      mixedInTypeBuilders: null,
       interfaceBuilders: isMixinDeclaration ? [supertype!, mixin] : null,
       mixedInTypeBuilder: isMixinDeclaration ? null : mixin,
       introductory: classDeclaration,

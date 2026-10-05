@@ -18,8 +18,6 @@ abstract class ClassDeclaration {
   /// [UriOffsetLength] for the class declaration.
   UriOffsetLength get uriOffset;
 
-  List<TypeBuilder>? get mixedInTypes;
-
   void buildOutlineExpressions({
     required Annotatable annotatable,
     required Uri annotatableFileUri,
@@ -68,9 +66,6 @@ class RegularClassDeclaration implements ClassDeclaration {
 
   @override
   bool get isMixinDeclaration => false;
-
-  @override
-  List<TypeBuilder>? get mixedInTypes => _fragment.mixins;
 
   @override
   void buildOutlineExpressions({
@@ -140,9 +135,6 @@ class EnumDeclaration implements ClassDeclaration {
   bool get isMixinDeclaration => false;
 
   @override
-  List<TypeBuilder>? get mixedInTypes => _fragment.mixins;
-
-  @override
   void buildOutlineExpressions({
     required Annotatable annotatable,
     required Uri annotatableFileUri,
@@ -175,10 +167,7 @@ class EnumDeclaration implements ClassDeclaration {
 class NamedMixinApplication implements ClassDeclaration {
   final NamedMixinApplicationFragment _fragment;
 
-  @override
-  final List<TypeBuilder> mixedInTypes;
-
-  new(this._fragment, this.mixedInTypes);
+  new(this._fragment);
 
   @override
   ExtensionScope get extensionScope =>
@@ -268,9 +257,6 @@ class AnonymousMixinApplication implements ClassDeclaration {
   @override
   bool get isMixinDeclaration => false;
 
-  @override
-  List<TypeBuilder>? get mixedInTypes => null;
-
   new({
     required this.name,
     required this.extensionScope,
@@ -339,9 +325,6 @@ class MixinDeclaration implements ClassDeclaration {
 
   @override
   bool get isMixinDeclaration => true;
-
-  @override
-  List<TypeBuilder>? get mixedInTypes => _fragment.mixins;
 
   @override
   void buildOutlineExpressions({

@@ -164,7 +164,17 @@ Errors are usually on the form:
 When sending requests and notifications is possible to batch multiple messages
 into a single message by sending an array of requests and notifications.
 
+Sending `null` over the `MessagePort` signals the end of communication and
+closes the JSON-RPC 2.0 channel.
+
 For further details about JSON-RPC 2.0, refer to the [specification][3].
+
+
+## Worker session life-cycle
+
+Clients must call [`ping`](#method-ping) every 30 seconds. The worker may close
+a session and destroy its workspaces after 5 minutes with no RPC activity (and
+no request in flight).
 
 
 ## Server Methods and Notifications
@@ -210,6 +220,20 @@ Returns version and capability metadata for the worker.
 }
 ```
 
+
+### Method `ping`
+
+Keep-alive request for the session.
+
+**Params:**
+```js
+{}
+```
+
+**Result:**
+```js
+{}
+```
 
 ### Method `createWorkspace`
 

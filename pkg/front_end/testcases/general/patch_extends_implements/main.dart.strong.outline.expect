@@ -80,7 +80,7 @@ class Class4a extends self2::_Class4a&Object&Mixin {
     ;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
-class Class4b extends core::Object {
+class Class4b extends self2::_Class4b&Object&Mixin {
   synthetic constructor •() → self2::Class4b
     ;
 }
@@ -161,6 +161,11 @@ class _Class6cImpl<T extends core::Object? = dynamic> extends core::Object { // 
 }
 abstract class _Class4a&Object&Mixin = core::Object with self2::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self2::_Class4a&Object&Mixin
+    : super core::Object::•()
+    ;
+}
+abstract class _Class4b&Object&Mixin = core::Object with self2::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self2::_Class4b&Object&Mixin
     : super core::Object::•()
     ;
 }

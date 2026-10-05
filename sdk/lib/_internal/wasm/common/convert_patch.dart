@@ -2031,7 +2031,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
     int offset,
   ) {
     int length = end - start;
-    target.copy(offset, chunk.data, start, length);
+    target.copy(offset, chunk.data, chunk.offsetInElements + start, length);
   }
 
   double parseDouble(int start, int end) {

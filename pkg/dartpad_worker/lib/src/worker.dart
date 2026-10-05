@@ -11,6 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:async/async.dart';
+import 'package:clock/clock.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:path/path.dart' as p;
 import 'package:stream_channel/stream_channel.dart';
@@ -118,107 +119,148 @@ final class Worker {
 }
 
 class _Session {
+  static const _idleTimeout = Duration(minutes: 5);
+  static const _idleCheckInterval = Duration(seconds: 60);
+  static const _idleConfirmDelay = Duration(seconds: 40);
+
   final Worker _worker;
   late final Peer _rpc;
   final _workspaces = <int, _Workspace>{};
+  DateTime _lastActivity = clock.now();
+  int _activeRequests = 0;
 
   _Session(StreamChannel<Object?> channel, this._worker) {
     _rpc = Peer.withoutJson(channel, onUnhandledError: _onUnhandledError);
-    _rpc.registerMethod('version', _version);
-    _rpc.registerMethod('createWorkspace', _createWorkspace);
-    _rpc.registerMethod('workspace/close', _closeWorkspace);
-    _rpc.registerMethod(
+    _registerMethod('version', _version);
+    _registerMethod('ping', (_) => <String, Object?>{});
+    _registerMethod('createWorkspace', _createWorkspace);
+    _registerMethod('workspace/close', _closeWorkspace);
+    _registerMethod(
       'workspace/writeFileFromText',
       _forwardToWorkspace((ws) => ws._writeFileFromText),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/writeFileFromBytes',
       _forwardToWorkspace((ws) => ws._writeFileFromBytes),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/readFileAsText',
       _forwardToWorkspace((ws) => ws._readFileAsText),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/readFileAsBytes',
       _forwardToWorkspace((ws) => ws._readFileAsBytes),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/deleteFileSystemEntity',
       _forwardToWorkspace((ws) => ws._deleteFileSystemEntity),
     );
-    _rpc.registerMethod(
-      'workspace/stat',
-      _forwardToWorkspace((ws) => ws._stat),
-    );
-    _rpc.registerMethod(
+    _registerMethod('workspace/stat', _forwardToWorkspace((ws) => ws._stat));
+    _registerMethod(
       'workspace/listDirectory',
       _forwardToWorkspace((ws) => ws._listDirectory),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/importTarArchive',
       _forwardToWorkspace((ws) => ws._importTarArchive),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/exportTarArchive',
       _forwardToWorkspace((ws) => ws._exportTarArchive),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/createFolder',
       _forwardToWorkspace((ws) => ws._createFolder),
     );
-    _rpc.registerMethod('workspace/pub', _forwardToWorkspace((ws) => ws._pub));
-    _rpc.registerMethod(
+    _registerMethod('workspace/pub', _forwardToWorkspace((ws) => ws._pub));
+    _registerMethod(
       'workspace/startLanguageServer',
       _forwardToWorkspace((ws) => ws._startLanguageServer),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/languageServer/message',
       _forwardToWorkspace((ws) => ws._languageServerMessage),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/languageServer/close',
       _closeInWorkspace((ws) => ws._closeLanguageServer),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/startWatcher',
       _forwardToWorkspace((ws) => ws._watch),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/watcher/close',
       _closeInWorkspace((ws) => ws._closeWatcher),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/connectSandbox',
       _forwardToWorkspace((ws) => ws._connectSandbox),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/sandbox/run',
       _forwardToWorkspace((ws) => ws._sandboxRun),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/sandbox/hotRestart',
       _forwardToWorkspace((ws) => ws._sandboxHotRestart),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/sandbox/hotReload',
       _forwardToWorkspace((ws) => ws._sandboxHotReload),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/sandbox/close',
       _closeInWorkspace((ws) => ws._sandboxClose),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/sandbox/connectServiceProtocol',
       _forwardToWorkspace((ws) => ws._sandboxConnectServiceProtocol),
     );
+    // Every 60s, if the session has no in-flight requests and has been idle for
+    // at least 5 minutes, wait an extra 40s (30s ping interval + 10s slack) and
+    // re-check before closing. This gives a client that unfroze simultaneously
+    // with the worker (or whose pings were queued behind a long compile) time
+    // to send a ping before the session is reaped.
+    bool isIdle() =>
+        _activeRequests == 0 &&
+        clock.now().difference(_lastActivity) >= _idleTimeout;
+
+    Timer? confirmTimer;
+    final idleTimer = Timer.periodic(_idleCheckInterval, (_) {
+      if (isIdle() && !(confirmTimer?.isActive ?? false)) {
+        confirmTimer = Timer(_idleConfirmDelay, () {
+          if (isIdle()) {
+            _rpc.close().ignore();
+          }
+        });
+      }
+    });
     unawaited(() async {
-      await _rpc.listen();
-      // Delete all workspaces to cleanup resources
-      await Future.wait(
-        _workspaces.values.toList().map((ws) => ws._closeWorkspace()),
-      );
+      try {
+        await _rpc.listen();
+      } finally {
+        idleTimer.cancel();
+        confirmTimer?.cancel();
+        // Delete all workspaces to cleanup resources
+        await Future.wait(
+          _workspaces.values.toList().map((ws) => ws._closeWorkspace()),
+        );
+      }
     }());
+  }
+
+  void _registerMethod(String name, Object? Function(Parameters) callback) {
+    _rpc.registerMethod(name, (Parameters params) async {
+      _activeRequests++;
+      _lastActivity = clock.now();
+      try {
+        return await (callback(params) as FutureOr<Object?>);
+      } finally {
+        _activeRequests--;
+        _lastActivity = clock.now();
+      }
+    });
   }
 
   Map<String, Object?> _version(Parameters _) => _worker._version.toJson();

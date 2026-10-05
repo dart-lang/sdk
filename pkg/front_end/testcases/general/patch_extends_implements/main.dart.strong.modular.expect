@@ -6,12 +6,6 @@ library;
 //   new Class1a();
 //       ^^^^^^^
 //
-// pkg/front_end/testcases/general/patch_extends_implements/main.dart:15:19: Error: A value of type 'Class4b' can't be assigned to a variable of type 'Mixin'.
-//  - 'Class4b' is from 'dart:test'.
-//  - 'Mixin' is from 'dart:test'.
-//   Mixin c4b = new Class4b();
-//                   ^
-//
 import self as self;
 import "dart:test" as test;
 
@@ -25,11 +19,7 @@ static method test() → dynamic {
   test::Interface c3a = new test::Class3a::•();
   test::Interface c3b = new test::Class3b::•();
   test::Mixin c4a = new test::Class4a::•();
-  test::Mixin c4b = invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/main.dart:15:19: Error: A value of type 'Class4b' can't be assigned to a variable of type 'Mixin'.
- - 'Class4b' is from 'dart:test'.
- - 'Mixin' is from 'dart:test'.
-  Mixin c4b = new Class4b();
-                  ^" in new test::Class4b::•() as{TypeError} test::Mixin;
+  test::Mixin c4b = new test::Class4b::•();
 }
 
 library;
@@ -115,9 +105,9 @@ class Class4a extends test::_Class4a&Object&Mixin {
     ;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C1
-class Class4b extends core::Object {
+class Class4b extends test::_Class4b&Object&Mixin {
   synthetic constructor •() → test::Class4b
-    : super core::Object::•()
+    : super test::_Class4b&Object&Mixin::•()
     ;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C1
@@ -203,6 +193,11 @@ class _Class6cImpl<T extends core::Object? = dynamic> extends core::Object { // 
 }
 abstract class _Class4a&Object&Mixin = core::Object with test::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → test::_Class4a&Object&Mixin
+    : super core::Object::•()
+    ;
+}
+abstract class _Class4b&Object&Mixin = core::Object with test::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → test::_Class4b&Object&Mixin
     : super core::Object::•()
     ;
 }
