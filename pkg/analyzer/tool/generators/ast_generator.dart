@@ -681,10 +681,7 @@ required super.metadata,''');
         case _PropertyTypeKindNodeList():
           var name = property.name;
           if (property.v1Name != null) {
-            buffer.writeln(
-              'this.$name._initializeProjected('
-              'this, $name, ${property.v1ProjectionMethod});',
-            );
+            buffer.writeln('this.$name._initializeProjected(this, $name);');
           } else {
             buffer.writeln('this.$name._initialize(this, $name);');
           }

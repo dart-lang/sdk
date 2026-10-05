@@ -191,7 +191,7 @@ library
     expect(variables, hasLength(1));
     var x = variables[0];
     _assertTypeStr(x.type, 'Type');
-    expect(x.constantInitializer.toString(), 'FutureOr');
+    expect(x.constantInitializer2.toString(), 'FutureOr');
   }
 
   test_futureOr_inferred() async {

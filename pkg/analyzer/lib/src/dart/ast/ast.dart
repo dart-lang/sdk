@@ -1118,6 +1118,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.postfix;
 
+  @ToBeDeprecated('Use realTarget2 instead.')
   @override
   ExpressionImpl get realTarget {
     return V1Projection.toV1Expression(realTarget2);
@@ -1433,11 +1434,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
     required List<ArgumentImpl> arguments2,
     required this.rightParenthesis,
   }) {
-    this.arguments2._initializeProjected(
-      this,
-      arguments2,
-      V1Projection.toV1Argument,
-    );
+    this.arguments2._initializeProjected(this, arguments2);
   }
 
   @generated
@@ -5400,11 +5397,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
     required List<CascadeSectionImpl> sections,
   }) : _target2 = target2 {
     _becomeParentOf2AndExisting1(target2);
-    this.sections._initializeProjected(
-      this,
-      sections,
-      (section) => V1Projection.toV1Expression(section.body),
-    );
+    this.sections._initializeProjected(this, sections);
   }
 
   @generated
@@ -9194,11 +9187,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   }) : _scriptTag = scriptTag {
     _becomeParentOf12(_scriptTag);
     _directives._initialize(this, directives);
-    _declarations2._initializeProjected(
-      this,
-      declarations2,
-      V1Projection.toV1CompilationUnitMember,
-    );
+    _declarations2._initializeProjected(this, declarations2);
   }
 
   @override
@@ -22137,16 +22126,13 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
     required List<ExpressionImpl>? updaters2,
   }) : _condition2 = condition2 {
     _becomeParentOf2AndExisting1(condition2);
-    _updaters2._initializeProjected(
-      this,
-      updaters2,
-      V1Projection.toV1Expression,
-    );
+    _updaters2._initializeProjected(this, updaters2);
   }
 
   @override
   Token get beginToken => leftSeparator;
 
+  @ToBeDeprecated('Use condition2 instead.')
   @override
   ExpressionImpl? get condition => switch (condition2) {
     var node? => V1Projection.toV1Expression(node),
@@ -26657,11 +26643,7 @@ final class HideCombinatorImpl extends CombinatorImpl
     required super.keyword,
     required List<CombinatorNameImpl> names,
   }) {
-    this.names._initializeProjected(
-      this,
-      names,
-      V1Projection.toV1CombinatorName,
-    );
+    this.names._initializeProjected(this, names);
   }
 
   @generated
@@ -33512,11 +33494,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
     required List<CollectionElementImpl> elements2,
     required this.rightBracket,
   }) {
-    this.elements2._initializeProjected(
-      this,
-      elements2,
-      V1Projection.toV1CollectionElement,
-    );
+    this.elements2._initializeProjected(this, elements2);
   }
 
   @generated
@@ -33568,10 +33546,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   void addElements(List<CollectionElementImpl> moreElements) {
     elements2 = NodeListImpl._()
-      .._initializeProjected(this, [
-        ...elements2,
-        ...moreElements,
-      ], V1Projection.toV1CollectionElement);
+      .._initializeProjected(this, [...elements2, ...moreElements]);
     AstNodeImpl.linkNodeTokens(this);
   }
 
@@ -38873,7 +38848,9 @@ final class NodeListImpl<E extends AstNodeImpl>
 
   late final List<E> _elements;
 
-  AstNodeImpl Function(E)? _toV1;
+  /// Whether elements of this list might have V1 projections, which must be
+  /// kept in sync when an element is attached.
+  bool _hasV1Projections = false;
 
   /// Initializes a newly created list of nodes such that all of the nodes that
   /// are added to the list have their parent set to the given [owner].
@@ -38998,7 +38975,7 @@ final class NodeListImpl<E extends AstNodeImpl>
   }
 
   void _attach(E node) {
-    if (_toV1 != null) {
+    if (_hasV1Projections) {
       _owner._becomeParentOf2AndExisting1(node);
     } else {
       _owner._becomeParentOfOwnedView(node);
@@ -39032,7 +39009,7 @@ final class NodeListImpl<E extends AstNodeImpl>
   /// Set the [owner] of this container, and populate it with [elements].
   void _initialize(AstNodeImpl owner, List<E>? elements) {
     _owner = owner;
-    _toV1 = null;
+    _hasV1Projections = false;
     _initializeElements(elements);
   }
 
@@ -39050,13 +39027,9 @@ final class NodeListImpl<E extends AstNodeImpl>
   }
 
   /// Initializes a V2 list that exposes a projected V1 view.
-  void _initializeProjected<V1Node extends AstNodeImpl>(
-    AstNodeImpl owner,
-    List<E>? elements,
-    V1Node Function(E) toV1,
-  ) {
+  void _initializeProjected(AstNodeImpl owner, List<E>? elements) {
     _owner = owner;
-    _toV1 = toV1;
+    _hasV1Projections = true;
     _initializeElements(elements);
   }
 }
@@ -46528,11 +46501,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
     required List<RecordLiteralFieldImpl> fields2,
     required this.rightParenthesis,
   }) {
-    this.fields2._initializeProjected(
-      this,
-      fields2,
-      V1Projection.toV1RecordLiteralField,
-    );
+    this.fields2._initializeProjected(this, fields2);
   }
 
   @generated
@@ -49200,11 +49169,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
     required List<CollectionElementImpl> elements2,
     required this.rightBracket,
   }) {
-    this.elements2._initializeProjected(
-      this,
-      elements2,
-      V1Projection.toV1CollectionElement,
-    );
+    this.elements2._initializeProjected(this, elements2);
   }
 
   @generated
@@ -49754,11 +49719,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
     required super.keyword,
     required List<CombinatorNameImpl> names,
   }) {
-    this.names._initializeProjected(
-      this,
-      names,
-      V1Projection.toV1CombinatorName,
-    );
+    this.names._initializeProjected(this, names);
   }
 
   @generated
@@ -56133,6 +56094,7 @@ enum V1Projection {
   /// Project a [RecordLiteralFieldImpl] child to the V1 record view.
   recordLiteralField;
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static ArgumentImpl toV1Argument(ArgumentImpl node) {
     if (node is ExpressionImpl) {
       return toV1Expression(node);
@@ -56140,6 +56102,7 @@ enum V1Projection {
     return node;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static CollectionElementImpl toV1CollectionElement(
     CollectionElementImpl node,
   ) {
@@ -56154,6 +56117,7 @@ enum V1Projection {
     return node.v1Projection;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static CompilationUnitMemberImpl toV1CompilationUnitMember(AstNodeImpl node) {
     if (node is TopLevelGetterDeclarationImpl) {
       return node.v1Projection;
@@ -56161,10 +56125,12 @@ enum V1Projection {
     return node as CompilationUnitMemberImpl;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static ExpressionImpl toV1Expression(ExpressionImpl node) {
     return _toV1Expression(node, createIfAbsent: true)!;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static ExpressionImpl toV1NamedReceiver(NamedReceiverImpl node) {
     if (node is SuperReferenceImpl) return node.v1Projection;
     if (node is ExtensionOverride2Impl) return node.v1Projection;
@@ -56174,6 +56140,7 @@ enum V1Projection {
     return toV1Expression(node as ExpressionImpl);
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static RecordLiteralFieldImpl toV1RecordLiteralField(
     RecordLiteralFieldImpl node,
   ) {

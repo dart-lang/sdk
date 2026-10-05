@@ -11741,6 +11741,7 @@ abstract class VariableElementImpl extends ElementImpl
   @trackedInternal
   Constant? evaluationResult;
 
+  @ToBeDeprecated('Use constantInitializer2 instead.')
   @override
   @trackedIncludedInId
   ExpressionImpl? get constantInitializer {
