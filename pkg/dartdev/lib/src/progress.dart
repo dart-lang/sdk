@@ -79,9 +79,7 @@ class _Progress {
   /// Stops the progress indicator.
   void _stop() {
     if (!_terminalOutput) {
-      // Not animating, so just log the start and wait until the task is
-      // completed.
-      _sink.write('$_message...');
+      _sink.writeln();
       return;
     }
 

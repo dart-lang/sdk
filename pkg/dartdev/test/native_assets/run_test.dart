@@ -59,6 +59,11 @@ void main([List<String> args = const []]) async {
           logger: logger,
         );
         expect(result.stderr, contains('Running build hooks'));
+        expect(
+          result.stderr,
+          isNot(contains('Running build hooks...Running build hooks')),
+        );
+        expect(result.stderr, matches(RegExp(r'Running build hooks\.\.\.(?:\r\n|\n)')));
         expect(result.stderr, isNot(contains('Running link hooks')));
         expectDartAppStdout(result.stdout);
         if (verbose) {

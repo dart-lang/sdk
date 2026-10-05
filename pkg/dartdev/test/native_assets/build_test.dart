@@ -48,6 +48,11 @@ void main([List<String> args = const []]) async {
           logger: logger,
         );
         expect(result.stdout, contains('Running build hooks'));
+        expect(
+          result.stdout,
+          isNot(contains('Running build hooks...Running build hooks')),
+        );
+        expect(result.stdout, matches(RegExp(r'Running build hooks\.\.\.(?:\r\n|\n)')));
         expect(result.stdout, contains('Running link hooks'));
         expect(File.fromUri(depFileUri).existsSync(), true);
         if (verbose) {
