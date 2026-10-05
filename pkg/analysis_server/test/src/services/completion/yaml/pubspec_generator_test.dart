@@ -427,16 +427,6 @@ screenshots:
     assertSuggestion('path: ');
   }
 
-  void test_workspace_resolution() {
-    getCompletions('''
-resolution: ^
-''');
-    expect(results.length, 3);
-    assertSuggestion('workspace');
-    assertSuggestion('local');
-    assertSuggestion('external');
-  }
-
   void test_workspace_emptyList() {
     newFile('/home/test/pkgs/foo/pubspec.yaml', '');
     newFile('/home/test/pkgs/bar/pubspec.yaml', '');
@@ -496,5 +486,15 @@ workspace:
   - pkgs/f^
 ''');
     assertSuggestion('pkgs/foo');
+  }
+
+  void test_workspace_resolution() {
+    getCompletions('''
+resolution: ^
+''');
+    expect(results.length, 3);
+    assertSuggestion('workspace');
+    assertSuggestion('local');
+    assertSuggestion('external');
   }
 }

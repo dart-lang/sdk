@@ -63,58 +63,6 @@ class PubPackageVersionProducer extends Producer {
   }
 }
 
-/// An object that represents the location of a workspace package path.
-class WorkspacePackageProducer extends Producer {
-  /// Initialize a producer whose valid values are package paths that can be
-  /// included in the workspace.
-  const new();
-
-  @override
-  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
-    var provider = request.resourceProvider;
-    var pathContext = provider.pathContext;
-    var rootFolderPath = pathContext.dirname(request.filePath);
-    var rootFolder = provider.getFolder(rootFolderPath);
-    if (!rootFolder.exists) {
-      return const [];
-    }
-
-    var packagePaths = <String>[];
-    var visitedFolders = <String>{};
-
-    void findPackages(Folder folder) {
-      try {
-        for (var child in folder.getChildren()) {
-          if (child is Folder) {
-            var name = child.shortName;
-            if (name.startsWith('.')) continue;
-            if (!visitedFolders.add(child.path)) continue;
-
-            var pubspec = child.getChildAssumingFile(file_paths.pubspecYaml);
-            if (pubspec.exists) {
-              var relativePath = pathContext.relative(
-                child.path,
-                from: rootFolderPath,
-              );
-              var posixPath = path.posix.joinAll(
-                pathContext.split(relativePath),
-              );
-              packagePaths.add(posixPath);
-            }
-            findPackages(child);
-          }
-        }
-      } on FileSystemException {
-        // Guard against I/O exceptions.
-      }
-    }
-
-    findPackages(rootFolder);
-    packagePaths.sort();
-    return [for (var packagePath in packagePaths) identifier(packagePath)];
-  }
-}
-
 /// A completion generator that can produce completion suggestions for pubspec
 /// files.
 class PubspecGenerator extends YamlCompletionGenerator {
@@ -208,4 +156,53 @@ class PubspecGenerator extends YamlCompletionGenerator {
 
   @override
   Producer get topLevelProducer => pubspecProducer;
+}
+
+/// An object that represents the location of a workspace package path.
+class WorkspacePackageProducer extends Producer {
+  /// Initialize a producer whose valid values are package paths that can be
+  /// included in the workspace.
+  const new();
+
+  @override
+  List<CompletionSuggestion> suggestions(YamlCompletionRequest request) {
+    var provider = request.resourceProvider;
+    var pathContext = provider.pathContext;
+    var rootFolderPath = pathContext.dirname(request.filePath);
+    var rootFolder = provider.getFolder(rootFolderPath);
+
+    var packagePaths = <String>[];
+    var visitedFolders = <String>{};
+
+    void findPackages(Folder folder) {
+      try {
+        for (var child in folder.getChildren()) {
+          if (child is Folder) {
+            var name = child.shortName;
+            if (name.startsWith('.')) continue;
+            if (!visitedFolders.add(child.path)) continue;
+
+            var pubspec = child.getChildAssumingFile(file_paths.pubspecYaml);
+            if (pubspec.exists) {
+              var relativePath = pathContext.relative(
+                child.path,
+                from: rootFolderPath,
+              );
+              var posixPath = path.posix.joinAll(
+                pathContext.split(relativePath),
+              );
+              packagePaths.add(posixPath);
+            }
+            findPackages(child);
+          }
+        }
+      } on FileSystemException {
+        // Guard against I/O exceptions.
+      }
+    }
+
+    findPackages(rootFolder);
+    packagePaths.sort();
+    return [for (var packagePath in packagePaths) identifier(packagePath)];
+  }
 }
