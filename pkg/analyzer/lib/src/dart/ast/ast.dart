@@ -3218,7 +3218,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   @override
   Token? findPrevious(Token target) =>
       util.findPrevious(beginToken, target) ??
-      _parentInV1?.findPrevious(target);
+      parentInPrimaryView?.findPrevious(target);
 
   /// Remove [oldNode] from one of this node's nullable child slots.
   ///

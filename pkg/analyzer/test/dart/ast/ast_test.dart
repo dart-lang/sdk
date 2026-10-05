@@ -1275,6 +1275,16 @@ missing
     expect(statement.findPrevious(missing), null);
   }
 
+  void test_findPrevious_parent_expression() {
+    var clazz = unit.declarations2[0] as ClassDeclaration;
+    var classBody = clazz.body as BlockClassBody;
+    var method = classBody.members[0] as MethodDeclaration;
+    var body = method.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ReturnStatement;
+    var expression = statement.expression2!;
+    expect(expression.findPrevious(findToken('return'))!.lexeme, '{');
+  }
+
   void test_findPrevious_parent_method() {
     var clazz = unit.declarations2[0] as ClassDeclaration;
     var classBody = clazz.body as BlockClassBody;
