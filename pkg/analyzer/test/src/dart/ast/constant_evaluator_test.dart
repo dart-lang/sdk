@@ -5,6 +5,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -32,6 +33,7 @@ class ConstantEvaluator2Test extends _ConstantEvaluatorTestBase {
 }
 
 @reflectiveTest
+@ToBeDeprecated('Use ConstantEvaluator2Test instead.')
 class ConstantEvaluatorTest extends _ConstantEvaluatorTestBase {
   @override
   Object get notAConstant => ConstantEvaluator.NOT_A_CONSTANT;

@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,6 +17,7 @@ main() {
 }
 
 @reflectiveTest
+@ToBeDeprecated('Tests V1 BreadthFirstVisitor.')
 class BreadthFirstVisitorTest extends ParserDiagnosticsTest {
   void test_it() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
@@ -54,6 +56,7 @@ A f(p) {
 
 /// A helper class used to collect the nodes that were visited and to preserve
 /// the order in which they were visited.
+@ToBeDeprecated('Tests V1 BreadthFirstVisitor.')
 class _BreadthFirstVisitorTestHelper extends BreadthFirstVisitor<void> {
   List<AstNode> nodes;
 
