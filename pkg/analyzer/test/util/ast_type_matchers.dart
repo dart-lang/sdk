@@ -21,11 +21,7 @@ const isAssertion = TypeMatcher<Assertion>();
 
 const isAssertStatement = TypeMatcher<AssertStatement>();
 
-const isAssignmentExpression = TypeMatcher<AssignmentExpression>();
-
 const isAwaitExpression = TypeMatcher<AwaitExpression>();
-
-const isBinaryExpression = TypeMatcher<BinaryExpression>();
 
 const isBlock = TypeMatcher<Block>();
 
@@ -66,10 +62,6 @@ const isConstructorFieldInitializer =
 
 const isConstructorInitializer = TypeMatcher<ConstructorInitializer>();
 
-const isConstructorName = TypeMatcher<ConstructorName>();
-
-const isConstructorReferenceNode = TypeMatcher<ConstructorReferenceNode>();
-
 const isContinueStatement = TypeMatcher<ContinueStatement>();
 
 const isDeclaration = TypeMatcher<Declaration>();
@@ -102,8 +94,6 @@ const isExpressionStatement = TypeMatcher<ExpressionStatement>();
 
 const isExtendsClause = TypeMatcher<ExtendsClause>();
 
-const isExtensionOverride = TypeMatcher<ExtensionOverride>();
-
 const isFieldDeclaration = TypeMatcher<FieldDeclaration>();
 
 const isFieldFormalParameter = TypeMatcher<FieldFormalParameter>();
@@ -124,11 +114,6 @@ const isFunctionDeclarationStatement =
 
 const isFunctionExpression = TypeMatcher<FunctionExpression>();
 
-const isFunctionExpressionInvocation =
-    TypeMatcher<FunctionExpressionInvocation>();
-
-const isFunctionReference = TypeMatcher<FunctionReference>();
-
 const isFunctionTypeAlias = TypeMatcher<FunctionTypeAlias>();
 
 const isFunctionTypedFormalParameterSuffix =
@@ -140,17 +125,11 @@ const isGenericTypeAlias = TypeMatcher<GenericTypeAlias>();
 
 const isHideCombinator = TypeMatcher<HideCombinator>();
 
-const isIdentifier = TypeMatcher<Identifier>();
-
 const isIfStatement = TypeMatcher<IfStatement>();
 
 const isImplementsClause = TypeMatcher<ImplementsClause>();
 
 const isImportDirective = TypeMatcher<ImportDirective>();
-
-const isIndexExpression = TypeMatcher<IndexExpression>();
-
-const isInstanceCreationExpression = TypeMatcher<InstanceCreationExpression>();
 
 const isIntegerLiteral = TypeMatcher<IntegerLiteral>();
 
@@ -178,8 +157,6 @@ const isMapLiteralEntry = TypeMatcher<MapLiteralEntry>();
 
 const isMethodDeclaration = TypeMatcher<MethodDeclaration>();
 
-const isMethodInvocation = TypeMatcher<MethodInvocation>();
-
 const isMethodReferenceExpression = TypeMatcher<MethodReferenceExpression>();
 
 const isMixinDeclaration = TypeMatcher<MixinDeclaration>();
@@ -204,14 +181,6 @@ const isPartDirective = TypeMatcher<PartDirective>();
 
 const isPartOfDirective = TypeMatcher<PartOfDirective>();
 
-const isPostfixExpression = TypeMatcher<PostfixExpression>();
-
-const isPrefixedIdentifier = TypeMatcher<PrefixedIdentifier>();
-
-const isPrefixExpression = TypeMatcher<PrefixExpression>();
-
-const isPropertyAccess = TypeMatcher<PropertyAccess>();
-
 const isRedirectingConstructorInvocation =
     TypeMatcher<RedirectingConstructorInvocation>();
 
@@ -227,8 +196,6 @@ const isSetOrMapLiteral = TypeMatcher<SetOrMapLiteral>();
 
 const isShowCombinator = TypeMatcher<ShowCombinator>();
 
-const isSimpleIdentifier = TypeMatcher<SimpleIdentifier>();
-
 const isSimpleStringLiteral = TypeMatcher<SimpleStringLiteral>();
 
 const isSingleStringLiteral = TypeMatcher<SingleStringLiteral>();
@@ -240,8 +207,6 @@ const isStringInterpolation = TypeMatcher<StringInterpolation>();
 const isStringLiteral = TypeMatcher<StringLiteral>();
 
 const isSuperConstructorInvocation = TypeMatcher<SuperConstructorInvocation>();
-
-const isSuperExpression = TypeMatcher<SuperExpression>();
 
 const isSwitchCase = TypeMatcher<SwitchCase>();
 
