@@ -1290,6 +1290,12 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       current += PrintRightXMMOperand(current);
       Print(" [%x]", *current);
       current++;
+    } else if (opcode == 0x70) {
+      get_modrm(*current, &mod, &regop, &rm);
+      Print("pshufd %s,", NameOfXMMRegister(regop));
+      current += PrintRightXMMOperand(current);
+      Print(" [%x]", *current);
+      current++;
     } else if (opcode == 0x3A) {
       uint8_t third_byte = *current;
       current = data + 3;

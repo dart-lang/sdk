@@ -562,6 +562,7 @@ class Assembler : public AssemblerBase {
   void negatepd(XmmRegister dst, XmmRegister src);
   void abspd(XmmRegister dst, XmmRegister src);
   void shufpd(XmmRegister dst, XmmRegister src, const Immediate& mask);
+  void pshufd(XmmRegister dst, XmmRegister src, const Immediate& mask);
 
   enum RoundingMode {
     kRoundToNearest = 0x0,
