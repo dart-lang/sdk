@@ -6000,14 +6000,19 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     // like any other constant constructor invocation, which reports
     // `const_deferred_class`. Only a reference, such as `@p.c`, is reported
     // here.
-    if (annotation.expression is ConstructorInvocation) {
-      return;
-    }
-
-    Identifier nameIdentifier = annotation.name;
-    if (nameIdentifier is PrefixedIdentifier && nameIdentifier.isDeferred) {
+    var importPrefix = switch (annotation.expression) {
+      ImportPrefixedNameExpression(:var importPrefix) => importPrefix,
+      ReceiverPropertyExtraction(
+        receiver: StaticQualifier(:var importPrefix?),
+      ) =>
+        importPrefix,
+      _ => null,
+    };
+    if (importPrefix?.element case PrefixElement(
+      :var fragments,
+    ) when fragments.any((fragment) => fragment.isDeferred)) {
       diagnosticReporter.report(
-        diag.invalidAnnotationFromDeferredLibrary.at(annotation.name),
+        diag.invalidAnnotationFromDeferredLibrary.at(annotation.nameEntity),
       );
     }
   }

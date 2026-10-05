@@ -26,11 +26,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   final void Function(PatternVariableDeclaration)? patternVariableDeclaration;
   final void Function(PatternVariableDeclarationStatement)?
   patternVariableDeclarationStatement;
-  final void Function(SimpleIdentifier)? simpleIdentifier;
   final void Function(SwitchExpression)? switchExpression;
   final void Function(SwitchExpressionCase)? switchExpressionCase;
   final void Function(SwitchPatternCase)? switchPatternCase;
   final void Function(TypeParameter)? typeParameter;
+  final void Function(UnqualifiedFunctionInvocation)?
+  unqualifiedFunctionInvocation;
   final void Function(VariableDeclaration)? variableDeclaration;
 
   FunctionAstVisitor({
@@ -51,11 +52,11 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
     this.patternAssignment,
     this.patternVariableDeclaration,
     this.patternVariableDeclarationStatement,
-    this.simpleIdentifier,
     this.switchExpression,
     this.switchExpressionCase,
     this.switchPatternCase,
     this.typeParameter,
+    this.unqualifiedFunctionInvocation,
     this.variableDeclaration,
   });
 
@@ -200,6 +201,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   void visitTypeParameter(TypeParameter node) {
     typeParameter?.call(node);
     super.visitTypeParameter(node);
+  }
+
+  @override
+  void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
+    unqualifiedFunctionInvocation?.call(node);
+    super.visitUnqualifiedFunctionInvocation(node);
   }
 
   @override

@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/test_utilities/function_ast_visitor.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -258,12 +257,13 @@ B get topLevel => new B();
 void set topLevel(A value) {}
 
 main() {
-  var /*@type=B*/ v = topLevel += 1;
-//                ^
+  var v = topLevel += 1;
+//    ^
 // [diag.unusedLocalVariable] The value of the local variable 'v' isn't used.
 }
 ''');
-    _assertTypeAnnotations(result);
+    var node = result.findNode.variableDeclaration('v = ');
+    assertType(node.declaredFragment!.element.type, 'B');
   }
 
   test_forIn_identifier() async {
@@ -633,45 +633,5 @@ main() {
     var yNode = result.findNode.variableDeclaration('y = ');
     var yFragment = yNode.declaredFragment!;
     expect(yFragment.element.type, VoidTypeImpl.instance);
-  }
-
-  void _assertTypeAnnotations(TestResolvedUnitResult result) {
-    var code = result.content;
-    var unit = result.unit;
-
-    var types = <int, String>{};
-    {
-      int lastIndex = 0;
-      while (true) {
-        const prefix = '/*@type=';
-        int openIndex = code.indexOf(prefix, lastIndex);
-        if (openIndex == -1) {
-          break;
-        }
-        int closeIndex = code.indexOf('*/', openIndex + 1);
-        expect(closeIndex, isPositive);
-        types[openIndex] = code.substring(
-          openIndex + prefix.length,
-          closeIndex,
-        );
-        lastIndex = closeIndex;
-      }
-    }
-
-    unit.accept2(
-      FunctionAstVisitor(
-        simpleIdentifier: (node) {
-          var comment = node.token.precedingComments;
-          if (comment != null) {
-            var expectedType = types[comment.offset];
-            if (expectedType != null) {
-              var element = node.element as VariableElement;
-              String actualType = typeString(element.type);
-              expect(actualType, expectedType, reason: '@${comment.offset}');
-            }
-          }
-        },
-      ),
-    );
   }
 }

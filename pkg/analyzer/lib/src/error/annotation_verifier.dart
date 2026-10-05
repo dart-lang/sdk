@@ -88,7 +88,7 @@ class AnnotationVerifier {
       }
 
       _diagnosticReporter.report(
-        diag.invalidAwaitNotRequiredAnnotation.at(errorNode ?? node.name),
+        diag.invalidAwaitNotRequiredAnnotation.at(errorNode ?? node.nameEntity),
       );
     }
 
@@ -160,7 +160,7 @@ class AnnotationVerifier {
     }
 
     _diagnosticReporter.report(
-      diag.invalidDeprecatedExtendAnnotation.at(node.name),
+      diag.invalidDeprecatedExtendAnnotation.at(node.nameEntity),
     );
   }
 
@@ -187,7 +187,7 @@ class AnnotationVerifier {
     }
 
     _diagnosticReporter.report(
-      diag.invalidDeprecatedImplementAnnotation.at(node.name),
+      diag.invalidDeprecatedImplementAnnotation.at(node.nameEntity),
     );
   }
 
@@ -209,7 +209,7 @@ class AnnotationVerifier {
     }
 
     _diagnosticReporter.report(
-      diag.invalidDeprecatedInstantiateAnnotation.at(node.name),
+      diag.invalidDeprecatedInstantiateAnnotation.at(node.nameEntity),
     );
   }
 
@@ -222,7 +222,7 @@ class AnnotationVerifier {
     }
 
     _diagnosticReporter.report(
-      diag.invalidDeprecatedMixinAnnotation.at(node.name),
+      diag.invalidDeprecatedMixinAnnotation.at(node.nameEntity),
     );
   }
 
@@ -244,7 +244,7 @@ class AnnotationVerifier {
     }
 
     _diagnosticReporter.report(
-      diag.invalidDeprecatedOptionalAnnotation.at(node.name),
+      diag.invalidDeprecatedOptionalAnnotation.at(node.nameEntity),
     );
   }
 
@@ -272,7 +272,7 @@ class AnnotationVerifier {
     }
 
     _diagnosticReporter.report(
-      diag.invalidDeprecatedSubclassAnnotation.at(node.name),
+      diag.invalidDeprecatedSubclassAnnotation.at(node.nameEntity),
     );
   }
 
@@ -354,7 +354,7 @@ class AnnotationVerifier {
       var element = parent.declaredFragment!.element;
       if (element.isPrivate || element.enclosingElement.isPrivate) {
         _diagnosticReporter.report(
-          diag.invalidInternalAnnotation.at(node.name),
+          diag.invalidInternalAnnotation.at(node.nameEntity),
         );
       }
     } else if (parent is PrimaryConstructorBody) {
@@ -362,14 +362,18 @@ class AnnotationVerifier {
       if (element != null) {
         if (element.isPrivate || element.enclosingElement.isPrivate) {
           _diagnosticReporter.report(
-            diag.invalidInternalAnnotation.at(node.name),
+            diag.invalidInternalAnnotation.at(node.nameEntity),
           );
         }
       }
     } else if (parentElementIsPrivate) {
-      _diagnosticReporter.report(diag.invalidInternalAnnotation.at(node.name));
+      _diagnosticReporter.report(
+        diag.invalidInternalAnnotation.at(node.nameEntity),
+      );
     } else if (_inPackagePublicApi) {
-      _diagnosticReporter.report(diag.invalidInternalAnnotation.at(node.name));
+      _diagnosticReporter.report(
+        diag.invalidInternalAnnotation.at(node.nameEntity),
+      );
     }
   }
 
@@ -393,7 +397,7 @@ class AnnotationVerifier {
         _diagnosticReporter.report(
           diag.invalidAnnotationTarget
               .withArguments(annotationName: name!, validTargets: validKinds)
-              .at(node.name),
+              .at(node.nameEntity),
         );
         return;
       }
@@ -406,11 +410,15 @@ class AnnotationVerifier {
     var parent = node.parent2;
     if (parent is ConstructorDeclaration) {
       if (parent.constKeyword == null) {
-        _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
+        _diagnosticReporter.report(
+          diag.invalidLiteralAnnotation.at(node.nameEntity),
+        );
       }
     } else if (parent is PrimaryConstructorBody) {
       if (parent.declaration?.constKeyword == null) {
-        _diagnosticReporter.report(diag.invalidLiteralAnnotation.at(node.name));
+        _diagnosticReporter.report(
+          diag.invalidLiteralAnnotation.at(node.nameEntity),
+        );
       }
     }
   }
@@ -423,7 +431,7 @@ class AnnotationVerifier {
       if (parent.parent2?.parent2 is ExtensionTypeDeclaration ||
           !parent.isComplete) {
         _diagnosticReporter.report(
-          diag.invalidNonVirtualAnnotation.at(node.name),
+          diag.invalidNonVirtualAnnotation.at(node.nameEntity),
         );
       }
     }
@@ -441,10 +449,10 @@ class AnnotationVerifier {
       _diagnosticReporter.report(
         diag.invalidAnnotationTarget
             .withArguments(
-              annotationName: node.name.name,
+              annotationName: node.nameSource,
               validTargets: 'instance members of extension types',
             )
-            .at(node.name),
+            .at(node.nameEntity),
       );
     }
   }
@@ -477,16 +485,22 @@ class AnnotationVerifier {
     if (classElement.isFinal ||
         classElement.isMixinClass ||
         classElement.isSealed) {
-      _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
+      _diagnosticReporter.report(
+        diag.invalidReopenAnnotation.at(node.nameEntity),
+      );
       return;
     }
     if (classElement.library != superElement.library) {
-      _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
+      _diagnosticReporter.report(
+        diag.invalidReopenAnnotation.at(node.nameEntity),
+      );
       return;
     }
     if (classElement.isBase) {
       if (!superElement.isFinal && !superElement.isInterface) {
-        _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
+        _diagnosticReporter.report(
+          diag.invalidReopenAnnotation.at(node.nameEntity),
+        );
         return;
       }
     } else if (!classElement.isBase &&
@@ -494,7 +508,9 @@ class AnnotationVerifier {
         !classElement.isInterface &&
         !classElement.isSealed) {
       if (!superElement.isInterface) {
-        _diagnosticReporter.report(diag.invalidReopenAnnotation.at(node.name));
+        _diagnosticReporter.report(
+          diag.invalidReopenAnnotation.at(node.nameEntity),
+        );
         return;
       }
     }
@@ -548,8 +564,8 @@ class AnnotationVerifier {
       // assume that `declaredElement.name` is non-`null`.
       _diagnosticReporter.report(
         diag.invalidVisibilityAnnotation
-            .withArguments(memberName: name, annotationName: node.name.name)
-            .at(node.name),
+            .withArguments(memberName: name, annotationName: node.nameSource)
+            .at(node.nameEntity),
       );
     }
 
@@ -604,7 +620,7 @@ class AnnotationVerifier {
   void _checkVisibleOutsideTemplate(Annotation node) {
     void reportError() {
       _diagnosticReporter.report(
-        diag.invalidVisibleOutsideTemplateAnnotation.at(node.name),
+        diag.invalidVisibleOutsideTemplateAnnotation.at(node.nameEntity),
       );
     }
 
@@ -657,9 +673,16 @@ class AnnotationVerifier {
     Annotation node,
     AstNode parent,
   ) {
-    var constructorName = node.name;
-    if (constructorName is! PrefixedIdentifier ||
-        constructorName.identifier.name != 'unless') {
+    var isUnless = switch (node.expression) {
+      ConstructorInvocation(
+        constructorReference: ConstructorReference2(
+          selector: ConstructorSelector(:var name2),
+        ),
+      ) =>
+        name2.lexeme == 'unless',
+      _ => false,
+    };
+    if (!isUnless) {
       return null;
     }
 
@@ -683,7 +706,7 @@ class AnnotationVerifier {
       }
 
       // Find and return the parameter value node.
-      var arguments = node.arguments?.arguments2;
+      var arguments = node.argumentList?.arguments2;
       if (arguments == null) {
         return null;
       }

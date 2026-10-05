@@ -454,7 +454,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         var annotationValue = annotation.computeConstantValue();
         if (annotationValue != null && annotationValue.isDefaultAsset) {
           if (hasDefaultAsset) {
-            var name = annotation.annotationAst.name;
+            var name = annotation.annotationAst.nameEntity;
             _diagnosticReporter.report(
               diag.ffiNativeInvalidDuplicateDefaultAsset.at(name),
             );
@@ -621,7 +621,8 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       }
 
       if (hadNativeAnnotation) {
-        var name = (annotation as ElementAnnotationImpl).annotationAst.name;
+        var name =
+            (annotation as ElementAnnotationImpl).annotationAst.nameEntity;
         _diagnosticReporter.report(
           diag.ffiNativeInvalidMultipleAnnotations.at(name),
         );
@@ -1217,14 +1218,14 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
       var extraAnnotations = ffiPackedAnnotations.skip(1);
       for (var annotation in extraAnnotations) {
         _diagnosticReporter.report(
-          diag.abiSpecificIntegerMappingExtra.at(annotation.name),
+          diag.abiSpecificIntegerMappingExtra.at(annotation.nameEntity),
         );
       }
     }
 
     var annotation = ffiPackedAnnotations.first;
 
-    var arguments = annotation.arguments?.arguments2;
+    var arguments = annotation.argumentList?.arguments2;
     if (arguments == null) {
       return;
     }
@@ -2209,7 +2210,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     var value = annotation.elementAnnotation?.packedMemberAlignment;
     if (![1, 2, 4, 8, 16].contains(value)) {
       AstNode errorNode = annotation;
-      var arguments = annotation.arguments?.arguments2;
+      var arguments = annotation.argumentList?.arguments2;
       if (arguments != null && arguments.isNotEmpty) {
         errorNode = arguments[0];
       }
@@ -2323,7 +2324,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     // Check dimensions are valid.
     (List<AstNode>? dimensionsNodes, AstNode? variableDimensionNode)
     getArgumentNodes() {
-      return switch (annotation.arguments) {
+      return switch (annotation.argumentList) {
         // `@Array.variableMulti([..], variableDimension: ..)`
         ArgumentList(
           arguments2: [ListLiteral dimensions, NamedArgument variableDimension],

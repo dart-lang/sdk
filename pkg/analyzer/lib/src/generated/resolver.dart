@@ -680,25 +680,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
   }
 
-  void checkReadOfNotAssignedLocalVariable(
-    SimpleIdentifier node,
-    Element? element,
-  ) {
-    if (!flowAnalysis.isActive) {
-      return;
-    }
-
-    if (!node.inGetterContext()) {
-      return;
-    }
-
-    _checkReadOfNotAssignedLocalVariable(
-      node,
-      name: node.name,
-      element: element,
-    );
-  }
-
   void checkReadOfNotAssignedLocalVariable2(
     AstNode node, {
     required String name,
@@ -1783,22 +1764,10 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     return unpromotedThisType ?? InvalidTypeImpl.instance;
   }
 
-  /// Returns the result of an implicit `this.` lookup for the identifier [node]
-  /// in a getter context, or `null` if no match was found.
-  LexicalLookupResult? thisLookupGetter(SimpleIdentifier node) {
-    return ThisLookup.lookupGetter(this, node);
-  }
-
   /// Returns the result of an implicit `this.` lookup for [node] in a getter
   /// context.
   LexicalLookupResult? thisLookupGetter2(AstNode node, String name) {
     return ThisLookup.lookupGetter2(this, node: node, name: name);
-  }
-
-  /// Returns the result of an implicit `this.` lookup for the identifier [node]
-  /// in a setter context, or `null` if no match was found.
-  LexicalLookupResult? thisLookupSetter(SimpleIdentifier node) {
-    return ThisLookup.lookupSetter(this, node);
   }
 
   /// Returns the result of an implicit `this.` lookup for [node].

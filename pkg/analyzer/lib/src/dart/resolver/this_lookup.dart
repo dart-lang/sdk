@@ -14,16 +14,6 @@ class ThisLookup {
     assert(false, 'Do not construct instances of LexicalLookup');
   }
 
-  /// Attempts to resolve an identifier with name, `node.name`, via implicit
-  /// `this.`, assuming we are trying to look up a getter.
-  ///
-  /// If a matching element is found, a [LexicalLookupResult] is returned.
-  /// Otherwise `null` is returned.
-  static LexicalLookupResult? lookupGetter(
-    ResolverVisitor resolver,
-    SimpleIdentifier node,
-  ) => lookupGetter2(resolver, node: node, name: node.name);
-
   /// Attempts to resolve [name] as a getter on an implicit `this` receiver.
   static LexicalLookupResult? lookupGetter2(
     ResolverVisitor resolver, {
@@ -62,16 +52,6 @@ class ThisLookup {
       return LexicalLookupResult(recovery: propertyResult.setter2);
     }
   }
-
-  /// Attempts to resolve an identifier with name, `node.name`, via implicit
-  /// `this.`, assuming we are trying to look up a setter.
-  ///
-  /// If a matching element is found, a [LexicalLookupResult] is returned.
-  /// Otherwise `null` is returned.
-  static LexicalLookupResult? lookupSetter(
-    ResolverVisitor resolver,
-    SimpleIdentifier node,
-  ) => lookupSetter2(resolver, node: node, name: node.name);
 
   /// Attempts to resolve [name] as a setter on an implicit `this` receiver.
   static LexicalLookupResult? lookupSetter2(

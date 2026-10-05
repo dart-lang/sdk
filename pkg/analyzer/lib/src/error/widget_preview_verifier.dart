@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
@@ -40,7 +41,8 @@ class WidgetPreviewVerifier {
   }
 
   void _checkWidgetPreview(Annotation node) {
-    if (node.arguments == null) {
+    var argumentList = node.argumentList;
+    if (argumentList == null) {
       // This is an invalid annotation application since there's no constructor
       // invocation.
       return;
@@ -79,14 +81,14 @@ class WidgetPreviewVerifier {
 
     if (!isValidApplication) {
       _diagnosticReporter.report(
-        diag.invalidWidgetPreviewApplication.at(node.name),
+        diag.invalidWidgetPreviewApplication.at(node.nameEntity),
       );
     }
 
     var visitor = _InvalidWidgetPreviewArgumentDetectorVisitor(
       diagnosticReporter: _diagnosticReporter,
     );
-    node.arguments!.accept2(visitor);
+    argumentList.accept2(visitor);
   }
 
   bool _hasRequiredParameters(List<FormalParameter> parameters) {
