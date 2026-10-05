@@ -408,6 +408,7 @@ class BuilderFactory {
     List<Fragment>? augmentations,
   ) {
     TypeBuilder? supertypeBuilder = fragment.supertype;
+    List<TypeBuilder>? mixedInTypeBuilders = fragment.mixins?.toList();
     List<TypeBuilder>? interfaceBuilders = fragment.interfaces?.toList();
     if (augmentations != null) {
       for (Fragment augmentation in augmentations) {
@@ -432,6 +433,12 @@ class BuilderFactory {
           } else {
             supertypeBuilder = augmentationSupertype;
           }
+        }
+
+        List<TypeBuilder>? augmentationMixedInTypeBuilders =
+            augmentation.mixins;
+        if (augmentationMixedInTypeBuilders != null) {
+          (mixedInTypeBuilders ??= []).addAll(augmentationMixedInTypeBuilders);
         }
 
         List<TypeBuilder>? augmentationInterfaceBuilders =
@@ -470,6 +477,7 @@ class BuilderFactory {
             introductory: introductory,
             augmentations: augmentations,
             supertypeBuilder: supertypeBuilder,
+            mixedInTypeBuilders: mixedInTypeBuilders,
             interfaceBuilders: interfaceBuilders,
           ),
       setBuilder: (fragment, builder) => fragment.builder = builder,
@@ -789,10 +797,17 @@ class BuilderFactory {
     EnumFragment fragment,
     List<Fragment>? augmentations,
   ) {
+    List<TypeBuilder>? mixedInTypeBuilders = fragment.mixins?.toList();
     List<TypeBuilder>? interfaceBuilders = fragment.interfaces?.toList();
     if (augmentations != null) {
       for (Fragment augmentation in augmentations) {
         augmentation as EnumFragment;
+
+        List<TypeBuilder>? augmentationMixedInTypeBuilders =
+            augmentation.mixins;
+        if (augmentationMixedInTypeBuilders != null) {
+          (mixedInTypeBuilders ??= []).addAll(augmentationMixedInTypeBuilders);
+        }
 
         List<TypeBuilder>? augmentationInterfaceBuilders =
             augmentation.interfaces;
@@ -825,6 +840,7 @@ class BuilderFactory {
             name: name,
             typeParameters: nominalParameters,
             underscoreEnumTypeBuilder: _loader.target.underscoreEnumType,
+            mixedInTypeBuilders: mixedInTypeBuilders,
             interfaceBuilders: interfaceBuilders,
             enumElements: enumElements,
             libraryBuilder: _enclosingLibraryBuilder,
@@ -1199,6 +1215,7 @@ class BuilderFactory {
             introductory: introductory,
             augmentations: augmentations,
             supertypeBuilder: fragment.supertype,
+            mixedInTypeBuilders: fragment.mixins,
             interfaceBuilders: interfaceBuilders,
           ),
       setBuilder: (fragment, builder) => fragment.builder = builder,
@@ -1216,10 +1233,7 @@ class BuilderFactory {
     TypeBuilder supertypeBuilder = fragment.supertype;
     List<TypeBuilder>? interfaceBuilders = fragment.interfaces;
     TypeBuilder mixin = mixins.removeLast();
-    ClassDeclaration classDeclaration = new NamedMixinApplication(
-      fragment,
-      mixins,
-    );
+    ClassDeclaration classDeclaration = new NamedMixinApplication(fragment);
 
     String name = fragment.name;
 
@@ -1254,6 +1268,7 @@ class BuilderFactory {
       mixedInTypeBuilder: mixin,
       introductory: classDeclaration,
       supertypeBuilder: supertypeBuilder,
+      mixedInTypeBuilders: mixins,
       interfaceBuilders: interfaceBuilders,
     );
     _mixinApplications[classBuilder] = mixin;

@@ -1,0 +1,20 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Base extends core::Object {
+  synthetic constructor •() → self::Base
+    ;
+  abstract method baseMethod() → void;
+}
+abstract class SuperMixin extends core::Object /*isMixinDeclaration*/  {
+  abstract method superMixinMethod() → void;
+}
+abstract class Mixin extends self::_Mixin&SuperMixin&Base /*isMixinDeclaration*/  {
+  method method() → void
+    ;
+}
+abstract class _Mixin&SuperMixin&Base extends core::Object implements self::SuperMixin, self::Base /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_Mixin&SuperMixin&Base
+    ;
+}

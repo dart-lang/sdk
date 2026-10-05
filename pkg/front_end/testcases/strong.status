@@ -134,6 +134,7 @@ augmentations/top_level_declarations: SemiFuzzFailure
 augmentations/unordered_constructor: semiFuzzFailureOnForceRebuildBodies
 augmentations/unordered_method: semiFuzzFailureOnForceRebuildBodies
 augmentations/unordered_property: semiFuzzFailureOnForceRebuildBodies
+augmentations/with: SemiFuzzFailure
 
 # Unclear exactly what is going on here - but target none isn't super important.
 none/issue_63440: SemiFuzzFailure

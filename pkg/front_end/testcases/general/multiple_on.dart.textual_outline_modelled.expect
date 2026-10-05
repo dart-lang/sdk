@@ -1,0 +1,11 @@
+abstract class Base {
+  void baseMethod();
+}
+
+mixin Mixin on SuperMixin, Base {
+  void method() {}
+}
+
+mixin SuperMixin {
+  void superMixinMethod();
+}
