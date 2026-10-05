@@ -142,6 +142,15 @@ class PubspecFixProcessor {
     var package = workspace.findPackageFor(filePath);
     if (package is! PubPackage) return;
 
+    if (_codesToFix == null) {
+      var analysisOptions = context.getAnalysisOptionsForFile(
+        package.pubspecFile,
+      );
+      if (!_pubspecFixDiagnosticCodes.any(analysisOptions.isLintEnabled)) {
+        return;
+      }
+    }
+
     var libPath = package.root.getFolder('lib');
     var binPath = package.root.getFolder('bin');
 

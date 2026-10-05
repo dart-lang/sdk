@@ -753,6 +753,11 @@ import 'package:path/path.dart' as path;
 
 path.Context? a;
 ''',
+          analysisOptions: '''
+linter:
+  rules:
+    - depend_on_referenced_packages
+''',
         );
         var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
         expect(result.stderr, isEmpty);
@@ -783,6 +788,7 @@ path.Context? a;
         analysisOptions: '''
 linter:
   rules:
+    - depend_on_referenced_packages
     - prefer_single_quotes
 ''',
       );
@@ -805,6 +811,40 @@ linter:
         contains('path: any'),
       );
     });
+
+    test(
+      '--apply skips pubspec fixes when no codes if not a pubspec rule',
+      () async {
+        p = project(
+          mainSrc: '''
+import "package:path/path.dart" as path;
+
+path.Context? a;
+''',
+          analysisOptions: '''
+linter:
+  rules:
+    - prefer_single_quotes
+''',
+        );
+        var result = await p!.runFix(['--apply', '.'], workingDir: p!.dirPath);
+        expect(result.stderr, isEmpty);
+        expect(result.exitCode, 0);
+        expect(
+          result.stdout,
+          stringContainsInOrderWithVariableBullets([
+            'Applying fixes...',
+            'lib${Platform.pathSeparator}main.dart',
+            '  prefer_single_quotes $bullet 1',
+            '1 fix made in 1 file.',
+          ]),
+        );
+        expect(
+          p!.findFile('pubspec.yaml')!.readAsStringSync(),
+          isNot(contains('path: any')),
+        );
+      },
+    );
 
     test(
       '--apply includes pubspec fixes when including missing_dependency',
