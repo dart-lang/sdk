@@ -21,16 +21,20 @@ void main() {
     defineReflectiveTests(FormalParameterIsExplicitlyTypedTest);
     defineReflectiveTests(HideClauseImplTest);
     defineReflectiveTests(ImplementsClauseImplTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(InterpolationStringTest);
     defineReflectiveTests(MethodDeclarationTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
     defineReflectiveTests(NormalFormalParameterTest);
     defineReflectiveTests(OnClauseImplTest);
     defineReflectiveTests(PreviousTokenTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(PropertyAccessTest);
     defineReflectiveTests(ShowClauseImplTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
     defineReflectiveTests(SpreadElementTest);

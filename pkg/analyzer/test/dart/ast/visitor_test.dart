@@ -12,6 +12,7 @@ import '../../src/diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(BreadthFirstVisitorTest);
   });
 }

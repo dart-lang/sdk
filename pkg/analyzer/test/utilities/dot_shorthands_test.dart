@@ -380,7 +380,9 @@ Set<E> e = {.b};
     var initializer = result.findNode.singleVariableDeclaration.initializer2!;
     expect(hasDependentDotShorthand2(initializer), expected, reason: 'V2');
 
+    // ignore: analyzer_to_be_deprecated_use
     var projection = V1Projection.toV1Expression(initializer as ExpressionImpl);
+    // ignore: analyzer_to_be_deprecated_use
     expect(hasDependentDotShorthand(projection), expected, reason: 'V1');
   }
 }
@@ -530,7 +532,9 @@ A result = accept(.named());
   void _assertIsDotShorthand(Expression node, bool expected) {
     expect(isDotShorthand2(node), expected, reason: 'V2');
 
+    // ignore: analyzer_to_be_deprecated_use
     var projection = V1Projection.toV1Expression(node as ExpressionImpl);
+    // ignore: analyzer_to_be_deprecated_use
     expect(isDotShorthand(projection), expected, reason: 'V1');
   }
 }

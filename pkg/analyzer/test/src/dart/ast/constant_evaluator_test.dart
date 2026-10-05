@@ -15,6 +15,7 @@ import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(ConstantEvaluatorTest);
     defineReflectiveTests(ConstantEvaluator2Test);
     defineReflectiveTests(UpdateNodeTextExpectations);
