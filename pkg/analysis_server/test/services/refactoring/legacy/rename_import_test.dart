@@ -391,54 +391,6 @@ FutureOr<void> a;
 ''');
   }
 
-  Future<void> test_oldName_empty() async {
-    await indexTestUnit('''
-import 'dart:math';
-import 'dart:async';
-void f() {
-  Future f;
-}
-''');
-    // configure refactoring
-    _createRefactoring("import 'dart:async");
-    expect(refactoring.refactoringName, 'Rename Import Prefix');
-    expect(refactoring.oldName, '');
-  }
-
-  void _createRefactoring(String search) {
-    var directive = findNode.import(search);
-    createRenameRefactoringForElement2(
-      MockLibraryImportElement(directive.libraryImport!),
-    );
-  }
-
-  Future<void> test_createChange_usedInPart() async {
-    newFile('$testPackageLibPath/part.dart', '''
-part of 'test.dart';
-void f() {
-  myAsync.Future? f;
-}
-''');
-    await indexTestUnit('''
-import 'dart:async' as myAsync;
-part 'part.dart';
-''');
-    _createRefactoring("import 'dart:async'");
-    expect(refactoring.refactoringName, 'Rename Import Prefix');
-    refactoring.newName = 'newName';
-
-    await assertSuccessfulRefactoring('''
-import 'dart:async' as newName;
-part 'part.dart';
-''');
-    assertFileChangeResult('$testPackageLibPath/part.dart', '''
-part of 'test.dart';
-void f() {
-  newName.Future? f;
-}
-''');
-  }
-
   Future<void> test_createChange_subpart_nonPrefixedImport() async {
     newFile('$testPackageLibPath/main.dart', '''
 part 'test.dart';
@@ -509,5 +461,53 @@ void f() {
   Random? r;
 }
 ''');
+  }
+
+  Future<void> test_createChange_usedInPart() async {
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'test.dart';
+void f() {
+  myAsync.Future? f;
+}
+''');
+    await indexTestUnit('''
+import 'dart:async' as myAsync;
+part 'part.dart';
+''');
+    _createRefactoring("import 'dart:async'");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    refactoring.newName = 'newName';
+
+    await assertSuccessfulRefactoring('''
+import 'dart:async' as newName;
+part 'part.dart';
+''');
+    assertFileChangeResult('$testPackageLibPath/part.dart', '''
+part of 'test.dart';
+void f() {
+  newName.Future? f;
+}
+''');
+  }
+
+  Future<void> test_oldName_empty() async {
+    await indexTestUnit('''
+import 'dart:math';
+import 'dart:async';
+void f() {
+  Future f;
+}
+''');
+    // configure refactoring
+    _createRefactoring("import 'dart:async");
+    expect(refactoring.refactoringName, 'Rename Import Prefix');
+    expect(refactoring.oldName, '');
+  }
+
+  void _createRefactoring(String search) {
+    var directive = findNode.import(search);
+    createRenameRefactoringForElement2(
+      MockLibraryImportElement(directive.libraryImport!),
+    );
   }
 }

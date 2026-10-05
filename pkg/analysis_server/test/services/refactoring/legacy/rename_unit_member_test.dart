@@ -139,6 +139,76 @@ class B extends A {
     assertRefactoringStatusOK(status);
   }
 
+  /// A subpart sees imports from its parent, but not from a sibling.
+  Future<void> test_checkFinalConditions_partImportsNewName_conflict() async {
+    newFile('$testPackageLibPath/other.dart', '''
+class NewName {}
+class A {
+  void NewName() {}
+}
+''');
+    newFile('$testPackageLibPath/parent.dart', '''
+part of 'client.dart';
+import 'test.dart';
+part 'child.dart';
+''');
+    newFile('$testPackageLibPath/child.dart', '''
+part of 'parent.dart';
+import 'other.dart';
+class B extends A {
+  void f() {
+    NewName(); // child-reference
+  }
+}
+''');
+    newFile('$testPackageLibPath/sibling.dart', '''
+part of 'client.dart';
+import 'other.dart';
+class C extends A {
+  void f() {
+    NewName(); // sibling-reference
+  }
+}
+''');
+    await indexTestUnit('class Test {}');
+    await indexUnit('$testPackageLibPath/client.dart', '''
+part 'parent.dart';
+part 'sibling.dart';
+''');
+
+    createRenameRefactoringAtString('Test {}');
+    refactoring.newName = 'NewName';
+
+    var status = await refactoring.checkFinalConditions();
+    expect(status.problems, hasLength(1));
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: "Renamed class will shadow method 'A.NewName'.",
+      expectedContextSearch: 'NewName(); // child-reference',
+    );
+  }
+
+  /// When neither the library nor any part imports the new name,
+  /// the rename should succeed with no conflicts.
+  Future<void> test_checkFinalConditions_partsHaveNoConflict_ok() async {
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'test.dart';
+// no import of NewName
+''');
+
+    await indexTestUnit('''
+part 'part.dart';
+class Test {}
+''');
+
+    createRenameRefactoringAtString('Test {}');
+    refactoring.newName = 'NewName';
+
+    var status = await refactoring.checkFinalConditions();
+    assertRefactoringStatusOK(status);
+  }
+
   Future<void>
   test_checkFinalConditions_publicToPrivate_usedInOtherLibrary() async {
     await indexTestUnit('''
@@ -712,6 +782,69 @@ void f(g(NewName p)) {}
 ''');
   }
 
+  /// When a subpart references the renamed class without a prefix,
+  /// the rename should update the reference correctly.
+  Future<void>
+  test_createChange_ClassElement_referencedInPartWithoutPrefix() async {
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'test.dart';
+Test? g;
+''');
+
+    await indexTestUnit('''
+part 'part.dart';
+class Test {}
+''');
+
+    createRenameRefactoringAtString('Test {}');
+    refactoring.newName = 'NewName';
+
+    // Main file updated.
+    await assertSuccessfulRefactoring('''
+part 'part.dart';
+class NewName {}
+''');
+
+    // Part file also updated: Test? → NewName?
+    assertFileChangeResult('$testPackageLibPath/part.dart', '''
+part of 'test.dart';
+NewName? g;
+''');
+  }
+
+  /// When a subpart imports the defining library with a prefix and uses
+  /// the prefix to reference the class, the prefix must be preserved after
+  /// the rename.
+  Future<void>
+  test_createChange_ClassElement_referencedInPartWithPrefix() async {
+    newFile('$testPackageLibPath/client.dart', "part 'part.dart';");
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'client.dart';
+import 'test.dart' as ml;
+ml.Test? g;
+''');
+
+    await indexTestUnit('class Test {}');
+    await indexUnit('$testPackageLibPath/client.dart', "part 'part.dart';");
+
+    // Rename 'Test' in the main library.
+    createRenameRefactoringAtString('Test {}');
+    refactoring.newName = 'NewName';
+
+    // The main file's 'Test' class gets renamed.
+    await assertSuccessfulRefactoring('''
+part 'part.dart';
+class NewName {}
+''');
+    // The part's 'ml.Test' reference should become 'ml.NewName'
+    // (the prefix 'ml.' is preserved).
+    assertFileChangeResult('$testPackageLibPath/part.dart', '''
+part of 'client.dart';
+import 'test.dart' as ml;
+ml.NewName? g;
+''');
+  }
+
   Future<void> test_createChange_ClassElement_typeAlias() async {
     await indexTestUnit('''
 mixin A {}
@@ -1057,139 +1190,6 @@ void f() {
   newName = 1;
   newName += 2;
 }
-''');
-  }
-  
-  /// A subpart sees imports from its parent, but not from a sibling.
-  Future<void> test_checkFinalConditions_partImportsNewName_conflict() async {
-    newFile('$testPackageLibPath/other.dart', '''
-class NewName {}
-class A {
-  void NewName() {}
-}
-''');
-    newFile('$testPackageLibPath/parent.dart', '''
-part of 'client.dart';
-import 'test.dart';
-part 'child.dart';
-''');
-    newFile('$testPackageLibPath/child.dart', '''
-part of 'parent.dart';
-import 'other.dart';
-class B extends A {
-  void f() {
-    NewName(); // child-reference
-  }
-}
-''');
-    newFile('$testPackageLibPath/sibling.dart', '''
-part of 'client.dart';
-import 'other.dart';
-class C extends A {
-  void f() {
-    NewName(); // sibling-reference
-  }
-}
-''');
-    await indexTestUnit('class Test {}');
-    await indexUnit('$testPackageLibPath/client.dart', '''
-part 'parent.dart';
-part 'sibling.dart';
-''');
-
-    createRenameRefactoringAtString('Test {}');
-    refactoring.newName = 'NewName';
-
-    var status = await refactoring.checkFinalConditions();
-    expect(status.problems, hasLength(1));
-    assertRefactoringStatus(
-      status,
-      RefactoringProblemSeverity.ERROR,
-      expectedMessage: "Renamed class will shadow method 'A.NewName'.",
-      expectedContextSearch: 'NewName(); // child-reference',
-    );
-  }
-
-  /// When neither the library nor any part imports the new name,
-  /// the rename should succeed with no conflicts.
-  Future<void> test_checkFinalConditions_partsHaveNoConflict_ok() async {
-    newFile('$testPackageLibPath/part.dart', '''
-part of 'test.dart';
-// no import of NewName
-''');
-
-    await indexTestUnit('''
-part 'part.dart';
-class Test {}
-''');
-
-    createRenameRefactoringAtString('Test {}');
-    refactoring.newName = 'NewName';
-
-    var status = await refactoring.checkFinalConditions();
-    assertRefactoringStatusOK(status);
-  }
-
-  /// When a subpart references the renamed class without a prefix,
-  /// the rename should update the reference correctly.
-  Future<void>
-  test_createChange_ClassElement_referencedInPartWithoutPrefix() async {
-    newFile('$testPackageLibPath/part.dart', '''
-part of 'test.dart';
-Test? g;
-''');
-
-    await indexTestUnit('''
-part 'part.dart';
-class Test {}
-''');
-
-    createRenameRefactoringAtString('Test {}');
-    refactoring.newName = 'NewName';
-
-    // Main file updated.
-    await assertSuccessfulRefactoring('''
-part 'part.dart';
-class NewName {}
-''');
-
-    // Part file also updated: Test? → NewName?
-    assertFileChangeResult('$testPackageLibPath/part.dart', '''
-part of 'test.dart';
-NewName? g;
-''');
-  }
-
-  /// When a subpart imports the defining library with a prefix and uses
-  /// the prefix to reference the class, the prefix must be preserved after
-  /// the rename.
-  Future<void>
-  test_createChange_ClassElement_referencedInPartWithPrefix() async {
-    newFile('$testPackageLibPath/client.dart', "part 'part.dart';");
-    newFile('$testPackageLibPath/part.dart', '''
-part of 'client.dart';
-import 'test.dart' as ml;
-ml.Test? g;
-''');
-
-    await indexTestUnit('class Test {}');
-    await indexUnit('$testPackageLibPath/client.dart', "part 'part.dart';");
-
-    // Rename 'Test' in the main library.
-    createRenameRefactoringAtString('Test {}');
-    refactoring.newName = 'NewName';
-
-    // The main file's 'Test' class gets renamed.
-    await assertSuccessfulRefactoring('''
-part 'part.dart';
-class NewName {}
-''');
-    // The part's 'ml.Test' reference should become 'ml.NewName'
-    // (the prefix 'ml.' is preserved).
-    assertFileChangeResult('$testPackageLibPath/part.dart', '''
-part of 'client.dart';
-import 'test.dart' as ml;
-ml.NewName? g;
 ''');
   }
 }
