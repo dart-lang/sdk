@@ -197,6 +197,20 @@ Future<String?> f(String? s) async {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/41524
+  Future<void> test_topLevelFunction_block_async_returnFuture() async {
+    await resolveTestCode('''
+^f() async {
+  return Future.value(0);
+}
+''');
+    await assertHasAssist('''
+Future<int> f() async {
+  return Future.value(0);
+}
+''');
+  }
+
   Future<void> test_topLevelFunction_block_asyncStar() async {
     await resolveTestCode('''
 ^f(String? s) async* {
@@ -229,6 +243,15 @@ Iterable<String?> f(String? s) sync* {
 ''');
     await assertHasAssist('''
 String f() => '';
+''');
+  }
+
+  Future<void> test_topLevelFunction_expression_async_returnFuture() async {
+    await resolveTestCode('''
+^f() async => Future.value(0);
+''');
+    await assertHasAssist('''
+Future<int> f() async => Future.value(0);
 ''');
   }
 
