@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -13,6 +14,10 @@ import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ExitDetector2CollectionElementTest);
+    defineReflectiveTests(ExitDetector2ResolvedStatementTest);
+    defineReflectiveTests(ExitDetector2ResolvedStatementTest_BeforePatterns);
+    defineReflectiveTests(ExitDetector2StatementTest);
     defineReflectiveTests(ExitDetectorCollectionElementTest);
     defineReflectiveTests(ExitDetectorParsedStatementTest);
     defineReflectiveTests(ExitDetectorResolvedStatementTest);
@@ -22,6 +27,54 @@ main() {
 }
 
 @reflectiveTest
+class ExitDetector2CollectionElementTest extends PubPackageResolutionTest
+    with ExitDetectorCollectionElementTestCases {
+  @override
+  Future<void> _assertHasReturn(String expressionCode, bool expected) async {
+    var result = await resolveTestCode('''
+void f() { // ref
+  $expressionCode;
+}
+''');
+    var block = result.findNode.block('{ // ref');
+    var statement = block.statements.single as ExpressionStatement;
+    expect(ExitDetector2.exits(statement.expression2), expected);
+  }
+}
+
+@reflectiveTest
+class ExitDetector2ResolvedStatementTest extends PubPackageResolutionTest
+    with ExitDetectorStatementWithResolutionTestCases {
+  @override
+  bool _exits(Statement statement) => ExitDetector2.exits(statement);
+}
+
+@reflectiveTest
+class ExitDetector2ResolvedStatementTest_BeforePatterns
+    extends PubPackageResolutionTest
+    with BeforePatternsMixin, ExitDetectorStatementWithResolutionTestCases {
+  @override
+  bool _exits(Statement statement) => ExitDetector2.exits(statement);
+}
+
+@reflectiveTest
+class ExitDetector2StatementTest extends PubPackageResolutionTest
+    with ExitDetectorStatementTestCases {
+  @override
+  Future<void> _assertHasReturn(String statementCode, bool expected) async {
+    var result = await resolveTestCode('''
+void f() { // ref
+  $statementCode
+}
+''');
+    var block = result.findNode.block('{ // ref');
+    var statement = block.statements.single;
+    expect(ExitDetector2.exits(statement), expected);
+  }
+}
+
+@reflectiveTest
+@ToBeDeprecated('Use ExitDetector2 tests instead.')
 class ExitDetectorCollectionElementTest extends ParserDiagnosticsTest
     with ExitDetectorCollectionElementTestCases {
   @override
@@ -142,8 +195,21 @@ mixin ExitDetectorCollectionElementTestCases {
 }
 
 @reflectiveTest
+@ToBeDeprecated('Use ExitDetector2 tests instead.')
 class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest
     with ExitDetectorStatementTestCases {
+  @failingTest
+  @override
+  test_assignmentExpression_compound_lazy() async {
+    await super.test_assignmentExpression_compound_lazy();
+  }
+
+  @failingTest
+  @override
+  test_cascadeExpression_nullAware_index() async {
+    await super.test_cascadeExpression_nullAware_index();
+  }
+
   test_nullAssertion_v1Projection() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f(Object? x) { // ref
@@ -173,6 +239,7 @@ void f() { // ref
 }
 
 @reflectiveTest
+@ToBeDeprecated('Use ExitDetector2 tests instead.')
 class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest
     with ExitDetectorStatementWithResolutionTestCases {
   @override
@@ -180,6 +247,7 @@ class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest
 }
 
 @reflectiveTest
+@ToBeDeprecated('Use ExitDetector2 tests instead.')
 class ExitDetectorResolvedStatementTest_BeforePatterns
     extends PubPackageResolutionTest
     with BeforePatternsMixin, ExitDetectorStatementWithResolutionTestCases {
@@ -212,7 +280,6 @@ mixin ExitDetectorStatementTestCases {
     await _assertFalse('v = 1;');
   }
 
-  @failingTest // TODO(scheglov): fix it
   test_assignmentExpression_compound_lazy() async {
     await _assertFalse('v ||= false;');
   }
@@ -315,6 +382,30 @@ mixin ExitDetectorStatementTestCases {
 
   test_cascadeExpression_index() async {
     await _assertTrue('a..[throw 42];');
+  }
+
+  test_cascadeExpression_nullAware_argument() async {
+    await _assertFalse('a?..b(throw 42);');
+  }
+
+  test_cascadeExpression_nullAware_argument_secondSection() async {
+    await _assertFalse('a?..b(0)..c(throw 42);');
+  }
+
+  test_cascadeExpression_nullAware_assignment() async {
+    await _assertFalse('a?..b = throw 42;');
+  }
+
+  test_cascadeExpression_nullAware_assignment_secondSection() async {
+    await _assertFalse('a?..b = 0..c = throw 42;');
+  }
+
+  test_cascadeExpression_nullAware_index() async {
+    await _assertFalse('a?..[throw 42];');
+  }
+
+  test_cascadeExpression_nullAware_target() async {
+    await _assertTrue('(throw 42)?..b();');
   }
 
   test_cascadeExpression_target() async {
