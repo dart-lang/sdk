@@ -9035,6 +9035,7 @@ abstract final class CompilationUnit implements AstNode, FragmentDeclaringNode {
   /// The declarations contained in this compilation unit in the V1 AST view.
   ///
   /// Analyzer implementations should traverse [declarations2] instead.
+  @ToBeDeprecated('Use declarations2 instead.')
   NodeList<CompilationUnitMember> get declarations;
 
   /// The top-level declarations exposed by the V2 AST view.
@@ -9084,6 +9085,7 @@ abstract final class CompilationUnit implements AstNode, FragmentDeclaringNode {
 
   /// A list containing all of the directives and declarations in this
   /// compilation unit, sorted in lexical order.
+  @ToBeDeprecated('Part of the V1 AST.')
   List<AstNode> get sortedDirectivesAndDeclarations;
 
   /// Queries the type of `this` at the given [offset].
@@ -9136,6 +9138,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   final NodeListImpl<TopLevelDeclarationV1OrV2Impl> _declarations2 =
       NodeListImpl._();
 
+  @ToBeDeprecated('Use declarations2 instead.')
   late final NodeListImpl<CompilationUnitMemberImpl> _declarations =
       _V1ProjectedNodeListImpl(
         _declarations2,
@@ -9191,6 +9194,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     _declarations2._initializeProjected(this, declarations2);
   }
 
+  @ToBeDeprecated('Use declarations2 instead.')
   @override
   NodeListImpl<CompilationUnitMemberImpl> get declarations => _declarations;
 
@@ -9234,6 +9238,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     _scriptTag = _becomeParentOf12(scriptTag);
   }
 
+  @ToBeDeprecated('Part of the V1 AST.')
   @override
   List<AstNode> get sortedDirectivesAndDeclarations {
     return <AstNode>[..._directives, ..._declarations]
