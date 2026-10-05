@@ -339,4 +339,6 @@ const String serverRequestShowMessageRequestMessage = 'message';
 const String serverRequestShowMessageRequestType = 'type';
 const String serverRequestShutdown = 'server.shutdown';
 const String serverResponseGetVersionVersion = 'version';
+const String serverResponseSetClientCapabilitiesLspCapabilities =
+    'lspCapabilities';
 const String serverResponseShowMessageRequestAction = 'action';

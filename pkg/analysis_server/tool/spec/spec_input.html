@@ -469,6 +469,14 @@
         </p>
       </field>
     </params>
+    <result>
+      <field name="lspCapabilities" optional="true">
+        <ref>object</ref>
+        <p>
+          The LSP <tt>ServerCapabilities</tt> for the server. These capabilities are only a subset that contain required information for an LSP-over-Legacy client, and always use static registrations.
+        </p>
+      </field>
+    </result>
   </request>
   <request method="openUrlRequest">
     <p><b>Note:</b> This is a request from the server to the client.</p>

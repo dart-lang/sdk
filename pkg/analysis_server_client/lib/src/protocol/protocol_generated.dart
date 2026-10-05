@@ -16257,21 +16257,75 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
 
 /// server.setClientCapabilities result
 ///
+///     {
+///       "lspCapabilities": optional object
+///     }
+///
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetClientCapabilitiesResult implements ResponseResult {
-  @override
-  Map<String, Object> toJson() => {};
+  /// The LSP `ServerCapabilities` for the server. These capabilities are only
+  /// a subset that contain required information for an LSP-over-Legacy client,
+  /// and always use static registrations.
+  Object? lspCapabilities;
 
-  @override
-  Response toResponse(String id) {
-    return Response(id);
+  ServerSetClientCapabilitiesResult({this.lspCapabilities});
+
+  factory ServerSetClientCapabilitiesResult.fromJson(
+    JsonDecoder jsonDecoder,
+    String jsonPath,
+    Object? json,
+  ) {
+    json ??= {};
+    if (json is Map) {
+      Object? lspCapabilities;
+      if (json.containsKey('lspCapabilities')) {
+        lspCapabilities = json['lspCapabilities'] as Object;
+      }
+      return ServerSetClientCapabilitiesResult(
+        lspCapabilities: lspCapabilities,
+      );
+    } else {
+      throw jsonDecoder.mismatch(
+        jsonPath,
+        'server.setClientCapabilities result',
+        json,
+      );
+    }
+  }
+
+  factory ServerSetClientCapabilitiesResult.fromResponse(Response response) {
+    return ServerSetClientCapabilitiesResult.fromJson(
+      ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+      'result',
+      response.result,
+    );
   }
 
   @override
-  bool operator ==(Object other) => other is ServerSetClientCapabilitiesResult;
+  Map<String, Object> toJson() {
+    var result = <String, Object>{};
+    var lspCapabilities = this.lspCapabilities;
+    if (lspCapabilities != null) {
+      result['lspCapabilities'] = lspCapabilities;
+    }
+    return result;
+  }
 
   @override
-  int get hashCode => 806805916;
+  Response toResponse(String id) {
+    return Response(id, result: toJson());
+  }
+
+  @override
+  String toString() => json.encode(toJson());
+
+  @override
+  bool operator ==(Object other) =>
+      other is ServerSetClientCapabilitiesResult &&
+      lspCapabilities == other.lspCapabilities;
+
+  @override
+  int get hashCode => lspCapabilities.hashCode;
 }
 
 /// server.setSubscriptions params

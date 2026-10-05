@@ -36,6 +36,9 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   final StreamController<NotificationMessage> _notificationsFromServer =
       StreamController<NotificationMessage>.broadcast();
 
+  /// The server capabilities returned during initialization.
+  ServerCapabilities? serverCapabilities;
+
   bool _hasSetClientCapabilities = false;
 
   new() {
@@ -223,7 +226,15 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       lspCapabilities: clientCapabilities,
     ).toRequest('${nextRequestId++}', clientUriConverter: server.uriConverter);
 
-    await handleSuccessfulRequest(request);
+    var response = await handleSuccessfulRequest(request);
+    var result = ServerSetClientCapabilitiesResult.fromResponse(
+      response,
+      clientUriConverter: uriConverter,
+    );
+
+    if (result.lspCapabilities case Map<String, Object?> lspCapabilities?) {
+      serverCapabilities = ServerCapabilities.fromJson(lspCapabilities);
+    }
   }
 
   Future<ResponseMessage> sendLspRequest(Method method, Object params) {

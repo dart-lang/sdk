@@ -613,11 +613,15 @@ a:focus, a:hover {
 }</pre><br><pre>response: {
   "id": String
   "error": <span style="color:#999999">optional</span> <a href="#type_RequestError">RequestError</a>
+  "result": {
+    "<b>lspCapabilities</b>": <span style="color:#999999">optional</span> object
+  }
 }</pre></div>
     <p>
       Record the capabilities supported by the client. The default values,
       documented below, will be assumed until this request is received.
     </p>
+    
     
   <h4>parameters:</h4><dl><dt class="field"><b>requests: List&lt;String&gt;</b></dt><dd>
         
@@ -668,6 +672,11 @@ a:focus, a:hover {
         </p>
         <p>
           If the capabilities include <tt>workspace.configuration</tt>, the server requests the user's configuration with a <tt>workspace/configuration</tt> request after responding to this request. LSP messages received in the meantime are not handled until the client has responded to it, so that they see the user's configuration and not the defaults. Other requests are not affected.
+        </p>
+      </dd></dl><h4>returns:</h4><dl><dt class="field"><b>lspCapabilities: object<span style="color:#999999"> (optional)</span></b></dt><dd>
+        
+        <p>
+          The LSP <tt>ServerCapabilities</tt> for the server. These capabilities are only a subset that contain required information for an LSP-over-Legacy client, and always use static registrations.
         </p>
       </dd></dl></dd><dt class="request"><a name="request_server.openUrlRequest">server.openUrlRequest</a></dt><dd><div class="box"><pre>request: {
   "id": String

@@ -7,7 +7,10 @@ import 'dart:async';
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart' as lsp;
 import 'package:analyzer/exception/exception.dart';
+import 'package:language_server_protocol/protocol_generated.dart' as lsp;
+import 'package:language_server_protocol/protocol_special.dart';
 
 /// The handler for the `server.setClientCapabilities` request.
 class ServerSetClientCapabilitiesHandler extends LegacyHandler {
@@ -31,7 +34,29 @@ class ServerSetClientCapabilitiesHandler extends LegacyHandler {
       _sendFailure(Response(request.id, error: error));
       return;
     }
-    sendResult(ServerSetClientCapabilitiesResult());
+
+    // If the client provided LSP capabilities, include server capabilities
+    // in the response.
+    //
+    // These are just a subset that we know are useful and do not support
+    // dynamic registrations (we do not use the client capabilities to
+    // build these).
+    lsp.ServerCapabilities? lspServerCapabilities;
+    if (server.clientCapabilities.lspCapabilities != null) {
+      lspServerCapabilities = lsp.ServerCapabilities(
+        semanticTokensProvider: Either2.t1(
+          lsp.SemanticTokensOptions(
+            legend: lsp.semanticTokenLegend.lspLegend,
+            full: Either2.t2(lsp.SemanticTokensFullDelta(delta: false)),
+            range: Either2.t1(true),
+          ),
+        ),
+      );
+    }
+
+    sendResult(
+      ServerSetClientCapabilitiesResult(lspCapabilities: lspServerCapabilities),
+    );
 
     if (server.editorClientCapabilities.configuration) {
       // Now that we know the client's capabilities, fetch its configuration.

@@ -3577,7 +3577,17 @@ final Matcher isServerSetClientCapabilitiesParams = LazyMatcher(
 );
 
 /// server.setClientCapabilities result
-final Matcher isServerSetClientCapabilitiesResult = isNull;
+///
+///     {
+///       "lspCapabilities": optional object
+///     }
+final Matcher isServerSetClientCapabilitiesResult = LazyMatcher(
+  () => MatchesJsonObject(
+    'server.setClientCapabilities result',
+    null,
+    optionalFields: {'lspCapabilities': isObject},
+  ),
+);
 
 /// server.setSubscriptions params
 ///

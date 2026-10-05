@@ -153,7 +153,15 @@ abstract class IntegrationTest {
   ///   meantime are not handled until the client has responded to it, so that
   ///   they see the user's configuration and not the defaults. Other requests
   ///   are not affected.
-  Future<void> sendServerSetClientCapabilities(
+  ///
+  /// Returns
+  ///
+  /// * `lspCapabilities: object (optional)`
+  ///
+  ///   The LSP `ServerCapabilities` for the server. These capabilities are
+  ///   only a subset that contain required information for an LSP-over-Legacy
+  ///   client, and always use static registrations.
+  Future<ServerSetClientCapabilitiesResult> sendServerSetClientCapabilities(
     List<String> requests, {
     bool? supportsUris,
     Object? lspCapabilities,
@@ -164,7 +172,13 @@ abstract class IntegrationTest {
       lspCapabilities: lspCapabilities,
     ).toJson(clientUriConverter: uriConverter);
     var result = await server.send('server.setClientCapabilities', params);
-    outOfTestExpect(result, isNull);
+    var decoder = ResponseDecoder(null);
+    return ServerSetClientCapabilitiesResult.fromJson(
+      decoder,
+      'result',
+      result,
+      clientUriConverter: uriConverter,
+    );
   }
 
   /// Note: This is a request from the server to the client.

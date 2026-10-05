@@ -10,48 +10,53 @@ import 'package:analysis_server/src/lsp/semantic_tokens/mapping.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
-final semanticTokenLegend = SemanticTokenLegendLookup();
+final semanticTokenLegend = SemanticTokenLegendLookup.fromServerValues();
 
 /// A helper for looking up indexes and bitmasks of [SemanticTokenTypes] and
 /// [SemanticTokenModifiers].
 class SemanticTokenLegendLookup {
   /// An LSP [SemanticTokensLegend] describing all supported tokens and modifiers.
-  late SemanticTokensLegend lspLegend;
+  final SemanticTokensLegend lspLegend;
 
   /// All [SemanticTokenModifiers] the server may generate. The order of these
   /// items is important as the indexes will be used in communication between
   /// server and client.
-  late List<SemanticTokenModifiers> _usedTokenModifiers;
+  final List<SemanticTokenModifiers> _usedTokenModifiers;
 
   /// All [SemanticTokenTypes] the server may generate. The order of these
   /// items is important as the indexes will be used in communication between
   /// server and client.
-  late List<SemanticTokenTypes> _usedTokenTypes;
+  final List<SemanticTokenTypes> _usedTokenTypes;
 
-  new() {
-    // Build lists of all tokens and modifiers that exist in our mappings or that
-    // we have added as custom types. These will be used to determine the indexes used for communication.
-    _usedTokenTypes = Set.of(
-      highlightRegionTokenTypes.values.followedBy(
-        CustomSemanticTokenTypes.values,
-      ),
-    ).toList();
-    _usedTokenModifiers = Set.of(
-      highlightRegionTokenModifiers.values.flattenedToList.followedBy(
-        CustomSemanticTokenModifiers.values,
-      ),
-    ).toList();
+  /// Creates a new legend lookup using the supplied legend (for example a
+  /// legend provided by the server to a client).
+  new(this.lspLegend)
+    : _usedTokenTypes = lspLegend.tokenTypes
+          .map(SemanticTokenTypes.fromJson)
+          .toList(),
+      _usedTokenModifiers = lspLegend.tokenModifiers
+          .map(SemanticTokenModifiers.fromJson)
+          .toList();
 
+  /// Creates a new legend lookup by first building a legend from the token
+  /// types and modifiers used by the server.
+  factory fromServerValues() {
     // Build the LSP Legend which tells the client all of the tokens and modifiers
     // we will use in the order they should be accessed by index/bit.
-    lspLegend = SemanticTokensLegend(
-      tokenTypes: _usedTokenTypes
+    var legend = SemanticTokensLegend(
+      tokenTypes: highlightRegionTokenTypes.values
+          .followedBy(CustomSemanticTokenTypes.values)
           .map((tokenType) => tokenType.toString())
+          .toSet()
           .toList(),
-      tokenModifiers: _usedTokenModifiers
+      tokenModifiers: highlightRegionTokenModifiers.values.flattenedToList
+          .followedBy(CustomSemanticTokenModifiers.values)
           .map((tokenModifier) => tokenModifier.toString())
+          .toSet()
           .toList(),
     );
+
+    return SemanticTokenLegendLookup(legend);
   }
 
   int bitmaskForModifiers(Set<SemanticTokenModifiers>? modifiers) {
