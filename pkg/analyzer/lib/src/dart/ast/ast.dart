@@ -17692,6 +17692,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
   @override
   TypeImpl? get staticType => _staticType;
 
+  @ToBeDeprecated('Use unParenthesized2 instead.')
   @override
   ExpressionImpl get unParenthesized {
     _checkV1View();
@@ -26992,13 +26993,7 @@ final class IfElementImpl extends AstNodeImpl
   }
 
   @override
-  CollectionElementImpl? get ifFalse => elseElement;
-
-  @override
   CollectionElementImpl? get ifFalse2 => elseElement2;
-
-  @override
-  CollectionElementImpl get ifTrue => thenElement;
 
   @override
   CollectionElementImpl get ifTrue2 => thenElement2;
@@ -27214,13 +27209,8 @@ final class IfElementImpl extends AstNodeImpl
 
 sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
     implements AstNodeImpl {
-  /// The `case` clause used to match a pattern against the [expression].
+  /// The `case` clause used to match a pattern against the [expression2].
   CaseClauseImpl? get caseClause;
-
-  /// The expression used to either determine which of the statements is
-  /// executed next or to compute the value matched against the pattern in the
-  /// `case` clause.
-  ExpressionImpl get expression;
 
   /// The expression used to either determine which of the statements is
   /// executed next or to compute the value matched against the pattern in the
@@ -27228,13 +27218,7 @@ sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
   ExpressionImpl get expression2;
 
   /// The node that is executed if the condition evaluates to `false`.
-  E? get ifFalse;
-
-  /// The node that is executed if the condition evaluates to `false`.
   E? get ifFalse2;
-
-  /// The node that is executed if the condition evaluates to `true`.
-  E get ifTrue;
 
   /// The node that is executed if the condition evaluates to `true`.
   E get ifTrue2;
@@ -27786,13 +27770,7 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @override
-  StatementImpl? get ifFalse => elseStatement;
-
-  @override
   StatementImpl? get ifFalse2 => elseStatement;
-
-  @override
-  StatementImpl get ifTrue => thenStatement;
 
   @override
   StatementImpl get ifTrue2 => thenStatement;
@@ -40490,6 +40468,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   @override
   Precedence get precedence => Precedence.primary;
 
+  @ToBeDeprecated('Use unParenthesized2 instead.')
   @override
   ExpressionImpl get unParenthesized {
     _checkV1View();
@@ -44653,7 +44632,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
       if (body.initializers.isNotEmpty) return true;
     }
 
-    if (parent is ExtensionTypeDeclarationImpl) {
+    if (parent2 is ExtensionTypeDeclarationImpl) {
       return true;
     }
 
@@ -53421,22 +53400,6 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
   }
-}
-
-/// An identifier that can be used to look up names in the lexical scope when
-/// there's no identifier in the AST structure.
-///
-/// For example, there's no identifier in the AST when the parser can't
-/// distinguish between a method invocation and an invocation of a top-level
-/// function imported with a prefix.
-final class SyntheticIdentifier implements SimpleIdentifier {
-  @override
-  final String name;
-
-  SyntheticIdentifier(this.name);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /// A this expression.
