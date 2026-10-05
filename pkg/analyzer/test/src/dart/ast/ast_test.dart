@@ -597,6 +597,7 @@ const x = p.a;
     expect(result.value!.toIntValue(), 42);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_v1_extensionOverride() async {
     var unitResult = await resolveTestCode('''
 extension E on int {
@@ -609,6 +610,7 @@ var x = E(0).foo;
     expect(node.computeConstantValue(), isNull);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_v1_prefixedIdentifier_assignmentTarget() async {
     newFile('$testPackageLibPath/a.dart', r'''
 var a = 0;
@@ -624,6 +626,7 @@ void f() {
     expect(node.computeConstantValue(), isNull);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_v1_simpleIdentifier_propertyName() async {
     var unitResult = await resolveTestCode('''
 class A {
@@ -637,6 +640,7 @@ var x = A.foo;
     expect(node.identifier.computeConstantValue(), isNull);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_v1_superExpression() async {
     var unitResult = await resolveTestCode('''
 class A {
@@ -1264,6 +1268,16 @@ final x = (0, (1, 2));
 final x = const (0, (1, 2));
 ''');
     assertInContext('(1, 2)', true);
+  }
+
+  @ToBeDeprecated('Tests the V1 projection.')
+  test_inConstantContext_topLevelGetter_v1Projection() {
+    parse('''
+int get foo => 0;
+''');
+    var getter = testUnit.declarations2.single as TopLevelGetterDeclarationImpl;
+    var functionExpression = getter.v1Projection.functionExpression;
+    expect(functionExpression.inConstantContext, isFalse);
   }
 }
 

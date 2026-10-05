@@ -592,6 +592,7 @@ class C {}
 }
 
 @reflectiveTest
+@ToBeDeprecated('Tests V1 IndexExpression.')
 class IndexExpressionTest extends ParserDiagnosticsTest {
   void test_inGetterContext_assignment_compound_left() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
@@ -1304,6 +1305,7 @@ missing
 }
 
 @reflectiveTest
+@ToBeDeprecated('Tests V1 PropertyAccess.')
 class PropertyAccessTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
     var parseResult = parseTestCodeWithDiagnostics('''

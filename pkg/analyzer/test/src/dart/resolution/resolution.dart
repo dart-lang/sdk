@@ -400,6 +400,7 @@ final class TestResolvedUnitResult {
 
   late final FindNode2 findNode = FindNode2(content, unit);
 
+  @ToBeDeprecated('Use findNode instead.')
   late final FindNode findNodeV1 = FindNode(content, unit);
 
   TestResolvedUnitResult(this.analysisResult);
@@ -474,6 +475,7 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
     return FindNode2(content, unit);
   }
 
+  @ToBeDeprecated('Use findNode instead.')
   FindNode get findNodeV1 {
     return FindNode(content, unit);
   }
