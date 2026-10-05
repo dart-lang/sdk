@@ -111,44 +111,50 @@ class WorkspaceFlutterWidgetPreviewsHandler
     void _,
     MessageInfo message,
     CancellationToken token,
-  ) async {
-    var graph = <Uri, LibraryPreviewNode>{};
-    var processedLibraries = <Uri>{};
-    var flutterWidgetPreviewDetector = FlutterWidgetPreviewDetector();
+  ) {
+    return server.pauseSchedulerWhile(() async {
+      var graph = <Uri, LibraryPreviewNode>{};
+      var processedLibraries = <Uri>{};
+      var flutterWidgetPreviewDetector = FlutterWidgetPreviewDetector();
 
-    for (var driver in server.driverMap.values) {
-      for (var file in driver.addedFiles) {
-        var libraryResult = await server.getResolvedLibrary(file);
-        if (libraryResult != null) {
-          var uri = libraryResult.element.uri;
-          if (processedLibraries.contains(uri)) continue;
-          processedLibraries.add(uri);
+      for (var driver in server.driverMap.values.toList()) {
+        for (var file in driver.addedFiles.toList()) {
+          if (token.isCancellationRequested) {
+            return cancelled(token);
+          }
 
-          for (var unit in libraryResult.units) {
-            flutterWidgetPreviewDetector.findPreviews(unit, graph: graph);
+          var libraryResult = await server.getResolvedLibrary(file);
+          if (libraryResult != null) {
+            var uri = libraryResult.element.uri;
+            if (processedLibraries.contains(uri)) continue;
+            processedLibraries.add(uri);
+
+            for (var unit in libraryResult.units) {
+              flutterWidgetPreviewDetector.findPreviews(unit, graph: graph);
+            }
           }
         }
       }
-    }
 
-    flutterWidgetPreviewDetector.propagateErrors(graph);
+      flutterWidgetPreviewDetector.propagateErrors(graph);
 
-    var allPreviews = <FlutterWidgetPreviewDetails>[];
-    var allScriptUris = <Uri>{};
+      var allPreviews = <FlutterWidgetPreviewDetails>[];
+      var allScriptUris = <Uri>{};
 
-    for (var node in graph.values) {
-      allPreviews.addAll(node.previews);
-      for (var preview in node.previews) {
-        allScriptUris.add(preview.scriptUri);
+      for (var node in graph.values) {
+        allPreviews.addAll(node.previews);
+        for (var preview in node.previews) {
+          allScriptUris.add(preview.scriptUri);
+        }
       }
-    }
 
-    return success(
-      FlutterWidgetPreviews(
-        namespaces: flutterWidgetPreviewDetector.namespaces,
-        previews: allPreviews,
-        scriptUris: allScriptUris.toList(),
-      ),
-    );
+      return success(
+        FlutterWidgetPreviews(
+          namespaces: flutterWidgetPreviewDetector.namespaces,
+          previews: allPreviews,
+          scriptUris: allScriptUris.toList(),
+        ),
+      );
+    });
   }
 }
