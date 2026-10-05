@@ -309,6 +309,44 @@ export 'valid_sub.dart';
       expect(exposed, containsAll([libUri, subUri, unknownLibUri]));
       expect(exposed.any((u) => u.isScheme('dart')), isFalse);
     });
+
+    test(
+      'tolerates missing files in known packages and non-package URIs',
+      () async {
+        final (frontendFs, _) = fssForTests(root, {
+          'app/dynamic_interface.yaml': r'''
+callable:
+  - library: 'package:pkg_a/existing.dart'
+  - library: 'package:pkg_a/missing_from_yaml.dart'
+  - library: 'relative_missing.dart'
+''',
+          'pkg_a/lib/existing.dart': r'''
+export 'missing_from_export.dart';
+export 'valid_sub.dart';
+''',
+          'pkg_a/lib/valid_sub.dart': 'void sub() {}',
+        });
+
+        final packageConfig = createPackageConfig();
+        final exposed = await collectExposedLibraries(
+          dynamicInterfaceUri: dynamicInterfaceFileSystemUri,
+          frontendFs: frontendFs,
+          packageConfig: packageConfig,
+          enableRelativeDynamicInterfaceLibraries: true,
+        );
+
+        expect(
+          exposed,
+          containsAll([
+            Uri.parse('package:pkg_a/existing.dart'),
+            Uri.parse('package:pkg_a/missing_from_yaml.dart'),
+            Uri.parse('package:pkg_a/missing_from_export.dart'),
+            Uri.parse('package:pkg_a/valid_sub.dart'),
+            Uri.parse('google3:///app/relative_missing.dart'),
+          ]),
+        );
+      },
+    );
   });
 
   group('resolveLibraryUri and enableRelativeDynamicInterfaceLibraries flag', () {
