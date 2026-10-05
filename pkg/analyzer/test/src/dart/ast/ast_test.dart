@@ -287,6 +287,7 @@ class C {
     assertIsConst(result, "C()]", false);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_typeArgumentsAfterConstructorName_v1Projection() async {
     var result = await resolveTestCode('''
 void f() {
@@ -308,6 +309,7 @@ class C<E> {
     expect(node?.parent, isA<InstanceCreationExpressionImpl>());
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_v1Projection() async {
     var result = await resolveTestCode('''
 var x = C<int>.named(0);
@@ -442,16 +444,12 @@ import 'a.dart' as p;
 const x = p.a;
 ''');
     var declaration = unitResult.findNode.topVariableDeclarationByName('x');
-    for (var expression in [
-      declaration.initializer2!,
-      declaration.initializer!,
-    ]) {
-      expect(expression.inConstantContext, isTrue);
-      var result = expression.computeConstantValue();
-      expect(result, isNotNull);
-      expect(result!.diagnostics, isEmpty);
-      expect(result.value!.toIntValue(), 42);
-    }
+    var expression = declaration.initializer2!;
+    expect(expression.inConstantContext, isTrue);
+    var result = expression.computeConstantValue();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
   }
 
   test_hasValue_doubleLiteral() async {
@@ -583,6 +581,22 @@ var x = throw 42;
     expect(result, isNull);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
+  test_v1_constantReference_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', 'const a = 42;');
+    var unitResult = await resolveTestCode('''
+import 'a.dart' as p;
+const x = p.a;
+''');
+    var declaration = unitResult.findNode.topVariableDeclarationByName('x');
+    var expression = declaration.initializer!;
+    expect(expression.inConstantContext, isTrue);
+    var result = expression.computeConstantValue();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
   test_v1_extensionOverride() async {
     var unitResult = await resolveTestCode('''
 extension E on int {
@@ -681,6 +695,7 @@ var x = const C(0);
     expect(context?.$2?.lexeme, 'const');
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_constantContext_constructorInvocation_v1Projection() {
     parse('''
 class C {
@@ -1254,6 +1269,7 @@ final x = const (0, (1, 2));
 
 @reflectiveTest
 class ForEachPartsImplTest extends PubPackageResolutionTest {
+  @ToBeDeprecated('Tests the V1 projection.')
   test_iterable_constructorInvocation_astViews() async {
     var result = await resolveTestCode('''
 class C {}
@@ -1585,7 +1601,7 @@ class IntegerLiteralImplTest extends ParserDiagnosticsTest {
   IntegerLiteral _parseLiteral(String source) {
     var code = 'var x = $source;';
     var result = parseTestCodeWithDiagnostics(code);
-    return FindNode(code, result.unit).singleIntegerLiteral;
+    return FindNode2(code, result.unit).singleIntegerLiteral;
   }
 }
 
@@ -2016,6 +2032,7 @@ class C { void call() {} }  Function f = C^();
 
 @reflectiveTest
 class ReceiverPropertyExtractionImplTest extends PubPackageResolutionTest {
+  @ToBeDeprecated('Tests the V1 projection.')
   test_v1Projection_recordReceiver_parent() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int,) r) {
