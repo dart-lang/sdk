@@ -8712,6 +8712,27 @@ void Function::set_data(const Object& value) const {
   untag()->set_data<std::memory_order_release>(value.ptr());
 }
 
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+bool Function::IsReloadedImplicitClosure(FunctionPtr ptr) {
+  if (!IsImplicitClosureFunction(ptr)) {
+    return false;
+  }
+  return ClosureData::ReloadedImplicitClosure(
+      ClosureData::RawCast(ptr->untag()->data()));
+}
+
+void Function::SetIsReloadedImplicitClosure(bool value) const {
+  if (IsImplicitClosureFunction()) {
+    const Object& obj = Object::Handle(untag()->data());
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_reloaded_implicit_closure(value);
+    return;
+  }
+  UNREACHABLE();
+}
+#endif
+
 void Function::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   untag()->set_name(value.ptr());
@@ -11941,6 +11962,14 @@ void ClosureData::set_default_type_arguments_instantiation_mode(
     InstantiationMode value) const {
   untag()->packed_fields_.Update<PackedInstantiationMode>(value);
 }
+
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+void ClosureData::set_reloaded_implicit_closure(bool value) const {
+  untag()->packed_fields_.Update<UntaggedClosureData::ReloadedImplicitClosure>(
+      value);
+}
+#endif
 
 Function::AwaiterLink ClosureData::awaiter_link() const {
   const uint8_t depth =

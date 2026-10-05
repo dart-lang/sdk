@@ -1675,7 +1675,17 @@ class UntaggedClosureData : public UntaggedObject {
   using CapturesOnlySharedFields = BitField<decltype(packed_fields_),
                                             bool,
                                             PackedAwaiterLinkIndex::kNextBit>;
+  // Used by the interpreter to detect that a tearoff was affected by reload
+  // and so the tearoff function should be re-resolved.
+  //
+  // Unused in compiled code, since clearing the code of the tearoff forces
+  // re-resolution there.
+  using ReloadedImplicitClosure = BitField<decltype(packed_fields_),
+                                           bool,
+                                           CapturesOnlySharedFields::kNextBit>;
+
   friend class Function;
+  friend class Interpreter;
   friend class UnitDeserializationRoots;
   friend class module_snapshot::ClosureDataDeserializationCluster;
 };

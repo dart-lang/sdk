@@ -1973,6 +1973,9 @@ class Class : public Object {
   void PatchFieldsAndFunctions() const;
   void MigrateImplicitStaticClosures(ProgramReloadContext* context,
                                      const Class& new_cls) const;
+#if defined(DART_DYNAMIC_MODULES)
+  void MarkReloadedImplicitClosureFunctions() const;
+#endif
   void CopyCanonicalConstants(const Class& old_cls) const;
   void CopyDeclarationType(const Class& old_cls) const;
   void CheckReload(const Class& replacement,
@@ -4106,6 +4109,15 @@ class Function : public Object {
                                BitVector* is_generic_covariant_impl) const;
 #endif
 
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  static bool IsReloadedImplicitClosure(FunctionPtr ptr);
+  bool IsReloadedImplicitClosure() const {
+    return IsReloadedImplicitClosure(ptr());
+  }
+  void SetIsReloadedImplicitClosure(bool value) const;
+#endif
+
   // Slow function, use in asserts to track changes in important library
   // functions.
   int32_t SourceFingerprint() const;
@@ -4425,6 +4437,15 @@ class ClosureData : public Object {
   }
   void set_default_type_arguments_instantiation_mode(
       InstantiationMode value) const;
+
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  static bool ReloadedImplicitClosure(ClosureDataPtr ptr) {
+    return ptr->untag()
+        ->packed_fields_.Read<UntaggedClosureData::ReloadedImplicitClosure>();
+  }
+  void set_reloaded_implicit_closure(bool value) const;
+#endif
 
   static ClosureDataPtr New();
 
