@@ -15,12 +15,12 @@ group("dds_aot") {
 }
 
 aot_snapshot("dds_aot_snapshot") {
-  main_dart = "../../pkg/dart_runtime_service_dds/bin/dds_entrypoint.dart"
+  main_dart = "../../pkg/dds/bin/dds.dart"
   output = "$root_out_dir/dds_aot.dart.snapshot"
 }
 
 aot_snapshot("dds_aot_product_snapshot") {
-  main_dart = "../../pkg/dart_runtime_service_dds/bin/dds_entrypoint.dart"
+  main_dart = "../../pkg/dds/bin/dds.dart"
   output = "$root_out_dir/dds_aot_product.dart.snapshot"
 
   # dartaotruntime has dart_product_config applied to it,
@@ -47,7 +47,7 @@ copy("copy_dds_snapshot") {
 }
 
 application_snapshot("generate_dds_snapshot") {
-  main_dart = "../../pkg/dart_runtime_service_dds/bin/dds_entrypoint.dart"
+  main_dart = "../../pkg/dds/bin/dds.dart"
   training_args = [ "--help" ]
   output = "$root_gen_dir/dds.dart.snapshot"
 }

@@ -127,39 +127,31 @@ Future<void> main([List<String> args = const []]) async {
   if (args case ['--help']) {
     return;
   }
-  try {
-    await DartRuntimeService.initialize(
-      config: DartRuntimeServiceOptions(
-        enableLogging: Platform.environment.containsKey('VM_SERVICE_LOGGING'),
-        port: _port,
-        disableAuthCodes: _authCodesDisabled,
-        disableOriginCheck: _originCheckDisabled,
-        autoStart: _autoStart,
-        serveDevTools: _serveDevtools,
-        enableServicePortFallback: _enableServicePortFallback,
-        host: _ip,
-      ),
-      backendBuilder: (frontend) => DartRuntimeServiceVMBackend(
+  await DartRuntimeService.initialize(
+    config: DartRuntimeServiceOptions(
+      enableLogging: Platform.environment.containsKey('VM_SERVICE_LOGGING'),
+      port: _port,
+      disableAuthCodes: _authCodesDisabled,
+      disableOriginCheck: _originCheckDisabled,
+      autoStart: _autoStart,
+      serveDevTools: _serveDevtools,
+      enableServicePortFallback: _enableServicePortFallback,
+      host: _ip,
+    ),
+    backendBuilder: (frontend) => DartRuntimeServiceVMBackend(
+      frontend: frontend,
+      signalWatch: _signalWatch!,
+      runningIsolatesStream: _isolateRegistrationStreamController.stream,
+      ddsManager: DartDevelopmentServiceManager(
         frontend: frontend,
-        signalWatch: _signalWatch!,
-        runningIsolatesStream: _isolateRegistrationStreamController.stream,
-        ddsManager: DartDevelopmentServiceManager(
-          frontend: frontend,
-          launchOnStart: _waitForDdsToAdvertiseService,
-          printDtd: _printDtd,
-          host: _ddsIP,
-          port: _ddsPort,
-        ),
-        residentCompilerInfoFile: _residentCompilerInfoFile,
-        serviceInfoFilename: _serviceInfoFilename,
+        launchOnStart: _waitForDdsToAdvertiseService,
+        printDtd: _printDtd,
+        host: _ddsIP,
+        port: _ddsPort,
       ),
-    );
-  } on DartRuntimeServiceFailedToStartException catch (e) {
-    stderr.writeln('Could not start the VM service: ${e.message}');
-    NativeBindings().onServerAddressChange(null);
-  } catch (e, st) {
-    stderr.writeln('Could not start the VM service: $e\n$st');
-    NativeBindings().onServerAddressChange(null);
-  }
+      residentCompilerInfoFile: _residentCompilerInfoFile,
+      serviceInfoFilename: _serviceInfoFilename,
+    ),
+  );
   NativeBindings().notifyFinishedInitializing();
 }

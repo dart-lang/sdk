@@ -386,7 +386,10 @@ class DartRuntimeServiceVMBackend
           streamId: streamId,
           event: json.decode(utf8.decode(utf8String)) as Map<String, Object?>,
         ),
-        final Uint8List binaryData => BinaryStreamEvent.fromData(binaryData),
+        final Uint8List binaryData => BinaryStreamEvent(
+          streamId: streamId,
+          data: binaryData,
+        ),
         _ => throw UnimplementedError(
           'Unexpected event type: ${event.runtimeType}.',
         ),
