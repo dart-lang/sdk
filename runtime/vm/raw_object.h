@@ -2675,6 +2675,7 @@ class UntaggedContext : public UntaggedObject {
   V(EffectivelyFinal)                                                          \
   V(Late)                                                                      \
   V(Nullable)                                                                  \
+  V(ExactType)                                                                 \
   V(Invisible)                                                                 \
   V(AwaiterLink)                                                               \
   V(Shared)

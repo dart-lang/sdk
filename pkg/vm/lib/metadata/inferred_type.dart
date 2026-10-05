@@ -9,8 +9,7 @@ import 'package:kernel/src/printer.dart';
 
 /// Metadata for annotating nodes with an inferred type information.
 class InferredType {
-  final InterfaceType? exactType;
-  final Reference? _concreteClassReference;
+  final InterfaceType? dartType;
   final Constant? _constantValue;
   final Reference? _closureMemberReference;
   final int _closureId;
@@ -30,22 +29,28 @@ class InferredType {
   // Contains inferred closure value.
   static const int flagClosure = 1 << 5;
 
-  // Contains exact type.
-  static const int flagExactType = 1 << 6;
+  // Contains DartType.
+  static const int flagHasType = 1 << 6;
+
+  // Whether the inferred type's class is the exact concrete class.
+  static const int flagExactClass = 1 << 7;
+
+  // Whether the inferred type (class + type arguments) is exact.
+  static const int flagExactType = 1 << 8;
 
   InferredType(
-    InterfaceType? exactType,
-    Class? concreteClass,
+    InterfaceType? dartType,
     bool nullable,
     bool isInt,
     Constant? constantValue,
     Member? closureMember,
     int closureId, {
+    bool isExactClass = false,
+    bool isExactType = false,
     bool skipCheck = false,
     bool receiverNotInt = false,
   }) : this._byReference(
-         exactType,
-         concreteClass?.reference,
+         dartType,
          constantValue,
          closureMember?.reference,
          closureId,
@@ -55,36 +60,38 @@ class InferredType {
              (constantValue != null ? flagConstant : 0) |
              (receiverNotInt ? flagReceiverNotInt : 0) |
              (closureMember != null ? flagClosure : 0) |
-             (exactType != null ? flagExactType : 0),
+             (dartType != null ? flagHasType : 0) |
+             (isExactClass ? flagExactClass : 0) |
+             (isExactType ? flagExactType : 0),
        );
 
   InferredType._byReference(
-    this.exactType,
-    this._concreteClassReference,
+    this.dartType,
     this._constantValue,
     this._closureMemberReference,
     this._closureId,
     this._flags,
   ) {
     assert(
-      exactType == null || _concreteClassReference == exactType!.classReference,
+      dartType == null ||
+          (nullable == (dartType!.nullability == Nullability.nullable)),
     );
-    assert(
-      exactType == null ||
-          (nullable == (exactType!.nullability == Nullability.nullable)),
-    );
-    assert(_constantValue == null || _concreteClassReference != null);
-    assert(_closureMemberReference == null || _concreteClassReference != null);
+    assert(!isExactClass || dartType != null);
+    assert(!isExactType || isExactClass);
+    assert(_constantValue == null || isExactClass);
+    assert(_closureMemberReference == null || isExactClass);
     assert(_closureId >= 0);
   }
 
-  Class? get concreteClass => _concreteClassReference?.asClass;
+  Class? get concreteClass => isExactClass ? dartType?.classNode : null;
 
   Constant? get constantValue => _constantValue;
 
   Member? get closureMember => _closureMemberReference?.asMember;
   int get closureId => _closureId;
 
+  bool get isExactClass => (_flags & flagExactClass) != 0;
+  bool get isExactType => (_flags & flagExactType) != 0;
   bool get nullable => (_flags & flagNullable) != 0;
   bool get isInt => (_flags & flagInt) != 0;
   bool get skipCheck => (_flags & flagSkipCheck) != 0;
@@ -98,33 +105,30 @@ class InferredType {
     return other is InferredType &&
         _flags == other._flags &&
         _closureId == other._closureId &&
-        _concreteClassReference == other._concreteClassReference &&
         _closureMemberReference == other._closureMemberReference &&
         _constantValue == other._constantValue &&
-        exactType == other.exactType;
+        dartType == other.dartType;
   }
 
   @override
   int get hashCode => Object.hash(
     _flags,
     _closureId,
-    _concreteClassReference,
     _closureMemberReference,
     _constantValue,
-    exactType,
+    dartType,
   );
 
   @override
   String toString() {
     final StringBuffer buf = new StringBuffer();
-    final exactType = this.exactType;
-    final concreteClass = this.concreteClass;
-    if (exactType != null) {
-      buf.write(exactType.toText(astTextStrategyForTesting));
-    } else if (concreteClass != null) {
-      buf.write(concreteClass.toText(astTextStrategyForTesting));
-      if (nullable) {
-        buf.write('?');
+    final dartType = this.dartType;
+    if (dartType != null) {
+      buf.write(dartType.toText(astTextStrategyForTesting));
+      if (!isExactClass) {
+        buf.write(' (inexact)');
+      } else if (!isExactType) {
+        buf.write(' (inexact type args)');
       }
     } else if (isInt) {
       buf.write('int');
@@ -177,13 +181,9 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
   @override
   void writeToBinary(InferredType metadata, Node node, BinarySink sink) {
     final flags = metadata._flags;
-    sink.writeUInt30(metadata._flags);
-    if ((flags & InferredType.flagExactType) != 0) {
-      sink.writeDartType(metadata.exactType!);
-    } else {
-      sink.writeNullAllowedCanonicalNameReference(
-        metadata.concreteClass?.reference,
-      );
+    sink.writeUInt30(flags);
+    if ((flags & InferredType.flagHasType) != 0) {
+      sink.writeDartType(metadata.dartType!);
     }
     if ((flags & InferredType.flagConstant) != 0) {
       sink.writeConstantReference(metadata.constantValue!);
@@ -199,16 +199,9 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
   @override
   InferredType readFromBinary(Node node, BinarySource source) {
     final flags = source.readUInt30();
-    InterfaceType? exactType;
-    Reference? concreteClassReference;
-    if ((flags & InferredType.flagExactType) != 0) {
-      exactType = source.readDartType() as InterfaceType;
-      concreteClassReference = exactType.classReference;
-    } else {
-      concreteClassReference = source
-          .readNullableCanonicalNameReference()
-          ?.reference;
-    }
+    final dartType = (flags & InferredType.flagHasType) != 0
+        ? source.readDartType() as InterfaceType
+        : null;
     final constantValue = (flags & InferredType.flagConstant) != 0
         ? source.readConstantReference()
         : null;
@@ -220,8 +213,7 @@ class InferredTypeMetadataRepository extends MetadataRepository<InferredType> {
         : 0;
 
     final candidate = InferredType._byReference(
-      exactType,
-      concreteClassReference,
+      dartType,
       constantValue,
       closureMemberReference,
       closureId,

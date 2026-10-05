@@ -2174,41 +2174,40 @@ class Translator with KernelNodes {
     // require it (for now) to be an interface type.
     if (defaultType is! InterfaceType) return null;
 
-    final concreteClass = inferredType.concreteClass;
-    if (concreteClass == null) return null;
+    final dartType = inferredType.dartType;
+    if (dartType == null) return null;
+    final targetClass = dartType.classNode;
     // TFA doesn't know how dart2wasm represents closures
-    if (concreteClass == closureClass) return null;
+    if (targetClass == closureClass) return null;
     // The WasmFunction<>/WasmArray<>/WasmTable<> types need concrete type
     // arguments.
-    if (concreteClass == wasmFunctionClass) return null;
-    if (concreteClass == wasmArrayClass) return null;
-    if (concreteClass == wasmTableClass) return null;
+    if (targetClass == wasmFunctionClass) return null;
+    if (targetClass == wasmArrayClass) return null;
+    if (targetClass == immutableWasmArrayClass) return null;
+    if (targetClass == wasmTableClass) return null;
 
     // If the TFA inferred class is the same as the [defaultType] we prefer the
     // latter as it has the correct type arguments.
-    if (concreteClass == defaultType.classNode) {
+    if (targetClass == defaultType.classNode) {
       if (defaultType.nullability == Nullability.nullable &&
           !inferredType.nullable) {
         return defaultType.withDeclaredNullability(Nullability.nonNullable);
       }
-      return null;
+      if (!inferredType.isExactType) {
+        return null;
+      }
     }
 
     // Sometimes we get inferred types that violate soundness (and would result
     // in a runtime error, e.g. in a dynamic invocation forwarder passing an
     // object of incorrect type to a target).
-    if (!hierarchy.isSubInterfaceOf(concreteClass, defaultType.classNode)) {
+    if (!hierarchy.isSubInterfaceOf(targetClass, defaultType.classNode)) {
       return null;
     }
 
-    if (concreteClass == coreTypes.deprecatedNullClass) return const NullType();
+    if (targetClass == coreTypes.deprecatedNullClass) return const NullType();
 
-    final typeParameters = concreteClass.typeParameters;
-    final typeArguments = DartTypeList.filledWithDynamic(typeParameters.length);
-    final nullability = inferredType.nullable
-        ? Nullability.nullable
-        : Nullability.nonNullable;
-    return InterfaceType(concreteClass, nullability, typeArguments);
+    return dartType;
   }
 
   InliningDecision shouldInline(Reference target, w.FunctionType signature) {

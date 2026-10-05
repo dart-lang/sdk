@@ -1024,30 +1024,34 @@ struct InferredTypeMetadata {
     kFlagConstant = 1 << 3,
     kFlagReceiverNotInt = 1 << 4,
     kFlagClosure = 1 << 5,
-    kFlagExactType = 1 << 6,
+    kFlagHasType = 1 << 6,
+    kFlagExactClass = 1 << 7,
+    kFlagExactType = 1 << 8,
   };
 
   // Mask of flags which participate in CompileType computation.
-  static constexpr intptr_t kCompileTypeFlagsMask = kFlagNullable | kFlagInt;
+  static constexpr intptr_t kCompileTypeFlagsMask =
+      kFlagNullable | kFlagInt | kFlagExactType;
 
   InferredTypeMetadata(
       intptr_t cid_,
-      uint8_t flags_,
+      uint16_t flags_,
       const Object& constant_value_ = Object::null_object(),
-      const AbstractType& exact_type_ = Object::null_abstract_type())
+      const AbstractType& dart_type_ = Object::null_abstract_type())
       : cid(cid_),
         flags(flags_),
         constant_value(constant_value_),
-        exact_type(exact_type_) {}
+        dart_type(dart_type_) {}
 
   const intptr_t cid;
-  const uint8_t flags;
+  const uint16_t flags;
   const Object& constant_value;
-  const AbstractType& exact_type;
+  const AbstractType& dart_type;
 
   bool IsTrivial() const {
     return (cid == kDynamicCid) &&
-           ((flags & kCompileTypeFlagsMask) == kFlagNullable);
+           ((flags & kCompileTypeFlagsMask) == kFlagNullable) &&
+           dart_type.IsNull();
   }
   bool IsNullable() const { return (flags & kFlagNullable) != 0; }
   bool IsInt() const {
@@ -1056,6 +1060,7 @@ struct InferredTypeMetadata {
   bool IsSkipCheck() const { return (flags & kFlagSkipCheck) != 0; }
   bool IsConstant() const { return (flags & kFlagConstant) != 0; }
   bool ReceiverNotInt() const { return (flags & kFlagReceiverNotInt) != 0; }
+  bool IsExactType() const { return (flags & kFlagExactType) != 0; }
 
   // Note: when updating this function to use some previously unused flags
   // make sure to update |kCompileTypeFlagsMask| above.
@@ -1069,7 +1074,8 @@ struct InferredTypeMetadata {
           IsNullable(), can_be_sentinel);
     } else {
       return CompileType(IsNullable(), can_be_sentinel, cid,
-                         exact_type.IsNull() ? static_type : &exact_type);
+                         dart_type.IsNull() ? static_type : &dart_type,
+                         /*exact_type=*/IsExactType());
     }
   }
 };

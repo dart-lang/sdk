@@ -7,7 +7,7 @@ class C<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 
-  [@vm.inferred-return-type.metadata=#lib::D]
+  [@vm.inferred-return-type.metadata=#lib::D<dynamic> (inexact type args)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasTearOffUses:false,methodOrSetterSelectorId:1,getterSelectorId:2]
   method foo() → dynamic
     return new self::D::•<self::C::T%>();

@@ -19,7 +19,7 @@ final class NonConstA extends core::Object {
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
-  final (core::int) → self::NonConstA f = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=dart.core::_Closure (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList] core::_GrowableList::_literal1<(core::int) → self::NonConstA>(#C9).{core::List::[]}(0){(core::int) → (core::int) → self::NonConstA};
+  final (core::int) → self::NonConstA f = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=dart.core::_Closure (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList<dynamic> (inexact type args)] core::_GrowableList::_literal1<(core::int) → self::NonConstA>(#C9).{core::List::[]}(0){(core::int) → (core::int) → self::NonConstA};
   core::print(f);
 }
 constants  {
