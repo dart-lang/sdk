@@ -5474,7 +5474,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           );
         case ExtensionOverride2(
           argumentList: ArgumentListImpl(
-            arguments2: [ArgumentImpl(argumentExpression: var expression)],
+            arguments2: [ArgumentImpl(argumentExpression2: var expression)],
           ),
         ):
         case ExpressionImpl expression:
