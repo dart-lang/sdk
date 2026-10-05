@@ -373,7 +373,11 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   @override
   Element? visitConstructorSelector(ConstructorSelector node) {
     var parent = node.parent2;
-    if (parent is EnumConstantArguments) {
+    if (parent is ConstructorReference2) {
+      return parent.element;
+    } else if (parent is ConstructorTearOff) {
+      return parent.element;
+    } else if (parent is EnumConstantArguments) {
       var parent2 = parent.parent2;
       if (parent2 is EnumConstantDeclaration) {
         return parent2.constructorElement;

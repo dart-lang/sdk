@@ -2790,8 +2790,8 @@ import 'b.dart';
 @B.named8()
 main() {}
 ''');
-    expect(result.unit.declarations, hasLength(1));
-    var mainDecl = result.unit.declarations[0];
+    expect(result.unit.declarations2, hasLength(1));
+    var mainDecl = result.unit.declarations2[0];
     expect(mainDecl.metadata, hasLength(8));
     for (var metadata in mainDecl.metadata) {
       var value = metadata.elementAnnotation!.computeConstantValue()!;

@@ -61,63 +61,37 @@ class DevToolsClientManager {
     connection.sink.done.then((_) => _clients.remove(client));
   }
 
-  /// Finds an active DevTools instance that is not already connecting to
-  /// a VM service that we can reuse (for example if a user stopped debugging
-  /// and it disconnected, then started debugging again, we want to reuse
-  /// the open DevTools window).
-  ///
-  /// Candidate clients will be pinged first to ensure they are responsive, to
-  /// avoid trying to reuse a client that is in an SSE timeout where we don't
-  /// know if it is refreshing or gone.
+  /// Finds a DevTools client that is connected to the given VM service URI, or
+  /// returns a reusable client if no client is currently connected.
   Future<DevToolsClient?> findReusableClient() {
-    final availableClients = _clients
-        .where((c) => !c.hasConnection && c.reusable)
-        .toList();
+    final availableClients = _clients.where((c) => c.reusable).toList();
     return _firstResponsiveClient(availableClients);
   }
 
-  /// Finds a client that may already be connected to this VM Service.
-  ///
-  /// Candidate clients will be pinged first to ensure they are responsive, to
-  /// avoid trying to reuse a client that is in an SSE timeout where we don't
-  /// know if it is refreshing or gone.
+  /// Finds an existing DevTools client connected to the given VM service.
   Future<DevToolsClient?> findExistingConnectedReusableClient(
     Uri vmServiceUri,
   ) {
     final matchingClients = _clients
         .where(
-          (c) =>
-              c.hasConnection &&
-              c.reusable &&
-              _areSameVmServices(c.vmServiceUri, vmServiceUri),
+          (c) => c.reusable && _areSameVmServices(c.vmServiceUri, vmServiceUri),
         )
         .toList();
     return _firstResponsiveClient(matchingClients);
   }
 
-  /// Pings [candidateClients] and returns the first one that responds.
-  ///
-  /// If no clients respond within a short period, returns `null` because all
-  /// clients have likely been closed (but are in an SSE timeout period).
   Future<DevToolsClient?> _firstResponsiveClient(
     List<DevToolsClient> candidateClients,
   ) async {
-    if (candidateClients.isEmpty) {
-      return null;
-    }
-    // Use `Future.any` to get the first client that responds to its
-    // ping.
-    final firstRespondingClient = Future.any<DevToolsClient?>(
-      candidateClients.map((client) async {
-        await client.ping();
+    for (final client in candidateClients) {
+      try {
+        await client.ping().timeout(_clientResponsivenessTimeout);
         return client;
-      }),
-    );
-
-    return firstRespondingClient.timeout(
-      _clientResponsivenessTimeout,
-      onTimeout: () => null,
-    );
+      } on TimeoutException {
+        _clients.remove(client);
+      }
+    }
+    return null;
   }
 
   /// Returns whether [uri1] and [uri2] point to the same VM service instance.

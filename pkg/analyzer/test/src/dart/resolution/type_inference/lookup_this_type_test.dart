@@ -46,7 +46,7 @@ class FlowAnalysisRootTest extends PubPackageResolutionTest {
       if (node is FlowAnalysisRootImpl && node.flowAnalysisLog != null) {
         actual.add(node.runtimeType.toString());
       }
-      for (var child in node.childEntities) {
+      for (var child in node.childEntities2) {
         if (child is AstNode) collect(child);
       }
     }

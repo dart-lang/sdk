@@ -414,12 +414,6 @@ class LibraryAnalyzer {
     var allUnits = analysesToContextUnits.values.toList();
     definingContextUnit ??= allUnits.first;
 
-    var nodeRegistry = RuleVisitorRegistryImpl(
-      enableTiming: _enableLintRuleTiming,
-    );
-    var nodeRegistry2 = RuleVisitorRegistryImpl2(
-      enableTiming: _enableLintRuleTiming,
-    );
     var context = RuleContextWithResolvedResults(
       allUnits,
       definingContextUnit,
@@ -428,31 +422,48 @@ class LibraryAnalyzer {
       workspacePackage,
     );
 
-    for (var linter in _analysisOptions.lintRules) {
-      var timer = _enableLintRuleTiming
-          ? analysisRuleTimers.getTimer(linter)
-          : null;
-      timer?.start();
-      linter.registerNodeProcessors(nodeRegistry, context);
-      linter.registerNodeProcessors2(nodeRegistry2, context);
-      timer?.stop();
-    }
+    _computeLintsV1(context, analysesToContextUnits);
 
-    for (var MapEntry(key: fileAnalysis, value: currentUnit)
-        in analysesToContextUnits.entries) {
-      // Skip computing lints on files that don't exist.
-      // See: https://github.com/Dart-Code/Dart-Code/issues/5343
-      if (!fileAnalysis.file.exists) continue;
+    var nodeRegistry = RuleVisitorRegistryImpl2(
+      enableTiming: _enableLintRuleTiming,
+    );
+    _registerLintRules((rule) {
+      rule.registerNodeProcessors2(nodeRegistry, context);
+    });
 
-      var unit = currentUnit.unit;
-      var diagnosticReporter = currentUnit.diagnosticReporter;
-
-      for (var rule in _analysisOptions.lintRules) {
-        rule.reporter = diagnosticReporter;
+    _forEachLintedUnit(context, analysesToContextUnits, (unit) {
+      if (nodeRegistry.hasNodeProcessors) {
+        unit.accept2(
+          AnalysisRuleVisitor2(
+            nodeRegistry,
+            shouldPropagateExceptions:
+                _analysisOptions.propagateLinterExceptions,
+          ),
+        );
       }
+    });
 
-      // Run lint rules that handle specific node types.
-      context.currentUnit = currentUnit;
+    // Now that all lint rules have visited the code in each of the compilation
+    // units, we can accept each lint rule's `afterLibrary` hook.
+    AnalysisRuleVisitor2(
+      nodeRegistry,
+      shouldPropagateExceptions: _analysisOptions.propagateLinterExceptions,
+    ).afterLibrary();
+  }
+
+  @ToBeDeprecated('Use V2 node processors in _computeLints() instead.')
+  void _computeLintsV1(
+    RuleContextWithResolvedResults context,
+    Map<FileAnalysis, RuleContextUnit> analysesToContextUnits,
+  ) {
+    var nodeRegistry = RuleVisitorRegistryImpl(
+      enableTiming: _enableLintRuleTiming,
+    );
+    _registerLintRules((rule) {
+      rule.registerNodeProcessors(nodeRegistry, context);
+    });
+
+    _forEachLintedUnit(context, analysesToContextUnits, (unit) {
       if (nodeRegistry.hasNodeProcessors) {
         unit.accept(
           AnalysisRuleVisitor(
@@ -462,25 +473,10 @@ class LibraryAnalyzer {
           ),
         );
       }
-      if (nodeRegistry2.hasNodeProcessors) {
-        unit.accept2(
-          AnalysisRuleVisitor2(
-            nodeRegistry2,
-            shouldPropagateExceptions:
-                _analysisOptions.propagateLinterExceptions,
-          ),
-        );
-      }
-    }
+    });
 
-    // Now that all lint rules have visited the code in each of the compilation
-    // units, we can accept each lint rule's `afterLibrary` hook.
     AnalysisRuleVisitor(
       nodeRegistry,
-      shouldPropagateExceptions: _analysisOptions.propagateLinterExceptions,
-    ).afterLibrary();
-    AnalysisRuleVisitor2(
-      nodeRegistry2,
       shouldPropagateExceptions: _analysisOptions.propagateLinterExceptions,
     ).afterLibrary();
   }
@@ -642,6 +638,27 @@ class LibraryAnalyzer {
     ];
   }
 
+  /// Invokes [visit] for each existing unit, after making it the current unit
+  /// of the [context], and the unit to which lint rules report.
+  void _forEachLintedUnit(
+    RuleContextWithResolvedResults context,
+    Map<FileAnalysis, RuleContextUnit> analysesToContextUnits,
+    void Function(CompilationUnitImpl unit) visit,
+  ) {
+    for (var MapEntry(key: fileAnalysis, value: currentUnit)
+        in analysesToContextUnits.entries) {
+      // Skip computing lints on files that don't exist.
+      // See: https://github.com/Dart-Code/Dart-Code/issues/5343
+      if (!fileAnalysis.file.exists) continue;
+
+      for (var rule in _analysisOptions.lintRules) {
+        rule.reporter = currentUnit.diagnosticReporter;
+      }
+      context.currentUnit = currentUnit;
+      visit(fileAnalysis.unit);
+    }
+  }
+
   bool _hasDiagnosticReportedThatPreventsImportWarnings() {
     var errorCodes = _libraryFiles.values.map((analysis) {
       return analysis.diagnosticListener.diagnostics.map(
@@ -715,6 +732,18 @@ class LibraryAnalyzer {
     }
 
     _computeConstants();
+  }
+
+  /// Invokes [register] for each enabled lint rule, timing it if enabled.
+  void _registerLintRules(void Function(AbstractAnalysisRule rule) register) {
+    for (var rule in _analysisOptions.lintRules) {
+      var timer = _enableLintRuleTiming
+          ? analysisRuleTimers.getTimer(rule)
+          : null;
+      timer?.start();
+      register(rule);
+      timer?.stop();
+    }
   }
 
   /// Reports URI-related import directive errors to the [diagnosticReporter].

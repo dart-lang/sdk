@@ -1601,7 +1601,6 @@ void f(N x) {
 ''');
     var node = result.findNode.singleReceiverPropertyExtraction;
     assertType(node, 'Never');
-    assertType(result.findNodeV1.prefixed('x.hashCode').identifier, 'Never');
   }
 
   test_propertyAccess_never_read_unknown_typeAlias() async {

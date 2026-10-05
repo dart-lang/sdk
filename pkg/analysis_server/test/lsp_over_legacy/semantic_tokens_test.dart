@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -22,6 +23,15 @@ void main() {
 @reflectiveTest
 class SemanticTokensTest extends LspOverLegacyTest
     with SemanticTokensTestMixin {
+  @override
+  late SemanticTokenLegendLookup serverProvidedSemanticTokenLegend =
+      SemanticTokenLegendLookup(
+        serverCapabilities!.semanticTokensProvider!.map(
+          (options) => options.legend,
+          (registrationOptions) => registrationOptions.legend,
+        ),
+      );
+
   Future<void> test_full() async {
     var code = TestCode.parseNormalized('''
 class A(final String x);
@@ -61,6 +71,11 @@ class [!A!](final String x);
     Range? range,
   }) async {
     newFile(testFilePath, code.code);
+
+    // We need to get server capabilities to get the Semantic Tokens legend
+    // to ensure we decode tokens using what the server provided for the client
+    // and not reach into what we know is on the server.
+    await sendClientCapabilities();
     await initializeServer();
 
     var tokens = range != null

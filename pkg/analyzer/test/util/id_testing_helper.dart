@@ -257,7 +257,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         throwIfDiagnostics: false,
       ).unit;
       if (className != null) {
-        for (var declaration in unit.declarations) {
+        for (var declaration in unit.declarations2) {
           if (declaration is ClassDeclaration &&
               declaration.namePart.typeName.lexeme == className) {
             if (declaration.body case BlockClassBody body) {
@@ -285,8 +285,12 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         }
         return 0;
       }
-      for (var declaration in unit.declarations) {
+      for (var declaration in unit.declarations2) {
         if (declaration is FunctionDeclaration) {
+          if (declaration.name.lexeme == name) {
+            return declaration.offset;
+          }
+        } else if (declaration is TopLevelGetterDeclaration) {
           if (declaration.name.lexeme == name) {
             return declaration.offset;
           }
@@ -305,7 +309,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         content: code[uri]!.sourceCode,
         throwIfDiagnostics: false,
       ).unit;
-      for (var declaration in unit.declarations) {
+      for (var declaration in unit.declarations2) {
         if (declaration is ClassDeclaration &&
             declaration.namePart.typeName.lexeme == className) {
           return declaration.offset;

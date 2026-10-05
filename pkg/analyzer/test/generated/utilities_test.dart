@@ -430,8 +430,8 @@ class B {}
     );
     _assertReplaceInList(
       destination: unit,
-      child: unit.declarations[0],
-      replacement: unit.declarations[1],
+      child: unit.declarations2[0],
+      replacement: unit.declarations2[1],
     );
   }
 

@@ -20,10 +20,10 @@ dependencies:
   dap_adapters: any
   dart2native: any
   dart_data_home: any
-  dart_runtime_service_dds: any
   dart_style: any
   dartdoc: any
   data_assets: any
+  dds: any
   dds_service_extensions: any
   dtd_impl: any
   file: any

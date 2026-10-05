@@ -168,68 +168,70 @@ Future<DtdInfo?> _startDtdProcess({
     return null;
   }
 
+  StreamSubscription<String>? stdoutSub;
+  StreamSubscription<String>? stderrSub;
   try {
-    final process = await Process.start(dartAotRuntime, [
-      snapshotPath,
-      _kMachineFlag,
-    ], mode: ProcessStartMode.detachedWithStdio);
+    // Run in the system temp directory so a detached child process does not
+    // hold a Windows directory handle on the caller's working directory.
+    final process = await Process.start(
+      dartAotRuntime,
+      [snapshotPath, _kMachineFlag],
+      mode: ProcessStartMode.detachedWithStdio,
+      workingDirectory: Directory.systemTemp.path,
+    );
 
     final completer = Completer<DtdInfo?>();
-    StreamSubscription<String>? stdoutSub;
-    StreamSubscription<String>? stderrSub;
 
-    try {
-      stdoutSub = process.stdout
-          .transform(utf8.decoder)
-          .transform(const LineSplitter())
-          .listen(
-            (line) {
-              final dtdInfo = _parseDtdDetails(
-                line,
-                machineMode: machineMode,
-                printDtdUri: printDtdUri,
-              );
-              if (dtdInfo != null && !completer.isCompleted) {
-                completer.complete(dtdInfo);
-              }
-            },
-            onDone: () {
-              if (!completer.isCompleted) {
-                completer.complete();
-              }
-            },
-            onError: (_) {
-              if (!completer.isCompleted) {
-                completer.complete();
-              }
-            },
-          );
+    stdoutSub = process.stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen(
+          (line) {
+            final dtdInfo = _parseDtdDetails(
+              line,
+              machineMode: machineMode,
+              printDtdUri: printDtdUri,
+            );
+            if (dtdInfo != null && !completer.isCompleted) {
+              completer.complete(dtdInfo);
+            }
+          },
+          onDone: () {
+            if (!completer.isCompleted) {
+              completer.complete();
+            }
+          },
+          onError: (_) {
+            if (!completer.isCompleted) {
+              completer.complete();
+            }
+          },
+        );
 
-      stderrSub = process.stderr.transform(utf8.decoder).listen((data) {
-        if (data.isNotEmpty) {
-          _logger.warning('DTD process stderr: $data');
-        }
-      });
-
-      final result = await completer.future.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          process.kill();
-          return null;
-        },
-      );
-
-      if (result == null) {
-        process.kill();
+    stderrSub = process.stderr.transform(utf8.decoder).listen((data) {
+      if (data.isNotEmpty) {
+        _logger.warning('DTD process stderr: $data');
       }
-      return result;
-    } finally {
-      await stdoutSub?.cancel();
-      await stderrSub?.cancel();
+    });
+
+    final result = await completer.future.timeout(
+      const Duration(seconds: 5),
+      onTimeout: () {
+        process.kill();
+        return null;
+      },
+    );
+
+    if (result == null) {
+      process.kill();
     }
+    return result;
   } catch (e, st) {
     _logger.warning('Failed to start DTD process from $snapshotPath', e, st);
     return null;
+  } finally {
+    await stdoutSub?.cancel();
+    await stderrSub?.cancel();
   }
 }
 
@@ -244,25 +246,7 @@ Future<DtdInfo?> startDtd({
     runFromBuildRoot: runFromBuildRoot,
   );
 
-  final isAotVm = const bool.fromEnvironment('dart.vm.aot');
-
   for (final snapshotPath in snapshotPaths) {
-    final isAotSnapshot =
-        snapshotPath.endsWith(_kDtdAotSnapshotName) ||
-        snapshotPath.endsWith(_kDtdAotProductSnapshotName);
-
-    if (isAotSnapshot && !isAotVm) {
-      final dtdInfo = await _startDtdProcess(
-        snapshotPath: snapshotPath,
-        machineMode: machineMode,
-        printDtdUri: printDtdUri,
-      );
-      if (dtdInfo != null) {
-        return dtdInfo;
-      }
-      continue;
-    }
-
     final completer = Completer<DtdInfo?>();
 
     final exitPort = ReceivePort()
@@ -317,7 +301,7 @@ Future<DtdInfo?> startDtd({
       }
       isolate.kill(priority: Isolate.immediate);
     } catch (e, st) {
-      _logger.warning('Failed to spawn DTD isolate from $snapshotPath', e, st);
+      _logger.fine('Failed to spawn DTD isolate from $snapshotPath', e, st);
     } finally {
       receivePort.close();
       errorPort.close();
@@ -325,5 +309,28 @@ Future<DtdInfo?> startDtd({
     }
   }
 
+  // If spawning an isolate failed for all snapshots (for example, when running
+  // on a JIT VM in an environment where only AOT snapshots were built), fall
+  // back to launching the AOT snapshot in a child dartaotruntime process.
+  for (final snapshotPath in snapshotPaths) {
+    final isAotSnapshot =
+        snapshotPath.endsWith(_kDtdAotSnapshotName) ||
+        snapshotPath.endsWith(_kDtdAotProductSnapshotName);
+    if (!isAotSnapshot) {
+      continue;
+    }
+    final dtdInfo = await _startDtdProcess(
+      snapshotPath: snapshotPath,
+      machineMode: machineMode,
+      printDtdUri: printDtdUri,
+    );
+    if (dtdInfo != null) {
+      return dtdInfo;
+    }
+  }
+
+  _logger.warning(
+    'Failed to start DTD from any candidate snapshot: $snapshotPaths',
+  );
   return null;
 }

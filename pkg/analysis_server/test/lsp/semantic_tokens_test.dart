@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/lsp/semantic_tokens/legend.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
@@ -24,6 +25,14 @@ void main() {
 @reflectiveTest
 class SemanticTokensTest extends AbstractLspAnalysisServerTest
     with SemanticTokensTestMixin {
+  @override
+  late SemanticTokenLegendLookup serverProvidedSemanticTokenLegend =
+      SemanticTokenLegendLookup(
+        serverCapabilities.semanticTokensProvider!.map(
+          (options) => options.legend,
+          (registrationOptions) => registrationOptions.legend,
+        ),
+      );
   Future<void> test_annotation() async {
     var content = '''
 import 'other_file.dart' as other;

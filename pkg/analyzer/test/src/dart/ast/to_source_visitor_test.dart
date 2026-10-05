@@ -21,6 +21,74 @@ main() {
 
 @reflectiveTest
 class ToSourceVisitorResolutionTest extends PubPackageResolutionTest {
+  test_dotShorthandMethodInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  static A foo<T>(int a, int b) => A();
+}
+A x = .foo<int>(0, 1);
+''');
+    _assertSource(
+      '.foo<int>(0, 1)',
+      result.findNode.singleDotShorthandMethodInvocation,
+    );
+  }
+
+  test_dotShorthandMethodInvocation_withSelector() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  static A foo<T>(int a, int b) => A();
+  A get bar => this;
+}
+A x = .foo<int>(0, 1).bar;
+''');
+    _assertSource(
+      '.foo<int>(0, 1)',
+      result.findNode.singleDotShorthandMethodInvocation,
+    );
+  }
+
+  test_dotShorthandNameExpression() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  static A foo = A();
+}
+A x = .foo;
+''');
+    _assertSource('.foo', result.findNode.singleDotShorthandNameExpression);
+  }
+
+  test_dotShorthandNameExpression_withSelector() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class A {
+  static A foo = A();
+  A get bar => this;
+}
+A x = .foo.bar;
+''');
+    _assertSource('.foo', result.findNode.singleDotShorthandNameExpression);
+  }
+
+  test_functionInstantiation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>(T value) => value;
+const g = f<int>;
+''');
+    _assertSource('f<int>', result.findNode.singleFunctionInstantiation);
+  }
+
+  test_functionInstantiation_implicitCallTearOff() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+int Function(int) f(C c) => c<int>;
+''');
+    _assertSource('c<int>', result.findNode.singleFunctionInstantiation);
+    _assertSource('c', result.findNode.singleImplicitCallTearOff);
+  }
+
+  @ToBeDeprecated('Tests the V1 projection.')
   test_functionReference_explicitTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T value) => value;
@@ -29,6 +97,7 @@ const g = f<int>;
     _assertSource('f<int>', result.findNodeV1.singleFunctionReference);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_functionReference_implicitTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T value) => value;
@@ -37,6 +106,7 @@ const int Function(int) g = f;
     _assertSource('f', result.findNodeV1.singleFunctionReference);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_implicitCallReference_explicitTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
@@ -47,6 +117,7 @@ int Function(int) f(C c) => c<int>;
     _assertSource('c<int>', result.findNodeV1.singleImplicitCallReference);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_implicitCallReference_implicitTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
@@ -57,6 +128,7 @@ int Function(int) f(C c) => c;
     _assertSource('c', result.findNodeV1.singleImplicitCallReference);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_implicitCallReference_nonGeneric() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
@@ -67,6 +139,47 @@ int Function(int) f(C c) => c;
     _assertSource('c', result.findNodeV1.singleImplicitCallReference);
   }
 
+  test_implicitCallTearOff() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  int call(int value) => value;
+}
+int Function(int) f(C c) => c;
+''');
+    _assertSource('c', result.findNode.singleImplicitCallTearOff);
+  }
+
+  test_implicitFunctionInstantiation() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+T f<T>(T value) => value;
+const int Function(int) g = f;
+''');
+    _assertSource('f', result.findNode.singleImplicitFunctionInstantiation);
+  }
+
+  test_implicitFunctionInstantiation_implicitCallTearOff() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+class C {
+  T call<T>(T value) => value;
+}
+int Function(int) f(C c) => c;
+''');
+    _assertSource('c', result.findNode.singleImplicitFunctionInstantiation);
+    _assertSource('c', result.findNode.singleImplicitCallTearOff);
+  }
+
+  test_importPrefixedNameExpression() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'dart:math' as math;
+var x = math.pi;
+''');
+    _assertSource(
+      'math.pi',
+      result.findNode.singleImportPrefixedNameExpression,
+    );
+  }
+
+  @ToBeDeprecated('Tests the V1 projection.')
   test_prefixedIdentifier() async {
     var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:math' as math;
@@ -75,6 +188,7 @@ var x = math.pi;
     _assertSource('math.pi', result.findNodeV1.singlePrefixedIdentifier);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_propertyAccess() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var x = (0).isEven;
@@ -82,6 +196,17 @@ var x = (0).isEven;
     _assertSource('(0).isEven', result.findNodeV1.singlePropertyAccess);
   }
 
+  test_receiverPropertyExtraction() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+var x = (0).isEven;
+''');
+    _assertSource(
+      '(0).isEven',
+      result.findNode.singleReceiverPropertyExtraction,
+    );
+  }
+
+  @ToBeDeprecated('Tests the V1 projection.')
   test_simpleIdentifier() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var foo = 0;
@@ -217,6 +342,7 @@ class ToSourceVisitorTest extends ParserDiagnosticsTest {
     _assertSource(code, node);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   void test_toSource_ConstructorName_v1Projection() {
     var code = 'prefix.A.foo';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -229,6 +355,7 @@ final x = new $code();
     expect(node.toSource(), code);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   void test_toSource_dotShorthandInvocation_v1Projection() {
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = .foo<int>(0, 1);
@@ -237,6 +364,7 @@ final x = .foo<int>(0, 1);
     expect(node.toSource(), '.foo<int>(0, 1)');
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   void test_toSource_dotShorthandInvocation_v1Projection_withSelector() {
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = .foo<int>(0, 1).bar;
@@ -245,6 +373,7 @@ final x = .foo<int>(0, 1).bar;
     expect(node.toSource(), '.foo<int>(0, 1)');
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   void test_toSource_dotShorthandPropertyAccess_v1Projection() {
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = .foo;
@@ -253,6 +382,7 @@ final x = .foo;
     expect(node.toSource(), '.foo');
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   void test_toSource_dotShorthandPropertyAccess_v1Projection_withSelector() {
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = .foo.bar;
@@ -261,6 +391,7 @@ final x = .foo.bar;
     expect(node.toSource(), '.foo');
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   void test_toSource_InstanceCreationExpression_v1Projection() {
     var code = 'new prefix.A.foo()';
     var parseResult = parseTestCodeWithDiagnostics('''

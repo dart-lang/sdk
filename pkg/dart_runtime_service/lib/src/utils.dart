@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
 import 'dart:math';
@@ -122,100 +121,5 @@ class IdGenerator {
     if (_used.remove(id)) {
       _free.add(id);
     }
-  }
-}
-
-/// Used to protect global state accessed in blocks containing calls to
-/// asynchronous methods.
-///
-/// This mutex is not reentrant; calling [runGuarded] or [runGuardedWeak] from
-/// within an already guarded section may deadlock.
-class Mutex {
-  int _weakGuards = 0;
-  bool _locked = false;
-  var _outstandingReadersCompleter = Completer<void>();
-  final _outstandingRequests = Queue<Completer<void>>();
-
-  /// Executes a block of code containing asynchronous calls atomically.
-  ///
-  /// If no other asynchronous context is currently executing within
-  /// [criticalSection] or a [runGuardedWeak] scope, it will immediately be
-  /// called. Otherwise, the caller will be suspended and entered into a queue
-  /// to be resumed once the lock is released.
-  Future<T> runGuarded<T>(FutureOr<T> Function() criticalSection) async {
-    try {
-      await _acquireLock();
-      return await criticalSection();
-    } finally {
-      _releaseLock();
-    }
-  }
-
-  /// Executes a block of code containing asynchronous calls, allowing for other
-  /// weakly guarded sections to be executed concurrently.
-  ///
-  /// If no other asynchronous context is currently executing within a
-  /// [runGuarded] scope, [criticalSection] will immediately be called.
-  /// Otherwise, the caller will be suspended and entered into a queue to be
-  /// resumed once the lock is released.
-  Future<T> runGuardedWeak<T>(FutureOr<T> Function() criticalSection) async {
-    await _acquireLock(strong: false);
-    try {
-      return await criticalSection();
-    } finally {
-      _weakGuards--;
-      if (_weakGuards == 0) {
-        // Notify callers of `runGuarded` that they can try to execute again.
-        _outstandingReadersCompleter.complete();
-      }
-    }
-  }
-
-  Future<void> _acquireLock({bool strong = true}) async {
-    if (!_locked) {
-      if (strong) {
-        _locked = true;
-      } else {
-        _incrementWeakGuards();
-      }
-    } else {
-      final request = Completer<void>();
-      _outstandingRequests.add(request);
-      await request.future;
-      if (!strong) {
-        // Don't hold the exclusive lock for weakly guarded sections; register
-        // this reader and immediately release the lock so subsequent queued
-        // weak sections can enter concurrently (or the next strong section can
-        // wait on `_outstandingReadersCompleter`).
-        _incrementWeakGuards();
-        _releaseLock();
-      }
-    }
-    // The lock cannot be acquired by `runGuarded` if there is outstanding
-    // execution in weakly guarded sections. Loop in case we've entered another
-    // weakly guarded scope before we've woken up.
-    while (strong && _weakGuards > 0) {
-      await _outstandingReadersCompleter.future;
-    }
-  }
-
-  void _incrementWeakGuards() {
-    _weakGuards++;
-    if (_weakGuards == 1) {
-      // Reinitialize if this is the only weakly guarded scope.
-      _outstandingReadersCompleter = Completer<void>();
-    }
-  }
-
-  void _releaseLock() {
-    if (_outstandingRequests.isNotEmpty) {
-      final request = _outstandingRequests.removeFirst();
-      request.complete();
-      return;
-    }
-    // Only release the lock if no other requests are pending to prevent races
-    // between the next request from the queue to be handled and incoming
-    // requests.
-    _locked = false;
   }
 }

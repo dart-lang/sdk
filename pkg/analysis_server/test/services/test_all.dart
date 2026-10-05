@@ -6,6 +6,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'completion/test_all.dart' as completion_all;
 import 'correction/test_all.dart' as correction_all;
+import 'dart_tooling_daemon/test_all.dart' as dart_tooling_daemon_all;
 import 'refactoring/test_all.dart' as refactoring_all;
 import 'search/test_all.dart' as search_all;
 import 'snippets/test_all.dart' as snippets_all;
@@ -15,6 +16,7 @@ void main() {
   defineReflectiveSuite(() {
     completion_all.main();
     correction_all.main();
+    dart_tooling_daemon_all.main();
     refactoring_all.main();
     search_all.main();
     snippets_all.main();

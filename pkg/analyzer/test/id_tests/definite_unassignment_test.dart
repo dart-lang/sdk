@@ -90,8 +90,6 @@ class _DefiniteUnassignmentDataExtractor extends AstDataExtractor<String> {
       resolution: VariableReadResolution(element: var readElement),
     )) {
       element = readElement;
-    } else if (node is SimpleIdentifier && node.inGetterContext()) {
-      element = node.element;
     } else if (node is IfNullAssignment || node is CompoundAssignment) {
       var target = (node as AssignmentExpression2).target;
       if (target is UnqualifiedNameAssignmentTarget) {

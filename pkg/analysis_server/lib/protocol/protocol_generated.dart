@@ -18724,26 +18724,85 @@ class ServerSetClientCapabilitiesParams implements RequestParams {
 
 /// server.setClientCapabilities result
 ///
+///     {
+///       "lspCapabilities": optional object
+///     }
+///
 /// Clients may not extend, implement or mix-in this class.
 class ServerSetClientCapabilitiesResult implements ResponseResult {
+  /// The LSP `ServerCapabilities` for the server. These capabilities are only
+  /// a subset that contain required information for an LSP-over-Legacy client,
+  /// and always use static registrations.
+  Object? lspCapabilities;
+
+  ServerSetClientCapabilitiesResult({this.lspCapabilities});
+
+  factory ServerSetClientCapabilitiesResult.fromJson(
+    JsonDecoder jsonDecoder,
+    String jsonPath,
+    Object? json, {
+    required ClientUriConverter? clientUriConverter,
+  }) {
+    json ??= {};
+    if (json is Map) {
+      Object? lspCapabilities;
+      if (json.containsKey('lspCapabilities')) {
+        lspCapabilities = json['lspCapabilities'] as Object;
+      }
+      return ServerSetClientCapabilitiesResult(
+        lspCapabilities: lspCapabilities,
+      );
+    } else {
+      throw jsonDecoder.mismatch(
+        jsonPath,
+        'server.setClientCapabilities result',
+        json,
+      );
+    }
+  }
+
+  factory ServerSetClientCapabilitiesResult.fromResponse(
+    Response response, {
+    required ClientUriConverter? clientUriConverter,
+  }) {
+    return ServerSetClientCapabilitiesResult.fromJson(
+      ResponseDecoder(REQUEST_ID_REFACTORING_KINDS.remove(response.id)),
+      'result',
+      response.result,
+      clientUriConverter: clientUriConverter,
+    );
+  }
+
   @override
   Map<String, Object> toJson({
     required ClientUriConverter? clientUriConverter,
-  }) => {};
+  }) {
+    var result = <String, Object>{};
+    var lspCapabilities = this.lspCapabilities;
+    if (lspCapabilities != null) {
+      result['lspCapabilities'] = lspCapabilities;
+    }
+    return result;
+  }
 
   @override
   Response toResponse(
     String id, {
     required ClientUriConverter? clientUriConverter,
   }) {
-    return Response(id);
+    return Response(id, result: toJson(clientUriConverter: clientUriConverter));
   }
 
   @override
-  bool operator ==(Object other) => other is ServerSetClientCapabilitiesResult;
+  String toString() => json.encode(toJson(clientUriConverter: null));
 
   @override
-  int get hashCode => 806805916;
+  bool operator ==(Object other) =>
+      other is ServerSetClientCapabilitiesResult &&
+      lspCapabilities == other.lspCapabilities;
+
+  @override
+  int get hashCode => lspCapabilities.hashCode;
 }
 
 /// server.setSubscriptions params

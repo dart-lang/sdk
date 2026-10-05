@@ -91,6 +91,8 @@ enum AllSemanticTokenTypes {
 }
 
 mixin SemanticTokensTestMixin {
+  SemanticTokenLegendLookup get serverProvidedSemanticTokenLegend;
+
   /// Decode tokens according to the LSP spec and pair with relevant file contents.
   List<Token> decodeSemanticTokens(String content, SemanticTokens tokens) {
     var contentLines = content
@@ -117,9 +119,9 @@ mixin SemanticTokensTestMixin {
         Token(
           tokenContent,
           AllSemanticTokenTypes.forTokenType(
-            semanticTokenLegend.typeForIndex(tokenTypeIndex),
+            serverProvidedSemanticTokenLegend.typeForIndex(tokenTypeIndex),
           ),
-          semanticTokenLegend
+          serverProvidedSemanticTokenLegend
               .modifiersForBitmask(modifierBitmask)
               .map(AllSemanticTokenModifiers.forModifier)
               .toList(),

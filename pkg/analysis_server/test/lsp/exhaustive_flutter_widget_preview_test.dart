@@ -399,4 +399,49 @@ Widget b() => Text('B');
     expect(result.previews.any((p) => p.functionName == 'a'), isTrue);
     expect(result.previews.any((p) => p.functionName == 'b'), isTrue);
   }
+
+  Future<void> test_workspacePreviews_contextRebuildMidWalk() async {
+    // `lib/file.dart` is created by the test harness and is the first entry in
+    // `driver.addedFiles`, so include a preview in it to ensure the first file
+    // walked is not silently dropped.
+    newFile(join(projectFolderPath, 'lib', 'file.dart'), '''
+import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
+@Preview(name: 'F')
+Widget f() => Text('F');
+''');
+    newFile(join(projectFolderPath, 'lib', 'a.dart'), '''
+import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
+@Preview(name: 'A')
+Widget a() => Text('A');
+''');
+    newFile(join(projectFolderPath, 'lib', 'b.dart'), '''
+import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
+@Preview(name: 'B')
+Widget b() => Text('B');
+''');
+
+    // Wait for initial background analysis to complete so the analysis
+    // scheduler is guaranteed to be idle before `waitForAnalysisStart()` is
+    // armed.
+    var initialAnalysis = waitForAnalysisComplete();
+    await initialize();
+    await initialAnalysis;
+
+    // Wait until the walk is resolving libraries before modifying
+    // `analysis_options.yaml`, verifying that `pauseSchedulerWhile` defers the
+    // watcher-triggered context rebuild until the request completes.
+    var analysisStarted = waitForAnalysisStart();
+    var previewsFuture = getWorkspaceFlutterWidgetPreviews();
+    await analysisStarted;
+    newFile(analysisOptionsPath, 'analyzer: {}');
+
+    var result = await previewsFuture;
+    expect(
+      result!.previews.map((p) => p.functionName),
+      unorderedEquals(['f', 'a', 'b']),
+    );
+  }
 }

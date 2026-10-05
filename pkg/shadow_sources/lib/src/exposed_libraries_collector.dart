@@ -104,6 +104,9 @@ class ExposedLibrariesCollector {
     }
     final entity = frontendFs.entityForUri(fileUri.value);
     if (!await entity.exists()) {
+      // A resolved file may still be missing if it belongs to a host target
+      // within a shared package directory that is not a dependency of the
+      // dynamic module, which may happen in google3.
       return const {};
     }
     final content = await entity.readAsString();

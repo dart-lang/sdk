@@ -1058,7 +1058,7 @@ public interface AnalysisServer {
    *        so that they see the user's configuration and not the defaults. Other requests are not
    *        affected.
    */
-  public void server_setClientCapabilities(List<String> requests, boolean supportsUris, Object lspCapabilities);
+  public void server_setClientCapabilities(List<String> requests, boolean supportsUris, Object lspCapabilities, SetClientCapabilitiesConsumer consumer);
 
   /**
    * {@code server.setSubscriptions}

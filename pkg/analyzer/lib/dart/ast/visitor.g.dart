@@ -738,8 +738,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitTypedLiteral(TypedLiteral node) => visitLiteral(node);
 
   @override
-  R? visitTypeLiteral(TypeLiteral node) =>
-      visitCommentReferableExpression(node);
+  R? visitTypeLiteral(TypeLiteral node) => visitExpression(node);
 
   @override
   R? visitTypeParameter(TypeParameter node) => visitDeclaration(node);

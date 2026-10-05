@@ -1037,12 +1037,12 @@ library
       variable: <testLibrary>::@topLevelVariable::y
 ''');
     var x = library.firstFragment.topLevelVariables[0];
-    var xExpr = x.constantInitializer as InstanceCreationExpression;
-    var xType = xExpr.constructorName.element!.returnType;
+    var xExpr = x.constantInitializer2 as ConstructorInvocation;
+    var xType = xExpr.constructorReference.element!.returnType;
     _assertTypeStr(xType, 'C<int>');
     var y = library.firstFragment.topLevelVariables[0];
-    var yExpr = y.constantInitializer as InstanceCreationExpression;
-    var yType = yExpr.constructorName.element!.returnType;
+    var yExpr = y.constantInitializer2 as ConstructorInvocation;
+    var yType = yExpr.constructorReference.element!.returnType;
     _assertTypeStr(yType, 'C<int>');
   }
 

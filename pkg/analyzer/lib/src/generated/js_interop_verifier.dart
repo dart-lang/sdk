@@ -26,7 +26,7 @@ class JsInteropVerifier {
   JsInteropVerifier(this._diagnosticReporter);
 
   void verifyCompilationUnit(CompilationUnit node) {
-    for (var declaration in node.declarations) {
+    for (var declaration in node.declarations2) {
       if (declaration is ExtensionTypeDeclaration) {
         _checkExtensionTypeDeclaration(declaration);
       }
