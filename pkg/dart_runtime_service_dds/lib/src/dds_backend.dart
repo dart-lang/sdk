@@ -159,13 +159,11 @@ class DartRuntimeServiceDdsBackend
       final buildDir = (customDevToolsPath ?? _getDevToolsAssetPath())
           .toFilePath();
       _httpHandler = await defaultHandler(
+        buildDir: buildDir,
+        notFoundHandler: notFoundHandler,
         devtoolsExtensionsManager: ExtensionsManager(),
         appRoot: appRoot,
-        buildDir: buildDir,
-        disableServiceOriginCheck: frontend.config.disableOriginCheck,
         enableLogging: frontend.config.enableLogging,
-        notFoundHandler: notFoundHandler,
-        serviceUriGetter: () => frontend.isServerRunning ? frontend.uri : null,
       );
     } else {
       _httpHandler = (shelf.Request request) {

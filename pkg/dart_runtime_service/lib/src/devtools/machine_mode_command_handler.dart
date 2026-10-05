@@ -20,8 +20,6 @@ import 'vs_code.dart';
 /// requests from machine mode.
 abstract class DevToolsServer {
   DevToolsClientManager? get clientManager;
-  String? get devToolsUrl;
-  bool get headlessMode;
 
   Future<void> launchDevToolsInBrowser({
     required Uri vmServiceUri,
@@ -52,22 +50,10 @@ class MachineModeCommandHandler {
   DevToolsUsage? _devToolsUsage;
   File? _devToolsBackup;
 
-  static bool _isValidVmServiceUri(Uri uri) {
-    return uri.isAbsolute &&
-        (uri.isScheme('ws') ||
-            uri.isScheme('wss') ||
-            uri.isScheme('http') ||
-            uri.isScheme('https'));
-  }
-
   /// Handles a single JSON-RPC request line in machine mode.
   Future<void> handle(String line) async {
-    final trimmed = line.trim();
-    if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) {
-      return;
-    }
     try {
-      final json = jsonDecode(trimmed) as Map<String, Object?>;
+      final json = jsonDecode(line) as Map<String, Object?>;
       final method = json['method'] as String?;
       final id = json['id'];
       final params =
@@ -85,10 +71,9 @@ class MachineModeCommandHandler {
         case 'devTools.survey':
           _handleDevToolsSurvey(id, params);
         default:
-          final message = 'Unknown method $method';
-          DevToolsUtils.printOutput(message, {
+          DevToolsUtils.printOutput('Unknown method: $method', {
             'id': id,
-            'error': message,
+            'error': 'Unknown method: $method',
           }, machineMode: machineMode);
       }
     } catch (e) {
@@ -101,45 +86,30 @@ class MachineModeCommandHandler {
     Map<String, Object?> params,
   ) async {
     final vmServiceUriRaw = params['vmServiceUri'] as String?;
+    final page = params['page'] as String?;
+
     if (vmServiceUriRaw == null) {
-      final message =
-          "Invalid input: $params does not contain the key 'vmServiceUri'";
-      DevToolsUtils.printOutput(message, {
+      DevToolsUtils.printOutput('Missing vmServiceUri', {
         'id': id,
-        'error': message,
+        'error': 'Missing vmServiceUri',
       }, machineMode: machineMode);
       return;
     }
 
-    final vmServiceUri = Uri.tryParse(vmServiceUriRaw);
-    if (vmServiceUri == null || !_isValidVmServiceUri(vmServiceUri)) {
-      const message =
-          'VM Service URI must be absolute with a http, https, ws or wss '
-          'scheme';
-      DevToolsUtils.printOutput(message, {
-        'id': id,
-        'error': message,
-      }, machineMode: machineMode);
-      return;
-    }
-
+    final vmServiceUri = Uri.parse(vmServiceUriRaw);
     try {
-      final result = await server.launchDevTools(
-        params,
-        vmServiceUri,
-        server.devToolsUrl ?? '',
-        server.headlessMode,
-        machineMode,
+      await server.launchDevToolsInBrowser(
+        vmServiceUri: vmServiceUri,
+        page: page,
       );
-      DevToolsUtils.printOutput('DevTools launched', {
+      DevToolsUtils.printOutput('Launched DevTools', {
         'id': id,
-        'result': result,
+        'result': {'success': true},
       }, machineMode: machineMode);
-    } catch (e, s) {
-      final message = 'Failed to launch browser: $e\n$s';
-      DevToolsUtils.printOutput(message, {
+    } catch (e) {
+      DevToolsUtils.printOutput('Failed to launch DevTools: $e', {
         'id': id,
-        'error': message,
+        'error': 'Failed to launch DevTools: $e',
       }, machineMode: machineMode);
     }
   }
@@ -150,28 +120,16 @@ class MachineModeCommandHandler {
   ) async {
     final uriRaw = params['uri'] as String?;
     if (uriRaw == null) {
-      final message = "Invalid input: $params does not contain the key 'uri'";
-      DevToolsUtils.printOutput(message, {
+      DevToolsUtils.printOutput('Missing uri', {
         'id': id,
-        'error': message,
+        'error': 'Missing uri',
       }, machineMode: machineMode);
       return;
     }
 
-    final uri = Uri.tryParse(uriRaw);
-    if (uri == null || !_isValidVmServiceUri(uri)) {
-      const message =
-          'Uri must be absolute with a http, https, ws or wss scheme';
-      DevToolsUtils.printOutput(message, {
-        'id': id,
-        'error': message,
-      }, machineMode: machineMode);
-      return;
-    }
-
-    final devToolsUrl =
-        (params['devToolsUrl'] as String?) ?? server.devToolsUrl ?? '';
-    final headless = (params['headless'] as bool?) ?? server.headlessMode;
+    final uri = Uri.parse(uriRaw);
+    final devToolsUrl = (params['devToolsUrl'] as String?) ?? '';
+    final headless = (params['headless'] as bool?) ?? false;
 
     await registerLaunchDevToolsService(uri, id, devToolsUrl, headless);
   }
@@ -193,7 +151,7 @@ class MachineModeCommandHandler {
     Object? id,
     Map<String, Object?> params,
   ) async {
-    if (params case {'rootPaths': final List<Object?> rootPaths}) {
+    if (params case {'rootPaths': final List<dynamic> rootPaths}) {
       final manager = VsCodeExtensionsManager();
 
       DevToolsUtils.printOutput('Extensions', {

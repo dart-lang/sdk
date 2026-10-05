@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:args/args.dart';
-import 'package:dart_runtime_service_dds/devtools_server.dart';
+import 'package:dds/devtools_server.dart';
 import 'package:dds_service_extensions/dds_service_extensions.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
@@ -122,10 +122,13 @@ class DevToolsCommand extends DartdevCommand {
     return argList;
   }
 
-  static Uri _ensureUriHasTrailingForwardSlash(Uri uri) {
-    final path = uri.path;
-    if (!path.endsWith('/')) {
-      return uri.replace(path: '$path/');
+  Uri _ensureUriHasTrailingForwardSlash(Uri uri) {
+    if (uri.pathSegments.isNotEmpty) {
+      final pathSegments = uri.pathSegments.toList();
+      if (pathSegments.last.isNotEmpty) {
+        pathSegments.add('');
+      }
+      uri = uri.replace(pathSegments: pathSegments);
     }
     return uri;
   }
@@ -145,19 +148,14 @@ class DevToolsCommand extends DartdevCommand {
       final redirectUri = Uri.parse(response.headers['location']!);
       final ddsWsUri = Uri.parse(redirectUri.queryParameters['uri']!);
 
-      // Remove '/ws' from the path.
-      final pathSegments = ddsWsUri.pathSegments.toList();
-      if (pathSegments.isNotEmpty && pathSegments.last == 'ws') {
-        pathSegments.removeLast();
+      // Remove '/ws' from the path, add a trailing '/'
+      var pathSegments = ddsWsUri.pathSegments.toList()
+        ..removeLast()
+        ..add('');
+      if (pathSegments.length == 1) {
+        pathSegments.add('');
       }
-      uri = _ensureUriHasTrailingForwardSlash(
-        ddsWsUri.replace(
-          scheme: (ddsWsUri.isScheme('wss') || ddsWsUri.isScheme('https'))
-              ? 'https'
-              : 'http',
-          path: pathSegments.isEmpty ? '/' : '/${pathSegments.join('/')}/',
-        ),
-      );
+      uri = ddsWsUri.replace(scheme: 'http', pathSegments: pathSegments);
     }
     return uri;
   }
@@ -179,7 +177,7 @@ class DevToolsCommand extends DartdevCommand {
 
     final authCodesEnabled = pathSegments.isNotEmpty;
     final wsUri = uri.replace(
-      scheme: (uri.isScheme('https') || uri.isScheme('wss')) ? 'wss' : 'ws',
+      scheme: 'ws',
       pathSegments: [...pathSegments, 'ws'],
     );
 
@@ -210,7 +208,7 @@ class DevToolsCommand extends DartdevCommand {
         enableDevTools: false,
         enableServicePortFallback: true,
       )) {
-        uri = _ensureUriHasTrailingForwardSlash(debugSession.ddsUri!);
+        uri = debugSession.ddsUri!;
         if (!machineMode) {
           print('Started the Dart Development Service (DDS) at $uri');
         }

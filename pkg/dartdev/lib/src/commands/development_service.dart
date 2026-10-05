@@ -4,7 +4,7 @@
 
 import 'dart:async';
 
-import 'package:dart_runtime_service_dds/dart_runtime_service_dds.dart';
+import 'package:dds/src/arg_parser.dart';
 import 'package:path/path.dart';
 
 import '../core.dart';
