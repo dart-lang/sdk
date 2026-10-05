@@ -1285,7 +1285,7 @@ class _UnmodifiableI64ByteData extends _I64ByteData
     WasmArray<WasmI64> _data,
     int offsetInBytes,
     int lengthInBytes,
-  ) : super._(_data, 0, _data.length * 8);
+  ) : super._(_data, offsetInBytes, lengthInBytes);
 
   @override
   @pragma('wasm:prefer-inline')
