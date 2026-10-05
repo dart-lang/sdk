@@ -105,7 +105,7 @@ general/issue45101/main: SemiFuzzFailure
 general/mixin_from_patch/main: SemiFuzzFailure
 general/multiple_class_patches/main: SemiFuzzFailure
 general/nested_lib_spec/main: SemiFuzzFailure
-general/patching/main: SemiFuzzFailure
+general/patching/main: RuntimeError, SemiFuzzFailure # TODO(johnniwinther): Support augmenting external constructor with an incomplete constructor.
 general/patch_annotations/main: SemiFuzzFailure
 general/patch_conflict/main: SemiFuzzFailure
 general/patch_extends_implements/main: SemiFuzzFailure

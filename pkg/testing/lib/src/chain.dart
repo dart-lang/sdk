@@ -222,6 +222,9 @@ abstract class ChainContext {
       Result? result;
       // Records the outcome of the last step that was run.
       Step? lastStepRun;
+      // Non-pass results of steps with [Step.continueOnFailure] that didn't
+      // end the test.
+      final List<Result> continuedResults = <Result>[];
 
       /// Performs one step of [iterator].
       ///
@@ -276,22 +279,32 @@ abstract class ChainContext {
               description,
               lastStepRun!,
             );
-            result = currentResult;
-            if ((currentResult as Result).outcome == Expectation.pass) {
+            Result stepResult = currentResult as Result;
+            result = stepResult;
+            if (stepResult.outcome == Expectation.pass) {
               // The input to the next step is the output of this step.
-              return doStep(result!.output);
+              return doStep(stepResult.output);
+            }
+            if (lastStepRun!.continueOnFailure && stepResult.output != null) {
+              // Record the outcome but continue as if the step had passed.
+              continuedResults.add(stepResult);
+              return doStep(stepResult.output);
             }
           }
-          await cleanUp(description, result!);
-          if (!expectedOutcomes.contains(result!.outcome) &&
-              !expectedOutcomes.contains(result!.outcome.canonical)) {
-            result!.addLog("$sb");
-            unexpectedResults[description] = result!;
+          final Result testResult = _computeTestResult(
+            result!,
+            continuedResults,
+            expectedOutcomes,
+          );
+          await cleanUp(description, testResult);
+          if (!_matchesExpectations(testResult, expectedOutcomes)) {
+            testResult.addLog("$sb");
+            unexpectedResults[description] = testResult;
             unexpectedOutcomes[description] = expectedOutcomes;
             logger.logUnexpectedResult(
               suite,
               description,
-              result!,
+              testResult,
               expectedOutcomes,
             );
             exitCode = 1;
@@ -299,7 +312,7 @@ abstract class ChainContext {
             logger.logExpectedResult(
               suite,
               description,
-              result!,
+              testResult,
               expectedOutcomes,
             );
             logger.logMessage(sb);
@@ -343,7 +356,10 @@ abstract class ChainContext {
       });
       print("${unexpectedResults.length} failed:");
       unexpectedResults.forEach((TestDescription description, Result result) {
-        print("${suite.name}/${description.shortName}: ${result.outcome}");
+        print(
+          "${suite.name}/${description.shortName}: "
+          "${result.allOutcomes.join(', ')}",
+        );
       });
     }
     await postRun();
@@ -432,6 +448,27 @@ abstract class Step<I, O, C extends ChainContext> {
   /// isAsync set to false.
   bool get isAsync => false;
 
+  /// Whether the test continues with the next step if this step fails.
+  ///
+  /// By default, the first step with a non-pass outcome ends the test, and
+  /// that outcome is the outcome of the test.
+  ///
+  /// If this is `true` and the step returns a non-pass [Result] with a
+  /// non-null [Result.output], the outcome is recorded and the output is
+  /// passed on to the next step as if this step had passed. This allows, for
+  /// instance, running generated code even when an auxiliary check on the
+  /// generated code fails.
+  ///
+  /// A test can therefore have multiple outcomes. The test matches its
+  /// expectations if *every* outcome is among the expected outcomes. Since a
+  /// status file entry lists alternatives, a test that is expected to have
+  /// several outcomes must list all of them, and it also matches if only a
+  /// subset of them occurs.
+  ///
+  /// Errors caught by the framework (see [unhandledError]) have no output and
+  /// therefore always end the test.
+  bool get continueOnFailure => false;
+
   Future<Result<O>> run(I input, C context);
 
   Result<O> unhandledError(Object? error, StackTrace trace) {
@@ -469,6 +506,13 @@ class Result<O> {
   ///
   final bool canBeFixWithUpdateExpectations;
 
+  /// Other non-pass results of the same test.
+  ///
+  /// When steps have [Step.continueOnFailure] set, a test can have more than
+  /// one non-pass result. The test runner then reports a single result to the
+  /// [Logger] and stores the remaining results here.
+  final List<Result> otherResults = <Result>[];
+
   new(
     this.output,
     this.outcome,
@@ -488,6 +532,12 @@ class Result<O> {
 
   bool get isPass => outcome == Expectation.pass;
 
+  /// The [outcome] of this result followed by the outcomes of [otherResults].
+  List<Expectation> get allOutcomes => <Expectation>[
+    outcome,
+    for (Result other in otherResults) other.outcome,
+  ];
+
   String get log => logs.join();
 
   void addLog(String log) {
@@ -496,14 +546,73 @@ class Result<O> {
 
   Result<O2> copyWithOutput<O2>(O2 output) {
     return Result<O2>(
-      output,
-      outcome,
-      error,
-      trace: trace,
-      autoFixCommand: autoFixCommand,
-      canBeFixWithUpdateExpectations: canBeFixWithUpdateExpectations,
-    )..logs.addAll(logs);
+        output,
+        outcome,
+        error,
+        trace: trace,
+        autoFixCommand: autoFixCommand,
+        canBeFixWithUpdateExpectations: canBeFixWithUpdateExpectations,
+      )
+      ..logs.addAll(logs)
+      ..otherResults.addAll(otherResults);
   }
+}
+
+bool _isExpectedOutcome(Expectation outcome, Set<Expectation> expected) {
+  return expected.contains(outcome) || expected.contains(outcome.canonical);
+}
+
+/// Returns `true` if all outcomes of [result] are in [expectedOutcomes].
+bool _matchesExpectations(Result result, Set<Expectation> expectedOutcomes) {
+  return result.allOutcomes.every(
+    (Expectation outcome) => _isExpectedOutcome(outcome, expectedOutcomes),
+  );
+}
+
+/// Computes the single result reported for a test.
+///
+/// [finalResult] is the result of the last step that was run and
+/// [continuedResults] are the non-pass results of steps that had
+/// [Step.continueOnFailure] set and therefore didn't end the test.
+///
+/// If the test has multiple non-pass results, the first result with an
+/// unexpected outcome (or the first result, if all outcomes are expected) is
+/// returned with the remaining results in [Result.otherResults].
+Result _computeTestResult(
+  Result finalResult,
+  List<Result> continuedResults,
+  Set<Expectation> expectedOutcomes,
+) {
+  Set<Result> failures = continuedResults.toSet();
+  if (!finalResult.isPass) {
+    failures.add(finalResult);
+  }
+  if (failures.isEmpty) return finalResult;
+  if (failures.length == 1) return failures.single;
+
+  Result primary = failures.firstWhere(
+    (Result r) => !_isExpectedOutcome(r.outcome, expectedOutcomes),
+    orElse: () => failures.first,
+  );
+  StringBuffer sb = StringBuffer();
+  sb.writeln(
+    "The test had multiple outcomes: "
+    "${failures.map((Result r) => r.outcome).join(', ')}.",
+  );
+  for (Result other in failures) {
+    if (identical(other, primary)) continue;
+    primary.otherResults.add(other);
+    sb.writeln();
+    sb.writeln("--- Outcome ${other.outcome} ---");
+    String log = other.log;
+    if (log.isNotEmpty) sb.writeln(log);
+    if (other.error != null) sb.writeln(other.error);
+    if (other.trace != null) sb.writeln(other.trace);
+  }
+  sb.writeln();
+  sb.writeln("--- Outcome ${primary.outcome} ---");
+  primary.addLog("$sb");
+  return primary;
 }
 
 /// This is called from generated code.

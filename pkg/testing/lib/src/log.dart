@@ -226,6 +226,12 @@ class StdoutLogger implements Logger {
       String path = statusFile.toFilePath();
       if (result.outcome == Expectation.pass) {
         print("The test unexpectedly passed, please update $path.");
+      } else if (result.otherResults.isNotEmpty) {
+        print(
+          "The test had the outcomes ${result.allOutcomes.join(', ')}, but the "
+          "status file ($path) allows these outcomes: "
+          "${expectedOutcomes.join(', ')}",
+        );
       } else {
         print(
           "The test had the outcome ${result.outcome}, but the status file "
