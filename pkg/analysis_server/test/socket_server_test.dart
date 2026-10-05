@@ -15,6 +15,7 @@ import 'package:analysis_server/src/server/error_notifier.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
+import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:test/test.dart';
@@ -82,7 +83,7 @@ class SocketServerTest {
       expect(
         server
             .timingResourceProvider
-            .timings['ResourceProvider.getStateLocation']
+            .timings[ResourceProviderOperation.resourceGetStateLocation]
             ?.count,
         greaterThanOrEqualTo(1),
       );

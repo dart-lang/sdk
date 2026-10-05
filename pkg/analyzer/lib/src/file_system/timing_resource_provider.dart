@@ -7,6 +7,42 @@ import 'dart:typed_data';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:path/path.dart' as pathos;
 
+/// A resource-provider operation measured by [TimingResourceProvider].
+///
+/// Values of this enum are the keys of [TimingResourceProvider.timings].
+/// [label] is the operation name shown on the File I/O timing page.
+enum ResourceProviderOperation {
+  fileCopyTo('File.copyTo'),
+  fileDelete('File.delete'),
+  fileExists('File.exists'),
+  fileLengthSync('File.lengthSync'),
+  fileModificationStamp('File.modificationStamp'),
+  fileReadAsBytesSync('File.readAsBytesSync'),
+  fileReadAsStringSync('File.readAsStringSync'),
+  fileRenameSync('File.renameSync'),
+  fileResolveSymbolicLinksSync('File.resolveSymbolicLinksSync'),
+  fileWatch('File.watch'),
+  fileWriteAsBytesSync('File.writeAsBytesSync'),
+  fileWriteAsStringSync('File.writeAsStringSync'),
+  folderCopyTo('Folder.copyTo'),
+  folderCreate('Folder.create'),
+  folderDelete('Folder.delete'),
+  folderExists('Folder.exists'),
+  folderGetChild('Folder.getChild'),
+  folderGetChildren('Folder.getChildren'),
+  folderResolveSymbolicLinksSync('Folder.resolveSymbolicLinksSync'),
+  folderWatch('Folder.watch'),
+  linkCreate('Link.create'),
+  linkExists('Link.exists'),
+  resourceGetResource('ResourceProvider.getResource'),
+  resourceGetStateLocation('ResourceProvider.getStateLocation');
+
+  /// The operation name, such as `File.readAsBytesSync`.
+  final String label;
+
+  const ResourceProviderOperation(this.label);
+}
+
 /// Cumulative measurements of calls to a resource provider operation.
 class ResourceProviderTiming {
   int count = 0;
@@ -30,14 +66,17 @@ class ResourceProviderTiming {
 class TimingResourceProvider implements ResourceProvider {
   final ResourceProvider baseProvider;
 
-  final Map<String, ResourceProviderTiming> _timings = {};
+  final Map<ResourceProviderOperation, ResourceProviderTiming> _timings = {};
 
   TimingResourceProvider(this.baseProvider);
 
   @override
   pathos.Context get pathContext => baseProvider.pathContext;
 
-  Map<String, ResourceProviderTiming> get timings => Map.unmodifiable(_timings);
+  /// Measurements for each [ResourceProviderOperation], accumulated since this
+  /// provider was created.
+  Map<ResourceProviderOperation, ResourceProviderTiming> get timings =>
+      Map.unmodifiable(_timings);
 
   @override
   File getFile(String path) => _TimingFile(this, baseProvider.getFile(path));
@@ -52,7 +91,7 @@ class TimingResourceProvider implements ResourceProvider {
   @override
   Resource getResource(String path) => _wrap(
     _record(
-      'ResourceProvider.getResource',
+      ResourceProviderOperation.resourceGetResource,
       () => baseProvider.getResource(path),
     ),
   );
@@ -60,13 +99,13 @@ class TimingResourceProvider implements ResourceProvider {
   @override
   Folder? getStateLocation(String pluginId) {
     var folder = _record(
-      'ResourceProvider.getStateLocation',
+      ResourceProviderOperation.resourceGetStateLocation,
       () => baseProvider.getStateLocation(pluginId),
     );
     return folder != null ? _TimingFolder(this, folder) : null;
   }
 
-  T _record<T>(String operation, T Function() action) {
+  T _record<T>(ResourceProviderOperation operation, T Function() action) {
     var timing = _timings.putIfAbsent(operation, ResourceProviderTiming.new);
     var stopwatch = Stopwatch()..start();
     try {
@@ -92,47 +131,64 @@ class _TimingFile extends _TimingResource implements File {
   _TimingFile(super.provider, File super.resource);
 
   @override
-  int get lengthSync =>
-      provider._record('File.lengthSync', () => _file.lengthSync);
+  int get lengthSync => provider._record(
+    ResourceProviderOperation.fileLengthSync,
+    () => _file.lengthSync,
+  );
 
   @override
-  int get modificationStamp =>
-      provider._record('File.modificationStamp', () => _file.modificationStamp);
+  int get modificationStamp => provider._record(
+    ResourceProviderOperation.fileModificationStamp,
+    () => _file.modificationStamp,
+  );
 
   File get _file => _resource as File;
 
   @override
   File copyTo(Folder parentFolder) => _TimingFile(
     provider,
-    provider._record('File.copyTo', () => _file.copyTo(_unwrap(parentFolder))),
+    provider._record(
+      ResourceProviderOperation.fileCopyTo,
+      () => _file.copyTo(_unwrap(parentFolder)),
+    ),
   );
 
   @override
   Uint8List readAsBytesSync() {
-    var bytes = provider._record('File.readAsBytesSync', _file.readAsBytesSync);
-    provider._timings['File.readAsBytesSync']!.bytesRead += bytes.length;
+    var bytes = provider._record(
+      ResourceProviderOperation.fileReadAsBytesSync,
+      _file.readAsBytesSync,
+    );
+    var timing =
+        provider._timings[ResourceProviderOperation.fileReadAsBytesSync]!;
+    timing.bytesRead += bytes.length;
     return bytes;
   }
 
   @override
-  String readAsStringSync() =>
-      provider._record('File.readAsStringSync', _file.readAsStringSync);
+  String readAsStringSync() => provider._record(
+    ResourceProviderOperation.fileReadAsStringSync,
+    _file.readAsStringSync,
+  );
 
   @override
   File renameSync(String newPath) => _TimingFile(
     provider,
-    provider._record('File.renameSync', () => _file.renameSync(newPath)),
+    provider._record(
+      ResourceProviderOperation.fileRenameSync,
+      () => _file.renameSync(newPath),
+    ),
   );
 
   @override
   void writeAsBytesSync(List<int> bytes) => provider._record(
-    'File.writeAsBytesSync',
+    ResourceProviderOperation.fileWriteAsBytesSync,
     () => _file.writeAsBytesSync(bytes),
   );
 
   @override
   void writeAsStringSync(String content) => provider._record(
-    'File.writeAsStringSync',
+    ResourceProviderOperation.fileWriteAsStringSync,
     () => _file.writeAsStringSync(content),
   );
 }
@@ -155,17 +211,21 @@ class _TimingFolder extends _TimingResource implements Folder {
   Folder copyTo(Folder parentFolder) => _TimingFolder(
     provider,
     provider._record(
-      'Folder.copyTo',
+      ResourceProviderOperation.folderCopyTo,
       () => _folder.copyTo(_unwrap(parentFolder)),
     ),
   );
 
   @override
-  void create() => provider._record('Folder.create', _folder.create);
+  void create() =>
+      provider._record(ResourceProviderOperation.folderCreate, _folder.create);
 
   @override
   Resource getChild(String relPath) => provider._wrap(
-    provider._record('Folder.getChild', () => _folder.getChild(relPath)),
+    provider._record(
+      ResourceProviderOperation.folderGetChild,
+      () => _folder.getChild(relPath),
+    ),
   );
 
   @Deprecated('Use getFile instead.')
@@ -178,7 +238,7 @@ class _TimingFolder extends _TimingResource implements Folder {
 
   @override
   List<Resource> getChildren() => provider
-      ._record('Folder.getChildren', _folder.getChildren)
+      ._record(ResourceProviderOperation.folderGetChildren, _folder.getChildren)
       .map(provider._wrap)
       .toList();
 
@@ -198,11 +258,16 @@ class _TimingLink implements Link {
   _TimingLink(this._provider, this._link);
 
   @override
-  bool get exists => _provider._record('Link.exists', () => _link.exists);
+  bool get exists => _provider._record(
+    ResourceProviderOperation.linkExists,
+    () => _link.exists,
+  );
 
   @override
-  void create(String target) =>
-      _provider._record('Link.create', () => _link.create(target));
+  void create(String target) => _provider._record(
+    ResourceProviderOperation.linkCreate,
+    () => _link.create(target),
+  );
 }
 
 abstract class _TimingResource implements Resource {
@@ -214,7 +279,13 @@ abstract class _TimingResource implements Resource {
   _TimingResource(this.provider, this._resource);
 
   @override
-  bool get exists => provider._record('$_kind.exists', () => _resource.exists);
+  bool get exists => provider._record(
+    _operation(
+      ResourceProviderOperation.fileExists,
+      ResourceProviderOperation.folderExists,
+    ),
+    () => _resource.exists,
+  );
 
   @override
   int get hashCode => _resource.hashCode;
@@ -228,14 +299,18 @@ abstract class _TimingResource implements Resource {
   @override
   String get shortName => _resource.shortName;
 
-  String get _kind => _resource is File ? 'File' : 'Folder';
-
   @override
   bool operator ==(Object other) =>
       other is _TimingResource && _resource == other._resource;
 
   @override
-  void delete() => provider._record('$_kind.delete', _resource.delete);
+  void delete() => provider._record(
+    _operation(
+      ResourceProviderOperation.fileDelete,
+      ResourceProviderOperation.folderDelete,
+    ),
+    _resource.delete,
+  );
 
   @override
   bool isOrContains(String path) => _resource.isOrContains(path);
@@ -243,7 +318,10 @@ abstract class _TimingResource implements Resource {
   @override
   Resource resolveSymbolicLinksSync() => provider._wrap(
     provider._record(
-      '$_kind.resolveSymbolicLinksSync',
+      _operation(
+        ResourceProviderOperation.fileResolveSymbolicLinksSync,
+        ResourceProviderOperation.folderResolveSymbolicLinksSync,
+      ),
       _resource.resolveSymbolicLinksSync,
     ),
   );
@@ -255,7 +333,18 @@ abstract class _TimingResource implements Resource {
   Uri toUri() => _resource.toUri();
 
   @override
-  ResourceWatcher watch() => provider._record('$_kind.watch', _resource.watch);
+  ResourceWatcher watch() => provider._record(
+    _operation(
+      ResourceProviderOperation.fileWatch,
+      ResourceProviderOperation.folderWatch,
+    ),
+    _resource.watch,
+  );
+
+  ResourceProviderOperation _operation(
+    ResourceProviderOperation fileOperation,
+    ResourceProviderOperation folderOperation,
+  ) => _resource is File ? fileOperation : folderOperation;
 
   Folder _unwrap(Folder folder) =>
       folder is _TimingFolder ? folder._folder : folder;

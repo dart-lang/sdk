@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages/file_io_timing_page.dart';
+import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -46,7 +47,10 @@ class FileIoTimingPageTest extends PubPackageAnalysisServerTest {
     html = await page.generate({});
     expect(html, contains('<td class="right">4</td>'));
     expect(
-      server.timingResourceProvider.timings['File.readAsBytesSync']!.count,
+      server
+          .timingResourceProvider
+          .timings[ResourceProviderOperation.fileReadAsBytesSync]!
+          .count,
       2,
     );
   }
@@ -54,7 +58,10 @@ class FileIoTimingPageTest extends PubPackageAnalysisServerTest {
   Future<void> test_overlayIsExcluded() async {
     var file = newFile('$testPackageLibPath/test.dart', 'disk');
     var before =
-        server.timingResourceProvider.timings['File.readAsStringSync']?.count ??
+        server
+            .timingResourceProvider
+            .timings[ResourceProviderOperation.fileReadAsStringSync]
+            ?.count ??
         0;
     server.resourceProvider.setOverlay(
       file.path,
@@ -67,7 +74,10 @@ class FileIoTimingPageTest extends PubPackageAnalysisServerTest {
     );
     await page.generate({});
     expect(
-      server.timingResourceProvider.timings['File.readAsStringSync']?.count ??
+      server
+              .timingResourceProvider
+              .timings[ResourceProviderOperation.fileReadAsStringSync]
+              ?.count ??
           0,
       before,
     );

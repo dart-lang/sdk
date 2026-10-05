@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
+import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 
 class FileIoTimingPage extends DiagnosticPageWithNav {
   new(DiagnosticsSite site)
@@ -30,7 +31,8 @@ class FileIoTimingPage extends DiagnosticPageWithNav {
       return;
     }
 
-    var operations = timings.keys.toList()..sort();
+    var operations = timings.keys.toList()
+      ..sort((a, b) => a.label.compareTo(b.label));
     buf.writeln('<table>');
     buf.writeln(
       '<tr><th>Operation</th><th>Calls</th><th>Time (ms)</th>'
@@ -39,11 +41,11 @@ class FileIoTimingPage extends DiagnosticPageWithNav {
     for (var operation in operations) {
       var timing = timings[operation]!;
       var milliseconds = timing.elapsed.inMicroseconds / 1000;
-      var bytes = operation == 'File.readAsBytesSync'
+      var bytes = operation == ResourceProviderOperation.fileReadAsBytesSync
           ? '${timing.bytesRead}'
           : '&mdash;';
       buf.writeln(
-        '<tr><td>${escape(operation)}</td>'
+        '<tr><td>${escape(operation.label)}</td>'
         '<td class="right">${timing.count}</td>'
         '<td class="right">${milliseconds.toStringAsFixed(3)}</td>'
         '<td class="right">$bytes</td></tr>',

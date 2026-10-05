@@ -34,20 +34,31 @@ class TimingResourceProviderTest with ResourceProviderMixin {
     expect(provider.timings, isEmpty);
 
     expect(timedFile.readAsStringSync(), 'content');
-    var firstElapsed = provider.timings['File.readAsStringSync']!.elapsed;
+    var firstElapsed = provider
+        .timings[ResourceProviderOperation.fileReadAsStringSync]!
+        .elapsed;
     expect(timedFile.readAsStringSync(), 'content');
     expect(timedFile.exists, isTrue);
     expect(timedFile.lengthSync, 7);
     expect(timedFile.modificationStamp, file.modificationStamp);
 
-    expect(provider.timings['File.readAsStringSync']!.count, 2);
     expect(
-      provider.timings['File.readAsStringSync']!.elapsed,
+      provider.timings[ResourceProviderOperation.fileReadAsStringSync]!.count,
+      2,
+    );
+    expect(
+      provider.timings[ResourceProviderOperation.fileReadAsStringSync]!.elapsed,
       greaterThanOrEqualTo(firstElapsed),
     );
-    expect(provider.timings['File.exists']!.count, 1);
-    expect(provider.timings['File.lengthSync']!.count, 1);
-    expect(provider.timings['File.modificationStamp']!.count, 1);
+    expect(provider.timings[ResourceProviderOperation.fileExists]!.count, 1);
+    expect(
+      provider.timings[ResourceProviderOperation.fileLengthSync]!.count,
+      1,
+    );
+    expect(
+      provider.timings[ResourceProviderOperation.fileModificationStamp]!.count,
+      1,
+    );
   }
 
   void test_byteReadsAndFailures() {
@@ -58,11 +69,15 @@ class TimingResourceProviderTest with ResourceProviderMixin {
     var missingFile = provider.getFile(convertPath('/missing.dart'));
     expect(missingFile.readAsBytesSync, throwsA(isA<FileSystemException>()));
 
-    var timing = provider.timings['File.readAsBytesSync']!;
+    var timing =
+        provider.timings[ResourceProviderOperation.fileReadAsBytesSync]!;
     expect(timing.count, 3);
     expect(timing.bytesRead, 4);
     expect(missingFile.readAsStringSync, throwsA(isA<FileSystemException>()));
-    expect(provider.timings['File.readAsStringSync']!.count, 1);
+    expect(
+      provider.timings[ResourceProviderOperation.fileReadAsStringSync]!.count,
+      1,
+    );
   }
 
   void test_contentCacheDoesNotCountAsIo() {
@@ -70,15 +85,31 @@ class TimingResourceProviderTest with ResourceProviderMixin {
     var cache = FileContentCache(provider);
     expect(cache.get(file.path).content, 'content');
     expect(cache.get(file.path).content, 'content');
-    expect(provider.timings['File.readAsBytesSync']!.count, 1);
-    expect(provider.timings['File.readAsBytesSync']!.bytesRead, 7);
+    expect(
+      provider.timings[ResourceProviderOperation.fileReadAsBytesSync]!.count,
+      1,
+    );
+    expect(
+      provider
+          .timings[ResourceProviderOperation.fileReadAsBytesSync]!
+          .bytesRead,
+      7,
+    );
 
     file.writeAsStringSync('updated');
     expect(cache.get(file.path).content, 'content');
     cache.invalidate(file.path);
     expect(cache.get(file.path).content, 'updated');
-    expect(provider.timings['File.readAsBytesSync']!.count, 2);
-    expect(provider.timings['File.readAsBytesSync']!.bytesRead, 14);
+    expect(
+      provider.timings[ResourceProviderOperation.fileReadAsBytesSync]!.count,
+      2,
+    );
+    expect(
+      provider
+          .timings[ResourceProviderOperation.fileReadAsBytesSync]!
+          .bytesRead,
+      14,
+    );
   }
 
   void test_copyDoesNotDoubleCount() {
@@ -87,16 +118,19 @@ class TimingResourceProviderTest with ResourceProviderMixin {
     var copied = provider.getFile(file.path).copyTo(destination);
 
     expect(resourceProvider.getFile(copied.path).readAsStringSync(), 'content');
-    expect(provider.timings.keys, ['File.copyTo']);
-    expect(provider.timings['File.copyTo']!.count, 1);
+    expect(provider.timings.keys, [ResourceProviderOperation.fileCopyTo]);
+    expect(provider.timings[ResourceProviderOperation.fileCopyTo]!.count, 1);
     expect(copied.provider, same(provider));
     copied.readAsStringSync();
-    expect(provider.timings['File.readAsStringSync']!.count, 1);
+    expect(
+      provider.timings[ResourceProviderOperation.fileReadAsStringSync]!.count,
+      1,
+    );
 
     var folderCopy = provider.getFolder(file.parent.path).copyTo(destination);
     expect(folderCopy.provider, same(provider));
-    expect(provider.timings['Folder.copyTo']!.count, 1);
-    expect(provider.timings['File.copyTo']!.count, 1);
+    expect(provider.timings[ResourceProviderOperation.folderCopyTo]!.count, 1);
+    expect(provider.timings[ResourceProviderOperation.fileCopyTo]!.count, 1);
   }
 
   void test_navigationKeepsWrapping() {
@@ -106,24 +140,43 @@ class TimingResourceProviderTest with ResourceProviderMixin {
     expect(timedFile.provider, same(provider));
     expect(timedFile.parent.provider, same(provider));
     expect(folder.parent.provider, same(provider));
-    expect(provider.timings['ResourceProvider.getResource']!.count, 2);
+    expect(
+      provider.timings[ResourceProviderOperation.resourceGetResource]!.count,
+      2,
+    );
 
     var child = folder.getChild('test.dart') as File;
     expect(child.provider, same(provider));
     expect(child.readAsStringSync(), 'content');
-    expect(provider.timings['Folder.getChild']!.count, 1);
+    expect(
+      provider.timings[ResourceProviderOperation.folderGetChild]!.count,
+      1,
+    );
     var children = folder.getChildren();
     expect(children, hasLength(1));
     expect(children.single.provider, same(provider));
     expect((children.single as File).readAsStringSync(), 'content');
-    expect(provider.timings['Folder.getChildren']!.count, 1);
+    expect(
+      provider.timings[ResourceProviderOperation.folderGetChildren]!.count,
+      1,
+    );
 
     expect(folder.getFile('test.dart'), timedFile);
     expect(folder.getFolder('subfolder').provider, same(provider));
     expect(timedFile.resolveSymbolicLinksSync().provider, same(provider));
-    expect(provider.timings['File.resolveSymbolicLinksSync']!.count, 1);
+    expect(
+      provider
+          .timings[ResourceProviderOperation.fileResolveSymbolicLinksSync]!
+          .count,
+      1,
+    );
     expect(folder.resolveSymbolicLinksSync().provider, same(provider));
-    expect(provider.timings['Folder.resolveSymbolicLinksSync']!.count, 1);
+    expect(
+      provider
+          .timings[ResourceProviderOperation.folderResolveSymbolicLinksSync]!
+          .count,
+      1,
+    );
   }
 
   void test_overlayDoesNotCountAsIo() {
@@ -140,7 +193,10 @@ class TimingResourceProviderTest with ResourceProviderMixin {
 
     overlay.removeOverlay(file.path);
     expect(overlayFile.readAsStringSync(), 'disk');
-    expect(provider.timings['File.readAsStringSync']!.count, 1);
+    expect(
+      provider.timings[ResourceProviderOperation.fileReadAsStringSync]!.count,
+      1,
+    );
   }
 
   void test_pathOperationsDoNotCountAsIo() {
@@ -174,7 +230,12 @@ class TimingResourceProviderTest with ResourceProviderMixin {
       var timedFile = timedProvider.getFile(filePath);
       expect(timedFile.readAsStringSync(), file.readAsStringSync());
       expect(timedFile.readAsBytesSync(), [0xef, 0xbb, 0xbf, 0xc3, 0xa9]);
-      expect(timedProvider.timings['File.readAsBytesSync']!.bytesRead, 5);
+      expect(
+        timedProvider
+            .timings[ResourceProviderOperation.fileReadAsBytesSync]!
+            .bytesRead,
+        5,
+      );
 
       file.writeAsBytesSync([0xff]);
       var throwsDecodingError = throwsA(
@@ -188,7 +249,12 @@ class TimingResourceProviderTest with ResourceProviderMixin {
       );
       expect(file.readAsStringSync, throwsDecodingError);
       expect(timedFile.readAsStringSync, throwsDecodingError);
-      expect(timedProvider.timings['File.readAsStringSync']!.count, 2);
+      expect(
+        timedProvider
+            .timings[ResourceProviderOperation.fileReadAsStringSync]!
+            .count,
+        2,
+      );
     } finally {
       directory.deleteSync(recursive: true);
     }
@@ -200,7 +266,8 @@ class TimingResourceProviderTest with ResourceProviderMixin {
       () => slowProvider.getResource(convertPath('/test.dart')),
       throwsA(isA<FileSystemException>()),
     );
-    var timing = slowProvider.timings['ResourceProvider.getResource']!;
+    var timing =
+        slowProvider.timings[ResourceProviderOperation.resourceGetResource]!;
     expect(timing.count, 1);
     expect(timing.elapsed, greaterThanOrEqualTo(Duration(milliseconds: 2)));
   }
@@ -209,16 +276,23 @@ class TimingResourceProviderTest with ResourceProviderMixin {
     var state = provider.getStateLocation('plugin');
     expect(state, isNotNull);
     expect(state!.provider, same(provider));
-    expect(provider.timings['ResourceProvider.getStateLocation']!.count, 1);
+    expect(
+      provider
+          .timings[ResourceProviderOperation.resourceGetStateLocation]!
+          .count,
+      1,
+    );
     expect(state.exists, isTrue);
-    expect(provider.timings['Folder.exists']!.count, 1);
+    expect(provider.timings[ResourceProviderOperation.folderExists]!.count, 1);
   }
 
   void test_stateLocationUnavailable() {
     var timedProvider = TimingResourceProvider(_NoStateResourceProvider());
     expect(timedProvider.getStateLocation('plugin'), isNull);
     expect(
-      timedProvider.timings['ResourceProvider.getStateLocation']!.count,
+      timedProvider
+          .timings[ResourceProviderOperation.resourceGetStateLocation]!
+          .count,
       1,
     );
   }
@@ -235,7 +309,7 @@ class TimingResourceProviderTest with ResourceProviderMixin {
       file.writeAsStringSync('changed');
       await pumpEventQueue();
       expect(events, [file.path]);
-      expect(provider.timings['File.watch']!.count, 1);
+      expect(provider.timings[ResourceProviderOperation.fileWatch]!.count, 1);
     } finally {
       await subscription.cancel();
     }
@@ -247,29 +321,38 @@ class TimingResourceProviderTest with ResourceProviderMixin {
     timedFile.writeAsStringSync('updated');
     timedFile.writeAsBytesSync([65, 66]);
     expect(file.readAsStringSync(), 'AB');
-    expect(provider.timings['File.writeAsStringSync']!.count, 1);
-    expect(provider.timings['File.writeAsBytesSync']!.count, 1);
+    expect(
+      provider.timings[ResourceProviderOperation.fileWriteAsStringSync]!.count,
+      1,
+    );
+    expect(
+      provider.timings[ResourceProviderOperation.fileWriteAsBytesSync]!.count,
+      1,
+    );
 
     var renamed = timedFile.renameSync(convertPath('/folder/renamed.dart'));
     expect(renamed.provider, same(provider));
     expect(renamed.readAsStringSync(), 'AB');
-    expect(provider.timings['File.renameSync']!.count, 1);
+    expect(
+      provider.timings[ResourceProviderOperation.fileRenameSync]!.count,
+      1,
+    );
     renamed.delete();
-    expect(provider.timings['File.delete']!.count, 1);
+    expect(provider.timings[ResourceProviderOperation.fileDelete]!.count, 1);
 
     var folder = provider.getFolder(convertPath('/newFolder'));
     folder.create();
     expect(folder.exists, isTrue);
     folder.delete();
-    expect(provider.timings['Folder.create']!.count, 1);
-    expect(provider.timings['Folder.exists']!.count, 1);
-    expect(provider.timings['Folder.delete']!.count, 1);
+    expect(provider.timings[ResourceProviderOperation.folderCreate]!.count, 1);
+    expect(provider.timings[ResourceProviderOperation.folderExists]!.count, 1);
+    expect(provider.timings[ResourceProviderOperation.folderDelete]!.count, 1);
 
     var link = provider.getLink(convertPath('/link'));
     link.create(file.parent.path);
     expect(link.exists, isTrue);
-    expect(provider.timings['Link.create']!.count, 1);
-    expect(provider.timings['Link.exists']!.count, 1);
+    expect(provider.timings[ResourceProviderOperation.linkCreate]!.count, 1);
+    expect(provider.timings[ResourceProviderOperation.linkExists]!.count, 1);
   }
 }
 
