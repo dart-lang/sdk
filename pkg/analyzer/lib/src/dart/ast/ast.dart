@@ -3190,6 +3190,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   /// V1 topology is materialized only when observed. A shared child can be
   /// reached through V2 before its compatibility parent exists, and that
   /// parent need not correspond one-to-one with its canonical parent.
+  @ToBeDeprecated('Part of the V1 projection.')
   AstNodeImpl? get _parentInV1 {
     if (_parent case var parent?) {
       return parent;
@@ -56150,6 +56151,7 @@ enum V1Projection {
     return node;
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   static AstNodeImpl? _existingNode(AstNodeImpl node) => switch (node) {
     ExpressionImpl() => _toV1Expression(node, createIfAbsent: false),
     SuperReferenceImpl() => node._v1Projection,
