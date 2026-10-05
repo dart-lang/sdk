@@ -22,7 +22,10 @@ export 'version_info.dart' show VersionInfo;
 
 /// Client for talking to `shared_worker.dart`.
 base class WorkerClient {
+  static const _pingInterval = Duration(seconds: 30);
+
   final rpc.Peer _peer;
+  Timer? _pingTimer;
   final _languageServers = <int, LanguageServer>{};
   final _sandboxes = <int, Sandbox>{};
   final _watchers = <int, WorkspaceWatcher>{};
@@ -31,19 +34,38 @@ base class WorkerClient {
   ///
   /// The [channel] usually connects to a `Worker` instance (in tests) or a
   /// `MessagePort` (in the browser).
-  WorkerClient(StreamChannel<Object?> channel)
+  ///
+  /// When [keepAlive] is `true` (the default), [WorkerClient] sends a
+  /// periodic [ping] every 30 seconds to keep the worker session alive.
+  WorkerClient(StreamChannel<Object?> channel, {bool keepAlive = true})
     : _peer = rpc.Peer.withoutJson(channel) {
     _peer.registerMethod('workspace/languageServer/message', _handleLsMessage);
     _peer.registerMethod('workspace/languageServer/exited', _handleLsExited);
     _peer.registerMethod('workspace/watcher/events', _handleWatchEvent);
     _peer.registerMethod('workspace/sandbox/console', _handleSandboxConsole);
-    _peer.listen();
+    if (keepAlive) {
+      _pingTimer = Timer.periodic(_pingInterval, (_) {
+        if (!_peer.isClosed) {
+          ping().ignore();
+        }
+      });
+    }
+    _peer.listen().whenComplete(() => _pingTimer?.cancel()).ignore();
   }
 
   Future<void> get done => _peer.done;
 
+  /// Sends a keep-alive `ping` request to the worker.
+  ///
+  /// [WorkerClient] automatically sends a `ping` every 30 seconds while
+  /// connected so that the worker does not close the session for inactivity.
+  Future<void> ping() async {
+    await _peer.request<Map>('ping', {});
+  }
+
   /// Closes the connection to the worker.
   Future<void> close() async {
+    _pingTimer?.cancel();
     await _peer.close();
   }
 

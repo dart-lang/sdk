@@ -6,6 +6,7 @@ import 'worker/compile.dart' as dart_compile;
 import 'worker/filesystem.dart' as dart_filesystem;
 import 'worker/hot_reload.dart' as dart_hotreload;
 import 'worker/language_server.dart' as dart_languageserver;
+import 'worker/liveness.dart' as dart_liveness;
 import 'worker/pub.dart' as dart_pub;
 import 'worker/sandbox.dart' as dart_sandbox;
 import 'worker/version.dart' as dart_version;
@@ -18,6 +19,7 @@ final testFiles = [
   ('dart/worker/filesystem.dart', dart_filesystem.main),
   ('dart/worker/hot_reload.dart', dart_hotreload.main),
   ('dart/worker/language_server.dart', dart_languageserver.main),
+  ('dart/worker/liveness.dart', dart_liveness.main),
   ('dart/worker/pub.dart', dart_pub.main),
   ('dart/worker/sandbox.dart', dart_sandbox.main),
   ('dart/worker/version.dart', dart_version.main),
