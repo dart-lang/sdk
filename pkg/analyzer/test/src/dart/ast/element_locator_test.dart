@@ -23,6 +23,7 @@ main() {
 }
 
 @reflectiveTest
+@ToBeDeprecated('Use ElementLocatorV2Test instead.')
 class ElementLocatorTest extends PubPackageResolutionTest {
   test_locate_AssignedVariablePattern() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
@@ -1123,6 +1124,40 @@ void main() {
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_locate_ConstructorSelector_ConstructorInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+}
+
+void f() {
+  A.named(); // 0
+}
+''');
+    var node = result.findNode.constructorSelector('named(); // 0');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@constructor::named
+''');
+  }
+
+  test_locate_ConstructorSelector_ConstructorTearOff() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+}
+
+void f() {
+  A.named; // 0
+}
+''');
+    var node = result.findNode.constructorSelector('named; // 0');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@constructor::named
 ''');
   }
 
