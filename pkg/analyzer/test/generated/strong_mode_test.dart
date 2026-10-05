@@ -7224,7 +7224,6 @@ final class _TestInvocation {
   _TestInvocation(this.expression)
     : argumentList = switch (expression) {
         FunctionInvocation(:var argumentList) => argumentList,
-        MethodInvocation(:var argumentList) => argumentList,
         _ => throw StateError('Not an invocation: $expression'),
       };
 
