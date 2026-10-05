@@ -347,7 +347,7 @@ class B {
       element.firstFragment,
     )!;
     var node = declaration.node as ConstructorDeclaration;
-    expect(node.typeName, isNull);
+    expect(node.typeName2, isNull);
     expect(node.factoryKeyword, isNotNull);
     expect(node.newKeyword, isNull);
     expect(node.offset, 23);
@@ -373,7 +373,7 @@ class B {
       element.firstFragment,
     )!;
     var node = declaration.node as ConstructorDeclaration;
-    expect(node.typeName, isNull);
+    expect(node.typeName2, isNull);
     expect(node.factoryKeyword, isNull);
     expect(node.newKeyword, isNotNull);
     expect(node.offset, 23);
@@ -422,7 +422,7 @@ class B {
       element.firstFragment,
     )!;
     var node = declaration.node as ConstructorDeclaration;
-    expect(node.typeName!.token.lexeme, 'B');
+    expect(node.typeName2!.lexeme, 'B');
     expect(node.offset, 23);
     expect(node.length, 4);
   }

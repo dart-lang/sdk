@@ -170,7 +170,7 @@ class C {
     checkOffset<ConstructorFragment>(
       constructorDeclaration,
       constructorDeclaration.declaredFragment!,
-      constructorDeclaration.typeName!.offset,
+      constructorDeclaration.typeName2!.offset,
     );
   }
 
@@ -399,7 +399,7 @@ void f((int x)) {}
 ''');
     var function = result.findNode.functionDeclaration('f(');
     var parameter =
-        function.functionExpression.parameters!.parameters[0]
+        function.functionExpression.parameters!.allFormalParameters[0]
             as RegularFormalParameter;
     expect(parameter.name!.isSynthetic, true);
     checkOffsetInRange<FormalParameterFragment>(
@@ -416,7 +416,7 @@ void f(void (int x)) {}
 ''');
     var function = result.findNode.functionDeclaration('f(');
     var parameter =
-        function.functionExpression.parameters!.parameters[0]
+        function.functionExpression.parameters!.allFormalParameters[0]
             as RegularFormalParameter;
     expect(parameter.name!.isSynthetic, true);
     checkOffsetInRange<FormalParameterFragment>(
