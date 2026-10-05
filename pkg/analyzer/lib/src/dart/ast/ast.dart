@@ -8652,6 +8652,7 @@ final class CommentImpl extends AstNodeImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class CommentReferableExpression implements Expression {}
 
+@ToBeDeprecated('Part of the V1 AST.')
 sealed class CommentReferableExpressionImpl extends ExpressionImpl
     implements CommentReferableExpression {}
 
@@ -8854,6 +8855,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   @override
   final bool isSynthetic;
 
+  @ToBeDeprecated('Part of the V1 AST.')
   CommentReferableExpressionImpl? _expression;
 
   @generated
@@ -12434,7 +12436,7 @@ abstract final class ConstructorTearOff
     GenerateNodeProperty('selector'),
   ],
 )
-final class ConstructorTearOffImpl extends CommentReferableExpressionImpl
+final class ConstructorTearOffImpl extends ExpressionImpl
     implements _ConstructorReferenceV2Origin, ConstructorTearOff {
   @generated
   ConstructorTypeReferenceImpl _typeReference;
@@ -54861,8 +54863,7 @@ abstract final class TypeLiteral
 }
 
 @GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('type')])
-final class TypeLiteralImpl extends CommentReferableExpressionImpl
-    implements TypeLiteral {
+final class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
   @generated
   NamedTypeImpl _type;
 
