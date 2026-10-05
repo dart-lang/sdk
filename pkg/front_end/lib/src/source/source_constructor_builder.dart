@@ -372,9 +372,7 @@ class SourceConstructorBuilder extends SourceMemberBuilderImpl
     NameSpace nameSpace,
     TypeEnvironment typeEnvironment,
   ) {
-    for (int i = 0; i < _declarations.length; i++) {
-      _declarations[i].checkTypes(problemReporting, nameSpace, typeEnvironment);
-    }
+    _implementation.checkTypes(problemReporting, nameSpace, typeEnvironment);
   }
 
   @override
