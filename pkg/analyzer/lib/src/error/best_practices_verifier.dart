@@ -1135,9 +1135,8 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         var errorNode =
             node.combinators
                 .whereType<ShowCombinator>()
-                .map((c) => c.shownNames)
-                .expand((shownNames) => shownNames)
-                .where((n) => n.name == name)
+                .expand((c) => c.names)
+                .where((n) => n.name.lexeme == name)
                 .firstOrNull ??
             node;
         _diagnosticReporter.report(

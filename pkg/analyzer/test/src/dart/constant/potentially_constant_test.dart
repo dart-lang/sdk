@@ -560,7 +560,7 @@ class A {
 A x = .a;
 ''',
       (result) => _xInitializer(result),
-      (result) => [result.findNodeV1.simple('a;')],
+      (result) => [result.findNode.dotShorthandNameExpression('.a;')],
     );
   }
 
