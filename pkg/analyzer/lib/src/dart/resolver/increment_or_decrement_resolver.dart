@@ -269,21 +269,11 @@ class IncrementOrDecrementResolver {
     );
     node.element = result.getter2 as InternalMethodElement?;
     if (result.needsGetterError) {
-      if (node.target case InvalidExpressionAssignmentTargetImpl(
-        expression: SuperExpression(),
-      )) {
-        _diagnosticReporter.report(
-          diag.undefinedSuperOperator
-              .withArguments(operator: methodName, type: readType)
-              .at(operator),
-        );
-      } else {
-        _diagnosticReporter.report(
-          diag.undefinedOperator
-              .withArguments(operator: methodName, type: readType)
-              .at(operator),
-        );
-      }
+      _diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(operator: methodName, type: readType)
+            .at(operator),
+      );
     }
   }
 

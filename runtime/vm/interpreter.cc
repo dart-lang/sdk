@@ -4407,11 +4407,37 @@ SwitchDispatchNoSingleStep:
     goto NoSuchMethodFromPrologue;
   }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#define CHECK_FOR_RELOADED_IMPLICIT_CLOSURE                                    \
+  do {                                                                         \
+    if (Function::IsReloadedImplicitClosure(function)) {                       \
+      SP[1] = function;                                                        \
+      SP[2] = argdesc_;                                                        \
+      SP[3] = 0; /* Space for result. */                                       \
+      Exit(thread, FP, SP + 4, pc);                                            \
+      INVOKE_RUNTIME(DRT_ResolveReloadedImplicitClosureFunction,               \
+                     NativeArguments(thread, 2, SP + 1, SP + 3));              \
+      if (SP[3]->IsArray()) {                                                  \
+        /* The resulting array contains the arguments for */                   \
+        /* NoSuchMethodError_throwNew.                    */                   \
+        SP += 3;                                                               \
+        goto ThrowNoSuchMethodError;                                           \
+      }                                                                        \
+      /* Otherwise, the current arguments are compatible enough to use  */     \
+      /* the new implicit closure function with the existing arguments. */     \
+      function = Function::RawCast(SP[3]);                                     \
+    }                                                                          \
+  } while (0)
+#else
+#define CHECK_FOR_RELOADED_IMPLICIT_CLOSURE
+#endif
+
   {
     BYTECODE(VMInternal_ImplicitStaticClosure, 0);
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
+    CHECK_FOR_RELOADED_IMPLICIT_CLOSURE;
     ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
     FunctionPtr target = Function::RawCast(data->untag()->parent_function());
 
@@ -4477,6 +4503,7 @@ SwitchDispatchNoSingleStep:
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
+    CHECK_FOR_RELOADED_IMPLICIT_CLOSURE;
     ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
     FunctionPtr target = Function::RawCast(data->untag()->parent_function());
 
@@ -4552,6 +4579,7 @@ SwitchDispatchNoSingleStep:
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
+    CHECK_FOR_RELOADED_IMPLICIT_CLOSURE;
     ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
     FunctionPtr target = Function::RawCast(data->untag()->parent_function());
     ASSERT(Function::KindOf(target) == UntaggedFunction::kConstructor);
@@ -4659,6 +4687,8 @@ SwitchDispatchNoSingleStep:
 
     DISPATCH();
   }
+
+#undef CHECK_FOR_RELOADED_IMPLICIT_CLOSURE
 
   {
   TailCallSP1:

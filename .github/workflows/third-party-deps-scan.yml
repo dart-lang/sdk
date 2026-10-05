@@ -42,7 +42,7 @@ jobs:
     name: Vulnerability scanning
     needs:
       extract-deps
-    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@8e5cf47b818121e8b405931c82126c2630b0b20d"
+    uses: "google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@8ac9e5ce44cc7178e0e04229a91bdcc003166e57"
     with:
       # Download the artifact uploaded in the extract-deps step.
       download-artifact: osv-lockfile-${{github.sha}}

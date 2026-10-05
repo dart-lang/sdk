@@ -67,7 +67,7 @@ class _Collector {
         case ExecutableTearOffResolution():
           return;
         default:
-          nodes.add(node.dotShorthandPropertyAccess.propertyName);
+          nodes.add(node);
           return;
       }
     }

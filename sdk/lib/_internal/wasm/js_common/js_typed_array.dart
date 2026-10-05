@@ -308,7 +308,9 @@ final class JSDataViewImpl extends js.JSExternWrapper implements ByteData {
   JSDataViewImpl.fromRefUnchecked(WasmExternRef? ref)
     : lengthInBytes = _dataViewByteLength(ref),
       _immutable = false,
-      super(ref);
+      super(ref) {
+    assert(_getRefType(ref) == 1);
+  }
 
   factory JSDataViewImpl.fromRef(WasmExternRef? ref) {
     final refType = _getRefType(ref);
@@ -319,7 +321,7 @@ final class JSDataViewImpl extends js.JSExternWrapper implements ByteData {
   static JSDataViewImpl? fromRefNullable(WasmExternRef? ref) {
     final refType = _getRefType(ref);
     if (refType == 0) return null;
-    if (refType == 2) return JSDataViewImpl.fromRefUnchecked(ref);
+    if (refType == 1) return JSDataViewImpl.fromRefUnchecked(ref);
     return _throwConversionFailureError("ByteData");
   }
 

@@ -2691,6 +2691,10 @@ void Timeline::DrainCompletedSampleBlocksIntoRecorder(
     return;
   }
 
+  if (Profiler::sample_block_buffer() == nullptr) {
+    return;
+  }
+
 #if defined(DART_PRECOMPILED_RUNTIME)
   auto& profile = *Profiler::sample_block_buffer();
 #else

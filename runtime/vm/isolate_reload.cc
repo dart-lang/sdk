@@ -1900,6 +1900,9 @@ void ProgramReloadContext::CommitBeforeInstanceMorphing() {
           new_cls.CopyStaticFieldValues(this, old_cls);
           old_cls.PatchFieldsAndFunctions();
           old_cls.MigrateImplicitStaticClosures(this, new_cls);
+#if defined(DART_DYNAMIC_MODULES)
+          old_cls.MarkReloadedImplicitClosureFunctions();
+#endif
         }
       }
     }

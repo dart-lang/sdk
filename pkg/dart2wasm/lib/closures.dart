@@ -482,7 +482,7 @@ class ClosureLayouter extends RecursiveVisitor {
       ) {
         final representationsForCounts =
             representationsForTypeCount[positionalCount];
-        if (typeCount > 0) {
+        if (typeCount > 0 && positionalCount < representations[0].length) {
           // Due to generic function instantiations, any name combination that
           // occurs in a call of a non-generic function also counts as occurring
           // in a call of all corresponding generic functions.

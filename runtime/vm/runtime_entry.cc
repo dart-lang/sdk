@@ -5886,6 +5886,128 @@ DEFINE_RUNTIME_ENTRY(AllocateBytecodeCoverageArray, 1) {
         // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+static ArrayPtr PrepareNoSuchMethodErrorArguments(Thread* thread,
+                                                  Zone* zone,
+                                                  const Function& target,
+                                                  const Array& argdesc) {
+  auto const kind = InvocationMirror::Kind::kMethod;
+  const auto& owner = Class::Handle(target.Owner());
+  auto& receiver = Instance::Handle();
+  auto level = InvocationMirror::Level::kDynamic;
+  if (owner.IsTopLevel()) {
+    level = InvocationMirror::Level::kTopLevel;
+  } else if (target.IsConstructor()) {
+    level = InvocationMirror::Level::kConstructor;
+  } else if (target.is_static()) {
+    level = InvocationMirror::Level::kStatic;
+  }
+  const auto& member_name = String::Handle(zone, target.name());
+  const auto& invocation_type =
+      Smi::Handle(zone, Smi::New(InvocationMirror::EncodeType(level, kind)));
+
+  // Collect the arguments to report for the NSM error by retrieving
+  // the arguments to the old implicit closure from the stack.
+  DartFrameIterator iterator(thread,
+                             StackFrameIterator::kNoCrossThreadIteration);
+  auto* const caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame->is_interpreted());
+
+  ArgumentsDescriptor args_desc(argdesc);
+  const intptr_t type_args_len = args_desc.TypeArgsLen();
+  const intptr_t argc = args_desc.CountWithTypeArgs();
+  const intptr_t receiver_idx = args_desc.FirstArgIndex();
+  // The reported arguments don't include either the type arguments or
+  // the receiver, as those are passed separately.
+  const bool is_instance = !target.IsConstructor() && !target.is_static();
+  const intptr_t arg_count =
+      argc - (type_args_len > 0 ? 1 : 0) - (is_instance ? 1 : 0);
+  const auto& orig_arguments = Array::Handle(zone, Array::New(arg_count));
+  auto& obj = Object::Handle(zone);
+  auto* const argv = reinterpret_cast<ObjectPtr*>(caller_frame->fp()) -
+                     (kKBCDartFrameFixedSize + argc);
+  auto& type_args = TypeArguments::Handle(zone);
+  if (type_args_len > 0) {
+    type_args ^= argv[0];
+  }
+  if (is_instance) {
+    // The "context" of an implicit instance closure is the receiver.
+    const auto& closure = Closure::CheckedHandle(zone, argv[receiver_idx]);
+    receiver ^= closure.RawContext();
+  } else {
+    // The "receiver" of the NSM error is the class (represented as a type).
+    receiver = owner.RareType();
+  }
+  for (intptr_t i = 0; i < arg_count; i++) {
+    obj = argv[receiver_idx + i];
+    orig_arguments.SetAt(i, obj);
+  }
+
+  // NoSuchMethodError._throwNew takes the following arguments:
+  //   Object receiver,
+  //   String memberName,
+  //   int invocationType,
+  //   int typeArgumentsLength,
+  //   Object? typeArguments,
+  //   List? arguments,
+  //   List? argumentNames
+  const auto& args = Array::Handle(zone, Array::New(7));
+  args.SetAt(0, receiver);
+  args.SetAt(1, member_name);
+  args.SetAt(2, invocation_type);
+  args.SetAt(3, Smi::Handle(zone, Smi::New(type_args_len)));
+  args.SetAt(4, type_args);
+  args.SetAt(5, orig_arguments);
+  args.SetAt(6, Object::null_object());
+  return args.ptr();
+}
+#endif  // defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&
+        // !defined(DART_PRECOMPILED_RUNTIME)
+
+// Re-resolves the function for an interpreted implicit closure after reload.
+// Either returns the new implicit closure function or an array of arguments
+// to pass to NoSuchMethodError._throwNew.
+//
+// Arg0: Implicit closure function that should be re-resolved.
+// Arg1: Arguments descriptor array for the call.
+DEFINE_RUNTIME_ENTRY(ResolveReloadedImplicitClosureFunction, 2) {
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
+  const auto& argdesc = Array::CheckedHandle(zone, arguments.ArgAt(1));
+  ASSERT(function.IsImplicitClosureFunction());
+  ASSERT(function.IsReloadedImplicitClosure());
+
+  // The owner of the old implicit closure is the new class (via a PatchClass).
+  const auto& klass = Class::Handle(zone, function.Owner());
+  const auto& selector = String::Handle(zone, function.name());
+  auto& result =
+      Object::Handle(zone, Resolver::ResolveFunction(zone, klass, selector));
+  if (!result.IsNull()) {
+    // Get the new implicit closure function for the given target.
+    result = Function::Cast(result).ImplicitClosureFunction();
+    ASSERT(!Function::Cast(result).IsReloadedImplicitClosure());
+    ArgumentsDescriptor args_desc(argdesc);
+    if (!Function::Cast(result).AreValidArguments(args_desc,
+                                                  /*error_message=*/nullptr)) {
+      // Discard the resolved function and throw NSM instead as the arguments
+      // have changed in an incompatible way.
+      result = Function::null();
+    }
+  }
+  if (result.IsNull()) {
+    const auto& target = Function::Handle(zone, function.parent_function());
+    result = PrepareNoSuchMethodErrorArguments(thread, zone, target, argdesc);
+  }
+  ASSERT(!result.IsNull());
+  arguments.SetReturn(result);
+#else
+  UNREACHABLE();
+#endif  // defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&
+        // !defined(DART_PRECOMPILED_RUNTIME)
+}
+
 DEFINE_RUNTIME_ENTRY(FatalError, 1) {
   const String& message = String::CheckedHandle(zone, arguments.ArgAt(0));
   FATAL("%s", message.ToCString());

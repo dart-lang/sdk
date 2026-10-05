@@ -229,10 +229,6 @@ extension on ElementAnnotation {
 
 extension on AstNode {
   SyntacticEntity get nodeToAnnotate => switch (this) {
-    DotShorthandConstructorInvocation node => node.constructorName,
-    DotShorthandInvocation node => node.memberName,
-    DotShorthandPropertyAccess node => node.propertyName,
-    MethodInvocation node => node.methodName,
     ReceiverMethodInvocation node => node.name,
     CallInvocation(receiver: ReceiverPropertyExtraction(:var name)) => name,
     CallInvocation node => node.receiver.nodeToAnnotate,

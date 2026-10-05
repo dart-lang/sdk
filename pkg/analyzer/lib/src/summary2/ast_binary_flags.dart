@@ -25,15 +25,10 @@ class AstBinaryFlags {
 
   static final _hasPrefix = _checkBit(1, ImportDirective);
 
-  static final _hasPeriod = _checkBit(0, MethodInvocation, PropertyAccess);
-
-  static final _hasPeriod2 = _checkBit(1, MethodInvocation, PropertyAccess);
-
   static final _hasQuestion = _checkBit(
     2,
     GenericFunctionType,
     NamedType,
-    PropertyAccess,
     ReceiverIndexAssignmentTarget,
     ReceiverIndexExpression,
   );
@@ -76,8 +71,6 @@ class AstBinaryFlags {
   );
 
   static final _isCovariant = _checkBit(2, FieldDeclaration);
-
-  static final _isDeclaration = _checkBit(0, SimpleIdentifier);
 
   static final _isDeferred = _checkBit(0, ImportDirective);
 
@@ -158,8 +151,6 @@ class AstBinaryFlags {
     bool hasInitializer = false,
     bool hasName = false,
     bool hasNot = false,
-    bool hasPeriod = false,
-    bool hasPeriod2 = false,
     bool hasPrefix = false,
     bool hasQuestion = false,
     bool hasSeparatorColon = false,
@@ -170,7 +161,6 @@ class AstBinaryFlags {
     bool isAsync = false,
     bool isConst = false,
     bool isCovariant = false,
-    bool isDeclaration = false,
     bool isDeferred = false,
     bool isExternal = false,
     bool isFactory = false,
@@ -209,12 +199,6 @@ class AstBinaryFlags {
     if (hasNot) {
       result |= _hasNot;
     }
-    if (hasPeriod) {
-      result |= _hasPeriod;
-    }
-    if (hasPeriod2) {
-      result |= _hasPeriod2;
-    }
     if (hasPrefix) {
       result |= _hasPrefix;
     }
@@ -241,9 +225,6 @@ class AstBinaryFlags {
     }
     if (isCovariant) {
       result |= _isCovariant;
-    }
-    if (isDeclaration) {
-      result |= _isDeclaration;
     }
     if (isDeferred) {
       result |= _isDeferred;
@@ -402,14 +383,6 @@ class AstBinaryFlags {
     return (flags & _hasNot) != 0;
   }
 
-  static bool hasPeriod(int flags) {
-    return (flags & _hasPeriod) != 0;
-  }
-
-  static bool hasPeriod2(int flags) {
-    return (flags & _hasPeriod2) != 0;
-  }
-
   static bool hasPrefix(int flags) {
     return (flags & _hasPrefix) != 0;
   }
@@ -448,10 +421,6 @@ class AstBinaryFlags {
 
   static bool isCovariant(int flags) {
     return (flags & _isCovariant) != 0;
-  }
-
-  static bool isDeclaration(int flags) {
-    return (flags & _isDeclaration) != 0;
   }
 
   static bool isDeferred(int flags) {

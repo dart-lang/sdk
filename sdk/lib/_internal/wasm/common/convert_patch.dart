@@ -2222,7 +2222,7 @@ class _Utf8Decoder {
       final u8list = unsafeCast<U8List>(codeUnits);
       bytes = u8list.data;
       final offsetInBytes = u8list.offsetInBytes;
-      errorOffset = -start - offsetInBytes;
+      errorOffset = -offsetInBytes;
       start += offsetInBytes;
       end += offsetInBytes;
     } else {
@@ -2248,9 +2248,9 @@ class _Utf8Decoder {
         }
         bytes.write(bytesIdx++, byte);
       }
+      errorOffset = start;
       start = 0;
       end = length;
-      errorOffset = 0;
     }
 
     // Skip initial BOM.
@@ -2314,12 +2314,12 @@ class _Utf8Decoder {
       final u8list = unsafeCast<U8List>(codeUnits);
       bytes = u8list.data;
       final offsetInBytes = u8list.offsetInBytes;
-      errorOffset = -start - offsetInBytes;
+      errorOffset = -offsetInBytes;
       start += offsetInBytes;
       end += offsetInBytes;
     } else {
       bytes = _makeI8Array(codeUnits, start, end);
-      errorOffset = -start;
+      errorOffset = start;
       end -= start;
       start = 0;
     }

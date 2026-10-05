@@ -10,63 +10,63 @@ class ConstConstructorAssert {
   const ConstConstructorAssert.blue(Color color) : assert(.blue == color);
   //                                                      ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                       ^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  //                                                       ^^^^
   // [cfe] No type was provided to find the dot shorthand 'blue'.
 
   const ConstConstructorAssert.notBlue(Color color) : assert(.blue != color);
   //                                                         ^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //                                                          ^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  //                                                          ^^^^
   // [cfe] No type was provided to find the dot shorthand 'blue'.
 
   const ConstConstructorAssert.one(Integer integer)
     : assert(.constOne == integer);
   //         ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //          ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  //          ^^^^^^^^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.notOne(Integer integer)
     : assert(.constOne != integer);
   //         ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //          ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  //          ^^^^^^^^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.oneExt(IntegerExt integer)
     : assert(.constOne == integer);
   //         ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //          ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  //          ^^^^^^^^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.notOneExt(IntegerExt integer)
     : assert(.constOne != integer);
   //         ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //          ^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  //          ^^^^^^^^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
 
   const ConstConstructorAssert.oneMixin(IntegerMixin integer)
     : assert(.mixinConstOne == integer);
   //         ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //          ^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  //          ^^^^^^^^^^^^^
   // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
 
   const ConstConstructorAssert.notOneMixin(IntegerMixin integer)
     : assert(.mixinConstOne != integer);
   //         ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
-  //          ^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
+  //          ^^^^^^^^^^^^^
   // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
 }
 
@@ -188,9 +188,9 @@ void rhsNeedsToBeShorthand(
   //                                                       ^
   // [cfe] No type was provided to find the dot shorthand 'red'.
   //                                                             ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                              ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'green'.
 
   const bool rhsColorNeq = constColor != (constCondition ? .red : .green);
@@ -199,9 +199,9 @@ void rhsNeedsToBeShorthand(
   //                                                        ^
   // [cfe] No type was provided to find the dot shorthand 'red'.
   //                                                              ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                               ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'green'.
 
   if (color == (.red)) print('not ok');
@@ -240,9 +240,10 @@ void rhsNeedsToBeShorthand(
     //                                 ^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
     // [cfe] The static getter or field 'red' isn't defined for the type 'Object?'.
+    //                                       ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     //                                        ^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     // [cfe] The static getter or field 'green' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -251,9 +252,10 @@ void rhsNeedsToBeShorthand(
     //                                 ^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
     // [cfe] The static getter or field 'red' isn't defined for the type 'Object?'.
+    //                                       ^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     //                                        ^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     // [cfe] The static getter or field 'green' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -266,9 +268,9 @@ void rhsNeedsToBeShorthand(
   //                                     ^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
   //                                                ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                 ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
   const bool rhsIntegerNeq =
@@ -278,9 +280,9 @@ void rhsNeedsToBeShorthand(
   //                                     ^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
   //                                                ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                 ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
   if (integer == (condition ? .constOne : .constTwo)) {
@@ -311,9 +313,10 @@ void rhsNeedsToBeShorthand(
     //                                   ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
     // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object?'.
+    //                                              ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     //                                               ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -322,9 +325,10 @@ void rhsNeedsToBeShorthand(
     //                                   ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
     // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object?'.
+    //                                              ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     //                                               ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -337,9 +341,9 @@ void rhsNeedsToBeShorthand(
   //                                        ^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
   //                                                   ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                    ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
   const bool rhsIntegerExtNeq =
@@ -349,9 +353,9 @@ void rhsNeedsToBeShorthand(
   //                                        ^
   // [cfe] No type was provided to find the dot shorthand 'constOne'.
   //                                                   ^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                    ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'constTwo'.
 
   if (integerExt == (condition ? .constOne : .constTwo)) {
@@ -382,9 +386,10 @@ void rhsNeedsToBeShorthand(
     //                                      ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
     // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object?'.
+    //                                                 ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     //                                                  ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -393,9 +398,10 @@ void rhsNeedsToBeShorthand(
     //                                      ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
     // [cfe] The static getter or field 'constOne' isn't defined for the type 'Object?'.
+    //                                                 ^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     //                                                  ^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     // [cfe] The static getter or field 'constTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -408,9 +414,9 @@ void rhsNeedsToBeShorthand(
   //                                          ^
   // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
   //                                                          ^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                           ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'mixinConstTwo'.
 
   const bool rhsIntegerMixinNeq =
@@ -420,9 +426,9 @@ void rhsNeedsToBeShorthand(
   //                                          ^
   // [cfe] No type was provided to find the dot shorthand 'mixinConstOne'.
   //                                                          ^^^^^^^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                                                           ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [cfe] No type was provided to find the dot shorthand 'mixinConstTwo'.
 
   if (integerMixin == (condition ? .mixinConstOne : .mixinConstTwo)) {
@@ -453,9 +459,10 @@ void rhsNeedsToBeShorthand(
     //                                        ^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
     // [cfe] The static getter or field 'mixinConstOne' isn't defined for the type 'Object?'.
+    //                                                        ^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     //                                                         ^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     // [cfe] The static getter or field 'mixinConstTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
@@ -464,9 +471,10 @@ void rhsNeedsToBeShorthand(
     //                                        ^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
     // [cfe] The static getter or field 'mixinConstOne' isn't defined for the type 'Object?'.
+    //                                                        ^^^^^^^^^^^^^^
+    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     //                                                         ^^^^^^^^^^^^^
     // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
-    // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_RELATIONAL_PATTERN_EXPRESSION
     // [cfe] The static getter or field 'mixinConstTwo' isn't defined for the type 'Object?'.
     print('not ok');
   }
