@@ -13,646 +13,138 @@ import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ExitDetectorCollectionElementTest);
     defineReflectiveTests(ExitDetectorParsedStatementTest);
     defineReflectiveTests(ExitDetectorResolvedStatementTest);
     defineReflectiveTests(ExitDetectorResolvedStatementTest_BeforePatterns);
-    defineReflectiveTests(ExitDetectorForCodeAsUiTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
-/// Tests for the [ExitDetector] that require that the control flow and spread
-/// experiments be enabled.
 @reflectiveTest
-class ExitDetectorForCodeAsUiTest extends ParserDiagnosticsTest {
-  test_for_condition() async {
-    _assertTrue('[for (; throw 0;) 0]');
-  }
-
-  test_for_implicitTrue() async {
-    _assertTrue('[for (;;) 0]');
-  }
-
-  test_for_initialization() async {
-    _assertTrue('[for (i = throw 0;;) 0]');
-  }
-
-  test_for_true() async {
-    _assertTrue('[for (; true; ) 0]');
-  }
-
-  test_for_true_if_return() async {
-    _assertTrue('[for (; true; ) if (true) throw 42]');
-  }
-
-  test_for_true_noBreak() async {
-    _assertTrue('[for (; true; ) 0]');
-  }
-
-  test_for_updaters() async {
-    _assertTrue('[for (;; i++, throw 0) 1]');
-  }
-
-  test_for_variableDeclaration() async {
-    _assertTrue('[for (int i = throw 0;;) 1]');
-  }
-
-  test_forEach() async {
-    _assertFalse('[for (element in list) 0]');
-  }
-
-  test_forEach_throw() async {
-    _assertTrue('[for (element in throw 42) 0]');
-  }
-
-  test_if_false_else_throw() async {
-    _assertTrue('[if (false) 0 else throw 42]');
-  }
-
-  test_if_false_noThrow() async {
-    _assertFalse('[if (false) 0]');
-  }
-
-  test_if_false_throw() async {
-    _assertFalse('[if (false) throw 42]');
-  }
-
-  test_if_noThrow() async {
-    _assertFalse('[if (c) i++]');
-  }
-
-  test_if_throw() async {
-    _assertFalse('[if (c) throw 42]');
-  }
-
-  test_if_true_noThrow() async {
-    _assertFalse('[if (true) 0]');
-  }
-
-  test_if_true_throw() async {
-    _assertTrue('[if (true) throw 42]');
-  }
-
-  test_ifElse_bothThrow() async {
-    _assertTrue("[if (c) throw 0 else throw 1]");
-  }
-
-  test_ifElse_elseThrow() async {
-    _assertFalse('[if (c) 0 else throw 42]');
-  }
-
-  test_ifElse_noThrow() async {
-    _assertFalse('[if (c) 0 else 1]');
-  }
-
-  test_ifElse_thenThrow() async {
-    _assertFalse('[if (c) throw 42 else 0]');
-  }
-
-  test_nullAwareElement() async {
-    _assertFalse('[?0]');
-  }
-
-  void _assertFalse(String expressionCode) {
-    _assertHasReturn(expressionCode, false);
-  }
-
-  void _assertHasReturn(String expressionCode, bool expected) {
+class ExitDetectorCollectionElementTest extends ParserDiagnosticsTest
+    with ExitDetectorCollectionElementTestCases {
+  @override
+  Future<void> _assertHasReturn(String expressionCode, bool expected) async {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f() { // ref
   $expressionCode;
 }
 ''');
-
-    var findNode = parseResult.findNode;
-
-    var block = findNode.block('{ // ref');
+    var block = parseResult.findNode.block('{ // ref');
     var statement = block.statements.single as ExpressionStatement;
     expect(ExitDetector.exits(statement.expression), expected);
   }
+}
 
-  void _assertTrue(String expressionCode) {
-    _assertHasReturn(expressionCode, true);
+/// Tests for exit detectors with collection elements: `for` elements, `if`
+/// elements, and null-aware elements.
+mixin ExitDetectorCollectionElementTestCases {
+  test_for_condition() async {
+    await _assertTrue('[for (; throw 0;) 0]');
+  }
+
+  test_for_implicitTrue() async {
+    await _assertTrue('[for (;;) 0]');
+  }
+
+  test_for_initialization() async {
+    await _assertTrue('[for (i = throw 0;;) 0]');
+  }
+
+  test_for_true() async {
+    await _assertTrue('[for (; true; ) 0]');
+  }
+
+  test_for_true_if_return() async {
+    await _assertTrue('[for (; true; ) if (true) throw 42]');
+  }
+
+  test_for_true_noBreak() async {
+    await _assertTrue('[for (; true; ) 0]');
+  }
+
+  test_for_updaters() async {
+    await _assertTrue('[for (;; i++, throw 0) 1]');
+  }
+
+  test_for_variableDeclaration() async {
+    await _assertTrue('[for (int i = throw 0;;) 1]');
+  }
+
+  test_forEach() async {
+    await _assertFalse('[for (element in list) 0]');
+  }
+
+  test_forEach_throw() async {
+    await _assertTrue('[for (element in throw 42) 0]');
+  }
+
+  test_if_false_else_throw() async {
+    await _assertTrue('[if (false) 0 else throw 42]');
+  }
+
+  test_if_false_noThrow() async {
+    await _assertFalse('[if (false) 0]');
+  }
+
+  test_if_false_throw() async {
+    await _assertFalse('[if (false) throw 42]');
+  }
+
+  test_if_noThrow() async {
+    await _assertFalse('[if (c) i++]');
+  }
+
+  test_if_throw() async {
+    await _assertFalse('[if (c) throw 42]');
+  }
+
+  test_if_true_noThrow() async {
+    await _assertFalse('[if (true) 0]');
+  }
+
+  test_if_true_throw() async {
+    await _assertTrue('[if (true) throw 42]');
+  }
+
+  test_ifElse_bothThrow() async {
+    await _assertTrue("[if (c) throw 0 else throw 1]");
+  }
+
+  test_ifElse_elseThrow() async {
+    await _assertFalse('[if (c) 0 else throw 42]');
+  }
+
+  test_ifElse_noThrow() async {
+    await _assertFalse('[if (c) 0 else 1]');
+  }
+
+  test_ifElse_thenThrow() async {
+    await _assertFalse('[if (c) throw 42 else 0]');
+  }
+
+  test_nullAwareElement() async {
+    await _assertFalse('[?0]');
+  }
+
+  Future<void> _assertFalse(String expressionCode) async {
+    await _assertHasReturn(expressionCode, false);
+  }
+
+  /// Asserts whether the expression statement [expressionCode] in a function
+  /// body exits.
+  Future<void> _assertHasReturn(String expressionCode, bool expected);
+
+  Future<void> _assertTrue(String expressionCode) async {
+    await _assertHasReturn(expressionCode, true);
   }
 }
 
-/// Tests for the [ExitDetector] that do not require that the AST be resolved.
-///
-/// See [ExitDetectorResolvedStatementTest] for tests that require the AST to be resolved.
 @reflectiveTest
-class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest {
-  test_asExpression() async {
-    _assertFalse('a as Object;');
-  }
-
-  test_asExpression_throw() async {
-    _assertTrue('throw 42 as Object;');
-  }
-
-  test_assertStatement() async {
-    _assertFalse("assert(a);");
-  }
-
-  test_assertStatement_throw() async {
-    _assertFalse('assert((throw 0));');
-  }
-
-  test_assignmentExpression() async {
-    _assertFalse('v = 1;');
-  }
-
-  @failingTest // TODO(scheglov): fix it
-  test_assignmentExpression_compound_lazy() async {
-    _assertFalse('v ||= false;');
-  }
-
-  test_assignmentExpression_lhs_throw() async {
-    _assertTrue('a[throw 42] = 0;');
-  }
-
-  test_assignmentExpression_rhs_throw() async {
-    _assertTrue('v = throw 42;');
-  }
-
-  test_await_false() async {
-    _assertFalse('await x;');
-  }
-
-  test_await_throw_true() async {
-    _assertTrue('bool b = await (throw 42 || true);');
-  }
-
-  test_binaryExpression_and() async {
-    _assertFalse('a && b;');
-  }
-
-  test_binaryExpression_and_lhs() async {
-    _assertTrue('throw 42 && b;');
-  }
-
-  test_binaryExpression_and_rhs() async {
-    _assertFalse('a && (throw 42);');
-  }
-
-  test_binaryExpression_and_rhs2() async {
-    _assertFalse('false && (throw 42);');
-  }
-
-  test_binaryExpression_and_rhs3() async {
-    _assertTrue('true && (throw 42);');
-  }
-
-  test_binaryExpression_ifNull() async {
-    _assertFalse('a ?? b;');
-  }
-
-  test_binaryExpression_ifNull_lhs() async {
-    _assertTrue('throw 42 ?? b;');
-  }
-
-  test_binaryExpression_ifNull_rhs() async {
-    _assertFalse('a ?? (throw 42);');
-  }
-
-  test_binaryExpression_ifNull_rhs2() async {
-    _assertFalse('null ?? (throw 42);');
-  }
-
-  test_binaryExpression_or() async {
-    _assertFalse('a || b;');
-  }
-
-  test_binaryExpression_or_lhs() async {
-    _assertTrue('throw 42 || b;');
-  }
-
-  test_binaryExpression_or_rhs() async {
-    _assertFalse('a || (throw 42);');
-  }
-
-  test_binaryExpression_or_rhs2() async {
-    _assertFalse('true || (throw 42);');
-  }
-
-  test_binaryExpression_or_rhs3() async {
-    _assertTrue('false || (throw 42);');
-  }
-
-  test_block_empty() async {
-    _assertFalse('{}');
-  }
-
-  test_block_noReturn() async {
-    _assertFalse('{ int i = 0; }');
-  }
-
-  test_block_return() async {
-    _assertTrue('{ return 0; }');
-  }
-
-  test_block_returnNotLast() async {
-    _assertTrue('{ return 0; throw 42; }');
-  }
-
-  test_block_throwNotLast() async {
-    _assertTrue('{ throw 0; x = null; }');
-  }
-
-  test_cascadeExpression_argument() async {
-    _assertTrue('a..b(throw 42);');
-  }
-
-  test_cascadeExpression_index() async {
-    _assertTrue('a..[throw 42];');
-  }
-
-  test_cascadeExpression_target() async {
-    _assertTrue('throw a..b();');
-  }
-
-  test_conditional_ifElse_bothThrows() async {
-    _assertTrue('c ? throw 42 : throw 42;');
-  }
-
-  test_conditional_ifElse_elseThrows() async {
-    _assertFalse('c ? i : throw 42;');
-  }
-
-  test_conditional_ifElse_noThrow() async {
-    _assertFalse('c ? i : j;');
-  }
-
-  test_conditional_ifElse_thenThrow() async {
-    _assertFalse('c ? throw 42 : j;');
-  }
-
-  test_conditionalAccess() async {
-    _assertFalse('a?.b;');
-  }
-
-  test_conditionalAccess_lhs() async {
-    _assertTrue('(throw 42)?.b;');
-  }
-
-  test_conditionalAccessAssign() async {
-    _assertFalse('a?.b = c;');
-  }
-
-  test_conditionalAccessAssign_lhs() async {
-    _assertTrue('(throw 42)?.b = c;');
-  }
-
-  test_conditionalAccessAssign_rhs() async {
-    _assertFalse('a?.b = throw 42;');
-  }
-
-  test_conditionalAccessAssign_rhs2() async {
-    _assertFalse("null?.b = throw 42;");
-  }
-
-  test_conditionalAccessIfNullAssign() async {
-    _assertFalse('a?.b ??= c;');
-  }
-
-  test_conditionalAccessIfNullAssign_lhs() async {
-    _assertTrue('(throw 42)?.b ??= c;');
-  }
-
-  test_conditionalAccessIfNullAssign_rhs() async {
-    _assertFalse('a?.b ??= throw 42;');
-  }
-
-  test_conditionalAccessIfNullAssign_rhs2() async {
-    _assertFalse('null?.b ??= throw 42;');
-  }
-
-  test_conditionalCall() async {
-    _assertFalse('a?.b(c);');
-  }
-
-  test_conditionalCall_lhs() async {
-    _assertTrue('(throw 42)?.b(c);');
-  }
-
-  test_conditionalCall_rhs() async {
-    _assertFalse('a?.b(throw 42);');
-  }
-
-  test_conditionalCall_rhs2() async {
-    _assertFalse('null?.b(throw 42);');
-  }
-
-  test_constructorInvocation() async {
-    _assertFalse('new A(b);');
-  }
-
-  test_constructorInvocation_argumentThrows() async {
-    _assertTrue('new A(throw 42);');
-  }
-
-  test_doStatement_break_and_throw() async {
-    _assertFalse('''
-{
-  do {
-    if (1 == 1) break;
-    throw 42;
-  } while (0 == 1);
-}
-''');
-  }
-
-  test_doStatement_continue_and_throw() async {
-    _assertFalse('''
-{
-  do {
-    if (1 == 1) continue;
-    throw 42;
-  } while (0 == 1);
-}
-''');
-  }
-
-  test_doStatement_continueDoInSwitch_and_throw() async {
-    _assertFalse('''
-{
-  D: do {
-    switch (1) {
-      L: case 0: continue D;
-      M: case 1: break;
-    }
-    throw 42;
-  } while (0 == 1);
-}''');
-  }
-
-  test_doStatement_continueInSwitch_and_throw() async {
-    _assertFalse('''
-{
-  do {
-    switch (1) {
-      L: case 0: continue;
-      M: case 1: break;
-    }
-    throw 42;
-  } while (0 == 1);
-}''');
-  }
-
-  test_doStatement_return() async {
-    _assertTrue('{ do { return null; } while (1 == 2); }');
-  }
-
-  test_doStatement_throwCondition() async {
-    _assertTrue('{ do {} while (throw 42); }');
-  }
-
-  test_doStatement_true_break() async {
-    _assertFalse('{ do { break; } while (true); }');
-  }
-
-  test_doStatement_true_continue() async {
-    _assertTrue('{ do { continue; } while (true); }');
-  }
-
-  test_doStatement_true_continueWithLabel() async {
-    _assertTrue('{ x: do { continue x; } while (true); }');
-  }
-
-  test_doStatement_true_if_return() async {
-    _assertTrue('{ do { if (true) {return null;} } while (true); }');
-  }
-
-  test_doStatement_true_noBreak() async {
-    _assertTrue('{ do {} while (true); }');
-  }
-
-  test_doStatement_true_return() async {
-    _assertTrue('{ do { return null; } while (true);  }');
-  }
-
-  test_emptyStatement() async {
-    _assertFalse(';');
-  }
-
-  test_forEachStatement() async {
-    _assertFalse('for (element in list) {}');
-  }
-
-  test_forEachStatement_throw() async {
-    _assertTrue('for (element in throw 42) {}');
-  }
-
-  test_forStatement_condition() async {
-    _assertTrue('for (; throw 0;) {}');
-  }
-
-  test_forStatement_implicitTrue() async {
-    _assertTrue('for (;;) {}');
-  }
-
-  test_forStatement_implicitTrue_break() async {
-    _assertFalse('for (;;) { break; }');
-  }
-
-  test_forStatement_implicitTrue_if_break() async {
-    _assertFalse('''
-{
-  for (;;) {
-    if (1==2) {
-      var a = 1;
-    } else {
-      break;
-    }
-  }
-}
-''');
-  }
-
-  test_forStatement_initialization() async {
-    _assertTrue('for (i = throw 0;;) {}');
-  }
-
-  test_forStatement_true() async {
-    _assertTrue('for (; true; ) {}');
-  }
-
-  test_forStatement_true_break() async {
-    _assertFalse('{ for (; true; ) { break; } }');
-  }
-
-  test_forStatement_true_continue() async {
-    _assertTrue('{ for (; true; ) { continue; } }');
-  }
-
-  test_forStatement_true_if_return() async {
-    _assertTrue('{ for (; true; ) { if (true) {return null;} } }');
-  }
-
-  test_forStatement_true_noBreak() async {
-    _assertTrue('{ for (; true; ) {} }');
-  }
-
-  test_forStatement_updaters() async {
-    _assertTrue('for (;; i++, throw 0) {}');
-  }
-
-  test_forStatement_variableDeclaration() async {
-    _assertTrue('for (int i = throw 0;;) {}');
-  }
-
-  test_functionExpression() async {
-    _assertFalse('(){};');
-  }
-
-  test_functionExpression_bodyThrows() async {
-    _assertFalse('(int i) => throw 42;');
-  }
-
-  test_functionExpressionInvocation() async {
-    _assertFalse('f(g);');
-  }
-
-  test_functionExpressionInvocation_argumentThrows() async {
-    _assertTrue('f(throw 42);');
-  }
-
-  test_functionExpressionInvocation_targetThrows() async {
-    _assertTrue("(throw 42)(g);");
-  }
-
-  test_functionReference() async {
-    _assertFalse('a<int>;');
-  }
-
-  test_functionReference_method() async {
-    _assertFalse('(a).m<int>;');
-  }
-
-  test_functionReference_method_throw() async {
-    _assertTrue('(throw 42).m<int>;');
-  }
-
-  test_identifier_prefixedIdentifier() async {
-    _assertFalse('a.b;');
-  }
-
-  test_identifier_simpleIdentifier() async {
-    _assertFalse('a;');
-  }
-
-  test_if_false_else_return() async {
-    _assertTrue('if (false) {} else { return 0; }');
-  }
-
-  test_if_false_noReturn() async {
-    _assertFalse('if (false) {}');
-  }
-
-  test_if_false_return() async {
-    _assertFalse('if (false) { return 0; }');
-  }
-
-  test_if_noReturn() async {
-    _assertFalse('if (c) i++;');
-  }
-
-  test_if_return() async {
-    _assertFalse('if (c) return 0;');
-  }
-
-  test_if_true_noReturn() async {
-    _assertFalse('if (true) {}');
-  }
-
-  test_if_true_return() async {
-    _assertTrue('if (true) { return 0; }');
-  }
-
-  test_ifElse_bothReturn() async {
-    _assertTrue('if (c) return 0; else return 1;');
-  }
-
-  test_ifElse_elseReturn() async {
-    _assertFalse('if (c) i++; else return 1;');
-  }
-
-  test_ifElse_noReturn() async {
-    _assertFalse('if (c) i++; else j++;');
-  }
-
-  test_ifElse_thenReturn() async {
-    _assertFalse('if (c) return 0; else j++;');
-  }
-
-  test_ifNullAssign() async {
-    _assertFalse('a ??= b;');
-  }
-
-  test_ifNullAssign_rhs() async {
-    _assertFalse('a ??= throw 42;');
-  }
-
-  test_indexExpression() async {
-    _assertFalse('a[b];');
-  }
-
-  test_indexExpression_index() async {
-    _assertTrue('a[throw 42];');
-  }
-
-  test_indexExpression_target() async {
-    _assertTrue("(throw 42)[b];");
-  }
-
-  test_isExpression() async {
-    _assertFalse('A is B;');
-  }
-
-  test_isExpression_throws() async {
-    _assertTrue('throw 42 is B;');
-  }
-
-  test_labeledStatement() async {
-    _assertFalse('label: a;');
-  }
-
-  test_labeledStatement_throws() async {
-    _assertTrue('label: throw 42;');
-  }
-
-  test_literal_boolean() async {
-    _assertFalse('true;');
-  }
-
-  test_literal_double() async {
-    _assertFalse('1.1;');
-  }
-
-  test_literal_integer() async {
-    _assertFalse('1;');
-  }
-
-  test_literal_null() async {
-    _assertFalse('null;');
-  }
-
-  test_literal_String() async {
-    _assertFalse('"str";');
-  }
-
-  test_methodInvocation() async {
-    _assertFalse('a.b(c);');
-  }
-
-  test_methodInvocation_argument() async {
-    _assertTrue('a.b(throw 42);');
-  }
-
-  test_methodInvocation_target() async {
-    _assertTrue("(throw 42).b(c);");
-  }
-
-  test_nullAssertion_v1() {
+class ExitDetectorParsedStatementTest extends ParserDiagnosticsTest
+    with ExitDetectorStatementTestCases {
+  test_nullAssertion_v1Projection() {
     var parseResult = parseTestCodeWithDiagnostics('''
 void f(Object? x) { // ref
   x!;
@@ -667,44 +159,592 @@ void f(Object? x) { // ref
     expect(ExitDetector.exits(expression), isFalse);
   }
 
+  @override
+  Future<void> _assertHasReturn(String statementCode, bool expected) async {
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() { // ref
+  $statementCode
+}
+''');
+    var block = parseResult.findNode.block('{ // ref');
+    var statement = block.statements.single;
+    expect(ExitDetector.exits(statement), expected);
+  }
+}
+
+@reflectiveTest
+class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest
+    with ExitDetectorStatementWithResolutionTestCases {
+  @override
+  bool _exits(Statement statement) => ExitDetector.exits(statement);
+}
+
+@reflectiveTest
+class ExitDetectorResolvedStatementTest_BeforePatterns
+    extends PubPackageResolutionTest
+    with BeforePatternsMixin, ExitDetectorStatementWithResolutionTestCases {
+  @override
+  bool _exits(Statement statement) => ExitDetector.exits(statement);
+}
+
+/// Tests for exit detectors with statements, that do not depend on resolution.
+///
+/// See [ExitDetectorStatementWithResolutionTestCases] for tests that depend on
+/// resolution.
+mixin ExitDetectorStatementTestCases {
+  test_asExpression() async {
+    await _assertFalse('a as Object;');
+  }
+
+  test_asExpression_throw() async {
+    await _assertTrue('throw 42 as Object;');
+  }
+
+  test_assertStatement() async {
+    await _assertFalse("assert(a);");
+  }
+
+  test_assertStatement_throw() async {
+    await _assertFalse('assert((throw 0));');
+  }
+
+  test_assignmentExpression() async {
+    await _assertFalse('v = 1;');
+  }
+
+  @failingTest // TODO(scheglov): fix it
+  test_assignmentExpression_compound_lazy() async {
+    await _assertFalse('v ||= false;');
+  }
+
+  test_assignmentExpression_lhs_throw() async {
+    await _assertTrue('a[throw 42] = 0;');
+  }
+
+  test_assignmentExpression_rhs_throw() async {
+    await _assertTrue('v = throw 42;');
+  }
+
+  test_await_false() async {
+    await _assertFalse('await x;');
+  }
+
+  test_await_throw_true() async {
+    await _assertTrue('bool b = await (throw 42 || true);');
+  }
+
+  test_binaryExpression_and() async {
+    await _assertFalse('a && b;');
+  }
+
+  test_binaryExpression_and_lhs() async {
+    await _assertTrue('throw 42 && b;');
+  }
+
+  test_binaryExpression_and_rhs() async {
+    await _assertFalse('a && (throw 42);');
+  }
+
+  test_binaryExpression_and_rhs2() async {
+    await _assertFalse('false && (throw 42);');
+  }
+
+  test_binaryExpression_and_rhs3() async {
+    await _assertTrue('true && (throw 42);');
+  }
+
+  test_binaryExpression_ifNull() async {
+    await _assertFalse('a ?? b;');
+  }
+
+  test_binaryExpression_ifNull_lhs() async {
+    await _assertTrue('throw 42 ?? b;');
+  }
+
+  test_binaryExpression_ifNull_rhs() async {
+    await _assertFalse('a ?? (throw 42);');
+  }
+
+  test_binaryExpression_ifNull_rhs2() async {
+    await _assertFalse('null ?? (throw 42);');
+  }
+
+  test_binaryExpression_or() async {
+    await _assertFalse('a || b;');
+  }
+
+  test_binaryExpression_or_lhs() async {
+    await _assertTrue('throw 42 || b;');
+  }
+
+  test_binaryExpression_or_rhs() async {
+    await _assertFalse('a || (throw 42);');
+  }
+
+  test_binaryExpression_or_rhs2() async {
+    await _assertFalse('true || (throw 42);');
+  }
+
+  test_binaryExpression_or_rhs3() async {
+    await _assertTrue('false || (throw 42);');
+  }
+
+  test_block_empty() async {
+    await _assertFalse('{}');
+  }
+
+  test_block_noReturn() async {
+    await _assertFalse('{ int i = 0; }');
+  }
+
+  test_block_return() async {
+    await _assertTrue('{ return 0; }');
+  }
+
+  test_block_returnNotLast() async {
+    await _assertTrue('{ return 0; throw 42; }');
+  }
+
+  test_block_throwNotLast() async {
+    await _assertTrue('{ throw 0; x = null; }');
+  }
+
+  test_cascadeExpression_argument() async {
+    await _assertTrue('a..b(throw 42);');
+  }
+
+  test_cascadeExpression_index() async {
+    await _assertTrue('a..[throw 42];');
+  }
+
+  test_cascadeExpression_target() async {
+    await _assertTrue('throw a..b();');
+  }
+
+  test_conditional_ifElse_bothThrows() async {
+    await _assertTrue('c ? throw 42 : throw 42;');
+  }
+
+  test_conditional_ifElse_elseThrows() async {
+    await _assertFalse('c ? i : throw 42;');
+  }
+
+  test_conditional_ifElse_noThrow() async {
+    await _assertFalse('c ? i : j;');
+  }
+
+  test_conditional_ifElse_thenThrow() async {
+    await _assertFalse('c ? throw 42 : j;');
+  }
+
+  test_conditionalAccess() async {
+    await _assertFalse('a?.b;');
+  }
+
+  test_conditionalAccess_lhs() async {
+    await _assertTrue('(throw 42)?.b;');
+  }
+
+  test_conditionalAccessAssign() async {
+    await _assertFalse('a?.b = c;');
+  }
+
+  test_conditionalAccessAssign_lhs() async {
+    await _assertTrue('(throw 42)?.b = c;');
+  }
+
+  test_conditionalAccessAssign_rhs() async {
+    await _assertFalse('a?.b = throw 42;');
+  }
+
+  test_conditionalAccessAssign_rhs2() async {
+    await _assertFalse("null?.b = throw 42;");
+  }
+
+  test_conditionalAccessIfNullAssign() async {
+    await _assertFalse('a?.b ??= c;');
+  }
+
+  test_conditionalAccessIfNullAssign_lhs() async {
+    await _assertTrue('(throw 42)?.b ??= c;');
+  }
+
+  test_conditionalAccessIfNullAssign_rhs() async {
+    await _assertFalse('a?.b ??= throw 42;');
+  }
+
+  test_conditionalAccessIfNullAssign_rhs2() async {
+    await _assertFalse('null?.b ??= throw 42;');
+  }
+
+  test_conditionalCall() async {
+    await _assertFalse('a?.b(c);');
+  }
+
+  test_conditionalCall_lhs() async {
+    await _assertTrue('(throw 42)?.b(c);');
+  }
+
+  test_conditionalCall_rhs() async {
+    await _assertFalse('a?.b(throw 42);');
+  }
+
+  test_conditionalCall_rhs2() async {
+    await _assertFalse('null?.b(throw 42);');
+  }
+
+  test_constructorInvocation() async {
+    await _assertFalse('new A(b);');
+  }
+
+  test_constructorInvocation_argumentThrows() async {
+    await _assertTrue('new A(throw 42);');
+  }
+
+  test_doStatement_break_and_throw() async {
+    await _assertFalse('''
+{
+  do {
+    if (1 == 1) break;
+    throw 42;
+  } while (0 == 1);
+}
+''');
+  }
+
+  test_doStatement_continue_and_throw() async {
+    await _assertFalse('''
+{
+  do {
+    if (1 == 1) continue;
+    throw 42;
+  } while (0 == 1);
+}
+''');
+  }
+
+  test_doStatement_continueDoInSwitch_and_throw() async {
+    await _assertFalse('''
+{
+  D: do {
+    switch (1) {
+      L: case 0: continue D;
+      M: case 1: break;
+    }
+    throw 42;
+  } while (0 == 1);
+}''');
+  }
+
+  test_doStatement_continueInSwitch_and_throw() async {
+    await _assertFalse('''
+{
+  do {
+    switch (1) {
+      L: case 0: continue;
+      M: case 1: break;
+    }
+    throw 42;
+  } while (0 == 1);
+}''');
+  }
+
+  test_doStatement_return() async {
+    await _assertTrue('{ do { return null; } while (1 == 2); }');
+  }
+
+  test_doStatement_throwCondition() async {
+    await _assertTrue('{ do {} while (throw 42); }');
+  }
+
+  test_doStatement_true_break() async {
+    await _assertFalse('{ do { break; } while (true); }');
+  }
+
+  test_doStatement_true_continue() async {
+    await _assertTrue('{ do { continue; } while (true); }');
+  }
+
+  test_doStatement_true_continueWithLabel() async {
+    await _assertTrue('{ x: do { continue x; } while (true); }');
+  }
+
+  test_doStatement_true_if_return() async {
+    await _assertTrue('{ do { if (true) {return null;} } while (true); }');
+  }
+
+  test_doStatement_true_noBreak() async {
+    await _assertTrue('{ do {} while (true); }');
+  }
+
+  test_doStatement_true_return() async {
+    await _assertTrue('{ do { return null; } while (true);  }');
+  }
+
+  test_emptyStatement() async {
+    await _assertFalse(';');
+  }
+
+  test_forEachStatement() async {
+    await _assertFalse('for (element in list) {}');
+  }
+
+  test_forEachStatement_throw() async {
+    await _assertTrue('for (element in throw 42) {}');
+  }
+
+  test_forStatement_condition() async {
+    await _assertTrue('for (; throw 0;) {}');
+  }
+
+  test_forStatement_implicitTrue() async {
+    await _assertTrue('for (;;) {}');
+  }
+
+  test_forStatement_implicitTrue_break() async {
+    await _assertFalse('for (;;) { break; }');
+  }
+
+  test_forStatement_implicitTrue_if_break() async {
+    await _assertFalse('''
+{
+  for (;;) {
+    if (1==2) {
+      var a = 1;
+    } else {
+      break;
+    }
+  }
+}
+''');
+  }
+
+  test_forStatement_initialization() async {
+    await _assertTrue('for (i = throw 0;;) {}');
+  }
+
+  test_forStatement_true() async {
+    await _assertTrue('for (; true; ) {}');
+  }
+
+  test_forStatement_true_break() async {
+    await _assertFalse('{ for (; true; ) { break; } }');
+  }
+
+  test_forStatement_true_continue() async {
+    await _assertTrue('{ for (; true; ) { continue; } }');
+  }
+
+  test_forStatement_true_if_return() async {
+    await _assertTrue('{ for (; true; ) { if (true) {return null;} } }');
+  }
+
+  test_forStatement_true_noBreak() async {
+    await _assertTrue('{ for (; true; ) {} }');
+  }
+
+  test_forStatement_updaters() async {
+    await _assertTrue('for (;; i++, throw 0) {}');
+  }
+
+  test_forStatement_variableDeclaration() async {
+    await _assertTrue('for (int i = throw 0;;) {}');
+  }
+
+  test_functionExpression() async {
+    await _assertFalse('(){};');
+  }
+
+  test_functionExpression_bodyThrows() async {
+    await _assertFalse('(int i) => throw 42;');
+  }
+
+  test_functionExpressionInvocation() async {
+    await _assertFalse('f(g);');
+  }
+
+  test_functionExpressionInvocation_argumentThrows() async {
+    await _assertTrue('f(throw 42);');
+  }
+
+  test_functionExpressionInvocation_targetThrows() async {
+    await _assertTrue("(throw 42)(g);");
+  }
+
+  test_functionReference() async {
+    await _assertFalse('a<int>;');
+  }
+
+  test_functionReference_method() async {
+    await _assertFalse('(a).m<int>;');
+  }
+
+  test_functionReference_method_throw() async {
+    await _assertTrue('(throw 42).m<int>;');
+  }
+
+  test_identifier_prefixedIdentifier() async {
+    await _assertFalse('a.b;');
+  }
+
+  test_identifier_simpleIdentifier() async {
+    await _assertFalse('a;');
+  }
+
+  test_if_false_else_return() async {
+    await _assertTrue('if (false) {} else { return 0; }');
+  }
+
+  test_if_false_noReturn() async {
+    await _assertFalse('if (false) {}');
+  }
+
+  test_if_false_return() async {
+    await _assertFalse('if (false) { return 0; }');
+  }
+
+  test_if_noReturn() async {
+    await _assertFalse('if (c) i++;');
+  }
+
+  test_if_return() async {
+    await _assertFalse('if (c) return 0;');
+  }
+
+  test_if_true_noReturn() async {
+    await _assertFalse('if (true) {}');
+  }
+
+  test_if_true_return() async {
+    await _assertTrue('if (true) { return 0; }');
+  }
+
+  test_ifElse_bothReturn() async {
+    await _assertTrue('if (c) return 0; else return 1;');
+  }
+
+  test_ifElse_elseReturn() async {
+    await _assertFalse('if (c) i++; else return 1;');
+  }
+
+  test_ifElse_noReturn() async {
+    await _assertFalse('if (c) i++; else j++;');
+  }
+
+  test_ifElse_thenReturn() async {
+    await _assertFalse('if (c) return 0; else j++;');
+  }
+
+  test_ifNullAssign() async {
+    await _assertFalse('a ??= b;');
+  }
+
+  test_ifNullAssign_rhs() async {
+    await _assertFalse('a ??= throw 42;');
+  }
+
+  test_indexExpression() async {
+    await _assertFalse('a[b];');
+  }
+
+  test_indexExpression_index() async {
+    await _assertTrue('a[throw 42];');
+  }
+
+  test_indexExpression_target() async {
+    await _assertTrue("(throw 42)[b];");
+  }
+
+  test_isExpression() async {
+    await _assertFalse('A is B;');
+  }
+
+  test_isExpression_throws() async {
+    await _assertTrue('throw 42 is B;');
+  }
+
+  test_labeledStatement() async {
+    await _assertFalse('label: a;');
+  }
+
+  test_labeledStatement_throws() async {
+    await _assertTrue('label: throw 42;');
+  }
+
+  test_literal_boolean() async {
+    await _assertFalse('true;');
+  }
+
+  test_literal_double() async {
+    await _assertFalse('1.1;');
+  }
+
+  test_literal_integer() async {
+    await _assertFalse('1;');
+  }
+
+  test_literal_null() async {
+    await _assertFalse('null;');
+  }
+
+  test_literal_String() async {
+    await _assertFalse('"str";');
+  }
+
+  test_methodInvocation() async {
+    await _assertFalse('a.b(c);');
+  }
+
+  test_methodInvocation_argument() async {
+    await _assertTrue('a.b(throw 42);');
+  }
+
+  test_methodInvocation_target() async {
+    await _assertTrue("(throw 42).b(c);");
+  }
+
+  test_nullAssertion() async {
+    await _assertFalse('x!;');
+  }
+
   test_parenthesizedExpression() async {
-    _assertFalse('(a);');
+    await _assertFalse('(a);');
   }
 
   test_parenthesizedExpression_throw() async {
-    _assertTrue('(throw 42);');
+    await _assertTrue('(throw 42);');
   }
 
   test_propertyAccess() async {
-    _assertFalse('new Object().a;');
+    await _assertFalse('new Object().a;');
   }
 
   test_propertyAccess_throws() async {
-    _assertTrue('(throw 42).a;');
+    await _assertTrue('(throw 42).a;');
   }
 
   test_rethrow() async {
-    _assertTrue('rethrow;');
+    await _assertTrue('rethrow;');
   }
 
   test_return() async {
-    _assertTrue('return 0;');
+    await _assertTrue('return 0;');
   }
 
   test_superExpression() async {
-    _assertFalse('super.a;');
+    await _assertFalse('super.a;');
   }
 
   test_switch_allReturn() async {
-    _assertTrue('switch (i) { case 0: return 0; default: return 1; }');
+    await _assertTrue('switch (i) { case 0: return 0; default: return 1; }');
   }
 
   test_switch_defaultWithNoStatements() async {
-    _assertFalse('switch (i) { case 0: return 0; default: }');
+    await _assertFalse('switch (i) { case 0: return 0; default: }');
   }
 
   test_switch_fallThroughToNotReturn() async {
-    _assertFalse(r'''
+    await _assertFalse(r'''
 switch (i) {
   case 0:
   case 1:
@@ -716,7 +756,7 @@ switch (i) {
   }
 
   test_switch_fallThroughToReturn() async {
-    _assertTrue(r'''
+    await _assertTrue(r'''
 switch (i) {
   case 0:
   case 1:
@@ -729,7 +769,7 @@ switch (i) {
 
   @failingTest
   test_switch_includesContinue() async {
-    _assertTrue('''
+    await _assertTrue('''
 switch (i) {
   zero: case 0: return 0;
   case 1: continue zero;
@@ -738,26 +778,26 @@ switch (i) {
   }
 
   test_switch_noDefault() async {
-    _assertFalse('switch (i) { case 0: return 0; }');
+    await _assertFalse('switch (i) { case 0: return 0; }');
   }
 
   // The ExitDetector could conceivably follow switch continue labels and
   // determine that `case 0` exits, `case 1` continues to an exiting case, and
   // `default` exits, so the switch exits.
   test_switch_nonReturn() async {
-    _assertFalse('switch (i) { case 0: i++; default: return 1; }');
+    await _assertFalse('switch (i) { case 0: i++; default: return 1; }');
   }
 
   test_switchExpression_allThrow() async {
-    _assertTrue('var x = switch (i) { 0 => throw 0, _ => throw 1, };');
+    await _assertTrue('var x = switch (i) { 0 => throw 0, _ => throw 1, };');
   }
 
   test_switchExpression_notAllThrow() async {
-    _assertFalse('var x = switch (i) { 0 => 0, _ => throw 1, };');
+    await _assertFalse('var x = switch (i) { 0 => 0, _ => throw 1, };');
   }
 
   test_switchExpression_throwInWhen() async {
-    _assertTrue('''
+    await _assertTrue('''
 var x = switch (i) {
   0 when throw 7 => 0,
   _ => throw 1,
@@ -766,47 +806,47 @@ var x = switch (i) {
   }
 
   test_thisExpression() async {
-    _assertFalse('this.a;');
+    await _assertFalse('this.a;');
   }
 
   test_throwExpression() async {
-    _assertTrue('throw new Object();');
+    await _assertTrue('throw new Object();');
   }
 
   test_tryStatement_noReturn() async {
-    _assertFalse('try {} catch (e, s) {} finally {}');
+    await _assertFalse('try {} catch (e, s) {} finally {}');
   }
 
   test_tryStatement_noReturn_noFinally() async {
-    _assertFalse('try {} catch (e, s) {}');
+    await _assertFalse('try {} catch (e, s) {}');
   }
 
   test_tryStatement_return_catch() async {
-    _assertFalse('try {} catch (e, s) { return 1; } finally {}');
+    await _assertFalse('try {} catch (e, s) { return 1; } finally {}');
   }
 
   test_tryStatement_return_catch_noFinally() async {
-    _assertFalse('try {} catch (e, s) { return 1; }');
+    await _assertFalse('try {} catch (e, s) { return 1; }');
   }
 
   test_tryStatement_return_finally() async {
-    _assertTrue('try {} catch (e, s) {} finally { return 1; }');
+    await _assertTrue('try {} catch (e, s) {} finally { return 1; }');
   }
 
   test_tryStatement_return_try_noCatch() async {
-    _assertTrue('try { return 1; } finally {}');
+    await _assertTrue('try { return 1; } finally {}');
   }
 
   test_tryStatement_return_try_oneCatchDoesNotExit() async {
-    _assertFalse('try { return 1; } catch (e, s) {} finally {}');
+    await _assertFalse('try { return 1; } catch (e, s) {} finally {}');
   }
 
   test_tryStatement_return_try_oneCatchDoesNotExit_noFinally() async {
-    _assertFalse('try { return 1; } catch (e, s) {}');
+    await _assertFalse('try { return 1; } catch (e, s) {}');
   }
 
   test_tryStatement_return_try_oneCatchExits() async {
-    _assertTrue('''
+    await _assertTrue('''
 try {
   return 1;
 } catch (e, s) {
@@ -816,11 +856,11 @@ try {
   }
 
   test_tryStatement_return_try_oneCatchExits_noFinally() async {
-    _assertTrue('try { return 1; } catch (e, s) { return 1; }');
+    await _assertTrue('try { return 1; } catch (e, s) { return 1; }');
   }
 
   test_tryStatement_return_try_twoCatchesDoExit() async {
-    _assertTrue('''
+    await _assertTrue('''
 try { return 1; }
 on int catch (e, s) { return 1; }
 on String catch (e, s) { return 1; }
@@ -829,7 +869,7 @@ finally {}
   }
 
   test_tryStatement_return_try_twoCatchesDoExit_noFinally() async {
-    _assertTrue('''
+    await _assertTrue('''
 try { return 1; }
 on int catch (e, s) { return 1; }
 on String catch (e, s) { return 1; }
@@ -837,7 +877,7 @@ on String catch (e, s) { return 1; }
   }
 
   test_tryStatement_return_try_twoCatchesDoNotExit() async {
-    _assertFalse('''
+    await _assertFalse('''
 try { return 1; }
 on int catch (e, s) {}
 on String catch (e, s) {}
@@ -846,7 +886,7 @@ finally {}
   }
 
   test_tryStatement_return_try_twoCatchesDoNotExit_noFinally() async {
-    _assertFalse('''
+    await _assertFalse('''
 try { return 1; }
 on int catch (e, s) {}
 on String catch (e, s) {}
@@ -854,7 +894,7 @@ on String catch (e, s) {}
   }
 
   test_tryStatement_return_try_twoCatchesMixed() async {
-    _assertFalse('''
+    await _assertFalse('''
 try { return 1; }
 on int catch (e, s) {}
 on String catch (e, s) { return 1; }
@@ -863,7 +903,7 @@ finally {}
   }
 
   test_tryStatement_return_try_twoCatchesMixed_noFinally() async {
-    _assertFalse('''
+    await _assertFalse('''
 try { return 1; }
 on int catch (e, s) {}
 on String catch (e, s) { return 1; }
@@ -871,98 +911,80 @@ on String catch (e, s) { return 1; }
   }
 
   test_variableDeclarationStatement_noInitializer() async {
-    _assertFalse('int i;');
+    await _assertFalse('int i;');
   }
 
   test_variableDeclarationStatement_noThrow() async {
-    _assertFalse('int i = 0;');
+    await _assertFalse('int i = 0;');
   }
 
   test_variableDeclarationStatement_throw() async {
-    _assertTrue('int i = throw new Object();');
+    await _assertTrue('int i = throw new Object();');
   }
 
   test_whileStatement_false_nonReturn() async {
-    _assertFalse("{ while (false) {} }");
+    await _assertFalse("{ while (false) {} }");
   }
 
   test_whileStatement_throwCondition() async {
-    _assertTrue('{ while (throw 42) {} }');
+    await _assertTrue('{ while (throw 42) {} }');
   }
 
   test_whileStatement_true_break() async {
-    _assertFalse('{ while (true) { break; } }');
+    await _assertFalse('{ while (true) { break; } }');
   }
 
   test_whileStatement_true_break_and_throw() async {
-    _assertFalse('{ while (true) { if (1==1) break; throw 42; } }');
+    await _assertFalse('{ while (true) { if (1==1) break; throw 42; } }');
   }
 
   test_whileStatement_true_continue() async {
-    _assertTrue('{ while (true) { continue; } }');
+    await _assertTrue('{ while (true) { continue; } }');
   }
 
   test_whileStatement_true_continueWithLabel() async {
-    _assertTrue('{ x: while (true) { continue x; } }');
+    await _assertTrue('{ x: while (true) { continue x; } }');
   }
 
   test_whileStatement_true_doStatement_scopeRequired() async {
-    _assertTrue('{ while (true) { x: do { continue x; } while (true); } }');
+    await _assertTrue(
+      '{ while (true) { x: do { continue x; } while (true); } }',
+    );
   }
 
   test_whileStatement_true_if_return() async {
-    _assertTrue('{ while (true) { if (true) {return null;} } }');
+    await _assertTrue('{ while (true) { if (true) {return null;} } }');
   }
 
   test_whileStatement_true_noBreak() async {
-    _assertTrue('{ while (true) {} }');
+    await _assertTrue('{ while (true) {} }');
   }
 
   test_whileStatement_true_return() async {
-    _assertTrue('{ while (true) { return null; } }');
+    await _assertTrue('{ while (true) { return null; } }');
   }
 
   test_whileStatement_true_throw() async {
-    _assertTrue('{ while (true) { throw 42; } }');
+    await _assertTrue('{ while (true) { throw 42; } }');
   }
 
-  void _assertFalse(String code) {
-    _assertHasReturn(code, false);
+  Future<void> _assertFalse(String code) async {
+    await _assertHasReturn(code, false);
   }
 
-  void _assertHasReturn(String statementCode, bool expected) {
-    var parseResult = parseTestCodeWithDiagnostics('''
-void f() { // ref
-  $statementCode
-}
-''');
+  /// Asserts whether the statement [statementCode] in a function body exits.
+  Future<void> _assertHasReturn(String statementCode, bool expected);
 
-    var findNode = parseResult.findNode;
-
-    var block = findNode.block('{ // ref');
-    var statement = block.statements.single;
-
-    expect(ExitDetector.exits(statement), expected);
-  }
-
-  void _assertTrue(String code) {
-    _assertHasReturn(code, true);
+  Future<void> _assertTrue(String code) async {
+    await _assertHasReturn(code, true);
   }
 }
 
-@reflectiveTest
-class ExitDetectorResolvedStatementTest extends PubPackageResolutionTest
-    with ExitDetectorResolvedStatementTestCases {}
-
-@reflectiveTest
-class ExitDetectorResolvedStatementTest_BeforePatterns
-    extends PubPackageResolutionTest
-    with BeforePatternsMixin, ExitDetectorResolvedStatementTestCases {}
-
-/// Tests for the [ExitDetector] that require that the AST be resolved.
+/// Tests for exit detectors with statements, that depend on resolution.
 ///
-/// See [ExitDetectorParsedStatementTest] for tests that do not require the AST to be resolved.
-mixin ExitDetectorResolvedStatementTestCases on PubPackageResolutionTest {
+/// See [ExitDetectorStatementTestCases] for tests that do not depend on
+/// resolution.
+mixin ExitDetectorStatementWithResolutionTestCases on PubPackageResolutionTest {
   test_dotShorthandConstructorInvocation_namedArgumentThrows() async {
     await _assertNthStatementExits(r'''
 class C {
@@ -1233,7 +1255,7 @@ void f() sync* {
     var function = result.unit.declarations.last as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     Statement statement = body.block.statements[n];
-    expect(ExitDetector.exits(statement), expected);
+    expect(_exits(statement), expected);
   }
 
   /// Assert that the [n]th statement in the last function declaration of
@@ -1247,4 +1269,7 @@ void f() sync* {
   Future<void> _assertNthStatementExits(String code, int n) async {
     await _assertHasReturn(code, n, true);
   }
+
+  /// Whether [statement] exits, according to the tested exit detector.
+  bool _exits(Statement statement);
 }
