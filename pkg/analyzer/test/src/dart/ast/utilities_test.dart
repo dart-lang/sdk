@@ -29,7 +29,7 @@ class NodeLocator2Test extends ParserDiagnosticsTest {
     var code = ' f() {} ';
     //             01234567
     var unit = parseTestCodeWithDiagnostics(code).unit;
-    var function = unit.declarations.single as FunctionDeclaration;
+    var function = unit.declarations2.single as FunctionDeclaration;
     var expression = function.functionExpression;
     var body = expression.body as BlockFunctionBody;
     expect(NodeLocator2(0).searchWithin(unit), same(unit));
@@ -128,7 +128,7 @@ set s(int i) {}
     var code = ' f() {} ';
     //             01234567
     var unit = parseTestCodeWithDiagnostics(code).unit;
-    var function = unit.declarations.single as FunctionDeclaration;
+    var function = unit.declarations2.single as FunctionDeclaration;
     expect(NodeLocator2(-1, 2).searchWithin(unit), isNull);
     expect(NodeLocator2(0, 2).searchWithin(unit), same(unit));
     expect(NodeLocator2(1, 2).searchWithin(unit), same(function));

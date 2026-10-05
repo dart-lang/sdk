@@ -4036,7 +4036,7 @@ class A {}
     // reload linked summary for [a], and crash.
     {
       var parseResult = driver.parseFileSync2(a) as ParsedUnitResult;
-      expect(parseResult.unit.declarations, isEmpty);
+      expect(parseResult.unit.declarations2, isEmpty);
     }
 
     // We have not read `a`, so `A` is still not declared.

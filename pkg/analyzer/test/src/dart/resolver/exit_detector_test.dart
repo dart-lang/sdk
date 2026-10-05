@@ -1343,7 +1343,7 @@ void f() sync* {
   Future<void> _assertHasReturn(String code, int n, bool expected) async {
     var result = await resolveTestCode(code);
 
-    var function = result.unit.declarations.last as FunctionDeclaration;
+    var function = result.unit.declarations2.last as FunctionDeclaration;
     var body = function.functionExpression.body as BlockFunctionBody;
     Statement statement = body.block.statements[n];
     expect(_exits(statement), expected);

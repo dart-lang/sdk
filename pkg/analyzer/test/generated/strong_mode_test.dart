@@ -4151,7 +4151,7 @@ class B<T2, U2> {
    ''';
     var result = await resolveTestCodeWithDiagnostics(code);
 
-    var b = result.unit.declarations[1] as ClassDeclaration;
+    var b = result.unit.declarations2[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
     var bConstructor = classBody.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.factoryRedirectionTarget!;
@@ -4184,7 +4184,7 @@ class B<T2, U2> {
 }
 ''');
 
-    var b = result.unit.declarations[1] as ClassDeclaration;
+    var b = result.unit.declarations2[1] as ClassDeclaration;
     var classBody = b.body as BlockClassBody;
     var bConstructor = classBody.members[0] as ConstructorDeclaration;
     var redirected = bConstructor.factoryRedirectionTarget!;

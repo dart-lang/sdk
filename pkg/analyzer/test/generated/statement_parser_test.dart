@@ -4882,7 +4882,7 @@ var x = null;
 const a = 0;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
+        (parseResult.findNode.unit.declarations2.last
                 as TopLevelVariableDeclaration)
             .variables;
     assertParsedNodeText(node, r'''
@@ -4903,7 +4903,7 @@ var x = null;
 const A a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
+        (parseResult.findNode.unit.declarations2.last
                 as TopLevelVariableDeclaration)
             .variables;
     assertParsedNodeText(node, r'''
@@ -4923,7 +4923,7 @@ var x = null;
 final a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
+        (parseResult.findNode.unit.declarations2.last
                 as TopLevelVariableDeclaration)
             .variables;
     assertParsedNodeText(node, r'''
@@ -4941,7 +4941,7 @@ var x = null;
 final A a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
+        (parseResult.findNode.unit.declarations2.last
                 as TopLevelVariableDeclaration)
             .variables;
     assertParsedNodeText(node, r'''
@@ -4961,7 +4961,7 @@ var x = null;
 A a, b, c;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
+        (parseResult.findNode.unit.declarations2.last
                 as TopLevelVariableDeclaration)
             .variables;
     assertParsedNodeText(node, r'''
@@ -4984,7 +4984,7 @@ var x = null;
 A a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
+        (parseResult.findNode.unit.declarations2.last
                 as TopLevelVariableDeclaration)
             .variables;
     assertParsedNodeText(node, r'''
@@ -5003,7 +5003,7 @@ var x = null;
 var a, b, c;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
+        (parseResult.findNode.unit.declarations2.last
                 as TopLevelVariableDeclaration)
             .variables;
     assertParsedNodeText(node, r'''
@@ -5025,7 +5025,7 @@ var x = null;
 var a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations.last
+        (parseResult.findNode.unit.declarations2.last
                 as TopLevelVariableDeclaration)
             .variables;
     assertParsedNodeText(node, r'''
