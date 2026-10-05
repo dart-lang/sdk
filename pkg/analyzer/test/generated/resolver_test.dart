@@ -452,6 +452,6 @@ V1: SimpleIdentifier
 main() {
   var v = (() {return 42;})();
 }''');
-    assertTypeDynamic(result.findNodeV1.simple('v = '));
+    assertTypeDynamic(result.findElement.localVar('v').type);
   }
 }

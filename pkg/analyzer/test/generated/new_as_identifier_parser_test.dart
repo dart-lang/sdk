@@ -630,9 +630,14 @@ ConstructorDeclaration
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new;
 ''');
-    var node = parseResult.findNodeV1.singlePrefixedIdentifier;
+    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
-PrefixedIdentifier
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: C
+  operator: .
+  name: new
+V1: PrefixedIdentifier
   prefix: SimpleIdentifier
     token: C
   period: .

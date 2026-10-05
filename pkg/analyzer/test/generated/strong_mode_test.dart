@@ -5689,13 +5689,69 @@ V1: MethodInvocation
     int
 ''');
 
-    var node2 = result.findNodeV1.simple('f;');
+    var node2 = result.findNode.receiverPropertyExtraction('f; // tear-off');
     assertResolvedNodeText(node2, r'''
-SimpleIdentifier
-  token: f
-  element: SubstitutedMethodElementImpl
-    baseElement: <testLibrary>::@class::C::@method::f
-    substitution: {T: S, S: S}
+ReceiverPropertyExtraction
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: #E0 S
+              type: S
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: C<S>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: S}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S>
+  operator: .
+  name: f
+  resolution: ExecutableTearOffResolution
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::f
+      substitution: {T: S, S: S}
+    type: S Function<S₀ extends S>(S₀)
+  staticType: S Function<S₀ extends S>(S₀)
+V1: PropertyAccess
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: S
+              element: #E0 S
+              type: S
+          rightBracket: >
+        element: <testLibrary>::@class::C
+        type: C<S>
+      element: SubstitutedConstructorElementImpl
+        baseElement: <testLibrary>::@class::C::@constructor::new
+        substitution: {T: S}
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C<S>
+  operator: .
+  propertyName: SimpleIdentifier
+    token: f
+    element: SubstitutedMethodElementImpl
+      baseElement: <testLibrary>::@class::C::@method::f
+      substitution: {T: S, S: S}
+    staticType: S Function<S₀ extends S>(S₀)
   staticType: S Function<S₀ extends S>(S₀)
 ''');
   }
@@ -6021,13 +6077,17 @@ void test<S>(T pf<T>(T e)) {
   var paramTearOffInst = pf<int>;
 }
 ''');
-    expectIdentifierType(result, 'methodTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'staticTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'staticFieldTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'topFunTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'topFieldTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'localTearOffInst', "int Function(int)");
-    expectIdentifierType(result, 'paramTearOffInst', "int Function(int)");
+    expectLocalVariableType(result, 'methodTearOffInst', "int Function(int)");
+    expectLocalVariableType(result, 'staticTearOffInst', "int Function(int)");
+    expectLocalVariableType(
+      result,
+      'staticFieldTearOffInst',
+      "int Function(int)",
+    );
+    expectLocalVariableType(result, 'topFunTearOffInst', "int Function(int)");
+    expectLocalVariableType(result, 'topFieldTearOffInst', "int Function(int)");
+    expectLocalVariableType(result, 'localTearOffInst', "int Function(int)");
+    expectLocalVariableType(result, 'paramTearOffInst', "int Function(int)");
   }
 
   test_genericMethod_then() async {

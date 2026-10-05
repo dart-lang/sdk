@@ -617,11 +617,46 @@ void main() {
 
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
-    var node3 = result.findNodeV1.simple('x;');
-    assertResolvedNodeText(node3, r'''
-SimpleIdentifier
-  token: x
-  element: <testLibrary>::@mixin::M2::@getter::x
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: ConstructorInvocation
+    keyword: new
+    constructorReference: ConstructorReference2
+      typeReference: ConstructorTypeReference
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  name: x
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@mixin::M2::@getter::x
+    invokeType: dynamic Function()
+    type: dynamic
+  staticType: dynamic
+V1: PropertyAccess
+  target: InstanceCreationExpression
+    keyword: new
+    constructorName: ConstructorName
+      type: NamedType
+        name: C
+        element: <testLibrary>::@class::C
+        type: C
+      element: <testLibrary>::@class::C::@constructor::new
+    argumentList: ArgumentList
+      leftParenthesis: (
+      rightParenthesis: )
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: x
+    element: <testLibrary>::@mixin::M2::@getter::x
+    staticType: dynamic
   staticType: dynamic
 ''');
   }
