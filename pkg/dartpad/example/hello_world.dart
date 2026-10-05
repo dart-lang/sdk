@@ -18,7 +18,7 @@ Future<void> main() async {
   // Create a workspace with pubspec.yaml and main.dart
   final ws = await dartpad.createWorkspace();
   await ws.writeFileFromText('pubspec.yaml', '''
-    package: foo
+    name: foo
     environment:
       sdk: ^3.11.0
     dependencies:
