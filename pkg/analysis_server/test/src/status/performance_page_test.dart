@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/status/diagnostics.dart';
+import 'package:analysis_server/src/status/pages.dart' as pages;
 import 'package:analysis_server/src/status/pages/performance_page.dart';
 import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:test/test.dart';
@@ -217,8 +218,9 @@ analyzer:
     expect(page.navDetail, '1');
 
     var html = await _generate();
+    var expectedPath = pages.escape(convertPath('web/node_modules'));
     expect(html, contains('Potential Problems'));
-    expect(html, contains('<code>web&#47;node_modules</code> in context'));
+    expect(html, contains('<code>$expectedPath</code> in context'));
   }
 
   Future<void> test_nodeModules_notExcluded() async {
