@@ -3796,13 +3796,21 @@ class FlowModel {
       PromotionModel? info = result.promotionInfo?.get(helper, variableKey);
       if (info == null) continue;
 
-      // We don't need to discard promotions for final variables. They are
-      // guaranteed to be already assigned and won't be assigned again.
-      if (helper.isFinal(variableKey)) continue;
-
-      PromotionModel newInfo = info.discardPromotionsAndMarkNotUnassigned(
-        nonPromotionReason: getNonPromotionReason?.call(variableKey),
-      );
+      // Final variables don't need their promotions discarded: once a final
+      // variable has a value, that value can never change. (If the variable
+      // is definitely assigned, any further assignment is a compile-time
+      // error. If it's a `late` variable that's only potentially assigned,
+      // then any promotion must have come from a successful read of the
+      // variable, so any further assignment will throw at runtime. Otherwise,
+      // the variable can't be read without a compile-time error, so in
+      // error-free code it has no promotions.) However, final variables still
+      // need to be marked as not definitely unassigned, since they might be
+      // assigned by the code being analyzed.
+      PromotionModel newInfo = helper.isFinal(variableKey)
+          ? info.markNotUnassigned()
+          : info.discardPromotionsAndMarkNotUnassigned(
+              nonPromotionReason: getNonPromotionReason?.call(variableKey),
+            );
       if (!identical(info, newInfo)) {
         result = result.updatePromotionInfo(helper, variableKey, newInfo);
       }
@@ -4739,6 +4747,25 @@ class PromotionModel {
       unassigned: false,
       version: writeCaptured ? null : new ValueVersion(),
       nonPromotionHistory: newNonPromotionHistory,
+    );
+  }
+
+  /// Returns a new [PromotionModel] in which the variable has been marked as
+  /// "not unassigned", but any promotions present have been kept.
+  ///
+  /// Used by [FlowModel.conservativeJoin] to update the state of final
+  /// variables at the top of loops whose bodies write to them. (Promotions of
+  /// final variables don't need to be dropped, because once a final variable
+  /// has a value, that value can never change.)
+  PromotionModel markNotUnassigned() {
+    if (!unassigned) return this;
+    return new PromotionModel(
+      promotedTypes: promotedTypes,
+      tested: tested,
+      assigned: assigned,
+      unassigned: false,
+      version: version,
+      nonPromotionHistory: nonPromotionHistory,
     );
   }
 

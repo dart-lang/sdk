@@ -1087,6 +1087,77 @@ main() {
       },
     );
 
+    test('functionExpression_begin() marks final vars that are not definitely '
+        'assigned as not definitely unassigned', () {
+      // final int? x;
+      // () {
+      //   x is not definitely unassigned (the closure might execute after
+      //   the assignment below)
+      // };
+      // x = <int>;
+      var x = Var('x', isFinal: true);
+      h.run([
+        declare(x, type: 'int?'),
+        checkUnassigned(x, true),
+        localFunction([checkUnassigned(x, false)]),
+        checkUnassigned(x, true),
+        x.write(expr('int')),
+      ]);
+    });
+
+    test('functionExpression_begin() marks final vars that are not definitely '
+        'assigned as not definitely unassigned with inference-update-4 '
+        'disabled', () {
+      // See test for "functionExpression_begin() marks final vars that are not
+      // definitely assigned as not definitely unassigned" for enabled
+      // behavior.
+      var x = Var('x', isFinal: true);
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, type: 'int?'),
+        checkUnassigned(x, true),
+        localFunction([checkUnassigned(x, false)]),
+        checkUnassigned(x, true),
+        x.write(expr('int')),
+      ]);
+    });
+
+    test('functionExpression_begin() preserves promotions of potentially '
+        'assigned late final vars', () {
+      // late final int? x;
+      // if (<bool>) x = <int>;
+      // if (x != null) {
+      //   () => x is promoted to int (because the read of `x` succeeded,
+      //         `x` has been assigned, and can't be assigned again)
+      // }
+      var x = Var('x', isFinal: true);
+      h.run([
+        declare(x, isLate: true, type: 'int?'),
+        if_(expr('bool'), [x.write(expr('int'))]),
+        checkAssigned(x, false),
+        checkUnassigned(x, false),
+        if_(x.notEq(nullLiteral), [
+          localFunction([checkPromoted(x, 'int')]),
+        ]),
+      ]);
+    });
+
+    test('functionExpression_begin() cancels promotions of potentially '
+        'assigned late final vars with inference-update-4 disabled', () {
+      // See test for "functionExpression_begin() preserves promotions of
+      // potentially assigned late final vars" for enabled behavior.
+      var x = Var('x', isFinal: true);
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, isLate: true, type: 'int?'),
+        if_(expr('bool'), [x.write(expr('int'))]),
+        if_(x.notEq(nullLiteral), [
+          checkPromoted(x, 'int'),
+          localFunction([checkNotPromoted(x)]),
+        ]),
+      ]);
+    });
+
     test(
       'functionExpression_begin() preserves promotions of initialized vars',
       () {
@@ -2662,6 +2733,39 @@ main() {
       },
     );
 
+    test('tryCatchStatement_bodyEnd() marks final vars assigned in body as not '
+        'definitely unassigned', () {
+      // final int? x;
+      // try {
+      //   x = <int>;
+      // } catch (_) {
+      //   x is not definitely unassigned
+      // }
+      var x = Var('x', isFinal: true);
+      h.run([
+        declare(x, type: 'int?'),
+        checkUnassigned(x, true),
+        try_([
+          x.write(expr('int')),
+        ]).catch_(type: 'dynamic', body: [checkUnassigned(x, false)]),
+      ]);
+    });
+
+    test('tryCatchStatement_bodyEnd() marks final vars assigned in body as not '
+        'definitely unassigned with inference-update-4 disabled', () {
+      // See test for "tryCatchStatement_bodyEnd() marks final vars assigned in
+      // body as not definitely unassigned" for enabled behavior.
+      var x = Var('x', isFinal: true);
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, type: 'int?'),
+        checkUnassigned(x, true),
+        try_([
+          x.write(expr('int')),
+        ]).catch_(type: 'dynamic', body: [checkUnassigned(x, false)]),
+      ]);
+    });
+
     test('tryCatchStatement_bodyEnd() preserves write captures in body', () {
       // Note: it's not necessary for the write capture to survive to the end of
       // the try body, because an exception could occur at any time.  We check
@@ -3364,6 +3468,87 @@ main() {
         ]);
       },
     );
+
+    test(
+      'whileStatement_conditionBegin() marks final vars assigned in the loop '
+      'as not definitely unassigned',
+      () {
+        // final int? x;
+        // while (<bool>) {
+        //   x is not definitely unassigned
+        //   x = <int>;
+        // }
+        var x = Var('x', isFinal: true);
+        h.run([
+          declare(x, type: 'int?'),
+          checkUnassigned(x, true),
+          while_(expr('bool'), [
+            checkUnassigned(x, false),
+            x.write(expr('int')),
+          ]),
+        ]);
+      },
+    );
+
+    test(
+      'whileStatement_conditionBegin() marks final vars assigned in the loop '
+      'as not definitely unassigned with inference-update-4 disabled',
+      () {
+        // See test for "whileStatement_conditionBegin() marks final vars
+        // assigned in the loop as not definitely unassigned" for enabled
+        // behavior.
+        var x = Var('x', isFinal: true);
+        h.disableInferenceUpdate4();
+        h.run([
+          declare(x, type: 'int?'),
+          checkUnassigned(x, true),
+          while_(expr('bool'), [
+            checkUnassigned(x, false),
+            x.write(expr('int')),
+          ]),
+        ]);
+      },
+    );
+
+    test('whileStatement_conditionBegin() preserves promotions of potentially '
+        'assigned late final vars', () {
+      // late final int? x;
+      // if (<bool>) x = <int>;
+      // if (x != null) {
+      //   while (<bool>) {
+      //     x is promoted to int (because the read of `x` succeeded, `x`
+      //     has been assigned, so the assignment below will throw)
+      //     x = <int?>;
+      //   }
+      // }
+      var x = Var('x', isFinal: true);
+      h.run([
+        declare(x, isLate: true, type: 'int?'),
+        if_(expr('bool'), [x.write(expr('int'))]),
+        if_(x.notEq(nullLiteral), [
+          while_(expr('bool'), [
+            checkPromoted(x, 'int'),
+            x.write(expr('int?')),
+          ]),
+        ]),
+      ]);
+    });
+
+    test('whileStatement_conditionBegin() cancels promotions of potentially '
+        'assigned late final vars with inference-update-4 disabled', () {
+      // See test for "whileStatement_conditionBegin() preserves promotions of
+      // potentially assigned late final vars" for enabled behavior.
+      var x = Var('x', isFinal: true);
+      h.disableInferenceUpdate4();
+      h.run([
+        declare(x, isLate: true, type: 'int?'),
+        if_(expr('bool'), [x.write(expr('int'))]),
+        if_(x.notEq(nullLiteral), [
+          checkPromoted(x, 'int'),
+          while_(expr('bool'), [checkNotPromoted(x), x.write(expr('int?'))]),
+        ]),
+      ]);
+    });
 
     test('whileStatement_bodyBegin() promotes', () {
       var x = Var('x');

@@ -6,9 +6,11 @@ import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -30,9 +32,19 @@ main(List<String> args) {
     onFailure: onFailure,
     runTest: runTestFor(const _DefiniteAssignmentDataComputer(), [
       analyzerDefaultConfig,
+      TestConfig(
+        analyzerInferenceUpdate4Marker,
+        'analyzer with inference-update-4',
+        featureSet: FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: ExperimentStatus.currentVersion,
+          flags: ['inference-update-4'],
+        ),
+      ),
     ]),
   );
 }
+
+const String analyzerInferenceUpdate4Marker = 'analyzer:inference-update-4';
 
 class _DefiniteAssignmentDataComputer extends DataComputer<String> {
   const _DefiniteAssignmentDataComputer();
