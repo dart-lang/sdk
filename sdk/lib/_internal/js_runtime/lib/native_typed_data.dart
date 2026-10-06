@@ -1822,19 +1822,19 @@ final class NativeFloat32x4 implements Float32x4 {
 
   /// Returns the lane-wise minimum value in this [Float32x4] or [other].
   Float32x4 min(Float32x4 other) {
-    double _x = x < other.x ? x : other.x;
-    double _y = y < other.y ? y : other.y;
-    double _z = z < other.z ? z : other.z;
-    double _w = w < other.w ? w : other.w;
+    double _x = Math.min(x, other.x);
+    double _y = Math.min(y, other.y);
+    double _z = Math.min(z, other.z);
+    double _w = Math.min(w, other.w);
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   /// Returns the lane-wise maximum value in this [Float32x4] or [other].
   Float32x4 max(Float32x4 other) {
-    double _x = x > other.x ? x : other.x;
-    double _y = y > other.y ? y : other.y;
-    double _z = z > other.z ? z : other.z;
-    double _w = w > other.w ? w : other.w;
+    double _x = Math.max(x, other.x);
+    double _y = Math.max(y, other.y);
+    double _z = Math.max(z, other.z);
+    double _w = Math.max(w, other.w);
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
@@ -2369,18 +2369,12 @@ final class NativeFloat64x2 implements Float64x2 {
 
   /// Returns the lane-wise minimum value in this [Float64x2] or [other].
   Float64x2 min(Float64x2 other) {
-    return NativeFloat64x2._doubles(
-      x < other.x ? x : other.x,
-      y < other.y ? y : other.y,
-    );
+    return NativeFloat64x2._doubles(Math.min(x, other.x), Math.min(y, other.y));
   }
 
   /// Returns the lane-wise maximum value in this [Float64x2] or [other].
   Float64x2 max(Float64x2 other) {
-    return NativeFloat64x2._doubles(
-      x > other.x ? x : other.x,
-      y > other.y ? y : other.y,
-    );
+    return NativeFloat64x2._doubles(Math.max(x, other.x), Math.max(y, other.y));
   }
 
   /// Returns the lane-wise square root of this [Float64x2].

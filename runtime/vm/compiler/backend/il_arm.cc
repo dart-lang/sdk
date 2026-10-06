@@ -5066,30 +5066,48 @@ DEFINE_EMIT(Float64x2Binary,
     case SimdOpInstr::kFloat64x2WithY:
       __ vmovd(left.d(1), right.d(0));
       break;
-    case SimdOpInstr::kFloat64x2Min: {
-      // X lane.
-      __ vcmpd(left.d(0), right.d(0));
-      __ vmstat();
-      __ vmovd(left.d(0), right.d(0), GE);
-      // Y lane.
-      __ vcmpd(left.d(1), right.d(1));
-      __ vmstat();
-      __ vmovd(left.d(1), right.d(1), GE);
-      break;
-    }
-    case SimdOpInstr::kFloat64x2Max: {
-      // X lane.
-      __ vcmpd(left.d(0), right.d(0));
-      __ vmstat();
-      __ vmovd(left.d(0), right.d(0), LE);
-      // Y lane.
-      __ vcmpd(left.d(1), right.d(1));
-      __ vmstat();
-      __ vmovd(left.d(1), right.d(1), LE);
-      break;
-    }
     default:
       UNREACHABLE();
+  }
+}
+
+// ARMv7 NEON has no double-precision min/max, so each lane of a Float64x2
+// compares and conditionally moves. A comparison keeps the first operand when
+// the operands are unordered, so it drops NaNs and mishandles the -0.0/+0.0
+// tie. il_x64.cc solves the same problem on x86 by running the comparison both
+// ways and combining them with OR for min and (a | b) - (a ^ b) for max. The
+// subtract flips a disagreeing -0.0 tie to +0.0 and keeps NaNs.
+DEFINE_EMIT(Float64x2MinMax,
+            (SameAsFirstInput,
+             QRegisterView left,
+             QRegisterView right,
+             Temp<QRegister> temp)) {
+  const QRegisterView other(temp);
+  const bool is_min = instr->kind() == SimdOpInstr::kFloat64x2Min;
+  const Condition cond = is_min ? GE : LE;
+  // other = comparison-min/max(right, left), lane by lane.
+  __ vmovq(other, right);
+  __ vcmpd(other.d(0), left.d(0));
+  __ vmstat();
+  __ vmovd(other.d(0), left.d(0), cond);
+  __ vcmpd(other.d(1), left.d(1));
+  __ vmstat();
+  __ vmovd(other.d(1), left.d(1), cond);
+  // left = comparison-min/max(left, right), lane by lane.
+  __ vcmpd(left.d(0), right.d(0));
+  __ vmstat();
+  __ vmovd(left.d(0), right.d(0), cond);
+  __ vcmpd(left.d(1), right.d(1));
+  __ vmstat();
+  __ vmovd(left.d(1), right.d(1), cond);
+  if (is_min) {
+    __ vorrq(left, left, other);
+  } else {
+    const QRegisterView xored(QTMP);
+    __ veorq(xored, left, other);
+    __ vorrq(left, left, other);
+    __ vsubd(left.d(0), left.d(0), xored.d(0));
+    __ vsubd(left.d(1), left.d(1), xored.d(1));
   }
 }
 
@@ -5355,9 +5373,10 @@ DEFINE_EMIT(Int32x4Shift,
   CASE(Float64x2Scale)                                                         \
   CASE(Float64x2WithX)                                                         \
   CASE(Float64x2WithY)                                                         \
+  ____(Float64x2Binary)                                                        \
   CASE(Float64x2Min)                                                           \
   CASE(Float64x2Max)                                                           \
-  ____(Float64x2Binary)                                                        \
+  ____(Float64x2MinMax)                                                        \
   SIMPLE(Int32x4FromInts)                                                      \
   SIMPLE(Int32x4FromBools)                                                     \
   CASE(Int32x4GetX)                                                            \

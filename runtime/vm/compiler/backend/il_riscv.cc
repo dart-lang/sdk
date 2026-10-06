@@ -4263,11 +4263,35 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ fdivd(result, left, right);
         break;
       case Token::kMIN:
-        __ fmind(result, left, right);
+      case Token::kMAX: {
+        const bool is_min = op_kind() == Token::kMIN;
+        if (__ Supports(RV_Zfa)) {
+          if (is_min) {
+            __ fminmd(result, left, right);
+          } else {
+            __ fmaxmd(result, left, right);
+          }
+        } else {
+          // fmind/fmaxd return the non-NaN operand, but Float64x2 min/max must
+          // propagate NaNs. Return a NaN operand directly, as MathMinMax does.
+          compiler::Label done;
+          __ feqd(TMP, left, left);
+          __ fmvd(result, left);
+          ASSERT(result != left);
+          __ beqz(TMP, &done, compiler::Assembler::kNearJump);
+          __ feqd(TMP, right, right);
+          __ fmvd(result, right);
+          ASSERT(result != right);
+          __ beqz(TMP, &done, compiler::Assembler::kNearJump);
+          if (is_min) {
+            __ fmind(result, left, right);
+          } else {
+            __ fmaxd(result, left, right);
+          }
+          __ Bind(&done);
+        }
         break;
-      case Token::kMAX:
-        __ fmaxd(result, left, right);
-        break;
+      }
       default:
         UNREACHABLE();
     }
@@ -4287,11 +4311,35 @@ void BinaryDoubleOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
         __ fdivs(result, left, right);
         break;
       case Token::kMIN:
-        __ fmins(result, left, right);
+      case Token::kMAX: {
+        const bool is_min = op_kind() == Token::kMIN;
+        if (__ Supports(RV_Zfa)) {
+          if (is_min) {
+            __ fminms(result, left, right);
+          } else {
+            __ fmaxms(result, left, right);
+          }
+        } else {
+          // fmins/fmaxs return the non-NaN operand, but Float32x4 min/max must
+          // propagate NaNs. Return a NaN operand directly, as MathMinMax does.
+          compiler::Label done;
+          __ feqs(TMP, left, left);
+          __ fmvs(result, left);
+          ASSERT(result != left);
+          __ beqz(TMP, &done, compiler::Assembler::kNearJump);
+          __ feqs(TMP, right, right);
+          __ fmvs(result, right);
+          ASSERT(result != right);
+          __ beqz(TMP, &done, compiler::Assembler::kNearJump);
+          if (is_min) {
+            __ fmins(result, left, right);
+          } else {
+            __ fmaxs(result, left, right);
+          }
+          __ Bind(&done);
+        }
         break;
-      case Token::kMAX:
-        __ fmaxs(result, left, right);
-        break;
+      }
       default:
         UNREACHABLE();
     }

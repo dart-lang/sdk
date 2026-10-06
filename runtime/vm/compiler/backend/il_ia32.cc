@@ -4008,8 +4008,6 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   SIMD_OP_FLOAT_ARITH(V, Sub, sub)                                             \
   SIMD_OP_FLOAT_ARITH(V, Mul, mul)                                             \
   SIMD_OP_FLOAT_ARITH(V, Div, div)                                             \
-  SIMD_OP_FLOAT_ARITH(V, Min, min)                                             \
-  SIMD_OP_FLOAT_ARITH(V, Max, max)                                             \
   V(Int32x4Add, addpl)                                                         \
   V(Int32x4Sub, subpl)                                                         \
   V(Int32x4BitAnd, andps)                                                      \
@@ -4086,6 +4084,78 @@ DEFINE_EMIT(SimdBinaryOp,
     default:
       UNREACHABLE();
   }
+}
+
+// minps doesn't propagate a NaN or -0.0 from its first operand, so run it both
+// ways and OR the results. OR sets the sign to -0.0 when either operand is
+// -0.0, and a NaN OR anything stays a NaN.
+DEFINE_EMIT(Float32x4Min,
+            (SameAsFirstInput,
+             XmmRegister left,
+             XmmRegister right,
+             Temp<XmmRegister> temp)) {
+  __ movaps(temp, right);  // temp = right
+  __ minps(temp, left);    // temp = min(right, left)
+  __ minps(left, right);   // left = min(left, right)
+  __ orps(left, temp);     // left = left | temp
+  // We do not force NaN canonicalization, so we stop here.
+}
+
+// maxps doesn't propagate a NaN or +0.0 from its first operand, so run it both
+// ways (max(right, left) in temp, max(left, right) in left) and compute
+// (temp | left) - (temp ^ left). +0.0 for the tie would be temp & left, but
+// AND-ing two different NaNs can make an infinity. The subtract flips a
+// disagreeing -0.0 tie to +0.0, leaves agreeing zeros and ordinary values
+// unchanged, and keeps NaNs.
+DEFINE_EMIT(Float32x4Max,
+            (SameAsFirstInput,
+             XmmRegister left,
+             XmmRegister right,
+             Temp<XmmRegister> temp)) {
+  __ movaps(temp, right);  // temp = right
+  __ maxps(temp, left);    // temp = max(right, left)
+  __ maxps(left, right);   // left = max(left, right)
+  __ xorps(left, temp);    // left = temp ^ left
+  __ orps(temp, left);     // temp |= left, rebuilding temp | left
+  __ subps(temp, left);    // temp -= left, giving (temp | left) - (temp ^ left)
+  __ movaps(left, temp);
+  // We do not force NaN canonicalization, so we stop here.
+}
+
+// minpd doesn't propagate a NaN or -0.0 from its first operand, so run it both
+// ways and OR the results. OR sets the sign to -0.0 when either operand is
+// -0.0, and a NaN OR anything stays a NaN.
+DEFINE_EMIT(Float64x2Min,
+            (SameAsFirstInput,
+             XmmRegister left,
+             XmmRegister right,
+             Temp<XmmRegister> temp)) {
+  __ movaps(temp, right);  // temp = right
+  __ minpd(temp, left);    // temp = min(right, left)
+  __ minpd(left, right);   // left = min(left, right)
+  __ orpd(left, temp);     // left = left | temp
+  // We do not force NaN canonicalization, so we stop here.
+}
+
+// maxpd doesn't propagate a NaN or +0.0 from its first operand, so run it both
+// ways (max(right, left) in temp, max(left, right) in left) and compute
+// (temp | left) - (temp ^ left). +0.0 for the tie would be temp & left, but
+// AND-ing two different NaNs can make an infinity. The subtract flips a
+// disagreeing -0.0 tie to +0.0, leaves agreeing zeros and ordinary values
+// unchanged, and keeps NaNs.
+DEFINE_EMIT(Float64x2Max,
+            (SameAsFirstInput,
+             XmmRegister left,
+             XmmRegister right,
+             Temp<XmmRegister> temp)) {
+  __ movaps(temp, right);  // temp = right
+  __ maxpd(temp, left);    // temp = max(right, left)
+  __ maxpd(left, right);   // left = max(left, right)
+  __ xorpd(left, temp);    // left = temp ^ left
+  __ orpd(temp, left);     // temp |= left, rebuilding temp | left
+  __ subpd(temp, left);    // temp -= left, giving (temp | left) - (temp ^ left)
+  __ movaps(left, temp);
+  // We do not force NaN canonicalization, so we stop here.
 }
 
 #define SIMD_OP_SIMPLE_UNARY(V)                                                \
@@ -4371,6 +4441,10 @@ DEFINE_EMIT(Int32x4Select,
   CASE(Float32x4WithZ)                                                         \
   CASE(Float32x4WithW)                                                         \
   ____(SimdBinaryOp)                                                           \
+  SIMPLE(Float32x4Min)                                                         \
+  SIMPLE(Float32x4Max)                                                         \
+  SIMPLE(Float64x2Min)                                                         \
+  SIMPLE(Float64x2Max)                                                         \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \

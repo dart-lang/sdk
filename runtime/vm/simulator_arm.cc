@@ -2926,6 +2926,9 @@ static void simd_value_swap(simd_value_t* s1,
 }
 
 static float vminf(float f1, float f2) {
+  // VMIN.F32 propagates a NaN when either operand is a NaN.
+  if (isnan(f1)) return f1;
+  if (isnan(f2)) return f2;
   if (f1 == f2) {
     // take care of (-0.0) < 0.0, (they are equal according to minss)
     return signbit(f1) ? f1 : f2;
@@ -2934,6 +2937,9 @@ static float vminf(float f1, float f2) {
 }
 
 static float vmaxf(float f1, float f2) {
+  // VMAX.F32 propagates a NaN when either operand is a NaN.
+  if (isnan(f1)) return f1;
+  if (isnan(f2)) return f2;
   if (f1 == f2) {
     // take care of (-0.0) < 0.0, (they are equal according to minss)
     return signbit(f1) ? f2 : f1;

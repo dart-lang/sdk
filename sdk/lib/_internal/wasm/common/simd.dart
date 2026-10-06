@@ -471,21 +471,11 @@ final class F32x4 extends WasmTypedDataBase implements Float32x4 {
   Float32x4 withW(double newW) =>
       F32x4.fromV128(WasmF32x4(_bits).replaceLane(3, WasmF32.fromDouble(newW)));
 
-  Float32x4 min(Float32x4 other) {
-    double _x = x < other.x ? x : other.x;
-    double _y = y < other.y ? y : other.y;
-    double _z = z < other.z ? z : other.z;
-    double _w = w < other.w ? w : other.w;
-    return F32x4(_x, _y, _z, _w);
-  }
+  Float32x4 min(Float32x4 other) =>
+      F32x4.fromV128(WasmF32x4(_bits).min(WasmF32x4((other as F32x4)._bits)));
 
-  Float32x4 max(Float32x4 other) {
-    double _x = x > other.x ? x : other.x;
-    double _y = y > other.y ? y : other.y;
-    double _z = z > other.z ? z : other.z;
-    double _w = w > other.w ? w : other.w;
-    return F32x4(_x, _y, _z, _w);
-  }
+  Float32x4 max(Float32x4 other) =>
+      F32x4.fromV128(WasmF32x4(_bits).max(WasmF32x4((other as F32x4)._bits)));
 
   Float32x4 sqrt() => F32x4.fromV128(WasmF32x4(_bits).sqrt());
 
@@ -573,10 +563,10 @@ final class F64x2 extends WasmTypedDataBase implements Float64x2 {
       F64x2.fromV128(WasmF64x2(_bits).replaceLane(1, WasmF64.fromDouble(y)));
 
   Float64x2 min(Float64x2 other) =>
-      F64x2(x < other.x ? x : other.x, y < other.y ? y : other.y);
+      F64x2.fromV128(WasmF64x2(_bits).min(WasmF64x2((other as F64x2)._bits)));
 
   Float64x2 max(Float64x2 other) =>
-      F64x2(x > other.x ? x : other.x, y > other.y ? y : other.y);
+      F64x2.fromV128(WasmF64x2(_bits).max(WasmF64x2((other as F64x2)._bits)));
 
   Float64x2 sqrt() => F64x2.fromV128(WasmF64x2(_bits).sqrt());
 
