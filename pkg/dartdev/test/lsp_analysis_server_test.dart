@@ -8,8 +8,6 @@ import 'dart:io' as io;
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/lsp_packet_transformer.dart';
-import 'package:cli_util/cli_logging.dart';
-import 'package:dartdev/src/core.dart';
 import 'package:dartdev/src/lsp_analysis_server.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:test/test.dart';
@@ -18,10 +16,6 @@ import 'utils.dart';
 
 void main() {
   group('LspAnalysisServer', () {
-    setUp(() {
-      log = Logger.standard();
-    });
-
     group('with real process', () {
       test('can start', () async {
         final p = project();

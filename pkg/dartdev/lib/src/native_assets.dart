@@ -36,7 +36,6 @@ class DartNativeAssetsBuilder {
   final bool includeDevDependencies;
   final bool verbose;
   final bool dataAssetsExperimentEnabled;
-  final bool progressUpdatesOnStderr;
   final compile.Sanitizer? sanitizer;
 
   static const _fileSystem = LocalFileSystem();
@@ -58,11 +57,7 @@ class DartNativeAssetsBuilder {
         log.stderr(record.message);
       } else if (levelValue >= Level.WARNING.value ||
           verbose && levelValue >= Level.INFO.value) {
-        if (progressUpdatesOnStderr) {
-          log.stderr(record.message);
-        } else {
-          log.stdout(record.message);
-        }
+        log.stdout(record.message);
       } else {
         // Note, this is ignored by default.
         log.trace(record.message);
@@ -89,7 +84,6 @@ class DartNativeAssetsBuilder {
     required this.includeDevDependencies,
     required this.verbose,
     required this.dataAssetsExperimentEnabled,
-    this.progressUpdatesOnStderr = false,
     this.sanitizer,
     Target? target,
   }) : target = target ?? Target.current;
@@ -344,7 +338,7 @@ class DartNativeAssetsBuilder {
         try {
           await ensurePubspecResolved(pubspecMaybe.resolve('.').toFilePath());
         } on ResolutionFailedException catch (e) {
-          stderr.writeln(e.message);
+          log.stderr(e.message);
           return null;
         }
         packageConfig = await _findPackageConfigUri(uri);

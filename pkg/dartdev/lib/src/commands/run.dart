@@ -406,9 +406,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     required File residentCompilerInfoFile,
     required GenerateKernelArguments args,
     required bool shouldRetryOnFrontendCompilerException,
-    required bool quiet,
     String? nativeAssetsYaml,
-    bool progressUpdatesOnStderr = false,
   }) async {
     final executableFile = File(executable.executable);
     assert(
@@ -424,21 +422,17 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           residentCompilerInfoFile,
           args,
           createCompileJitJson,
-          quiet: quiet,
           nativeAssetsYaml: nativeAssetsYaml,
-          progressUpdatesOnStderr: progressUpdatesOnStderr,
         ),
       );
     } on FrontendCompilerException catch (e) {
       if (e.issue == CompilationIssue.serverError) {
         if (shouldRetryOnFrontendCompilerException) {
-          if (!quiet) {
-            log.stderr(
-              'Error: A connection to the Resident Frontend Compiler could '
-              'not be established. Restarting the Resident Frontend Compiler '
-              'and retrying compilation.',
-            );
-          }
+          log.stdout(
+            'Error: A connection to the Resident Frontend Compiler could '
+            'not be established. Restarting the Resident Frontend Compiler '
+            'and retrying compilation.',
+          );
           await shutDownOrForgetResidentFrontendCompiler(
             residentCompilerInfoFile,
           );
@@ -447,9 +441,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
             residentCompilerInfoFile: residentCompilerInfoFile,
             args: args,
             shouldRetryOnFrontendCompilerException: false,
-            quiet: quiet,
             nativeAssetsYaml: nativeAssetsYaml,
-            progressUpdatesOnStderr: progressUpdatesOnStderr,
           );
         } else {
           log.stderr(
@@ -475,22 +467,30 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
   @override
   FutureOr<int> run() async {
     final args = argResults!;
-    if (args.wasParsed(evalOption)) {
-      return runEval(args);
-    }
-    var mainCommand = '';
-    var runArgs = <String>[];
-    if (args.rest.isNotEmpty) {
-      mainCommand = args.rest.first;
-      // The command line arguments after the command name.
-      runArgs = args.rest.skip(1).toList();
-    }
+    final quiet =
+        args.option('verbosity') == Verbosity.error.name ||
+        (args[quietOption] ?? false);
+    return await withDartdevLogger(
+      () {
+        if (args.wasParsed(evalOption)) {
+          return runEval(args);
+        }
+        var mainCommand = '';
+        var runArgs = <String>[];
+        if (args.rest.isNotEmpty) {
+          mainCommand = args.rest.first;
+          // The command line arguments after the command name.
+          runArgs = args.rest.skip(1).toList();
+        }
 
-    final atIndex = mainCommand.indexOf('@');
-    if (atIndex != -1) {
-      return _runRemote(args, mainCommand, runArgs);
-    }
-    return _runLocal(args, mainCommand, runArgs);
+        final atIndex = mainCommand.indexOf('@');
+        if (atIndex != -1) {
+          return _runRemote(args, mainCommand, runArgs);
+        }
+        return _runLocal(args, mainCommand, runArgs);
+      },
+      output: quiet ? ProgressOutput.none : ProgressOutput.stderr,
+    );
   }
 
   /// Evaluates the Dart code snippet provided via the [--eval] option.
@@ -599,22 +599,16 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           includeDevDependencies: true,
           verbose: verbose,
           dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
-          progressUpdatesOnStderr: true,
         );
         if (!nativeAssetsExperimentEnabled) {
           if (await builder.warnOnNativeAssets()) {
             return errorExitCode;
           }
         } else if (await builder.hasHooks()) {
-          final verbosity = args.option('verbosity')!;
-          final showProgress = verbosity != Verbosity.error.name;
-          final assetsYamlFileUri = await (showProgress
-              ? progress(
-                  'Running build hooks',
-                  builder.compileNativeAssetsJitYamlFile,
-                  progressUpdatesOnStderr: true,
-                )
-              : builder.compileNativeAssetsJitYamlFile());
+          final assetsYamlFileUri = await progress(
+            'Running build hooks',
+            builder.compileNativeAssetsJitYamlFile,
+          );
           if (assetsYamlFileUri == null) {
             log.stderr('Error: Running build hooks failed.');
             return errorExitCode;
@@ -633,7 +627,6 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         executable = await ExecutableCompiler.compile(
           resolvedExecutable: executable,
           enabledExperiments: enabledExperiments,
-          quiet: args.option('verbosity') == Verbosity.error.name,
         );
       }
     } on CommandResolutionFailedException catch (e) {
@@ -688,11 +681,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         // need to replace the file in the resident frontend compiler kernel
         // cache associated with this executable, because the cached kernel file
         // may be used to populate context for expression evaluation later.
-        await ensureCompilationServerIsRunning(
-          residentCompilerInfoFile,
-          quiet: args[quietOption] ?? false,
-          progressUpdatesOnStderr: true,
-        );
+        await ensureCompilationServerIsRunning(residentCompilerInfoFile);
         final succeeded = await invokeReplaceCachedDill(
           replacementDillPath: executableFile.absolute.path,
           serverInfoFile: residentCompilerInfoFile,
@@ -713,9 +702,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           residentCompilerInfoFile: residentCompilerInfoFile,
           args: generateKernelArguments,
           shouldRetryOnFrontendCompilerException: true,
-          quiet: args[quietOption] ?? false,
           nativeAssetsYaml: nativeAssets,
-          progressUpdatesOnStderr: true,
         );
         if (compilationResult.goodResult != null) {
           executable = compilationResult.goodResult!;
@@ -871,7 +858,6 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
             sourcePackagePubspecFile,
             verbose,
             verbosity,
-            progressUpdatesOnStderr: true,
           );
 
           await InstallCommand.createAppBundleDirectory(
@@ -896,7 +882,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         );
         return await process.exitCode;
       } on InstallException catch (e) {
-        stderr.writeln(e.message);
+        log.stderr(e.message);
         return genericErrorExitCode;
       }
     });

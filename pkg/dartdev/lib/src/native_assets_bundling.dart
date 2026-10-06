@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:code_assets/code_assets.dart';
+import 'package:dartdev/src/core.dart';
 import 'package:dartdev/src/kernel_assets.dart';
 import 'package:dartdev/src/native_assets_macos.dart';
 import 'package:dartdev/src/target.dart';
@@ -78,7 +79,7 @@ Future<void> _copyAssets(
 
   if (filesToCopy.isNotEmpty) {
     if (verbose) {
-      stdout.writeln(
+      log.stdout(
         'Copying ${filesToCopy.length} build assets:\n'
         '${filesToCopy.map((e) => e.id).join('\n')}',
       );

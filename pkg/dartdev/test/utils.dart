@@ -7,7 +7,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/dartdev.dart';
 import 'package:dartdev/src/core.dart';
 import 'package:file/memory.dart';
@@ -33,10 +32,6 @@ const residentFrontendCompilerPrefix =
 
 /// Return the root URI of the SDK by walking up from the pkg/dartdev folder.
 final sdkRootUri = resolveDartDevUri('../../');
-
-void initGlobalState() {
-  log = Logger.standard();
-}
 
 /// Creates a test-project in a temp-dir that will [dispose] itself at the end
 /// of the test.
@@ -96,7 +91,6 @@ class TestProject {
     String? languageVersion,
     Map<String, dynamic>? pubspecExtras,
   }) {
-    initGlobalState();
     root = Directory.systemTemp
         .createTempSync('dartdev')
         .withUppercaseDriveLetter;

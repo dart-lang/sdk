@@ -43,7 +43,7 @@ class TestCommand extends DartdevCommand {
 
   @override
   void printUsage() {
-    print('''Usage: dart test [arguments]
+    log.stdout('''Usage: dart test [arguments]
 
 Note: flags and options for this command are provided by the project's package:test dependency.
 If package:test is not included as a dev_dependency in the project's pubspec.yaml, no flags or options will be listed.
@@ -169,18 +169,18 @@ Run "${runner!.executableName} help" to see global options.''');
       return DartdevCommand.errorExitCode;
     } on CommandResolutionFailedException catch (e) {
       if (project.hasPubspecFile) {
-        print(e.message);
+        log.stdout(e.message);
         if (e.issue == CommandResolutionIssue.packageNotFound) {
-          print('You need to add a dev_dependency on package:test.');
-          print('Try running `dart pub add --dev test`.');
+          log.stdout('You need to add a dev_dependency on package:test.');
+          log.stdout('Try running `dart pub add --dev test`.');
         }
       } else {
-        print(
+        log.stdout(
           'No pubspec.yaml file found - run this command in your project folder.',
         );
       }
       if (args.rest.contains('-h') || args.rest.contains('--help')) {
-        print('');
+        log.stdout('');
         printUsage();
       }
       return DartdevCommand.errorExitCode;

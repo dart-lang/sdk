@@ -4,9 +4,7 @@
 
 import 'dart:io' as io;
 
-import 'package:cli_util/cli_logging.dart';
 import 'package:dartdev/src/analysis_server.dart';
-import 'package:dartdev/src/core.dart';
 import 'package:dartdev/src/sdk.dart';
 import 'package:test/test.dart';
 
@@ -17,7 +15,6 @@ void main() {
     late TestProject p;
 
     setUp(() {
-      log = Logger.standard();
       p = project();
     });
 

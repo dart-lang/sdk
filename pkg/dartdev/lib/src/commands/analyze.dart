@@ -18,6 +18,7 @@ import 'package:path/path.dart' as path;
 
 import '../core.dart';
 import '../experiments.dart';
+import '../progress.dart';
 import '../sdk.dart';
 import '../utils.dart';
 
@@ -245,10 +246,6 @@ class AnalyzeCommand extends DartdevCommand {
     final targetsNames = targets
         .map((entity) => path.basename(entity.path))
         .join(', ');
-    final progress = machineFormat || jsonFormat
-        ? null
-        : log.progress('Analyzing $targetsNames');
-
     final server = LspAnalysisServer(
       _packagesFile(),
       sdkPath,
@@ -261,43 +258,48 @@ class AnalyzeCommand extends DartdevCommand {
       suppressAnalytics: suppressAnalytics,
       useAotSnapshot: useAotSnapshot,
     );
-
-    server.onErrors.listen((
-      params,
-    ) {
-      // Replace any previous results for this file.
-      errorsByFile[params.uri.toFilePath()] = params.diagnostics;
-    });
-
-    int pid = await server.start();
-
-    bool analysisFinished = false;
-
-    server.onExit.then((int exitCode) {
-      if (!analysisFinished) {
-        io.exitCode = exitCode;
-      }
-    });
-
-    server.onCrash.then((_) {
-      log.stderr('The analysis server shut down unexpectedly.');
-      log.stdout('Please report this at dartbug.com.');
-      io.exit(_Result.crash.exitCode);
-    });
-
-    // Wait for all analysis to complete.
-    await server.workspaceAnalysisComplete();
-    analysisFinished = true;
-
     UsageInfo? usageInfo;
-    if (printMemory) {
-      usageInfo = await ProcessProfiler.getProfilerForPlatform()
-          ?.getProcessUsage(pid);
-    }
+    await progress(
+      'Analyzing $targetsNames',
+      () async {
+        server.onErrors.listen((
+          params,
+        ) {
+          // Replace any previous results for this file.
+          errorsByFile[params.uri.toFilePath()] = params.diagnostics;
+        });
 
-    await server.shutdown();
+        int pid = await server.start();
 
-    progress?.finish(showTiming: true);
+        bool analysisFinished = false;
+
+        server.onExit.then((int exitCode) {
+          if (!analysisFinished) {
+            io.exitCode = exitCode;
+          }
+        });
+
+        server.onCrash.then((_) {
+          log.stderr('The analysis server shut down unexpectedly.');
+          log.stdout('Please report this at dartbug.com.');
+          io.exit(_Result.crash.exitCode);
+        });
+
+        // Wait for all analysis to complete.
+        await server.workspaceAnalysisComplete();
+        analysisFinished = true;
+
+        if (printMemory) {
+          usageInfo = await ProcessProfiler.getProfilerForPlatform()
+              ?.getProcessUsage(pid);
+        }
+
+        await server.shutdown();
+      },
+      output: machineFormat || jsonFormat
+          ? ProgressOutput.none
+          : ProgressOutput.stdout,
+    );
 
     /// Errors in analysis_options.yaml and pubspec.yaml will be reported first
     /// and a note that they might be the cause of other errors.
