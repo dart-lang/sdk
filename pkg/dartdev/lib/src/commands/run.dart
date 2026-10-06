@@ -726,6 +726,8 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
           switch (compilationResult.error!) {
             case CompilationIssue.serverError:
               return dartFrontendErrorExitCode;
+            case CompilationIssue.serverErrorNoRestart:
+              return dartFrontendErrorExitCode;
             case CompilationIssue.serverCreationError:
               return dartFrontendErrorExitCode;
             case CompilationIssue.compilationError:
