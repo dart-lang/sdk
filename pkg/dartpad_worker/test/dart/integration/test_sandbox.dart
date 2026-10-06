@@ -35,6 +35,11 @@ void main() {
 
     await ctx.checkConsole(.it()..contains('Hello World'));
     await ctx.checkConsole(.it()..equals('[custom-item]'), level: .debug);
+
+    // Closing the iframe triggers pagehide in sandbox.js, which posts null on
+    // the sandbox MessagePort and closes the sandbox in the worker.
+    await ctx.iframe.close();
+    await check(ctx.sandbox.hotReload()).throws<SandboxNotFoundException>();
   });
 
   testDartIntegration('sandbox handles unhandled error', (ctx) async {

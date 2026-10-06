@@ -71,6 +71,13 @@
   const rpcMethods = Object.create(null);
 
   async function onRcpMessage(ev) {
+    if (ev.data === null) {
+      originalConsole.log.call(console, 'Sandbox RPC port closed by host.');
+      rpcPort.onmessage = null;
+      rpcPort.close();
+      return;
+    }
+
     let m;
     try {
       // Ignore invalid messages from the host
@@ -256,6 +263,14 @@
 
       rpcPort.onmessage = onRcpMessage;
       rpcPort.start();
+      window.addEventListener(
+        'pagehide',
+        () => {
+          rpcPort.postMessage(null);
+          rpcPort.close();
+        },
+        { once: true },
+      );
       window.parent.postMessage(
         { action: 'connect', port: remotePort },
         '*',
