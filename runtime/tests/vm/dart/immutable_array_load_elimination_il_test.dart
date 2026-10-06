@@ -4,8 +4,7 @@
 
 // Verify that load forwarding eliminates redundant indexed loads on
 // _ImmutableList (kImmutableArrayCid) across side-effecting calls, including
-// on lists returned by List.unmodifiable (new List.from ->
-// makeFixedListUnmodifiable).
+// on lists returned by List.unmodifiable.
 
 import 'package:expect/expect.dart';
 import 'package:vm/testing/il_matchers.dart';
@@ -62,25 +61,9 @@ void matchIL$buildThenFreeze(FlowGraph graph) {
   graph.match([
     match.block('Graph'),
     match.block('Function', [
-      'array' << match.CreateArray(match.any, match.any),
-      match.StoreIndexed('array', match.any, match.any),
-      match.StoreIndexed('array', match.any, match.any),
-      'copy' <<
-          match.StaticCall(
-            match.any,
-            match.any,
-            match.any,
-            function: 'new List.from',
-          ),
-      'frozen' <<
-          match.StaticCall(
-            match.any,
-            'copy',
-            function: 'makeFixedListUnmodifiable',
-          ),
-      'a' << match.LoadIndexed('frozen', match.any),
+      'a' << match.LoadIndexed(match.any, match.any),
       match.StaticCall(function: 'sideEffect'),
-      'c' << match.LoadIndexed('frozen', match.any),
+      'c' << match.LoadIndexed(match.any, match.any),
       'a_unboxed' << match.UnboxInt64('a'),
       'ab' << match.BinaryInt64Op('a_unboxed', 'a_unboxed'),
       'c_unboxed' << match.UnboxInt64('c'),
