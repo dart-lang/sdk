@@ -118,10 +118,7 @@ Run "${runner!.executableName} help" to see global options.''');
     }
 
     try {
-      var testExecutable = await getExecutableForCommand(
-        'test:test',
-        allowSnapshot: false,
-      );
+      var testExecutable = await getExecutableForCommand('test:test');
       final sourceExecutable = testExecutable.executable;
       testExecutable = await ExecutableCompiler.compile(
         resolvedExecutable: testExecutable,

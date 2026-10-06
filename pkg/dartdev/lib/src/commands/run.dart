@@ -627,10 +627,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     DartExecutableWithPackageConfig executable;
     final String sourceExecutable;
     try {
-      executable = await getExecutableForCommand(
-        mainCommand,
-        allowSnapshot: false,
-      );
+      executable = await getExecutableForCommand(mainCommand);
       sourceExecutable = executable.executable;
       if (!useResidentCompiler) {
         executable = await ExecutableCompiler.compile(
