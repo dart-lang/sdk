@@ -131,7 +131,9 @@ Future<DartExecutableWithPackageConfig> generateKernel(
         : null;
   }
 
-  final canonicalizedExecutablePath = p.normalize(p.absolute(executable.executable));
+  final canonicalizedExecutablePath = p.normalize(
+    p.absolute(executable.executable),
+  );
   final cachedDillPath = computeCachedDillAndCompilerOptionsPaths(
     canonicalizedExecutablePath,
   ).cachedDillPath;
@@ -153,10 +155,17 @@ Future<DartExecutableWithPackageConfig> generateKernel(
   }
   if (!result[responseSuccessString]) {
     if (result.containsKey(responseErrorString)) {
-      throw FrontendCompilerException._(
-        result[responseErrorString],
-        CompilationIssue.serverError,
-      );
+      if (result['restartMightHelp'] ?? true) {
+        throw FrontendCompilerException._(
+          result[responseErrorString],
+          CompilationIssue.serverError,
+        );
+      } else {
+        throw FrontendCompilerException._(
+          result[responseErrorString],
+          CompilationIssue.serverErrorNoRestart,
+        );
+      }
     } else {
       throw FrontendCompilerException._(
         (result[responseOutputString] as List<dynamic>).join('\n'),
@@ -257,6 +266,10 @@ String? _packageRootFor(DartExecutableWithPackageConfig executable) {
 enum CompilationIssue {
   /// Communication with the Resident Frontend Compiler failed.
   serverError,
+
+  /// Communication with the Resident Frontend Compiler failed but where restart
+  /// of the server does not make sense.
+  serverErrorNoRestart,
 
   /// The Resident Frontend Compiler failed to launch
   serverCreationError,
