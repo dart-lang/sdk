@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages/performance_page.dart';
+import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -26,6 +27,28 @@ class PerformancePageTest extends PubPackageAnalysisServerTest {
     super.setUp();
     site = DiagnosticsSite(TestSocketServer(server), []);
     page = PerformancePage(site);
+  }
+
+  Future<void> test_fileIoTimingsNotAffected() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile(
+      '$testPackageRootPath/web/node_modules/pkg/index.js',
+      'console.log();',
+    );
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    Map<ResourceProviderOperation, int> callCounts() {
+      var timings = server.timingResourceProvider.timings;
+      return {
+        for (var MapEntry(:key, :value) in timings.entries) key: value.count,
+      };
+    }
+
+    var countsBefore = callCounts();
+    expect(page.navDetail, '1');
+    await _generate();
+    expect(callCounts(), countsBefore);
   }
 
   Future<void> test_healthyState() async {

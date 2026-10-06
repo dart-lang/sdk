@@ -315,6 +315,36 @@ class TimingResourceProviderTest with ResourceProviderMixin {
     }
   }
 
+  void test_withoutMeasuring() {
+    var file = newFile('/folder/test.dart', 'abc');
+    var timedFile = provider.getFile(file.path);
+    var timedFolder = provider.getFolder(file.parent.path);
+
+    var result = provider.withoutMeasuring(() {
+      expect(timedFolder.getChildren(), hasLength(1));
+      expect(timedFile.readAsBytesSync(), hasLength(3));
+      expect(provider.withoutMeasuring(() => timedFile.exists), isTrue);
+      // Still suspended after the nested call returns.
+      return timedFile.readAsStringSync();
+    });
+    expect(result, 'abc');
+    expect(provider.timings, isEmpty);
+
+    // Measuring resumes after a suspended operation throws.
+    expect(
+      () => provider.withoutMeasuring(() => throw StateError('test')),
+      throwsStateError,
+    );
+    expect(timedFile.readAsBytesSync(), hasLength(3));
+    var timing =
+        provider.timings[ResourceProviderOperation.fileReadAsBytesSync]!;
+    expect(timing.count, 1);
+    expect(timing.bytesRead, 3);
+    expect(provider.timings.keys, [
+      ResourceProviderOperation.fileReadAsBytesSync,
+    ]);
+  }
+
   void test_writesRenameDeleteAndLinks() {
     var file = newFile('/folder/test.dart', 'content');
     var timedFile = provider.getFile(file.path);
