@@ -1342,6 +1342,7 @@ sealed class Argument implements AstNode {
 }
 
 base mixin ArgumentImpl on AstNodeImpl implements Argument {
+  @ToBeDeprecated('Use argumentExpression2 instead.')
   @override
   ExpressionImpl get argumentExpression;
 
@@ -17635,6 +17636,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     implements Expression {
   TypeImpl? _staticType;
 
+  @ToBeDeprecated('Use argumentExpression2 instead.')
   @override
   ExpressionImpl get argumentExpression => this;
 
@@ -17681,6 +17683,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     return null;
   }
 
+  @ToBeDeprecated('Use fieldExpression2 instead.')
   @override
   ExpressionImpl get fieldExpression => this;
 
@@ -46464,6 +46467,7 @@ abstract final class RecordLiteralField implements AstNode {
 }
 
 base mixin RecordLiteralFieldImpl on AstNodeImpl implements RecordLiteralField {
+  @ToBeDeprecated('Use fieldExpression2 instead.')
   @override
   ExpressionImpl get fieldExpression;
 
@@ -47920,6 +47924,7 @@ final class RedirectingConstructorInvocationImpl
     return argumentList.endToken;
   }
 
+  @ToBeDeprecated('Use constructorSelector instead.')
   @override
   Token? get period => constructorSelector?.period;
 
@@ -51195,6 +51200,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     return argumentList.endToken;
   }
 
+  @ToBeDeprecated('Use constructorSelector instead.')
   @override
   Token? get period => constructorSelector?.period;
 

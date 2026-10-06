@@ -181,14 +181,16 @@ class ContextsPage extends DiagnosticPageWithNav {
     h3('Largest library cycles');
     Set<LibraryCycle> cycles = {};
     var pathContext = contextRoot.resourceProvider.pathContext;
-    for (var filePath in contextRoot.analyzedFiles()) {
-      if (!file_paths.isDart(pathContext, filePath)) continue;
-      var fileState = driver.fsState.getFileForPath(filePath);
-      var kind = fileState.kind;
-      if (kind is LibraryFileKind) {
-        cycles.add(kind.libraryCycle);
+    server.timingResourceProvider.withoutMeasuring(() {
+      for (var filePath in contextRoot.analyzedFiles()) {
+        if (!file_paths.isDart(pathContext, filePath)) continue;
+        var fileState = driver.fsState.getFileForPath(filePath);
+        var kind = fileState.kind;
+        if (kind is LibraryFileKind) {
+          cycles.add(kind.libraryCycle);
+        }
       }
-    }
+    });
     var sortedMultiLibraryCycles =
         cycles.where((cycle) => cycle.size > 1).toList()
           ..sort((first, second) => second.size - first.size);

@@ -68,6 +68,9 @@ class TimingResourceProvider implements ResourceProvider {
 
   final Map<ResourceProviderOperation, ResourceProviderTiming> _timings = {};
 
+  /// The number of active [withoutMeasuring] calls; nested calls are allowed.
+  int _suspendedDepth = 0;
+
   TimingResourceProvider(this.baseProvider);
 
   @override
@@ -105,11 +108,50 @@ class TimingResourceProvider implements ResourceProvider {
     return folder != null ? _TimingFolder(this, folder) : null;
   }
 
-  T _record<T>(ResourceProviderOperation operation, T Function() action) {
+  /// Runs [operation] without measuring the resource operations it performs.
+  ///
+  /// This is intended for diagnostics that would otherwise distort the
+  /// measurements they display.
+  ///
+  /// The [operation] must be synchronous. While it runs, no other code in this
+  /// isolate can use this provider, so only operations performed by
+  /// [operation] itself are excluded. Suspending measurements across an
+  /// asynchronous gap would also hide unrelated operations.
+  T withoutMeasuring<T>(T Function() operation) {
+    _suspendedDepth++;
+    try {
+      var result = operation();
+      assert(
+        result is! Future,
+        'The operation passed to withoutMeasuring must be synchronous.',
+      );
+      return result;
+    } finally {
+      _suspendedDepth--;
+    }
+  }
+
+  /// Runs [action], recording it as a call to [operation].
+  ///
+  /// If [bytesRead] is provided, it computes the number of bytes returned by a
+  /// successful [action].
+  T _record<T>(
+    ResourceProviderOperation operation,
+    T Function() action, {
+    int Function(T result)? bytesRead,
+  }) {
+    if (_suspendedDepth > 0) {
+      return action();
+    }
+
     var timing = _timings.putIfAbsent(operation, ResourceProviderTiming.new);
     var stopwatch = Stopwatch()..start();
     try {
-      return action();
+      var result = action();
+      if (bytesRead != null) {
+        timing.bytesRead += bytesRead(result);
+      }
+      return result;
     } finally {
       stopwatch.stop();
       timing.count++;
@@ -154,16 +196,11 @@ class _TimingFile extends _TimingResource implements File {
   );
 
   @override
-  Uint8List readAsBytesSync() {
-    var bytes = provider._record(
-      ResourceProviderOperation.fileReadAsBytesSync,
-      _file.readAsBytesSync,
-    );
-    var timing =
-        provider._timings[ResourceProviderOperation.fileReadAsBytesSync]!;
-    timing.bytesRead += bytes.length;
-    return bytes;
-  }
+  Uint8List readAsBytesSync() => provider._record(
+    ResourceProviderOperation.fileReadAsBytesSync,
+    _file.readAsBytesSync,
+    bytesRead: (bytes) => bytes.length,
+  );
 
   @override
   String readAsStringSync() => provider._record(

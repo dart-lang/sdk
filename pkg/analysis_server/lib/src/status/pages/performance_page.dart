@@ -75,13 +75,17 @@ class PerformancePage extends DiagnosticPageWithNav {
   }
 
   List<_PerformanceComponent> _collectComponents() {
-    return [
-      _ContextsPerformanceComponent(this),
-      _LibraryCyclesPerformanceComponent(this),
-      _NodeModulesPerformanceComponent(this),
-      // TODO(srawlins): Check for slow file reads.
-      // TODO(srawlins): Check for symlink explosions.
-    ];
+    // The components walk the file system on every page render, including the
+    // navigation of other pages; keep this out of the File I/O timing page.
+    return server.timingResourceProvider.withoutMeasuring(
+      () => [
+        _ContextsPerformanceComponent(this),
+        _LibraryCyclesPerformanceComponent(this),
+        _NodeModulesPerformanceComponent(this),
+        // TODO(srawlins): Check for slow file reads.
+        // TODO(srawlins): Check for symlink explosions.
+      ],
+    );
   }
 }
 

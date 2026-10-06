@@ -199,6 +199,11 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
 
   @override
   void visitComment(Comment node) {
+    // Most doc comments have no `<` at all, see the per-line check below.
+    if (!node.tokens.any((token) => token.lexeme.contains('<'))) {
+      return;
+    }
+
     var codeBlockLines = node.codeBlocks
         .map((codeBlock) => codeBlock.lines)
         .flattened;
@@ -208,20 +213,26 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
       // Split lines, because a multiline comment may have multiple lines in a
       // single token and markdown code lines have already been split by line.
       for (var line in token.lexeme.split('\n')) {
-        // Make sure that the current doc comment line isn't contained in a code
-        // block.
-        var lineOffsetAfterMarker = _getCommentPrefixLength(token.type, line);
-        var offsetAfterMarker = lineOffset + lineOffsetAfterMarker;
-        var inCodeBlock = codeBlockLines.any(
-          (codeBlockLine) =>
-              codeBlockLine.offset <= offsetAfterMarker &&
-              offsetAfterMarker <= codeBlockLine.offset + codeBlockLine.length,
-        );
+        // Every unintended tag starts with `<`, and lines are matched
+        // independently. So a line without `<` cannot have one, and skipping
+        // it avoids the expensive pattern. Most doc comment lines are such.
+        if (line.contains('<')) {
+          // Make sure that the current doc comment line isn't contained in a
+          // code block.
+          var lineOffsetAfterMarker = _getCommentPrefixLength(token.type, line);
+          var offsetAfterMarker = lineOffset + lineOffsetAfterMarker;
+          var inCodeBlock = codeBlockLines.any(
+            (codeBlockLine) =>
+                codeBlockLine.offset <= offsetAfterMarker &&
+                offsetAfterMarker <=
+                    codeBlockLine.offset + codeBlockLine.length,
+          );
 
-        if (!inCodeBlock) {
-          var tags = _findUnintendedHtmlTags(line);
-          for (var tag in tags) {
-            rule.reportAtOffset(lineOffset + tag.offset, tag.length);
+          if (!inCodeBlock) {
+            var tags = _findUnintendedHtmlTags(line);
+            for (var tag in tags) {
+              rule.reportAtOffset(lineOffset + tag.offset, tag.length);
+            }
           }
         }
 
