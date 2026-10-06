@@ -130,11 +130,8 @@ class GetterFragment implements Fragment, FunctionFragment {
   String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }
 
-class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
-  GetterFragment _fragment;
-
-  new(this._fragment);
-
+class _GetterBodyBuildingContext(final GetterFragment _fragment)
+    implements FunctionBodyBuildingContext {
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
       .builder
@@ -152,6 +149,9 @@ class _GetterBodyBuildingContext implements FunctionBodyBuildingContext {
   @override
   // Coverage-ignore(suite): Not run.
   bool get shouldFinishFunction => true;
+
+  @override
+  bool get isImplementation => _fragment.declaration.isImplementation;
 
   @override
   List<TypeParameter>? get thisTypeParameters =>

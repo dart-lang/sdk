@@ -56,6 +56,13 @@ abstract class ConstructorDeclaration {
 
   bool get hasParameters;
 
+  /// Whether this declaration hold the implementation for the constructor.
+  ///
+  /// For augmentations, only one of the constructor declarations is considered
+  /// as the implementation. Other declarations can only provide annotations
+  /// for the generated AST node.
+  bool get isImplementation;
+
   List<Initializer> get initializers;
 
   void registerInitializers(List<Initializer> initializers);
@@ -77,6 +84,7 @@ abstract class ConstructorDeclaration {
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
+    required bool isImplementation,
   });
 
   void buildOutlineNodes({
@@ -170,6 +178,11 @@ mixin _ConstructorDeclarationMixin
   List<SourceNominalParameterBuilder>? get _typeParameters;
 
   bool get _isPrimaryConstructor;
+
+  late final bool _isImplementation;
+
+  @override
+  bool get isImplementation => _isImplementation;
 
   late final List<FormalParameterBuilder>? _initializerScopeParameters =
       _computeInitializerScopeParameters();
@@ -607,10 +620,10 @@ mixin _ConstructorDeclarationMixin
     return new FormalParameterScope(local: local, parent: parent);
   }
 
-  void _buildConstructorForOutlineExpressions(
-    SourceLibraryBuilder libraryBuilder,
-    SourceConstructorBuilder constructorBuilder,
-  ) {
+  void _buildConstructorForOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceConstructorBuilder constructorBuilder,
+  }) {
     if (_buildInitializersForOutline) {
       final LocalScope? formalParameterScope;
       if (isConst) {
@@ -633,20 +646,21 @@ mixin _ConstructorDeclarationMixin
         beginInitializers: _initializersStartToken,
         isConst: isConst,
         forPrimaryConstructor: _isPrimaryConstructor,
+        isImplementation: isImplementation,
       );
     }
   }
 
-  void _buildOutlineExpressions(
-    SourceLibraryBuilder libraryBuilder,
-    SourceConstructorBuilder constructorBuilder,
-  ) {
+  void _buildOutlineExpressions({
+    required SourceLibraryBuilder libraryBuilder,
+    required SourceConstructorBuilder constructorBuilder,
+  }) {
     if (isConst || _hasSuperInitializingFormals) {
       // For modular compilation purposes we need to include initializers
       // for const constructors into the outline.
       _buildConstructorForOutlineExpressions(
-        libraryBuilder,
-        constructorBuilder,
+        libraryBuilder: libraryBuilder,
+        constructorBuilder: constructorBuilder,
       );
       buildBody();
     }
@@ -700,7 +714,10 @@ mixin _ConstructorDeclarationMixin
       bodyBuilderContext: bodyBuilderContext,
       classHierarchy: classHierarchy,
     );
-    _buildOutlineExpressions(libraryBuilder, constructorBuilder);
+    _buildOutlineExpressions(
+      libraryBuilder: libraryBuilder,
+      constructorBuilder: constructorBuilder,
+    );
     addSuperParameterDefaultValueCloners(
       libraryBuilder,
       declarationBuilder,
@@ -986,7 +1003,9 @@ class RegularConstructorDeclaration
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
+    required bool isImplementation,
   }) {
+    _isImplementation = isImplementation;
     _fragment.builder = constructorBuilder;
     _typeParameters = encodingStrategy.createTypeParameters(
       declarationBuilder: declarationBuilder,
@@ -1157,7 +1176,9 @@ class DefaultEnumConstructorDeclaration
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
+    required bool isImplementation,
   }) {
+    _isImplementation = isImplementation;
     _encoding = encodingStrategy.createEncoding(isExternal: false);
     _registerInferable(constructorBuilder);
   }
@@ -1315,7 +1336,9 @@ class PrimaryConstructorDeclaration
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
+    required bool isImplementation,
   }) {
+    _isImplementation = isImplementation;
     _fragment.builder = constructorBuilder;
     _bodyFragment?.builder = constructorBuilder;
     _bodyFragment?.registerPrimaryConstructorFragment(
@@ -1558,6 +1581,10 @@ abstract class ConstructorFragmentDeclaration {
   bool get isExternal;
 
   bool get isNative;
+
+  /// Whether this constructor declaration holds the implementation for this
+  /// constructor.
+  bool get isImplementation;
 }
 
 mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
@@ -1713,6 +1740,10 @@ class DefaultConstructorDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get isImplementation => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   void createEncoding({
     required ProblemReporting problemReporting,
     required SourceLoader loader,
@@ -1720,7 +1751,13 @@ class DefaultConstructorDeclaration
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
-  }) {}
+    required bool isImplementation,
+  }) {
+    assert(
+      isImplementation,
+      "Unexpected non-implementation default constructor.",
+    );
+  }
 
   @override
   void addSuperParameterDefaultValueCloners(
@@ -1789,6 +1826,10 @@ class ForwardingConstructorDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
+  bool get isImplementation => true;
+
+  @override
+  // Coverage-ignore(suite): Not run.
   void createEncoding({
     required ProblemReporting problemReporting,
     required SourceLoader loader,
@@ -1796,7 +1837,13 @@ class ForwardingConstructorDeclaration
     required SourceConstructorBuilder constructorBuilder,
     required TypeParameterFactory typeParameterFactory,
     required ConstructorEncodingStrategy encodingStrategy,
-  }) {}
+    required bool isImplementation,
+  }) {
+    assert(
+      isImplementation,
+      "Unexpected non-implementation forwarding constructor.",
+    );
+  }
 
   @override
   void addSuperParameterDefaultValueCloners(

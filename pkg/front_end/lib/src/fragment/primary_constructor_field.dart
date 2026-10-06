@@ -364,20 +364,22 @@ class PrimaryConstructorFieldDeclaration
   }
 
   @override
-  void createGetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {}
+  void createGetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {}
 
   @override
-  void createSetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {}
+  void createSetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {}
 
   @override
   void ensureGetterTypes({

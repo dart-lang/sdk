@@ -179,6 +179,13 @@ class _InitializerBuilder {
   final TypeInferrer _typeInferrer;
   final Uri _fileUri;
 
+  /// Whether the processed initializers is for the constructor implementation.
+  ///
+  /// For augmentations, only one of the constructor declarations is considered
+  /// as the implementation, for which initializers should be registered. Other
+  /// constructor declarations can only have initializers in erroneous cases.
+  final bool _forImplementation;
+
   SuperInitializer? _superInitializer;
 
   Initializer? _redirectingInitializer;
@@ -200,18 +207,14 @@ class _InitializerBuilder {
   bool _needsImplicitSuperInitializer;
 
   new({
-    required CompilerContext compilerContext,
-    required ProblemReporting problemReporting,
-    required BodyBuilderContext bodyBuilderContext,
-    required TypeInferrer typeInferrer,
+    required this._compilerContext,
+    required this._problemReporting,
+    required this._bodyBuilderContext,
+    required this._typeInferrer,
     required CoreTypes coreTypes,
-    required Uri fileUri,
-  }) : this._compilerContext = compilerContext,
-       this._problemReporting = problemReporting,
-       this._bodyBuilderContext = bodyBuilderContext,
-       this._typeInferrer = typeInferrer,
-       this._fileUri = fileUri,
-       this._needsImplicitSuperInitializer = bodyBuilderContext
+    required this._fileUri,
+    required this._forImplementation,
+  }) : this._needsImplicitSuperInitializer = _bodyBuilderContext
            .needsImplicitSuperInitializer(coreTypes);
 
   void _inferInitializers(
@@ -224,7 +227,7 @@ class _InitializerBuilder {
       initializers: initializers,
       contextAllocationStrategy: contextAllocationStrategy,
     );
-    if (!_bodyBuilderContext.isExternalConstructor) {
+    if (_forImplementation && !_bodyBuilderContext.isExternalConstructor) {
       for (InitializerInferenceResult initializerInferenceResult
           in result.initializersInferenceResult) {
         _addInferredInitializer(initializerInferenceResult);
