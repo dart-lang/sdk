@@ -105,6 +105,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('AssertStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -178,6 +179,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('Block');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -220,6 +222,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('BreakStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -608,6 +611,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('ContinueStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -657,6 +661,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('DoStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -804,6 +809,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('EmptyStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -862,6 +868,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('ExpressionStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -1025,6 +1032,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('ForStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -1042,6 +1050,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('FunctionDeclarationStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -1184,6 +1193,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('IfStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -1460,6 +1470,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('LabeledStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -1848,6 +1859,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('PatternVariableDeclarationStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -2127,6 +2139,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('ReturnStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -2291,6 +2304,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('SwitchStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -2346,6 +2360,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('TryStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -2463,6 +2478,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('VariableDeclarationStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -2479,6 +2495,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('WhileStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -2504,6 +2521,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('YieldStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      _writeMayCompleteNormally(node);
     });
   }
 
@@ -2954,6 +2972,15 @@ Expected parent: (${parent.runtimeType}) $parent
           });
           _writeInvocationResolution('recovery', resolution.recovery);
         });
+    }
+  }
+
+  void _writeMayCompleteNormally(Statement node) {
+    if (configuration.withMayCompleteNormally) {
+      node as StatementImpl;
+      _sink.writelnWithIndent(
+        'mayCompleteNormally: ${node.mayCompleteNormally}',
+      );
     }
   }
 
@@ -3409,6 +3436,9 @@ class ResolvedNodeTextConfiguration {
 
   /// If `true`, elements of [InterfaceType] should be printed.
   bool withInterfaceTypeElements = false;
+
+  /// If `true`, [StatementImpl.mayCompleteNormally] should be printed.
+  bool withMayCompleteNormally = false;
 
   /// If `true`, [Expression.correspondingParameter] should be printed.
   bool withParameterElements = true;

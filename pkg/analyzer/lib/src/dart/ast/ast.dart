@@ -50549,6 +50549,16 @@ abstract final class Statement implements AstNode {
 }
 
 sealed class StatementImpl extends AstNodeImpl implements Statement {
+  /// Whether the end of this statement is reachable, as computed by flow
+  /// analysis during resolution.
+  ///
+  /// It is `false` when the statement always transfers control elsewhere, for
+  /// example by `return`, `throw`, `break`, `continue`, an infinite loop, an
+  /// exhaustive `switch` none of whose cases complete normally, or an
+  /// expression of type `Never`. It is also `false` when the statement itself
+  /// is unreachable.
+  bool mayCompleteNormally = true;
+
   @override
   StatementImpl get unlabeled => this;
 }
