@@ -1,4 +1,4 @@
-## 14.5.0-dev
+## 14.5.0
 
 * Added the `languageVersionOverride` parameter to `AnalysisContextCollection`
   to override the default language version for non-SDK files.
