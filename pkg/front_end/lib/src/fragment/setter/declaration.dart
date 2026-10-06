@@ -80,12 +80,13 @@ abstract class SetterDeclaration {
 
   int computeSetterDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createSetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  );
+  void createSetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  });
 
   void ensureSetterTypes({
     required SourceLibraryBuilder libraryBuilder,
@@ -102,9 +103,14 @@ class RegularSetterDeclaration
   final SetterFragment _fragment;
   late final SetterEncoding _encoding;
 
+  late final bool _isImplementation;
+
   new(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  bool get isImplementation => _isImplementation;
 
   @override
   UriOffsetLength get uriOffset => _fragment.uriOffset;
@@ -242,12 +248,14 @@ class RegularSetterDeclaration
   }
 
   @override
-  void createSetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createSetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {
+    _isImplementation = isImplementation;
     _fragment.builder = builder;
     typeParameterFactory.createNominalParameterBuilders(
       _fragment.declaredTypeParameters,
@@ -363,6 +371,13 @@ abstract class SetterFragmentDeclaration {
   bool get isAbstract;
 
   bool get isExternal;
+
+  /// Whether this declaration hold the implementation for the setter.
+  ///
+  /// For augmentations, only one of the setter declarations is considered
+  /// as the implementation. Other declarations can only provide annotations
+  /// for the generated AST node.
+  bool get isImplementation;
 
   String get name;
 

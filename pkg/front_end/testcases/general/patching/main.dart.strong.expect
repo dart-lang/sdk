@@ -56,8 +56,7 @@ abstract class Interface extends core::Object {
 @/* from org-dartlang-testcase:///patch_lib.dart */ #C8
 class Class extends core::Object implements test::Interface, test::Interface {
   @/* from org-dartlang-testcase:///patch_lib.dart */ #C8
-  external constructor •(core::int value) → test::Class
-    : super core::Object::•();
+  external constructor •(core::int value) → test::Class;
   @#C8
   constructor /* from org-dartlang-testcase:///patch_lib.dart */ redirecting(core::int value) → test::Class
     : this test::Class::•(value)

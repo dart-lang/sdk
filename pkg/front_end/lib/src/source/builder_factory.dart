@@ -562,6 +562,7 @@ class BuilderFactory {
         constructorBuilder: constructorBuilder,
         typeParameterFactory: _typeParameterFactory,
         encodingStrategy: encodingStrategy,
+        isImplementation: declaration == implementation,
       );
     }
     _builderRegistry.registerBuilder(
@@ -1035,20 +1036,14 @@ class BuilderFactory {
         factoryBuilder,
       );
     }
-    introductory.createEncoding(
-      problemReporting: _problemReporting,
-      declarationBuilder: _declarationBuilder,
-      factoryBuilder: factoryBuilder,
-      typeParameterFactory: _typeParameterFactory,
-      encodingStrategy: encodingStrategy,
-    );
-    for (FactoryDeclaration augmentation in augmentations) {
-      augmentation.createEncoding(
+    for (FactoryDeclaration declaration in declarations) {
+      declaration.createEncoding(
         problemReporting: _problemReporting,
         declarationBuilder: _declarationBuilder,
         factoryBuilder: factoryBuilder,
         typeParameterFactory: _typeParameterFactory,
         encodingStrategy: encodingStrategy,
+        isImplementation: declaration == implementation,
       );
     }
 
@@ -1154,10 +1149,11 @@ class BuilderFactory {
     }
     for (MethodDeclaration declaration in declarations) {
       declaration.createEncoding(
-        _problemReporting,
-        methodBuilder,
-        encodingStrategy,
-        _typeParameterFactory,
+        problemReporting: _problemReporting,
+        builder: methodBuilder,
+        encodingStrategy: encodingStrategy,
+        typeParameterFactory: _typeParameterFactory,
+        isImplementation: declaration == implementation,
       );
     }
 
@@ -1360,19 +1356,21 @@ class BuilderFactory {
 
     for (GetterDeclaration getterDeclaration in getterDeclarations) {
       getterDeclaration.createGetterEncoding(
-        _problemReporting,
-        propertyBuilder,
-        propertyEncodingStrategy,
-        _typeParameterFactory,
+        problemReporting: _problemReporting,
+        builder: propertyBuilder,
+        encodingStrategy: propertyEncodingStrategy,
+        typeParameterFactory: _typeParameterFactory,
+        isImplementation: getterDeclaration == getterImplementation,
       );
     }
 
     for (SetterDeclaration setterDeclaration in setterDeclarations) {
       setterDeclaration.createSetterEncoding(
-        _problemReporting,
-        propertyBuilder,
-        propertyEncodingStrategy,
-        _typeParameterFactory,
+        problemReporting: _problemReporting,
+        builder: propertyBuilder,
+        encodingStrategy: propertyEncodingStrategy,
+        typeParameterFactory: _typeParameterFactory,
+        isImplementation: setterDeclaration == setterImplementation,
       );
     }
 

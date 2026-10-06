@@ -129,17 +129,9 @@ abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
     return _getUint8Unchecked(byteOffset).toSigned(8);
   }
 
-  int _getInt8Unchecked(int byteOffset) {
-    return _getUint8Unchecked(byteOffset).toSigned(8);
-  }
-
   @override
   void setInt8(int byteOffset, int value) {
     _offsetRangeCheck(byteOffset, 1);
-    _setUint8Unchecked(byteOffset, value.toUnsigned(8));
-  }
-
-  void _setInt8Unchecked(int byteOffset, int value) {
     _setUint8Unchecked(byteOffset, value.toUnsigned(8));
   }
 
@@ -165,22 +157,9 @@ abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
     return _getUint16Unchecked(byteOffset, endian).toSigned(16);
   }
 
-  int _getInt16Unchecked(int byteOffset, [Endian endian = Endian.big]) {
-    return _getUint16Unchecked(byteOffset, endian).toSigned(16);
-  }
-
   @override
   void setInt16(int byteOffset, int value, [Endian endian = Endian.big]) {
     _offsetRangeCheck(byteOffset, 2);
-    _setUint16Unchecked(byteOffset, value.toUnsigned(16), endian);
-  }
-
-  @override
-  void _setInt16Unchecked(
-    int byteOffset,
-    int value, [
-    Endian endian = Endian.big,
-  ]) {
     _setUint16Unchecked(byteOffset, value.toUnsigned(16), endian);
   }
 
@@ -190,7 +169,6 @@ abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
     return _getUint16Unchecked(byteOffset, endian);
   }
 
-  @override
   int _getUint16Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     final b1 = _getUint8Unchecked(byteOffset);
     final b2 = _getUint8Unchecked(byteOffset + 1);
@@ -226,24 +204,12 @@ abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
   @override
   int getInt32(int byteOffset, [Endian endian = Endian.big]) {
     _offsetRangeCheck(byteOffset, 4);
-    return _getInt32Unchecked(byteOffset, endian);
-  }
-
-  int _getInt32Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     return _getUint32Unchecked(byteOffset, endian).toSigned(32);
   }
 
   @override
   void setInt32(int byteOffset, int value, [Endian endian = Endian.big]) {
     _offsetRangeCheck(byteOffset, 4);
-    _setInt32Unchecked(byteOffset, value, endian);
-  }
-
-  void _setInt32Unchecked(
-    int byteOffset,
-    int value, [
-    Endian endian = Endian.big,
-  ]) {
     _setUint32Unchecked(byteOffset, value.toUnsigned(32), endian);
   }
 
@@ -296,10 +262,6 @@ abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
   @override
   int getInt64(int byteOffset, [Endian endian = Endian.big]) {
     _offsetRangeCheck(byteOffset, 8);
-    return _getInt64Unchecked(byteOffset, endian);
-  }
-
-  int _getInt64Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     return _getUint64Unchecked(byteOffset, endian);
   }
 
@@ -307,15 +269,6 @@ abstract class ByteDataBase extends WasmTypedDataBase implements ByteData {
   void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
     _offsetRangeCheck(byteOffset, 8);
     _setUint64Unchecked(byteOffset, value, endian);
-  }
-
-  void _setInt64Unchecked(
-    int byteOffset,
-    int value, [
-    Endian endian = Endian.big,
-  ]) {
-    _offsetRangeCheck(byteOffset, 8);
-    _setInt64Unchecked(byteOffset, value, endian);
   }
 
   @override
@@ -674,36 +627,12 @@ class _I32ByteData extends ByteDataBase {
   }
 
   @override
-  int _getInt32Unchecked(int byteOffset, [Endian endian = Endian.big]) {
-    final totalOffset = offsetInBytes + byteOffset;
-    if (totalOffset & 3 == 0 && endian == Endian.little) {
-      return _data.readSigned(totalOffset ~/ bytesPerElement);
-    } else {
-      return super._getInt32Unchecked(byteOffset, endian);
-    }
-  }
-
-  @override
   int _getUint32Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 3 == 0 && endian == Endian.little) {
       return _data.readUnsigned(totalOffset ~/ bytesPerElement);
     } else {
       return super._getUint32Unchecked(byteOffset, endian);
-    }
-  }
-
-  @override
-  void _setInt32Unchecked(
-    int byteOffset,
-    int value, [
-    Endian endian = Endian.big,
-  ]) {
-    final totalOffset = offsetInBytes + byteOffset;
-    if (totalOffset & 3 == 0 && endian == Endian.little) {
-      _data.write(totalOffset ~/ bytesPerElement, value.toUnsigned(32));
-    } else {
-      super._setInt32Unchecked(byteOffset, value, endian);
     }
   }
 
@@ -781,36 +710,12 @@ class _I64ByteData extends ByteDataBase {
   }
 
   @override
-  int _getInt64Unchecked(int byteOffset, [Endian endian = Endian.big]) {
-    final totalOffset = offsetInBytes + byteOffset;
-    if (totalOffset & 7 == 0 && endian == Endian.little) {
-      return _data.read(totalOffset ~/ bytesPerElement);
-    } else {
-      return super._getInt64Unchecked(byteOffset, endian);
-    }
-  }
-
-  @override
   int _getUint64Unchecked(int byteOffset, [Endian endian = Endian.big]) {
     final totalOffset = offsetInBytes + byteOffset;
     if (totalOffset & 7 == 0 && endian == Endian.little) {
       return _data.read(totalOffset ~/ bytesPerElement);
     } else {
       return super._getUint64Unchecked(byteOffset, endian);
-    }
-  }
-
-  @override
-  void _setInt64Unchecked(
-    int byteOffset,
-    int value, [
-    Endian endian = Endian.big,
-  ]) {
-    final totalOffset = offsetInBytes + byteOffset;
-    if (totalOffset & 7 == 0 && endian == Endian.little) {
-      _data.write(totalOffset ~/ bytesPerElement, value);
-    } else {
-      super._setInt64Unchecked(byteOffset, value, endian);
     }
   }
 

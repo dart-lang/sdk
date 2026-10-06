@@ -80,12 +80,13 @@ abstract class MethodDeclaration {
 
   int computeDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createEncoding(
-    ProblemReporting problemReporting,
-    SourceMethodBuilder builder,
-    MethodEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  );
+  void createEncoding({
+    required ProblemReporting problemReporting,
+    required SourceMethodBuilder builder,
+    required MethodEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  });
 
   void ensureTypes(
     ClassMembersBuilder membersBuilder,
@@ -98,10 +99,14 @@ class MethodDeclarationImpl
     implements MethodDeclaration, MethodFragmentDeclaration {
   final MethodFragment _fragment;
   late final MethodEncoding _encoding;
+  late final bool _isImplementation;
 
   new(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  bool get isImplementation => _isImplementation;
 
   @override
   UriOffsetLength get uriOffset => _fragment.uriOffset;
@@ -217,12 +222,14 @@ class MethodDeclarationImpl
   }
 
   @override
-  void createEncoding(
-    ProblemReporting problemReporting,
-    SourceMethodBuilder builder,
-    MethodEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createEncoding({
+    required ProblemReporting problemReporting,
+    required SourceMethodBuilder builder,
+    required MethodEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {
+    _isImplementation = isImplementation;
     _encoding = encodingStrategy.createMethodEncoding(
       builder,
       _fragment,
@@ -312,6 +319,13 @@ abstract class MethodFragmentDeclaration {
   DartType get returnTypeContext;
 
   bool get isNoSuchMethodForwarder;
+
+  /// Whether this declaration hold the implementation for the method.
+  ///
+  /// For augmentations, only one of the method declarations is considered
+  /// as the implementation. Other declarations can only provide annotations
+  /// for the generated AST node.
+  bool get isImplementation;
 
   TypeBuilder get returnType;
 

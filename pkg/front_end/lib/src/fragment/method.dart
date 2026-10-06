@@ -128,11 +128,8 @@ class MethodFragment implements Fragment, FunctionFragment {
   String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }
 
-class _MethodBodyBuildingContext implements FunctionBodyBuildingContext {
-  MethodFragment _fragment;
-
-  new(this._fragment);
-
+class _MethodBodyBuildingContext(final MethodFragment _fragment)
+    implements FunctionBodyBuildingContext {
   @override
   InferenceDataForTesting? get inferenceDataForTesting => _fragment
       .builder
@@ -150,6 +147,9 @@ class _MethodBodyBuildingContext implements FunctionBodyBuildingContext {
   @override
   // Coverage-ignore(suite): Not run.
   bool get shouldFinishFunction => true;
+
+  @override
+  bool get isImplementation => _fragment.declaration.isImplementation;
 
   @override
   List<TypeParameter>? get thisTypeParameters =>

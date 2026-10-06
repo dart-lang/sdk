@@ -78,12 +78,13 @@ abstract class GetterDeclaration {
 
   int computeGetterDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createGetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  );
+  void createGetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  });
 
   void ensureGetterTypes({
     required SourceLibraryBuilder libraryBuilder,
@@ -99,10 +100,14 @@ class RegularGetterDeclaration
     implements GetterDeclaration, GetterFragmentDeclaration {
   final GetterFragment _fragment;
   late final GetterEncoding _encoding;
+  late final bool _isImplementation;
 
   new(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  bool get isImplementation => _isImplementation;
 
   @override
   UriOffsetLength get uriOffset => _fragment.uriOffset;
@@ -241,12 +246,14 @@ class RegularGetterDeclaration
   }
 
   @override
-  void createGetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createGetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {
+    _isImplementation = isImplementation;
     _fragment.builder = builder;
     typeParameterFactory.createNominalParameterBuilders(
       _fragment.declaredTypeParameters,
@@ -340,6 +347,13 @@ abstract class GetterFragmentDeclaration {
   bool get isNoSuchMethodForwarder;
 
   bool get isExternal;
+
+  /// Whether this declaration hold the implementation for the getter.
+  ///
+  /// For augmentations, only one of the getter declarations is considered
+  /// as the implementation. Other declarations can only provide annotations
+  /// for the generated AST node.
+  bool get isImplementation;
 
   String get name;
 

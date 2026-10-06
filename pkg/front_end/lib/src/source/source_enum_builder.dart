@@ -313,6 +313,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         constructorBuilder: constructorBuilder,
         typeParameterFactory: libraryBuilder.typeParameterFactory,
         encodingStrategy: encodingStrategy,
+        isImplementation: true,
       );
 
       addConstructorInternal(constructorBuilder, addToNameSpace: true);
@@ -594,12 +595,13 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   }
 
   @override
-  void createEncoding(
-    ProblemReporting problemReporting,
-    SourceMethodBuilder builder,
-    MethodEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createEncoding({
+    required ProblemReporting problemReporting,
+    required SourceMethodBuilder builder,
+    required MethodEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {
     throw new UnsupportedError("$runtimeType.createEncoding");
   }
 
@@ -855,12 +857,13 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
-  void createGetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {}
+  void createGetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {}
 
   @override
   // Coverage-ignore(suite): Not run.

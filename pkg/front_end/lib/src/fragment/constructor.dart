@@ -147,6 +147,9 @@ class _ConstructorBodyBuildingContext implements FunctionBodyBuildingContext {
   bool get shouldFinishFunction => true;
 
   @override
+  bool get isImplementation => _fragment.declaration.isImplementation;
+
+  @override
   List<TypeParameter>? get thisTypeParameters =>
       _fragment.declaration.thisTypeParameters;
 
