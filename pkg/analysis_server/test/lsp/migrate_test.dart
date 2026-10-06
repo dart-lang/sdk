@@ -958,7 +958,7 @@ test_project:
     writePubspecFile(join(depPath, 'pubspec.yaml'), '''
 name: dep_package
 environment:
-  sdk: '>=3.0.0 <3.13.0'
+  sdk: '>=3.0.0 <3.9.0'
 ''');
     newFile(join(depPath, 'lib', 'dep.dart'), '');
 
@@ -971,49 +971,43 @@ environment:
     writePubspecFile(pubspecFilePath, '''
 name: test_project
 environment:
-  sdk: '^3.11.0'
+  sdk: '^3.7.0'
 ''', packageConfigBuilder: builder);
     newFile(mainFilePath, '''
-class A {
-  int x;
-  A(int x) : this.x = x;
-}
+List<int> f(int? x) => [if (x != null) x];
 ''');
 
     await initialize();
 
     await _assertMigrationResult(
       steps: [MigrationStep.All],
-      targetSdk: '3.13.0',
+      targetSdk: '3.9.0',
       apply: true,
       expectedSummary: '''
 test_project:
-  3.11.0 -> 3.12.0:
+  3.7.0 -> 3.8.0:
     Preparatory changes:
       0 changes made in 0 files.
 
     SDK constraint:
-      Bumped ^3.11.0 -> ^3.12.0
+      Bumped ^3.7.0 -> ^3.8.0
 
     Cleanup changes:
       1 change made in 1 file.
 
       my_project/lib/main.dart
-        prefer_initializing_formals • 1 change
+        use_null_aware_elements • 1 change
 
-  3.12.0 -> 3.13.0: Skipped
+  3.8.0 -> 3.9.0: Skipped
     Incompatible dependencies:
       - dep_package''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class A {
-  int x;
-  A(this.x);
-}
+List<int> f(int? x) => [?x];
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
-  sdk: '^3.12.0'
+  sdk: '^3.8.0'
 ''',
     );
   }
@@ -1053,10 +1047,7 @@ environment:
   sdk: '^3.11.0'
 ''');
     newFile(mainFilePath, '''
-class A {
-  int x;
-  A(int x) : this.x = x;
-}
+class A {}
 ''');
 
     writePubspecFile(otherPubspecPath, '''
@@ -1089,10 +1080,7 @@ test_project:
       Bumped ^3.11.0 -> ^3.12.0
 
     Cleanup changes:
-      1 change made in 1 file.
-
-      my_project/lib/main.dart
-        prefer_initializing_formals • 1 change
+      0 changes made in 0 files.
 
   3.12.0 -> 3.13.0:
     Preparatory changes:
@@ -1105,7 +1093,7 @@ test_project:
       1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 1 change
+        empty_container_bodies • 1 change
 
 other_package:
   3.12.0 -> 3.13.0:
@@ -1119,24 +1107,18 @@ other_package:
       Bumped ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      1 change made in 1 file.
-
-      other_package/lib/other.dart
-        unnecessary_type_name_in_constructor • 1 change''',
+      0 changes made in 0 files.''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
 class D {
-  new(int y);
+  D(int y);
 }
 >>>>>>>>>> ../other_package/pubspec.yaml
 name: other_package
 environment:
   sdk: '^3.13.0'
 >>>>>>>>>> lib/main.dart
-class A {
-  int x;
-  new(this.x);
-}
+class A;
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -1156,10 +1138,7 @@ environment:
   sdk: '^3.11.0'
 ''');
     newFile(mainFilePath, '''
-class A {
-  int x;
-  A(int x) : this.x = x;
-}
+class A {}
 ''');
 
     writePubspecFile(otherPubspecPath, '''
@@ -1168,9 +1147,7 @@ environment:
   sdk: '^3.13.0'
 ''');
     newFile(otherFilePath, '''
-class D {
-  new(int y);
-}
+class D;
 ''');
 
     await initialize(
@@ -1192,10 +1169,7 @@ test_project:
       Bumped ^3.11.0 -> ^3.12.0
 
     Cleanup changes:
-      1 change made in 1 file.
-
-      my_project/lib/main.dart
-        prefer_initializing_formals • 1 change
+      0 changes made in 0 files.
 
   3.12.0 -> 3.13.0:
     Preparatory changes:
@@ -1208,16 +1182,13 @@ test_project:
       1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 1 change
+        empty_container_bodies • 1 change
 
 other_package:
   Skipped (The package SDK version "3.13.0" is already at or past the target SDK version 3.13.0.)''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class A {
-  int x;
-  new(this.x);
-}
+class A;
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -1233,10 +1204,7 @@ environment:
   sdk: '^3.11.0'
 ''');
     newFile(mainFilePath, '''
-class A {
-  int x;
-  A(int x) : this.x = x;
-}
+class A {}
 
 class C {
   C(final int x);
@@ -1260,10 +1228,7 @@ test_project:
       Bumped ^3.11.0 -> ^3.12.0
 
     Cleanup changes:
-      1 change made in 1 file.
-
-      my_project/lib/main.dart
-        prefer_initializing_formals • 1 change
+      0 changes made in 0 files.
 
   3.12.0 -> 3.13.0:
     Preparatory changes:
@@ -1276,20 +1241,17 @@ test_project:
       Bumped ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      3 changes made in 1 file.
+      1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 3 changes''',
+        empty_container_bodies • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class A {
-  int x;
-  new(this.x);
-}
+class A;
 
 class C {
-  new(int x);
-  new name(String s);
+  C(int x);
+  C.name(String s);
 }
 >>>>>>>>>> pubspec.yaml
 name: test_project
@@ -1306,10 +1268,7 @@ environment:
   sdk: '^3.11.0'
 ''');
     newFile(mainFilePath, '''
-class A {
-  int x;
-  A(int x) : this.x = x;
-}
+class A {}
 
 class C {
   C(final int x);
@@ -1332,10 +1291,7 @@ test_project:
       Would bump ^3.11.0 -> ^3.12.0
 
     Cleanup changes:
-      1 change would be made in 1 file.
-
-      my_project/lib/main.dart
-        prefer_initializing_formals • 1 change
+      0 changes would be made in 0 files.
 
   3.12.0 -> 3.13.0:
     Preparatory changes:
@@ -1348,10 +1304,10 @@ test_project:
       Would bump ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      3 changes would be made in 1 file.
+      1 change would be made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 3 changes''',
+        empty_container_bodies • 1 change''',
     );
   }
 
@@ -1941,10 +1897,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C(final int x);
-  C.name(final String s);
-}
+class C {}
+
+void f(final int x, final String s) {}
 ''');
 
     await initialize();
@@ -1965,16 +1920,15 @@ test_project:
       Bumped ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      2 changes made in 1 file.
+      1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class C {
-  new(int x);
-  new name(String s);
-}
+class C;
+
+void f(int x, String s) {}
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -1994,9 +1948,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C(var x);
-}
+class C {}
+
+void f(var x) {}
 ''');
 
     writePubspecFile(otherPubspecPath, '''
@@ -2005,9 +1959,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(otherFilePath, '''
-class D {
-  D(final int y);
-}
+class D {}
+
+void g(final int y) {}
 ''');
 
     await initialize(
@@ -2034,7 +1988,7 @@ test_project:
       1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 1 change
+        empty_container_bodies • 1 change
 
 other_package:
   3.12.0 -> 3.13.0:
@@ -2051,20 +2005,20 @@ other_package:
       1 change made in 1 file.
 
       other_package/lib/other.dart
-        unnecessary_type_name_in_constructor • 1 change''',
+        empty_container_bodies • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
-class D {
-  new(int y);
-}
+class D;
+
+void g(int y) {}
 >>>>>>>>>> ../other_package/pubspec.yaml
 name: other_package
 environment:
   sdk: '^3.13.0'
 >>>>>>>>>> lib/main.dart
-class C {
-  new(x);
-}
+class C;
+
+void f(x) {}
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -2334,10 +2288,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C();
-  C.name();
-}
+class C {}
+
+class D {}
 ''');
 
     await initialize();
@@ -2355,13 +2308,12 @@ test_project:
       2 changes made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class C {
-  new();
-  new name();
-}
+class C;
+
+class D;
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -2389,10 +2341,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(otherFilePath, '''
-class C {
-  C();
-  C.name();
-}
+class C {}
+
+class D {}
 ''');
 
     await initialize(
@@ -2417,13 +2368,12 @@ other_package:
       2 changes made in 1 file.
 
       other_package/lib/other.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
-class C {
-  new();
-  new name();
-}
+class C;
+
+class D;
 >>>>>>>>>> ../other_package/pubspec.yaml
 name: other_package
 environment:
@@ -2439,10 +2389,9 @@ environment:
   sdk: '^3.13.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C();
-  C.name();
-}
+class C {}
+
+class D {}
 ''');
 
     await initialize();
@@ -2457,13 +2406,12 @@ test_project:
       2 changes made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class C {
-  new();
-  new name();
-}
+class C;
+
+class D;
 ''',
     );
   }
@@ -2499,10 +2447,9 @@ environment:
   sdk: '^3.13.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C();
-  C.name();
-}
+class C {}
+
+class D {}
 ''');
 
     await initialize();
@@ -2516,7 +2463,7 @@ test_project:
       2 changes would be made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 2 changes''',
     );
   }
 
@@ -2542,10 +2489,9 @@ environment:
   sdk: '^3.13.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C();
-  C.name();
-}
+class C {}
+
+class D {}
 ''');
 
     writePubspecFile(otherPubspecPath, '''
@@ -2570,7 +2516,7 @@ test_project:
       2 changes made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes
+        empty_container_bodies • 2 changes
 
 other_package:
   3.12.0:
@@ -2578,10 +2524,9 @@ other_package:
       0 changes made in 0 files.''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class C {
-  new();
-  new name();
-}
+class C;
+
+class D;
 ''',
     );
   }
@@ -2614,10 +2559,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C(var x);
-  C.name(final String s);
-}
+class C {}
+
+void f(var x, final String s) {}
 ''');
 
     await initialize();
@@ -2637,10 +2581,10 @@ test_project:
       Would bump ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      2 changes would be made in 1 file.
+      1 change would be made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 1 change''',
     );
   }
 
@@ -3115,10 +3059,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C(final int x);
-  C.name(final String s);
-}
+class C {}
+
+void f(final int x, final String s) {}
 ''');
 
     await initialize();
@@ -3139,16 +3082,15 @@ test_project:
       Bumped ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      2 changes made in 1 file.
+      1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class C {
-  new(int x);
-  new name(String s);
-}
+class C;
+
+void f(int x, String s) {}
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
