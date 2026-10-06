@@ -50,6 +50,9 @@ class MigrationRunner({
 }) extends TemporaryOverlayOperation {
   final List<SourceFileEdit> _fileEdits = [];
 
+  /// The round in which each package's SDK constraint was last raised.
+  final Map<MigratingPackage, MigrationRound> _lastBumpRounds = {};
+
   final ProgressReporter _progressReporter =
       progressReporter ?? ProgressReporter.noop;
 
@@ -67,6 +70,9 @@ class MigrationRunner({
   /// - [MigrationStep.Cleanup]: Runs cleanup code fixes *after*
   ///   the version bump. These fixes utilize features or fix lints/warnings
   ///   newly introduced in the target version.
+  ///
+  /// Clean up only runs when requested. Otherwise the summary lists the clean
+  /// up fixes each raised package could still apply, without applying them.
   Future<ErrorOr<List<SourceFileEdit>>> computeEdits(
     List<MigrationStep> steps,
   ) async {
@@ -152,6 +158,7 @@ class MigrationRunner({
       originalConstraint: validated.bumpEdit.originalConstraint,
       newConstraint: validated.bumpEdit.newConstraint,
     );
+    _lastBumpRounds[package] = round;
     await _applyAndRecordEdits(builder);
 
     return _StepOutcome.completed;
@@ -200,7 +207,7 @@ class MigrationRunner({
   }
 
   /// Runs clean up fixes for [package] at [targetVersion], the version it is on
-  /// now that [round]'s bump has been applied.
+  /// after [round].
   ///
   /// Applies the clean up edits to the temporary overlays and records the
   /// corresponding file edits. Returns [_StepOutcome.failed] if an
@@ -213,25 +220,12 @@ class MigrationRunner({
     _reportProgress('${package.displayName}: $targetVersion (cleanup)');
 
     var versionSummary = package.versionSummaryFor(round);
-    if (!cleanUpLintsRegistry.containsKey(targetVersion)) {
-      return _StepOutcome.completed;
-    }
-
-    // Retrieve the updated analysis context to ensure cleanup fixes are
-    // computed against the newly applied overlays and bumped SDK constraint.
-    var context = server.contextManager.getContextFor(package.file.path);
-    if (context == null) {
-      versionSummary.recordSkipped('Context lost after pubspec update.');
-      return _StepOutcome.completed;
-    }
-
-    // Run clean up fixes.
     var cleanUpChangeBuilder = await _createBuilder();
     // TODO(kallentu): Allow the user to choose which clean up fixes to apply.
-    var cleanUpFixDetails = await _runBulkFixes(
+    var cleanUpFixDetails = await _computeCleanUpFixes(
+      package,
+      targetVersion,
       versionSummary: versionSummary,
-      context: context,
-      lintCodes: cleanUpLintsRegistry[targetVersion] ?? [],
       builder: cleanUpChangeBuilder,
     );
     if (cleanUpFixDetails == null) {
@@ -242,6 +236,38 @@ class MigrationRunner({
     await _applyAndRecordEdits(cleanUpChangeBuilder);
 
     return _StepOutcome.completed;
+  }
+
+  /// Computes the clean up fixes registered for [sdkVersion] into [builder].
+  ///
+  /// Returns `null` if computing the fixes failed. Returns no fixes if
+  /// [sdkVersion] registers none or the package's analysis context is gone.
+  ///
+  /// A failure or a lost context is recorded in [versionSummary] unless it's
+  /// `null`.
+  Future<List<BulkFix>?> _computeCleanUpFixes(
+    MigratingPackage package,
+    Version sdkVersion, {
+    required VersionMigrationSummary? versionSummary,
+    required ChangeBuilder builder,
+  }) async {
+    var lintCodes = cleanUpLintsRegistry[sdkVersion] ?? const [];
+    if (lintCodes.isEmpty) return const [];
+
+    // Retrieve the updated analysis context to ensure cleanup fixes are
+    // computed against the newly applied overlays and bumped SDK constraint.
+    var context = server.contextManager.getContextFor(package.file.path);
+    if (context == null) {
+      versionSummary?.recordSkipped('Context lost after pubspec update.');
+      return const [];
+    }
+
+    return _runBulkFixes(
+      versionSummary: versionSummary,
+      context: context,
+      lintCodes: lintCodes,
+      builder: builder,
+    );
   }
 
   Future<ErrorOr<List<SourceFileEdit>>> _computeMigrationEdits(
@@ -262,6 +288,9 @@ class MigrationRunner({
       ) {
         await _runRound(schedule, round, steps);
         schedule.completeRound(round);
+      }
+      if (!steps.runCleanup) {
+        await _recordAvailableCleanUp();
       }
     } finally {
       // Revert all temporary overlays back to their original state.
@@ -299,6 +328,31 @@ class MigrationRunner({
     return incompatibleDeps;
   }
 
+  /// Records, without applying them, the clean up fixes that each package
+  /// could still apply at the last SDK version it was raised to.
+  Future<void> _recordAvailableCleanUp() async {
+    for (var MapEntry(key: package, value: round) in _lastBumpRounds.entries) {
+      var sdkVersion = round.toSdkVersion;
+      _reportProgress(
+        '${package.displayName}: $sdkVersion (checking for optional cleanup)',
+      );
+      var fixes = await _computeCleanUpFixes(
+        package,
+        sdkVersion,
+        // Null summary prevents reporting any failures while collecting
+        // optional clean up fixes. Any fixes are recorded as available
+        // changes.
+        versionSummary: null,
+        builder: await _createBuilder(),
+      );
+      // The main migration has already finished, so a failure here only drops
+      // this package from the summary's list of optional clean up fixes.
+      if (fixes == null) continue;
+
+      package.versionSummaryFor(round).recordAvailableCleanUpChanges(fixes);
+    }
+  }
+
   /// Reports progress with the current stage [message].
   void _reportProgress(String message) {
     _progressReporter.report(message);
@@ -333,7 +387,7 @@ class MigrationRunner({
   ///
   /// Returns the list of bulk fixes applied, or `null` if the step failed.
   Future<List<BulkFix>?> _runBulkFixes({
-    required VersionMigrationSummary versionSummary,
+    required VersionMigrationSummary? versionSummary,
     required DriverBasedAnalysisContext context,
     required List<String> lintCodes,
     required ChangeBuilder builder,
@@ -358,7 +412,7 @@ class MigrationRunner({
 
       return processor.fixDetails;
     } catch (e) {
-      versionSummary.recordFailure('Exception: $e');
+      versionSummary?.recordFailure('Exception: $e');
       return null;
     }
   }

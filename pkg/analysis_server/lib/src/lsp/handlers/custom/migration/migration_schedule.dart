@@ -122,7 +122,10 @@ class MigrationSchedule._(
     required List<PubspecTarget> pubspecs,
     required MigrationSummaryBuilder summaryBuilder,
     required Version? targetSdkVersion,
-    List<MigrationStep> steps = const [MigrationStep.All],
+    List<MigrationStep> steps = const [
+      MigrationStep.Prepare,
+      MigrationStep.Bump,
+    ],
   }) {
     Version? finalSdkVersion;
     if (targetSdkVersion != null) {
