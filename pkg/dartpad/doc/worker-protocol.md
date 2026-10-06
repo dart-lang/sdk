@@ -172,9 +172,10 @@ For further details about JSON-RPC 2.0, refer to the [specification][3].
 
 ## Worker session life-cycle
 
-Clients must call [`ping`](#method-ping) every 30 seconds. The worker may close
-a session and destroy its workspaces after 5 minutes with no RPC activity (and
-no request in flight).
+The worker may close a session and destroy its workspaces if no requests are
+received on the session channel for 5 minutes. Clients can call
+[`ping`](#method-ping) periodically (for example, every 30 seconds) to keep an
+otherwise idle session alive.
 
 
 ## Server Methods and Notifications
