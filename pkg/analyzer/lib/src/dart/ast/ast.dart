@@ -8415,7 +8415,11 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
     var result = _v1Projection ??= SimpleIdentifierImpl.v1Projection(
       token: name,
     );
-    _updateV1Projection();
+    var element = _element ?? _setterElement;
+    if (element is PropertyAccessorElement) {
+      element = element.variable;
+    }
+    result.element = element;
     _parent2?._becomeParentOf1(result);
     return result;
   }
@@ -8475,15 +8479,6 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
-  }
-
-  @ToBeDeprecated('Part of the V1 projection.')
-  void _updateV1Projection() {
-    var element = _element ?? _setterElement;
-    if (element is PropertyAccessorElement) {
-      element = element.variable;
-    }
-    _v1Projection?.element = element;
   }
 }
 
