@@ -99,6 +99,7 @@ Source code
   doc                   Generate API documentation for Dart projects.
   fix                   Apply automated fixes to Dart source code.
   format                Idiomatically format Dart source code.
+  migrate               Migrate Dart packages to newer SDK versions.
 
 Tools
   compilation-server    Control resident frontend compilers.

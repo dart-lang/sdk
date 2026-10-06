@@ -23,7 +23,7 @@ class MigrateCommand extends DartdevCommand {
       'Migrate Dart packages to newer SDK versions.';
 
   MigrateCommand({bool verbose = false})
-    : super(cmdName, cmdDescription, verbose, hidden: true) {
+    : super(cmdName, cmdDescription, verbose) {
     argParser
       ..addOption(
         'target-sdk',
