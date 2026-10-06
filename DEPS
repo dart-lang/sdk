@@ -139,16 +139,16 @@ vars = {
   "i18n_rev": "1f5ea2fb2381bdf7bab054a43c0d69771f104561",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "f628b26f039c3824d83c352c489fd1a4496780d0",
+  "native_rev": "27f767827be80615378e3c0b2d936ac8b4cefaa8",
   "protobuf_rev": "a73edc98c98fb25152aa3f12c1b9db91594c1369",
   "pub_rev": "4cdcec06b0c3b296018203180627454a8ae6b1bf", # rolled manually
   "shelf_rev": "e5c8dc663bf1325ad8f997c4a2387923d37a90d9",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "9946c9551ddaffd6092c22372b7e146600aa3264",
-  "tools_rev": "3614ce064ae452a15e83de3531236f5f89dfa526",
+  "test_rev": "4f92d530daf7e1c9e8a9acf518304a41408dbdc4",
+  "tools_rev": "d87eaf7946e7939592c876ea6fb2fa1d72929efe",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
-  "web_rev": "e5c6c028da66688a2295557757850a1599ec392e",
+  "web_rev": "ec71a4c303acb4dc15f2cf4ec2579802395653d7",
   "webdriver_rev": "8e5c611ea242efdc9f597a8a37c38a9c586120ee",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 
