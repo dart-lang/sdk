@@ -432,24 +432,19 @@ class LibraryAnalyzer {
       rule.registerNodeProcessors2(nodeRegistry, context);
     });
 
-    _forEachLintedUnit(context, analysesToContextUnits, (unit) {
-      if (nodeRegistry.hasNodeProcessors) {
-        unit.accept2(
-          AnalysisRuleVisitor2(
-            nodeRegistry,
-            shouldPropagateExceptions:
-                _analysisOptions.propagateLinterExceptions,
-          ),
-        );
-      }
-    });
-
-    // Now that all lint rules have visited the code in each of the compilation
-    // units, we can accept each lint rule's `afterLibrary` hook.
-    AnalysisRuleVisitor2(
+    var visitor = AnalysisRuleVisitor2(
       nodeRegistry,
       shouldPropagateExceptions: _analysisOptions.propagateLinterExceptions,
-    ).afterLibrary();
+    );
+
+    if (nodeRegistry.hasNodeProcessors) {
+      _forEachLintedUnit(context, analysesToContextUnits, (unit) {
+        unit.accept2(visitor);
+      });
+    }
+
+    // Not guarded: a rule may register only an `afterLibrary` callback.
+    visitor.afterLibrary();
   }
 
   @ToBeDeprecated('Use V2 node processors in _computeLints() instead.')
@@ -464,22 +459,18 @@ class LibraryAnalyzer {
       rule.registerNodeProcessors(nodeRegistry, context);
     });
 
-    _forEachLintedUnit(context, analysesToContextUnits, (unit) {
-      if (nodeRegistry.hasNodeProcessors) {
-        unit.accept(
-          AnalysisRuleVisitor(
-            nodeRegistry,
-            shouldPropagateExceptions:
-                _analysisOptions.propagateLinterExceptions,
-          ),
-        );
-      }
-    });
-
-    AnalysisRuleVisitor(
+    var visitor = AnalysisRuleVisitor(
       nodeRegistry,
       shouldPropagateExceptions: _analysisOptions.propagateLinterExceptions,
-    ).afterLibrary();
+    );
+
+    if (nodeRegistry.hasNodeProcessors) {
+      _forEachLintedUnit(context, analysesToContextUnits, (unit) {
+        unit.accept(visitor);
+      });
+    }
+
+    visitor.afterLibrary();
   }
 
   void _computeVerifyErrors(
