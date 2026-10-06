@@ -50,9 +50,21 @@ base class WorkerClient {
         }
       });
     }
-    _peer.listen().whenComplete(() => _pingTimer?.cancel()).ignore();
+    _peer.listen().whenComplete(() {
+      _pingTimer?.cancel();
+      for (final w in _watchers.values.toList()) {
+        w._cleanup();
+      }
+      for (final ls in _languageServers.values.toList()) {
+        ls._cleanup();
+      }
+      for (final s in _sandboxes.values.toList()) {
+        s._cleanup();
+      }
+    }).ignore();
   }
 
+  /// A [Future] that completes when the connection to the worker is closed.
   Future<void> get done => _peer.done;
 
   /// Sends a keep-alive `ping` request to the worker.
@@ -369,6 +381,9 @@ final class LanguageServer {
 
     // Forward outgoing LSP messages to the worker tunnel
     _outgoingMessages.stream.listen((message) {
+      if (_client._peer.isClosed) {
+        return;
+      }
       _client._peer.sendNotification('workspace/languageServer/message', {
         'workspaceId': workspace.id,
         'languageServerId': id,
