@@ -1880,6 +1880,16 @@ void f() {
 ''');
   }
 
+  Future<void> test_withClass_pub_other_inBin_devDependencies() async {
+    _createPackageAaa(dependenciesKey: 'dev_dependencies');
+    testFilePath = '$testPackageRootPath/bin/test.dart';
+    await resolveTestCode(r'''
+void f(Test t) {}
+''');
+
+    await assertNoFix();
+  }
+
   Future<void> test_withClass_pub_other_inLib_dependencies() async {
     var aaaRoot = getFolder('$packagesRootPath/aaa');
     newFile('${aaaRoot.path}/lib/a.dart', '''
@@ -1967,8 +1977,22 @@ void f(Test t) {}
   }
 
   Future<void> test_withClass_pub_other_inTest_devDependencies() async {
-    _createPackageAaa();
+    _createPackageAaa(dependenciesKey: 'dev_dependencies');
     testFilePath = '$testPackageTestPath/test.dart';
+    await resolveTestCode(r'''
+void f(Test t) {}
+''');
+
+    await assertHasFix('''
+import 'package:aaa/a.dart';
+
+void f(Test t) {}
+''');
+  }
+
+  Future<void> test_withClass_pub_other_inWeb_devDependencies() async {
+    _createPackageAaa(dependenciesKey: 'dev_dependencies');
+    testFilePath = '$testPackageRootPath/web/test.dart';
     await resolveTestCode(r'''
 void f(Test t) {}
 ''');
@@ -1995,6 +2019,44 @@ void f(Test t) {}
 
     await assertHasFix('''
 import 'package:test/a.dart';
+
+void f(Test t) {}
+''');
+  }
+
+  Future<void> test_withClass_pub_this_inBin_excludesTool() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageRootPath/tool/a.dart', r'''
+class Test {}
+''');
+
+    testFilePath = '$testPackageRootPath/bin/test.dart';
+    await resolveTestCode(r'''
+void f(Test t) {}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_withClass_pub_this_inBin_includesBin() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageRootPath/bin/src/a.dart', r'''
+class Test {}
+''');
+
+    testFilePath = '$testPackageRootPath/bin/test.dart';
+    await resolveTestCode(r'''
+void f(Test t) {}
+''');
+
+    await assertHasFix('''
+import 'src/a.dart';
 
 void f(Test t) {}
 ''');
@@ -2031,6 +2093,48 @@ void f(Test t) {}
 
     await assertHasFix('''
 import 'a.dart';
+
+void f(Test t) {}
+''');
+  }
+
+  Future<void> test_withClass_pub_this_inTool_excludesNestedPackage() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newPubspecYamlFile('$testPackageRootPath/tool/nested', r'''
+name: nested
+''');
+
+    newFile('$testPackageRootPath/tool/nested/bar/a.dart', r'''
+class Test {}
+''');
+
+    testFilePath = '$testPackageRootPath/tool/test.dart';
+    await resolveTestCode(r'''
+void f(Test t) {}
+''');
+
+    await assertNoFix();
+  }
+
+  Future<void> test_withClass_pub_this_inWeb_includesTool() async {
+    updateTestPubspecFile(r'''
+name: test
+''');
+
+    newFile('$testPackageRootPath/tool/a.dart', r'''
+class Test {}
+''');
+
+    testFilePath = '$testPackageRootPath/web/test.dart';
+    await resolveTestCode(r'''
+void f(Test t) {}
+''');
+
+    await assertHasFix('''
+import '../tool/a.dart';
 
 void f(Test t) {}
 ''');
@@ -2434,15 +2538,15 @@ void f() {
 ''');
   }
 
-  void _createPackageAaa() {
+  void _createPackageAaa({String dependenciesKey = 'dependencies'}) {
     var aaaRoot = getFolder('$packagesRootPath/aaa');
     newFile('${aaaRoot.path}/lib/a.dart', '''
 class Test {}
 ''');
 
-    updateTestPubspecFile(r'''
+    updateTestPubspecFile('''
 name: test
-dependencies:
+$dependenciesKey:
   aaa: any
 ''');
 
