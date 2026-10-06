@@ -80,9 +80,11 @@ import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/analysis/single_file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -306,6 +308,9 @@ abstract class AnalysisServer {
   /// The memory caching byte store created by [createByteStore], if any.
   MemoryCachingByteStore? _memoryCachingByteStore;
 
+  /// The single-file byte store owned by this server, if any.
+  SingleFileByteStore? _singleFileByteStore;
+
   /// Whether notifications caused by analysis should be suppressed.
   ///
   /// This is used when an operation is temporarily modifying overlays and does
@@ -335,7 +340,9 @@ abstract class AnalysisServer {
     this.performanceLogger,
     required bool usePlugins,
     Map<String, String>? environment,
-  }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
+  }) : resourceProvider = OverlayResourceProvider(
+         TimingResourceProvider(baseResourceProvider),
+       ),
        pubApi = PubApi(
          instrumentationService,
          sessionLogger,
@@ -491,6 +498,8 @@ abstract class AnalysisServer {
       readMissCount: fileByteStore?.readMissCount,
       writeBytes: fileByteStore?.writeBytes,
       writeCount: fileByteStore?.writeCount,
+      singleFileStorePath: _singleFileByteStore?.filePath,
+      singleFilePendingEntryCount: _singleFileByteStore?.pendingEntryCount,
     );
   }
 
@@ -587,6 +596,10 @@ abstract class AnalysisServer {
   /// Callers should use [userPromptSender] instead of checking this directly.
   @protected
   bool get supportsShowMessageRequest;
+
+  /// Resource operations measured since this server was created.
+  TimingResourceProvider get timingResourceProvider =>
+      resourceProvider.baseProvider as TimingResourceProvider;
 
   /// Return the total time the server's been alive.
   Duration get uptime {
@@ -734,13 +747,28 @@ abstract class AnalysisServer {
     if (resourceProvider is OverlayResourceProvider) {
       resourceProvider = resourceProvider.baseProvider;
     }
-    if (resourceProvider is PhysicalResourceProvider) {
+    var baseProvider = resourceProvider is TimingResourceProvider
+        ? resourceProvider.baseProvider
+        : resourceProvider;
+    if (baseProvider is PhysicalResourceProvider) {
       var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
-        var fileByteStore = _fileByteStore = EvictingFileByteStore(
-          stateLocation.path,
-          fileCacheSize,
-        );
+        ByteStore fileByteStore;
+        if (options.useSingleFileByteStore) {
+          fileByteStore = _singleFileByteStore = SingleFileByteStore.file(
+            stateLocation.parent.getFile('cache_v001.bin').path,
+            filePageCountLog2: 22, // 4 GiB, including metadata.
+            tableSlotCountLog2: 19, // 524,288 entries.
+            bufferPoolCapacityLog2: 12, // 4 MiB of cached pages.
+            maxPendingValueBytes: M,
+            maxPendingEntryCount: 64,
+          );
+        } else {
+          fileByteStore = _fileByteStore = EvictingFileByteStore(
+            stateLocation.path,
+            fileCacheSize,
+          );
+        }
         var timingByteStore = _timingByteStore = TimingByteStore(fileByteStore);
         return _memoryCachingByteStore = MemoryCachingByteStore(
           timingByteStore,
@@ -1047,6 +1075,9 @@ abstract class AnalysisServer {
 
   @mustCallSuper
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
+    if (!status.isWorking) {
+      _singleFileByteStore?.flush();
+    }
     if (_isFirstAnalysisSinceContextsBuilt && !status.isWorking) {
       _timingByteStore?.newTimings('initial analysis completed');
       _isFirstAnalysisSinceContextsBuilt = false;
@@ -1396,6 +1427,7 @@ abstract class AnalysisServer {
     surveyManager?.shutdown();
     await contextManager.dispose();
     await _fileByteStore?.flush();
+    _singleFileByteStore?.close();
     await analyticsManager.shutdown();
     await shutdownPerfWitness();
     await sessionLogger.shutdown();
@@ -1434,8 +1466,8 @@ abstract class AnalysisServer {
 /// A snapshot of the sizes and counters of the byte stores used by the
 /// server, for display on the diagnostics pages.
 ///
-/// The file byte store fields are `null` when the server uses only an
-/// in-memory byte store.
+/// Fields specific to a persistent byte store are `null` when that store is
+/// not used by the server.
 class AnalysisServerByteStoreStats {
   final int cacheHitCount;
   final int cacheMissCount;
@@ -1459,6 +1491,8 @@ class AnalysisServerByteStoreStats {
   final int putCount;
   final int? readCount;
   final int? readMissCount;
+  final int? singleFilePendingEntryCount;
+  final String? singleFileStorePath;
   final int storeHitCount;
   final int storeMissCount;
   final int? writeBytes;
@@ -1489,6 +1523,8 @@ class AnalysisServerByteStoreStats {
     this.pendingWriteCount,
     this.readCount,
     this.readMissCount,
+    this.singleFilePendingEntryCount,
+    this.singleFileStorePath,
     this.writeBytes,
     this.writeCount,
   });
@@ -1668,8 +1704,12 @@ extension on OverlayResourceProvider {
   /// The path to the location of the byte store on disk, or `null` if there is
   /// no on-disk byte store.
   String? get byteStorePath {
-    if (baseProvider is PhysicalResourceProvider) {
-      var stateLocation = baseProvider.getStateLocation('.analysis-driver');
+    var provider = baseProvider;
+    var physicalProvider = provider is TimingResourceProvider
+        ? provider.baseProvider
+        : provider;
+    if (physicalProvider is PhysicalResourceProvider) {
+      var stateLocation = provider.getStateLocation('.analysis-driver');
       return stateLocation?.path;
     }
     return null;

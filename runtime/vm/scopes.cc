@@ -465,6 +465,7 @@ ContextScopePtr LocalScope::PreserveOuterScope(
       context_scope.SetTypeAt(captured_idx, *type->ToAbstractType());
       context_scope.SetCidAt(captured_idx, type->ToNullableCid());
       context_scope.SetIsNullableAt(captured_idx, type->is_nullable());
+      context_scope.SetIsExactTypeAt(captured_idx, type->is_exact_type());
       context_scope.SetIsInvisibleAt(captured_idx, variable->is_invisible());
       context_scope.SetContextIndexAt(captured_idx, variable->index().value());
       // Adjust the context level relative to the current context level,
@@ -528,9 +529,9 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
   for (int i = 0; i < context_scope.num_variables(); i++) {
     const bool is_late = context_scope.IsLateAt(i);
     const auto& static_type = AbstractType::ZoneHandle(context_scope.TypeAt(i));
-    CompileType* inferred_type =
-        new CompileType(context_scope.IsNullableAt(i), is_late,
-                        context_scope.CidAt(i), &static_type);
+    CompileType* inferred_type = new CompileType(
+        context_scope.IsNullableAt(i), is_late, context_scope.CidAt(i),
+        &static_type, context_scope.IsExactTypeAt(i));
     LocalVariable* variable = new LocalVariable(
         context_scope.DeclarationTokenIndexAt(i), context_scope.TokenIndexAt(i),
         String::ZoneHandle(context_scope.NameAt(i)), static_type,

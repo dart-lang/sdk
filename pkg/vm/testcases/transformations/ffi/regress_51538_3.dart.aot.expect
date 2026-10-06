@@ -13,7 +13,7 @@ class Foo extends core::Object implements ffi::Finalizable {
     ;
 }
 
-[@vm.inferred-return-type.metadata=dart.async::_Future]
+[@vm.inferred-return-type.metadata=dart.async::_Future<dynamic> (inexact type args)]
 static method hasMore() → asy::Future<core::bool> async /* emittedValueType= core::bool */ 
   return false;
 
@@ -21,7 +21,7 @@ static method hasMore() → asy::Future<core::bool> async /* emittedValueType= c
 static method nextElement() → asy::Future<self::Foo>
   return [@vm.inferred-type.metadata=dart.async::_Future<#lib::Foo>] asy::Future::value<self::Foo>(new self::Foo::•());
 
-[@vm.inferred-return-type.metadata=dart.async::_Future]
+[@vm.inferred-return-type.metadata=dart.async::_Future<dynamic> (inexact type args)]
 static method main() → void async /* emittedValueType= void */ {
   for (self::Foo element = new self::Foo::•(); await block {
     final synthesized asy::Future<core::bool> :expressionValueWrappedFinalizable = self::hasMore();

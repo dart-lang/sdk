@@ -21,16 +21,20 @@ void main() {
     defineReflectiveTests(FormalParameterIsExplicitlyTypedTest);
     defineReflectiveTests(HideClauseImplTest);
     defineReflectiveTests(ImplementsClauseImplTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(InterpolationStringTest);
     defineReflectiveTests(MethodDeclarationTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
     defineReflectiveTests(NormalFormalParameterTest);
     defineReflectiveTests(OnClauseImplTest);
     defineReflectiveTests(PreviousTokenTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(PropertyAccessTest);
     defineReflectiveTests(ShowClauseImplTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
     defineReflectiveTests(SpreadElementTest);
@@ -1273,6 +1277,16 @@ missing
 // [diag.expectedToken][column 1][length 7] Expected to find ';'.
 ''').unit.beginToken;
     expect(statement.findPrevious(missing), null);
+  }
+
+  void test_findPrevious_parent_expression() {
+    var clazz = unit.declarations2[0] as ClassDeclaration;
+    var classBody = clazz.body as BlockClassBody;
+    var method = classBody.members[0] as MethodDeclaration;
+    var body = method.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ReturnStatement;
+    var expression = statement.expression2!;
+    expect(expression.findPrevious(findToken('return'))!.lexeme, '{');
   }
 
   void test_findPrevious_parent_method() {

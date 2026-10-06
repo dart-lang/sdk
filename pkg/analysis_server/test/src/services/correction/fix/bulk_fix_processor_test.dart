@@ -532,6 +532,9 @@ void bad() {
 
 @reflectiveTest
 class PubspecFixTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.depend_on_referenced_packages;
+
   Future<void> test_conditionalImportsAndExports() async {
     var content = '''
 name: test
@@ -1070,5 +1073,20 @@ part 'part1.dart';
 
     await getResolvedUnit(testFile);
     await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_pubspec_excluded_noLint() async {
+    createAnalysisOptionsFile(
+      experimentalFeatures: experimentalFeatures,
+      lints: [LintNames.prefer_final_locals],
+    );
+
+    var content = '''
+name: test
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, content);
   }
 }

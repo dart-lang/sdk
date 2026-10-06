@@ -5415,6 +5415,41 @@ ASSEMBLER_TEST_RUN(Ptest, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Pshufd, assembler) {
+  static const struct ALIGN16 {
+    uint32_t a;
+    uint32_t b;
+    uint32_t c;
+    uint32_t d;
+  } constant1 = {0x01234567, 0x89ABCDEF, 0x76543210, 0xFEDCBA98};
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movq(RDX, Immediate(reinterpret_cast<intptr_t>(&constant1)));
+  __ movups(XMM0, Address(RDX, 0));
+  __ pshufd(XMM1, XMM0, Immediate(0x9C));
+  __ movups(Address(RAX, 0), XMM1);
+  __ movups(Address(RAX, 16), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Pshufd, test) {
+  typedef void (*PshufdCode)(uint32_t* result);
+  uint32_t result[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+  reinterpret_cast<PshufdCode>(test->entry())(result);
+  EXPECT_EQ(0x01234567u, result[0]);
+  EXPECT_EQ(0xFEDCBA98u, result[1]);
+  EXPECT_EQ(0x89ABCDEFu, result[2]);
+  EXPECT_EQ(0x76543210u, result[3]);
+  EXPECT_EQ(0x01234567u, result[4]);
+  EXPECT_EQ(0x89ABCDEFu, result[5]);
+  EXPECT_EQ(0x76543210u, result[6]);
+  EXPECT_EQ(0xFEDCBA98u, result[7]);
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "pshufd xmm1,xmm0 [9c]\n"
+      "movups [rax],xmm1\n"
+      "movups [rax+0x10],xmm0\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(SquareRootDouble, assembler) {
   __ sqrtsd(XMM0, XMM0);
   __ ret();

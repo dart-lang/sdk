@@ -150,8 +150,12 @@ class Driver implements ServerStarter {
   /// train an analysis server snapshot.
   static const String trainUsingOption = 'train-using';
 
-  /// Flag to not use a (Evicting)FileByteStore.
+  /// Flag to disable the persistent byte store.
   static const String disableFileByteStoreOption = 'disable-file-byte-store';
+
+  /// The name of the flag to use the experimental single-file byte store.
+  static const String useSingleFileByteStoreOption =
+      'use-single-file-byte-store';
 
   /// The name of the flag to enable fine-grained dependencies.
   static const String withFineDependenciesOption = 'with-fine-dependencies';
@@ -210,6 +214,9 @@ class Driver implements ServerStarter {
     analysisServerOptions.clientId = clientId;
     analysisServerOptions.clientVersion = results.option(clientVersionOption);
     analysisServerOptions.cacheFolder = results.option(cacheFolderOption);
+    analysisServerOptions.useSingleFileByteStore = results.flag(
+      useSingleFileByteStoreOption,
+    );
     analysisServerOptions.packagesFile = results.option(packagesFileOption);
     analysisServerOptions.reportProtocolVersion = results.option(
       reportProtocolVersionOption,
@@ -734,6 +741,7 @@ class Driver implements ServerStarter {
       'use-new-relevance',
       'use-fasta-parser',
       disableFileByteStoreOption,
+      useSingleFileByteStoreOption,
       withFineDependenciesOption,
     ];
     return knownArguments
@@ -945,8 +953,12 @@ class Driver implements ServerStarter {
     );
     parser.addFlag(
       disableFileByteStoreOption,
-      help:
-          'Disable use of (Evicting)FileByteStore. Intended for benchmarking.',
+      help: 'Disable persistent byte storage. Intended for benchmarking.',
+      hide: true,
+    );
+    parser.addFlag(
+      useSingleFileByteStoreOption,
+      help: 'Use the experimental single-file persistent byte store.',
       hide: true,
     );
     parser.addFlag(

@@ -188,6 +188,7 @@ lib/main.dart:
     newFile(analysisOptionsPath, '''
 linter:
   rules:
+    - depend_on_referenced_packages
     - prefer_final_locals
     - prefer_const_declarations
     ''');
@@ -334,6 +335,25 @@ lib/main.dart:
     );
   }
 
+  Future<void> test_pubspec_excluded_ifNoCodes_noLint() async {
+    failTestOnErrorDiagnostic = false;
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    newFile(mainFilePath, '''
+import 'package:args/args.dart' as args;
+import 'package:path/path.dart' as path;
+''');
+
+    await initialize();
+
+    var result = await getWorkspaceFixes();
+
+    expect(result.edit, isNull);
+  }
+
   Future<void> test_pubspec_excluded_ifNonPubspecCodes() async {
     failTestOnErrorDiagnostic = false;
 
@@ -426,6 +446,12 @@ pubspec.yaml:
 
   Future<void> test_pubspec_included_ifNoCodes() async {
     failTestOnErrorDiagnostic = false;
+
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - depend_on_referenced_packages
+''');
 
     newPubspecYamlFile(projectFolderPath, '''
 name: x

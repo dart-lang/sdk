@@ -147,11 +147,15 @@ class AnalysisServerOptions {
   /// Base path where to cache data.
   String? cacheFolder;
 
-  /// If [true] don't create a (Evicting)FileByteStore.
+  /// If `true`, don't create a persistent byte store.
   ///
   /// Intended for benchmarking as it makes "instructions:u" in `perf stat` more
   /// stable, although it then doesn't benchmark that code.
   bool? disableFileByteStore;
+
+  /// Whether to use the experimental single-file persistent byte store.
+  /// Ignored when [disableFileByteStore] is `true` or a byte store is supplied.
+  bool useSingleFileByteStore = false;
 
   /// The path to the package config file override.
   /// If `null`, then the default discovery mechanism is used.

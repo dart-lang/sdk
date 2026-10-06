@@ -19,7 +19,9 @@ import '../../util/element_printer.dart';
 
 /// Prints AST as a tree, with properties and children.
 class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
-    implements AstVisitor<void> {
+    implements
+        // ignore: analyzer_to_be_deprecated_use
+        AstVisitor<void> {
   final TreeStringSink _sink;
   final ElementPrinter _elementPrinter;
   final ResolvedNodeTextConfiguration configuration;
@@ -67,6 +69,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('Annotation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
+      // ignore: analyzer_to_be_deprecated_use
       _writeElement('element', node.element);
     });
   }
@@ -2528,8 +2531,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   void writeNodeWithV1Projection(AstNode node) {
     AstNode? v1;
     if (node case TopLevelDeclarationImpl declaration) {
+      // ignore: analyzer_to_be_deprecated_use
       v1 = V1Projection.toV1CompilationUnitMember(declaration);
     } else if (node case ExpressionImpl expression) {
+      // ignore: analyzer_to_be_deprecated_use
       v1 = V1Projection.toV1Expression(expression);
     }
 
@@ -2546,6 +2551,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   void _acceptInView(AstNode node) {
     switch (_view) {
       case _AstView.v1:
+        // ignore: analyzer_to_be_deprecated_use
         node.accept(this);
       case _AstView.v2:
         node.accept2(this);
@@ -2604,11 +2610,15 @@ Expected parent: (${parent.runtimeType}) $parent
 
   bool _isCorrespondingParameterValue(AstNode parent, Expression node) {
     return switch (parent) {
+      // ignore: analyzer_to_be_deprecated_use
       AssignmentExpression parent => identical(switch (_view) {
+        // ignore: analyzer_to_be_deprecated_use
         _AstView.v1 => parent.rightHandSide,
         _AstView.v2 => parent.rightHandSide2,
       }, node),
+      // ignore: analyzer_to_be_deprecated_use
       BinaryExpression parent => identical(switch (_view) {
+        // ignore: analyzer_to_be_deprecated_use
         _AstView.v1 => parent.rightOperand,
         _AstView.v2 => parent.rightOperand2,
       }, node),
@@ -2621,7 +2631,9 @@ Expected parent: (${parent.runtimeType}) $parent
       ),
       IndexAssignmentTarget(:var index) ||
       IndexExpression2(:var index) => identical(index, node),
+      // ignore: analyzer_to_be_deprecated_use
       IndexExpression parent => identical(switch (_view) {
+        // ignore: analyzer_to_be_deprecated_use
         _AstView.v1 => parent.index,
         _AstView.v2 => parent.index2,
       }, node),
@@ -2631,6 +2643,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   Iterable<SyntacticEntity> _viewChildEntities(AstNode node) {
     return switch (_view) {
+      // ignore: analyzer_to_be_deprecated_use
       _AstView.v1 => node.childEntities,
       _AstView.v2 => node.childEntities2,
     };
@@ -2638,6 +2651,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   AstNode? _viewParent(AstNode node) {
     return switch (_view) {
+      // ignore: analyzer_to_be_deprecated_use
       _AstView.v1 => node.parent,
       _AstView.v2 => node.parent2,
     };
@@ -2966,6 +2980,7 @@ Expected parent: (${parent.runtimeType}) $parent
   void _writeNamedChildEntities(AstNode node) {
     node as AstNodeImpl;
     if (_view == _AstView.v1) {
+      // ignore: analyzer_to_be_deprecated_use
       for (var entity in node.namedChildEntities) {
         _writeNamedChildEntity(node, entity);
       }
@@ -2976,6 +2991,7 @@ Expected parent: (${parent.runtimeType}) $parent
     var entities =
         !_includeInlineV1ChildEntities || node.astNodeApi == AstNodeApi.v2
         ? <ChildEntity>[]
+        // ignore: analyzer_to_be_deprecated_use
         : node.namedChildEntities.toList();
     var entitiesByName = {for (var entity in entities) entity.name: entity};
     var matchedV1Names = <String>{};

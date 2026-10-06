@@ -4,7 +4,7 @@ import "dart:async" as asy;
 import "dart:core" as core;
 
 
-[@vm.inferred-return-type.metadata=dart.async::_Future]
+[@vm.inferred-return-type.metadata=dart.async::_Future<dynamic> (inexact type args)]
 static method main() → asy::Future<void> async /* emittedValueType= void */ {
   core::int :async_temporary_0;
   core::bool :async_temporary_1;

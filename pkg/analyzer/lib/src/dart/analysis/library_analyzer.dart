@@ -422,6 +422,7 @@ class LibraryAnalyzer {
       workspacePackage,
     );
 
+    // ignore: analyzer_to_be_deprecated_use
     _computeLintsV1(context, analysesToContextUnits);
 
     var nodeRegistry = RuleVisitorRegistryImpl2(

@@ -3151,6 +3151,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   }
 
   AstNodeImpl? get parentInPrimaryView {
+    // ignore: analyzer_to_be_deprecated_use
     return _astNodeApi == AstNodeApi.v1 ? _parentInV1 : _parent2;
   }
 
@@ -3205,6 +3206,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   }
 
   void detachFromParent() {
+    // ignore: analyzer_to_be_deprecated_use
     var projection = V1Projection._existingNode(this);
     if (projection != null && !identical(projection, this)) {
       // A flattened projection can itself be a shared canonical child, as
@@ -3218,7 +3220,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   @override
   Token? findPrevious(Token target) =>
       util.findPrevious(beginToken, target) ??
-      _parentInV1?.findPrevious(target);
+      parentInPrimaryView?.findPrevious(target);
 
   /// Remove [oldNode] from one of this node's nullable child slots.
   ///
@@ -3358,6 +3360,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
       _becomeParentOf1(
         child._astNodeApi == AstNodeApi.shared
             ? child
+            // ignore: analyzer_to_be_deprecated_use
             : V1Projection._existingNode(child),
       );
     }
@@ -6276,6 +6279,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   set body(ExpressionImpl body) {
     _body = _becomeParentOf2(body);
     if (parent2 case CascadeExpressionImpl cascade) {
+      // ignore: analyzer_to_be_deprecated_use
       cascade._becomeParentOf1(V1Projection._existingNode(body));
     }
   }
@@ -9035,6 +9039,7 @@ abstract final class CompilationUnit implements AstNode, FragmentDeclaringNode {
   /// The declarations contained in this compilation unit in the V1 AST view.
   ///
   /// Analyzer implementations should traverse [declarations2] instead.
+  @ToBeDeprecated('Use declarations2 instead.')
   NodeList<CompilationUnitMember> get declarations;
 
   /// The top-level declarations exposed by the V2 AST view.
@@ -9084,6 +9089,7 @@ abstract final class CompilationUnit implements AstNode, FragmentDeclaringNode {
 
   /// A list containing all of the directives and declarations in this
   /// compilation unit, sorted in lexical order.
+  @ToBeDeprecated('Part of the V1 AST.')
   List<AstNode> get sortedDirectivesAndDeclarations;
 
   /// Queries the type of `this` at the given [offset].
@@ -9136,6 +9142,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   final NodeListImpl<TopLevelDeclarationV1OrV2Impl> _declarations2 =
       NodeListImpl._();
 
+  @ToBeDeprecated('Use declarations2 instead.')
   late final NodeListImpl<CompilationUnitMemberImpl> _declarations =
       _V1ProjectedNodeListImpl(
         _declarations2,
@@ -9191,6 +9198,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     _declarations2._initializeProjected(this, declarations2);
   }
 
+  @ToBeDeprecated('Use declarations2 instead.')
   @override
   NodeListImpl<CompilationUnitMemberImpl> get declarations => _declarations;
 
@@ -9234,6 +9242,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     _scriptTag = _becomeParentOf12(scriptTag);
   }
 
+  @ToBeDeprecated('Part of the V1 AST.')
   @override
   List<AstNode> get sortedDirectivesAndDeclarations {
     return <AstNode>[..._directives, ..._declarations]
@@ -12400,7 +12409,10 @@ final class ConstructorSelectorImpl extends AstNodeImpl
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ConstructorTearOff
-    implements Expression, CommentReferableExpression {
+    implements
+        Expression,
+        // ignore: analyzer_to_be_deprecated_use
+        CommentReferableExpression {
   /// The element associated with the referenced constructor based on static
   /// type information.
   ///
@@ -47811,7 +47823,10 @@ final class RecordTypeAnnotationPositionalFieldImpl
 ///         'this' ('.' identifier)? arguments
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class RedirectingConstructorInvocation
-    implements ConstructorInitializer, ConstructorReferenceNode {
+    implements
+        ConstructorInitializer,
+        // ignore: analyzer_to_be_deprecated_use
+        ConstructorReferenceNode {
   /// The list of arguments to the constructor.
   ArgumentList get argumentList;
 
@@ -51084,7 +51099,10 @@ sealed class StringLiteralImpl extends LiteralImpl implements StringLiteral {
 ///         'super' ('.' [SimpleIdentifier])? [ArgumentList]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class SuperConstructorInvocation
-    implements ConstructorInitializer, ConstructorReferenceNode {
+    implements
+        ConstructorInitializer,
+        // ignore: analyzer_to_be_deprecated_use
+        ConstructorReferenceNode {
   /// The list of arguments to the constructor.
   ArgumentList get argumentList;
 
@@ -54819,7 +54837,10 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
 /// use `.typeName.type`.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TypeLiteral
-    implements Expression, CommentReferableExpression {
+    implements
+        Expression,
+        // ignore: analyzer_to_be_deprecated_use
+        CommentReferableExpression {
   /// The type represented by this literal.
   NamedType get type;
 }

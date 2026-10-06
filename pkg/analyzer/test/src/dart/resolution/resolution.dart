@@ -355,6 +355,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     ).writeNodeWithV1Projection(node);
 
     var unit = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
+        // ignore: analyzer_to_be_deprecated_use
         ? node.thisOrAncestorOfType<CompilationUnitImpl>()
         : node.thisOrAncestorOfType2<CompilationUnitImpl>();
     if (unit != null) {

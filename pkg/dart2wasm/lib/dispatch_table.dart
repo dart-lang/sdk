@@ -601,7 +601,9 @@ class DispatchTable {
       final cls = translator.classes[classId].cls;
       if (cls != null) {
         selectorsInClass[cls]!.forEach((selectorInfo, target) {
-          if (!target.asMember.isAbstract) {
+          final member = target.asMember;
+          if (!member.isAbstract &&
+              translator.unreachableMetadata.mapping[member] == null) {
             selectorTargets.putIfAbsent(selectorInfo, () => {})[classId] =
                 target;
           }

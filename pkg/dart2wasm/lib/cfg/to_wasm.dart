@@ -270,7 +270,8 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
         ComparisonOpcode.intNotEqual ||
         ComparisonOpcode.intLess ||
         ComparisonOpcode.intLessOrEqual ||
-        ComparisonOpcode.intGreater => true,
+        ComparisonOpcode.intGreater ||
+        ComparisonOpcode.intGreaterOrEqual => true,
         _ => false,
       },
       BinaryIntOp(:final op) =>
@@ -351,6 +352,8 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
         b.i64_le_s();
       case ComparisonOpcode.intGreater:
         b.i64_gt_s();
+      case ComparisonOpcode.intGreaterOrEqual:
+        b.i64_ge_s();
       default:
         throw UnimplementedError('Comparison ${instr.op}');
     }

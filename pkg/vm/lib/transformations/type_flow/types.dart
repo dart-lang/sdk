@@ -336,8 +336,6 @@ abstract class Type extends TypeExpr {
   /// Returns a nullable type, union of [this] and the `null` object.
   NullableType nullable();
 
-  Class? getConcreteClass(TypeHierarchy typeHierarchy) => null;
-
   Closure? get closure => null;
 
   bool isSubtypeOf(TFClass cls) => false;
@@ -608,23 +606,6 @@ class SetType extends Type {
   String toString() => "_T ${types}";
 
   @override
-  Class? getConcreteClass(TypeHierarchy typeHierarchy) {
-    Class? result;
-    for (final t in types) {
-      final cls = t.getConcreteClass(typeHierarchy);
-      if (cls == null) {
-        return null;
-      }
-      if (result == null) {
-        result = cls;
-      } else if (result != cls) {
-        return null;
-      }
-    }
-    return result;
-  }
-
-  @override
   bool isSubtypeOf(TFClass cls) =>
       types.every((ConcreteType t) => t.isSubtypeOf(cls));
 
@@ -834,11 +815,6 @@ class ConeType extends Type {
   NullableType nullable() => _nullableType;
 
   @override
-  Class? getConcreteClass(TypeHierarchy typeHierarchy) => typeHierarchy
-      .specializeTypeCone(cls, allowWideCone: true)
-      .getConcreteClass(typeHierarchy);
-
-  @override
   bool isSubtypeOf(TFClass cls) => this.cls.isSubtypeOf(cls);
 
   bool isSubtypeOfRuntimeType(TypeHierarchy typeHierarchy, RuntimeType other) {
@@ -945,9 +921,6 @@ class ConeType extends Type {
 /// certain class.
 class WideConeType extends ConeType {
   WideConeType(TFClass cls) : super._(cls);
-
-  @override
-  Class? getConcreteClass(TypeHierarchy typeHierarchy) => null;
 
   @override
   int get hashCode {
@@ -1236,10 +1209,6 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
 
   ConcreteType get raw => cls.concreteType;
   bool get isRaw => typeArgs == null && attributes == null;
-
-  @override
-  Class? getConcreteClass(TypeHierarchy typeHierarchy) =>
-      filterArtificialNode(cls.classNode);
 
   @override
   Closure? get closure => attributes?.closure;
@@ -1636,10 +1605,6 @@ class RuntimeType extends Type {
   @override
   Type specialize(TypeHierarchy typeHierarchy) =>
       throw "ERROR: RuntimeType does not support specialize.";
-
-  @override
-  Class? getConcreteClass(TypeHierarchy typeHierarchy) =>
-      throw "ERROR: RuntimeType does not support getConcreteClass.";
 
   bool isSubtypeOfRuntimeType(
     TypeHierarchy typeHierarchy,

@@ -51,6 +51,7 @@ linter:
     - always_use_package_imports
     - analyzer_element_model_tracking
     - analyzer_public_api
+    - analyzer_to_be_deprecated_use
     - avoid_dynamic_calls
     - avoid_redundant_argument_values
     - avoid_unused_constructor_parameters

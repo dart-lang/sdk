@@ -1905,32 +1905,28 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
   AlternativeReadingScopeWithNewData alt(&helper_->reader_,
                                          &H.metadata_payloads(), md_offset);
 
-  const intptr_t flags = helper_->ReadUInt();
+  intptr_t flags = helper_->ReadUInt();
+  ASSERT(((flags & InferredTypeMetadata::kFlagExactClass) == 0) ||
+         ((flags & InferredTypeMetadata::kFlagHasType) != 0));
+  ASSERT(((flags & InferredTypeMetadata::kFlagExactType) == 0) ||
+         ((flags & InferredTypeMetadata::kFlagExactClass) != 0));
 
   intptr_t cid = kDynamicCid;
-  const AbstractType* exact_type = &Object::null_abstract_type();
-  if ((flags & InferredTypeMetadata::kFlagExactType) != 0) {
-    exact_type = &type_translator_->BuildType();
-    if (exact_type->IsType()) {
-      cid = exact_type->type_class_id();
-      ASSERT(cid != kIllegalCid);
+  const AbstractType* dart_type = &Object::null_abstract_type();
+  if ((flags & InferredTypeMetadata::kFlagHasType) != 0) {
+    dart_type = &type_translator_->BuildType();
+    if (dart_type->IsType()) {
+      if ((flags & InferredTypeMetadata::kFlagExactClass) != 0) {
+        cid = dart_type->type_class_id();
+        ASSERT(cid != kIllegalCid);
+        if ((flags & InferredTypeMetadata::kFlagExactType) == 0) {
+          dart_type = &Object::null_abstract_type();
+        }
+      }
     } else {
       // Not useful.
-      exact_type = &Object::null_abstract_type();
+      dart_type = &Object::null_abstract_type();
     }
-  } else {
-    const NameIndex kernel_name = helper_->ReadCanonicalNameReference();
-
-    if (H.IsRoot(kernel_name)) {
-      ASSERT((flags & InferredTypeMetadata::kFlagConstant) == 0);
-      return InferredTypeMetadata(kDynamicCid, flags);
-    }
-
-    const Class& klass =
-        Class::Handle(helper_->zone_, H.LookupClassByKernelClass(kernel_name));
-    ASSERT(!klass.IsNull());
-
-    cid = klass.id();
   }
 
   const Object* constant_value = &Object::null_object();
@@ -1946,9 +1942,13 @@ InferredTypeMetadata InferredTypeMetadataHelper::GetInferredType(
     // VM uses more specific function types and doesn't expect instances of
     // _Closure class, so inferred _Closure class doesn't make sense for the VM.
     cid = kDynamicCid;
+    dart_type = &Object::null_abstract_type();
+    flags &= ~(InferredTypeMetadata::kFlagExactType |
+               InferredTypeMetadata::kFlagHasType |
+               InferredTypeMetadata::kFlagExactClass);
   }
 
-  return InferredTypeMetadata(cid, flags, *constant_value, *exact_type);
+  return InferredTypeMetadata(cid, flags, *constant_value, *dart_type);
 }
 
 void ProcedureAttributesMetadata::InitializeFromFlags(uint8_t flags) {

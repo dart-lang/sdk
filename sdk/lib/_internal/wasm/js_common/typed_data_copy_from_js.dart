@@ -20,7 +20,7 @@ bool tryCopyExternalIntTypedData(
     final fromTypedData = unsafeCast<JSIntegerArrayBase>(from);
 
     final fromElementSize = fromTypedData.elementSizeInBytes;
-    if (fromElementSize == 1 && to is WasmI8ArrayBase) {
+    if (fromElementSize == 1 && to is WasmI8ArrayBase && to is! U8ClampedList) {
       final destTypedData = unsafeCast<WasmI8ArrayBase>(to);
       copyToWasmI8Array(
         fromTypedData.toJSArrayExternRef()!,

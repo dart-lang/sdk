@@ -213,7 +213,10 @@ class AstNodeImplGenerator {
   }
 
   Future<void> _buildImplClasses(ResolvedUnitResult astUnitResult) async {
-    for (var nodeImpl in astUnitResult.unit.declarations) {
+    var declarations = astUnitResult
+        .unit
+        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+    for (var nodeImpl in declarations) {
       if (nodeImpl is ClassDeclarationImpl) {
         var implClass = await _buildImplClass(nodeImpl);
         if (implClass != null) {

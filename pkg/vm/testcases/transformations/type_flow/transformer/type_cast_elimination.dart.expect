@@ -145,7 +145,7 @@ static method testUnionOfTwoConstsSameTypeArgs([@vm.inferred-arg-type.metadata=d
 static method testUnionOfConstAndNewSameTypeArgs([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond) → dynamic
   return _in::unsafeCast<self::A<core::num>>(cond ?{self::D<core::int>} #C5 : new self::D::•<core::int>(2));
 
-[@vm.inferred-return-type.metadata=#lib::D]
+[@vm.inferred-return-type.metadata=#lib::D<dynamic> (inexact type args)]
 static method testUnionOfConstAndNewDifferentTypeArgsNegative([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond) → dynamic
   return (cond ?{self::D<core::int?>} #C5 : new self::D::•<core::int?>(2)) as self::A<core::num>;
 

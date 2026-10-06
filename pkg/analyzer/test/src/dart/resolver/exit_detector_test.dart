@@ -18,9 +18,13 @@ main() {
     defineReflectiveTests(ExitDetector2ResolvedStatementTest);
     defineReflectiveTests(ExitDetector2ResolvedStatementTest_BeforePatterns);
     defineReflectiveTests(ExitDetector2StatementTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(ExitDetectorCollectionElementTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(ExitDetectorParsedStatementTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(ExitDetectorResolvedStatementTest);
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(ExitDetectorResolvedStatementTest_BeforePatterns);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
