@@ -11,6 +11,37 @@
 
 namespace dart {
 
+static float IeeeMinF(float a, float b) {
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+  float ab = bit_cast<float>(bit_cast<uint32_t>(a) | bit_cast<uint32_t>(b));
+  if (ab == 0.0f) return ab;
+  return a < b ? a : b;
+}
+static float IeeeMaxF(float a, float b) {
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+  if (a == 0.0f && b == 0.0f) {
+    return bit_cast<float>(bit_cast<uint32_t>(a) & bit_cast<uint32_t>(b));
+  }
+  return a > b ? a : b;
+}
+static double IeeeMinD(double a, double b) {
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+  double ab = bit_cast<double>(bit_cast<uint64_t>(a) | bit_cast<uint64_t>(b));
+  if (ab == 0.0) return ab;
+  return a < b ? a : b;
+}
+static double IeeeMaxD(double a, double b) {
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+  if (a == 0.0 && b == 0.0) {
+    return bit_cast<double>(bit_cast<uint64_t>(a) & bit_cast<uint64_t>(b));
+  }
+  return a > b ? a : b;
+}
+
 static void ThrowMaskRangeException(int64_t m) {
   if ((m < 0) || (m > 255)) {
     Exceptions::ThrowRangeError("mask", Integer::Handle(Integer::New(m)), 0,
@@ -353,20 +384,20 @@ DEFINE_NATIVE_ENTRY(Float32x4_setW, 0, 2) {
 DEFINE_NATIVE_ENTRY(Float32x4_min, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
-  float _x = self.x() < other.x() ? self.x() : other.x();
-  float _y = self.y() < other.y() ? self.y() : other.y();
-  float _z = self.z() < other.z() ? self.z() : other.z();
-  float _w = self.w() < other.w() ? self.w() : other.w();
+  float _x = IeeeMinF(self.x(), other.x());
+  float _y = IeeeMinF(self.y(), other.y());
+  float _z = IeeeMinF(self.z(), other.z());
+  float _w = IeeeMinF(self.w(), other.w());
   return Float32x4::New(_x, _y, _z, _w);
 }
 
 DEFINE_NATIVE_ENTRY(Float32x4_max, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
-  float _x = self.x() > other.x() ? self.x() : other.x();
-  float _y = self.y() > other.y() ? self.y() : other.y();
-  float _z = self.z() > other.z() ? self.z() : other.z();
-  float _w = self.w() > other.w() ? self.w() : other.w();
+  float _x = IeeeMaxF(self.x(), other.x());
+  float _y = IeeeMaxF(self.y(), other.y());
+  float _z = IeeeMaxF(self.z(), other.z());
+  float _w = IeeeMaxF(self.w(), other.w());
   return Float32x4::New(_x, _y, _z, _w);
 }
 
@@ -636,16 +667,16 @@ DEFINE_NATIVE_ENTRY(Float64x2_setY, 0, 2) {
 DEFINE_NATIVE_ENTRY(Float64x2_min, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
-  double _x = self.x() < other.x() ? self.x() : other.x();
-  double _y = self.y() < other.y() ? self.y() : other.y();
+  double _x = IeeeMinD(self.x(), other.x());
+  double _y = IeeeMinD(self.y(), other.y());
   return Float64x2::New(_x, _y);
 }
 
 DEFINE_NATIVE_ENTRY(Float64x2_max, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
-  double _x = self.x() > other.x() ? self.x() : other.x();
-  double _y = self.y() > other.y() ? self.y() : other.y();
+  double _x = IeeeMaxD(self.x(), other.x());
+  double _y = IeeeMaxD(self.y(), other.y());
   return Float64x2::New(_x, _y);
 }
 
