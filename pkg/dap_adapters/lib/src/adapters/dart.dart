@@ -2091,24 +2091,40 @@ abstract class DartDebugAdapter<
     };
   }
 
-  /// Returns the dart:ffi primitive type name (e.g. "Uint8") from a
-  /// `Pointer<T>` static type InstanceRef, or null if unrecognized.
-  Future<String?> _resolveFfiTypeArg(
+  /// Resolves the target `T` of a `Pointer<T>` from its static type
+  /// [staticType].
+  Future<({String? primitive, vm.FfiStructLayout? layout, String? typeName})>
+  _resolvePointerTarget(
     vm.VmService service,
     String isolateId,
     vm.InstanceRef? staticType,
   ) async {
-    if (staticType == null) return null;
+    const none = (primitive: null, layout: null, typeName: null);
+    if (staticType == null) return none;
     final resolvedType =
         await service.getObject(isolateId, staticType.id!) as vm.Instance?;
     final typeArgsRef = resolvedType?.typeArguments;
-    if (typeArgsRef == null) return null;
+    if (typeArgsRef == null) return none;
     final typeArgs =
         await service.getObject(isolateId, typeArgsRef.id!)
             as vm.TypeArguments?;
     final typeArg = typeArgs?.types?.firstOrNull;
-    if (typeArg?.typeClass?.library?.uri != 'dart:ffi') return null;
-    return typeArg?.name;
+    if (typeArg == null) return none;
+
+    if (typeArg.typeClass?.library?.uri == 'dart:ffi') {
+      return (primitive: typeArg.name, layout: null, typeName: null);
+    }
+
+    final typeClassId = typeArg.typeClass?.id;
+    if (typeClassId == null) return none;
+    final cls = await service.getObject(isolateId, typeClassId) as vm.Class?;
+    final layout = cls?.ffiLayout;
+    if (layout == null) return none;
+    return (
+      primitive: null,
+      layout: layout,
+      typeName: typeArg.typeClass?.name ?? typeArg.name,
+    );
   }
 
   /// Reads [byteCount] bytes from [address] via `_readNativeMemory` and
@@ -2203,11 +2219,39 @@ abstract class DartDebugAdapter<
     final isNullPointer = data.address == '0x0' || data.address == '0';
     if (isNullPointer || service == null) return [];
 
-    final ffiTypeName = await _resolveFfiTypeArg(
-      service,
-      thread.isolate.id!,
-      data.staticType,
-    );
+    var layout = data.compoundLayout;
+    var typeName = data.compoundTypeName;
+    String? ffiTypeName;
+    if (layout == null) {
+      final target = await _resolvePointerTarget(
+        service,
+        thread.isolate.id!,
+        data.staticType,
+      );
+      layout = target.layout;
+      typeName = target.typeName;
+      ffiTypeName = target.primitive;
+    }
+
+    // A compound (struct/union) target renders as a `.ref` node.
+    if (layout != null) {
+      return [
+        Variable(
+          name: '.ref',
+          value: '',
+          type: typeName,
+          variablesReference: thread.storeData(
+            FfiRefData(
+              address: data.address,
+              layout: layout,
+              typeName: typeName ?? '',
+              format: data.format,
+            ),
+          ),
+        ),
+      ];
+    }
+
     final byteCount = ffiByteCount(ffiTypeName);
 
     // show value (if type recognized).
@@ -2263,6 +2307,250 @@ abstract class DartDebugAdapter<
     return variables;
   }
 
+  /// The maximum number of bytes a single `_readNativeMemory` call will return.
+  static const _maxNativeMemoryRead = 1024 * 1024;
+
+  /// Expands the `.ref` node: reads the whole compound from native memory
+  /// *once* and returns its decoded fields plus a `[raw bytes]` view of the
+  /// whole compound.
+  Future<List<Variable>> _buildRefChildren(
+    ThreadInfo thread,
+    FfiRefData data,
+    vm.VmService service,
+  ) async {
+    final size = data.layout.size ?? 0;
+    if (size <= 0) return [];
+
+    try {
+      final hex = data.address.replaceFirst('0x', '');
+      final readSize = size > _maxNativeMemoryRead
+          ? _maxNativeMemoryRead
+          : size;
+      final result = await service.callMethod(
+        '_readNativeMemory',
+        args: {'address': hex, 'size': readSize},
+      );
+      final bytes = result.json!['bytes'] as String;
+      final fields = _renderCompoundFields(
+        thread,
+        FfiCompoundData(
+          bytes: bytes,
+          fields: data.layout.fields ?? const [],
+          offsetDelta: 0,
+          baseAddress: data.address,
+          format: data.format,
+        ),
+      );
+
+      final rawBytes = Variable(
+        name: '[raw bytes]',
+        value: '',
+        variablesReference: thread.storeData(
+          FfiBytesData(
+            bytes: bytes,
+            offset: 0,
+            size: size,
+            baseAddress: data.address,
+            summary: true,
+          ),
+        ),
+        presentationHint: VariablePresentationHint(lazy: true),
+      );
+      return [...fields, rawBytes];
+    } on vm.RPCError catch (e) {
+      return [
+        Variable(
+          name: '<unreadable memory>',
+          value: e.details ?? e.message,
+          variablesReference: 0,
+        ),
+      ];
+    }
+  }
+
+  /// Renders each field in [data] as a [Variable].
+  List<Variable> _renderCompoundFields(
+    ThreadInfo thread,
+    FfiCompoundData data,
+  ) {
+    return [
+      for (final field in data.fields)
+        _renderCompoundField(thread, data, field),
+    ];
+  }
+
+  /// Renders a single [field] of the compound described by [data].
+  Variable _renderCompoundField(
+    ThreadInfo thread,
+    FfiCompoundData data,
+    vm.FfiStructField field,
+  ) {
+    final name = field.name ?? '<field>';
+    final absOffset = (field.offset ?? 0) + data.offsetDelta;
+
+    if (field.nativeType == 'Array' && field.length != null) {
+      final elementType = field.arrayElementType ?? '?';
+      return Variable(
+        name: name,
+        value: 'Array<$elementType>[${field.length}]',
+        type: 'Array<$elementType>',
+        variablesReference: thread.storeData(
+          FfiArrayData(
+            bytes: data.bytes,
+            field: field,
+            offsetDelta: data.offsetDelta,
+            baseAddress: data.baseAddress,
+            format: data.format,
+          ),
+        ),
+        indexedVariables: field.length,
+      );
+    }
+
+    final nestedFields = field.fields;
+    if (nestedFields != null) {
+      final isUnion = field.kind == 'union';
+      return Variable(
+        name: name,
+        value: isUnion
+            ? '${field.nativeType} (union @ +$absOffset — members overlap)'
+            : '${field.nativeType}',
+        type: field.nativeType,
+        variablesReference: thread.storeData(
+          FfiCompoundData(
+            bytes: data.bytes,
+            fields: nestedFields,
+            offsetDelta: data.offsetDelta,
+            baseAddress: data.baseAddress,
+            format: data.format,
+          ),
+        ),
+      );
+    }
+
+    final size = field.size ?? 0;
+    final nativeType = field.nativeType;
+    return Variable(
+      name: name,
+      value: _decodeCompoundValue(data.bytes, absOffset, size, nativeType),
+      type: nativeType != null ? normalizeFfiTypeName(nativeType) : null,
+      variablesReference: thread.storeData(
+        FfiBytesData(
+          bytes: data.bytes,
+          offset: absOffset,
+          size: size,
+          baseAddress: data.baseAddress,
+        ),
+      ),
+      indexedVariables: size,
+    );
+  }
+
+  /// Expands an inline array field into the requested slice of its elements.
+  List<Variable> _renderArrayElements(
+    ThreadInfo thread,
+    FfiArrayData data, {
+    int? start,
+    int? count,
+  }) {
+    final field = data.field;
+    final length = field.length ?? 0;
+    final totalSize = field.size ?? 0;
+    if (length <= 0) return [];
+    final elementSize = totalSize ~/ length;
+    final arrayOffset = (field.offset ?? 0) + data.offsetDelta;
+    final elementFields = field.fields;
+    final elementType = field.arrayElementType;
+
+    final from = (start ?? 0).clamp(0, length);
+    final to = count != null ? (from + count).clamp(0, length) : length;
+
+    final variables = <Variable>[];
+    for (var i = from; i < to; i++) {
+      final elemOffset = arrayOffset + i * elementSize;
+      if (elementFields != null) {
+        variables.add(
+          Variable(
+            name: '[$i]',
+            value: '$elementType',
+            type: elementType,
+            variablesReference: thread.storeData(
+              FfiCompoundData(
+                bytes: data.bytes,
+                fields: elementFields,
+                offsetDelta: data.offsetDelta + i * elementSize,
+                baseAddress: data.baseAddress,
+                format: data.format,
+              ),
+            ),
+          ),
+        );
+      } else {
+        // Array of primitives.
+        variables.add(
+          Variable(
+            name: '[$i]',
+            value: _decodeCompoundValue(
+              data.bytes,
+              elemOffset,
+              elementSize,
+              elementType,
+            ),
+            type: elementType != null
+                ? normalizeFfiTypeName(elementType)
+                : null,
+            variablesReference: thread.storeData(
+              FfiBytesData(
+                bytes: data.bytes,
+                offset: elemOffset,
+                size: elementSize,
+                baseAddress: data.baseAddress,
+              ),
+            ),
+            indexedVariables: elementSize,
+          ),
+        );
+      }
+    }
+    return variables;
+  }
+
+  List<Variable> _renderValueBytes(
+    FfiBytesData data, {
+    int? start,
+    int? count,
+  }) {
+    final from = (start ?? 0).clamp(0, data.size);
+    final to = count != null ? (from + count).clamp(0, data.size) : data.size;
+
+    final variables = <Variable>[];
+    for (var i = from; i < to; i++) {
+      final byteStart = (data.offset + i) * 2;
+      if (byteStart + 2 > data.bytes.length) break;
+      final byteHex = data.bytes.substring(byteStart, byteStart + 2);
+      variables.add(
+        Variable(name: '[$i]', value: '0x$byteHex', variablesReference: 0),
+      );
+    }
+    return variables;
+  }
+
+  String _decodeCompoundValue(
+    String hex,
+    int offset,
+    int size,
+    String? nativeType,
+  ) {
+    final startChar = offset * 2;
+    final endChar = (offset + size) * 2;
+    if (nativeType == null || size <= 0 || endChar > hex.length) {
+      return '<unreadable>';
+    }
+    final slice = hex.substring(startChar, endChar);
+    return _decodeFfiBytes(slice, normalizeFfiTypeName(nativeType)) ??
+        '<$nativeType>';
+  }
+
   /// [variablesRequest] is called by the client to request child variables for
   /// a given variables variablesReference.
   ///
@@ -2306,13 +2594,45 @@ abstract class DartDebugAdapter<
     if (data is FrameScopeData && data.kind == FrameScopeDataKind.locals) {
       final vars = data.frame.vars;
       if (vars != null) {
-        Future<Variable> convert(int index, vm.BoundVariable variable) {
+        Future<Variable> convert(int index, vm.BoundVariable variable) async {
           final name = variable.name;
           // Store the expression that gets this object as we may need it to
           // compute evaluateNames for child objects later.
           final value = variable.value;
           if (value is vm.InstanceRef) {
             storeEvaluateName(value, name);
+
+            final staticType = variable.staticType;
+            if (value.kind == vm.InstanceKind.kPointer &&
+                staticType != null &&
+                service != null) {
+              final target = await _resolvePointerTarget(
+                service,
+                thread.isolate.id!,
+                staticType,
+              );
+              final layout = target.layout;
+              if (layout != null) {
+                final address = value.valueAsString ?? '0x0';
+                return Variable(
+                  name: name ?? '<unnamed>',
+                  value:
+                      '${vm.InstanceKind.kPointer} '
+                      '(${value.valueAsString ?? 'unknown'})',
+                  type: staticType.name,
+                  variablesReference: thread.storeData(
+                    PointerData(
+                      address,
+                      format,
+                      staticType: staticType,
+                      pointerInstance: value,
+                      compoundLayout: layout,
+                      compoundTypeName: target.typeName,
+                    ),
+                  ),
+                );
+              }
+            }
           }
           return _converter.convertVmResponseToVariable(
             thread,
@@ -2391,8 +2711,10 @@ abstract class DartDebugAdapter<
       // click
       // rawBytes → individual byte variables ([0]: 0xde, [1]: 0xad, ...)
       //
-      // In both cases, unrecognized types (e.g. Pointer<MyStruct>) and local
-      // variables default to 8 bytes with no decoded value.
+      // Compound targets (e.g. Pointer<MyStruct>) are instead decoded
+      // field-by-field by [_buildCompoundChildren]. Genuinely unrecognized
+      // types and primitive local variables default to 8 raw bytes with no
+      // decoded value.
       switch (data.kind) {
         case PointerDataKind.children:
           variables.addAll(await _buildPointerChildren(thread, data, service));
@@ -2434,6 +2756,50 @@ abstract class DartDebugAdapter<
               ),
             );
           }
+      }
+    } else if (data is FfiRefData) {
+      // Expanding a `Pointer<Compound>`'s `.ref`.
+      if (service != null) {
+        variables.addAll(await _buildRefChildren(thread, data, service));
+      }
+    } else if (data is FfiCompoundData) {
+      // Expanding a nested struct/union field, or a single struct array
+      // element.
+      variables.addAll(_renderCompoundFields(thread, data));
+    } else if (data is FfiArrayData) {
+      // Expanding an inline array field into its elements (paginated).
+      variables.addAll(
+        _renderArrayElements(
+          thread,
+          data,
+          start: childStart,
+          count: childCount,
+        ),
+      );
+    } else if (data is FfiBytesData) {
+      if (data.summary) {
+        // Lazy `[raw bytes]` placeholder resolving: return exactly one summary
+        // variable, itself expandable into the paginated byte list.
+        variables.add(
+          Variable(
+            name: '[raw bytes]',
+            value: '${data.size} bytes @ ${data.baseAddress}',
+            variablesReference: thread.storeData(
+              FfiBytesData(
+                bytes: data.bytes,
+                offset: data.offset,
+                size: data.size,
+                baseAddress: data.baseAddress,
+              ),
+            ),
+            indexedVariables: data.size,
+          ),
+        );
+      } else {
+        // Expanding a value into its individual bytes (paginated).
+        variables.addAll(
+          _renderValueBytes(data, start: childStart, count: childCount),
+        );
       }
     } else if (data is WrappedInstanceVariable) {
       // WrappedInstanceVariables are used to support DAP-over-DDS clients that

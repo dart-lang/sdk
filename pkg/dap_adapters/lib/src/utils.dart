@@ -222,3 +222,22 @@ const _ffiTypeSizes = <String, int>{
 
 /// Returns the byte count for [ffiTypeName], defaulting to 8 if unrecognized.
 int ffiByteCount(String? ffiTypeName) => _ffiTypeSizes[ffiTypeName] ?? 8;
+
+/// Maps the C-semantics native type names emitted in `ffiLayout` (e.g. "uint8",
+/// "int64") to the dart:ffi primitive names.
+const _ffiNativeTypeNames = <String, String>{
+  'int8': ffiInt8,
+  'uint8': ffiUint8,
+  'int16': ffiInt16,
+  'uint16': ffiUint16,
+  'int32': ffiInt32,
+  'uint32': ffiUint32,
+  'int64': ffiInt64,
+  'uint64': ffiUint64,
+  'float': ffiFloat,
+  'double': ffiDouble,
+  'bool': ffiBool,
+};
+
+/// Normalizes an FFI type name to the dart:ffi primitive form.
+String normalizeFfiTypeName(String name) => _ffiNativeTypeNames[name] ?? name;

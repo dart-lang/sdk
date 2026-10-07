@@ -157,6 +157,8 @@ class PointerData {
     this.staticType,
     this.pointerInstance,
     this.ffiTypeName,
+    this.compoundLayout,
+    this.compoundTypeName,
     this.kind = PointerDataKind.children,
   });
   final String address;
@@ -165,6 +167,8 @@ class PointerData {
   final InstanceRef? staticType;
   final PointerDataKind kind;
   final String? ffiTypeName;
+  final FfiStructLayout? compoundLayout;
+  final String? compoundTypeName;
 }
 
 enum PointerDataKind {
@@ -176,6 +180,75 @@ enum PointerDataKind {
 
   /// Summary expanded: return individual byte variables ([0]: 0xde, ...).
   rawBytes,
+}
+
+/// Data for rendering the fields of a decoded dart:ffi compound (struct or
+/// union) that has been read from native memory into [bytes].
+class FfiCompoundData {
+  FfiCompoundData({
+    required this.bytes,
+    required this.fields,
+    required this.offsetDelta,
+    required this.baseAddress,
+    this.format,
+  });
+
+  final String bytes;
+  final List<FfiStructField> fields;
+  final int offsetDelta;
+  final String baseAddress;
+  final VariableFormat? format;
+}
+
+/// Data for lazily expanding an inline dart:ffi `Array` field into its
+/// individual elements.
+class FfiArrayData {
+  FfiArrayData({
+    required this.bytes,
+    required this.field,
+    required this.offsetDelta,
+    required this.baseAddress,
+    this.format,
+  });
+
+  final String bytes;
+  final FfiStructField field;
+  final int offsetDelta;
+  final String baseAddress;
+  final VariableFormat? format;
+}
+
+/// Data for the `.ref` node of a `Pointer<Compound>`.
+class FfiRefData {
+  FfiRefData({
+    required this.address,
+    required this.layout,
+    required this.typeName,
+    this.format,
+  });
+
+  final String address;
+  final FfiStructLayout layout;
+  final String typeName;
+  final VariableFormat? format;
+}
+
+/// Data for lazily expanding a decoded value (or the whole compound) into its
+/// individual bytes.
+class FfiBytesData {
+  FfiBytesData({
+    required this.bytes,
+    required this.offset,
+    required this.size,
+    required this.baseAddress,
+    this.summary = false,
+  });
+
+  final String bytes;
+  final int offset;
+  final int size;
+  final String baseAddress;
+  final bool summary;
 }
 
 /// An expression for evaluating a variable ("evaluateName" in DAP) and a flag

@@ -56,20 +56,20 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   } on UsageException catch (e) {
     // TODO(sigurdm): It is unclear when a UsageException gets to here, and
     // when it is in DartdevRunner.runCommand.
-    io.stderr.writeln('$e');
+    log.stderr('$e');
     exitCode = DartdevRunner.usageExitCode;
   } catch (e, st) {
     // Unexpected error encountered.
-    io.stderr.writeln('An unexpected error was encountered by the Dart CLI.');
-    io.stderr.writeln(
+    log.stderr('An unexpected error was encountered by the Dart CLI.');
+    log.stderr(
       'Please file an issue at '
       'https://github.com/dart-lang/sdk/issues/new with the following '
       'details:\n',
     );
-    io.stderr.writeln("Invocation: 'dart ${args.join(' ')}'");
-    io.stderr.writeln("Exception: '$e'");
-    io.stderr.writeln('Stack Trace:');
-    io.stderr.writeln(st.toString());
+    log.stderr("Invocation: 'dart ${args.join(' ')}'");
+    log.stderr("Exception: '$e'");
+    log.stderr('Stack Trace:');
+    log.stderr(st.toString());
     exitCode = 255;
   } finally {
     VmInteropHandler.exit(exitCode);
@@ -212,7 +212,7 @@ class DartdevRunner extends CommandRunner<int> {
         envSuppressAnalytics;
 
     if (topLevelResults.wasParsed('analytics')) {
-      io.stderr.writeln(
+      log.stderr(
         '`--[no-]analytics` is deprecated.  Use `--suppress-analytics` '
         'to disable analytics for one run instead.',
       );
@@ -226,7 +226,7 @@ class DartdevRunner extends CommandRunner<int> {
         (enableAnalytics || disableAnalytics)) {
       // This isn't an error if we're implicitly disabling analytics because
       // we're running in a CI environment.
-      io.stderr.writeln(
+      log.stderr(
         '`--suppress-analytics` cannot be used with either'
         ' `--enable-analytics` or `--disable-analytics`.',
       );
@@ -267,7 +267,7 @@ class DartdevRunner extends CommandRunner<int> {
     if (unifiedAnalytics.shouldShowMessage &&
         io.stdout.hasTerminal &&
         !isBot()) {
-      print(unifiedAnalytics.getConsentMessage);
+      log.stdout(unifiedAnalytics.getConsentMessage);
       unifiedAnalytics.clientShowedMessage();
       analyticsMessagePrinted = true;
     }
@@ -284,7 +284,7 @@ class DartdevRunner extends CommandRunner<int> {
       } on TimeoutException catch (_) {}
 
       // Alert the user that analytics has been disabled.
-      print(analyticsDisabledNoticeMessage);
+      log.stdout(analyticsDisabledNoticeMessage);
       return 0;
     } else if (enableAnalytics) {
       // Enable sending data via the unified analytics package.
@@ -297,94 +297,97 @@ class DartdevRunner extends CommandRunner<int> {
 
       // Alert the user again that data will be collected.
       if (!analyticsMessagePrinted) {
-        print(unifiedAnalytics.getConsentMessage);
+        log.stdout(unifiedAnalytics.getConsentMessage);
       }
       return 0;
     }
 
-    if (topLevelResults.flag('diagnostics')) {
-      log = Logger.verbose(ansi: ansi);
-    }
+    return await withDartdevLogger(
+      () async {
+        late final List<String> experimentErrors = validateExperiments(
+          vmEnabledExperiments,
+        );
+        if (experimentErrors.isNotEmpty) {
+          experimentErrors.forEach(log.stderr);
+          return 254;
+        }
 
-    late final List<String> experimentErrors = validateExperiments(
-      vmEnabledExperiments,
+        if (topLevelResults.command == null &&
+            topLevelResults.arguments.isNotEmpty) {
+          final firstArg = topLevelResults.arguments.first;
+          // If we make it this far, it means the VM couldn't find the file on disk.
+          if (firstArg.endsWith('.dart')) {
+            log.stderr(
+              "Error when reading '$firstArg': No such file or directory.",
+            );
+            // This is the exit code used by the frontend.
+            return 254;
+          }
+        }
+
+        var command = topLevelResults.command;
+        final commandNames = [];
+        while (command != null) {
+          commandNames.add(command.name);
+          if (command.command == null) break;
+          command = command.command;
+        }
+
+        // The exit code for the dartdev process; null indicates that it has not been
+        // set yet. The value is set in the catch and finally blocks below.
+        int? exitCode;
+
+        // Any caught non-UsageExceptions when running the sub command.
+        try {
+          exitCode = await super.runCommand(topLevelResults);
+          if (unifiedAnalytics.telemetryEnabled) {
+            // Send the event to analytics
+            final path = commandNames.join('/');
+            final experiments = topLevelResults.enabledExperiments
+              ..sort((a, b) => a.compareTo(b));
+
+            final rootCommand = commandNames.firstOrNull;
+            final shouldCollectPubspec = _commandsWithPubspecTelemetry.contains(
+              rootCommand,
+            );
+            final pubspecTelemetry = shouldCollectPubspec
+                ? collectPubspecTelemetry()
+                : null;
+            unifiedAnalytics.send(
+              Event.dartCliCommandExecuted(
+                name: path,
+                enabledExperiments: experiments.join(','),
+                pubspecHasFlutterSdk: pubspecTelemetry?.hasFlutterSdk,
+                pubspecDependencies: pubspecTelemetry?.publicDependencies,
+                pubspecEnvironmentSdk: pubspecTelemetry?.environmentSdk,
+              ),
+            );
+          }
+        } on UsageException catch (e) {
+          log.stderr('$e');
+          exitCode = usageExitCode;
+        } catch (e, st) {
+          // Set the exception and stack trace only for non-UsageException cases:
+          log.stderr('$e');
+          log.stderr('$st');
+          exitCode = 1;
+        } finally {
+          stopwatch.stop();
+
+          // Set the exitCode, if it wasn't set in the catch block above.
+          exitCode ??= 0;
+          try {
+            await unifiedAnalytics.close().timeout(
+              const Duration(milliseconds: 250),
+            );
+          } on TimeoutException catch (_) {}
+        }
+
+        return exitCode;
+      },
+      delegate: topLevelResults.flag('diagnostics')
+          ? Logger.verbose(ansi: ansi)
+          : null,
     );
-    if (experimentErrors.isNotEmpty) {
-      experimentErrors.forEach(io.stderr.writeln);
-      return 254;
-    }
-
-    if (topLevelResults.command == null &&
-        topLevelResults.arguments.isNotEmpty) {
-      final firstArg = topLevelResults.arguments.first;
-      // If we make it this far, it means the VM couldn't find the file on disk.
-      if (firstArg.endsWith('.dart')) {
-        io.stderr.writeln(
-          "Error when reading '$firstArg': No such file or directory.",
-        );
-        // This is the exit code used by the frontend.
-        return 254;
-      }
-    }
-
-    var command = topLevelResults.command;
-    final commandNames = [];
-    while (command != null) {
-      commandNames.add(command.name);
-      if (command.command == null) break;
-      command = command.command;
-    }
-
-    // The exit code for the dartdev process; null indicates that it has not been
-    // set yet. The value is set in the catch and finally blocks below.
-    int? exitCode;
-
-    // Any caught non-UsageExceptions when running the sub command.
-    try {
-      exitCode = await super.runCommand(topLevelResults);
-      if (unifiedAnalytics.telemetryEnabled) {
-        // Send the event to analytics
-        final path = commandNames.join('/');
-        final experiments = topLevelResults.enabledExperiments
-          ..sort((a, b) => a.compareTo(b));
-
-        final rootCommand = commandNames.firstOrNull;
-        final shouldCollectPubspec = _commandsWithPubspecTelemetry.contains(
-          rootCommand,
-        );
-        final pubspecTelemetry = shouldCollectPubspec
-            ? collectPubspecTelemetry()
-            : null;
-        unifiedAnalytics.send(
-          Event.dartCliCommandExecuted(
-            name: path,
-            enabledExperiments: experiments.join(','),
-            pubspecHasFlutterSdk: pubspecTelemetry?.hasFlutterSdk,
-            pubspecDependencies: pubspecTelemetry?.publicDependencies,
-            pubspecEnvironmentSdk: pubspecTelemetry?.environmentSdk,
-          ),
-        );
-      }
-    } on UsageException catch (e) {
-      io.stderr.writeln('$e');
-      exitCode = usageExitCode;
-    } catch (e, st) {
-      // Set the exception and stack trace only for non-UsageException cases:
-      io.stderr.writeln('$e');
-      io.stderr.writeln('$st');
-      exitCode = 1;
-    } finally {
-      stopwatch.stop();
-
-      // Set the exitCode, if it wasn't set in the catch block above.
-      exitCode ??= 0;
-      try {
-        await unifiedAnalytics.close().timeout(
-          const Duration(milliseconds: 250),
-        );
-      } on TimeoutException catch (_) {}
-    }
-
-    return exitCode;
   }
 }

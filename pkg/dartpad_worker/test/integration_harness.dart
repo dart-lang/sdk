@@ -9,7 +9,8 @@ import 'package:web/web.dart' as web;
 
 import 'asset_server/asset_server_client.dart';
 
-export 'package:dartpad/dartpad.dart' show ConsoleLevel;
+export 'package:dartpad/dartpad.dart'
+    show ConsoleLevel, SandboxNotFoundException;
 export 'package:test/test.dart' show TestOn, printOnFailure;
 export 'checks_ext.dart';
 
@@ -17,10 +18,11 @@ final class TestContext {
   final AssetServerClient server;
   final DartPad dartpad;
   final Workspace ws;
+  final SandboxedIframe iframe;
   final Sandbox sandbox;
   final consoleLog = <({ConsoleLevel level, String message})>[];
 
-  TestContext._(this.server, this.dartpad, this.ws, this.sandbox) {
+  TestContext._(this.server, this.dartpad, this.ws, this.iframe, this.sandbox) {
     sandbox.console.listen((entry) {
       consoleLog.add(entry);
       printOnFailure(
@@ -77,7 +79,7 @@ void testDartIntegration(
     final sandbox = await workspace.connectSandboxedIframe(iframe.port);
 
     try {
-      await fn(TestContext._(server, dartpad, workspace, sandbox));
+      await fn(TestContext._(server, dartpad, workspace, iframe, sandbox));
     } finally {
       await sandbox.close();
       await iframe.close();
@@ -116,7 +118,7 @@ void testFlutterIntegration(
     final sandbox = await workspace.connectSandboxedIframe(iframe.port);
 
     try {
-      await fn(TestContext._(server, dartpad, workspace, sandbox));
+      await fn(TestContext._(server, dartpad, workspace, iframe, sandbox));
     } finally {
       await sandbox.close();
       await iframe.close();

@@ -65,7 +65,20 @@ final class Sandbox {
     return sandbox = Sandbox._(client, vmService, resourceProvider, config);
   }
 
-  Future<T> _synced<T>(FutureOr<T> Function() fn) => _pool.withResource(fn);
+  Future<T> _synced<T>(FutureOr<T> Function() fn) =>
+      _pool.withResource(() async {
+        if (_isClosed) {
+          throw SandboxNotFoundException('Sandbox is closed');
+        }
+        try {
+          return await fn();
+        } catch (_) {
+          if (_isClosed) {
+            throw SandboxNotFoundException('Sandbox is closed');
+          }
+          rethrow;
+        }
+      });
 
   Stream<({String level, String message})> get onConsole => _client.onConsole;
 
@@ -172,10 +185,9 @@ final class Sandbox {
           );
         }
 
-        final c = _createCompiler(target, mode);
+        final c = _compiler = _createCompiler(target, mode);
         try {
           final r = await c.compile();
-          _compiler = c;
 
           await _client.loadModules(modules: r.modules);
           await _client.run(r.entrypointLibraryUri, mode: mode.mode);
@@ -218,7 +230,6 @@ final class Sandbox {
   Future<void> close() async {
     if (_isClosed) return;
     _isClosed = true;
-    _pool.close().ignore();
     final c = _compiler;
     _compiler = null;
     await Future.wait<void>([

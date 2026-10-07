@@ -127,7 +127,6 @@ class _Session {
   late final Peer _rpc;
   final _workspaces = <int, _Workspace>{};
   DateTime _lastActivity = clock.now();
-  int _activeRequests = 0;
 
   _Session(StreamChannel<Object?> channel, this._worker) {
     _rpc = Peer.withoutJson(channel, onUnhandledError: _onUnhandledError);
@@ -217,14 +216,12 @@ class _Session {
       'workspace/sandbox/connectServiceProtocol',
       _forwardToWorkspace((ws) => ws._sandboxConnectServiceProtocol),
     );
-    // Every 60s, if the session has no in-flight requests and has been idle for
-    // at least 5 minutes, wait an extra 40s (30s ping interval + 10s slack) and
-    // re-check before closing. This gives a client that unfroze simultaneously
-    // with the worker (or whose pings were queued behind a long compile) time
-    // to send a ping before the session is reaped.
-    bool isIdle() =>
-        _activeRequests == 0 &&
-        clock.now().difference(_lastActivity) >= _idleTimeout;
+    // Every 60s, if the session has been idle for at least 5 minutes, wait an
+    // extra 40s (30s ping interval + 10s slack) and re-check before closing.
+    // This gives a client that unfroze simultaneously with the worker (or whose
+    // pings were queued behind a long compile) time to send a ping before the
+    // session is reaped.
+    bool isIdle() => clock.now().difference(_lastActivity) >= _idleTimeout;
 
     Timer? confirmTimer;
     final idleTimer = Timer.periodic(_idleCheckInterval, (_) {
@@ -250,17 +247,24 @@ class _Session {
     }());
   }
 
-  void _registerMethod(String name, Object? Function(Parameters) callback) {
+  void _registerMethod(
+    String name,
+    FutureOr<Object?> Function(Parameters) callback,
+  ) {
     _rpc.registerMethod(name, (Parameters params) async {
-      _activeRequests++;
       _lastActivity = clock.now();
       try {
-        return await (callback(params) as FutureOr<Object?>);
+        return await callback(params);
       } finally {
-        _activeRequests--;
         _lastActivity = clock.now();
       }
     });
+  }
+
+  void _sendNotification(String method, Map<String, Object?> params) {
+    if (!_rpc.isClosed) {
+      _rpc.sendNotification(method, params);
+    }
   }
 
   Map<String, Object?> _version(Parameters _) => _worker._version.toJson();
@@ -289,7 +293,7 @@ class _Session {
     return <String, Object?>{};
   }
 
-  Object? Function(Parameters) _forwardToWorkspace(
+  Future<Object?> Function(Parameters) _forwardToWorkspace(
     Object? Function(Parameters params) Function(_Workspace ws) resolveHandler,
   ) {
     return (Parameters params) async {
@@ -308,7 +312,7 @@ class _Session {
   /// Like [_forwardToWorkspace], but for methods closing a resource held by
   /// the workspace. Closing a workspace closes all its resources, so these
   /// are a no-op when the workspace doesn't exist.
-  Object? Function(Parameters) _closeInWorkspace(
+  Future<Object?> Function(Parameters) _closeInWorkspace(
     Object? Function(Parameters params) Function(_Workspace ws) resolveHandler,
   ) {
     return (Parameters params) async {
@@ -519,7 +523,7 @@ class _Workspace {
       byteStore: _worker._analysisCache,
     );
     ls.messages.listen((m) {
-      _session._rpc.sendNotification('workspace/languageServer/message', {
+      _session._sendNotification('workspace/languageServer/message', {
         'workspaceId': _workspaceId,
         'languageServerId': languageServerId,
         'message': m,
@@ -527,7 +531,8 @@ class _Workspace {
     });
     unawaited(
       ls.closed.whenComplete(() {
-        _session._rpc.sendNotification('workspace/languageServer/exited', {
+        _languageServers.remove(languageServerId);
+        _session._sendNotification('workspace/languageServer/exited', {
           'workspaceId': _workspaceId,
           'languageServerId': languageServerId,
         });
@@ -564,7 +569,7 @@ class _Workspace {
     final watcherId = _worker._nextWatcherId++;
 
     _fileWatches[watcherId] = await FileWatch.create(_rp, path, (events) {
-      _session._rpc.sendNotification('workspace/watcher/events', {
+      _session._sendNotification('workspace/watcher/events', {
         'workspaceId': _workspaceId,
         'watcherId': watcherId,
         'events': events.map((e) => {'type': e.event, 'path': e.path}).toList(),
@@ -592,7 +597,7 @@ class _Workspace {
       onClosed: () => _sandboxes.remove(sandboxId),
     );
     sandbox.onConsole.listen((e) {
-      _session._rpc.sendNotification('workspace/sandbox/console', {
+      _session._sendNotification('workspace/sandbox/console', {
         'workspaceId': _workspaceId,
         'sandboxId': sandboxId,
         'level': e.level,

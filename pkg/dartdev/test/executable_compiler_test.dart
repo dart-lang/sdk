@@ -663,14 +663,12 @@ void main() {
             executable: binScript.path,
             packageConfig: packageConfigFile.path,
           ),
-          quiet: true,
         );
         final resTool = await ExecutableCompiler.compile(
           resolvedExecutable: DartExecutableWithPackageConfig(
             executable: toolScript.path,
             packageConfig: packageConfigFile.path,
           ),
-          quiet: true,
         );
 
         expect(resBin.executable, isNot(equals(resTool.executable)));

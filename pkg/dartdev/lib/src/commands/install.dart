@@ -312,9 +312,8 @@ See https://dart.dev/to/package-descriptors for more details.''';
     File helperPackageConfigFile,
     File sourcePackagePubspecFile,
     bool verbose,
-    String verbosity, {
-    bool progressUpdatesOnStderr = false,
-  }) async {
+    String verbosity,
+  ) async {
     // TODO(https://github.com/dart-lang/native/issues/2465): Add a test for
     // user-defines in the source package pubspec.
     final buildResult = await BuildCliSubcommand.doBuild(
@@ -327,7 +326,6 @@ See https://dart.dev/to/package-descriptors for more details.''';
       dataAssetsExperimentEnabled: false,
       verbose: verbose,
       verbosity: verbosity,
-      progressUpdatesOnStderr: progressUpdatesOnStderr,
     );
     if (buildResult != 0) {
       installException('Build failed.', exitCode: buildResult);
@@ -341,19 +339,19 @@ See https://dart.dev/to/package-descriptors for more details.''';
 
     try {
       for (final bundle in bundles) {
-        print('Uninstalling ${bundle.directory.path}.');
+        log.stdout('Uninstalling ${bundle.directory.path}.');
         final links = bundle.executablesOnPathSync;
         for (final link in links) {
-          print('Deleting ${link.entity.path}');
+          log.stdout('Deleting ${link.entity.path}');
           link.deleteSync();
         }
-        print('Deleting ${bundle.directory.path}');
+        log.stdout('Deleting ${bundle.directory.path}');
         bundle.directory.deleteSync(recursive: true);
       }
     } on PathAccessException {
       installException('Deletion failed. The application might be in use.');
     } on PathNotFoundException {
-      print(
+      log.stdout(
         'Bundle not found when uninstalling. '
         'Earlier installation may have failed.',
       );
@@ -483,7 +481,7 @@ See https://dart.dev/to/package-descriptors for more details.''';
       }
       if (createLink) {
         executableOnPath.createSync(executableFile);
-        print('Installed: ${executableOnPath.entity.path}');
+        log.stdout('Installed: ${executableOnPath.entity.path}');
       }
     }
     if (errors.isNotEmpty) {
@@ -504,7 +502,7 @@ See https://dart.dev/to/package-descriptors for more details.''';
       final result = Process.runSync('where', [r'\q', '$installed.bat']);
       if (result.exitCode == 0) return;
 
-      stdout.writeln(
+      log.stdout(
         'Warning: Dart installs executables into '
         '$binDirPath, which is not on your path.\n'
         "You can fix that by adding that directory to your system's "
@@ -533,7 +531,7 @@ See https://dart.dev/to/package-descriptors for more details.''';
           // zsh is default on mac - mention that first.
           ? '(.zshrc, .bashrc, .bash_profile, etc.)'
           : '(.bashrc, .bash_profile, .zshrc, etc.)';
-      stdout.writeln(
+      log.stdout(
         "'Warning: Dart installs executables into "
         '$binDir, which is not on your path.\n'
         "You can fix that by adding this to your shell's config file "
@@ -621,7 +619,7 @@ See https://dart.dev/to/package-descriptors for more details.''';
         );
         _suggestIfNotOnPath(executables.first.name);
       } on InstallException catch (e) {
-        stderr.writeln(e.message);
+        log.stderr(e.message);
         return genericErrorExitCode;
       }
 

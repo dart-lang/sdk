@@ -500,6 +500,40 @@ void f() {
     );
   }
 
+  Future<void> test_bad_statements_breakOutOfSelection() async {
+    await _createRefactoring('''
+void f(List<int> values) {
+  for (var value in values) {
+    [!if (value == 0) {
+      break;
+    }!]
+    print(value);
+  }
+}
+''');
+    return _assertConditionsFatal(
+      "Cannot extract a 'break' or 'continue' statement that jumps "
+      'outside of the selection.',
+    );
+  }
+
+  Future<void> test_bad_statements_continueOutOfSelection() async {
+    await _createRefactoring('''
+void f(List<int> values) {
+  for (var value in values) {
+    [!if (value == 0) {
+      continue;
+    }!]
+    print(value);
+  }
+}
+''');
+    return _assertConditionsFatal(
+      "Cannot extract a 'break' or 'continue' statement that jumps "
+      'outside of the selection.',
+    );
+  }
+
   Future<void> test_bad_statements_exit_notAllExecutionFlows() async {
     await _createRefactoring('''
 void f(int p) {
@@ -510,6 +544,25 @@ void f(int p) {
 }
 ''');
     return _assertConditionsError(ExtractMethodRefactoringImpl.errorExits);
+  }
+
+  Future<void> test_bad_statements_exit_returnOrBreak() async {
+    await _createRefactoring('''
+int f(List<int> values) {
+  for (var value in values) {
+    [!if (value == 0) {
+      return 0;
+    } else {
+      break;
+    }!]
+  }
+  return 1;
+}
+''');
+    return _assertConditionsFatal(
+      "Cannot extract a 'break' or 'continue' statement that jumps "
+      'outside of the selection.',
+    );
   }
 
   Future<void> test_bad_statements_return_andAssignsVariable() async {
@@ -2143,6 +2196,34 @@ int res(int v) {
 ''');
   }
 
+  Future<void> test_statements_break_insideSelection() async {
+    await _createRefactoring('''
+void f(List<int> values) {
+  [!for (var value in values) {
+    if (value == 0) {
+      break;
+    }
+    print(value);
+  }!]
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+void f(List<int> values) {
+  res(values);
+}
+
+void res(List<int> values) {
+  for (var value in values) {
+    if (value == 0) {
+      break;
+    }
+    print(value);
+  }
+}
+''');
+  }
+
   Future<void> test_statements_changeIndentation() async {
     await _createRefactoring('''
 void f() {
@@ -3026,6 +3107,38 @@ List<Object> res(bool b) {
   } else {
     print(false);
     return <String>[];
+  }
+}
+''');
+  }
+
+  Future<void> test_statements_return_multiple_switchExhaustive() async {
+    await _createRefactoring('''
+enum E { first, second }
+
+int f(E e) {
+  [!switch (e) {
+    case E.first:
+      return 1;
+    case E.second:
+      return 2;
+  }!]
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+enum E { first, second }
+
+int f(E e) {
+  return res(e);
+}
+
+int res(E e) {
+  switch (e) {
+    case E.first:
+      return 1;
+    case E.second:
+      return 2;
   }
 }
 ''');

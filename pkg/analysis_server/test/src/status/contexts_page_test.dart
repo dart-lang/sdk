@@ -2,16 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analysis_server/src/server/diagnostic_server.dart';
-import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages/contexts_page.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../analysis_server_base.dart';
+import 'test_socket_server.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -27,13 +24,13 @@ class ContextsPageTest extends PubPackageAnalysisServerTest {
   @override
   void setUp() {
     super.setUp();
-    site = DiagnosticsSite(_TestSocketServer(server), []);
+    site = DiagnosticsSite(TestSocketServer(server), []);
     page = ContextsPage(site);
   }
 
   Future<void> test_contextFilesFilteredToContext() async {
-    var pkg1Path = '$workspaceRootPath/pkg1';
-    var pkg2Path = '$workspaceRootPath/pkg2';
+    var pkg1Path = convertPath('$workspaceRootPath/pkg1');
+    var pkg2Path = convertPath('$workspaceRootPath/pkg2');
 
     newFile('$pkg1Path/pubspec.yaml', 'name: pkg1\n');
     var pkg1File = newFile('$pkg1Path/lib/pkg1.dart', 'class P1 {}');
@@ -59,17 +56,4 @@ class ContextsPageTest extends PubPackageAnalysisServerTest {
   Future<String> _generate(Map<String, String> params) async {
     return await page.generate(params);
   }
-}
-
-class _TestSocketServer implements AbstractSocketServer {
-  @override
-  final AnalysisServer analysisServer;
-
-  new(this.analysisServer);
-
-  @override
-  AnalysisServerOptions get analysisServerOptions => analysisServer.options;
-
-  @override
-  DiagnosticServer? get diagnosticServer => null;
 }

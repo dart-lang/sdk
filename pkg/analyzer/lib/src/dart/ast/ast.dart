@@ -3329,6 +3329,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
 
   /// Returns the [child] node after making this node the parent of the [child]
   /// node in the V1 tree view.
+  @ToBeDeprecated('Part of the V1 projection.')
   T _becomeParentOf1<T extends AstNodeImpl?>(T child) {
     child?._parent = this;
     return child;
@@ -3358,6 +3359,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
     if (child != null) {
       // A shared child already is its V1 representation. Avoid dispatching
       // through the projection kinds on this common parser path.
+      // ignore: analyzer_to_be_deprecated_use
       _becomeParentOf1(
         child._astNodeApi == AstNodeApi.shared
             ? child
@@ -3372,6 +3374,7 @@ sealed class AstNodeImpl extends SyntacticEntity implements AstNode {
   T _becomeParentOfOwnedView<T extends AstNodeImpl?>(T child) {
     switch (_astNodeApi) {
       case AstNodeApi.v1:
+        // ignore: analyzer_to_be_deprecated_use
         return _becomeParentOf1<T>(child);
       case AstNodeApi.v2:
         return _becomeParentOf2<T>(child);
@@ -8412,7 +8415,11 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
     var result = _v1Projection ??= SimpleIdentifierImpl.v1Projection(
       token: name,
     );
-    _updateV1Projection();
+    var element = _element ?? _setterElement;
+    if (element is PropertyAccessorElement) {
+      element = element.variable;
+    }
+    result.element = element;
     _parent2?._becomeParentOf1(result);
     return result;
   }
@@ -8472,15 +8479,6 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     return null;
-  }
-
-  @ToBeDeprecated('Part of the V1 projection.')
-  void _updateV1Projection() {
-    var element = _element ?? _setterElement;
-    if (element is PropertyAccessorElement) {
-      element = element.variable;
-    }
-    _v1Projection?.element = element;
   }
 }
 
@@ -12695,6 +12693,7 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
   TypeImpl? type;
 
   /// The cached V1 compatibility projection for this type reference.
+  @ToBeDeprecated('Part of the V1 projection.')
   late final NamedTypeImpl namedType = NamedTypeImpl.v1Projection(this);
 
   @generated
@@ -13766,6 +13765,7 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
   T _becomeParentOfOwnedView<T extends AstNodeImpl?>(T child) {
     _becomeParentOf2(child);
     if (_parent2 case FormalParameterListImpl formalParameterList) {
+      // ignore: analyzer_to_be_deprecated_use
       formalParameterList._becomeParentOf1(child);
     }
     return child;
@@ -21884,6 +21884,7 @@ final class FormalParameterListImpl extends AstNodeImpl
     _becomeParentOf2(delimitedFormalParameters);
     if (delimitedFormalParameters case var delimitedFormalParameters?) {
       for (var parameter in delimitedFormalParameters.formalParameters) {
+        // ignore: analyzer_to_be_deprecated_use
         _becomeParentOf1(parameter);
       }
     }
@@ -21909,6 +21910,7 @@ final class FormalParameterListImpl extends AstNodeImpl
     _delimitedFormalParameters = _becomeParentOf2(delimitedFormalParameters);
     if (delimitedFormalParameters case var delimitedFormalParameters?) {
       for (var parameter in delimitedFormalParameters.formalParameters) {
+        // ignore: analyzer_to_be_deprecated_use
         _becomeParentOf1(parameter);
       }
     }
@@ -23377,6 +23379,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     _becomeParentOf12(functionExpression);
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   FunctionDeclarationImpl.v1ProjectionFromGetter(
     TopLevelGetterDeclarationImpl origin,
   ) : augmentKeyword = origin.augmentKeyword,
@@ -23606,6 +23609,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     }
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   void _attachV1Children() {
     _becomeParentOf1(returnType);
     _becomeParentOf1(functionExpression);
@@ -23858,6 +23862,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
     _becomeParentOf12(body);
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   FunctionExpressionImpl.v1ProjectionFromGetter(
     TopLevelGetterDeclarationImpl origin,
   ) : _typeParameters = origin.recoveryTypeParameters,
@@ -24122,6 +24127,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
     }
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   void _attachV1Children() {
     _becomeParentOf1(typeParameters);
     _becomeParentOf1(parameters);
@@ -32620,6 +32626,7 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
   }
 
   /// Initializes a V1 projection whose children are owned in V2 by its origin.
+  @ToBeDeprecated('Part of the V1 projection.')
   InvocationExpressionImpl.v1Projection({
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
@@ -37912,6 +37919,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     _becomeParentOf12(typeArguments);
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   NamedTypeImpl.v1Projection(ConstructorTypeReferenceImpl origin)
     : _importPrefix = origin.importPrefix,
       name = origin.name,
@@ -37923,6 +37931,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
     _becomeParentOf1(_typeArguments);
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   NamedTypeImpl.v1ProjectionFromParsedExpression({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
@@ -37971,10 +37980,13 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   ImportPrefixReferenceImpl? get importPrefix {
+    if (_astNodeApi != AstNodeApi.v1) {
+      return _importPrefix;
+    }
     var origin = _constructorTypeReferenceOrigin;
     var result = origin != null ? origin.importPrefix : _importPrefix;
-    _becomeParentOf1(result);
-    return result;
+    // ignore: analyzer_to_be_deprecated_use
+    return _becomeParentOf1(result);
   }
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -38025,10 +38037,13 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   TypeArgumentListImpl? get typeArguments {
+    if (_astNodeApi != AstNodeApi.v1) {
+      return _typeArguments;
+    }
     var origin = _constructorTypeReferenceOrigin;
     var result = origin != null ? origin.typeArguments : _typeArguments;
-    _becomeParentOf1(result);
-    return result;
+    // ignore: analyzer_to_be_deprecated_use
+    return _becomeParentOf1(result);
   }
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -50549,6 +50564,16 @@ abstract final class Statement implements AstNode {
 }
 
 sealed class StatementImpl extends AstNodeImpl implements Statement {
+  /// Whether the end of this statement is reachable, as computed by flow
+  /// analysis during resolution.
+  ///
+  /// It is `false` when the statement always transfers control elsewhere, for
+  /// example by `return`, `throw`, `break`, `continue`, an infinite loop, an
+  /// exhaustive `switch` none of whose cases complete normally, or an
+  /// expression of type `Never`. It is also `false` when the statement itself
+  /// is unreachable.
+  bool mayCompleteNormally = true;
+
   @override
   StatementImpl get unlabeled => this;
 }
@@ -53856,6 +53881,7 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     _returnType = _becomeParentOf2(returnType);
   }
 
+  @ToBeDeprecated('Part of the V1 projection.')
   FunctionDeclarationImpl get v1Projection =>
       _v1Projection ??= FunctionDeclarationImpl.v1ProjectionFromGetter(this);
 
@@ -58960,6 +58986,7 @@ enum _SetOrMapKind {
   unresolved,
 }
 
+@ToBeDeprecated('Part of the V1 projection.')
 final class _V1ProjectedNodeListImpl<
   V2Node extends AstNodeImpl,
   V1Node extends AstNodeImpl

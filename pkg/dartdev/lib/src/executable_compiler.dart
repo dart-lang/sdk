@@ -205,7 +205,6 @@ abstract final class ExecutableCompiler {
   static Future<DartExecutableWithPackageConfig> compile({
     required DartExecutableWithPackageConfig resolvedExecutable,
     List<String> enabledExperiments = const [],
-    bool quiet = false,
   }) async {
     final executablePath = resolvedExecutable.executable;
     final packageConfigPath = resolvedExecutable.packageConfig;
@@ -265,7 +264,6 @@ abstract final class ExecutableCompiler {
         tempParentPath: pathOfTempDir(workspaceRoot: workspaceRoot),
         packageConfigPath: packageConfigAbsolute,
         enabledExperiments: enabledExperiments,
-        quiet: quiet,
       );
     }
 
@@ -325,7 +323,6 @@ abstract final class ExecutableCompiler {
     required String tempParentPath,
     required String packageConfigPath,
     required List<String> enabledExperiments,
-    bool quiet = false,
   }) async {
     final outputDir = Directory(p.dirname(outputPath));
     if (!outputDir.existsSync()) {
@@ -447,11 +444,11 @@ abstract final class ExecutableCompiler {
       }
 
       try {
-        if (!quiet && stderr.hasTerminal) {
+        if (dartdevLogger.output != ProgressOutput.none && stderr.hasTerminal) {
           await progress(
             'Building package executable',
             runCompiler,
-            progressUpdatesOnStderr: true,
+            output: ProgressOutput.stderr,
           );
           log.stderr('Built ${ansi.bold}$displayName${ansi.none}.');
         } else {

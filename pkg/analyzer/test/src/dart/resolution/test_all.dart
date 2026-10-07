@@ -111,6 +111,8 @@ import 'relational_pattern_test.dart' as relational_pattern;
 import 'scope_test.dart' as scope;
 import 'set_or_map_literal_test.dart' as set_or_map_literal;
 import 'simple_identifier_test.dart' as simple_identifier;
+import 'statement_may_complete_normally_test.dart'
+    as statement_may_complete_normally;
 import 'super_constructor_invocation_test.dart' as super_constructor_invocation;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_expression_test.dart' as switch_expression;
@@ -225,6 +227,7 @@ main() {
     scope.main();
     set_or_map_literal.main();
     simple_identifier.main();
+    statement_may_complete_normally.main();
     super_constructor_invocation.main();
     super_formal_parameter.main();
     switch_expression.main();

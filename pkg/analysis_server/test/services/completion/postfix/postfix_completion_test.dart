@@ -226,6 +226,24 @@ f() {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/41093
+  Future<void> test_forPrefixedIdentifier() async {
+    await _prepareCompletion('.for', '''
+f() {
+  var addresses = <String, String>{};
+  addresses.keys^
+}
+''');
+    _assertHasChange('Expand .for', '''
+f() {
+  var addresses = <String, String>{};
+  for (var value in addresses.keys) {
+    ^
+  }
+}
+''');
+  }
+
   Future<void> test_iter_List_dynamic() async {
     await _prepareCompletion('.iter', '''
 f(List values) {
@@ -404,6 +422,27 @@ f(int i, int j) {
     _assertHasChange('Expand .not', '''
 f(int i, int j) {
   if (i + 3 >= j - 4)
+}
+''');
+  }
+
+  Future<void> test_negatePrefixedIdentifier() async {
+    await _prepareCompletion('.not', '''
+f(A a) {
+  if (a.f^)
+}
+
+class A {
+  bool f = false;
+}
+''');
+    _assertHasChange('Expand .not', '''
+f(A a) {
+  if (!a.f)
+}
+
+class A {
+  bool f = false;
 }
 ''');
   }

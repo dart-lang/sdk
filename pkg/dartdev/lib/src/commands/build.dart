@@ -212,15 +212,15 @@ then that is used instead.''',
       if (!CompileSubcommandCommand.supportedTargetPlatforms.contains(
         crossTarget,
       )) {
-        stderr.writeln('Unsupported target platform $crossTarget.');
-        stderr.writeln(
+        log.stderr('Unsupported target platform $crossTarget.');
+        log.stderr(
           'Supported target platforms: '
           '${CompileSubcommandCommand.supportedTargetPlatforms.join(', ')}',
         );
         return crossCompileErrorExitCode;
       }
       if (sanitizer != Sanitizer.none) {
-        stderr.writeln('Sanitizers are not supported when cross-compiling.');
+        log.stderr('Sanitizers are not supported when cross-compiling.');
         return 255;
       }
 
@@ -231,7 +231,7 @@ then that is used instead.''',
     // AOT compilation isn't supported on ia32. Currently, generating an
     // executable only supports AOT runtimes, so these commands are disabled.
     if (Platform.version.contains('ia32')) {
-      stderr.writeln("'dart build' is not supported on x86 architectures.");
+      log.stderr("'dart build' is not supported on x86 architectures.");
       return 64;
     }
 
@@ -242,11 +242,11 @@ then that is used instead.''',
 
     if (target == null) {
       if (entryPoints.isEmpty) {
-        stderr.writeln(
+        log.stderr(
           "No entry point was specified. Use '--target <path>'.",
         );
       } else {
-        stderr.writeln(
+        log.stderr(
           'There are multiple possible targets in the `bin/` directory, '
           "and the target wasn't specified.",
         );
@@ -272,8 +272,8 @@ then that is used instead.''',
       outputDirString.normalizeCanonicalizePath().makeFolder(),
     );
     if (await File.fromUri(outputUri.resolve('pubspec.yaml')).exists()) {
-      stderr.writeln("'dart build' refuses to delete your project.");
-      stderr.writeln('Requested output directory: ${outputUri.toFilePath()}');
+      log.stderr("'dart build' refuses to delete your project.");
+      log.stderr('Requested output directory: ${outputUri.toFilePath()}');
       return 128;
     }
     final verbosity = args.option('verbosity')!;
@@ -291,7 +291,7 @@ then that is used instead.''',
       );
     }
     if (packageConfigUri == null) {
-      stderr.writeln(
+      log.stderr(
         'Error: Could not find or generate a package config mapping.',
       );
       return 255;
@@ -335,7 +335,6 @@ then that is used instead.''',
     required String verbosity,
     bool enableAsserts = false,
     Sanitizer sanitizer = Sanitizer.none,
-    bool progressUpdatesOnStderr = false,
     String? depFile,
     String? runPackageName,
     Target? target,
@@ -352,13 +351,13 @@ then that is used instead.''',
         // around that executable. Or, we need to merge the recorded uses for
         // the various entrypoints. The former will lead to smaller bundle-size
         // overall.
-        stderr.writeln(
+        log.stderr(
           'Multiple executables together with record use is not yet supported.',
         );
         return 255;
       }
       if (depFile != null) {
-        stderr.writeln(
+        log.stderr(
           'The --depfile option is not supported with multiple targets.',
         );
         return 255;
@@ -366,11 +365,13 @@ then that is used instead.''',
     }
     final outputDir = Directory.fromUri(outputUri);
     if (await outputDir.exists()) {
-      stdout.writeln('Deleting output directory: ${outputUri.toFilePath()}.');
+      log.stdout(
+        'Deleting output directory: ${outputUri.toFilePath()}.',
+      );
       try {
         await outputDir.delete(recursive: true);
       } on PathAccessException {
-        stderr.writeln(
+        log.stderr(
           'Failed to delete: ${outputUri.toFilePath()}. '
           'The application might be in use.',
         );
@@ -398,7 +399,7 @@ then that is used instead.''',
         executables.first.sourceEntryPoint,
       );
       if (entrypointPackage == null) {
-        stderr.writeln(
+        log.stderr(
           "Error: The entrypoint '${executables.first.sourceEntryPoint.toFilePath()}' "
           "does not reside in any package defined in the package config at '${packageConfigUri.toFilePath()}'.",
         );
@@ -409,7 +410,7 @@ then that is used instead.''',
       for (final executable in executables.skip(1)) {
         final exePackage = packageConfig.packageOf(executable.sourceEntryPoint);
         if (exePackage == null || exePackage.name != resolvedRunPackageName) {
-          stderr.writeln(
+          log.stderr(
             'Error: All entrypoints must reside in the same package. '
             "'${executable.sourceEntryPoint.toFilePath()}' does not belong to package '$resolvedRunPackageName'.",
           );
@@ -450,7 +451,6 @@ then that is used instead.''',
       includeDevDependencies: includeDevDependencies,
       verbose: verbose,
       dataAssetsExperimentEnabled: dataAssetsExperimentEnabled,
-      progressUpdatesOnStderr: progressUpdatesOnStderr,
       sanitizer: sanitizer,
       target: target,
     );
@@ -459,14 +459,10 @@ then that is used instead.''',
     final hasHooks = await builder.hasHooks();
     if (hasHooks) {
       buildResult = await (showProgress
-          ? progress(
-              'Running build hooks',
-              builder.buildNativeAssetsAOT,
-              progressUpdatesOnStderr: progressUpdatesOnStderr,
-            )
+          ? progress('Running build hooks', builder.buildNativeAssetsAOT)
           : builder.buildNativeAssetsAOT());
       if (buildResult == null) {
-        stderr.writeln('Running build hooks failed.');
+        log.stderr('Running build hooks failed.');
         return 255;
       }
     }
@@ -508,7 +504,7 @@ then that is used instead.''',
           enableAsserts: enableAsserts,
           tempDir: tempDir,
           depFile: depFile,
-          progressUpdatesOnStderr: progressUpdatesOnStderr,
+          logger: log,
         );
 
         final snapshotGenerator = await generator.generate(
@@ -530,7 +526,6 @@ then that is used instead.''',
                       entryPoints: entryPoints,
                       buildResult: buildResult!,
                     ),
-                    progressUpdatesOnStderr: progressUpdatesOnStderr,
                   )
                 : builder.linkNativeAssetsAOT(
                     recordedUsagesPath: recordedUsagesPath,
@@ -538,7 +533,7 @@ then that is used instead.''',
                     buildResult: buildResult!,
                   ));
             if (linkResult == null) {
-              stderr.writeln('Running link hooks failed.');
+              log.stderr('Running link hooks failed.');
               return 255;
             }
           }
@@ -556,9 +551,9 @@ then that is used instead.''',
             .map(CodeAsset.fromEncoded)
             .where((e) => e.linkMode == StaticLinking());
         if (staticAssets.isNotEmpty) {
-          stderr.write(
-            """'dart build' does not yet support CodeAssets with static linking.
-Use linkMode as dynamic library instead.""",
+          log.stderr(
+            "'dart build' does not yet support CodeAssets with static linking.\n"
+            'Use linkMode as dynamic library instead.',
           );
           return 255;
         }
@@ -579,12 +574,15 @@ Use linkMode as dynamic library instead.""",
           );
         }
 
-        await snapshotGenerator.generate(
+        final outputPath = await snapshotGenerator.generate(
           nativeAssets: nativeAssetsYamlUri?.toFilePath(),
           extraOptions: [
             ...sanitizer.genSnapshotFlags,
           ],
         );
+        if (verbosity != Verbosity.error.name) {
+          log.stdout('Generated: $outputPath');
+        }
 
         if (busyBoxStyle) {
           if (first) {

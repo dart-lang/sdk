@@ -17,7 +17,6 @@ import 'package:test/test.dart';
 import 'utils.dart';
 
 void main() {
-  initGlobalState();
   group('DartdevCommand', _dartdevCommand);
   group('Project', _project);
 }

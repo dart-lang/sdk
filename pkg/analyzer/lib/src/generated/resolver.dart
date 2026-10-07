@@ -2099,6 +2099,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       popRewrite();
     }
     flowAnalysis.flow?.assert_end(offset: node.rightParenthesis.offset);
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -2149,6 +2150,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     node.visitChildren2(this);
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -2206,6 +2208,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     //
     checkUnreachableNode(node);
     flowAnalysis.breakStatement(node);
+    _recordMayCompleteNormally(node);
   }
 
   @override
@@ -2682,6 +2685,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     //
     checkUnreachableNode(node);
     flowAnalysis.continueStatement(node);
+    _recordMayCompleteNormally(node);
   }
 
   @override
@@ -2738,6 +2742,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       flowAnalysis.getExpressionInfo(condition),
       offset: node.semicolon.offset,
     );
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -2813,6 +2818,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   void visitEmptyStatement(EmptyStatement node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
+    _recordMayCompleteNormally(node);
   }
 
   @override
@@ -2978,6 +2984,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     analyzeExpression(node.expression2, operations.unknownType);
     popRewrite();
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -3104,6 +3111,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     _forResolver.resolveStatement(node as ForStatementImpl);
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -3181,6 +3189,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     node.visitChildren2(this);
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -3336,6 +3345,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         elseBeginOffset: node.elseKeyword?.offset,
       );
     }
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -3519,6 +3529,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     node.visitChildren2(this);
     flowAnalysis.labeledStatement_exit(node);
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -4013,6 +4024,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     node.declaration.accept2(this);
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -4338,6 +4350,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
     bodyContext?.addReturnExpression(expression);
     flowAnalysis.flow?.handleReturn(offset: node.semicolon.offset);
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -4493,6 +4506,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     popRewrite();
     // Stack: ()
     legacySwitchExhaustiveness = previousExhaustiveness;
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -4646,6 +4660,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       finallyBlock.accept2(this);
       flow.tryFinallyStatement_end(offset: node.endToken.offset);
     }
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -4768,6 +4783,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     node.visitChildren2(this);
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -4798,8 +4814,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     node.body.accept2(this);
     flowAnalysis.flow?.whileStatement_end(offset: node.endToken.offset);
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
-    // TODO(brianwilkerson): If the loop can only be exited because the condition
-    // is false, then propagateFalseState(condition);
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -4814,6 +4829,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     _yieldStatementResolver.resolve(node);
+    _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
 
@@ -5073,6 +5089,16 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     if (typeArgumentTypes.isNotEmpty) {
       wrapFunctionInstantiation(tearOff, typeArgumentTypes);
     }
+  }
+
+  /// Records into [statement], which has just been resolved, whether flow
+  /// analysis considers its end reachable.
+  ///
+  /// Must be invoked by the visitor of every kind of statement, after flow
+  /// analysis has processed the whole statement.
+  void _recordMayCompleteNormally(Statement statement) {
+    statement as StatementImpl;
+    statement.mayCompleteNormally = flowAnalysis.flow?.isReachable ?? true;
   }
 
   void _resolveDirectNamedFunctionInvocation(

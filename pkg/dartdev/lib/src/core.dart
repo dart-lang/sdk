@@ -12,13 +12,137 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'experiments.dart';
+import 'progress.dart';
 import 'utils.dart';
 import 'vm_interop_handler.dart';
 
-// Initialize a default logger. We'll replace this with a verbose logger if
-// necessary once we start parsing.
 final Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);
-Logger log = Logger.standard(ansi: ansi);
+final _defaultLogger = DartdevLogger(Logger.standard(ansi: ansi));
+final _logKey = Object();
+
+/// The [Logger] for the current [Zone].
+Logger get log => Zone.current[_logKey] as Logger? ?? _defaultLogger;
+
+/// The [DartdevLogger] for the current [Zone], or the default [DartdevLogger]
+/// if the current zone's logger is not a [DartdevLogger].
+DartdevLogger get dartdevLogger => switch (log) {
+  final DartdevLogger logger => logger,
+  _ => _defaultLogger,
+};
+
+/// Runs [callback] in a [Zone] with [logger] as the active [log].
+R withLogger<R>(Logger logger, R Function() callback) =>
+    runZoned(callback, zoneValues: {_logKey: logger});
+
+/// Runs [callback] in a [Zone] with a [DartdevLogger] configured with the given
+/// overrides, inheriting unspecified settings from the current [dartdevLogger].
+R withDartdevLogger<R>(
+  R Function() callback, {
+  Logger? delegate,
+  ProgressOutput? output,
+}) {
+  final current = dartdevLogger;
+  return withLogger(
+    DartdevLogger(
+      delegate ?? current._delegate,
+      output: output ?? current.output,
+    ),
+    callback,
+  );
+}
+
+/// A delegating [Logger] that stops any active progress indicator whenever
+/// output is printed to the terminal.
+///
+/// Also holds the zone-scoped [output] destination for `dartdev` status
+/// messages and progress indicators.
+final class DartdevLogger implements Logger {
+  final Logger _delegate;
+
+  /// Where informational output ([stdout]) and progress indicators are written.
+  final ProgressOutput output;
+
+  DartdevLogger(
+    this._delegate, {
+    this.output = ProgressOutput.stdout,
+  });
+
+  @override
+  Ansi get ansi => _delegate.ansi;
+
+  @override
+  bool get isVerbose => _delegate.isVerbose;
+
+  @override
+  void stdout(String message) {
+    switch (output) {
+      case ProgressOutput.stdout:
+        stopActiveProgress();
+        _delegate.stdout(message);
+      case ProgressOutput.stderr:
+        stopActiveProgress();
+        _delegate.stderr(message);
+      case ProgressOutput.none:
+        break;
+    }
+  }
+
+  @override
+  void stderr(String message) {
+    stopActiveProgress();
+    _delegate.stderr(message);
+  }
+
+  @override
+  void trace(String message) {
+    if (output == ProgressOutput.none) return;
+    if (isVerbose) {
+      stopActiveProgress();
+    }
+    _delegate.trace(message);
+  }
+
+  @override
+  void write(String message) {
+    switch (output) {
+      case ProgressOutput.stdout:
+        stopActiveProgress();
+        _delegate.write(message);
+      case ProgressOutput.stderr:
+        stopActiveProgress();
+        _delegate.stderr(message);
+      case ProgressOutput.none:
+        break;
+    }
+  }
+
+  @override
+  void writeCharCode(int charCode) {
+    switch (output) {
+      case ProgressOutput.stdout:
+        stopActiveProgress();
+        _delegate.writeCharCode(charCode);
+      case ProgressOutput.stderr:
+        stopActiveProgress();
+        _delegate.stderr(String.fromCharCode(charCode));
+      case ProgressOutput.none:
+        break;
+    }
+  }
+
+  @override
+  Progress progress(String message) {
+    stopActiveProgress();
+    return _delegate.progress(message);
+  }
+
+  @override
+  // ignore: deprecated_member_use, deprecated_member_use_from_same_package
+  void flush() {
+    // ignore: deprecated_member_use, deprecated_member_use_from_same_package
+    _delegate.flush();
+  }
+}
 
 bool isDiagnostics = false;
 

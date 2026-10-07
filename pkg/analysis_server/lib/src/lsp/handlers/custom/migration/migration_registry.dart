@@ -11,8 +11,18 @@ import 'package:pub_semver/pub_semver.dart';
 /// Each registered lint rule must have exactly one bulk-fix enabled
 /// correction producer associated with it.
 final Map<Version, List<String>> cleanUpLintsRegistry = {
-  Version(3, 13, 0): [LintNames.unnecessary_type_name_in_constructor],
-  Version(3, 12, 0): [LintNames.prefer_initializing_formals],
+  Version(3, 0, 0): [LintNames.unnecessary_breaks],
+  Version(3, 7, 0): [LintNames.unnecessary_underscores],
+  Version(3, 8, 0): [LintNames.use_null_aware_elements],
+  // TODO(kallentu): Once we have a lint that's migrating private named
+  // parameters only, we should add that migration to 3.12.
+  // Version(3, 12, 0): [LintNames.prefer_initializing_formals],
+  Version(3, 13, 0): [
+    LintNames.empty_container_bodies,
+    LintNames.initialize_in_field_declaration,
+    LintNames.unnecessary_const_in_enum_constructor,
+    LintNames.unnecessary_primary_constructor_body,
+  ],
 };
 
 /// An ordered list of all supported SDK versions for migration.
