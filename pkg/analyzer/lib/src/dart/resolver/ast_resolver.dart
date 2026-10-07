@@ -92,7 +92,16 @@ class AstResolver {
   }
 
   void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    var bindingVisitor = ElementBindingVisitor(_libraryFragment);
+    for (var initializer in node.initializers) {
+      bindingVisitor.bindSubtree(fragment, initializer);
+    }
+    if (node.factoryRedirectionTarget case var factoryRedirectionTarget?) {
+      bindingVisitor.bindSubtree(fragment, factoryRedirectionTarget);
+    }
 
     // We don't want to visit the whole node because that will try to create an
     // element for it; we just want to process its children so that we can
