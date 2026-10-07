@@ -269,9 +269,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   @override
   final InheritanceManager3 inheritance;
 
-  /// The feature set that is enabled for the current unit.
-  final FeatureSet _featureSet;
-
   /// Helper for checking that subtypes of a base or final type must be base,
   /// final, or sealed.
   late final BaseOrFinalTypeVerifier baseOrFinalTypeVerifier;
@@ -395,7 +392,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     required LibraryFragmentImpl libraryFragment,
     required LibraryResolutionContext libraryResolutionContext,
     required DiagnosticListener diagnosticListener,
-    required FeatureSet featureSet,
     required AnalysisOptions analysisOptions,
     required FlowAnalysisHelper flowAnalysisHelper,
     required shared.TypeAnalyzerOptions typeAnalyzerOptions,
@@ -407,7 +403,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
          libraryFragment.library.typeSystem,
          libraryFragment.library.typeProvider,
          DiagnosticReporter(diagnosticListener, libraryFragment.source),
-         featureSet,
          analysisOptions,
          flowAnalysisHelper,
          libraryFragment: libraryFragment,
@@ -422,13 +417,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     this.typeSystem,
     this.typeProvider,
     this.diagnosticReporter,
-    FeatureSet featureSet,
     this.analysisOptions,
     this.flowAnalysis, {
     required this.libraryFragment,
     required this.typeAnalyzerOptions,
-  }) : _featureSet = featureSet,
-       genericMetadataIsEnabled = definingLibrary.featureSet.isEnabled(
+  }) : genericMetadataIsEnabled = definingLibrary.featureSet.isEnabled(
          Feature.generic_metadata,
        ),
        inferenceUsingBoundsIsEnabled = definingLibrary.featureSet.isEnabled(
@@ -484,10 +477,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   get flow => flowAnalysis.flow!;
 
   bool get isConstructorTearoffsEnabled =>
-      _featureSet.isEnabled(Feature.constructor_tearoffs);
+      definingLibrary.featureSet.isEnabled(Feature.constructor_tearoffs);
 
   bool get isInferenceUpdate1Enabled =>
-      _featureSet.isEnabled(Feature.inference_update_1);
+      definingLibrary.featureSet.isEnabled(Feature.inference_update_1);
 
   /// Whether the code currently being resolved can access `this` without a
   /// compile-time error.
