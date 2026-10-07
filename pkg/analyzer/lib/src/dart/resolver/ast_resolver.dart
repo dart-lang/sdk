@@ -150,16 +150,13 @@ class AstResolver {
     );
 
     var typeAnalyzer = TypeAnalyzer(
-      inheritance,
-      libraryFragment.library,
-      libraryResolutionContext,
-      libraryFragment.source,
-      libraryFragment.library.typeProvider,
-      diagnosticListener,
+      inheritanceManager: inheritance,
+      libraryFragment: libraryFragment,
+      libraryResolutionContext: libraryResolutionContext,
+      diagnosticListener: diagnosticListener,
       featureSet: featureSet,
       analysisOptions: analysisOptions,
       flowAnalysisHelper: flowAnalysis,
-      libraryFragment: libraryFragment,
       typeAnalyzerOptions: typeAnalyzerOptions,
     );
 

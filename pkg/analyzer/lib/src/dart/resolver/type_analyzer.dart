@@ -21,7 +21,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -391,34 +390,23 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   /// actually correct.
   late final Expando<AstNode> _replacements = Expando();
 
-  /// Initialize a newly created visitor to resolve the nodes in an AST node.
-  ///
-  /// The [definingLibrary] is the element for the library containing the node
-  /// being visited. The [source] is the source representing the compilation
-  /// unit containing the node being visited. The [typeProvider] is the object
-  /// used to access the types from the core library. The [diagnosticListener]
-  /// is the diagnostic listener that will be informed of any diagnostics that
-  /// are found during resolution.
-  TypeAnalyzer(
-    InheritanceManager3 inheritanceManager,
-    LibraryElementImpl definingLibrary,
-    LibraryResolutionContext libraryResolutionContext,
-    Source source,
-    TypeProvider typeProvider,
-    DiagnosticListener diagnosticListener, {
+  TypeAnalyzer({
+    required InheritanceManager3 inheritanceManager,
     required LibraryFragmentImpl libraryFragment,
+    required LibraryResolutionContext libraryResolutionContext,
+    required DiagnosticListener diagnosticListener,
     required FeatureSet featureSet,
     required AnalysisOptions analysisOptions,
     required FlowAnalysisHelper flowAnalysisHelper,
     required shared.TypeAnalyzerOptions typeAnalyzerOptions,
   }) : this._(
          inheritanceManager,
-         definingLibrary,
+         libraryFragment.library,
          libraryResolutionContext,
-         source,
-         definingLibrary.typeSystem,
-         typeProvider as TypeProviderImpl,
-         DiagnosticReporter(diagnosticListener, source),
+         libraryFragment.source,
+         libraryFragment.library.typeSystem,
+         libraryFragment.library.typeProvider,
+         DiagnosticReporter(diagnosticListener, libraryFragment.source),
          featureSet,
          analysisOptions,
          flowAnalysisHelper,
