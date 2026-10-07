@@ -32,6 +32,14 @@ void Socket::SetClosedFd() {
   fd_ = kClosedFd;
 }
 
+void Socket::RetainFd(intptr_t fd) {
+  static_cast<void>(fd);
+}
+
+void Socket::ReleaseFd(intptr_t fd) {
+  static_cast<void>(fd);
+}
+
 static intptr_t Create(const RawAddr& addr) {
   intptr_t fd;
   intptr_t type = SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC;
