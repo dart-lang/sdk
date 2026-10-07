@@ -42,7 +42,7 @@ class List<E> {
   @pragma("vm:prefer-inline")
   factory List.generate(
     int length,
-    E generator(int index), {
+    E Function(int index) generator, {
     bool growable = true,
   }) => growable
       ? _GrowableList<E>.generate(length, generator)

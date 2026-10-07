@@ -762,7 +762,10 @@ abstract final class _StringBase implements String {
     bool replacementStringsAreOneByte,
   );
 
-  String replaceAllMapped(Pattern pattern, String replace(Match match)) {
+  String replaceAllMapped(
+    Pattern pattern,
+    String Function(Match match) replace,
+  ) {
     List matches = [];
     int length = 0;
     int startIndex = 0;
@@ -793,7 +796,7 @@ abstract final class _StringBase implements String {
 
   String replaceFirstMapped(
     Pattern pattern,
-    String replace(Match match), [
+    String Function(Match match) replace, [
     int startIndex = 0,
   ]) {
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");
@@ -809,8 +812,8 @@ abstract final class _StringBase implements String {
   static String _stringIdentity(String string) => string;
 
   String _splitMapJoinEmptyString(
-    String onMatch(Match match),
-    String onNonMatch(String nonMatch),
+    String Function(Match match) onMatch,
+    String Function(String nonMatch) onNonMatch,
   ) {
     // Pattern is the empty string.
     StringBuffer buffer = StringBuffer();
@@ -841,8 +844,8 @@ abstract final class _StringBase implements String {
 
   String splitMapJoin(
     Pattern pattern, {
-    String onMatch(Match match)?,
-    String onNonMatch(String nonMatch)?,
+    String Function(Match match)? onMatch,
+    String Function(String nonMatch)? onNonMatch,
   }) {
     onMatch ??= _matchString;
     onNonMatch ??= _stringIdentity;

@@ -141,7 +141,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     }
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     if (containsKey(key)) return this[key] as V;
     V value = ifAbsent();
     this[key] = value;
@@ -184,7 +184,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
     }
   }
 
-  void forEach(void action(K key, V value)) {
+  void forEach(void Function(K key, V value) action) {
     LinkedHashMapCell? cell = _first;
     int modifications = _modifications;
     while (cell != null) {
@@ -353,7 +353,7 @@ class LinkedHashMapKeysIterable<E> extends EfficientLengthIterable<E>
     return _map.containsKey(element);
   }
 
-  void forEach(void f(E element)) {
+  void forEach(void Function(E element) f) {
     LinkedHashMapCell? cell = _map._first;
     int modifications = _map._modifications;
     while (cell != null) {
@@ -406,7 +406,7 @@ class LinkedHashMapValuesIterable<E> extends EfficientLengthIterable<E>
     return LinkedHashMapValueIterator<E>(_map, _map._modifications);
   }
 
-  void forEach(void f(E element)) {
+  void forEach(void Function(E element) f) {
     LinkedHashMapCell? cell = _map._first;
     int modifications = _map._modifications;
     while (cell != null) {

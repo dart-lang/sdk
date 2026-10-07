@@ -250,7 +250,10 @@ final class Isolate {
   ///
   /// The [debugName] is only used to name the new isolate for debugging.
   @Since("2.19")
-  static Future<R> run<R>(FutureOr<R> computation(), {String? debugName}) {
+  static Future<R> run<R>(
+    FutureOr<R> Function() computation, {
+    String? debugName,
+  }) {
     var result = Completer<R>();
     var resultPort = RawReceivePort();
     resultPort.handler = (response) {
@@ -456,7 +459,7 @@ final class Isolate {
   /// One can expect the base memory overhead of an isolate to be in the order
   /// of 30 kb.
   external static Future<Isolate> spawn<T>(
-    void entryPoint(T message),
+    void Function(T message) entryPoint,
     T message, {
     bool paused = false,
     bool errorsAreFatal = true,
@@ -955,9 +958,9 @@ abstract interface class ReceivePort implements Stream<dynamic> {
   /// The [onDone] handler will be called when the stream closes.
   /// The stream closes when [close] is called.
   StreamSubscription<dynamic> listen(
-    void onData(message)?, {
+    void Function(dynamic message)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   });
 

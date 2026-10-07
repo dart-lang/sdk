@@ -45,22 +45,22 @@ mixin _UnmodifiableMapMixin<K, V> implements LinkedHashMap<K, V> {
   }
 
   /// This operation is not supported by an unmodifiable map.
-  void removeWhere(bool test(K key, V value)) {
+  void removeWhere(bool Function(K key, V value) test) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 
   /// This operation is not supported by an unmodifiable map.
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 
   /// This operation is not supported by an unmodifiable map.
-  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 
   /// This operation is not supported by an unmodifiable map.
-  void updateAll(V update(K key, V value)) {
+  void updateAll(V Function(K key, V value) update) {
     throw UnsupportedError("Cannot modify unmodifiable map");
   }
 }
@@ -86,10 +86,10 @@ mixin _UnmodifiableSetMixin<E> implements LinkedHashSet<E> {
   void retainAll(Iterable<Object?> elements) => _throwUnmodifiable();
 
   /// This operation is not supported by an unmodifiable set.
-  void removeWhere(bool test(E element)) => _throwUnmodifiable();
+  void removeWhere(bool Function(E element) test) => _throwUnmodifiable();
 
   /// This operation is not supported by an unmodifiable set.
-  void retainWhere(bool test(E element)) => _throwUnmodifiable();
+  void retainWhere(bool Function(E element) test) => _throwUnmodifiable();
 
   /// This operation is not supported by an unmodifiable set.
   bool remove(Object? value) => _throwUnmodifiable();
@@ -576,7 +576,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     final int size = _index.length;
     final int fullHash = _hashCode(key);
     final int hashPattern = _HashBase._hashPattern(fullHash, _hashMask, size);
@@ -675,7 +675,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     return false;
   }
 
-  void forEach(void action(K key, V value)) {
+  void forEach(void Function(K key, V value) action) {
     final data = _data;
     final checkSum = _checkSum;
     final len = _usedData;

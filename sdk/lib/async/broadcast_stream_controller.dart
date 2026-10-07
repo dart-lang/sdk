@@ -25,9 +25,9 @@ class _BroadcastSubscription<T> extends _ControllerSubscription<T> {
 
   _BroadcastSubscription(
     _StreamControllerLifecycle<T> controller,
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) : super(controller, onData, onError, onDone, cancelOnError) {
     _next = _previous = this;
@@ -103,7 +103,7 @@ abstract class _BroadcastStreamController<T>
     );
   }
 
-  void set onPause(void onPauseHandler()?) {
+  void set onPause(void Function()? onPauseHandler) {
     throw UnsupportedError(
       "Broadcast stream controllers do not support pause callbacks",
     );
@@ -115,7 +115,7 @@ abstract class _BroadcastStreamController<T>
     );
   }
 
-  void set onResume(void onResumeHandler()?) {
+  void set onResume(void Function()? onResumeHandler) {
     throw UnsupportedError(
       "Broadcast stream controllers do not support pause callbacks",
     );
@@ -199,9 +199,9 @@ abstract class _BroadcastStreamController<T>
   // _StreamControllerLifecycle interface.
 
   StreamSubscription<T> _subscribe(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) {
     if (isClosed) {
@@ -304,7 +304,7 @@ abstract class _BroadcastStreamController<T>
 
   // Event handling.
   void _forEachListener(
-    void action(_BufferingStreamSubscription<T> subscription),
+    void Function(_BufferingStreamSubscription<T> subscription) action,
   ) {
     if (_isFiring) {
       throw StateError(
@@ -360,8 +360,10 @@ abstract class _BroadcastStreamController<T>
 
 class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T>
     implements SynchronousStreamController<T> {
-  _SyncBroadcastStreamController(void onListen()?, void onCancel()?)
-    : super(onListen, onCancel);
+  _SyncBroadcastStreamController(
+    void Function()? onListen,
+    void Function()? onCancel,
+  ) : super(onListen, onCancel);
 
   // EventDispatch interface.
 
@@ -414,8 +416,10 @@ class _SyncBroadcastStreamController<T> extends _BroadcastStreamController<T>
 }
 
 class _AsyncBroadcastStreamController<T> extends _BroadcastStreamController<T> {
-  _AsyncBroadcastStreamController(void onListen()?, void onCancel()?)
-    : super(onListen, onCancel);
+  _AsyncBroadcastStreamController(
+    void Function()? onListen,
+    void Function()? onCancel,
+  ) : super(onListen, onCancel);
 
   // EventDispatch interface.
 
@@ -468,8 +472,10 @@ class _AsBroadcastStreamController<T> extends _SyncBroadcastStreamController<T>
     implements _EventDispatch<T> {
   _PendingEvents<T>? _pending;
 
-  _AsBroadcastStreamController(void onListen()?, void onCancel()?)
-    : super(onListen, onCancel);
+  _AsBroadcastStreamController(
+    void Function()? onListen,
+    void Function()? onCancel,
+  ) : super(onListen, onCancel);
 
   bool get _hasPending {
     var pending = _pending;

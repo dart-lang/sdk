@@ -130,12 +130,12 @@ abstract interface class Queue<E> implements Iterable<E>, _QueueIterable<E> {
   /// Removes all elements matched by [test] from the queue.
   ///
   /// The `test` function must not throw or modify the queue.
-  void removeWhere(bool test(E element));
+  void removeWhere(bool Function(E element) test);
 
   /// Removes all elements not matched by [test] from the queue.
   ///
   /// The `test` function must not throw or modify the queue.
-  void retainWhere(bool test(E element));
+  void retainWhere(bool Function(E element) test);
 
   /// Removes all elements in the queue. The size of the queue becomes zero.
   void clear();
@@ -364,7 +364,7 @@ final class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     }
   }
 
-  void _filter(bool test(E element), bool removeMatching) {
+  void _filter(bool Function(E element) test, bool removeMatching) {
     _DoubleLinkedQueueEntry<E> entry = _sentinel._nextLink!;
     while (true) {
       var elementEntry = entry._asNonSentinelEntry();
@@ -383,11 +383,11 @@ final class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
     }
   }
 
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     _filter(test, true);
   }
 
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     _filter(test, false);
   }
 
@@ -466,7 +466,7 @@ final class DoubleLinkedQueue<E> extends Iterable<E> implements Queue<E> {
   /// was following the current entry when [action] was called. Any elements
   /// inserted after the current element before it is removed will not be
   /// visited by the iteration.
-  void forEachEntry(void action(DoubleLinkedQueueEntry<E> element)) {
+  void forEachEntry(void Function(DoubleLinkedQueueEntry<E> element) action) {
     var cursor = _sentinel._nextLink!;
     while (true) {
       var element = cursor._asNonSentinelEntry();
@@ -676,7 +676,7 @@ final class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   Queue<R> cast<R>() => Queue.castFrom<E, R>(this);
   Iterator<E> get iterator => _ListQueueIterator<E>(this);
 
-  void forEach(void f(E element)) {
+  void forEach(void Function(E element) f) {
     int modificationCount = _modificationCount;
     for (int i = _head; i != _tail; i = (i + 1) & (_table.length - 1)) {
       f(_table[i] as E);
@@ -768,7 +768,7 @@ final class ListQueue<E> extends ListIterable<E> implements Queue<E> {
     return false;
   }
 
-  void _filterWhere(bool test(E element), bool removeMatching) {
+  void _filterWhere(bool Function(E element) test, bool removeMatching) {
     int modificationCount = _modificationCount;
     int i = _head;
     while (i != _tail) {
@@ -788,7 +788,7 @@ final class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   ///
   /// This method is inefficient since it works by repeatedly removing single
   /// elements, each of which can take linear time.
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     _filterWhere(test, true);
   }
 
@@ -796,7 +796,7 @@ final class ListQueue<E> extends ListIterable<E> implements Queue<E> {
   ///
   /// This method is inefficient since it works by repeatedly removing single
   /// elements, each of which can take linear time.
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     _filterWhere(test, false);
   }
 

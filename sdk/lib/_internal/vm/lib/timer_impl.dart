@@ -190,7 +190,7 @@ class _Timer implements Timer {
   ) : _id = _nextId();
 
   static _Timer _createTimer(
-    void callback(Timer timer),
+    void Function(Timer timer) callback,
     int milliSeconds,
     bool repeating,
   ) {
@@ -217,11 +217,14 @@ class _Timer implements Timer {
     return timer;
   }
 
-  factory _Timer(int milliSeconds, void callback(Timer timer)) {
+  factory _Timer(int milliSeconds, void Function(Timer timer) callback) {
     return _createTimer(callback, milliSeconds, false);
   }
 
-  factory _Timer.periodic(int milliSeconds, void callback(Timer timer)) {
+  factory _Timer.periodic(
+    int milliSeconds,
+    void Function(Timer timer) callback,
+  ) {
     return _createTimer(callback, milliSeconds, true);
   }
 
@@ -500,7 +503,7 @@ class _Timer implements Timer {
   // The Timer factory registered with the dart:async library by the embedder.
   static Timer _factory(
     int milliSeconds,
-    void callback(Timer timer),
+    void Function(Timer timer) callback,
     bool repeating,
   ) {
     if (repeating) {

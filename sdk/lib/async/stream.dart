@@ -500,7 +500,7 @@ abstract mixin class Stream<T> {
   /// ```
   factory Stream.periodic(
     Duration period, [
-    T computation(int computationCount)?,
+    T Function(int computationCount)? computation,
   ]) {
     if (computation == null && null is! T) {
       throw ArgumentError.value(
@@ -593,7 +593,7 @@ abstract mixin class Stream<T> {
   /// The resulting stream is a broadcast stream if [source] is.
   factory Stream.eventTransformed(
     Stream<dynamic> source,
-    EventSink<dynamic> mapSink(EventSink<T> sink),
+    EventSink<dynamic> Function(EventSink<T> sink) mapSink,
   ) {
     return _BoundSinkStream(source, mapSink);
   }
@@ -679,8 +679,8 @@ abstract mixin class Stream<T> {
   /// // 3
   /// ```
   Stream<T> asBroadcastStream({
-    void onListen(StreamSubscription<T> subscription)?,
-    void onCancel(StreamSubscription<T> subscription)?,
+    void Function(StreamSubscription<T> subscription)? onListen,
+    void Function(StreamSubscription<T> subscription)? onCancel,
   }) {
     return _AsBroadcastStream<T>(this, onListen, onCancel);
   }
@@ -721,9 +721,9 @@ abstract mixin class Stream<T> {
   /// the subscription doesn't receive events and none of the
   /// event handler functions are called.
   StreamSubscription<T> listen(
-    void onData(T event)?, {
+    void Function(T event)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   });
 
@@ -748,7 +748,7 @@ abstract mixin class Stream<T> {
   /// final customStream = stream.where((event) => event > 3 && event <= 6);
   /// customStream.listen(print); // Outputs event values: 4,5,6.
   /// ```
-  Stream<T> where(bool test(T event)) {
+  Stream<T> where(bool Function(T event) test) {
     return _WhereStream<T>(this, test);
   }
 
@@ -792,7 +792,7 @@ abstract mixin class Stream<T> {
   /// // Square: 9
   /// // Square: 16
   /// ```
-  Stream<S> map<S>(S convert(T event)) {
+  Stream<S> map<S>(S Function(T event) convert) {
     return _MapStream<T, S>(this, convert);
   }
 
@@ -805,7 +805,7 @@ abstract mixin class Stream<T> {
   /// continuing with further events.
   ///
   /// The returned stream is a broadcast stream if this stream is.
-  Stream<E> asyncMap<E>(FutureOr<E> convert(T event)) {
+  Stream<E> asyncMap<E>(FutureOr<E> Function(T event) convert) {
     _StreamControllerBase<E> controller;
     if (isBroadcast) {
       controller = _SyncBroadcastStreamController<E>(null, null);
@@ -867,7 +867,7 @@ abstract mixin class Stream<T> {
   /// When the convert-stream ends, this stream is resumed.
   ///
   /// The returned stream is a broadcast stream if this stream is.
-  Stream<E> asyncExpand<E>(Stream<E>? convert(T event)) {
+  Stream<E> asyncExpand<E>(Stream<E>? Function(T event) convert) {
     _StreamControllerBase<E> controller;
     if (isBroadcast) {
       controller = _SyncBroadcastStreamController<E>(null, null);
@@ -952,7 +952,10 @@ abstract mixin class Stream<T> {
   /// // 3
   /// // 4
   /// ```
-  Stream<T> handleError(Function onError, {bool test(error)?}) {
+  Stream<T> handleError(
+    Function onError, {
+    bool Function(dynamic error)? test,
+  }) {
     final void Function(Object, StackTrace) callback;
     if (onError is void Function(Object, StackTrace)) {
       callback = onError;
@@ -988,7 +991,7 @@ abstract mixin class Stream<T> {
   /// The returned stream is a broadcast stream if this stream is.
   /// If a broadcast stream is listened to more than once, each subscription
   /// will individually call `convert` and expand the events.
-  Stream<S> expand<S>(Iterable<S> convert(T element)) {
+  Stream<S> expand<S>(Iterable<S> Function(T element) convert) {
     return _ExpandStream<T, S>(this, convert);
   }
 
@@ -1063,7 +1066,7 @@ abstract mixin class Stream<T> {
   ///     .reduce((previous, element) => previous + element);
   /// print(result); // 28
   /// ```
-  Future<T> reduce(T combine(T previous, T element)) {
+  Future<T> reduce(T Function(T previous, T element) combine) {
     @pragma('vm:awaiter-link')
     _Future<T> result = _Future<T>();
     bool seenFirst = false;
@@ -1118,7 +1121,7 @@ abstract mixin class Stream<T> {
   ///     .fold<int>(10, (previous, element) => previous + element);
   /// print(result); // 38
   /// ```
-  Future<S> fold<S>(S initialValue, S combine(S previous, T element)) {
+  Future<S> fold<S>(S initialValue, S Function(S previous, T element) combine) {
     _Future<S> result = _Future<S>();
     S value = initialValue;
     StreamSubscription<T> subscription = this.listen(
@@ -1237,7 +1240,7 @@ abstract mixin class Stream<T> {
   /// If this stream emits an error, or if the call to [action] throws,
   /// the returned future completes with that error,
   /// and processing stops.
-  Future<void> forEach(void action(T element)) {
+  Future<void> forEach(void Function(T element) action) {
     _Future future = _Future();
     StreamSubscription<T> subscription = this.listen(
       null,
@@ -1278,7 +1281,7 @@ abstract mixin class Stream<T> {
   ///         .every((x) => x <= 5);
   /// print(result); // false
   /// ```
-  Future<bool> every(bool test(T element)) {
+  Future<bool> every(bool Function(T element) test) {
     _Future<bool> future = _Future<bool>();
     StreamSubscription<T> subscription = this.listen(
       null,
@@ -1320,7 +1323,7 @@ abstract mixin class Stream<T> {
   ///
   /// print(result); // true
   /// ```
-  Future<bool> any(bool test(T element)) {
+  Future<bool> any(bool Function(T element) test) {
     _Future<bool> future = _Future<bool>();
     StreamSubscription<T> subscription = this.listen(
       null,
@@ -1542,7 +1545,7 @@ abstract mixin class Stream<T> {
   ///     .takeWhile((event) => event < 6);
   /// stream.forEach(print); // Outputs events: 0, ..., 5.
   /// ```
-  Stream<T> takeWhile(bool test(T element)) {
+  Stream<T> takeWhile(bool Function(T element) test) {
     return _TakeWhileStream<T>(this, test);
   }
 
@@ -1594,7 +1597,7 @@ abstract mixin class Stream<T> {
   ///     .skipWhile((x) => x < 5);
   /// stream.forEach(print); // Outputs events: 5, ..., 9.
   /// ```
-  Stream<T> skipWhile(bool test(T element)) {
+  Stream<T> skipWhile(bool Function(T element) test) {
     return _SkipWhileStream<T>(this, test);
   }
 
@@ -1623,7 +1626,7 @@ abstract mixin class Stream<T> {
   /// final stream = Stream.fromIterable([2, 6, 6, 8, 12, 8, 8, 2]).distinct();
   /// stream.forEach(print); // Outputs events: 2,6,8,12,8,2.
   /// ```
-  Stream<T> distinct([bool equals(T previous, T next)?]) {
+  Stream<T> distinct([bool Function(T previous, T next)? equals]) {
     return _DistinctStream<T>(this, equals);
   }
 
@@ -1776,7 +1779,7 @@ abstract mixin class Stream<T> {
   ///     .firstWhere((element) => element % 6 == 0, orElse: () => -1);
   /// print(result); // -1
   /// ```
-  Future<T> firstWhere(bool test(T element), {T orElse()?}) {
+  Future<T> firstWhere(bool Function(T element) test, {T Function()? orElse}) {
     @pragma('vm:awaiter-link')
     _Future<T> future = _Future();
     StreamSubscription<T> subscription = this.listen(
@@ -1830,7 +1833,7 @@ abstract mixin class Stream<T> {
   ///     .lastWhere((element) => element % 10 == 0, orElse: () => -1);
   /// print(result); // -1
   /// ```
-  Future<T> lastWhere(bool test(T element), {T orElse()?}) {
+  Future<T> lastWhere(bool Function(T element) test, {T Function()? orElse}) {
     @pragma('vm:awaiter-link')
     _Future<T> future = _Future();
     late T result;
@@ -1898,7 +1901,7 @@ abstract mixin class Stream<T> {
   ///     .singleWhere((element) => element % 6 == 0, orElse: () => -1);
   /// // Throws.
   /// ```
-  Future<T> singleWhere(bool test(T element), {T orElse()?}) {
+  Future<T> singleWhere(bool Function(T element) test, {T Function()? orElse}) {
     @pragma('vm:awaiter-link')
     _Future<T> future = _Future<T>();
     late T result;
@@ -2039,7 +2042,10 @@ abstract mixin class Stream<T> {
   /// // TimeOut occurred
   /// // Done
   /// ```
-  Stream<T> timeout(Duration timeLimit, {void onTimeout(EventSink<T> sink)?}) {
+  Stream<T> timeout(
+    Duration timeLimit, {
+    void Function(EventSink<T> sink)? onTimeout,
+  }) {
     _StreamControllerBase<T> controller;
     if (isBroadcast) {
       controller = _SyncBroadcastStreamController<T>(null, null);
@@ -2180,7 +2186,7 @@ abstract interface class StreamSubscription<T> {
   ///
   /// This method replaces the current handler set by the invocation of
   /// [Stream.listen] or by a previous call to [onData].
-  void onData(void handleData(T data)?);
+  void onData(void Function(T data)? handleData);
 
   /// Replaces the error event handler of this subscription.
   ///
@@ -2206,7 +2212,7 @@ abstract interface class StreamSubscription<T> {
   ///
   /// This method replaces the current handler set by the invocation of
   /// [Stream.listen], by calling [asFuture], or by a previous call to [onDone].
-  void onDone(void handleDone()?);
+  void onDone(void Function()? handleDone);
 
   /// Requests that the stream pauses events until further notice.
   ///
@@ -2314,14 +2320,14 @@ class StreamView<T> extends Stream<T> {
   bool get isBroadcast => _stream.isBroadcast;
 
   Stream<T> asBroadcastStream({
-    void onListen(StreamSubscription<T> subscription)?,
-    void onCancel(StreamSubscription<T> subscription)?,
+    void Function(StreamSubscription<T> subscription)? onListen,
+    void Function(StreamSubscription<T> subscription)? onCancel,
   }) => _stream.asBroadcastStream(onListen: onListen, onCancel: onCancel);
 
   StreamSubscription<T> listen(
-    void onData(T value)?, {
+    void Function(T value)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _stream.listen(
@@ -2516,7 +2522,8 @@ abstract interface class StreamTransformer<S, T> {
   /// intStream.transform(duplicator);
   /// ```
   const factory StreamTransformer(
-    StreamSubscription<T> onListen(Stream<S> stream, bool cancelOnError),
+    StreamSubscription<T> Function(Stream<S> stream, bool cancelOnError)
+    onListen,
   ) = _StreamSubscriptionTransformer<S, T>;
 
   /// Creates a [StreamTransformer] that delegates events to the given functions.
@@ -2604,9 +2611,10 @@ abstract interface class StreamTransformer<S, T> {
   /// // Error 6: Worst
   /// ```
   factory StreamTransformer.fromHandlers({
-    void handleData(S data, EventSink<T> sink)?,
-    void handleError(Object error, StackTrace stackTrace, EventSink<T> sink)?,
-    void handleDone(EventSink<T> sink)?,
+    void Function(S data, EventSink<T> sink)? handleData,
+    void Function(Object error, StackTrace stackTrace, EventSink<T> sink)?
+    handleError,
+    void Function(EventSink<T> sink)? handleDone,
   }) = _StreamHandlerTransformer<S, T>;
 
   /// Creates a [StreamTransformer] based on a [bind] callback.

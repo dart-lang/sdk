@@ -45,7 +45,7 @@ abstract mixin class ListBase<E> implements List<E> {
   Iterable<E> followedBy(Iterable<E> other) =>
       FollowedByIterable<E>.firstEfficient(this, other);
 
-  void forEach(void action(E element)) {
+  void forEach(void Function(E element) action) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       action(this[i]);
@@ -97,7 +97,7 @@ abstract mixin class ListBase<E> implements List<E> {
     return false;
   }
 
-  bool every(bool test(E element)) {
+  bool every(bool Function(E element) test) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       if (!test(this[i])) return false;
@@ -108,7 +108,7 @@ abstract mixin class ListBase<E> implements List<E> {
     return true;
   }
 
-  bool any(bool test(E element)) {
+  bool any(bool Function(E element) test) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       if (test(this[i])) return true;
@@ -119,7 +119,7 @@ abstract mixin class ListBase<E> implements List<E> {
     return false;
   }
 
-  E firstWhere(bool test(E element), {E Function()? orElse}) {
+  E firstWhere(bool Function(E element) test, {E Function()? orElse}) {
     int length = this.length;
     for (int i = 0; i < length; i++) {
       E element = this[i];
@@ -132,7 +132,7 @@ abstract mixin class ListBase<E> implements List<E> {
     throw IterableElementError.noElement();
   }
 
-  E lastWhere(bool test(E element), {E Function()? orElse}) {
+  E lastWhere(bool Function(E element) test, {E Function()? orElse}) {
     int length = this.length;
     for (int i = length - 1; i >= 0; i--) {
       E element = this[i];
@@ -145,7 +145,7 @@ abstract mixin class ListBase<E> implements List<E> {
     throw IterableElementError.noElement();
   }
 
-  E singleWhere(bool test(E element), {E Function()? orElse}) {
+  E singleWhere(bool Function(E element) test, {E Function()? orElse}) {
     int length = this.length;
     late E match;
     bool matchFound = false;
@@ -173,16 +173,18 @@ abstract mixin class ListBase<E> implements List<E> {
     return buffer.toString();
   }
 
-  Iterable<E> where(bool test(E element)) => WhereIterable<E>(this, test);
+  Iterable<E> where(bool Function(E element) test) =>
+      WhereIterable<E>(this, test);
 
   Iterable<T> whereType<T>() => WhereTypeIterable<T>(this);
 
-  Iterable<T> map<T>(T f(E element)) => MappedListIterable<E, T>(this, f);
+  Iterable<T> map<T>(T Function(E element) f) =>
+      MappedListIterable<E, T>(this, f);
 
-  Iterable<T> expand<T>(Iterable<T> f(E element)) =>
+  Iterable<T> expand<T>(Iterable<T> Function(E element) f) =>
       ExpandIterable<E, T>(this, f);
 
-  E reduce(E combine(E previousValue, E element)) {
+  E reduce(E Function(E previousValue, E element) combine) {
     int length = this.length;
     if (length == 0) throw IterableElementError.noElement();
     E value = this[0];
@@ -195,7 +197,7 @@ abstract mixin class ListBase<E> implements List<E> {
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+  T fold<T>(T initialValue, T Function(T previousValue, E element) combine) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
@@ -209,14 +211,14 @@ abstract mixin class ListBase<E> implements List<E> {
 
   Iterable<E> skip(int count) => SubListIterable<E>(this, count, null);
 
-  Iterable<E> skipWhile(bool test(E element)) {
+  Iterable<E> skipWhile(bool Function(E element) test) {
     return SkipWhileIterable<E>(this, test);
   }
 
   Iterable<E> take(int count) =>
       SubListIterable<E>(this, 0, checkNotNullable(count, "count"));
 
-  Iterable<E> takeWhile(bool test(E element)) {
+  Iterable<E> takeWhile(bool Function(E element) test) {
     return TakeWhileIterable<E>(this, test);
   }
 
@@ -277,15 +279,15 @@ abstract mixin class ListBase<E> implements List<E> {
     this.length = length - size;
   }
 
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     _filter(test, false);
   }
 
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     _filter(test, true);
   }
 
-  void _filter(bool test(E element), bool retainMatching) {
+  void _filter(bool Function(E element) test, bool retainMatching) {
     List<E> retained = <E>[];
     int length = this.length;
     for (int i = 0; i < length; i++) {
@@ -454,7 +456,7 @@ abstract mixin class ListBase<E> implements List<E> {
     return -1;
   }
 
-  int indexWhere(bool test(E element), [int start = 0]) {
+  int indexWhere(bool Function(E element) test, [int start = 0]) {
     if (start < 0) start = 0;
     for (int i = start; i < this.length; i++) {
       if (test(this[i])) return i;
@@ -471,7 +473,7 @@ abstract mixin class ListBase<E> implements List<E> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(E element), [int? start]) {
+  int lastIndexWhere(bool Function(E element) test, [int? start]) {
     if (start == null || start >= this.length) start = this.length - 1;
 
     for (int i = start; i >= 0; i--) {

@@ -252,7 +252,7 @@ abstract interface class Future<T> {
   ///
   /// If a non-future value is returned, the returned future is completed
   /// with that value.
-  factory Future(FutureOr<T> computation()) {
+  factory Future(FutureOr<T> Function() computation) {
     _Future<T> result = _Future<T>();
     Timer.run(() {
       FutureOr<T> computationResult;
@@ -279,7 +279,7 @@ abstract interface class Future<T> {
   ///
   /// If calling [computation] returns a non-future value,
   /// the returned future is completed with that value.
-  factory Future.microtask(FutureOr<T> computation()) {
+  factory Future.microtask(FutureOr<T> Function() computation) {
     _Future<T> result = _Future<T>();
     scheduleMicrotask(() {
       FutureOr<T> computationResult;
@@ -319,7 +319,7 @@ abstract interface class Future<T> {
   ///
   /// To create a future with a known value, use [Future.syncValue] instead,
   /// as `Future.syncValue(12)`.
-  factory Future.sync(FutureOr<T> computation()) {
+  factory Future.sync(FutureOr<T> Function() computation) {
     FutureOr<T> result;
     try {
       result = computation();
@@ -517,7 +517,7 @@ abstract interface class Future<T> {
   static Future<List<T>> wait<T>(
     Iterable<Future<T>> futures, {
     bool eagerError = false,
-    void cleanUp(T successValue)?,
+    void Function(T successValue)? cleanUp,
   }) {
     @pragma('vm:awaiter-link')
     final _Future<List<T>> _future = _Future<List<T>>();
@@ -687,7 +687,7 @@ abstract interface class Future<T> {
   /// will stop the iteration and be reported in the returned [Future].
   static Future<void> forEach<T>(
     Iterable<T> elements,
-    FutureOr action(T element),
+    FutureOr Function(T element) action,
   ) {
     var iterator = elements.iterator;
     return doWhile(() {
@@ -738,7 +738,7 @@ abstract interface class Future<T> {
   /// }
   /// // Outputs: 'Finished with 3'
   /// ```
-  static Future<void> doWhile(FutureOr<bool> action()) {
+  static Future<void> doWhile(FutureOr<bool> Function() action) {
     @pragma('vm:awaiter-link')
     _Future<void> doneSignal = _Future<void>();
     late void Function(bool) nextIteration;
@@ -821,7 +821,7 @@ abstract interface class Future<T> {
   /// after this future has completed with an error,
   /// then the error is reported as unhandled error.
   /// See the description on [Future].
-  Future<R> then<R>(FutureOr<R> onValue(T value), {Function? onError});
+  Future<R> then<R>(FutureOr<R> Function(T value) onValue, {Function? onError});
 
   /// Handles errors emitted by this [Future].
   ///
@@ -872,7 +872,7 @@ abstract interface class Future<T> {
   // - (dynamic, StackTrace) -> FutureOr<T>
   // Given that there is a `test` function that is usually used to do an
   // `is` check, we should also expect functions that take a specific argument.
-  Future<T> catchError(Function onError, {bool test(Object error)?});
+  Future<T> catchError(Function onError, {bool Function(Object error)? test});
 
   /// Registers a function to be called when this future completes.
   ///
@@ -923,7 +923,7 @@ abstract interface class Future<T> {
   /// }
   /// // Outputs: 'do some work here' after waitTask is completed.
   /// ```
-  Future<T> whenComplete(FutureOr<void> action());
+  Future<T> whenComplete(FutureOr<void> Function() action);
 
   /// Creates a [Stream] containing the result of this future.
   ///
@@ -1015,7 +1015,7 @@ abstract interface class Future<T> {
   ///   throw Exception(message);
   /// }
   /// ```
-  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?});
+  Future<T> timeout(Duration timeLimit, {FutureOr<T> Function()? onTimeout});
 }
 
 /// Explicitly ignores a future.
@@ -1106,8 +1106,8 @@ extension FutureExtensions<T> on Future<T> {
   /// Because of this, the error handlers must accept
   /// the stack trace argument.
   Future<T> onError<E extends Object>(
-    FutureOr<T> handleError(E error, StackTrace stackTrace), {
-    bool test(E error)?,
+    FutureOr<T> Function(E error, StackTrace stackTrace) handleError, {
+    bool Function(E error)? test,
   }) {
     FutureOr<T> onError(Object error, StackTrace stackTrace) {
       if (error is! E || test != null && !test(error)) {

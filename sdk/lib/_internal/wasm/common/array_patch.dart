@@ -36,7 +36,7 @@ class List<E> {
   @pragma("wasm:prefer-inline")
   factory List.generate(
     int length,
-    E generator(int index), {
+    E Function(int index) generator, {
     bool growable = true,
   }) => growable
       ? GrowableList<E>.generate(length, generator)

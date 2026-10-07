@@ -16,7 +16,7 @@ void main([args = const <String>[]]) =>
         .markDartColonLibrariesDebuggable()
         .addCustomTestWithParser((service, isolateRef, scriptParser) async {
           final line = scriptParser.lineForRegExp(
-              RegExp(r'void forEach\(void f\(E element\)\) \{'),
+              RegExp(r'void forEach\(void Function\(E element\) f\) \{'),
               script: '../../../sdk/lib/collection/set.dart');
           print('Setting breakpoint for line $line in $uri');
           final Breakpoint bpt = await service.addBreakpointWithScriptUri(

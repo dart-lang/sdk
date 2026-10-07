@@ -231,17 +231,17 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
   }
 
   /// Removes elements matching [test] from this [JSArray].
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     checkGrowable('removeWhere', 'remove from');
     _removeWhere(test, true);
   }
 
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     checkGrowable('retainWhere', 'remove from');
     _removeWhere(test, false);
   }
 
-  void _removeWhere(bool test(E element), bool removeMatching) {
+  void _removeWhere(bool Function(E element) test, bool removeMatching) {
     // Performed in two steps, to avoid exposing an inconsistent state
     // to the [test] function. First the elements to retain are found, and then
     // the original list is updated to contain those elements.
@@ -269,11 +269,11 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     }
   }
 
-  Iterable<E> where(bool f(E element)) {
+  Iterable<E> where(bool Function(E element) f) {
     return WhereIterable<E>(this, f);
   }
 
-  Iterable<T> expand<T>(Iterable<T> f(E element)) {
+  Iterable<T> expand<T>(Iterable<T> Function(E element) f) {
     return ExpandIterable<E, T>(this, f);
   }
 
@@ -309,7 +309,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     _setLengthUnsafe(0);
   }
 
-  void forEach(void f(E element)) {
+  void forEach(void Function(E element) f) {
     int end = this.length;
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
@@ -320,7 +320,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     }
   }
 
-  Iterable<T> map<T>(T f(E element)) {
+  Iterable<T> map<T>(T Function(E element) f) {
     return MappedListIterable<E, T>(this, f);
   }
 
@@ -336,7 +336,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     return SubListIterable<E>(this, 0, checkNotNullable(n, "count"));
   }
 
-  Iterable<E> takeWhile(bool test(E value)) {
+  Iterable<E> takeWhile(bool Function(E value) test) {
     return TakeWhileIterable<E>(this, test);
   }
 
@@ -344,11 +344,11 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     return SubListIterable<E>(this, n, null);
   }
 
-  Iterable<E> skipWhile(bool test(E value)) {
+  Iterable<E> skipWhile(bool Function(E value) test) {
     return SkipWhileIterable<E>(this, test);
   }
 
-  E reduce(E combine(E previousValue, E element)) {
+  E reduce(E Function(E previousValue, E element) combine) {
     int length = this.length;
     if (length == 0) throw IterableElementError.noElement();
     E value = this[0];
@@ -362,7 +362,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     return value;
   }
 
-  T fold<T>(T initialValue, T combine(T previousValue, E element)) {
+  T fold<T>(T initialValue, T Function(T previousValue, E element) combine) {
     var value = initialValue;
     int length = this.length;
     for (int i = 0; i < length; i++) {
@@ -555,7 +555,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     }
   }
 
-  bool any(bool test(E element)) {
+  bool any(bool Function(E element) test) {
     int end = this.length;
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
@@ -567,7 +567,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     return false;
   }
 
-  bool every(bool test(E element)) {
+  bool every(bool Function(E element) test) {
     int end = this.length;
     for (int i = 0; i < end; i++) {
       // TODO(22407): Improve bounds check elimination to allow this JS code to
@@ -822,7 +822,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
 
   List<E> operator +(List<E> other) => [...this, ...other];
 
-  int indexWhere(bool test(E element), [int start = 0]) {
+  int indexWhere(bool Function(E element) test, [int start = 0]) {
     if (start >= this.length) return -1;
     if (start < 0) start = 0;
     for (int i = start; i < this.length; i++) {
@@ -831,7 +831,7 @@ class JSArray<E> extends JavaScriptObject implements List<E>, JSIndexable<E> {
     return -1;
   }
 
-  int lastIndexWhere(bool test(E element), [int? start]) {
+  int lastIndexWhere(bool Function(E element) test, [int? start]) {
     if (start == null) start = this.length - 1;
     if (start < 0) return -1;
     for (int i = start; i >= 0; i--) {

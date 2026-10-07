@@ -21,9 +21,9 @@ import "dart:typed_data" show Uint32List;
 class LinkedHashMap<K, V> {
   @patch
   factory LinkedHashMap({
-    bool equals(K key1, K key2)?,
-    int hashCode(K key)?,
-    bool isValidKey(potentialKey)?,
+    bool Function(K key1, K key2)? equals,
+    int Function(K key)? hashCode,
+    bool Function(dynamic potentialKey)? isValidKey,
   }) {
     if (isValidKey == null) {
       if (hashCode == null && equals == null) {
@@ -50,9 +50,9 @@ class LinkedHashMap<K, V> {
 class LinkedHashSet<E> {
   @patch
   factory LinkedHashSet({
-    bool equals(E e1, E e2)?,
-    int hashCode(E e)?,
-    bool isValidKey(potentialKey)?,
+    bool Function(E e1, E e2)? equals,
+    int Function(E e)? hashCode,
+    bool Function(dynamic potentialKey)? isValidKey,
   }) {
     if (isValidKey == null) {
       if (hashCode == null && equals == null) {

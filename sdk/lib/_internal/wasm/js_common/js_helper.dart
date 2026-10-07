@@ -645,7 +645,7 @@ Object? dartifyRaw(WasmExternRef? ref, [int? refType]) {
 
 List<double> jsFloatTypedArrayToDartFloatTypedData(
   WasmExternRef? ref,
-  List<double> makeTypedData(int size),
+  List<double> Function(int size) makeTypedData,
 ) {
   int length = objectLength(ref);
   List<double> list = makeTypedData(length);
@@ -657,7 +657,7 @@ List<double> jsFloatTypedArrayToDartFloatTypedData(
 
 List<int> jsIntTypedArrayToDartIntTypedData(
   WasmExternRef? ref,
-  List<int> makeTypedData(int size),
+  List<int> Function(int size) makeTypedData,
 ) {
   int length = objectLength(ref);
   List<int> list = makeTypedData(length);

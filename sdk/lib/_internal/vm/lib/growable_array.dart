@@ -134,7 +134,7 @@ class _GrowableList<T> extends ListBase<T> {
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
   @pragma('dyn-module:language-impl:callable')
-  factory _GrowableList.generate(int length, T generator(int index)) {
+  factory _GrowableList.generate(int length, T Function(int index) generator) {
     final result = _GrowableList<T>(length);
     for (int i = 0; i < result.length; ++i) {
       result[i] = generator(i);
@@ -422,7 +422,7 @@ class _GrowableList<T> extends ListBase<T> {
   // Iterable interface.
 
   @pragma("vm:prefer-inline")
-  void forEach(f(T element)) {
+  void forEach(Function(T element) f) {
     int initialLength = length;
     for (int i = 0; i < length; i++) {
       f(this[i]);

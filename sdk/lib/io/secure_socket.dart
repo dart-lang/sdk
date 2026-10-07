@@ -55,8 +55,8 @@ abstract interface class SecureSocket implements Socket {
     host,
     int port, {
     SecurityContext? context,
-    bool onBadCertificate(X509Certificate certificate)?,
-    void keyLog(String line)?,
+    bool Function(X509Certificate certificate)? onBadCertificate,
+    void Function(String line)? keyLog,
     List<String>? supportedProtocols,
     Duration? timeout,
   }) {
@@ -78,8 +78,8 @@ abstract interface class SecureSocket implements Socket {
     host,
     int port, {
     SecurityContext? context,
-    bool onBadCertificate(X509Certificate certificate)?,
-    void keyLog(String line)?,
+    bool Function(X509Certificate certificate)? onBadCertificate,
+    void Function(String line)? keyLog,
     List<String>? supportedProtocols,
   }) {
     return RawSecureSocket.startConnect(
@@ -153,8 +153,8 @@ abstract interface class SecureSocket implements Socket {
     Socket socket, {
     host,
     SecurityContext? context,
-    bool onBadCertificate(X509Certificate certificate)?,
-    void keyLog(String line)?,
+    bool Function(X509Certificate certificate)? onBadCertificate,
+    void Function(String line)? keyLog,
     List<String>? supportedProtocols,
   }) {
     return socket
@@ -303,8 +303,8 @@ abstract interface class RawSecureSocket implements RawSocket {
     host,
     int port, {
     SecurityContext? context,
-    bool onBadCertificate(X509Certificate certificate)?,
-    void keyLog(String line)?,
+    bool Function(X509Certificate certificate)? onBadCertificate,
+    void Function(String line)? keyLog,
     List<String>? supportedProtocols,
     Duration? timeout,
   }) {
@@ -327,8 +327,8 @@ abstract interface class RawSecureSocket implements RawSocket {
     host,
     int port, {
     SecurityContext? context,
-    bool onBadCertificate(X509Certificate certificate)?,
-    void keyLog(String line)?,
+    bool Function(X509Certificate certificate)? onBadCertificate,
+    void Function(String line)? keyLog,
     List<String>? supportedProtocols,
   }) {
     return RawSocket.startConnect(host, port).then((
@@ -404,8 +404,8 @@ abstract interface class RawSecureSocket implements RawSocket {
     StreamSubscription<RawSocketEvent>? subscription,
     host,
     SecurityContext? context,
-    bool onBadCertificate(X509Certificate certificate)?,
-    void keyLog(String line)?,
+    bool Function(X509Certificate certificate)? onBadCertificate,
+    void Function(String line)? keyLog,
     List<String>? supportedProtocols,
   }) {
     socket.readEventsEnabled = false;
@@ -602,8 +602,8 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     List<int>? bufferedData,
     bool requestClientCertificate = false,
     bool requireClientCertificate = false,
-    bool onBadCertificate(X509Certificate certificate)?,
-    void keyLog(String line)?,
+    bool Function(X509Certificate certificate)? onBadCertificate,
+    void Function(String line)? keyLog,
     List<String>? supportedProtocols,
   }) {
     _verifyFields(
@@ -724,9 +724,9 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   }
 
   StreamSubscription<RawSocketEvent> listen(
-    void onData(RawSocketEvent data)?, {
+    void Function(RawSocketEvent data)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     _sendWriteEvent();
@@ -1386,7 +1386,7 @@ class _ExternalBuffer {
     return written;
   }
 
-  int writeFromSource(List<int>? getData(int requested)) {
+  int writeFromSource(List<int>? Function(int requested) getData) {
     int written = 0;
     int toWrite = linearFree;
     // Loop over zero, one, or two linear data ranges.

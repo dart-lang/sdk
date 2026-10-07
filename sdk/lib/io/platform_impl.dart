@@ -138,7 +138,7 @@ class _CaseInsensitiveStringMap<V> extends MapBase<String, V> {
     _map[key.toUpperCase()] = value;
   }
 
-  V putIfAbsent(String key, V ifAbsent()) {
+  V putIfAbsent(String key, V Function() ifAbsent) {
     return _map.putIfAbsent(key.toUpperCase(), ifAbsent);
   }
 
@@ -153,7 +153,7 @@ class _CaseInsensitiveStringMap<V> extends MapBase<String, V> {
     _map.clear();
   }
 
-  void forEach(void f(String key, V value)) {
+  void forEach(void Function(String key, V value) f) {
     _map.forEach(f);
   }
 
@@ -165,17 +165,18 @@ class _CaseInsensitiveStringMap<V> extends MapBase<String, V> {
 
   Iterable<MapEntry<String, V>> get entries => _map.entries;
 
-  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(String key, V value)) =>
-      _map.map(transform);
+  Map<K2, V2> map<K2, V2>(
+    MapEntry<K2, V2> Function(String key, V value) transform,
+  ) => _map.map(transform);
 
-  V update(String key, V update(V value), {V ifAbsent()?}) =>
+  V update(String key, V Function(V value) update, {V Function()? ifAbsent}) =>
       _map.update(key.toUpperCase(), update, ifAbsent: ifAbsent);
 
-  void updateAll(V update(String key, V value)) {
+  void updateAll(V Function(String key, V value) update) {
     _map.updateAll(update);
   }
 
-  void removeWhere(bool test(String key, V value)) {
+  void removeWhere(bool Function(String key, V value) test) {
     _map.removeWhere(test);
   }
 

@@ -56,7 +56,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
     _throwUnmodifiable();
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     _throwUnmodifiable();
   }
 
@@ -83,7 +83,7 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
     for (var entry in entries) this[entry.key] = entry.value;
   }
 
-  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> transform(K key, V value)) {
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) transform) {
     var result = <K2, V2>{};
     this.forEach((K key, V value) {
       var entry = transform(key, value);
@@ -92,15 +92,15 @@ abstract class ConstantMap<K, V> implements Map<K, V> {
     return result;
   }
 
-  V update(K key, V update(V value), {V ifAbsent()?}) {
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
     _throwUnmodifiable();
   }
 
-  void updateAll(V update(K key, V value)) {
+  void updateAll(V Function(K key, V value) update) {
     _throwUnmodifiable();
   }
 
-  void removeWhere(bool test(K key, V value)) {
+  void removeWhere(bool Function(K key, V value) test) {
     _throwUnmodifiable();
   }
 }
@@ -147,7 +147,7 @@ class ConstantStringMap<K, V> extends ConstantMap<K, V> {
     return JS('', '#[#]', _values, index);
   }
 
-  void forEach(void f(K key, V value)) {
+  void forEach(void Function(K key, V value) f) {
     final keys = _keys;
     final values = _values;
     for (int i = 0; i < keys.length; i++) {
@@ -264,7 +264,7 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
     return _getMap()[key];
   }
 
-  void forEach(void f(K key, V value)) {
+  void forEach(void Function(K key, V value) f) {
     _getMap().forEach(f);
   }
 
@@ -306,7 +306,7 @@ abstract class ConstantSet<E> extends SetBase<E> {
     _throwUnmodifiable();
   }
 
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     _throwUnmodifiable();
   }
 
@@ -314,7 +314,7 @@ abstract class ConstantSet<E> extends SetBase<E> {
     _throwUnmodifiable();
   }
 
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     _throwUnmodifiable();
   }
 }

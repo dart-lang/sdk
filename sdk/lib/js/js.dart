@@ -216,5 +216,5 @@ class JsArray<E> extends JsObject with ListMixin<E> {
     int skipCount = 0,
   ]);
 
-  external void sort([int compare(E a, E b)?]);
+  external void sort([int Function(E a, E b)? compare]);
 }

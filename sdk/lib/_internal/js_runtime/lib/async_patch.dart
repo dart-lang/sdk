@@ -29,7 +29,7 @@ void _trySetStackTrace(Object error, StackTrace stackTrace) {
 @patch
 class _AsyncRun {
   @patch
-  static void _scheduleImmediate(void callback()) {
+  static void _scheduleImmediate(void Function() callback) {
     _scheduleImmediateClosure(callback);
   }
 
@@ -62,7 +62,7 @@ class _AsyncRun {
       );
       JS('', '#.observe(#, { childList: true })', observer, div);
 
-      return (void callback()) {
+      return (void Function() callback) {
         assert(storedCallback == null);
         storedCallback = callback;
         // Because of a broken shadow-dom polyfill we have to change the
@@ -84,7 +84,7 @@ class _AsyncRun {
     return _scheduleImmediateWithTimer;
   }
 
-  static void _scheduleImmediateJsOverride(void callback()) {
+  static void _scheduleImmediateJsOverride(void Function() callback) {
     internalCallback() {
       callback();
     }
@@ -96,7 +96,7 @@ class _AsyncRun {
     );
   }
 
-  static void _scheduleImmediateWithSetImmediate(void callback()) {
+  static void _scheduleImmediateWithSetImmediate(void Function() callback) {
     internalCallback() {
       callback();
     }
@@ -108,7 +108,7 @@ class _AsyncRun {
     );
   }
 
-  static void _scheduleImmediateWithTimer(void callback()) {
+  static void _scheduleImmediateWithTimer(void Function() callback) {
     Timer._createTimer(Duration.zero, callback);
   }
 }
@@ -116,7 +116,7 @@ class _AsyncRun {
 @patch
 class Timer {
   @patch
-  static Timer _createTimer(Duration duration, void callback()) {
+  static Timer _createTimer(Duration duration, void Function() callback) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
     return _TimerImpl(milliseconds, callback);
@@ -125,7 +125,7 @@ class Timer {
   @patch
   static Timer _createPeriodicTimer(
     Duration duration,
-    void callback(Timer timer),
+    void Function(Timer timer) callback,
   ) {
     int milliseconds = duration.inMilliseconds;
     if (milliseconds < 0) milliseconds = 0;
@@ -138,7 +138,7 @@ class _TimerImpl implements Timer {
   int? _handle;
   int _tick = 0;
 
-  _TimerImpl(int milliseconds, void callback()) : _once = true {
+  _TimerImpl(int milliseconds, void Function() callback) : _once = true {
     if (_hasTimer()) {
       void internalCallback() {
         _handle = null;
@@ -157,7 +157,7 @@ class _TimerImpl implements Timer {
     }
   }
 
-  _TimerImpl.periodic(int milliseconds, void callback(Timer timer))
+  _TimerImpl.periodic(int milliseconds, void Function(Timer timer) callback)
     : _once = false {
     if (_hasTimer()) {
       int start = JS('int', 'Date.now()');

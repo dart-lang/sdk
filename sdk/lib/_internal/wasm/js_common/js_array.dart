@@ -183,7 +183,8 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   Iterable<T> take(int n) => SubListIterable<T>(this, 0, n);
 
   @override
-  Iterable<T> takeWhile(bool test(T value)) => TakeWhileIterable<T>(this, test);
+  Iterable<T> takeWhile(bool Function(T value) test) =>
+      TakeWhileIterable<T>(this, test);
 
   @override
   Iterable<T> skip(int n) => SubListIterable<T>(this, n, null);
@@ -193,7 +194,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
       SkipWhileIterable<T>(this, test);
 
   @override
-  T reduce(T combine(T previousValue, T element)) {
+  T reduce(T Function(T previousValue, T element) combine) {
     final end = length;
     if (end == 0) throw IterableElementError.noElement();
     T value = this[0];
@@ -383,7 +384,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   }
 
   @override
-  bool any(bool test(T element)) {
+  bool any(bool Function(T element) test) {
     final end = length;
     for (var i = 0; i < end; i++) {
       final element = this[i];
@@ -394,7 +395,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   }
 
   @override
-  bool every(bool test(T element)) {
+  bool every(bool Function(T element) test) {
     final end = length;
     for (var i = 0; i < end; i++) {
       final element = this[i];

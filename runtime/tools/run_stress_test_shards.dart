@@ -102,7 +102,10 @@ class AotTestRunner extends TestRunner {
   }
 }
 
-Future<R> withTempDir<R>(String name, Future<R> fun(String dir)) async {
+Future<R> withTempDir<R>(
+  String name,
+  Future<R> Function(String dir) fun,
+) async {
   final tempDir = Directory.systemTemp.createTempSync(name);
   try {
     return await fun(tempDir.path);

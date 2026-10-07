@@ -50,7 +50,7 @@ abstract base class IOOverrides {
   /// See the documentation on the corresponding methods of [IOOverrides] for
   /// information about what the optional arguments do.
   static R runZoned<R>(
-    R body(), {
+    R Function() body, {
     // Directory
     Directory Function(String)? createDirectory,
     Directory Function()? getCurrentDirectory,
@@ -173,7 +173,7 @@ abstract base class IOOverrides {
   ///
   /// Note that [overrides] should be an instance of a class that extends
   /// [IOOverrides].
-  static R runWithIOOverrides<R>(R body(), IOOverrides overrides) {
+  static R runWithIOOverrides<R>(R Function() body, IOOverrides overrides) {
     return dart_async.runZoned<R>(
       body,
       zoneValues: {_ioOverridesToken: overrides},

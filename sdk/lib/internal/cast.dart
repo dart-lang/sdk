@@ -48,7 +48,7 @@ abstract class _CastIterableBase<S, T> extends Iterable<T> {
 
   // Might be implemented by testing backwards from the end,
   // so use the _source's implementation.
-  T lastWhere(bool test(T element), {T Function()? orElse}) =>
+  T lastWhere(bool Function(T element) test, {T Function()? orElse}) =>
       _source.lastWhere(
         (S element) => test(element as T),
         orElse: (orElse == null) ? null : () => orElse() as S,
@@ -144,11 +144,11 @@ abstract class _CastListBase<S, T> extends _CastIterableBase<S, T>
 
   T removeLast() => _source.removeLast() as T;
 
-  void removeWhere(bool test(T element)) {
+  void removeWhere(bool Function(T element) test) {
     _source.removeWhere((S element) => test(element as T));
   }
 
-  void retainWhere(bool test(T element)) {
+  void retainWhere(bool Function(T element) test) {
     _source.retainWhere((S element) => test(element as T));
   }
 
@@ -206,11 +206,11 @@ class CastSet<S, T> extends _CastIterableBase<S, T> implements Set<T> {
     _source.retainAll(objects);
   }
 
-  void removeWhere(bool test(T element)) {
+  void removeWhere(bool Function(T element) test) {
     _source.removeWhere((S element) => test(element as T));
   }
 
-  void retainWhere(bool test(T element)) {
+  void retainWhere(bool Function(T element) test) {
     _source.retainWhere((S element) => test(element as T));
   }
 
@@ -284,7 +284,7 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
     _source.clear();
   }
 
-  void forEach(void f(K key, V value)) {
+  void forEach(void Function(K key, V value) f) {
     _source.forEach((SK key, SV value) {
       f(key as K, value as V);
     });
@@ -300,7 +300,7 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
 
   bool get isNotEmpty => _source.isNotEmpty;
 
-  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
     return _source.update(
       key as SK,
       (SV value) => update(value as V) as SV,
@@ -308,7 +308,7 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
     ) as V;
   }
 
-  void updateAll(V update(K key, V value)) {
+  void updateAll(V Function(K key, V value) update) {
     _source.updateAll((SK key, SV value) => update(key as K, value as V) as SV);
   }
 
@@ -324,7 +324,7 @@ class CastMap<SK, SV, K, V> extends MapBase<K, V> {
     }
   }
 
-  void removeWhere(bool test(K key, V value)) {
+  void removeWhere(bool Function(K key, V value) test) {
     _source.removeWhere((SK key, SV value) => test(key as K, value as V));
   }
 }
@@ -354,11 +354,11 @@ class CastQueue<S, T> extends _CastIterableBase<S, T> implements Queue<T> {
     _source.addAll(CastIterable<T, S>(elements));
   }
 
-  void removeWhere(bool test(T element)) {
+  void removeWhere(bool Function(T element) test) {
     _source.removeWhere((S element) => test(element as T));
   }
 
-  void retainWhere(bool test(T element)) {
+  void retainWhere(bool Function(T element) test) {
     _source.retainWhere((S element) => test(element as T));
   }
 

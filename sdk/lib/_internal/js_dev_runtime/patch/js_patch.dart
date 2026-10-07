@@ -303,7 +303,7 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
   }
 
   @patch
-  void sort([int compare(E a, E b)?]) {
+  void sort([int Function(E a, E b)? compare]) {
     // Note: arr.sort(null) is a type error in FF
     callMethod('sort', compare == null ? [] : [compare]);
   }
@@ -450,7 +450,7 @@ final Object _dartProxies = JS('', 'new WeakMap()');
 final Object _jsProxies = JS('', 'new WeakMap()');
 
 @NoReifyGeneric()
-T _putIfAbsent<T>(Object weakMap, Object o, T getValue(Object o)) {
+T _putIfAbsent<T>(Object weakMap, Object o, T Function(Object o) getValue) {
   T? value = JS('', '#.get(#)', weakMap, o);
   if (value == null) {
     value = getValue(o);
