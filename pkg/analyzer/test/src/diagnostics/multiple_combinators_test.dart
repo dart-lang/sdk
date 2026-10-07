@@ -96,6 +96,26 @@ import 'dart:async' hide Future, Stream hide Stream;
 ''');
   }
 
+  Future<void> test_hide_hide_inPart() async {
+    await resolveTestCodeWithDiagnostics(r'''
+part of 'a.dart';
+
+//ignore: unused_import
+import 'dart:async' hide Future, Stream hide Stream;
+//                                      ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
+''');
+  }
+
+  Future<void> test_hide_inPart() async {
+    await resolveTestCodeWithDiagnostics(r'''
+part of 'a.dart';
+
+//ignore: unused_import
+import 'dart:async' hide Future, Stream;
+''');
+  }
+
   Future<void> test_hide_show() async {
     await resolveTestCodeWithDiagnostics(r'''
 //ignore: unused_import
@@ -145,6 +165,15 @@ import 'dart:async' show Future hide Stream show Stream;
 // [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 //                                          ^^^^
 // [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
+''');
+  }
+
+  Future<void> test_show_inPart() async {
+    await resolveTestCodeWithDiagnostics(r'''
+part of 'a.dart';
+
+//ignore: unused_import
+import 'dart:async' show Future, Stream;
 ''');
   }
 

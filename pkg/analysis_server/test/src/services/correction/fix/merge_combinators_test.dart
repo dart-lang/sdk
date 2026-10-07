@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -15,6 +14,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MergeCombinatorsParserErrorTest);
+    defineReflectiveTests(MergeCombinatorsParserShowShowTest);
     defineReflectiveTests(MergeCombinatorsPriorityTest);
     defineReflectiveTests(MergeHideUsingHideTest);
     defineReflectiveTests(MergeHideUsingShowTest);
@@ -41,15 +41,86 @@ export 'other.dart' hide Stream, Future;
 ''');
   }
 
+  Future<void> test_export_hide_hide_inPart() async {
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+export 'other.dart' hide Stream, Future hide Future;
+''');
+    await assertHasFix('''
+part of 'a.dart';
+
+export 'other.dart' hide Stream, Future;
+''');
+  }
+
   Future<void> test_import_hide_hide() async {
-    createAnalysisOptionsFile(
-      experimentalFeatures: [Feature.single_combinators],
-    );
     await resolveTestCode('''
 import 'other.dart' hide Stream, Future hide Future;
 ''');
     await assertHasFix('''
 import 'other.dart' hide Stream, Future;
+''', filter: diagnosticCodeFilter);
+  }
+
+  Future<void> test_import_hide_hide_inPart() async {
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+import 'other.dart' hide Stream, Future hide Future;
+''');
+    await assertHasFix('''
+part of 'a.dart';
+
+import 'other.dart' hide Stream, Future;
+''', filter: diagnosticCodeFilter);
+  }
+}
+
+@reflectiveTest
+class MergeCombinatorsParserShowShowTest extends FixProcessorErrorCodeTest
+    with _MergeCombinatorTestMixin {
+  @override
+  DiagnosticCode get diagnosticCode => diag.multipleCombinators;
+
+  @override
+  FixKind get kind => DartFixKind.mergeCombinatorsShowShow;
+
+  Future<void> test_export_show_show_inPart() async {
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+export 'other.dart' show Stream, Future show Future;
+''');
+    await assertHasFix('''
+part of 'a.dart';
+
+export 'other.dart' show Future;
+''');
+  }
+
+  Future<void> test_import_show_show_inPart() async {
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+import 'other.dart' show Stream, Future show Future;
+''');
+    await assertHasFix('''
+part of 'a.dart';
+
+import 'other.dart' show Future;
 ''', filter: diagnosticCodeFilter);
   }
 }
