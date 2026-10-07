@@ -2162,7 +2162,7 @@ void StubCodeCompiler::GenerateSuspendStub(
 
   // Write barrier.
   __ AndImmediate(kTemp, kSuspendState, target::Page::kPageMask);
-  __ LoadFromOffset(kTemp, kTemp, target::Page::original_top_offset());
+  __ LoadFromOffset(kTemp, kTemp, target::Page::survivor_end_offset());
   __ CompareRegisters(kSuspendState, kTemp);
   __ BranchIf(UNSIGNED_LESS, &remember_object);
   // Assumption: SuspendStates are always on non-image pages.

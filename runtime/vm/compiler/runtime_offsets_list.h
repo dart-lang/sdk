@@ -246,8 +246,7 @@
   FIELD(GrowableObjectArray, length_offset)                                    \
   FIELD(GrowableObjectArray, type_arguments_offset)                            \
   FIELD(Page, card_table_offset)                                               \
-  FIELD(Page, original_top_offset)                                             \
-  FIELD(Page, original_end_offset)                                             \
+  FIELD(Page, survivor_end_offset)                                             \
   FIELD(CallSiteData, arguments_descriptor_offset)                             \
   FIELD(ICData, NumArgsTestedMask)                                             \
   FIELD(ICData, NumArgsTestedShift)                                            \

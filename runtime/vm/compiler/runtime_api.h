@@ -1558,8 +1558,7 @@ class Page : public AllStatic {
   static const word kPageMask;
 
   static word card_table_offset();
-  static word original_top_offset();
-  static word original_end_offset();
+  static word survivor_end_offset();
 };
 
 class Heap : public AllStatic {

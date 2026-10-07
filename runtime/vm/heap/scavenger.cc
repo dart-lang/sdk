@@ -1051,7 +1051,7 @@ SemiSpace* Scavenger::Prologue(GCReason reason) {
   GCMarker* marker = heap_->old_space()->marker();
   if (marker != nullptr) {
     marker->new_marking_stack_.PushAll(
-        marker->tlab_deferred_marking_stack_.PopAll());
+        marker->wbe_deferred_marking_stack_.PopAll());
     new_blocks_ = marker->new_marking_stack_.PopAll();
     deferred_blocks_ = marker->deferred_marking_stack_.PopAll();
   }
@@ -1835,9 +1835,6 @@ intptr_t Scavenger::AbandonRemainingTLAB(Thread* thread) {
   Page* page = Page::Of(thread->top() - 1);
   intptr_t allocated;
   {
-    if (thread->is_marking()) {
-      thread->DeferredMarkLiveTemporaries();
-    }
     MutexLocker ml(&space_lock_);
     allocated = page->Release(thread);
     to_->AddFree(page);
@@ -1884,6 +1881,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   }
 
   // Prepare for a scavenge.
+  heap_->old_space()->PauseConcurrentMarking();
   failed_to_promote_ = false;
   abort_ = false;
   root_slices_started_ = 0;
@@ -1899,7 +1897,6 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
     }
     promo_candidate_words += page->promo_candidate_words();
   }
-  heap_->old_space()->PauseConcurrentMarking();
   SemiSpace* from = Prologue(reason);
 
   const intptr_t num_tasks = NumScavengeWorkers();

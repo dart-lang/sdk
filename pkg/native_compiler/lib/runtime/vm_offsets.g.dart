@@ -178,8 +178,7 @@ base class VMOffsets {
   int get GrowableObjectArray_length_offset => throw 'Unknown';
   int get GrowableObjectArray_type_arguments_offset => throw 'Unknown';
   int get Page_card_table_offset => throw 'Unknown';
-  int get Page_original_top_offset => throw 'Unknown';
-  int get Page_original_end_offset => throw 'Unknown';
+  int get Page_survivor_end_offset => throw 'Unknown';
   int get CallSiteData_arguments_descriptor_offset => throw 'Unknown';
   int get ICData_NumArgsTestedMask => throw 'Unknown';
   int get ICData_NumArgsTestedShift => throw 'Unknown';
@@ -988,9 +987,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Page_card_table_offset => 0x20;
   @override
-  int get Page_original_top_offset => 0x38;
-  @override
-  int get Page_original_end_offset => 0x40;
+  int get Page_survivor_end_offset => 0x48;
   @override
   int get CallSiteData_arguments_descriptor_offset => 0x10;
   @override
@@ -2065,9 +2062,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Page_card_table_offset => 0x20;
   @override
-  int get Page_original_top_offset => 0x38;
-  @override
-  int get Page_original_end_offset => 0x40;
+  int get Page_survivor_end_offset => 0x48;
   @override
   int get CallSiteData_arguments_descriptor_offset => 0x10;
   @override
