@@ -813,8 +813,6 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(!code.is_optimized());
   ASSERT(!FLAG_precompiled_mode);
   const Function& function = Function::Handle(code.function());
-  // IsIrregexpFunction have eager var descriptors generation.
-  ASSERT(!function.IsIrregexpFunction());
   // In background compilation, parser can produce 'errors": bailouts
   // if state changed while compiling in background.
   Thread* thread = Thread::Current();

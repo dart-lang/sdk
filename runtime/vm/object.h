@@ -3102,13 +3102,6 @@ class Function : public Object {
 #endif
   ObjectPtr RawOwner() const { return untag()->owner(); }
 
-  RegExpPtr regexp() const;
-  intptr_t string_specialization_cid() const;
-  bool is_sticky_specialization() const;
-  void SetRegExpData(const RegExp& regexp,
-                     intptr_t string_specialization_cid,
-                     bool sticky) const;
-
   StringPtr native_name() const;
   void set_native_name(const String& name) const;
 
@@ -3441,7 +3434,6 @@ class Function : public Object {
       case UntaggedFunction::kConstructor:
       case UntaggedFunction::kImplicitStaticGetter:
       case UntaggedFunction::kFieldInitializer:
-      case UntaggedFunction::kIrregexpFunction:
         return false;
       default:
         UNREACHABLE();
@@ -3460,7 +3452,6 @@ class Function : public Object {
       case UntaggedFunction::kImplicitSetter:
       case UntaggedFunction::kImplicitStaticGetter:
       case UntaggedFunction::kFieldInitializer:
-      case UntaggedFunction::kIrregexpFunction:
         return true;
       case UntaggedFunction::kClosureFunction:
       case UntaggedFunction::kImplicitClosureFunction:
@@ -3955,11 +3946,6 @@ class Function : public Object {
     UntaggedFunction::Kind k = kind();
     return (k == UntaggedFunction::kClosureFunction) ||
            (k == UntaggedFunction::kImplicitClosureFunction);
-  }
-
-  // Returns true if this function represents a generated irregexp function.
-  bool IsIrregexpFunction() const {
-    return kind() == UntaggedFunction::kIrregexpFunction;
   }
 
   // Returns true if this function represents an implicit closure function.

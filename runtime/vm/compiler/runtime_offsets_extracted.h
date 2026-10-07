@@ -80,28 +80,28 @@ static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -940,28 +940,28 @@ static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -1806,28 +1806,28 @@ static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -2665,28 +2665,28 @@ static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -3534,28 +3534,28 @@ static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -4399,28 +4399,28 @@ static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -5265,28 +5265,28 @@ static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -6126,28 +6126,28 @@ static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -6990,28 +6990,28 @@ static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -7842,28 +7842,28 @@ static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -8700,28 +8700,28 @@ static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -9551,28 +9551,28 @@ static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -10412,28 +10412,28 @@ static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -11269,28 +11269,28 @@ static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -12127,28 +12127,28 @@ static constexpr dart::compiler::target::word CallbackMetadata_kCallRet4 = 0x2;
 static constexpr dart::compiler::target::word Context_kMaxElements = 0xfffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -12980,28 +12980,28 @@ static constexpr dart::compiler::target::word Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x5;
-static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x5;
+static constexpr dart::compiler::target::word Function_kKindBitsSize = 0x4;
+static constexpr dart::compiler::target::word Function_kRecognizedBitsPos = 0x4;
 static constexpr dart::compiler::target::word Function_kRecognizedBitsSize =
     0x9;
-static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xe;
+static constexpr dart::compiler::target::word Function_kModifierBitsPos = 0xd;
 static constexpr dart::compiler::target::word Function_kModifierBitsSize = 0x2;
-static constexpr dart::compiler::target::word Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word Function_kConstBitPos = 0x11;
-static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x12;
+static constexpr dart::compiler::target::word Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word Function_kConstBitPos = 0x10;
+static constexpr dart::compiler::target::word Function_kAbstractBitPos = 0x11;
 static constexpr dart::compiler::target::word Function_kReflectableBitPos =
-    0x13;
-static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x14;
-static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x15;
-static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x17;
-static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x18;
-static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x1a;
+    0x12;
+static constexpr dart::compiler::target::word Function_kVisibleBitPos = 0x13;
+static constexpr dart::compiler::target::word Function_kDebuggableBitPos = 0x14;
+static constexpr dart::compiler::target::word Function_kNativeBitPos = 0x16;
+static constexpr dart::compiler::target::word Function_kExternalBitPos = 0x17;
+static constexpr dart::compiler::target::word Function_kHasPragmaBitPos = 0x19;
 static constexpr dart::compiler::target::word Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionMemberBitPos = 0x1c;
+    Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -13846,36 +13846,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -14798,36 +14798,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -15761,36 +15761,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -16720,36 +16720,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -17679,36 +17679,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -18640,36 +18640,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -19593,36 +19593,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -20548,36 +20548,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -21491,36 +21491,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -22445,36 +22445,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -23395,36 +23395,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -24345,36 +24345,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -25297,36 +25297,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0xfffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
@@ -26241,36 +26241,36 @@ static constexpr dart::compiler::target::word AOT_Context_kMaxElements =
     0x7ffffffffffffff;
 static constexpr dart::compiler::target::word AOT_Class_kNoTypeArguments = -1;
 static constexpr dart::compiler::target::word AOT_Function_kKindBitsPos = 0x0;
-static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x5;
+static constexpr dart::compiler::target::word AOT_Function_kKindBitsSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsPos =
-    0x5;
+    0x4;
 static constexpr dart::compiler::target::word AOT_Function_kRecognizedBitsSize =
     0x9;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsPos =
-    0xe;
+    0xd;
 static constexpr dart::compiler::target::word AOT_Function_kModifierBitsSize =
     0x2;
-static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0x10;
-static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x11;
+static constexpr dart::compiler::target::word AOT_Function_kStaticBitPos = 0xf;
+static constexpr dart::compiler::target::word AOT_Function_kConstBitPos = 0x10;
 static constexpr dart::compiler::target::word AOT_Function_kAbstractBitPos =
-    0x12;
+    0x11;
 static constexpr dart::compiler::target::word AOT_Function_kReflectableBitPos =
-    0x13;
+    0x12;
 static constexpr dart::compiler::target::word AOT_Function_kVisibleBitPos =
-    0x14;
+    0x13;
 static constexpr dart::compiler::target::word AOT_Function_kDebuggableBitPos =
-    0x15;
-static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x17;
+    0x14;
+static constexpr dart::compiler::target::word AOT_Function_kNativeBitPos = 0x16;
 static constexpr dart::compiler::target::word AOT_Function_kExternalBitPos =
-    0x18;
+    0x17;
 static constexpr dart::compiler::target::word AOT_Function_kHasPragmaBitPos =
-    0x1a;
+    0x19;
 static constexpr dart::compiler::target::word AOT_Function_kIsSyntheticBitPos =
-    0x1b;
+    0x1a;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionMemberBitPos = 0x1c;
+    AOT_Function_kIsExtensionMemberBitPos = 0x1b;
 static constexpr dart::compiler::target::word
-    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1d;
+    AOT_Function_kIsExtensionTypeMemberBitPos = 0x1c;
 static constexpr dart::compiler::target::word AOT_Heap_kNewAllocatableSize =
     0x40000;
 static constexpr dart::compiler::target::word
