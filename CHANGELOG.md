@@ -153,6 +153,25 @@
   requested experiments still take effect, but startup is no longer slower than
   without them.
 
+- Added a `dart migrate` command, which updates packages to a newer Dart SDK
+  version. It raises the lower bound of each package's SDK constraint one minor
+  version at a time. For each version, it applies preparatory fixes and raises
+  the constraint. Optional cleanup fixes that adopt new language features only
+  run with `--step=cleanup` or `--step=all`. Migrates the current directory by
+  default, or specific package directories if provided. Packages must already
+  require Dart 3.0 or later.
+  - `--dry-run` previews the proposed changes.
+  - `--apply` applies the changes.
+  - `--target-sdk` migrates across multiple versions in one run.
+  - `--step` runs specific steps: `prepare`, `bump`, `cleanup`, or `all`.
+  - Dependent packages migrate together in lockstep, keeping dependency
+    constraints solvable at every version. A package is skipped if a dependency
+    does not support the new version.
+
+  For more details, see SDK issue [#63240][].
+
+[#63240]: https://github.com/dart-lang/sdk/issues/63240
+
 #### Formatter
 
 The following bug fixes are *not* language versioned and apply also when

@@ -201,10 +201,14 @@ abstract final class ExecutableCompiler {
   /// experiments, is newer than [packageConfigPath], and is newer than all
   /// source dependencies recorded in its depfile.
   ///
+  /// If [verbose] is `true`, a `Built <package>:<executable>.` status line is
+  /// written to stderr after a successful compilation.
+  ///
   /// Returns a [DartExecutableWithPackageConfig] pointing to the snapshot file.
   static Future<DartExecutableWithPackageConfig> compile({
     required DartExecutableWithPackageConfig resolvedExecutable,
     List<String> enabledExperiments = const [],
+    bool verbose = false,
   }) async {
     final executablePath = resolvedExecutable.executable;
     final packageConfigPath = resolvedExecutable.packageConfig;
@@ -264,6 +268,7 @@ abstract final class ExecutableCompiler {
         tempParentPath: pathOfTempDir(workspaceRoot: workspaceRoot),
         packageConfigPath: packageConfigAbsolute,
         enabledExperiments: enabledExperiments,
+        verbose: verbose,
       );
     }
 
@@ -323,6 +328,7 @@ abstract final class ExecutableCompiler {
     required String tempParentPath,
     required String packageConfigPath,
     required List<String> enabledExperiments,
+    required bool verbose,
   }) async {
     final outputDir = Directory(p.dirname(outputPath));
     if (!outputDir.existsSync()) {
@@ -444,15 +450,14 @@ abstract final class ExecutableCompiler {
       }
 
       try {
-        if (dartdevLogger.output != ProgressOutput.none && stderr.hasTerminal) {
-          await progress(
-            'Building package executable',
-            runCompiler,
-            output: ProgressOutput.stderr,
-          );
+        await progress(
+          'Building package executable',
+          runCompiler,
+          transient: true,
+          output: ProgressOutput.stderr,
+        );
+        if (verbose) {
           log.stderr('Built ${ansi.bold}$displayName${ansi.none}.');
-        } else {
-          await runCompiler();
         }
       } on CompilationException {
         rethrow;

@@ -1883,7 +1883,8 @@ class DartMigrateParams implements WorkDoneProgressParams, ToJsonable {
   /// Whether to apply the migration changes.
   final bool? apply;
 
-  /// The specific migration steps to run.
+  /// The specific migration steps to run. When omitted, the prepare and bump
+  /// steps run.
   final List<MigrationStep>? steps;
 
   /// The target Dart SDK version to migrate to (e.g., "3.12.0").

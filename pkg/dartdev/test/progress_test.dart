@@ -12,6 +12,7 @@ import 'package:dartdev/src/progress.dart';
 import 'package:fake_async/fake_async.dart';
 import 'package:test/test.dart';
 
+const _eraseLine = '\u001b[2K';
 const _eraseToLineEnd = '\u001b[0K';
 
 final class _MockStdout implements Stdout {
@@ -150,20 +151,27 @@ String _gray(String text) => Platform.environment.containsKey('NO_COLOR')
 
 void main() {
   group('progress', () {
-    tearDown(stopActiveProgress);
+    setUp(resetProgressGracePeriod);
+
+    tearDown(() {
+      stopActiveProgress();
+      resetProgressGracePeriod();
+    });
 
     test(
-      'runs callback to completion and prints completed newline',
+      'runs callback to completion, prints completed newline, and resets grace period',
       () => _runWithMockStdout((mockStdout) async {
         var executed = false;
         final result = await progress('Testing progress', () async {
           expect(mockStdout.buffer.toString(), 'Testing progress... ');
+          expect(progressGracePeriod.hasShownProgress, isTrue);
           executed = true;
           return 42;
         });
         expect(executed, isTrue);
         expect(result, 42);
         expect(mockStdout.buffer.toString(), 'Testing progress... \n');
+        expect(progressGracePeriod.hasShownProgress, isFalse);
       }),
     );
 
@@ -192,6 +200,32 @@ void main() {
     );
 
     test(
+      'transient progress erases line with ANSI escape sequence',
+      () => _runWithMockStdout((mockStdout) async {
+        var executed = false;
+        final result = await progress(
+          'Testing transient progress',
+          () async {
+            expect(
+              mockStdout.buffer.toString(),
+              'Testing transient progress... ',
+            );
+            executed = true;
+            return 'done';
+          },
+          transient: true,
+          delay: Duration.zero,
+        );
+        expect(executed, isTrue);
+        expect(result, 'done');
+        expect(
+          mockStdout.buffer.toString(),
+          'Testing transient progress... \r$_eraseLine',
+        );
+      }),
+    );
+
+    test(
       'output: ProgressOutput.stderr writes to stderr and leaves stdout empty',
       () => _runWithMockIo((mockStdout, mockStderr) async {
         final result = await progress(
@@ -201,11 +235,16 @@ void main() {
             expect(mockStderr.buffer.toString(), 'Stderr task... ');
             return 'done';
           },
+          transient: true,
           output: ProgressOutput.stderr,
+          delay: Duration.zero,
         );
         expect(result, 'done');
         expect(mockStdout.buffer.toString(), isEmpty);
-        expect(mockStderr.buffer.toString(), 'Stderr task... \n');
+        expect(
+          mockStderr.buffer.toString(),
+          'Stderr task... \r$_eraseLine',
+        );
       }),
     );
 
@@ -216,27 +255,233 @@ void main() {
           'Silent task',
           () async => 'done',
           output: ProgressOutput.none,
+          delay: Duration.zero,
         );
         expect(result, 'done');
         expect(mockStdout.buffer.toString(), isEmpty);
         expect(mockStderr.buffer.toString(), isEmpty);
+        expect(progressGracePeriod.hasShownProgress, isFalse);
       }),
     );
 
     test(
-      'logs once without animation when ANSI is disabled',
+      'transient progress produces no output when ANSI is disabled',
       () => _runWithMockStdout(supportsAnsiEscapes: false, (mockStdout) async {
+        final result = await progress(
+          'Testing transient progress',
+          () async => 'done',
+          transient: true,
+          delay: Duration.zero,
+        );
+        expect(result, 'done');
+        expect(mockStdout.buffer.toString(), isEmpty);
+      }),
+    );
+
+    test(
+      'transient progress produces no output when stdout has no terminal',
+      () => _runWithMockStdout(hasTerminal: false, (mockStdout) async {
+        final result = await progress(
+          'Testing transient progress',
+          () async => 'done',
+          transient: true,
+          delay: Duration.zero,
+        );
+        expect(result, 'done');
+        expect(mockStdout.buffer.toString(), isEmpty);
+      }),
+    );
+
+    test(
+      'non-transient progress logs once without animation when ANSI is disabled',
+      () => _runWithMockStdout(supportsAnsiEscapes: false, (mockStdout) async {
+        progressGracePeriod.markProgressShown();
         final result = await progress(
           'Testing progress',
           () async => 'done',
         );
         expect(result, 'done');
         expect(mockStdout.buffer.toString(), 'Testing progress...\n');
+        expect(progressGracePeriod.hasShownProgress, isFalse);
       }),
     );
 
     test(
-      'DartdevLogger stops active progress before output',
+      'delayed transient progress writes nothing if stopped before delay',
+      () => _runWithFakeTime((async, mockStdout) {
+        final completer = Completer<void>();
+        var completed = false;
+        progress(
+          'Testing delayed progress',
+          () => completer.future,
+          transient: true,
+          delay: const Duration(seconds: 5),
+        ).whenComplete(() => completed = true);
+
+        async.elapse(const Duration(seconds: 4));
+        expect(mockStdout.buffer.toString(), isEmpty);
+
+        completer.complete();
+        async.flushMicrotasks();
+        expect(completed, isTrue);
+        expect(progressGracePeriod.hasShownProgress, isFalse);
+
+        // Nothing is written once the delay would have passed either.
+        async.elapse(const Duration(seconds: 5));
+        expect(mockStdout.buffer.toString(), isEmpty);
+      }),
+    );
+
+    test(
+      'delayed transient progress writes and clears if stopped after delay',
+      () => _runWithFakeTime((async, mockStdout) {
+        final completer = Completer<void>();
+        var completed = false;
+        progress(
+          'Testing delayed progress',
+          () => completer.future,
+          transient: true,
+          delay: const Duration(milliseconds: 500),
+        ).whenComplete(() => completed = true);
+
+        async.elapse(const Duration(milliseconds: 499));
+        expect(mockStdout.buffer.toString(), isEmpty);
+        expect(progressGracePeriod.hasShownProgress, isFalse);
+
+        async.elapse(const Duration(milliseconds: 1));
+        expect(mockStdout.buffer.toString(), 'Testing delayed progress... ');
+        expect(progressGracePeriod.hasShownProgress, isTrue);
+
+        completer.complete();
+        async.flushMicrotasks();
+        expect(completed, isTrue);
+        expect(
+          mockStdout.buffer.toString(),
+          'Testing delayed progress... \r$_eraseLine',
+        );
+      }),
+    );
+
+    test(
+      'subsequent transient progress displays with zero delay once progress shown',
+      () => _runWithMockStdout((mockStdout) async {
+        progressGracePeriod.markProgressShown();
+        final result = await progress(
+          'Testing subsequent progress',
+          () async {
+            expect(
+              mockStdout.buffer.toString(),
+              'Testing subsequent progress... ',
+            );
+            return 'ok';
+          },
+          transient: true,
+        );
+        expect(result, 'ok');
+        expect(
+          mockStdout.buffer.toString(),
+          'Testing subsequent progress... \r$_eraseLine',
+        );
+      }),
+    );
+
+    test('DartdevLogger resets grace period on output', () {
+      final mockLogger = _MockLogger();
+      final dartdevLogger = DartdevLogger(mockLogger);
+
+      for (final action in <void Function()>[
+        () => dartdevLogger.stdout('Some output'),
+        () => dartdevLogger.stderr('Some error'),
+        () => dartdevLogger.write('Some text'),
+        () => dartdevLogger.writeCharCode(65),
+      ]) {
+        progressGracePeriod.markProgressShown();
+        expect(progressGracePeriod.hasShownProgress, isTrue);
+        action();
+        expect(progressGracePeriod.hasShownProgress, isFalse);
+      }
+    });
+
+    test(
+      'DartdevLogger.progress uses shared progress indicator',
+      () => _runWithMockStdout((mockStdout) {
+        final mockLogger = _MockLogger(sink: mockStdout);
+        final dartdevLogger = DartdevLogger(mockLogger);
+
+        final p = dartdevLogger.progress('Some progress');
+        expect(mockStdout.buffer.toString(), 'Some progress... ');
+        expect(progressGracePeriod.hasShownProgress, isTrue);
+
+        p.finish();
+        expect(mockStdout.buffer.toString(), 'Some progress... \n');
+        expect(progressGracePeriod.hasShownProgress, isFalse);
+
+        mockStdout.buffer.clear();
+        final p2 = dartdevLogger.progress('Canceled progress');
+        expect(mockStdout.buffer.toString(), 'Canceled progress... ');
+        p2.cancel();
+        expect(
+          mockStdout.buffer.toString(),
+          'Canceled progress... \r$_eraseLine',
+        );
+      }),
+    );
+
+    test(
+      'Progress.finish erases transient progress and writes message on its own line',
+      () => _runWithMockStdout((mockStdout) {
+        final dartdevLogger = DartdevLogger(
+          _MockLogger(sink: mockStdout),
+          transientProgress: true,
+        );
+        progressGracePeriod.markProgressShown();
+
+        final p = dartdevLogger.progress('Transient progress');
+        expect(mockStdout.buffer.toString(), 'Transient progress... ');
+        p.finish();
+        expect(
+          mockStdout.buffer.toString(),
+          'Transient progress... \r$_eraseLine',
+        );
+
+        mockStdout.buffer.clear();
+        final p2 = dartdevLogger.progress('Transient progress');
+        p2.finish(message: 'Done');
+        expect(
+          mockStdout.buffer.toString(),
+          'Transient progress... \r${_eraseLine}Done\n',
+        );
+        expect(progressGracePeriod.hasShownProgress, isFalse);
+      }),
+    );
+
+    test(
+      'Progress.finish writes message on its own line after progress line',
+      () => _runWithMockStdout((mockStdout) {
+        final dartdevLogger = DartdevLogger(_MockLogger(sink: mockStdout));
+
+        final p = dartdevLogger.progress('Some progress');
+        p.finish(message: 'Done', showTiming: true);
+        expect(mockStdout.buffer.toString(), 'Some progress... \nDone\n');
+      }),
+    );
+
+    test(
+      'Progress.finish writes nothing when progress output is suppressed',
+      () => _runWithMockIo((mockStdout, mockStderr) {
+        final dartdevLogger = DartdevLogger(
+          _MockLogger(sink: mockStdout, stderrSink: mockStderr),
+          output: ProgressOutput.none,
+        );
+
+        dartdevLogger.progress('Suppressed progress').finish(message: 'Done');
+        expect(mockStdout.buffer.toString(), isEmpty);
+        expect(mockStderr.buffer.toString(), isEmpty);
+      }),
+    );
+
+    test(
+      'DartdevLogger stops active transient progress and erases line before output',
       () => _runWithMockStdout((mockStdout) async {
         final mockLogger = _MockLogger(sink: mockStdout);
         final dartdevLogger = DartdevLogger(mockLogger);
@@ -245,13 +490,15 @@ void main() {
         final progressFuture = progress(
           'Ongoing task',
           () => completer.future,
+          transient: true,
+          delay: Duration.zero,
         );
 
         expect(mockStdout.buffer.toString(), 'Ongoing task... ');
         dartdevLogger.stdout('Logging during progress');
         expect(
           mockStdout.buffer.toString(),
-          'Ongoing task... \rOngoing task... $_eraseToLineEnd\n'
+          'Ongoing task... \r$_eraseLine'
           'Logging during progress\n',
         );
         completer.complete();
@@ -260,15 +507,19 @@ void main() {
     );
 
     test(
-      'stopActiveProgress erases elapsed time on progress',
+      'stopActiveProgress erases elapsed time on non-transient progress and resets grace period',
       () => _runWithMockStdout((mockStdout) async {
         final completer = Completer<void>();
         final progressFuture = progress(
           'Ongoing task',
           () => completer.future,
+          transient: false,
+          delay: Duration.zero,
         );
 
+        expect(progressGracePeriod.hasShownProgress, isTrue);
         stopActiveProgress();
+        expect(progressGracePeriod.hasShownProgress, isFalse);
         expect(
           mockStdout.buffer.toString(),
           'Ongoing task... \rOngoing task... $_eraseToLineEnd\n',
@@ -286,11 +537,15 @@ void main() {
         final p1 = progress(
           'First task',
           () => completer1.future,
+          transient: true,
+          delay: Duration.zero,
         );
 
         final p2 = progress(
           'Second task',
           () => completer2.future,
+          transient: true,
+          delay: Duration.zero,
         );
 
         completer2.complete();
@@ -301,14 +556,27 @@ void main() {
 
         expect(
           mockStdout.buffer.toString(),
-          'First task... \rFirst task... $_eraseToLineEnd\n'
-          'Second task... \n',
+          'First task... \r$_eraseLine'
+          'Second task... \r$_eraseLine',
         );
       }),
     );
 
+    test('DartdevLogger trace does not reset grace period unless verbose', () {
+      final normalLogger = DartdevLogger(_MockLogger(isVerbose: false));
+      progressGracePeriod.markProgressShown();
+      expect(progressGracePeriod.hasShownProgress, isTrue);
+
+      normalLogger.trace('Debug trace');
+      expect(progressGracePeriod.hasShownProgress, isTrue);
+
+      final verboseLogger = DartdevLogger(_MockLogger(isVerbose: true));
+      verboseLogger.trace('Debug trace');
+      expect(progressGracePeriod.hasShownProgress, isFalse);
+    });
+
     test(
-      'withDartdevLogger routes stdout and progress to stderr when output is ProgressOutput.stderr',
+      'withDartdevLogger routes stdout to stderr and defaults progress to transient on stderr',
       () => _runWithMockIo((mockStdout, mockStderr) async {
         final mockLogger = _MockLogger(
           sink: mockStdout,
@@ -327,15 +595,17 @@ void main() {
                 expect(mockStdout.buffer.toString(), isEmpty);
                 expect(mockStderr.buffer.toString(), 'Zone task... ');
               },
+              delay: Duration.zero,
             );
             expect(mockStdout.buffer.toString(), isEmpty);
             expect(
               mockStderr.buffer.toString(),
-              'Zone task... \n',
+              'Zone task... \r$_eraseLine',
             );
           },
           delegate: mockLogger,
           output: ProgressOutput.stderr,
+          transientProgress: true,
         );
       }),
     );
@@ -358,6 +628,7 @@ void main() {
               'Suppressed progress',
               () async {},
               output: ProgressOutput.stderr,
+              delay: Duration.zero,
             );
             expect(mockStdout.buffer.toString(), isEmpty);
             expect(mockStderr.buffer.toString(), isEmpty);
@@ -409,6 +680,33 @@ void main() {
     );
 
     test(
+      'transient progress erases the line including the elapsed time',
+      () => _runWithFakeTime((async, mockStdout) {
+        final completer = Completer<void>();
+        var completed = false;
+        progress(
+          'Slow task',
+          () => completer.future,
+          transient: true,
+          delay: Duration.zero,
+        ).whenComplete(() => completed = true);
+        async.elapse(const Duration(seconds: 1));
+        expect(
+          mockStdout.buffer.toString(),
+          'Slow task... ${_gray('(1.0s)')}',
+        );
+
+        completer.complete();
+        async.flushMicrotasks();
+        expect(completed, isTrue);
+        expect(
+          mockStdout.buffer.toString(),
+          'Slow task... ${_gray('(1.0s)')}\r$_eraseLine',
+        );
+      }),
+    );
+
+    test(
       'stopActiveProgress erases the elapsed time from the progress line',
       () => _runWithFakeTime((async, mockStdout) {
         final completer = Completer<void>();
@@ -442,6 +740,35 @@ void main() {
     );
 
     test(
+      'Progress.finish erases the elapsed time unless showTiming is true',
+      () => _runWithFakeTime((async, mockStdout) {
+        final dartdevLogger = DartdevLogger(_MockLogger(sink: mockStdout));
+
+        final p = dartdevLogger.progress('Slow task');
+        async.elapse(const Duration(seconds: 1));
+        expect(
+          mockStdout.buffer.toString(),
+          'Slow task... ${_gray('(1.0s)')}',
+        );
+        p.finish(message: 'Done');
+        expect(
+          mockStdout.buffer.toString(),
+          'Slow task... ${_gray('(1.0s)')}\rSlow task... $_eraseToLineEnd\n'
+          'Done\n',
+        );
+
+        mockStdout.buffer.clear();
+        final p2 = dartdevLogger.progress('Slow task');
+        async.elapse(const Duration(seconds: 1));
+        p2.finish(showTiming: true);
+        expect(
+          mockStdout.buffer.toString(),
+          'Slow task... ${_gray('(1.0s)')}${'\b' * 6}${_gray('(1.0s)')}\n',
+        );
+      }),
+    );
+
+    test(
       'withDartdevLogger inherits unspecified settings from the enclosing zone',
       () {
         final stdoutBuffer = StringBuffer();
@@ -455,19 +782,32 @@ void main() {
           () {
             withDartdevLogger(() {
               expect(dartdevLogger.output, ProgressOutput.stderr);
+              expect(dartdevLogger.transientProgress, isTrue);
               expect(log.isVerbose, isTrue);
               log.stdout('Nested status');
               expect(stdoutBuffer.toString(), isEmpty);
               expect(stderrBuffer.toString(), 'Nested status\n');
             });
             withDartdevLogger(
-              () => expect(dartdevLogger.output, ProgressOutput.none),
+              () {
+                expect(dartdevLogger.output, ProgressOutput.none);
+                expect(dartdevLogger.transientProgress, isTrue);
+              },
               output: ProgressOutput.none,
             );
+            withDartdevLogger(
+              () {
+                expect(dartdevLogger.output, ProgressOutput.stderr);
+                expect(dartdevLogger.transientProgress, isFalse);
+              },
+              transientProgress: false,
+            );
             expect(dartdevLogger.output, ProgressOutput.stderr);
+            expect(dartdevLogger.transientProgress, isTrue);
           },
           delegate: outerLogger,
           output: ProgressOutput.stderr,
+          transientProgress: true,
         );
       },
     );
@@ -480,6 +820,7 @@ void main() {
           expect(log, same(plainLogger));
           expect(dartdevLogger, isNot(same(plainLogger)));
           expect(dartdevLogger.output, ProgressOutput.stdout);
+          expect(dartdevLogger.transientProgress, isFalse);
           withDartdevLogger(() {
             expect(log, isA<DartdevLogger>());
             expect(dartdevLogger.output, ProgressOutput.stderr);

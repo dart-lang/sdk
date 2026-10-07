@@ -37,6 +37,7 @@ import 'src/commands/tooling_daemon.dart';
 import 'src/commands/uninstall.dart';
 import 'src/core.dart';
 import 'src/experiments.dart';
+import 'src/progress.dart';
 import 'src/sdk.dart';
 import 'src/unified_analytics.dart';
 import 'src/utils.dart';
@@ -158,6 +159,7 @@ class DartdevRunner extends CommandRunner<int> {
       pubCommand(
         isVerbose: () => verbose,
         category: CommandCategory.project.name,
+        progressGracePeriod: progressGracePeriod,
       ),
     );
     addCommand(

@@ -40,31 +40,38 @@ R withDartdevLogger<R>(
   R Function() callback, {
   Logger? delegate,
   ProgressOutput? output,
+  bool? transientProgress,
 }) {
   final current = dartdevLogger;
   return withLogger(
     DartdevLogger(
       delegate ?? current._delegate,
       output: output ?? current.output,
+      transientProgress: transientProgress ?? current.transientProgress,
     ),
     callback,
   );
 }
 
-/// A delegating [Logger] that stops any active progress indicator whenever
-/// output is printed to the terminal.
+/// A delegating [Logger] that stops any active progress indicator and resets
+/// the progress grace period whenever output is printed to the terminal.
 ///
-/// Also holds the zone-scoped [output] destination for `dartdev` status
-/// messages and progress indicators.
+/// Also holds the zone-scoped [output] destination and [transientProgress]
+/// configuration for `dartdev` status messages and progress indicators.
 final class DartdevLogger implements Logger {
   final Logger _delegate;
 
   /// Where informational output ([stdout]) and progress indicators are written.
   final ProgressOutput output;
 
+  /// Whether progress indicators started in this logger's zone are transient
+  /// by default.
+  final bool transientProgress;
+
   DartdevLogger(
     this._delegate, {
     this.output = ProgressOutput.stdout,
+    this.transientProgress = false,
   });
 
   @override
@@ -78,9 +85,11 @@ final class DartdevLogger implements Logger {
     switch (output) {
       case ProgressOutput.stdout:
         stopActiveProgress();
+        resetProgressGracePeriod();
         _delegate.stdout(message);
       case ProgressOutput.stderr:
         stopActiveProgress();
+        resetProgressGracePeriod();
         _delegate.stderr(message);
       case ProgressOutput.none:
         break;
@@ -90,6 +99,7 @@ final class DartdevLogger implements Logger {
   @override
   void stderr(String message) {
     stopActiveProgress();
+    resetProgressGracePeriod();
     _delegate.stderr(message);
   }
 
@@ -98,6 +108,7 @@ final class DartdevLogger implements Logger {
     if (output == ProgressOutput.none) return;
     if (isVerbose) {
       stopActiveProgress();
+      resetProgressGracePeriod();
     }
     _delegate.trace(message);
   }
@@ -107,9 +118,11 @@ final class DartdevLogger implements Logger {
     switch (output) {
       case ProgressOutput.stdout:
         stopActiveProgress();
+        resetProgressGracePeriod();
         _delegate.write(message);
       case ProgressOutput.stderr:
         stopActiveProgress();
+        resetProgressGracePeriod();
         _delegate.stderr(message);
       case ProgressOutput.none:
         break;
@@ -121,9 +134,11 @@ final class DartdevLogger implements Logger {
     switch (output) {
       case ProgressOutput.stdout:
         stopActiveProgress();
+        resetProgressGracePeriod();
         _delegate.writeCharCode(charCode);
       case ProgressOutput.stderr:
         stopActiveProgress();
+        resetProgressGracePeriod();
         _delegate.stderr(String.fromCharCode(charCode));
       case ProgressOutput.none:
         break;
@@ -131,10 +146,11 @@ final class DartdevLogger implements Logger {
   }
 
   @override
-  Progress progress(String message) {
-    stopActiveProgress();
-    return _delegate.progress(message);
-  }
+  Progress progress(String message) => startProgress(
+    message,
+    transient: transientProgress,
+    output: output,
+  );
 
   @override
   // ignore: deprecated_member_use, deprecated_member_use_from_same_package

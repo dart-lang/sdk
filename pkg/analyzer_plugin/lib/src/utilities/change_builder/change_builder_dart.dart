@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:math' show max;
+
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -162,6 +164,56 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       membersWriter();
     }
     write('}');
+  }
+
+  @override
+  void writeComment(
+    CommentToken? comment, {
+    String? prefix,
+    BeforeCommentWrite before = BeforeCommentWrite.nothing,
+    AfterCommentWrite after = AfterCommentWrite.nothing,
+    bool indentTrailingNewLine = true,
+  }) {
+    if (comment == null) return;
+    switch (before) {
+      case BeforeCommentWrite.nothing:
+        break;
+      case BeforeCommentWrite.space:
+        write(' ');
+      case BeforeCommentWrite.newLine:
+        writeln();
+        if (prefix != null) write(prefix);
+        writeIndent();
+    }
+    var lineInfo = _dartFileEditBuilder.resolvedUnit.lineInfo;
+    while (true) {
+      write(comment!.lexeme);
+      var next = comment.next;
+      if (next is! CommentToken) break;
+      var lastLocation = lineInfo.getLocation(comment.end);
+      var nextLocation = lineInfo.getLocation(next.offset);
+      var lineDifference = nextLocation.lineNumber - lastLocation.lineNumber;
+      if (lineDifference > 0 || comment.type == TokenType.SINGLE_LINE_COMMENT) {
+        for (var i = 0; i < max(1, lineDifference); i++) {
+          writeln();
+        }
+        if (prefix != null) write(prefix);
+        writeIndent();
+      } else {
+        var spaceCount = nextLocation.columnNumber - lastLocation.columnNumber;
+        write(' ' * max(1, spaceCount));
+      }
+      comment = next;
+    }
+    if (comment.type != TokenType.SINGLE_LINE_COMMENT && after.isSpace) {
+      write(' ');
+    } else if (after.isNewLine ||
+        after.isSpace ||
+        comment.type == TokenType.SINGLE_LINE_COMMENT) {
+      writeln();
+      if (prefix != null) write(prefix);
+      if (indentTrailingNewLine) writeIndent();
+    }
   }
 
   @override

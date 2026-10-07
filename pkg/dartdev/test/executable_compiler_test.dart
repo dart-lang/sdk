@@ -443,6 +443,40 @@ void main(List<String> args) {
       expect(snapshot.existsSync(), isTrue);
     });
 
+    test(
+      'end-to-end dart run reports the built executable only with -v',
+      () async {
+        Future<ProcessResult> runFreshProject(List<String> arguments) {
+          final pProject = project(name: 'foo');
+          final bar = project(name: 'bar');
+          pProject.file('pubspec.yaml', '''
+name: foo
+environment:
+  sdk: '^3.0.0'
+dependencies:
+  bar:
+    path: ${bar.dir.path}
+''');
+          bar.file('bin/hello.dart', '''
+void main(List<String> args) {
+  print("Hello from bar:hello");
+}
+''');
+          return pProject.run(['run', ...arguments, 'bar:hello']);
+        }
+
+        final verboseResult = await runFreshProject(['-v']);
+        expect(verboseResult.exitCode, 0);
+        expect(verboseResult.stderr, contains('Built bar:hello.'));
+        expect(verboseResult.stdout, isNot(contains('Built bar:hello.')));
+
+        final result = await runFreshProject([]);
+        expect(result.exitCode, 0);
+        expect(result.stderr, isNot(contains('Built')));
+        expect(result.stdout.trim(), 'Hello from bar:hello');
+      },
+    );
+
     test('end-to-end dart run respects --verbosity=error', () async {
       final pProject = project(name: 'foo');
       final bar = project(name: 'bar');

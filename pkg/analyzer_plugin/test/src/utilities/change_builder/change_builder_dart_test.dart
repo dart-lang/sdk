@@ -5,6 +5,7 @@
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -16,6 +17,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartFileEditBuilderImpl, DartLinkedEditBuilderImpl;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -668,6 +670,243 @@ enum E {
     var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
+  }
+
+  Future<void> test_writeComment_newLineAfter() async {
+    await _assert_writeComment<Block>(
+      '''
+void f() ^{
+  [!// c1
+  /* c2 */!]
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      buildEdit: (builder, comments) =>
+          builder.writeComment(comments, after: AfterCommentWrite.newLine),
+      replacement: '''
+// c1
+  /* c2 */
+  ''',
+    );
+  }
+
+  Future<void> test_writeComment_newLineAfterEOL() async {
+    await _assert_writeComment<Block>(
+      '''
+void f() ^{
+  [!// c1
+  /* c2 */ /* c3 */ // c4!]
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      replacement: '''
+// c1
+  /* c2 */ /* c3 */ // c4
+  ''',
+    );
+  }
+
+  Future<void> test_writeComment_newLineBefore() async {
+    await _assert_writeComment<Block>(
+      '''
+void f() ^{
+  [!// c1
+  // c2!]
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      buildEdit: (builder, comments) =>
+          builder.writeComment(comments, before: BeforeCommentWrite.newLine),
+      replacement: '''
+
+  // c1
+  // c2
+  ''',
+    );
+  }
+
+  Future<void> test_writeComment_nothingAfter() async {
+    await _assert_writeComment<Block>(
+      '''
+void f() ^{
+  [!// c1
+  /* c2 */!]
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      replacement: '''
+// c1
+  /* c2 */''',
+    );
+  }
+
+  Future<void> test_writeComment_respectNewLinesAroundBlock() async {
+    await _assert_writeComment<Block>(
+      '''
+void f() ^{
+  [!// c1
+  /* c2 */
+
+
+  /* c3 */!]
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      replacement: '''
+// c1
+  /* c2 */
+
+
+  /* c3 */''',
+    );
+  }
+
+  Future<void> test_writeComment_respectNewLinesAroundEOL() async {
+    await _assert_writeComment<Block>(
+      '''
+void f() ^{
+  [!// c1
+
+
+  // c2!]
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      replacement: '''
+// c1
+
+
+  // c2
+  ''',
+    );
+  }
+
+  Future<void> test_writeComment_respectPrefix() async {
+    await _assert_writeComment<Block>(
+      '''
+class A {
+  void f() ^{
+    [!// c1
+    /* c2 *//* c3 */!]
+  }
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      buildEdit: (builder, comments) =>
+          builder.writeComment(comments, prefix: '  '),
+      replacement: '''
+// c1
+    /* c2 */ /* c3 */''',
+    );
+  }
+
+  Future<void> test_writeComment_respectSpacesAroundBlock() async {
+    await _assert_writeComment<Block>(
+      '''
+void f() ^{
+  [!// c1
+  /* c2 */      /* c3 */!]
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      replacement: '''
+// c1
+  /* c2 */      /* c3 */''',
+    );
+  }
+
+  Future<void> test_writeComment_respectSpacesAroundEOL() async {
+    await _assert_writeComment<Block>(
+      '''
+void f() ^{
+  [!// c1
+  /* c2 */      // c3!]
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      replacement: '''
+// c1
+  /* c2 */      // c3
+  ''',
+    );
+  }
+
+  Future<void> test_writeComment_spaceAfter() async {
+    await _assert_writeComment<Block>(
+      '''
+void f() ^{
+  [!// c1
+  /* c2 */!]
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      buildEdit: (builder, comments) =>
+          builder.writeComment(comments, after: AfterCommentWrite.space),
+      replacement: '''
+// c1
+  /* c2 */ ''',
+    );
+  }
+
+  Future<void> test_writeComment_spaceBefore() async {
+    await _assert_writeComment<Block>(
+      '''
+void f() ^{
+  [!// c1
+  // c2!]
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      buildEdit: (builder, comments) =>
+          builder.writeComment(comments, before: BeforeCommentWrite.space),
+      replacement: '''
+ // c1
+  // c2
+  ''',
+    );
+  }
+
+  Future<void> test_writeComment_trailingNewLineIndent() async {
+    await _assert_writeComment<Block>(
+      '''
+class A {
+  void f() ^{
+    [!// c1
+    // c2!]
+  }
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      buildEdit: (builder, comments) =>
+          builder.writeComment(comments, prefix: '  '),
+      replacement: '''
+// c1
+    // c2
+    ''',
+    );
+  }
+
+  Future<void> test_writeComment_trailingNewLineNoIndent() async {
+    await _assert_writeComment<Block>(
+      '''
+class A {
+  void f() ^{
+    [!// c1
+    // c2!]
+  }
+}
+''',
+      (node) => node.rightBracket.precedingComments,
+      buildEdit: (builder, comments) => builder.writeComment(
+        comments,
+        prefix: '  ',
+        indentTrailingNewLine: false,
+      ),
+      replacement: '''
+// c1
+    // c2
+  ''',
+    );
   }
 
   Future<void> test_writeConstructorDeclaration_bodyWriter() async {
@@ -2621,6 +2860,47 @@ A'''),
     });
     var edit = getEdit(builder);
     expect(edit.replacement, equalsIgnoringWhitespace('implements A, B'));
+  }
+
+  Future<void> _assert_writeComment<Node extends AstNode>(
+    String content,
+    CommentToken? Function(Node node) findComment, {
+    required String replacement,
+    void Function(DartEditBuilder builder, CommentToken? comments)? buildEdit,
+  }) async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var code = TestCode.parse(content);
+    expect(
+      code.position,
+      isNotNull,
+      reason: 'This test must have a position marker.',
+    );
+    expect(
+      code.range,
+      isNotNull,
+      reason: 'This test must have a range marker.',
+    );
+    addSource(path, code.code);
+    var resolvedUnit = await resolveFile(path);
+    var node = code.position.findNode(resolvedUnit);
+    if (node is! Node) {
+      fail('Expected $Node, found ${node.runtimeType}.');
+    }
+    var comments = findComment(node);
+    if (comments == null) {
+      fail('Expected comments.');
+    }
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addReplacement(
+        code.range.sourceRange,
+        buildEdit != null
+            ? (builder) => buildEdit(builder, comments)
+            : (builder) => builder.writeComment(comments),
+      );
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equals(replacement));
   }
 
   Future<void> _assertwriteType2(

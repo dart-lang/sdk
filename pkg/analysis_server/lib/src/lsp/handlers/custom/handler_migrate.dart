@@ -51,7 +51,9 @@ class MigrateHandler
 
     var targets = validationResult.resultOrNull!;
     var apply = params.apply ?? false;
-    var steps = params.steps ?? [MigrationStep.All];
+    // Clean up fixes go beyond what raising the SDK constraint needs, so they
+    // only run when asked for.
+    var steps = params.steps ?? [MigrationStep.Prepare, MigrationStep.Bump];
     if (steps.runPrepare && steps.runCleanup && !steps.runBump) {
       return error(
         ErrorCodes.InvalidParams,
@@ -237,10 +239,11 @@ class MigrateHandler
         '${knownSdkVersions.last}.',
       );
     }
-    if (!steps.runAll) {
+    if (!steps.runPrepare || !steps.runBump) {
       return error(
         ErrorCodes.InvalidParams,
-        'Multi-version migration requires running all steps (--step=all).',
+        "Multi-version migration requires running both the 'prepare' and "
+        "'bump' steps.",
       );
     }
     return success(targetSdk);
