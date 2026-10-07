@@ -945,6 +945,7 @@ enum Compiler {
   ),
   appJitk._('app_jitk', supportedRuntimes: [Runtime.vm]),
   dartk._('dartk', supportedRuntimes: [Runtime.vm]),
+  dartResident._('dart_resident', supportedRuntimes: [Runtime.vm]),
   dartkp._('dartkp', supportedRuntimes: [Runtime.dartPrecompiled]),
   specParser._('spec_parser'),
   fasta._('fasta', defaultMode: Mode.release),

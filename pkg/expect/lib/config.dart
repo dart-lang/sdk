@@ -30,7 +30,9 @@ bool get isDdcConfiguration => _configuration.compiler == Compiler.ddc;
 bool get isVmDynConfiguration =>
     _configuration.compiler == Compiler.dart2bytecode;
 
-bool get isVmJitConfiguration => _configuration.compiler == Compiler.dartk;
+bool get isVmJitConfiguration =>
+    _configuration.compiler == Compiler.dartk ||
+    _configuration.compiler == Compiler.dartResident;
 
 bool get isVmAotConfiguration => _configuration.compiler == Compiler.dartkp;
 

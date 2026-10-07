@@ -96,6 +96,9 @@ abstract class CompilerConfiguration {
         }
         return NoneCompilerConfiguration(configuration);
 
+      case Compiler.dartResident:
+        return DartResidentCompilerConfiguration(configuration);
+
       case Compiler.dartkp:
         // TODO(b/399714829): Test packages should be created at test-time, not
         // build time.
@@ -209,6 +212,39 @@ class NoneCompilerConfiguration extends CompilerConfiguration {
     throw UnsupportedError(
       '"None" compiler configuration has no compilation artifacts',
     );
+  }
+}
+
+/// The "dart_resident" compiler configuration, which runs code using "dart run -r".
+class DartResidentCompilerConfiguration extends NoneCompilerConfiguration {
+  DartResidentCompilerConfiguration(super.configuration);
+
+  @override
+  List<String> computeRuntimeArguments(
+    RuntimeConfiguration runtimeConfiguration,
+    TestFile testFile,
+    List<String> vmOptions,
+    List<String> originalArguments,
+    CommandArtifact? artifact,
+  ) {
+    var arguments = super.computeRuntimeArguments(
+      runtimeConfiguration,
+      testFile,
+      vmOptions,
+      originalArguments,
+      artifact,
+    );
+    var scriptPath = testFile.path.toNativePath();
+    var scriptIndex = arguments.indexOf(scriptPath);
+    if (scriptIndex == -1) {
+      throw StateError("Couldn't find test script '$scriptPath' in arguments.");
+    }
+    arguments.insertAll(scriptIndex, [
+      'run',
+      '-r',
+      '--resident-compiler-info-file=${_configuration.residentCompilerInfoFile}',
+    ]);
+    return arguments;
   }
 }
 

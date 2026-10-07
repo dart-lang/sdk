@@ -84,6 +84,7 @@ List<String> _selectBuildTargets(Configuration inner) {
   final compiler = inner.compiler;
   const targetsForCompilers = {
     Compiler.dartk: ['runtime'],
+    Compiler.dartResident: ['runtime'],
     Compiler.dartkp: ['runtime', 'runtime_precompiled'],
     Compiler.appJitk: ['runtime'],
     Compiler.fasta: ['front-end_bot'],
