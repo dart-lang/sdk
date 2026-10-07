@@ -112,6 +112,41 @@ void f() {
     assertRefactoringStatus(status, RefactoringProblemSeverity.FATAL);
   }
 
+  /// https://github.com/dart-lang/sdk/issues/53907
+  Future<void> test_isAvailable_forEachVariable() async {
+    await indexTestUnit('''
+void f(List<int> values) {
+  for (var test in values) {
+    print(test);
+  }
+}
+''');
+    _createRefactoring('test);');
+    expect(refactoring.isAvailable(), isFalse);
+  }
+
+  Future<void> test_isAvailable_patternVariable() async {
+    await indexTestUnit('''
+void f() {
+  var (test, _) = (1, 2);
+  print(test);
+}
+''');
+    _createRefactoring('test);');
+    expect(refactoring.isAvailable(), isFalse);
+  }
+
+  Future<void> test_isAvailable_variable() async {
+    await indexTestUnit('''
+void f() {
+  var test = 1;
+  print(test);
+}
+''');
+    _createRefactoring('test);');
+    expect(refactoring.isAvailable(), isTrue);
+  }
+
   Future<void> test_OK_cascade_intoCascade() async {
     await indexTestUnit(r'''
 class A {
