@@ -79,7 +79,6 @@ import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
-import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
@@ -333,9 +332,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   /// The object used to resolve the element associated with the current node.
   late final ElementResolver elementResolver;
 
-  /// The object used to compute the type associated with the current node.
-  late final StaticTypeAnalyzer typeAnalyzer;
-
   /// The type system in use during resolution.
   @override
   final TypeSystemImpl typeSystem;
@@ -484,7 +480,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       flowAnalysis,
     );
     elementResolver = ElementResolver(this);
-    typeAnalyzer = StaticTypeAnalyzer(this);
     _functionReferenceResolver = FunctionReferenceResolver(this);
   }
 
@@ -1894,7 +1889,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       analyzeExpression(string, operations.unknownType);
       popRewrite();
     }
-    typeAnalyzer.visitAdjacentStrings(node);
+    node.recordStaticType(typeProvider.stringType, resolver: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -2111,7 +2106,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node.type);
     node.type.accept2(this);
 
-    typeAnalyzer.visitAsExpression(node);
+    // TODO(brianwilkerson): Determine the conditions for which the type is
+    // null.
+    node.recordStaticType(
+      node.type.type ?? typeProvider.dynamicType,
+      resolver: this,
+    );
     flowAnalysis.asExpression(node);
     _insertImplicitCallTearOff(
       insertGenericFunctionInstantiation(node, contextType: contextType),
@@ -2293,7 +2293,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     );
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    typeAnalyzer.visitBooleanLiteral(node);
+    node.recordStaticType(typeProvider.boolType, resolver: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -2369,7 +2369,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       _activeCascadeExpression = previousCascade;
     }
 
-    typeAnalyzer.visitCascadeExpression(node);
+    node.recordStaticType(node.target2.typeOrThrow, resolver: this);
 
     if (node.isNullAware) {
       flowAnalysis.flow!.nullAwareAccess_end(offset: node.end);
@@ -2618,7 +2618,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     }
     elseExpression = popRewrite()!;
 
-    typeAnalyzer.visitConditionalExpression(node, contextType: contextType);
+    _recordConditionalExpressionType(node, contextType: contextType);
     if (flow != null) {
       flowAnalysis.storeExpressionInfo(
         node,
@@ -2891,7 +2891,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    typeAnalyzer.visitDoubleLiteral(node as DoubleLiteralImpl);
+    (node as DoubleLiteralImpl).recordStaticType(
+      typeProvider.doubleType,
+      resolver: this,
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3548,7 +3551,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    typeAnalyzer.visitIntegerLiteral(
+    _recordIntegerLiteralType(
       node as IntegerLiteralImpl,
       contextType: contextType,
     );
@@ -3611,7 +3614,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node.type);
     node.type.accept2(this);
 
-    typeAnalyzer.visitIsExpression(node);
+    node.recordStaticType(typeProvider.boolType, resolver: this);
     flowAnalysis.isExpression(node);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3932,7 +3935,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     node.visitChildren2(this);
-    typeAnalyzer.visitNullLiteral(node as NullLiteralImpl);
+    (node as NullLiteralImpl).recordStaticType(
+      typeProvider.nullType,
+      resolver: this,
+    );
     flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.flow?.nullLiteral(SharedTypeView(node.typeOrThrow)),
@@ -3950,7 +3956,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     analyzeExpression(node.expression2, SharedTypeSchemaView(contextType));
     popRewrite();
-    typeAnalyzer.visitParenthesizedExpression(node);
+    node.recordStaticType(node.expression2.typeOrThrow, resolver: this);
     flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.flow?.parenthesizedExpression(
@@ -4424,7 +4430,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    typeAnalyzer.visitRethrowExpression(node as RethrowExpressionImpl);
+    (node as RethrowExpressionImpl).recordStaticType(
+      typeProvider.bottomType,
+      resolver: this,
+    );
     flowAnalysis.flow?.handleExit(offset: node.end);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -4476,7 +4485,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    typeAnalyzer.visitSimpleStringLiteral(node as SimpleStringLiteralImpl);
+    (node as SimpleStringLiteralImpl).recordStaticType(
+      typeProvider.stringType,
+      resolver: this,
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4515,7 +4527,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    typeAnalyzer.visitStringInterpolation(node as StringInterpolationImpl);
+    (node as StringInterpolationImpl).recordStaticType(
+      typeProvider.stringType,
+      resolver: this,
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4615,7 +4630,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    typeAnalyzer.visitSymbolLiteral(node as SymbolLiteralImpl);
+    (node as SymbolLiteralImpl).recordStaticType(
+      typeProvider.symbolType,
+      resolver: this,
+    );
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4630,7 +4648,16 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     }
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    typeAnalyzer.visitThisExpression(node);
+    var (:promotedType, :expressionInfo) =
+        flowAnalysis.flow?.thisExpression() ??
+        (promotedType: null, expressionInfo: null);
+    flowAnalysis.storeExpressionInfo(node, expressionInfo);
+    var staticType =
+        (isThisAccessible
+            ? promotedType?.unwrapTypeView<TypeImpl>() ?? unpromotedThisType
+            : null) ??
+        InvalidTypeImpl.instance;
+    node.recordStaticType(staticType, resolver: this);
     _insertImplicitCallTearOff(node, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -4647,7 +4674,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       SharedTypeSchemaView(typeProvider.objectType),
     );
     popRewrite();
-    typeAnalyzer.visitThrowExpression(node);
+    node.recordStaticType(typeProvider.bottomType, resolver: this);
     // Note: it's not necessary to call `FlowAnalysis.handleExit`, because
     // `TypeAnalyzer.analyzeExpression` calls it when the static type of the
     // expression is `Never`.
@@ -5185,6 +5212,69 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     tearOff.setPseudoExpressionStaticType(callMethodType);
     if (typeArgumentTypes.isNotEmpty) {
       wrapFunctionInstantiation(tearOff, typeArgumentTypes);
+    }
+  }
+
+  /// Records the static type of a conditional expression `b ? e1 : e2`, after
+  /// its branches were inferred with the context type [contextType].
+  void _recordConditionalExpressionType(
+    ConditionalExpressionImpl node, {
+    required TypeImpl contextType,
+  }) {
+    // A conditional expression `E` of the form `b ? e1 : e2` with context type
+    // `K` is analyzed as follows:
+    //
+    // - Let `T1` be the type of `e1` inferred with context type `K`
+    var t1 = node.thenExpression2.typeOrThrow;
+    // - Let `T2` be the type of `e2` inferred with context type `K`
+    var t2 = node.elseExpression2.typeOrThrow;
+    // - Let `T` be  `UP(T1, T2)`
+    var t = typeSystem.leastUpperBound(t1, t2);
+    // - Let `S` be the greatest closure of `K`
+    var s = operations
+        .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
+        .unwrapTypeView<TypeImpl>();
+    DartType staticType;
+    // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
+    if (!definingLibrary.featureSet.isEnabled(Feature.inference_update_3)) {
+      staticType = t;
+    } else
+    // - If `T <: S` then the type of `E` is `T`
+    if (typeSystem.isSubtypeOf(t, s)) {
+      staticType = t;
+    } else
+    // - Otherwise, if `T1 <: S` and `T2 <: S`, then the type of `E` is `S`
+    if (typeSystem.isSubtypeOf(t1, s) && typeSystem.isSubtypeOf(t2, s)) {
+      staticType = s;
+    } else
+    // - Otherwise, the type of `E` is `T`
+    {
+      staticType = t;
+    }
+
+    node.recordStaticType(staticType, resolver: this);
+  }
+
+  /// Records the static type of an integer literal: `int`, unless the context
+  /// type [contextType] accepts `double` but not `int`.
+  void _recordIntegerLiteralType(
+    IntegerLiteralImpl node, {
+    required TypeImpl contextType,
+  }) {
+    var strictCasts = analysisOptions.strictCasts;
+    if (typeSystem.isAssignableTo(
+          typeProvider.intType,
+          contextType,
+          strictCasts: strictCasts,
+        ) ||
+        !typeSystem.isAssignableTo(
+          typeProvider.doubleType,
+          contextType,
+          strictCasts: strictCasts,
+        )) {
+      node.recordStaticType(typeProvider.intType, resolver: this);
+    } else {
+      node.recordStaticType(typeProvider.doubleType, resolver: this);
     }
   }
 
