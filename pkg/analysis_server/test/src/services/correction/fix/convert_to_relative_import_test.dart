@@ -89,7 +89,7 @@ class ConvertToRelativeImportSrcTest extends FixProcessorLintTest {
   @override
   String get testFilePath => convertPath('$testPackageLibPath/src/test.dart');
 
-  Future<void> test_relativeImport() async {
+  Future<void> test_inParentDirectory() async {
     newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
@@ -113,33 +113,7 @@ class ConvertToRelativeImportTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_relative_imports;
 
-  Future<void> test_relativeImportGarbledUri() async {
-    newFile('$testPackageLibPath/foo.dart', '');
-    await resolveTestCode('''
-import 'package:test/foo';
-''');
-
-    await assertHasFix('''
-import 'foo';
-''', filter: (error) => error.diagnosticCode != diag.uriDoesNotExist);
-  }
-
-  Future<void> test_relativeImportRespectQuoteStyle() async {
-    newFile('$testPackageLibPath/foo.dart', '''
-class C {}
-''');
-    await resolveTestCode('''
-import "package:test/foo.dart";
-C? c;
-''');
-
-    await assertHasFix('''
-import "foo.dart";
-C? c;
-''');
-  }
-
-  Future<void> test_relativeImportSameDirectory() async {
+  Future<void> test_inSameDirectory() async {
     newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
@@ -154,7 +128,29 @@ C? c;
 ''');
   }
 
-  Future<void> test_relativeImportSubDirectory() async {
+  Future<void> test_inSameDirectory_part() async {
+    newFile('$testPackageLibPath/foo.dart', '''
+class C {}
+''');
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+import 'package:test/foo.dart';
+C? c;
+''');
+
+    await assertHasFix('''
+part of 'a.dart';
+
+import 'foo.dart';
+C? c;
+''');
+  }
+
+  Future<void> test_inSubDirectory() async {
     newFile('$testPackageLibPath/baz/foo.dart', '''
 class C {}
 ''');
@@ -165,6 +161,54 @@ C? c;
 
     await assertHasFix('''
 import 'baz/foo.dart';
+C? c;
+''');
+  }
+
+  Future<void> test_inSubDirectory_inPart() async {
+    newFile('$testPackageLibPath/baz/foo.dart', '''
+class C {}
+''');
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+import 'package:test/baz/foo.dart';
+C? c;
+''');
+
+    await assertHasFix('''
+part of 'a.dart';
+
+import 'baz/foo.dart';
+C? c;
+''');
+  }
+
+  Future<void> test_invalidUri() async {
+    newFile('$testPackageLibPath/foo.dart', '');
+    await resolveTestCode('''
+import 'package:test/foo';
+''');
+
+    await assertHasFix('''
+import 'foo';
+''', filter: (error) => error.diagnosticCode != diag.uriDoesNotExist);
+  }
+
+  Future<void> test_respectQuoteStyle() async {
+    newFile('$testPackageLibPath/foo.dart', '''
+class C {}
+''');
+    await resolveTestCode('''
+import "package:test/foo.dart";
+C? c;
+''');
+
+    await assertHasFix('''
+import "foo.dart";
 C? c;
 ''');
   }
