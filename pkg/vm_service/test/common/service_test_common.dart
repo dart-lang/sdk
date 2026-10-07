@@ -1104,10 +1104,18 @@ Future<void> evaluateInFrameAndExpect(
     topFrame,
     expression,
     scope: scope,
-  ) as InstanceRef;
-  expect(result.valueAsString, expected);
-  if (kind != null) {
-    expect(result.kind!, kind);
+  );
+  if (result is InstanceRef) {
+    expect(result.valueAsString, expected);
+    if (kind != null) {
+      expect(result.kind!, kind);
+    }
+  } else if (result is ErrorRef) {
+    fail("Expected instance with value '$expected', "
+        "but got ErrorRef with message '${result.message}'.");
+  } else {
+    fail("Expected instance with value '$expected', "
+        "but got '${result.runtimeType}'.");
   }
 }
 

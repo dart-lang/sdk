@@ -572,6 +572,11 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
     return result.ptr();
   }
   const Function& function = H.GetExpressionEvaluationFunction();
+  if (function.IsNull()) {
+    const String& message = String::Handle(
+        String::New("Expression evaluation failure: No function."));
+    return ApiError::New(message);
+  }
   ASSERT(!function.IsNull());
   ASSERT(
       GrowableObjectArray::Handle(IG->object_store()->libraries()).Length() ==
