@@ -117,12 +117,19 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
 
   var services = <Future<WebDriverService>>{};
   for (var configuration in configurations) {
-    if (!listTests && !listStatusFiles && runningBrowserTests) {
-      serverFutures.add(configuration.startServers());
-      if (WebDriverService.supportedRuntimes.contains(configuration.runtime)) {
-        services.add(
-          WebDriverService.startServiceForRuntime(configuration.runtime),
-        );
+    if (!listTests && !listStatusFiles) {
+      if (runningBrowserTests) {
+        serverFutures.add(configuration.startServers());
+        if (WebDriverService.supportedRuntimes.contains(
+          configuration.runtime,
+        )) {
+          services.add(
+            WebDriverService.startServiceForRuntime(configuration.runtime),
+          );
+        }
+      }
+      if (configuration.compiler == Compiler.dartResident) {
+        serverFutures.add(configuration.startResidentCompiler());
       }
     }
 
@@ -312,9 +319,16 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     adbDevicePool = await AdbDevicePool.create();
   }
 
-  // Start all the HTTP servers required before starting the process queue.
+  // Start all the HTTP and compilation servers required before starting the process queue.
   if (serverFutures.isNotEmpty) {
-    await Future.wait(serverFutures);
+    try {
+      await Future.wait(serverFutures);
+    } catch (_) {
+      for (var configuration in configurations) {
+        configuration.stopServers();
+      }
+      rethrow;
+    }
   }
 
   // [firstConf] is needed here, because the ProcessQueue uses some settings.
