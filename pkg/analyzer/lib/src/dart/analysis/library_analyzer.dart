@@ -102,10 +102,12 @@ class LibraryAnalyzer {
     this._library, {
     required this.performance,
     TestingData? testingData,
-    required TypeSystemOperations typeSystemOperations,
     bool enableLintRuleTiming = false,
   }) : _testingData = testingData,
-       _typeSystemOperations = typeSystemOperations,
+       _typeSystemOperations = TypeSystemOperations(
+         _libraryElement.typeSystem,
+         strictCasts: _analysisOptions.strictCasts,
+       ),
        _enableLintRuleTiming = enableLintRuleTiming {
     _libraryVerificationContext = LibraryVerificationContext(
       libraryKind: _library,
@@ -213,7 +215,7 @@ class LibraryAnalyzer {
         _typeProvider,
         diagnosticListener,
         featureSet: _libraryElement.featureSet,
-        analysisOptions: _library.file.analysisOptions,
+        analysisOptions: _analysisOptions,
         flowAnalysisHelper: flowAnalysisHelper,
         libraryFragment: libraryFragment,
         typeAnalyzerOptions: typeAnalyzerOptions,
@@ -1012,7 +1014,7 @@ class LibraryAnalyzer {
       source,
       _typeProvider,
       diagnosticListener,
-      analysisOptions: _library.file.analysisOptions,
+      analysisOptions: _analysisOptions,
       featureSet: unit.featureSet,
       flowAnalysisHelper: flowAnalysisHelper,
       libraryFragment: libraryFragment,

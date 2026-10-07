@@ -116,6 +116,29 @@ class AnalysisDriver_LintTest extends PubPackageResolutionTest
     return super.tearDown();
   }
 
+  test_getErrors_library_partRequestedFirst_usesLibraryOptions() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'nested/b.dart';
+''');
+
+    // The part has its own analysis options, which do not enable the lint.
+    newAnalysisOptionsYamlFile('$testPackageLibPath/nested', '');
+    var b = newFile('$testPackageLibPath/nested/b.dart', r'''
+part of '../a.dart';
+''');
+
+    // Analyze the library because its part is requested.
+    var driver = driverFor(a);
+    await driver.getResolvedUnit(b.path);
+
+    // The library is analyzed with the options of the library file.
+    var result = await driver.getErrors(a.path) as ErrorsResult;
+    _assertHasLintReported(
+      result.diagnostics,
+      _AlwaysReportedLint.code.lowerCaseName,
+    );
+  }
+
   test_getResolvedUnit_lint_existingFile() async {
     addTestFile('');
     var result = await resolveTestFile();

@@ -40,7 +40,6 @@ import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
     show DiagnosticMessageImpl;
@@ -1377,13 +1376,8 @@ class AnalysisDriver {
           );
         });
 
-        var analysisOptions = file.analysisOptions;
         var libraryElement = libraryContext.elementFactory.libraryOfUri2(
           library.file.uri,
-        );
-        var typeSystemOperations = TypeSystemOperations(
-          libraryElement.typeSystem,
-          strictCasts: analysisOptions.strictCasts,
         );
 
         RequirementsManifest? requirements;
@@ -1395,14 +1389,13 @@ class AnalysisDriver {
 
         var results = performance.run('LibraryAnalyzer', (performance) {
           return LibraryAnalyzer(
-            analysisOptions,
+            library.file.analysisOptions,
             declaredVariables,
             libraryElement,
             libraryContext.elementFactory.analysisSession.inheritanceManager,
             library,
             performance: performance,
             testingData: testingData,
-            typeSystemOperations: typeSystemOperations,
             enableLintRuleTiming: _enableLintRuleTiming,
           ).analyze();
         });
@@ -2374,26 +2367,19 @@ class AnalysisDriver {
         libraryContext.load(targetLibrary: library, performance: performance);
       });
       var libraryFragment = libraryContext.computeUnitElement(library, file);
-      var analysisOptions = libraryContext.analysisContext
-          .getAnalysisOptionsForFile(file.resource);
       var libraryElement = libraryContext.elementFactory.libraryOfUri2(
         library.file.uri,
-      );
-      var typeSystemOperations = TypeSystemOperations(
-        libraryElement.typeSystem,
-        strictCasts: analysisOptions.strictCasts,
       );
 
       var analysisResult = performance.run('LibraryAnalyzer', (performance) {
         return LibraryAnalyzer(
-          analysisOptions as AnalysisOptionsImpl,
+          library.file.analysisOptions,
           declaredVariables,
           libraryElement,
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
           performance: OperationPerformanceImpl('<root>'),
           testingData: testingData,
-          typeSystemOperations: typeSystemOperations,
         ).analyzeForCompletion(
           file: file,
           offset: offset,

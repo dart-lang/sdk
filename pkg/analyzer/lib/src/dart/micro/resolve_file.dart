@@ -32,7 +32,6 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/micro/analysis_context.dart';
 import 'package:analyzer/src/dart/micro/utils.dart';
-import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -586,11 +585,6 @@ class FileResolver {
 
         var libraryElement = elementFactory.libraryOfUri2(libraryKind.file.uri);
 
-        var typeSystemOperations = TypeSystemOperations(
-          libraryElement.typeSystem,
-          strictCasts: fileContext.analysisOptions.strictCasts,
-        );
-
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
           contextObjects!.declaredVariables,
@@ -598,7 +592,6 @@ class FileResolver {
           analysisSession.inheritanceManager,
           libraryKind,
           performance: OperationPerformanceImpl('<root>'),
-          typeSystemOperations: typeSystemOperations,
         );
 
         var analysisResult = performance!.run('analyze', (performance) {
@@ -658,11 +651,6 @@ class FileResolver {
           libraryKind.file.uri,
         );
 
-        var typeSystemOperations = TypeSystemOperations(
-          libraryElement.typeSystem,
-          strictCasts: fileContext.analysisOptions.strictCasts,
-        );
-
         var libraryAnalyzer = LibraryAnalyzer(
           fileContext.analysisOptions,
           contextObjects!.declaredVariables,
@@ -670,7 +658,6 @@ class FileResolver {
           libraryContext!.elementFactory.analysisSession.inheritanceManager,
           libraryKind,
           performance: OperationPerformanceImpl('<root>'),
-          typeSystemOperations: typeSystemOperations,
         );
 
         results = performance!.run('analyze', (performance) {
