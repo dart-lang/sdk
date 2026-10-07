@@ -365,7 +365,7 @@ bool Process::Wait(intptr_t pid,
   union {
     uint8_t bytes[8];
     int32_t ints[2];
-  } exit_code_data;
+  } exit_code_data = {};
 
   // Create a port, which is like an epoll() fd on Linux.
   zx_handle_t port;
@@ -404,7 +404,7 @@ bool Process::Wait(intptr_t pid,
     IOHandle* event_handle = reinterpret_cast<IOHandle*>(pkt.key);
     const intptr_t event_mask = event_handle->WaitEnd(pkt.signal.observed);
     if (event_handle == out_tmp) {
-      if ((event_mask & POLLIN) != 0) {
+      if ((event_mask & (POLLIN | POLLRDHUP)) != 0) {
         const intptr_t avail = FDUtils::AvailableBytes(out_tmp->fd());
         if (!out_data.Read(out_tmp->fd(), avail)) {
           return false;
@@ -415,7 +415,7 @@ bool Process::Wait(intptr_t pid,
         out_tmp = nullptr;
       }
     } else if (event_handle == err_tmp) {
-      if ((event_mask & POLLIN) != 0) {
+      if ((event_mask & (POLLIN | POLLRDHUP)) != 0) {
         const intptr_t avail = FDUtils::AvailableBytes(err_tmp->fd());
         if (!err_data.Read(err_tmp->fd(), avail)) {
           return false;
@@ -426,7 +426,7 @@ bool Process::Wait(intptr_t pid,
         err_tmp = nullptr;
       }
     } else if (event_handle == exit_tmp) {
-      if ((event_mask & POLLIN) != 0) {
+      if ((event_mask & (POLLIN | POLLRDHUP)) != 0) {
         const intptr_t avail = FDUtils::AvailableBytes(exit_tmp->fd());
         if (avail == 8) {
           intptr_t b =
