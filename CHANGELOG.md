@@ -19,6 +19,19 @@
   child's `PATH`. Using an absolute path for the `executable` argument to
   `Process.start` etc is recommended to avoid platform-specific differences.
 
+#### `dart:isolate`
+
+- **Breaking change:** Unshipped the experimental synchronous execution and
+  event loop control APIs (`Isolate.runSync`, `Isolate.create`,
+  `Isolate.shutdownSync`, `Isolate.pinToCurrentThread`,
+  `Isolate.isPinnedToCurrentThread`, `Isolate.runEventLoopSync`,
+  `Isolate.onEvent`, and `Isolate.handleEvent`) that were accidentally exposed
+  in Dart 3.13, and gated `NativeCallable.isolateGroupBound` behind the
+  `--experimental-shared-data` VM flag.
+  For more details, see SDK issue [#64285][].
+
+[#64285]: https://github.com/dart-lang/sdk/issues/64285
+
 #### `dart:typed_data`
 
 - **Breaking change:** `toString()` on the SIMD value types `Float32x4`,
@@ -27,6 +40,10 @@
   never specified. On the VM this also covers `Error.safeToString` and the
   values shown by the debugger and the VM service.
   For more details, see SDK issue [#63847][]
+- **Breaking change:** `Float32x4.min`, `Float32x4.max`, `Float64x2.min`, and
+  `Float64x2.max` now follow IEEE 754 semantics across all platforms: if either
+  lane is `NaN`, the result lane is `NaN`, and `-0.0` is ordered below `+0.0`.
+  For more details, see SDK issue [#63962][].
 - Added `rangeEquals` extension methods on all integer typed data lists
   (`Uint8List`, `Int8List`, `Uint8ClampedList`, `Uint16List`, `Int16List`,
   `Uint32List`, `Int32List`, `Uint64List`, `Int64List`) and `ByteData` for
@@ -65,6 +82,7 @@
   compared as signed 32-bit integers.
 
 [#63847]: https://github.com/dart-lang/sdk/issues/63847
+[#63962]: https://github.com/dart-lang/sdk/issues/63962
 
 #### `dart:js_interop`
 
@@ -113,14 +131,27 @@
   Function(T, JSArray<E>).toJSCaptureThisVarArgs` which capture JS function
   arguments as an array rather than as separate arguments to the Dart function.
 
+- `Function.toJS` and `Function.toJSCaptureThis` now support functions without
+  optional positional parameters that return `Future<T>` (where `T` is `void` or
+  a subtype of `JSAny?`), automatically converting the returned `Future` to a
+  `JSPromise`.
+  For more details, see SDK issue [#63496][].
+
+- `external` extension members can now be declared on generic type parameters
+  bounded by a JS interop type (for example,
+  `extension <T extends JSObject> on T`).
+  For more details, see SDK issue [#61248][].
+
 #### `dart:mirrors`
 
 - The `dart:mirrors` library is now marked `@deprecated`, and will be removed
   in a future release. For details, see issue [#44489].
 
 [#44489]: https://github.com/dart-lang/sdk/issues/44489
+[#61248]: https://github.com/dart-lang/sdk/issues/61248
 [#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
+[#63496]: https://github.com/dart-lang/sdk/issues/63496
 
 ### Tools
 
@@ -185,6 +216,46 @@ formatting Dart 3.13 code:
 
 [dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
 [dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
+
+#### dart2js
+
+- Added the `--[no-]deprecated-js-interop` flag (`dart compile js` and
+  `dart2js`). Passing `--no-deprecated-js-interop` disallows importing the
+  deprecated JS interop libraries (`dart:html`, `dart:html_common`,
+  `dart:indexed_db`, `dart:js`, `dart:js_util`, `dart:svg`, `dart:web_audio`,
+  and `dart:web_gl`) and sets their `dart.library.*` environment conditions to
+  `false` in conditional imports and `bool.fromEnvironment`.
+  For more details, see SDK issue [#63919][].
+
+#### Dart Development Compiler (dartdevc)
+
+- Added the `--[no-]deprecated-js-interop` flag. Passing
+  `--no-deprecated-js-interop` disallows importing the deprecated JS interop
+  libraries (`dart:html`, `dart:html_common`, `dart:indexed_db`, `dart:js`,
+  `dart:js_util`, `dart:svg`, `dart:web_audio`, and `dart:web_gl`) and sets
+  their `dart.library.*` environment conditions to `false` in conditional
+  imports and `bool.fromEnvironment`.
+  For more details, see SDK issue [#63919][].
+
+#### dart2wasm
+
+- `dart2wasm` now emits standardized WebAssembly `try_table` exception handling
+  instructions by default ([#54394][]).
+- `dart2wasm` now requires native `wasm:js-string` built-in support and works
+  around `WebAssembly.compileStreaming` bugs in Safari 26.5 and earlier
+  ([#63543][]).
+- `dart.library.isolate` now evaluates to `false` in conditional imports
+  (`if (dart.library.isolate)`) when compiling with `dart2wasm` ([#64328][]).
+- `dart compile wasm --standalone` no longer supports `dart:js_interop`.
+- `Int32x4`, `Float32x4`, `Float64x2`, and their typed-data list views
+  (`Int32x4List`, `Float32x4List`, `Float64x2List`) now compile to hardware
+  128-bit WebAssembly SIMD (`v128`) instructions ([#64170][]).
+
+[#54394]: https://github.com/dart-lang/sdk/issues/54394
+[#63543]: https://github.com/dart-lang/sdk/issues/63543
+[#63919]: https://github.com/dart-lang/sdk/issues/63919
+[#64170]: https://github.com/dart-lang/sdk/issues/64170
+[#64328]: https://github.com/dart-lang/sdk/issues/64328
 
 ## 3.13.3
 
