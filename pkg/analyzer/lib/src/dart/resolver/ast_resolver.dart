@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
@@ -126,44 +125,21 @@ class AstResolver {
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
-  /// If resolving the initializer of a non-late instance field, there
-  /// might be [inScopePrimaryConstructorParameters].
-  void resolveExpression(
-    ExpressionImpl Function() getNode, {
-    TypeImpl contextType = UnknownInferredType.instance,
-    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters,
-    required bool isThisAccessible,
+  /// Resolves the default value of a formal parameter, and returns it.
+  ///
+  /// The returned expression might be not the original `node.value2`,
+  /// because resolution can replace it.
+  ExpressionImpl resolveDefaultValue(
+    FormalParameterDefaultClauseImpl node, {
+    required TypeImpl contextType,
   }) {
-    ExpressionImpl node = getNode();
-    ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
-    node.accept2(_resolutionVisitor);
-    // Node may have been rewritten so get it again.
-    node = getNode();
-    _prepareEnclosingDeclarations();
-    _flowAnalysis.flowAnalysisRoot_enter(
-      node.parent2 as FlowAnalysisRootImpl,
-      inScopePrimaryConstructorParameters,
-      // Offsets are ignored when doing summary linking.
-      offset: 0,
+    return _resolveExpression(
+      root: node,
+      readExpression: () => node.value2,
+      contextType: contextType,
+      inScopePrimaryConstructorParameters: null,
+      isThisAccessible: false,
     );
-    if (isThisAccessible) {
-      _resolverVisitor.flow.thisBinding_begin(
-        null,
-        thisType: SharedTypeView(
-          _resolverVisitor.thisType ?? InvalidTypeImpl.instance,
-        ),
-      );
-    }
-    _resolverVisitor.withThisAccessibility(
-      isThisAccessible,
-      () => _resolverVisitor.analyzeExpression(
-        node,
-        SharedTypeSchemaView(contextType),
-      ),
-    );
-    _resolverVisitor.popRewrite();
-    _resolverVisitor.checkIdle();
-    _flowAnalysis.flowAnalysisRoot_exit();
   }
 
   void resolvePrimaryConstructor(
@@ -196,6 +172,29 @@ class AstResolver {
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
+  /// Resolves the initializer of [node], and returns it.
+  ///
+  /// The returned expression might be not the original `node.initializer2`,
+  /// because resolution can replace it.
+  ///
+  /// If resolving the initializer of a non-late instance field, there
+  /// might be [inScopePrimaryConstructorParameters].
+  ExpressionImpl resolveVariableInitializer(
+    VariableDeclarationImpl node, {
+    required TypeImpl contextType,
+    required List<FormalParameterElementImpl>?
+    inScopePrimaryConstructorParameters,
+    required bool isThisAccessible,
+  }) {
+    return _resolveExpression(
+      root: node,
+      readExpression: () => node.initializer2!,
+      contextType: contextType,
+      inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
+      isThisAccessible: isThisAccessible,
+    );
+  }
+
   void _prepareEnclosingDeclarations() {
     _resolutionVisitor.prepareEnclosingDeclarations(
       enclosingClassElement: enclosingClassElement,
@@ -205,5 +204,59 @@ class AstResolver {
       enclosingInstanceElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
     );
+  }
+
+  /// Resolves the expression that [readExpression] reads from [root].
+  ///
+  /// Both the lexical and the typed walks can replace the expression in its
+  /// parent, so it is read again after the lexical walk, and the final
+  /// expression is returned.
+  ExpressionImpl _resolveExpression({
+    required FlowAnalysisRootImpl root,
+    required ExpressionImpl Function() readExpression,
+    required TypeImpl contextType,
+    required List<FormalParameterElementImpl>?
+    inScopePrimaryConstructorParameters,
+    required bool isThisAccessible,
+  }) {
+    var expression = readExpression();
+    var bindingVisitor = ElementBindingVisitor(_libraryFragment);
+    bindingVisitor.bindSubtree(_libraryFragment, expression);
+    expression.accept2(_resolutionVisitor);
+
+    // The lexical walk can replace the expression.
+    expression = readExpression();
+
+    _prepareEnclosingDeclarations();
+    _flowAnalysis.flowAnalysisRoot_enter(
+      root,
+      inScopePrimaryConstructorParameters,
+      // Offsets are ignored when doing summary linking.
+      offset: 0,
+    );
+    if (isThisAccessible) {
+      _resolverVisitor.flow.thisBinding_begin(
+        null,
+        thisType: SharedTypeView(
+          _resolverVisitor.thisType ?? InvalidTypeImpl.instance,
+        ),
+      );
+    }
+
+    _resolverVisitor.withThisAccessibility(
+      isThisAccessible,
+      () => _resolverVisitor.analyzeExpression(
+        expression,
+        SharedTypeSchemaView(contextType),
+      ),
+    );
+
+    // The typed walk can replace it too, and keeps the slot in sync.
+    var result = _resolverVisitor.popRewrite()!;
+    assert(identical(result, readExpression()));
+
+    _resolverVisitor.checkIdle();
+    _flowAnalysis.flowAnalysisRoot_exit();
+    return result;
   }
 }
