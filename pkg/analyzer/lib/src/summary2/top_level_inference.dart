@@ -8,8 +8,8 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/ast_resolver.dart';
 import 'package:analyzer/src/error/inference_error.dart';
-import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/instance_member_inferrer.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -70,10 +70,12 @@ class ConstantInitializersResolver {
     // type from it. Only the remaining constant initializers need resolution.
     if (!element.isTypeInferredFromInitializer) {
       var astResolver = AstResolver(
-        linker,
-        fragment.libraryFragment as LibraryFragmentImpl,
-        node.initializerScope!,
-        analysisOptions,
+        inheritance: linker.inheritance,
+        libraryFragment: fragment.libraryFragment as LibraryFragmentImpl,
+        nameScope: node.initializerScope!,
+        analysisOptions: analysisOptions,
+        enclosingClassElement: null,
+        enclosingExecutableElement: null,
       );
 
       List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters;
@@ -310,11 +312,12 @@ class _PropertyInducingElementTypeInference
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
-      _linker,
-      initializerLibraryFragment,
-      scope,
-      analysisOptions,
+      inheritance: _linker.inheritance,
+      libraryFragment: initializerLibraryFragment,
+      nameScope: scope,
+      analysisOptions: analysisOptions,
       enclosingClassElement: enclosingInterfaceElement,
+      enclosingExecutableElement: null,
     );
     astResolver.resolveExpression(
       getInitializer,

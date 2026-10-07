@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/summary2/ast_resolver.dart';
+import 'package:analyzer/src/dart/resolver/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -38,10 +38,12 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
     }
 
     var resolver = AstResolver(
-      _linker,
-      _libraryFragment,
-      _scope,
-      _libraryBuilder.kind.file.analysisOptions,
+      inheritance: _linker.inheritance,
+      libraryFragment: _libraryFragment,
+      nameScope: _scope,
+      analysisOptions: _libraryBuilder.kind.file.analysisOptions,
+      enclosingClassElement: null,
+      enclosingExecutableElement: null,
     );
     _astResolverCache = (scope: _scope, resolver: resolver);
     return resolver;
