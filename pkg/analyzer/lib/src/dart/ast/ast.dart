@@ -20487,21 +20487,17 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ForEachPartsWithIdentifier implements ForEachParts {
   /// The loop variable.
-  @ToBeDeprecated('Use identifier2 instead.')
+  @ToBeDeprecated('Use target instead.')
   SimpleIdentifier get identifier;
 
-  /// The loop variable.
+  /// The loop variable, written with each element of the iterable.
   @experimental
-  Token get identifier2;
-
-  /// The write operation, or `null` if the AST structure hasn't been resolved.
-  @experimental
-  NamedWriteResolution? get write;
+  UnqualifiedNameAssignmentTarget get target;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('identifier2'),
+    GenerateNodeProperty('target'),
     GenerateNodeProperty('inKeyword', isSuper: true),
     GenerateNodeProperty(
       'iterable2',
@@ -20514,29 +20510,29 @@ abstract final class ForEachPartsWithIdentifier implements ForEachParts {
 final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     implements ForEachPartsWithIdentifier {
   @generated
-  @override
-  final Token identifier2;
-
-  ScopeLookupResult? scopeLookupResult;
-
-  NamedWriteResolutionImpl? _write;
+  UnqualifiedNameAssignmentTargetImpl _target;
 
   @ToBeDeprecated('Part of the V1 projection.')
   SimpleIdentifierImpl? _identifier;
 
+  /// The static type exposed by the V1 [identifier].
   TypeImpl? _identifierStaticType;
 
-  @generated
+  @DoNotGenerate(
+    reason: 'Wires a V2-only child in a node shared by both AST views',
+  )
   ForEachPartsWithIdentifierImpl({
-    required this.identifier2,
+    required UnqualifiedNameAssignmentTargetImpl target,
     required super.inKeyword,
     required super.iterable2,
-  });
+  }) : _target = target {
+    _becomeParentOf2(target);
+  }
 
   @generated
   @override
   Token get beginToken {
-    return identifier2;
+    return target.beginToken;
   }
 
   @generated
@@ -20545,23 +20541,29 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     return iterable2.endToken;
   }
 
+  /// The V1 projection of [target].
+  ///
+  /// Unlike the V1 left-hand side of an assignment, it exposes any written
+  /// element, including setters, and has a static type.
   @override
-  @ToBeDeprecated('Use identifier2 instead.')
+  @ToBeDeprecated('Use target instead.')
   SimpleIdentifierImpl get identifier =>
       _identifier ??= _becomeParentOf1<SimpleIdentifierImpl>(
-        SimpleIdentifierImpl.v1Projection(token: identifier2)
-          ..element = writeElement
+        SimpleIdentifierImpl.v1Projection(token: target.name)
+          ..element = target.write?.elementOrRecovery
           ..setPseudoExpressionStaticType(_identifierStaticType),
       );
 
+  @generated
   @override
-  NamedWriteResolutionImpl? get write => _write;
+  UnqualifiedNameAssignmentTargetImpl get target => _target;
 
-  set write(NamedWriteResolutionImpl? value) {
-    _write = value;
+  @DoNotGenerate(
+    reason: 'Wires a V2-only child in a node shared by both AST views',
+  )
+  set target(UnqualifiedNameAssignmentTargetImpl target) {
+    _target = _becomeParentOf2(target);
   }
-
-  Element? get writeElement => _write?.elementOrRecovery;
 
   @DoNotGenerate(reason: 'Preserves V1 behavior')
   @ToBeDeprecated('Use _childEntities2 instead.')
@@ -20574,7 +20576,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @generated
   @override
   ChildEntities get _childEntities2 => ChildEntities()
-    ..addToken('identifier2', identifier2)
+    ..addNode('target', target)
     ..addToken('inKeyword', inKeyword)
     ..addNode('iterable2', iterable2);
 
@@ -20593,6 +20595,9 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
+    if (identical(target, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'target'.");
+    }
     if (identical(iterable2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'iterable2'.");
     }
@@ -20602,6 +20607,10 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(target, oldNode)) {
+      target = newNode as UnqualifiedNameAssignmentTargetImpl;
+      return;
+    }
     if (identical(iterable2, oldNode)) {
       iterable2 = newNode as ExpressionImpl;
       return;
@@ -20625,6 +20634,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
+    target.accept2(visitor);
     iterable2.accept2(visitor);
   }
 
@@ -20637,8 +20647,14 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
+    void Function(UnqualifiedNameAssignmentTargetImpl)? visitTarget,
     void Function(ExpressionImpl)? visitIterable2,
   }) {
+    if (visitTarget != null) {
+      visitTarget(target);
+    } else {
+      target.accept2(visitor);
+    }
     if (visitIterable2 != null) {
       visitIterable2(iterable2);
     } else {
@@ -20662,6 +20678,9 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (target._containsOffset(rangeOffset, rangeEnd)) {
+      return target;
+    }
     if (iterable2._containsOffset(rangeOffset, rangeEnd)) {
       return iterable2;
     }
@@ -50087,7 +50106,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
     }
     if (parent is ForEachPartsWithIdentifier) {
       if (target is SimpleIdentifier &&
-          identical(parent.identifier2, target.token)) {
+          identical(parent.target.name, target.token)) {
         return false;
       }
     }
@@ -50125,7 +50144,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       return identical(parent.leftHandSide2, target);
     } else if (parent is ForEachPartsWithIdentifier) {
       return target is SimpleIdentifier &&
-          identical(parent.identifier2, target.token);
+          identical(parent.target.name, target.token);
     }
     return false;
   }

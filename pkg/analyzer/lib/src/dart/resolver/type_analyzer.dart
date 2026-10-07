@@ -6019,10 +6019,7 @@ class _WhyNotPromotedVisitor
       _dataForTesting.nonPromotionReasonTargets[node] = reason.shortName;
     }
     var variableName = reason.variable.name;
-    var errorEntity = node is ForEachPartsWithIdentifier
-        ? node.identifier2
-        : node;
-    return [_contextMessageForWrite(variableName, errorEntity, reason)];
+    return [_contextMessageForWrite(variableName, node, reason)];
   }
 
   @override

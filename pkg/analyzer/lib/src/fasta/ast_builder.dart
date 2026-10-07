@@ -4530,7 +4530,7 @@ class AstBuilder extends StackListener {
         name = leftParenthesis.next!;
       }
       forLoopParts = ForEachPartsWithIdentifierImpl(
-        identifier2: name,
+        target: UnqualifiedNameAssignmentTargetImpl(name: name),
         inKeyword: inKeyword,
         iterable2: iterable,
       );

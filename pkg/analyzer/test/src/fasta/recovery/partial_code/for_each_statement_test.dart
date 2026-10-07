@@ -868,13 +868,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -920,13 +921,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -969,13 +971,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1018,13 +1021,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1066,13 +1070,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1122,13 +1127,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1167,13 +1173,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1228,13 +1235,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1282,13 +1290,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1335,13 +1344,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1393,13 +1403,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1451,13 +1462,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1503,13 +1515,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1551,13 +1564,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1606,13 +1620,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1660,13 +1675,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: ( <synthetic>
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1785,13 +1801,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -1833,13 +1850,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: BreakStatement
@@ -1878,13 +1896,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ContinueStatement
@@ -1923,13 +1942,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: DoStatement
@@ -1977,13 +1997,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -2025,13 +2046,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ForStatement
@@ -2083,13 +2105,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: IfStatement
@@ -2136,14 +2159,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: l
-                  identifier(v1): SimpleIdentifier
-                    token: l
+                  target: UnqualifiedNameAssignmentTarget
+                    name: l
                   inKeyword: :
                   iterable2: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
+                  identifier: SimpleIdentifier
+                    token: l
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
                   expression2: ParsedUnqualifiedName
@@ -2403,13 +2427,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
@@ -2451,13 +2476,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: TryStatement
@@ -2502,13 +2528,14 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: <empty> <synthetic>
-                  identifier(v1): SimpleIdentifier
-                    token: <empty> <synthetic>
+                  target: UnqualifiedNameAssignmentTarget
+                    name: <empty> <synthetic>
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
+                    token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
                     token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 body: WhileStatement
@@ -4172,9 +4199,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: CallInvocation
                     receiver: ParsedUnqualifiedName
@@ -4194,6 +4220,8 @@ CompilationUnit
                         BooleanLiteral
                           literal: true
                       rightParenthesis: )
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: EmptyStatement
                   semicolon: ;
@@ -4232,14 +4260,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
                   expression2: ParsedUnqualifiedName
@@ -4280,14 +4309,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: BreakStatement
                   breakKeyword: break
@@ -4325,14 +4355,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: ContinueStatement
                   continueKeyword: continue
@@ -4370,14 +4401,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: DoStatement
                   doKeyword: do
@@ -4424,14 +4456,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
                   expression2: ParsedUnqualifiedName
@@ -4472,14 +4505,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: ForStatement
                   forKeyword: for
@@ -4530,14 +4564,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: IfStatement
                   ifKeyword: if
@@ -4692,9 +4727,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: FunctionExpression
                     parameters: FormalParameterList
@@ -4704,6 +4738,8 @@ CompilationUnit
                       block: Block
                         leftBracket: {
                         rightBracket: }
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
                   expression2: ParsedUnqualifiedName
@@ -4744,14 +4780,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: VariableDeclarationStatement
                   variables: VariableDeclarationList
@@ -4794,14 +4831,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: EmptyStatement
                   semicolon: ;
@@ -4840,9 +4878,8 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: SwitchExpression
                     switchKeyword: switch
@@ -4854,6 +4891,8 @@ CompilationUnit
                     rightParenthesis: )
                     leftBracket: {
                     rightBracket: }
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
                   expression2: ParsedUnqualifiedName
@@ -4894,14 +4933,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: TryStatement
                   tryKeyword: try
@@ -4945,14 +4985,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: a
-                  identifier(v1): SimpleIdentifier
-                    token: a
+                  target: UnqualifiedNameAssignmentTarget
+                    name: a
                   inKeyword: in <synthetic>
                   iterable2: ParsedUnqualifiedName
                     name: <empty> <synthetic>
                   iterable(v1): SimpleIdentifier
                     token: <empty> <synthetic>
+                  identifier: SimpleIdentifier
+                    token: a
                 rightParenthesis: ) <synthetic>
                 body: WhileStatement
                   whileKeyword: while

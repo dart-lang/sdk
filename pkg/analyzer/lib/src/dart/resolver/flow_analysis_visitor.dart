@@ -1393,7 +1393,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
         // Assigned-variable collection runs before expression resolution fills
         // in the write resolution. [ScopeAnalyzer] has already recorded
         // the scope lookup used by this prepass.
-        var element = forLoopParts.scopeLookupResult?.getter;
+        var element = forLoopParts.target.scopeLookupResult?.getter;
         if (element is PromotableElementImpl) {
           assignedVariables.write(element);
         }

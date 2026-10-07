@@ -1035,35 +1035,27 @@ class AssignmentExpressionShared {
 
   DiagnosticReporter get _errorReporter => _resolver.diagnosticReporter;
 
-  void checkFinalForEachIdentifier(ForEachPartsWithIdentifierImpl node) {
-    if (_resolver.flowAnalysis.flow == null) return;
-    if (node.write case VariableWriteResolutionImpl(
-      :PromotableElementImpl element,
-    )) {
-      _checkFinalAlreadyAssigned(
-        node,
-        element,
-        isForEachIdentifier: true,
-        errorToken: node.identifier2,
-      );
-    }
-  }
-
+  /// Reports a write to [target] if it is a final local variable that might
+  /// already be assigned.
   void checkFinalTargetAlreadyAssigned(
-    UnqualifiedNameAssignmentTargetImpl target,
-  ) {
+    UnqualifiedNameAssignmentTargetImpl target, {
+    bool isWrittenRepeatedly = false,
+  }) {
     if (_resolver.flowAnalysis.flow == null) return;
     var element = target.scopeLookupResult?.getter;
     if (element is PromotableElementImpl) {
-      _checkFinalAlreadyAssigned(target, element, isForEachIdentifier: false);
+      _checkFinalAlreadyAssigned(
+        target,
+        element,
+        isWrittenRepeatedly: isWrittenRepeatedly,
+      );
     }
   }
 
   void _checkFinalAlreadyAssigned(
     AstNode node,
     PromotableElementImpl element, {
-    required bool isForEachIdentifier,
-    Token? errorToken,
+    required bool isWrittenRepeatedly,
   }) {
     var flowAnalysis = _resolver.flowAnalysis;
     var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
@@ -1071,16 +1063,14 @@ class AssignmentExpressionShared {
 
     if (element.isFinal) {
       if (element.isLate) {
-        if (isForEachIdentifier || assigned) {
-          _errorReporter.report(
-            diag.lateFinalLocalAlreadyAssigned.at(errorToken ?? node),
-          );
+        if (isWrittenRepeatedly || assigned) {
+          _errorReporter.report(diag.lateFinalLocalAlreadyAssigned.at(node));
         }
-      } else if (isForEachIdentifier || !unassigned) {
+      } else if (isWrittenRepeatedly || !unassigned) {
         _errorReporter.report(
           diag.assignmentToFinalLocal
               .withArguments(variableName: element.name!)
-              .at(errorToken ?? node),
+              .at(node),
         );
       }
     }

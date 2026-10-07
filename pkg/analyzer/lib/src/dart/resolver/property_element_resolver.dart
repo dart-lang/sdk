@@ -341,24 +341,6 @@ class PropertyElementResolver with ScopeHelpers {
     return InvalidNamedReadResolutionImpl(recoveryElement: null);
   }
 
-  NamedWriteResolutionImpl resolveForEachPartsWithIdentifier(
-    ForEachPartsWithIdentifierImpl node,
-  ) {
-    var scopeLookupResult = node.scopeLookupResult!;
-    reportDeprecatedExportUse(
-      scopeLookupResult: scopeLookupResult,
-      nameToken: node.identifier2,
-      hasRead: false,
-      hasWrite: true,
-    );
-
-    return _resolveUnqualifiedNameWrite(
-      node: node,
-      name: node.identifier2,
-      scopeLookupResult: scopeLookupResult,
-    );
-  }
-
   void resolveImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTargetImpl node,
   ) {
@@ -1200,12 +1182,7 @@ class PropertyElementResolver with ScopeHelpers {
       hasWrite: true,
     );
 
-    var writeResolution = _resolveUnqualifiedNameWrite(
-      node: node,
-      name: node.name,
-      scopeLookupResult: scopeLookupResult,
-    );
-    return writeResolution;
+    return _resolveUnqualifiedNameWrite(node);
   }
 
   ({NamedReadResolutionImpl resolution, ExpressionInfo? expressionInfo})
@@ -1263,11 +1240,7 @@ class PropertyElementResolver with ScopeHelpers {
       name: node.name,
       scopeLookupResult: scopeLookupResult,
     );
-    var writeResolution = _resolveUnqualifiedNameWrite(
-      node: node,
-      name: node.name,
-      scopeLookupResult: scopeLookupResult,
-    );
+    var writeResolution = _resolveUnqualifiedNameWrite(node);
     return (
       read: readResult.resolution,
       write: writeResolution,
@@ -2280,34 +2253,22 @@ class PropertyElementResolver with ScopeHelpers {
     return (resolution: resolution, expressionInfo: expressionInfo);
   }
 
-  NamedWriteResolutionImpl _resolveUnqualifiedNameWrite({
-    required AstNode node,
-    required Token name,
-    required ScopeLookupResult scopeLookupResult,
-  }) {
+  NamedWriteResolutionImpl _resolveUnqualifiedNameWrite(
+    UnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    var name = node.name;
     var writeLookup =
-        LexicalLookup.resolveSetter(scopeLookupResult) ??
+        LexicalLookup.resolveSetter(node.scopeLookupResult!) ??
         ThisLookup.lookupSetter2(_resolver, node: node, name: name.lexeme);
     var writeElementRequested = writeLookup?.requested;
     var writeElementRecovery = writeLookup?.recovery;
 
-    var assignmentVerifier = AssignmentVerifier(diagnosticReporter);
-    if (node is ForEachPartsWithIdentifier) {
-      assignmentVerifier.verifyUnqualifiedName(
-        node: node.identifier2,
-        name: node.identifier2,
-        requested: writeElementRequested,
-        recovery: writeElementRecovery,
-      );
-    } else {
-      var unqualifiedNode = node as UnqualifiedNameAssignmentTarget;
-      assignmentVerifier.verifyUnqualifiedName(
-        node: unqualifiedNode,
-        name: unqualifiedNode.name,
-        requested: writeElementRequested,
-        recovery: writeElementRecovery,
-      );
-    }
+    AssignmentVerifier(diagnosticReporter).verifyUnqualifiedName(
+      node: node,
+      name: name,
+      requested: writeElementRequested,
+      recovery: writeElementRecovery,
+    );
 
     var requestedResolution = _createNamedWriteResolutionWithElement(
       writeElementRequested,

@@ -732,8 +732,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void forEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    var element = node.write?.elementOrRecovery;
-    checkUsage(element, node, usageRange: node.sourceRange);
+    _checkAssignmentTarget(node.target);
   }
 
   void formalParameter(FormalParameter node) {

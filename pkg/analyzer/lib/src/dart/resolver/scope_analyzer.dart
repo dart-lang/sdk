@@ -1361,9 +1361,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
         node.loopVariable.accept2(this);
       case ForEachPartsWithIdentifierImpl():
         node.iterable2.accept2(this);
-        var scopeLookupResult = nameScope.lookup(node.identifier2.lexeme);
-        node.scopeLookupResult = scopeLookupResult;
-        _recordUnqualifiedWrite(scopeLookupResult, node.identifier2);
+        node.target.accept2(this);
       case ForEachPartsWithPatternImpl():
         node.iterable2.accept2(this);
         var variables = _computeDeclaredPatternVariables(node.pattern);

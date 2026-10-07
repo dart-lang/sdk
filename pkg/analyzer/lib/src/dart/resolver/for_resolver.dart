@@ -7,12 +7,12 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
-import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/typed_literal_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -163,41 +163,29 @@ class ForResolver {
   }) {
     ExpressionImpl iterable = forEachParts.iterable2;
     DeclaredIdentifierImpl? loopVariable;
-    ForEachPartsWithIdentifierImpl? identifierParts;
-    Element? identifierElement;
+    UnqualifiedNameAssignmentTargetImpl? target;
+    TypeImpl? valueType;
     if (forEachParts is ForEachPartsWithDeclarationImpl) {
       loopVariable = forEachParts.loopVariable;
+      var typeAnnotation = loopVariable.type;
+      valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
     } else if (forEachParts is ForEachPartsWithIdentifierImpl) {
-      identifierParts = forEachParts;
-      var write = PropertyElementResolver(
-        _resolver,
-      ).resolveForEachPartsWithIdentifier(forEachParts);
-      forEachParts.write = write;
+      target = forEachParts.target;
+      var write = _resolver.resolveUnqualifiedNameAssignmentTarget(target);
+      target.write = write;
       AssignmentExpressionShared(
         resolver: _resolver,
-      ).checkFinalForEachIdentifier(forEachParts);
-      identifierElement = forEachParts.writeElement;
+      ).checkFinalTargetAlreadyAssigned(target, isWrittenRepeatedly: true);
 
-      var identifierStaticType = switch (write) {
+      valueType = switch (write) {
         VariableWriteResolutionImpl(:var element) =>
           _resolver.localVariableTypeProvider.getWriteType(element),
         SetterInvocationResolutionImpl(:var acceptedType) => acceptedType,
-        _ => InvalidTypeImpl.instance,
+        _ => null,
       };
-      forEachParts.setIdentifierStaticType(identifierStaticType);
-    }
-
-    TypeImpl? valueType;
-    if (loopVariable != null) {
-      var typeAnnotation = loopVariable.type;
-      valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
-    }
-    if (identifierParts?.write case VariableWriteResolutionImpl(:var element)) {
-      valueType = _resolver.localVariableTypeProvider.getWriteType(element);
-    } else if (identifierParts?.write case SetterInvocationResolutionImpl(
-      :var acceptedType,
-    )) {
-      valueType = acceptedType;
+      forEachParts.setIdentifierStaticType(
+        valueType ?? InvalidTypeImpl.instance,
+      );
     }
     InterfaceTypeImpl? targetType;
     if (valueType != null) {
@@ -242,15 +230,16 @@ class ForResolver {
       node,
       offset: rightParenthesisOffset,
     );
-    if (identifierElement is PromotableElementImpl &&
-        forEachParts is ForEachPartsWithIdentifier) {
-      _resolver.flowAnalysis.flow?.write(
-        forEachParts,
-        identifierElement,
-        SharedTypeView(elementType),
-        null,
-        offset: rightParenthesisOffset,
-      );
+    if (target != null) {
+      if (target.write?.elementOrRecovery case PromotableElementImpl element) {
+        _resolver.flowAnalysis.flow?.write(
+          target,
+          element,
+          SharedTypeView(elementType),
+          null,
+          offset: rightParenthesisOffset,
+        );
+      }
     }
 
     visitBody();

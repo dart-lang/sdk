@@ -434,11 +434,6 @@ class _ElementMapperV2 extends UnifyingAstVisitor2<Element> {
   }
 
   @override
-  Element? visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    return node.write?.elementOrRecovery;
-  }
-
-  @override
   Element? visitImportDirective(ImportDirective node) {
     return node.libraryImport?.importedLibrary;
   }

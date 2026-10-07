@@ -1180,6 +1180,44 @@ SwitchStatement
 ''');
   }
 
+  test_variables_joinedCase_declareBoth_notConsistent_differentTypes_forEachTarget() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(Object? x) {
+  switch (x) {
+    case int a when a < 0:
+    case num a when a > 0:
+      for (a in [1]) {}
+//         ^
+// [diag.patternVariableSharedCaseScopeDifferentFinalityOrType] The variable 'a' doesn't have the same type and/or finality in all cases that share this body.
+  }
+}
+''');
+
+    var node = result.findNode.singleForEachPartsWithIdentifier;
+    assertResolvedNodeText(node, r'''
+ForEachPartsWithIdentifier
+  target: UnqualifiedNameAssignmentTarget
+    name: a
+    read: <null>
+    write: VariableWriteResolution
+      element: a@null
+      acceptedType: InvalidType
+  inKeyword: in
+  iterable2: ListLiteral
+    leftBracket: [
+    elements2
+      IntegerLiteral
+        literal: 1
+        staticType: int
+    rightBracket: ]
+    staticType: List<InvalidType>
+  identifier: SimpleIdentifier
+    token: a
+    element: a@null
+    staticType: InvalidType
+''');
+  }
+
   test_variables_joinedCase_declareFirst() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(Object? x) {

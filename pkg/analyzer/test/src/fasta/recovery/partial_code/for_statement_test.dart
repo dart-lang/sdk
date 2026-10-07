@@ -4934,14 +4934,15 @@ CompilationUnit
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithIdentifier
-                  identifier2: l
-                  identifier(v1): SimpleIdentifier
-                    token: l
+                  target: UnqualifiedNameAssignmentTarget
+                    name: l
                   inKeyword: :
                   iterable2: SetOrMapLiteral
                     leftBracket: {
                     rightBracket: }
                     isMap: false
+                  identifier: SimpleIdentifier
+                    token: l
                 rightParenthesis: ) <synthetic>
                 body: ExpressionStatement
                   expression2: ParsedUnqualifiedName
