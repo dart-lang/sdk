@@ -2865,16 +2865,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitDoubleLiteral(
-    DoubleLiteral node, {
+    covariant DoubleLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    (node as DoubleLiteralImpl).recordStaticType(
-      typeProvider.doubleType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.doubleType, resolver: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3154,8 +3151,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    _visitFormalParameter(node as FormalParameterImpl);
+  void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
+    _visitFormalParameter(node);
     elementResolver.visitFieldFormalParameter(node);
   }
 
@@ -3186,10 +3183,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitForStatement(ForStatement node) {
+  void visitForStatement(covariant ForStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
-    _forResolver.resolveStatement(node as ForStatementImpl);
+    _forResolver.resolveStatement(node);
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
     _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
@@ -3462,10 +3459,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitImportDirective(ImportDirective node) {
+  void visitImportDirective(covariant ImportDirectiveImpl node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitImportDirective(node as ImportDirectiveImpl);
+    elementResolver.visitImportDirective(node);
   }
 
   @override
@@ -3525,16 +3522,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitIntegerLiteral(
-    IntegerLiteral node, {
+    covariant IntegerLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    _recordIntegerLiteralType(
-      node as IntegerLiteralImpl,
-      contextType: contextType,
-    );
+    _recordIntegerLiteralType(node, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3910,15 +3904,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitNullLiteral(
-    NullLiteral node, {
+    covariant NullLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     node.visitChildren2(this);
-    (node as NullLiteralImpl).recordStaticType(
-      typeProvider.nullType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.nullType, resolver: this);
     flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.flow?.nullLiteral(SharedTypeView(node.typeOrThrow)),
@@ -4366,7 +4357,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitRedirectingConstructorInvocation(
-    RedirectingConstructorInvocation node,
+    covariant RedirectingConstructorInvocationImpl node,
   ) {
     //
     // We visit the argument list, but do not visit the optional identifier
@@ -4375,9 +4366,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     //
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    elementResolver.visitRedirectingConstructorInvocation(
-      node as RedirectingConstructorInvocationImpl,
-    );
+    elementResolver.visitRedirectingConstructorInvocation(node);
     var element = node.element;
     InvocationInferrer<RedirectingConstructorInvocationImpl>(
       resolver: this,
@@ -4397,23 +4386,20 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   @override
-  void visitRegularFormalParameter(RegularFormalParameter node) {
-    _visitFormalParameter(node as FormalParameterImpl);
+  void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
+    _visitFormalParameter(node);
     elementResolver.visitRegularFormalParameter(node);
   }
 
   @override
   void visitRethrowExpression(
-    RethrowExpression node, {
+    covariant RethrowExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    (node as RethrowExpressionImpl).recordStaticType(
-      typeProvider.bottomType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.bottomType, resolver: this);
     flowAnalysis.flow?.handleExit(offset: node.end);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -4459,16 +4445,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitSimpleStringLiteral(
-    SimpleStringLiteral node, {
+    covariant SimpleStringLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    (node as SimpleStringLiteralImpl).recordStaticType(
-      typeProvider.stringType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.stringType, resolver: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4501,21 +4484,20 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitStringInterpolation(
-    StringInterpolation node, {
+    covariant StringInterpolationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    (node as StringInterpolationImpl).recordStaticType(
-      typeProvider.stringType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.stringType, resolver: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
   @override
-  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(
+    covariant SuperConstructorInvocationImpl node,
+  ) {
     //
     // We visit the argument list, but do not visit the optional identifier
     // because it needs to be visited in the context of the constructor
@@ -4523,9 +4505,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     //
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    elementResolver.visitSuperConstructorInvocation(
-      node as SuperConstructorInvocationImpl,
-    );
+    elementResolver.visitSuperConstructorInvocation(node);
     var element = node.element;
     InvocationInferrer<SuperConstructorInvocationImpl>(
       resolver: this,
@@ -4544,8 +4524,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitSuperFormalParameter(SuperFormalParameter node) {
-    _visitFormalParameter(node as FormalParameterImpl);
+  void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
+    _visitFormalParameter(node);
   }
 
   @override
@@ -4604,16 +4584,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitSymbolLiteral(
-    SymbolLiteral node, {
+    covariant SymbolLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    (node as SymbolLiteralImpl).recordStaticType(
-      typeProvider.symbolType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.symbolType, resolver: this);
     inferenceLogWriter?.exitExpression(node);
   }
 

@@ -1747,12 +1747,12 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.type);
   }
 
+  // TODO(kallentu): Declare `TypeParameter` once variance is added to the
+  // interface.
   @override
-  void visitTypeParameter(TypeParameter node) {
+  void visitTypeParameter(covariant TypeParameterImpl node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    // TODO(kallentu): : Clean up TypeParameterImpl casting once variance is
-    // added to the interface.
-    var varianceKeyword = (node as TypeParameterImpl).varianceKeyword;
+    var varianceKeyword = node.varianceKeyword;
     if (varianceKeyword != null) {
       sink.write('${varianceKeyword.lexeme} ');
     }

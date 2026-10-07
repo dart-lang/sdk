@@ -547,9 +547,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionExpression(FunctionExpression node) {
+  void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     var body = node.body;
-    if (!(node as FunctionExpressionImpl).wasFunctionTypeSupplied) {
+    if (!node.wasFunctionTypeSupplied) {
       _checkStrictInferenceInParameters(node.parameters, body: node.body);
     }
     _checkForUnnecessarySetLiteral(body, node);
@@ -799,9 +799,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPatternField(PatternField node) {
+  void visitPatternField(covariant PatternFieldImpl node) {
     _elementUsageFrontierDetector.patternField(node);
-    _invalidAccessVerifier.verifyPatternField(node as PatternFieldImpl);
+    _invalidAccessVerifier.verifyPatternField(node);
     super.visitPatternField(node);
   }
 

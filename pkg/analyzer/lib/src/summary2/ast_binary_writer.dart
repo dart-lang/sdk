@@ -243,13 +243,15 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitConstructorTypeReference(ConstructorTypeReference node) {
+  void visitConstructorTypeReference(
+    covariant ConstructorTypeReferenceImpl node,
+  ) {
     _sink.writeEnum(AstNodeTag.ConstructorTypeReference);
     _writeOptionalNode(node.importPrefix);
     _writeStringReference(node.name.lexeme);
     _writeOptionalNode(node.typeArguments);
     _sink.writeElement(node.element);
-    _sink.writeType((node as ConstructorTypeReferenceImpl).type);
+    _sink.writeType(node.type);
   }
 
   @override
