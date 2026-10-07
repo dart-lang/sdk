@@ -70,7 +70,7 @@ class ConstantInitializersResolver {
     // TopLevelInference resolves an initializer when it infers the variable's
     // type from it. Only the remaining constant initializers need resolution.
     if (!element.isTypeInferredFromInitializer) {
-      var astResolver = AstResolver(
+      var astResolver = AstResolver.forLinking(
         inheritance: linker.inheritance,
         libraryFragment: fragment.libraryFragment as LibraryFragmentImpl,
         nameScope: node.initializerScope!,
@@ -325,7 +325,7 @@ class _PropertyInducingElementTypeInference
         .tryCast<InterfaceElementImpl>();
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-    var astResolver = AstResolver(
+    var astResolver = AstResolver.forLinking(
       inheritance: _linker.inheritance,
       libraryFragment: initializerLibraryFragment,
       nameScope: scope,

@@ -7,73 +7,166 @@ import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
-/// Resolves AST subtrees in the enclosing context given to the constructor:
-/// variable initializers, default values, annotations, and constructor
-/// initializers.
+/// Resolves AST in the enclosing context given to the constructor: units
+/// during library analysis, and variable initializers, default values,
+/// annotations, and constructor initializers during summary linking.
 class AstResolver {
-  final InheritanceManager3 _inheritance;
   final LibraryFragmentImpl _libraryFragment;
-  final Scope _nameScope;
-  final FeatureSet _featureSet;
-  final DiagnosticListener _diagnosticListener =
-      DiagnosticListener.nullListener;
-  final AnalysisOptions analysisOptions;
-  final InterfaceElementImpl? enclosingClassElement;
-  final ExecutableElementImpl? enclosingExecutableElement;
-  late final _resolutionVisitor = ResolutionVisitor(
-    libraryFragment: _libraryFragment,
-    nameScope: _nameScope,
-    docImportScope: null,
-    diagnosticListener: _diagnosticListener,
-    strictInference: analysisOptions.strictInference,
-    strictCasts: analysisOptions.strictCasts,
-    dataForTesting: null,
-  );
-  late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
-  late final _flowAnalysis = FlowAnalysisHelper(
-    false,
-    typeSystemOperations: TypeSystemOperations(
-      _libraryFragment.library.typeSystem,
-      strictCasts: analysisOptions.strictCasts,
-    ),
-    typeAnalyzerOptions: _typeAnalyzerOptions,
-    enableLog: false,
-  );
-  late final _resolverVisitor = ResolverVisitor(
-    _inheritance,
-    _libraryFragment.library,
-    LibraryResolutionContext(),
-    _libraryFragment.source,
-    _libraryFragment.library.typeProvider,
-    _diagnosticListener,
-    featureSet: _featureSet,
-    analysisOptions: analysisOptions,
-    flowAnalysisHelper: _flowAnalysis,
-    libraryFragment: _libraryFragment,
-    typeAnalyzerOptions: _typeAnalyzerOptions,
-  );
+  final InterfaceElementImpl? _enclosingClassElement;
+  final ExecutableElementImpl? _enclosingExecutableElement;
+  final TestingData? _testingData;
+  final ResolutionVisitor _resolutionVisitor;
+  final FlowAnalysisHelper _flowAnalysis;
+  final ResolverVisitor _resolverVisitor;
 
-  AstResolver({
+  /// Creates a resolver for a unit of a library being analyzed.
+  factory AstResolver.forLibraryAnalysis({
+    required InheritanceManager3 inheritance,
+    required LibraryFragmentImpl libraryFragment,
+    required AnalysisOptions analysisOptions,
+    required FeatureSet featureSet,
+    required DiagnosticListener diagnosticListener,
+    required DocImportScope? docImportScope,
+    required LibraryResolutionContext libraryResolutionContext,
+    required TypeSystemOperations typeSystemOperations,
+    required TestingData? testingData,
+  }) {
+    return AstResolver._create(
+      inheritance: inheritance,
+      libraryFragment: libraryFragment,
+      nameScope: libraryFragment.scope,
+      analysisOptions: analysisOptions,
+      featureSet: featureSet,
+      diagnosticListener: diagnosticListener,
+      docImportScope: docImportScope,
+      libraryResolutionContext: libraryResolutionContext,
+      typeSystemOperations: typeSystemOperations,
+      testingData: testingData,
+      enableFlowAnalysisLog: true,
+      enclosingClassElement: null,
+      enclosingExecutableElement: null,
+    );
+  }
+
+  /// Creates a resolver for AST nodes that the summary linker resolves.
+  ///
+  /// Diagnostics are not reported.
+  factory AstResolver.forLinking({
     required InheritanceManager3 inheritance,
     required LibraryFragmentImpl libraryFragment,
     required Scope nameScope,
-    required this.analysisOptions,
-    required this.enclosingClassElement,
-    required this.enclosingExecutableElement,
-  }) : _inheritance = inheritance,
-       _libraryFragment = libraryFragment,
-       _nameScope = nameScope,
-       _featureSet = libraryFragment.library.featureSet;
+    required AnalysisOptions analysisOptions,
+    required InterfaceElementImpl? enclosingClassElement,
+    required ExecutableElementImpl? enclosingExecutableElement,
+  }) {
+    return AstResolver._create(
+      inheritance: inheritance,
+      libraryFragment: libraryFragment,
+      nameScope: nameScope,
+      analysisOptions: analysisOptions,
+      featureSet: libraryFragment.library.featureSet,
+      diagnosticListener: DiagnosticListener.nullListener,
+      docImportScope: null,
+      libraryResolutionContext: LibraryResolutionContext(),
+      typeSystemOperations: TypeSystemOperations(
+        libraryFragment.library.typeSystem,
+        strictCasts: analysisOptions.strictCasts,
+      ),
+      testingData: null,
+      enableFlowAnalysisLog: false,
+      enclosingClassElement: enclosingClassElement,
+      enclosingExecutableElement: enclosingExecutableElement,
+    );
+  }
+
+  AstResolver._({
+    required LibraryFragmentImpl libraryFragment,
+    required InterfaceElementImpl? enclosingClassElement,
+    required ExecutableElementImpl? enclosingExecutableElement,
+    required TestingData? testingData,
+    required ResolutionVisitor resolutionVisitor,
+    required FlowAnalysisHelper flowAnalysis,
+    required ResolverVisitor resolverVisitor,
+  }) : _libraryFragment = libraryFragment,
+       _enclosingClassElement = enclosingClassElement,
+       _enclosingExecutableElement = enclosingExecutableElement,
+       _testingData = testingData,
+       _resolutionVisitor = resolutionVisitor,
+       _flowAnalysis = flowAnalysis,
+       _resolverVisitor = resolverVisitor;
+
+  factory AstResolver._create({
+    required InheritanceManager3 inheritance,
+    required LibraryFragmentImpl libraryFragment,
+    required Scope nameScope,
+    required AnalysisOptions analysisOptions,
+    required FeatureSet featureSet,
+    required DiagnosticListener diagnosticListener,
+    required DocImportScope? docImportScope,
+    required LibraryResolutionContext libraryResolutionContext,
+    required TypeSystemOperations typeSystemOperations,
+    required TestingData? testingData,
+    required bool enableFlowAnalysisLog,
+    required InterfaceElementImpl? enclosingClassElement,
+    required ExecutableElementImpl? enclosingExecutableElement,
+  }) {
+    var resolutionVisitor = ResolutionVisitor(
+      libraryFragment: libraryFragment,
+      nameScope: nameScope,
+      docImportScope: docImportScope,
+      diagnosticListener: diagnosticListener,
+      strictInference: analysisOptions.strictInference,
+      strictCasts: analysisOptions.strictCasts,
+      dataForTesting: testingData != null
+          ? TypeConstraintGenerationDataForTesting()
+          : null,
+    );
+
+    var typeAnalyzerOptions = computeTypeAnalyzerOptions(featureSet);
+    var flowAnalysis = FlowAnalysisHelper(
+      testingData != null,
+      typeSystemOperations: typeSystemOperations,
+      typeAnalyzerOptions: typeAnalyzerOptions,
+      enableLog: enableFlowAnalysisLog,
+    );
+
+    var resolverVisitor = ResolverVisitor(
+      inheritance,
+      libraryFragment.library,
+      libraryResolutionContext,
+      libraryFragment.source,
+      libraryFragment.library.typeProvider,
+      diagnosticListener,
+      featureSet: featureSet,
+      analysisOptions: analysisOptions,
+      flowAnalysisHelper: flowAnalysis,
+      libraryFragment: libraryFragment,
+      typeAnalyzerOptions: typeAnalyzerOptions,
+    );
+
+    return AstResolver._(
+      libraryFragment: libraryFragment,
+      enclosingClassElement: enclosingClassElement,
+      enclosingExecutableElement: enclosingExecutableElement,
+      testingData: testingData,
+      resolutionVisitor: resolutionVisitor,
+      flowAnalysis: flowAnalysis,
+      resolverVisitor: resolverVisitor,
+    );
+  }
 
   void resolveAnnotation(AnnotationImpl node) {
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
@@ -172,6 +265,29 @@ class AstResolver {
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
+  /// Resolves [unit], the unit of the library fragment.
+  ///
+  /// Unlike resolving subtrees, this does not enter a flow analysis root,
+  /// because the typed walk enters roots itself while walking the unit.
+  void resolveUnit(CompilationUnitImpl unit) {
+    var uri = _libraryFragment.source.uri;
+
+    unit.accept2(ElementBindingVisitor(_libraryFragment));
+    _prepareEnclosingDeclarations();
+    unit.accept2(_resolutionVisitor);
+    if (_resolutionVisitor.dataForTesting case var data?) {
+      _testingData!.recordTypeConstraintGenerationDataForTesting(uri, data);
+    }
+
+    if (_flowAnalysis.dataForTesting case var data?) {
+      _testingData!.recordFlowAnalysisDataForTesting(uri, data);
+    }
+    unit.accept2(_resolverVisitor);
+    if (_resolverVisitor.inferenceHelper.dataForTesting case var data?) {
+      _testingData!.recordTypeConstraintGenerationDataForTesting(uri, data);
+    }
+  }
+
   /// Resolves the initializer of [node], and returns it.
   ///
   /// The returned expression might be not the original `node.initializer2`,
@@ -197,12 +313,12 @@ class AstResolver {
 
   void _prepareEnclosingDeclarations() {
     _resolutionVisitor.prepareEnclosingDeclarations(
-      enclosingClassElement: enclosingClassElement,
+      enclosingClassElement: _enclosingClassElement,
     );
 
     _resolverVisitor.prepareEnclosingDeclarations(
-      enclosingInstanceElement: enclosingClassElement,
-      enclosingExecutableElement: enclosingExecutableElement,
+      enclosingInstanceElement: _enclosingClassElement,
+      enclosingExecutableElement: _enclosingExecutableElement,
     );
   }
 

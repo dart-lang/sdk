@@ -26,6 +26,7 @@ import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/ast_resolver.dart';
 import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
@@ -965,66 +966,19 @@ class LibraryAnalyzer {
   }
 
   void _resolveFile(FileAnalysis fileAnalysis) {
-    var source = fileAnalysis.file.source;
-    var diagnosticListener = fileAnalysis.diagnosticListener;
     var unit = fileAnalysis.unit;
-    var libraryFragment = fileAnalysis.fragment;
-
-    TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
-        _testingData != null ? TypeConstraintGenerationDataForTesting() : null;
-
-    unit.accept2(ElementBindingVisitor(libraryFragment));
-
-    unit.accept2(
-      ResolutionVisitor(
-        libraryFragment: libraryFragment,
-        diagnosticListener: diagnosticListener,
-        nameScope: libraryFragment.scope,
-        docImportScope: fileAnalysis.docImportScope,
-        strictInference: _analysisOptions.strictInference,
-        strictCasts: _analysisOptions.strictCasts,
-        dataForTesting: inferenceDataForTesting,
-      ),
-    );
-    _testingData?.recordTypeConstraintGenerationDataForTesting(
-      fileAnalysis.file.uri,
-      inferenceDataForTesting!,
-    );
-
-    // Nothing for RESOLVED_UNIT8?
-    // Nothing for RESOLVED_UNIT9?
-    // Nothing for RESOLVED_UNIT10?
-
-    var typeAnalyzerOptions = computeTypeAnalyzerOptions(unit.featureSet);
-    FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-      _testingData != null,
-      typeSystemOperations: _typeSystemOperations,
-      typeAnalyzerOptions: typeAnalyzerOptions,
-      enableLog: true,
-    );
-    _testingData?.recordFlowAnalysisDataForTesting(
-      fileAnalysis.file.uri,
-      flowAnalysisHelper.dataForTesting!,
-    );
-
-    var resolver = ResolverVisitor(
-      _inheritance,
-      _libraryElement,
-      libraryResolutionContext,
-      source,
-      _typeProvider,
-      diagnosticListener,
+    var astResolver = AstResolver.forLibraryAnalysis(
+      inheritance: _inheritance,
+      libraryFragment: fileAnalysis.fragment,
       analysisOptions: _analysisOptions,
       featureSet: unit.featureSet,
-      flowAnalysisHelper: flowAnalysisHelper,
-      libraryFragment: libraryFragment,
-      typeAnalyzerOptions: typeAnalyzerOptions,
+      diagnosticListener: fileAnalysis.diagnosticListener,
+      docImportScope: fileAnalysis.docImportScope,
+      libraryResolutionContext: libraryResolutionContext,
+      typeSystemOperations: _typeSystemOperations,
+      testingData: _testingData,
     );
-    unit.accept2(resolver);
-    _testingData?.recordTypeConstraintGenerationDataForTesting(
-      fileAnalysis.file.uri,
-      resolver.inferenceHelper.dataForTesting!,
-    );
+    astResolver.resolveUnit(unit);
   }
 
   /// Resolves the `@docImport` directive URI and reports any import errors of

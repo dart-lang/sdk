@@ -89,7 +89,7 @@ class DefaultValueResolver {
     var contextType = _typeSystem.eliminateTypeVariables(formalParameter.type);
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-    var astResolver = AstResolver(
+    var astResolver = AstResolver.forLinking(
       inheritance: _linker.inheritance,
       libraryFragment: firstFragment.libraryFragment as LibraryFragmentImpl,
       nameScope: firstNode.scope!,

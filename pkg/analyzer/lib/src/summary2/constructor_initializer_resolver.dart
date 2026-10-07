@@ -42,7 +42,7 @@ class ConstructorInitializerResolver {
         case ConstructorDeclarationImpl():
           var initializerScope = node.formalParameterInitializerScope!;
           var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-          var astResolver = AstResolver(
+          var astResolver = AstResolver.forLinking(
             inheritance: _linker.inheritance,
             libraryFragment: fragment.libraryFragment,
             nameScope: initializerScope,
@@ -66,7 +66,7 @@ class ConstructorInitializerResolver {
           if (node.body case var body?) {
             var initializerScope = body.formalParameterInitializerScope!;
             var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-            var astResolver = AstResolver(
+            var astResolver = AstResolver.forLinking(
               inheritance: _linker.inheritance,
               libraryFragment: fragment.libraryFragment,
               nameScope: initializerScope,
