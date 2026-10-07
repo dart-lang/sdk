@@ -13,7 +13,11 @@
 - Added `NativeFinalizer.callback`, which returns the finalization callback the
   finalizer was created with.
   For more details, see SDK issue [#63811][]
+- Added `Abi.iosArm64e` and `Abi.macosArm64e` for the `arm64e` architecture
+  with pointer authentication on iOS and macOS.
+  For more details, see SDK issue [#63420][].
 
+[#63420]: https://github.com/dart-lang/sdk/issues/63420
 [#63811]: https://github.com/dart-lang/sdk/issues/63811
 
 #### `dart:io`
@@ -205,7 +209,15 @@
 
   For more details, see SDK issue [#63240][].
 
+- Added `-e` / `--eval` to `dart run` to evaluate inline Dart code snippets
+  without creating a script file. Package imports are resolved from the current
+  package configuration if present, or ephemerally on demand using `-P` /
+  `--package-constraint` (for example, `dart run -P http:^1.0.0 -e '...'`) and
+  `--offline`.
+  For more details, see SDK issue [#64298][].
+
 [#63240]: https://github.com/dart-lang/sdk/issues/63240
+[#64298]: https://github.com/dart-lang/sdk/issues/64298
 
 #### Formatter
 
