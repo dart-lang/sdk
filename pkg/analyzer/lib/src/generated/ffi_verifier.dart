@@ -1433,9 +1433,13 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
         return;
       }
     }
-    var target = invocation.target!;
-    var targetType = target.staticType;
-    if (targetType is InterfaceTypeImpl && targetType.isPointer) {
+    // The target is absent when the receiver isn't an expression, such as an
+    // explicit extension override.
+    var target = invocation.target;
+    var targetType = target?.staticType;
+    if (target != null &&
+        targetType is InterfaceTypeImpl &&
+        targetType.isPointer) {
       var T = targetType.typeArguments[0];
       if (!T.isNativeFunction) {
         return;
