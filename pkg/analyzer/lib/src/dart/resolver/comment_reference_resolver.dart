@@ -9,13 +9,13 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 class CommentReferenceResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  CommentReferenceResolver(this._resolver);
+  CommentReferenceResolver(this._typeAnalyzer);
 
   /// Resolves [commentReference].
   void resolve(CommentReferenceImpl commentReference) {
-    _resolver.diagnosticReporter.lockLevel++;
+    _typeAnalyzer.diagnosticReporter.lockLevel++;
     try {
       var components = commentReference.components;
       if (components.length == 1) {
@@ -26,7 +26,7 @@ class CommentReferenceResolver {
         _resolveThreeComponents(components[0], components[1], components[2]);
       }
     } finally {
-      _resolver.diagnosticReporter.lockLevel--;
+      _typeAnalyzer.diagnosticReporter.lockLevel--;
     }
   }
 
@@ -54,8 +54,8 @@ class CommentReferenceResolver {
         }
       }
       var memberName = Name(container.library.uri, name);
-      return _resolver.inheritance.getMember(container, memberName) ??
-          _resolver.inheritance.getMember(container, memberName.forSetter);
+      return _typeAnalyzer.inheritance.getMember(container, memberName) ??
+          _typeAnalyzer.inheritance.getMember(container, memberName.forSetter);
     }
 
     return null;
@@ -142,13 +142,13 @@ class CommentReferenceResolver {
       return scopeElement;
     }
 
-    var enclosingInstanceElement = _resolver.enclosingInstanceElement;
+    var enclosingInstanceElement = _typeAnalyzer.enclosingInstanceElement;
     if (enclosingInstanceElement == null) {
       return null;
     }
 
     var name = component.name.lexeme;
-    var receiverType = _resolver.typeSystem.resolveToBound(
+    var receiverType = _typeAnalyzer.typeSystem.resolveToBound(
       enclosingInstanceElement.thisType,
     );
 
@@ -164,10 +164,10 @@ class CommentReferenceResolver {
       }
     }
 
-    var extensionResult = _resolver.extensionResolver.findExtension(
+    var extensionResult = _typeAnalyzer.extensionResolver.findExtension(
       receiverType,
       component,
-      Name(_resolver.definingLibrary.uri, name),
+      Name(_typeAnalyzer.definingLibrary.uri, name),
     );
     return extensionResult.getter2 ?? extensionResult.setter2;
   }

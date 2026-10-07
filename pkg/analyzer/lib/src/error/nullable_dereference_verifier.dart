@@ -18,16 +18,16 @@ class NullableDereferenceVerifier {
   final TypeSystemImpl _typeSystem;
   final DiagnosticReporter _diagnosticReporter;
 
-  /// The resolver driving this participant.
-  final TypeAnalyzer _resolver;
+  /// The type analyzer driving this participant.
+  final TypeAnalyzer _typeAnalyzer;
 
   NullableDereferenceVerifier({
     required TypeSystemImpl typeSystem,
     required DiagnosticReporter diagnosticReporter,
-    required TypeAnalyzer resolver,
+    required TypeAnalyzer typeAnalyzer,
   }) : _typeSystem = typeSystem,
        _diagnosticReporter = diagnosticReporter,
-       _resolver = resolver;
+       _typeAnalyzer = typeAnalyzer;
 
   bool expression(
     LocatableDiagnostic locatableDiagnostic,
@@ -71,10 +71,10 @@ class NullableDereferenceVerifier {
 
     List<DiagnosticMessage> messages = const [];
     if (errorNode is ExpressionImpl) {
-      messages = _resolver.computeWhyNotPromotedMessages(
+      messages = _typeAnalyzer.computeWhyNotPromotedMessages(
         errorNode,
-        _resolver.flowAnalysis.flow?.whyNotPromoted(
-          _resolver.flowAnalysis.getExpressionInfo(errorNode),
+        _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+          _typeAnalyzer.flowAnalysis.getExpressionInfo(errorNode),
         )(),
       );
     }

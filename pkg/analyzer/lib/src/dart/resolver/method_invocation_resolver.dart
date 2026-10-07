@@ -25,8 +25,8 @@ import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
 class MethodInvocationResolver with ScopeHelpers {
-  /// The resolver driving this participant.
-  final TypeAnalyzer _resolver;
+  /// The type analyzer driving this participant.
+  final TypeAnalyzer _typeAnalyzer;
 
   /// The manager for the inheritance mappings.
   final InheritanceManager3 _inheritance;
@@ -43,17 +43,17 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
-  MethodInvocationResolver(this._resolver)
-    : _inheritance = _resolver.inheritance,
-      _definingLibrary = _resolver.definingLibrary,
-      _definingLibraryUri = _resolver.definingLibrary.uri,
-      _libraryFragment = _resolver.libraryFragment,
-      _extensionResolver = _resolver.extensionResolver;
+  MethodInvocationResolver(this._typeAnalyzer)
+    : _inheritance = _typeAnalyzer.inheritance,
+      _definingLibrary = _typeAnalyzer.definingLibrary,
+      _definingLibraryUri = _typeAnalyzer.definingLibrary.uri,
+      _libraryFragment = _typeAnalyzer.libraryFragment,
+      _extensionResolver = _typeAnalyzer.extensionResolver;
 
   @override
-  DiagnosticReporter get diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get diagnosticReporter => _typeAnalyzer.diagnosticReporter;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void resolveCascade(
     ParsedValueArgumentsImpl node,
@@ -61,7 +61,7 @@ class MethodInvocationResolver with ScopeHelpers {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var receiver = _resolver.cascadeReceiver(cascade);
+    var receiver = _typeAnalyzer.cascadeReceiver(cascade);
     if (receiver is ExpressionImpl &&
         cascade.isNullAware &&
         _typeSystem.isNull(_typeSystem.resolveToBound(receiver.typeOrThrow))) {
@@ -124,9 +124,9 @@ class MethodInvocationResolver with ScopeHelpers {
                 ? GetterInvocationResolutionImpl(element: element, type: type)
                 : InvalidNamedReadResolutionImpl(recoveryElement: element);
       inferenceLogWriter?.enterFunctionExpressionInvocationTarget(receiver);
-      receiver.recordStaticType(type, resolver: _resolver);
+      receiver.recordStaticType(type, typeAnalyzer: _typeAnalyzer);
       if (type.isBottom) {
-        _resolver.flowAnalysis.flow?.handleExit(offset: name.end);
+        _typeAnalyzer.flowAnalysis.flow?.handleExit(offset: name.end);
       }
       inferenceLogWriter?.exitExpression(receiver);
       var invocation = CallInvocationImpl(
@@ -134,9 +134,9 @@ class MethodInvocationResolver with ScopeHelpers {
         typeArguments: node.typeArguments,
         argumentList: node.argumentList,
       );
-      _resolver.replaceExpression(node, invocation);
-      _resolver.flowAnalysis.transferTestData(node, invocation);
-      _resolver.callInvocationResolver.resolve(
+      _typeAnalyzer.replaceExpression(node, invocation);
+      _typeAnalyzer.flowAnalysis.transferTestData(node, invocation);
+      _typeAnalyzer.callInvocationResolver.resolve(
         invocation,
         whyNotPromotedArguments,
         contextType: contextType,
@@ -222,7 +222,7 @@ class MethodInvocationResolver with ScopeHelpers {
       element = element.conflictingElements.first;
     }
     if (element == null) {
-      var receiverType = _resolver.thisType;
+      var receiverType = _typeAnalyzer.thisType;
       if (receiverType == null) {
         if (!_libraryFragment.shouldIgnoreUndefined(
           prefix: null,
@@ -245,7 +245,7 @@ class MethodInvocationResolver with ScopeHelpers {
         if (stopsLookup) {
           candidate = setter;
         } else {
-          var result = _resolver.typePropertyResolver.resolve(
+          var result = _typeAnalyzer.typePropertyResolver.resolve(
             receiver: null,
             receiverType: receiverType,
             name: name.lexeme,
@@ -300,12 +300,12 @@ class MethodInvocationResolver with ScopeHelpers {
       var receiver = UnqualifiedNameExpressionImpl(name: name)
         ..scopeLookupResult = lookup;
       TypeImpl type;
-      var flow = _resolver.flowAnalysis.flow;
+      var flow = _typeAnalyzer.flowAnalysis.flow;
       if (recordFieldType != null) {
         type = recordFieldType;
         receiver.resolution = RecordFieldReadResolutionImpl(type: type);
       } else if (element is InternalVariableElement) {
-        _resolver.checkReadOfNotAssignedLocalVariable2(
+        _typeAnalyzer.checkReadOfNotAssignedLocalVariable2(
           receiver,
           name: name.lexeme,
           element: element,
@@ -317,7 +317,10 @@ class MethodInvocationResolver with ScopeHelpers {
             offset: name.offset,
           );
           type = promotedType?.unwrapTypeView<TypeImpl>() ?? type;
-          _resolver.flowAnalysis.storeExpressionInfo(receiver, expressionInfo);
+          _typeAnalyzer.flowAnalysis.storeExpressionInfo(
+            receiver,
+            expressionInfo,
+          );
         }
         receiver.resolution = VariableReadResolutionImpl(
           element: element,
@@ -334,7 +337,10 @@ class MethodInvocationResolver with ScopeHelpers {
             SharedTypeView(type),
           );
           type = promotedType?.unwrapTypeView<TypeImpl>() ?? type;
-          _resolver.flowAnalysis.storeExpressionInfo(receiver, expressionInfo);
+          _typeAnalyzer.flowAnalysis.storeExpressionInfo(
+            receiver,
+            expressionInfo,
+          );
         }
         receiver.resolution = element is InternalGetterElement
             ? GetterInvocationResolutionImpl(element: element, type: type)
@@ -346,7 +352,7 @@ class MethodInvocationResolver with ScopeHelpers {
         );
       }
       inferenceLogWriter?.enterFunctionExpressionInvocationTarget(receiver);
-      receiver.recordStaticType(type, resolver: _resolver);
+      receiver.recordStaticType(type, typeAnalyzer: _typeAnalyzer);
       if (type.isBottom) {
         flow?.handleExit(offset: name.end);
       }
@@ -356,9 +362,9 @@ class MethodInvocationResolver with ScopeHelpers {
         typeArguments: node.typeArguments,
         argumentList: node.argumentList,
       );
-      _resolver.replaceExpression(node, invocation);
-      _resolver.flowAnalysis.transferTestData(node, invocation);
-      _resolver.callInvocationResolver.resolve(
+      _typeAnalyzer.replaceExpression(node, invocation);
+      _typeAnalyzer.flowAnalysis.transferTestData(node, invocation);
+      _typeAnalyzer.callInvocationResolver.resolve(
         invocation,
         whyNotPromotedArguments,
         contextType: contextType,
@@ -398,8 +404,8 @@ class MethodInvocationResolver with ScopeHelpers {
         argumentList: node.argumentList,
       );
     }
-    _resolver.replaceExpression(node, invocation);
-    _resolver.flowAnalysis.transferTestData(node, invocation);
+    _typeAnalyzer.replaceExpression(node, invocation);
+    _typeAnalyzer.flowAnalysis.transferTestData(node, invocation);
     return invocation;
   }
 
@@ -418,14 +424,14 @@ class MethodInvocationResolver with ScopeHelpers {
   ) {
     var enclosingElement = element.enclosingElement!;
     if (nullReceiver) {
-      if (_resolver.enclosingInstanceElement is ExtensionElementImpl) {
-        _resolver.diagnosticReporter.report(
+      if (_typeAnalyzer.enclosingInstanceElement is ExtensionElementImpl) {
+        _typeAnalyzer.diagnosticReporter.report(
           diag.unqualifiedReferenceToStaticMemberOfExtendedType
               .withArguments(name: enclosingElement.displayName)
               .at(nameNode),
         );
       } else {
-        _resolver.diagnosticReporter.report(
+        _typeAnalyzer.diagnosticReporter.report(
           diag.unqualifiedReferenceToNonLocalStaticMember
               .withArguments(name: enclosingElement.displayName)
               .at(nameNode),
@@ -433,7 +439,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
     } else if (enclosingElement is ExtensionElement &&
         enclosingElement.name == null) {
-      _resolver.diagnosticReporter.report(
+      _typeAnalyzer.diagnosticReporter.report(
         diag.instanceAccessToStaticMemberOfUnnamedExtension
             .withArguments(
               name: nameNode.lexeme,
@@ -444,7 +450,7 @@ class MethodInvocationResolver with ScopeHelpers {
     } else {
       // It is safe to assume that `enclosingElement.name` is non-`null` because
       // it can only be `null` for extensions, and we handle that case above.
-      _resolver.diagnosticReporter.report(
+      _typeAnalyzer.diagnosticReporter.report(
         diag.instanceAccessToStaticMember
             .withArguments(
               memberName: nameNode.lexeme,
@@ -460,7 +466,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }
 
   void _reportUseOfVoidType(AstNode errorNode) {
-    _resolver.diagnosticReporter.report(diag.useOfVoidResult.at(errorNode));
+    _typeAnalyzer.diagnosticReporter.report(diag.useOfVoidResult.at(errorNode));
   }
 
   void _resolveCallableProperty(
@@ -473,7 +479,7 @@ class MethodInvocationResolver with ScopeHelpers {
   }) {
     if (node.cascadeInvocationParts case var parts?) {
       var read = CascadePropertyExtractionImpl(name: parts.head.name);
-      var result = _resolver.resolveCascadeProperty(
+      var result = _typeAnalyzer.resolveCascadeProperty(
         read,
         parts.head.name,
         hasRead: true,
@@ -483,23 +489,25 @@ class MethodInvocationResolver with ScopeHelpers {
       inferenceLogWriter?.enterFunctionExpressionInvocationTarget(read);
       read.recordStaticType(
         result?.read?.type ?? NeverTypeImpl.instance,
-        resolver: _resolver,
+        typeAnalyzer: _typeAnalyzer,
       );
       if (read.typeOrThrow.isBottom) {
-        _resolver.flowAnalysis.flow?.handleExit(offset: parts.head.name.end);
+        _typeAnalyzer.flowAnalysis.flow?.handleExit(
+          offset: parts.head.name.end,
+        );
       }
       inferenceLogWriter?.exitExpression(read);
       if (result?.readExpressionInfo case var expressionInfo?) {
-        _resolver.flowAnalysis.storeExpressionInfo(read, expressionInfo);
+        _typeAnalyzer.flowAnalysis.storeExpressionInfo(read, expressionInfo);
       }
       var invocation = CallInvocationImpl(
         receiver: read,
         typeArguments: parts.typeArguments,
         argumentList: node.argumentList,
       );
-      _resolver.replaceExpression(node, invocation);
-      _resolver.flowAnalysis.transferTestData(node, invocation);
-      _resolver.callInvocationResolver.resolve(
+      _typeAnalyzer.replaceExpression(node, invocation);
+      _typeAnalyzer.flowAnalysis.transferTestData(node, invocation);
+      _typeAnalyzer.callInvocationResolver.resolve(
         invocation,
         whyNotPromotedArguments,
         contextType: contextType,
@@ -512,7 +520,7 @@ class MethodInvocationResolver with ScopeHelpers {
       operator: selector.operator,
       name: selector.name,
     );
-    if ((receiver, _resolver.flowAnalysis.flow) case (
+    if ((receiver, _typeAnalyzer.flowAnalysis.flow) case (
       InstanceReceiverImpl receiver,
       var flow?,
     )) {
@@ -520,7 +528,7 @@ class MethodInvocationResolver with ScopeHelpers {
         receiver is SuperReferenceImpl
             ? SuperPropertyTarget.singleton
             : ExpressionPropertyTarget(
-                _resolver.flowAnalysis.getExpressionInfo(
+                _typeAnalyzer.flowAnalysis.getExpressionInfo(
                   receiver is ExpressionImpl ? receiver : null,
                 ),
               ),
@@ -529,7 +537,7 @@ class MethodInvocationResolver with ScopeHelpers {
         SharedTypeView(type),
       );
       type = promotedType?.unwrapTypeView<TypeImpl>() ?? type;
-      _resolver.flowAnalysis.storeExpressionInfo(read, expressionInfo);
+      _typeAnalyzer.flowAnalysis.storeExpressionInfo(read, expressionInfo);
     }
     read.resolution = switch (element) {
       InternalGetterElement() => GetterInvocationResolutionImpl(
@@ -540,9 +548,9 @@ class MethodInvocationResolver with ScopeHelpers {
       _ => InvalidNamedReadResolutionImpl(recoveryElement: element),
     };
     inferenceLogWriter?.enterFunctionExpressionInvocationTarget(read);
-    read.recordStaticType(type, resolver: _resolver);
+    read.recordStaticType(type, typeAnalyzer: _typeAnalyzer);
     if (type.isBottom) {
-      _resolver.flowAnalysis.flow?.handleExit(offset: selector.name.end);
+      _typeAnalyzer.flowAnalysis.flow?.handleExit(offset: selector.name.end);
     }
     inferenceLogWriter?.exitExpression(read);
     var invocation = CallInvocationImpl(
@@ -550,9 +558,9 @@ class MethodInvocationResolver with ScopeHelpers {
       typeArguments: typeArguments,
       argumentList: node.argumentList,
     );
-    _resolver.replaceExpression(node, invocation);
-    _resolver.flowAnalysis.transferTestData(node, invocation);
-    _resolver.callInvocationResolver.resolve(
+    _typeAnalyzer.replaceExpression(node, invocation);
+    _typeAnalyzer.flowAnalysis.transferTestData(node, invocation);
+    _typeAnalyzer.callInvocationResolver.resolve(
       invocation,
       whyNotPromotedArguments,
       contextType: contextType,
@@ -614,9 +622,11 @@ class MethodInvocationResolver with ScopeHelpers {
       }
       return;
     }
-    var receiverType = _resolver.instanceReceiverType(receiver);
+    var receiverType = _typeAnalyzer.instanceReceiverType(receiver);
     if (_typeSystem.isDynamicBounded(receiverType)) {
-      var method = _resolver.typeProvider.objectElement.getMethod(name.lexeme);
+      var method = _typeAnalyzer.typeProvider.objectElement.getMethod(
+        name.lexeme,
+      );
       if (receiverType is! InvalidType &&
           method != null &&
           !method.isStatic &&
@@ -641,7 +651,9 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
     if (receiverType is NeverTypeImpl) {
-      var method = _resolver.typeProvider.objectElement.getMethod(name.lexeme);
+      var method = _typeAnalyzer.typeProvider.objectElement.getMethod(
+        name.lexeme,
+      );
       if (receiverType.nullabilitySuffix == NullabilitySuffix.question &&
           method != null) {
         _resolveNamedInvocation(
@@ -681,7 +693,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (isNullAware) {
       receiverType = _typeSystem.promoteToNonNull(receiverType);
     }
-    var result = _resolver.typePropertyResolver.resolve(
+    var result = _typeAnalyzer.typePropertyResolver.resolve(
       receiver: receiver,
       receiverType: receiverType,
       name: name.lexeme,
@@ -774,7 +786,7 @@ class MethodInvocationResolver with ScopeHelpers {
     }
     var type =
         NamedFunctionInvocationInferrer(
-              resolver: _resolver,
+              typeAnalyzer: _typeAnalyzer,
               node: node,
               argumentList: node.argumentList,
               whyNotPromotedArguments: whyNotPromotedArguments,
@@ -808,7 +820,7 @@ class MethodInvocationResolver with ScopeHelpers {
             type: type,
           )
         : resolution ?? DynamicInvocationResolutionImpl(type: type);
-    node.recordStaticType(type, resolver: _resolver);
+    node.recordStaticType(type, typeAnalyzer: _typeAnalyzer);
   }
 
   void _resolveQualifiedInvocation(
@@ -922,7 +934,7 @@ class MethodInvocationResolver with ScopeHelpers {
     bool hasInvocation = true,
   }) {
     NamedFunctionInvocationInferrer(
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
       node: node,
       argumentList: node.argumentList,
       whyNotPromotedArguments: whyNotPromotedArguments,
@@ -941,7 +953,7 @@ class MethodInvocationResolver with ScopeHelpers {
             type: type,
           )
         : DynamicInvocationResolutionImpl(type: type);
-    node.recordStaticType(type, resolver: _resolver);
+    node.recordStaticType(type, typeAnalyzer: _typeAnalyzer);
   }
 
   void _resolveSuperInvocation(
@@ -950,7 +962,7 @@ class MethodInvocationResolver with ScopeHelpers {
     List<WhyNotPromotedGetter> whyNotPromotedArguments, {
     required TypeImpl contextType,
   }) {
-    var enclosingInterface = _resolver.enclosingInstanceElement;
+    var enclosingInterface = _typeAnalyzer.enclosingInstanceElement;
     if (enclosingInterface is! InterfaceElementImpl ||
         SuperContext.of(receiver) != SuperContext.valid) {
       _resolveReceiverWithoutTarget(

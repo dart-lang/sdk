@@ -8,33 +8,38 @@ import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 /// Helper for resolving [LogicalNot]s.
 class LogicalNotResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  LogicalNotResolver(this._resolver);
+  LogicalNotResolver(this._typeAnalyzer);
 
   void resolve(LogicalNotImpl node) {
     var operand = node.operand;
 
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       operand,
-      SharedTypeSchemaView(_resolver.typeProvider.boolType),
+      SharedTypeSchemaView(_typeAnalyzer.typeProvider.boolType),
     );
-    operand = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(operand),
+    operand = _typeAnalyzer.popRewrite()!;
+    var whyNotPromoted = _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+      _typeAnalyzer.flowAnalysis.getExpressionInfo(operand),
     );
 
-    _resolver.boolExpressionVerifier.checkForNonBoolNegationExpression(
+    _typeAnalyzer.boolExpressionVerifier.checkForNonBoolNegationExpression(
       operand,
       whyNotPromoted: whyNotPromoted,
     );
 
-    node.recordStaticType(_resolver.typeProvider.boolType, resolver: _resolver);
+    node.recordStaticType(
+      _typeAnalyzer.typeProvider.boolType,
+      typeAnalyzer: _typeAnalyzer,
+    );
 
-    if (_resolver.flowAnalysis.flow case var flow?) {
-      _resolver.flowAnalysis.storeExpressionInfo(
+    if (_typeAnalyzer.flowAnalysis.flow case var flow?) {
+      _typeAnalyzer.flowAnalysis.storeExpressionInfo(
         node,
-        flow.logicalNot_end(_resolver.flowAnalysis.getExpressionInfo(operand)),
+        flow.logicalNot_end(
+          _typeAnalyzer.flowAnalysis.getExpressionInfo(operand),
+        ),
       );
     }
   }

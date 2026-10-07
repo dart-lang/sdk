@@ -45,7 +45,7 @@ class CollectionLiteralContext {
 
 /// Helper for resolving [ListLiteral]s and [SetOrMapLiteral]s.
 class TypedLiteralResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final DiagnosticReporter _diagnosticReporter;
@@ -53,17 +53,17 @@ class TypedLiteralResolver {
   final bool _strictInference;
 
   TypedLiteralResolver(
-    this._resolver,
+    this._typeAnalyzer,
     this._typeSystem,
     this._typeProvider,
     AnalysisOptions analysisOptions,
-  ) : _diagnosticReporter = _resolver.diagnosticReporter,
+  ) : _diagnosticReporter = _typeAnalyzer.diagnosticReporter,
       _strictInference = analysisOptions.strictInference;
 
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
-  bool get _genericMetadataIsEnabled =>
-      _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
+  bool get _genericMetadataIsEnabled => _typeAnalyzer.definingLibrary.featureSet
+      .isEnabled(Feature.generic_metadata);
 
   void resolveListLiteral(
     ListLiteralImpl node, {
@@ -96,14 +96,14 @@ class TypedLiteralResolver {
       );
     }
 
-    node.typeArguments?.accept2(_resolver);
+    node.typeArguments?.accept2(_typeAnalyzer);
     _resolveElements(node.elements2, context);
     var staticType = _resolveListLiteral2(
       inferrer,
       node,
       contextType: contextType,
     );
-    node.recordStaticType(staticType, resolver: _resolver);
+    node.recordStaticType(staticType, typeAnalyzer: _typeAnalyzer);
   }
 
   void resolveSetOrMapLiteral(
@@ -182,7 +182,7 @@ class TypedLiteralResolver {
       node.contextType = null;
     }
 
-    node.typeArguments?.accept2(_resolver);
+    node.typeArguments?.accept2(_typeAnalyzer);
     _resolveElements(node.elements2, context);
     _resolveSetOrMapLiteral2(
       inferrer,
@@ -471,11 +471,12 @@ class TypedLiteralResolver {
       diagnosticReporter: _diagnosticReporter,
       errorEntity: node,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
-      strictInference: _resolver.analysisOptions.strictInference,
-      strictCasts: _resolver.analysisOptions.strictCasts,
-      typeSystemOperations: _resolver.flowAnalysis.typeOperations,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      inferenceUsingBoundsIsEnabled:
+          _typeAnalyzer.inferenceUsingBoundsIsEnabled,
+      strictInference: _typeAnalyzer.analysisOptions.strictInference,
+      strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
+      typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
+      dataForTesting: _typeAnalyzer.inferenceHelper.dataForTesting,
       nodeForTesting: node,
     );
   }
@@ -541,11 +542,12 @@ class TypedLiteralResolver {
       contextReturnType: contextType,
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
-      strictInference: _resolver.analysisOptions.strictInference,
-      strictCasts: _resolver.analysisOptions.strictCasts,
-      typeSystemOperations: _resolver.flowAnalysis.typeOperations,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      inferenceUsingBoundsIsEnabled:
+          _typeAnalyzer.inferenceUsingBoundsIsEnabled,
+      strictInference: _typeAnalyzer.analysisOptions.strictInference,
+      strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
+      typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
+      dataForTesting: _typeAnalyzer.inferenceHelper.dataForTesting,
       nodeForTesting: node,
     );
   }
@@ -652,11 +654,12 @@ class TypedLiteralResolver {
       contextReturnType: contextType,
       isConst: node.isConst,
       genericMetadataIsEnabled: _genericMetadataIsEnabled,
-      inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
-      strictInference: _resolver.analysisOptions.strictInference,
-      strictCasts: _resolver.analysisOptions.strictCasts,
-      typeSystemOperations: _resolver.flowAnalysis.typeOperations,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      inferenceUsingBoundsIsEnabled:
+          _typeAnalyzer.inferenceUsingBoundsIsEnabled,
+      strictInference: _typeAnalyzer.analysisOptions.strictInference,
+      strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
+      typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
+      dataForTesting: _typeAnalyzer.inferenceHelper.dataForTesting,
       nodeForTesting: node,
     );
   }
@@ -666,7 +669,7 @@ class TypedLiteralResolver {
     CollectionLiteralContext? context,
   ) {
     for (var element in elements) {
-      _resolver.dispatchCollectionElement(
+      _typeAnalyzer.dispatchCollectionElement(
         element as CollectionElementImpl,
         context,
       );
@@ -736,7 +739,7 @@ class TypedLiteralResolver {
             typeArguments: fixedTypeList(elementType),
             nullabilitySuffix: NullabilitySuffix.none,
           ),
-          resolver: _resolver,
+          typeAnalyzer: _typeAnalyzer,
         );
         return;
       } else if (typeArguments.length == 2) {
@@ -749,7 +752,7 @@ class TypedLiteralResolver {
             typeArguments: fixedTypeList(keyType, valueType),
             nullabilitySuffix: NullabilitySuffix.none,
           ),
-          resolver: _resolver,
+          typeAnalyzer: _typeAnalyzer,
         );
         return;
       }
@@ -789,7 +792,7 @@ class TypedLiteralResolver {
     // TODO(brianwilkerson): Decide whether the literalType needs to be made
     //  non-nullable here or whether that will have happened in
     //  _inferSetOrMapLiteralType.
-    node.recordStaticType(literalType, resolver: _resolver);
+    node.recordStaticType(literalType, typeAnalyzer: _typeAnalyzer);
   }
 
   /// Ends generic inference if it's in progress

@@ -16,12 +16,13 @@ import 'package:analyzer/src/error/listener.dart';
 
 /// Helper for resolving [RecordLiteral]s.
 class RecordLiteralResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  RecordLiteralResolver({required TypeAnalyzer resolver})
-    : _resolver = resolver;
+  RecordLiteralResolver({required TypeAnalyzer typeAnalyzer})
+    : _typeAnalyzer = typeAnalyzer;
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
   void resolve(RecordLiteralImpl node, {required DartType contextType}) {
     _resolveFields(node, contextType);
@@ -137,18 +138,18 @@ class RecordLiteralResolver {
 
   DartType _resolveField(RecordLiteralFieldImpl field, TypeImpl contextType) {
     var expression = field.fieldExpression2;
-    var staticType = _resolver
+    var staticType = _typeAnalyzer
         .analyzeExpression(expression, SharedTypeSchemaView(contextType))
         .type
         .unwrapTypeView<TypeImpl>();
-    expression = _resolver.popRewrite()!;
+    expression = _typeAnalyzer.popRewrite()!;
 
     // Implicit cast from `dynamic`.
     if (contextType is! UnknownInferredType && staticType is DynamicType) {
-      var greatestClosureOfSchema = _resolver.operations
+      var greatestClosureOfSchema = _typeAnalyzer.operations
           .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
           .unwrapTypeView<TypeImpl>();
-      if (!_resolver.typeSystem.isSubtypeOf(
+      if (!_typeAnalyzer.typeSystem.isSubtypeOf(
         staticType,
         greatestClosureOfSchema,
       )) {
@@ -198,7 +199,7 @@ class RecordLiteralResolver {
         namedFields: namedFields,
         nullabilitySuffix: NullabilitySuffix.none,
       ),
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
     );
   }
 

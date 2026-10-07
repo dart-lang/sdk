@@ -19,16 +19,17 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 
 /// Helper for resolving [ForStatement]s and [ForElement]s.
 class ForResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  ForResolver({required TypeAnalyzer resolver}) : _resolver = resolver;
+  ForResolver({required TypeAnalyzer typeAnalyzer})
+    : _typeAnalyzer = typeAnalyzer;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void resolveElement(ForElementImpl node, CollectionLiteralContext? context) {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
-      _resolver.dispatchCollectionElement(node.body2, context);
+      _typeAnalyzer.dispatchCollectionElement(node.body2, context);
     }
 
     if (forLoopParts is ForPartsImpl) {
@@ -45,7 +46,7 @@ class ForResolver {
         awaitKeyword: node.awaitKeyword,
         forLoopParts: forLoopParts,
         dispatchBody: () {
-          _resolver.dispatchCollectionElement(node.body2, context);
+          _typeAnalyzer.dispatchCollectionElement(node.body2, context);
         },
         rightParenthesisOffset: node.rightParenthesis.offset,
         endOffset: node.end,
@@ -65,7 +66,7 @@ class ForResolver {
   void resolveStatement(ForStatementImpl node) {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
-      node.body.accept2(_resolver);
+      node.body.accept2(_typeAnalyzer);
     }
 
     if (forLoopParts is ForPartsImpl) {
@@ -82,7 +83,7 @@ class ForResolver {
         awaitKeyword: node.awaitKeyword,
         forLoopParts: forLoopParts,
         dispatchBody: () {
-          _resolver.dispatchStatement(node.body);
+          _typeAnalyzer.dispatchStatement(node.body);
         },
         rightParenthesisOffset: node.rightParenthesis.offset,
         endOffset: node.endToken.offset,
@@ -107,8 +108,8 @@ class ForResolver {
     required int rightParenthesisOffset,
     required int endOffset,
   }) {
-    forLoopParts.metadata.accept2(_resolver);
-    _resolver.analyzePatternForIn(
+    forLoopParts.metadata.accept2(_typeAnalyzer);
+    _typeAnalyzer.analyzePatternForIn(
       node: node,
       hasAwait: awaitKeyword != null,
       pattern: forLoopParts.pattern,
@@ -119,8 +120,8 @@ class ForResolver {
       bodyBeginOffset: rightParenthesisOffset,
       endOffset: endOffset,
     );
-    _resolver.popRewrite();
-    _resolver.nullableDereferenceVerifier.expression(
+    _typeAnalyzer.popRewrite();
+    _typeAnalyzer.nullableDereferenceVerifier.expression(
       diag.uncheckedUseOfNullableValueAsIterator,
       forLoopParts.iterable2,
     );
@@ -142,8 +143,8 @@ class ForResolver {
     }
 
     ClassElement iteratedElement = isAsync
-        ? _resolver.typeProvider.streamElement
-        : _resolver.typeProvider.iterableElement;
+        ? _typeAnalyzer.typeProvider.streamElement
+        : _typeAnalyzer.typeProvider.iterableElement;
 
     var iteratedType = iterableType.asInstanceOf(iteratedElement);
     if (iteratedType == null) {
@@ -171,15 +172,15 @@ class ForResolver {
       valueType = typeAnnotation?.type ?? UnknownInferredType.instance;
     } else if (forEachParts is ForEachPartsWithIdentifierImpl) {
       target = forEachParts.target;
-      var write = _resolver.resolveUnqualifiedNameAssignmentTarget(target);
+      var write = _typeAnalyzer.resolveUnqualifiedNameAssignmentTarget(target);
       target.write = write;
       AssignmentExpressionShared(
-        resolver: _resolver,
+        typeAnalyzer: _typeAnalyzer,
       ).checkFinalTargetAlreadyAssigned(target, isWrittenRepeatedly: true);
 
       valueType = switch (write) {
         VariableWriteResolutionImpl(:var element) =>
-          _resolver.localVariableTypeProvider.getWriteType(element),
+          _typeAnalyzer.localVariableTypeProvider.getWriteType(element),
         SetterInvocationResolutionImpl(:var acceptedType) => acceptedType,
         _ => null,
       };
@@ -190,21 +191,21 @@ class ForResolver {
     InterfaceTypeImpl? targetType;
     if (valueType != null) {
       targetType = isAsync
-          ? _resolver.typeProvider.streamType(valueType)
-          : _resolver.typeProvider.iterableType(valueType);
+          ? _typeAnalyzer.typeProvider.streamType(valueType)
+          : _typeAnalyzer.typeProvider.iterableType(valueType);
     }
 
     // The loop variable, including its metadata, precedes the iterable in the
     // source, so visit it first; flow analysis expects source order.
-    loopVariable?.accept2(_resolver);
+    loopVariable?.accept2(_typeAnalyzer);
 
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       iterable,
       SharedTypeSchemaView(targetType ?? UnknownInferredType.instance),
     );
-    iterable = _resolver.popRewrite()!;
+    iterable = _typeAnalyzer.popRewrite()!;
 
-    _resolver.nullableDereferenceVerifier.expression(
+    _typeAnalyzer.nullableDereferenceVerifier.expression(
       diag.uncheckedUseOfNullableValueAsIterator,
       iterable,
     );
@@ -218,7 +219,7 @@ class ForResolver {
 
     if (loopVariable != null) {
       var declaredElement = loopVariable.declaredFragment!.element;
-      _resolver.flowAnalysis.flow?.declare(
+      _typeAnalyzer.flowAnalysis.flow?.declare(
         declaredElement,
         SharedTypeView(declaredElement.type),
         initialized: true,
@@ -226,13 +227,13 @@ class ForResolver {
       );
     }
 
-    _resolver.flowAnalysis.flow?.forEach_bodyBegin(
+    _typeAnalyzer.flowAnalysis.flow?.forEach_bodyBegin(
       node,
       offset: rightParenthesisOffset,
     );
     if (target != null) {
       if (target.write?.elementOrRecovery case PromotableElementImpl element) {
-        _resolver.flowAnalysis.flow?.write(
+        _typeAnalyzer.flowAnalysis.flow?.write(
           target,
           element,
           SharedTypeView(elementType),
@@ -244,7 +245,7 @@ class ForResolver {
 
     visitBody();
 
-    _resolver.flowAnalysis.flow?.forEach_end(offset: bodyEndOffset);
+    _typeAnalyzer.flowAnalysis.flow?.forEach_end(offset: bodyEndOffset);
   }
 
   void _forParts(
@@ -255,64 +256,67 @@ class ForResolver {
     required int endOffset,
   }) {
     if (forParts is ForPartsWithDeclarationsImpl) {
-      forParts.variables.accept2(_resolver);
+      forParts.variables.accept2(_typeAnalyzer);
     } else if (forParts is ForPartsWithExpressionImpl) {
       if (forParts.initialization2 case var initialization?) {
-        _resolver.analyzeExpression(
+        _typeAnalyzer.analyzeExpression(
           initialization,
-          _resolver.operations.unknownType,
+          _typeAnalyzer.operations.unknownType,
         );
-        _resolver.popRewrite();
+        _typeAnalyzer.popRewrite();
       }
     } else if (forParts is ForPartsWithPatternImpl) {
-      forParts.variables.accept2(_resolver);
+      forParts.variables.accept2(_typeAnalyzer);
     } else {
       throw StateError('Unrecognized for loop parts');
     }
 
-    _resolver.flowAnalysis.for_conditionBegin(
+    _typeAnalyzer.flowAnalysis.for_conditionBegin(
       node,
       offset: forParts.leftSeparator.offset,
     );
 
     var condition = forParts.condition2;
     if (condition != null) {
-      _resolver.analyzeExpression(
+      _typeAnalyzer.analyzeExpression(
         condition,
-        SharedTypeSchemaView(_resolver.typeProvider.boolType),
+        SharedTypeSchemaView(_typeAnalyzer.typeProvider.boolType),
       );
-      condition = _resolver.popRewrite()!;
-      var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-        _resolver.flowAnalysis.getExpressionInfo(condition),
+      condition = _typeAnalyzer.popRewrite()!;
+      var whyNotPromoted = _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+        _typeAnalyzer.flowAnalysis.getExpressionInfo(condition),
       );
-      _resolver.boolExpressionVerifier.checkForNonBoolCondition(
+      _typeAnalyzer.boolExpressionVerifier.checkForNonBoolCondition(
         condition,
         whyNotPromoted: whyNotPromoted,
       );
     }
 
-    var deadCodeForPartsState = _resolver.nullSafetyDeadCodeVerifier
+    var deadCodeForPartsState = _typeAnalyzer.nullSafetyDeadCodeVerifier
         .for_conditionEnd();
-    _resolver.flowAnalysis.for_bodyBegin(
+    _typeAnalyzer.flowAnalysis.for_bodyBegin(
       node,
       condition,
       offset: rightParenOffset,
     );
     visitBody();
 
-    _resolver.flowAnalysis.flow?.for_updaterBegin(
+    _typeAnalyzer.flowAnalysis.flow?.for_updaterBegin(
       offset: forParts.rightSeparator.offset,
       updaterEndOffset: rightParenOffset,
     );
-    _resolver.nullSafetyDeadCodeVerifier.for_updaterBegin(
+    _typeAnalyzer.nullSafetyDeadCodeVerifier.for_updaterBegin(
       forParts.updaters2,
       deadCodeForPartsState,
     );
     for (var updater in forParts.updaters2) {
-      _resolver.analyzeExpression(updater, _resolver.operations.unknownType);
-      _resolver.popRewrite();
+      _typeAnalyzer.analyzeExpression(
+        updater,
+        _typeAnalyzer.operations.unknownType,
+      );
+      _typeAnalyzer.popRewrite();
     }
 
-    _resolver.flowAnalysis.flow?.for_end(offset: endOffset);
+    _typeAnalyzer.flowAnalysis.flow?.for_end(offset: endOffset);
   }
 }

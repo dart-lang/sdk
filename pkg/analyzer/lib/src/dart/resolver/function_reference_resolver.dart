@@ -16,28 +16,29 @@ import 'package:analyzer/src/error/listener.dart';
 
 /// Resolves explicit type applications to function values.
 class FunctionReferenceResolver {
-  /// The resolver driving this participant.
-  final TypeAnalyzer _resolver;
+  /// The type analyzer driving this participant.
+  final TypeAnalyzer _typeAnalyzer;
 
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
-  FunctionReferenceResolver(this._resolver)
-    : _extensionResolver = _resolver.extensionResolver;
+  FunctionReferenceResolver(this._typeAnalyzer)
+    : _extensionResolver = _typeAnalyzer.extensionResolver;
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
   /// Resolves a type application whose operand has already been classified as
   /// a value. Name and member lookup belong to the canonical operand; this
   /// method only selects an implicit `call` tear-off and instantiates its type.
   void resolveInstantiation(FunctionInstantiationImpl node) {
-    node.typeArguments.accept2(_resolver);
-    _resolver.analyzeExpression(
+    node.typeArguments.accept2(_typeAnalyzer);
+    _typeAnalyzer.analyzeExpression(
       node.operand,
-      _resolver.operations.unknownType,
+      _typeAnalyzer.operations.unknownType,
       continueNullShorting: true,
     );
-    var operand = _resolver.popRewrite()!;
+    var operand = _typeAnalyzer.popRewrite()!;
     var rawType = operand.typeOrThrow;
 
     if (operand is ConstructorTearOffImpl) {
@@ -54,7 +55,10 @@ class FunctionReferenceResolver {
             )
             .at(node.typeArguments),
       );
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+      node.recordStaticType(
+        InvalidTypeImpl.instance,
+        typeAnalyzer: _typeAnalyzer,
+      );
       return;
     }
     if (rawType is InvalidType) {
@@ -66,7 +70,10 @@ class FunctionReferenceResolver {
           diag.disallowedTypeInstantiationExpression.at(operand),
         );
       }
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+      node.recordStaticType(
+        InvalidTypeImpl.instance,
+        typeAnalyzer: _typeAnalyzer,
+      );
       return;
     }
 
@@ -102,7 +109,8 @@ class FunctionReferenceResolver {
 
     if (rawType is TypeParameterTypeImpl) {
       rawType =
-          rawType.element.bound ?? _resolver.typeProvider.objectQuestionType;
+          rawType.element.bound ??
+          _typeAnalyzer.typeProvider.objectQuestionType;
     }
     if (rawType is FunctionTypeImpl) {
       var typeArgumentTypes = _checkTypeArguments(
@@ -113,12 +121,12 @@ class FunctionReferenceResolver {
       node.typeArgumentTypes = typeArgumentTypes;
       node.recordStaticType(
         rawType.instantiate(typeArgumentTypes),
-        resolver: _resolver,
+        typeAnalyzer: _typeAnalyzer,
       );
       return;
     }
 
-    if (_resolver.isConstructorTearoffsEnabled) {
+    if (_typeAnalyzer.isConstructorTearoffsEnabled) {
       if (rawType is DynamicType &&
           (operand is ReceiverPropertyExtractionImpl ||
               operand is ImportPrefixedNameExpressionImpl)) {
@@ -141,13 +149,16 @@ class FunctionReferenceResolver {
           ),
         );
       }
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+      node.recordStaticType(
+        InvalidTypeImpl.instance,
+        typeAnalyzer: _typeAnalyzer,
+      );
     } else {
       node.recordStaticType(
         rawType is DynamicType
             ? DynamicTypeImpl.instance
             : InvalidTypeImpl.instance,
-        resolver: _resolver,
+        typeAnalyzer: _typeAnalyzer,
       );
     }
   }
@@ -179,7 +190,7 @@ class FunctionReferenceResolver {
       return null;
     }
     var callMethodName = Name(
-      _resolver.definingLibrary.uri,
+      _typeAnalyzer.definingLibrary.uri,
       MethodElement.CALL_METHOD_NAME,
     );
     if (type.nullabilitySuffix == NullabilitySuffix.question) {

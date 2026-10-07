@@ -36,16 +36,17 @@ class AmbiguousStaticExtensionResolutionError
 }
 
 class ExtensionMemberResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  ExtensionMemberResolver(this._resolver);
+  ExtensionMemberResolver(this._typeAnalyzer);
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
-  bool get _genericMetadataIsEnabled =>
-      _resolver.definingLibrary.featureSet.isEnabled(Feature.generic_metadata);
+  bool get _genericMetadataIsEnabled => _typeAnalyzer.definingLibrary.featureSet
+      .isEnabled(Feature.generic_metadata);
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   /// Set the type context for the receiver of the override.
   ///
@@ -95,11 +96,11 @@ class ExtensionMemberResolver {
     SyntacticEntity nameEntity,
     Name name,
   ) {
-    var extensions = _resolver.libraryFragment.accessibleExtensions
+    var extensions = _typeAnalyzer.libraryFragment.accessibleExtensions
         .havingMemberWithBaseName(name)
         .toList()
         .applicableTo(
-          targetLibrary: _resolver.definingLibrary,
+          targetLibrary: _typeAnalyzer.definingLibrary,
           targetType: type,
         );
 
@@ -109,7 +110,7 @@ class ExtensionMemberResolver {
 
     if (extensions.length == 1) {
       var instantiated = extensions[0];
-      _resolver.libraryFragment.scope.notifyExtensionUsed(
+      _typeAnalyzer.libraryFragment.scope.notifyExtensionUsed(
         instantiated.extension,
       );
       return instantiated.asResolutionResult;
@@ -118,7 +119,7 @@ class ExtensionMemberResolver {
     var mostSpecific = _chooseMostSpecific(extensions);
     if (mostSpecific.length == 1) {
       var instantiated = mostSpecific.first;
-      _resolver.libraryFragment.scope.notifyExtensionUsed(
+      _typeAnalyzer.libraryFragment.scope.notifyExtensionUsed(
         instantiated.extension,
       );
       return instantiated.asResolutionResult;
@@ -165,7 +166,7 @@ class ExtensionMemberResolver {
   ) {
     var extensions = [
       for (var extension
-          in _resolver.libraryFragment.accessibleExtensions
+          in _typeAnalyzer.libraryFragment.accessibleExtensions
               .havingStaticMemberWithName(name))
         if (extension.extension.onDeclaration == declaration) extension,
     ];
@@ -180,7 +181,9 @@ class ExtensionMemberResolver {
     // error.
     if (extensions.length == 1) {
       var extension = extensions[0];
-      _resolver.libraryFragment.scope.notifyExtensionUsed(extension.extension);
+      _typeAnalyzer.libraryFragment.scope.notifyExtensionUsed(
+        extension.extension,
+      );
       return SingleStaticExtensionResolutionResult(member: extension.member);
     }
 
@@ -263,7 +266,7 @@ class ExtensionMemberResolver {
     var typeArgumentTypes = _inferTypeArguments(
       node,
       receiverType,
-      dataForTesting: _resolver.inferenceHelper.dataForTesting,
+      dataForTesting: _typeAnalyzer.inferenceHelper.dataForTesting,
       nodeForTesting: node,
     )!;
     nodeImpl.typeArgumentTypes = typeArgumentTypes;
@@ -289,7 +292,7 @@ class ExtensionMemberResolver {
     } else if (!_typeSystem.isAssignableTo(
       receiverType,
       extendedType,
-      strictCasts: _resolver.analysisOptions.strictCasts,
+      strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
     )) {
       var whyNotPromoted = whyNotPromotedArguments.isEmpty
           ? null
@@ -301,7 +304,7 @@ class ExtensionMemberResolver {
               extendedType: extendedType,
             )
             .withContextMessages(
-              _resolver.computeWhyNotPromotedMessages(
+              _typeAnalyzer.computeWhyNotPromotedMessages(
                 receiverExpression,
                 whyNotPromoted?.call(),
               ),
@@ -435,9 +438,10 @@ class ExtensionMemberResolver {
         diagnosticReporter: _diagnosticReporter,
         errorEntity: node.name,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
-        strictInference: _resolver.analysisOptions.strictInference,
-        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+        inferenceUsingBoundsIsEnabled:
+            _typeAnalyzer.inferenceUsingBoundsIsEnabled,
+        strictInference: _typeAnalyzer.analysisOptions.strictInference,
+        typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
         dataForTesting: dataForTesting,
       );
       inferrer.constrainArgument(

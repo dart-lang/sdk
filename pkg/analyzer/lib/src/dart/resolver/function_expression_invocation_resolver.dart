@@ -20,21 +20,23 @@ import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 
 /// Helper for resolving [CallInvocation]s.
 class CallInvocationResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
 
-  CallInvocationResolver({required TypeAnalyzer resolver})
-    : _resolver = resolver,
-      _typePropertyResolver = resolver.typePropertyResolver;
+  CallInvocationResolver({required TypeAnalyzer typeAnalyzer})
+    : _typeAnalyzer = typeAnalyzer,
+      _typePropertyResolver = typeAnalyzer.typePropertyResolver;
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
-  ExtensionMemberResolver get _extensionResolver => _resolver.extensionResolver;
+  ExtensionMemberResolver get _extensionResolver =>
+      _typeAnalyzer.extensionResolver;
 
   NullableDereferenceVerifier get _nullableDereferenceVerifier =>
-      _resolver.nullableDereferenceVerifier;
+      _typeAnalyzer.nullableDereferenceVerifier;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void resolve(
     CallInvocationImpl node,
@@ -45,7 +47,7 @@ class CallInvocationResolver {
       case SuperReferenceImpl receiver:
         var result = _typePropertyResolver.resolve(
           receiver: receiver,
-          receiverType: _resolver.superLookupType(receiver),
+          receiverType: _typeAnalyzer.superLookupType(receiver),
           name: MethodElement.CALL_METHOD_NAME,
           hasRead: true,
           hasWrite: false,
@@ -227,7 +229,7 @@ class CallInvocationResolver {
   }) {
     var returnType =
         CallInvocationInferrer(
-              resolver: _resolver,
+              typeAnalyzer: _typeAnalyzer,
               node: node,
               argumentList: node.argumentList,
               whyNotPromotedArguments: whyNotPromotedArguments,
@@ -251,7 +253,7 @@ class CallInvocationResolver {
         ),
       _ => throw StateError('Unexpected call invocation target: $target'),
     };
-    node.recordStaticType(returnType, resolver: _resolver);
+    node.recordStaticType(returnType, typeAnalyzer: _typeAnalyzer);
   }
 
   void _resolveReceiverExtensionOverride(
@@ -303,7 +305,7 @@ class CallInvocationResolver {
   }) {
     _setExplicitTypeArgumentTypes(node);
     CallInvocationInferrer(
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
       node: node,
       argumentList: node.argumentList,
       contextType: contextType,
@@ -322,7 +324,7 @@ class CallInvocationResolver {
           ),
           _ => DynamicInvocationResolutionImpl(type: type),
         };
-    node.recordStaticType(type, resolver: _resolver);
+    node.recordStaticType(type, typeAnalyzer: _typeAnalyzer);
   }
 
   /// Inference cannot be done, we still want to fill type argument types.

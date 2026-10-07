@@ -29,18 +29,19 @@ import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
 class PropertyElementResolver with ScopeHelpers {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  PropertyElementResolver(this._resolver);
+  PropertyElementResolver(this._typeAnalyzer);
 
   @override
-  DiagnosticReporter get diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get diagnosticReporter => _typeAnalyzer.diagnosticReporter;
 
-  LibraryElementImpl get _definingLibrary => _resolver.definingLibrary;
+  LibraryElementImpl get _definingLibrary => _typeAnalyzer.definingLibrary;
 
-  ExtensionMemberResolver get _extensionResolver => _resolver.extensionResolver;
+  ExtensionMemberResolver get _extensionResolver =>
+      _typeAnalyzer.extensionResolver;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   ({IndexReadResolutionImpl? read, IndexWriteResolutionImpl? write})?
   resolveCascadeIndex({
@@ -93,7 +94,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     var receiverType = _typeSystem.resolveToBound(
-      _resolver.instanceReceiverType(receiver),
+      _typeAnalyzer.instanceReceiverType(receiver),
     );
     if (identical(receiverType, NeverTypeImpl.instance)) {
       diagnosticReporter.report(diag.receiverOfTypeNever.at(receiver));
@@ -123,7 +124,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    var result = _resolver.typePropertyResolver.resolve(
+    var result = _typeAnalyzer.typePropertyResolver.resolve(
       receiver: receiver,
       receiverType: receiverType,
       name: '[]',
@@ -266,9 +267,9 @@ class PropertyElementResolver with ScopeHelpers {
       read: read,
       write: write,
       readExpressionInfo: hasRead
-          ? _resolver.flowAnalysis.flow == null
+          ? _typeAnalyzer.flowAnalysis.flow == null
                 ? null
-                : _resolver.flowAnalysis.getExpressionInfo(node)
+                : _typeAnalyzer.flowAnalysis.getExpressionInfo(node)
           : null,
     );
   }
@@ -291,23 +292,23 @@ class PropertyElementResolver with ScopeHelpers {
           var enclosingElement = element.enclosingElement;
           if (enclosingElement is ClassElementImpl &&
               enclosingElement.isAbstract) {
-            _resolver.diagnosticReporter.report(
+            _typeAnalyzer.diagnosticReporter.report(
               diag.tearoffOfGenerativeConstructorOfAbstractClass.at(node),
             );
           }
         }
 
         // Infer type parameters.
-        var elementToInfer = _resolver.inferenceHelper
+        var elementToInfer = _typeAnalyzer.inferenceHelper
             .constructorElementToInfer(
               typeElement: context.element,
               constructorName: node.name,
-              definingLibrary: _resolver.definingLibrary,
+              definingLibrary: _typeAnalyzer.definingLibrary,
             );
         if (elementToInfer != null &&
             elementToInfer.typeParameters.isNotEmpty) {
           var inferred =
-              _resolver.inferenceHelper.inferTearOff(
+              _typeAnalyzer.inferenceHelper.inferTearOff(
                     node,
                     elementToInfer.asType,
                     contextType: contextType,
@@ -429,7 +430,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     var receiverType = _typeSystem.resolveToBound(
-      _resolver.instanceReceiverType(receiver),
+      _typeAnalyzer.instanceReceiverType(receiver),
     );
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
@@ -450,7 +451,7 @@ class PropertyElementResolver with ScopeHelpers {
       return InvalidIndexWriteResolutionImpl(recoveryElement: null);
     }
 
-    var result = _resolver.typePropertyResolver.resolve(
+    var result = _typeAnalyzer.typePropertyResolver.resolve(
       receiver: receiver,
       receiverType: receiverType,
       name: '[]',
@@ -523,7 +524,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     var receiverType = _typeSystem.resolveToBound(
-      _resolver.instanceReceiverType(receiver),
+      _typeAnalyzer.instanceReceiverType(receiver),
     );
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
@@ -550,7 +551,7 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    var result = _resolver.typePropertyResolver.resolve(
+    var result = _typeAnalyzer.typePropertyResolver.resolve(
       receiver: receiver,
       receiverType: receiverType,
       name: '[]',
@@ -621,7 +622,7 @@ class PropertyElementResolver with ScopeHelpers {
     }
 
     var receiverType = _typeSystem.resolveToBound(
-      _resolver.instanceReceiverType(receiver),
+      _typeAnalyzer.instanceReceiverType(receiver),
     );
     if (receiverType is NeverType &&
         receiverType.nullabilitySuffix == NullabilitySuffix.none) {
@@ -642,7 +643,7 @@ class PropertyElementResolver with ScopeHelpers {
       return InvalidIndexReadResolutionImpl(recoveryElement: null);
     }
 
-    var result = _resolver.typePropertyResolver.resolve(
+    var result = _typeAnalyzer.typePropertyResolver.resolve(
       receiver: receiver,
       receiverType: receiverType,
       name: '[]',
@@ -715,7 +716,7 @@ class PropertyElementResolver with ScopeHelpers {
             );
 
       case ExpressionImpl():
-        var receiverType = _resolver.instanceReceiverType(receiver);
+        var receiverType = _typeAnalyzer.instanceReceiverType(receiver);
 
         if (receiverType is NeverType &&
             receiverType.nullabilitySuffix == NullabilitySuffix.none) {
@@ -744,7 +745,7 @@ class PropertyElementResolver with ScopeHelpers {
           return InvalidNamedWriteResolutionImpl(recoveryElement: null);
         }
 
-        var result = _resolver.typePropertyResolver.resolve(
+        var result = _typeAnalyzer.typePropertyResolver.resolve(
           receiver: receiver,
           receiverType: receiverType,
           name: node.name.lexeme,
@@ -760,7 +761,7 @@ class PropertyElementResolver with ScopeHelpers {
 
         InternalExecutableElement? writeRecovery;
         if (result.needsSetterError) {
-          var readResult = _resolver.typePropertyResolver.resolve(
+          var readResult = _typeAnalyzer.typePropertyResolver.resolve(
             receiver: receiver,
             receiverType: receiverType,
             name: node.name.lexeme,
@@ -814,7 +815,7 @@ class PropertyElementResolver with ScopeHelpers {
               recoveryElement: result.readElementRecovery2,
             );
         return (
-          expressionInfo: _resolver.flowAnalysis.getExpressionInfo(node),
+          expressionInfo: _typeAnalyzer.flowAnalysis.getExpressionInfo(node),
           resolution: resolution,
           type: resolution.type,
         );
@@ -862,7 +863,7 @@ class PropertyElementResolver with ScopeHelpers {
         );
 
       case ExpressionImpl():
-        var receiverType = _resolver.instanceReceiverType(receiver);
+        var receiverType = _typeAnalyzer.instanceReceiverType(receiver);
 
         if (receiverType is NeverType &&
             receiverType.nullabilitySuffix == NullabilitySuffix.none) {
@@ -901,7 +902,7 @@ class PropertyElementResolver with ScopeHelpers {
           );
         }
 
-        var result = _resolver.typePropertyResolver.resolve(
+        var result = _typeAnalyzer.typePropertyResolver.resolve(
           receiver: receiver,
           receiverType: receiverType,
           name: node.name.lexeme,
@@ -944,13 +945,13 @@ class PropertyElementResolver with ScopeHelpers {
         };
         ExpressionInfo? expressionInfo;
         if (readType != null) {
-          if (_resolver.flowAnalysis.flow case var flow?) {
+          if (_typeAnalyzer.flowAnalysis.flow case var flow?) {
             var (
               promotedType: wrappedPromotedType,
               expressionInfo: readExpressionInfo,
             ) = flow.propertyGet(
               ExpressionPropertyTarget(
-                _resolver.flowAnalysis.getExpressionInfo(receiver),
+                _typeAnalyzer.flowAnalysis.getExpressionInfo(receiver),
               ),
               node.name.lexeme,
               readElement,
@@ -1042,7 +1043,7 @@ class PropertyElementResolver with ScopeHelpers {
           return _propertyReadWriteTargetResult(result);
         }
 
-        var receiverType = _resolver.instanceReceiverType(receiver);
+        var receiverType = _typeAnalyzer.instanceReceiverType(receiver);
 
         if (receiverType is NeverType &&
             receiverType.nullabilitySuffix == NullabilitySuffix.none) {
@@ -1085,7 +1086,7 @@ class PropertyElementResolver with ScopeHelpers {
           );
         }
 
-        var result = _resolver.typePropertyResolver.resolve(
+        var result = _typeAnalyzer.typePropertyResolver.resolve(
           receiver: receiver,
           receiverType: receiverType,
           name: node.name.lexeme,
@@ -1131,11 +1132,11 @@ class PropertyElementResolver with ScopeHelpers {
         };
         ExpressionInfo? readExpressionInfo;
         if (readType != null) {
-          if (_resolver.flowAnalysis.flow case var flow?) {
+          if (_typeAnalyzer.flowAnalysis.flow case var flow?) {
             var (promotedType: wrappedPromotedType, :expressionInfo) = flow
                 .propertyGet(
                   ExpressionPropertyTarget(
-                    _resolver.flowAnalysis.getExpressionInfo(receiver),
+                    _typeAnalyzer.flowAnalysis.getExpressionInfo(receiver),
                   ),
                   node.name.lexeme,
                   readElement,
@@ -1279,7 +1280,7 @@ class PropertyElementResolver with ScopeHelpers {
         var enclosingElement = element.enclosingElement;
         if (enclosingElement is ExtensionElement &&
             enclosingElement.name == null) {
-          _resolver.diagnosticReporter.report(
+          _typeAnalyzer.diagnosticReporter.report(
             diag.instanceAccessToStaticMemberOfUnnamedExtension
                 .withArguments(
                   name: propertyName.lexeme,
@@ -1571,7 +1572,7 @@ class PropertyElementResolver with ScopeHelpers {
       return PropertyElementResolverResult();
     }
 
-    var result = _resolver.typePropertyResolver.resolve(
+    var result = _typeAnalyzer.typePropertyResolver.resolve(
       receiver: target,
       receiverType: targetType,
       name: propertyName.lexeme,
@@ -1588,20 +1589,20 @@ class PropertyElementResolver with ScopeHelpers {
         InternalPropertyAccessorElement(:var returnType) => returnType,
         _ => result.recordField?.type ?? _typeSystem.typeProvider.dynamicType,
       };
-      if (_resolver.flowAnalysis.flow case var flow?) {
+      if (_typeAnalyzer.flowAnalysis.flow case var flow?) {
         var (promotedType: wrappedPromotedType, :expressionInfo) = flow
             .propertyGet(
               isCascaded
                   ? CascadePropertyTarget.singleton
                         as PropertyTarget<ExpressionImpl>
                   : ExpressionPropertyTarget(
-                      _resolver.flowAnalysis.getExpressionInfo(target),
+                      _typeAnalyzer.flowAnalysis.getExpressionInfo(target),
                     ),
               propertyName.lexeme,
               result.getter2,
               SharedTypeView(unpromotedType),
             );
-        _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
+        _typeAnalyzer.flowAnalysis.storeExpressionInfo(node, expressionInfo);
         getType = wrappedPromotedType?.unwrapTypeView();
       }
       getType ??= unpromotedType;
@@ -1619,7 +1620,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasWrite) {
       _checkForStaticMember(target, propertyName, result.setter2);
       if (result.needsSetterError) {
-        var readResult = _resolver.typePropertyResolver.resolve(
+        var readResult = _typeAnalyzer.typePropertyResolver.resolve(
           receiver: target,
           receiverType: targetType,
           name: propertyName.lexeme,
@@ -1856,7 +1857,7 @@ class PropertyElementResolver with ScopeHelpers {
     bool resolvingDotShorthand = false,
   }) {
     if (isCascaded) {
-      typeReference = _resolver.typeProvider.typeType.element;
+      typeReference = _typeAnalyzer.typeProvider.typeType.element;
     }
 
     ExecutableElement? readElement;
@@ -1878,14 +1879,15 @@ class PropertyElementResolver with ScopeHelpers {
       if (readElement == null) {
         if (_definingLibrary.featureSet.isEnabled(Feature.static_extensions)) {
           // When direct lookups fail, try static extension resolution.
-          var result = _resolver.typePropertyResolver.resolveStaticExtension(
-            declaration: typeReference,
-            name: propertyName.lexeme,
-            hasRead: hasRead,
-            hasWrite: hasWrite,
-            propertyErrorEntity: propertyName,
-            nameErrorEntity: propertyName,
-          );
+          var result = _typeAnalyzer.typePropertyResolver
+              .resolveStaticExtension(
+                declaration: typeReference,
+                name: propertyName.lexeme,
+                hasRead: hasRead,
+                hasWrite: hasWrite,
+                propertyErrorEntity: propertyName,
+                nameErrorEntity: propertyName,
+              );
           if (result.getter2 != null) {
             readElement = result.getter2;
           }
@@ -1946,7 +1948,7 @@ class PropertyElementResolver with ScopeHelpers {
         Feature.static_extensions,
       )) {
         // When direct lookups fail, try static extension resolution.
-        var result = _resolver.typePropertyResolver.resolveStaticExtension(
+        var result = _typeAnalyzer.typePropertyResolver.resolveStaticExtension(
           declaration: typeReference,
           name: propertyName.lexeme,
           hasRead: hasRead,
@@ -2015,7 +2017,7 @@ class PropertyElementResolver with ScopeHelpers {
         // The parser has already reported the missing name. But the prefix
         // is still used, so its imports must not be reported as unused.
         target.scope.notifyPrefixUsedWithoutName();
-      } else if (!_resolver.libraryFragment.shouldIgnoreUndefined(
+      } else if (!_typeAnalyzer.libraryFragment.shouldIgnoreUndefined(
         prefix: target.name,
         name: name,
       )) {
@@ -2044,7 +2046,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (SuperContext.of(target) != SuperContext.valid) {
       return PropertyElementResolverResult();
     }
-    var targetType = _resolver.superLookupType(target);
+    var targetType = _typeAnalyzer.superLookupType(target);
 
     InternalExecutableElement? readElement;
     InternalExecutableElement? writeElement;
@@ -2054,7 +2056,7 @@ class PropertyElementResolver with ScopeHelpers {
     if (targetType is InterfaceTypeImpl) {
       if (hasRead) {
         var name = Name(_definingLibrary.uri, propertyName.lexeme);
-        readElement = _resolver.inheritance.getMember(
+        readElement = _typeAnalyzer.inheritance.getMember(
           targetType.element,
           name,
           forSuper: true,
@@ -2066,7 +2068,7 @@ class PropertyElementResolver with ScopeHelpers {
           // We were not able to find the concrete dispatch target.
           // But we would like to give the user at least some resolution.
           // So, we retry simply looking for an inherited member.
-          readElement = _resolver.inheritance.getInherited(
+          readElement = _typeAnalyzer.inheritance.getInherited(
             targetType.element,
             name,
           );
@@ -2092,7 +2094,7 @@ class PropertyElementResolver with ScopeHelpers {
         }
         var unpromotedType =
             readElement?.returnType ?? _typeSystem.typeProvider.dynamicType;
-        if (_resolver.flowAnalysis.flow case var flow?) {
+        if (_typeAnalyzer.flowAnalysis.flow case var flow?) {
           var (promotedType: wrappedPromotedType, :expressionInfo) = flow
               .propertyGet(
                 SuperPropertyTarget.singleton,
@@ -2101,7 +2103,10 @@ class PropertyElementResolver with ScopeHelpers {
                 SharedTypeView(unpromotedType),
               );
           if (node is Expression) {
-            _resolver.flowAnalysis.storeExpressionInfo(node, expressionInfo);
+            _typeAnalyzer.flowAnalysis.storeExpressionInfo(
+              node,
+              expressionInfo,
+            );
           }
           readExpressionInfo = expressionInfo;
           getType = wrappedPromotedType?.unwrapTypeView();
@@ -2167,7 +2172,7 @@ class PropertyElementResolver with ScopeHelpers {
   }) {
     var readLookup =
         LexicalLookup.resolveGetter(scopeLookupResult) ??
-        _resolver.thisLookupGetter2(node, name.lexeme);
+        _typeAnalyzer.thisLookupGetter2(node, name.lexeme);
     var readElementRequested = readLookup?.requested;
     var readElementRecovery = readLookup?.recovery;
 
@@ -2176,19 +2181,19 @@ class PropertyElementResolver with ScopeHelpers {
         readLookup?.recordField == null &&
         !name.isSynthetic) {
       if (name.lexeme == 'await' &&
-          _resolver.enclosingExecutableElement != null) {
+          _typeAnalyzer.enclosingExecutableElement != null) {
         diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
-      } else if (!_resolver.libraryFragment.shouldIgnoreUndefined(
+      } else if (!_typeAnalyzer.libraryFragment.shouldIgnoreUndefined(
         prefix: null,
         name: name.lexeme,
       )) {
         diagnosticReporter.report(
           node.parent2 is FunctionInstantiationImpl &&
-                  _resolver.thisType != null
+                  _typeAnalyzer.thisType != null
               ? diag.undefinedMethod
                     .withArguments(
                       methodName: name.lexeme,
-                      type: _resolver.thisType!,
+                      type: _typeAnalyzer.thisType!,
                     )
                     .at(node)
               : diag.undefinedIdentifier
@@ -2198,7 +2203,7 @@ class PropertyElementResolver with ScopeHelpers {
       }
     }
 
-    _resolver.checkReadOfNotAssignedLocalVariable2(
+    _typeAnalyzer.checkReadOfNotAssignedLocalVariable2(
       node,
       name: name.lexeme,
       element: readElementRequested,
@@ -2208,7 +2213,7 @@ class PropertyElementResolver with ScopeHelpers {
     TypeImpl? readType;
     if (readElementRequested is InternalVariableElement) {
       readType = readElementRequested.type;
-      var flow = _resolver.flowAnalysis.flow;
+      var flow = _typeAnalyzer.flowAnalysis.flow;
       if (readElementRequested is PromotableElementImpl && flow != null) {
         SharedTypeView? promotedType;
         (:promotedType, :expressionInfo) = flow.variableRead(
@@ -2219,7 +2224,7 @@ class PropertyElementResolver with ScopeHelpers {
       }
     } else if (readElementRequested is InternalGetterElement) {
       readType = readElementRequested.returnType;
-      var flow = _resolver.flowAnalysis.flow;
+      var flow = _typeAnalyzer.flowAnalysis.flow;
       if (!readElementRequested.isStatic && flow != null) {
         SharedTypeView? promotedType;
         (:promotedType, :expressionInfo) = flow.propertyGet(
@@ -2259,7 +2264,7 @@ class PropertyElementResolver with ScopeHelpers {
     var name = node.name;
     var writeLookup =
         LexicalLookup.resolveSetter(node.scopeLookupResult!) ??
-        ThisLookup.lookupSetter2(_resolver, node: node, name: name.lexeme);
+        ThisLookup.lookupSetter2(_typeAnalyzer, node: node, name: name.lexeme);
     var writeElementRequested = writeLookup?.requested;
     var writeElementRecovery = writeLookup?.recovery;
 

@@ -56,21 +56,21 @@ class ConstructorElementToInfer {
 }
 
 class InvocationInferenceHelper {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
   final bool _genericMetadataIsEnabled;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
   InvocationInferenceHelper({
-    required TypeAnalyzer resolver,
+    required TypeAnalyzer typeAnalyzer,
     required DiagnosticReporter diagnosticReporter,
     required TypeSystemImpl typeSystem,
     required this.dataForTesting,
-  }) : _resolver = resolver,
+  }) : _typeAnalyzer = typeAnalyzer,
        _diagnosticReporter = diagnosticReporter,
        _typeSystem = typeSystem,
-       _genericMetadataIsEnabled = resolver.definingLibrary.featureSet
+       _genericMetadataIsEnabled = typeAnalyzer.definingLibrary.featureSet
            .isEnabled(Feature.generic_metadata);
 
   /// If the constructor referenced by the [constructorName] is generic,
@@ -132,10 +132,11 @@ class InvocationInferenceHelper {
         diagnosticReporter: _diagnosticReporter,
         errorNode: expression,
         genericMetadataIsEnabled: _genericMetadataIsEnabled,
-        inferenceUsingBoundsIsEnabled: _resolver.inferenceUsingBoundsIsEnabled,
-        strictInference: _resolver.analysisOptions.strictInference,
-        strictCasts: _resolver.analysisOptions.strictCasts,
-        typeSystemOperations: _resolver.flowAnalysis.typeOperations,
+        inferenceUsingBoundsIsEnabled:
+            _typeAnalyzer.inferenceUsingBoundsIsEnabled,
+        strictInference: _typeAnalyzer.analysisOptions.strictInference,
+        strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
+        typeSystemOperations: _typeAnalyzer.flowAnalysis.typeOperations,
         dataForTesting: dataForTesting,
         nodeForTesting: expression,
       );

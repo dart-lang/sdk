@@ -19,16 +19,16 @@ import 'package:analyzer/src/error/listener.dart';
 /// invocations are verified by constant verification, like other constant
 /// constructor invocations.
 class AnnotationResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  AnnotationResolver(this._resolver);
+  AnnotationResolver(this._typeAnalyzer);
 
   void resolve(AnnotationImpl node) {
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       node.expression,
-      _resolver.operations.unknownType,
+      _typeAnalyzer.operations.unknownType,
     );
-    _resolver.popRewrite();
+    _typeAnalyzer.popRewrite();
     _verify(node);
   }
 
@@ -70,6 +70,6 @@ class AnnotationResolver {
       default:
         break;
     }
-    _resolver.diagnosticReporter.report(diag.invalidAnnotation.at(node));
+    _typeAnalyzer.diagnosticReporter.report(diag.invalidAnnotation.at(node));
   }
 }

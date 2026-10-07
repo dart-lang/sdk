@@ -20,18 +20,21 @@ import 'package:analyzer/src/error/listener.dart';
 
 /// Helper for resolving V2 assignment expressions and their targets.
 class AssignmentExpressionResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionShared _assignmentShared;
 
-  AssignmentExpressionResolver({required TypeAnalyzer resolver})
-    : _resolver = resolver,
-      _typePropertyResolver = resolver.typePropertyResolver,
-      _assignmentShared = AssignmentExpressionShared(resolver: resolver);
+  AssignmentExpressionResolver({required TypeAnalyzer typeAnalyzer})
+    : _typeAnalyzer = typeAnalyzer,
+      _typePropertyResolver = typeAnalyzer.typePropertyResolver,
+      _assignmentShared = AssignmentExpressionShared(
+        typeAnalyzer: typeAnalyzer,
+      );
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void analyzePropertyTargetReceiver(
     AstNode node,
@@ -42,32 +45,32 @@ class AssignmentExpressionResolver {
       case StaticQualifierImpl():
         return;
       case SuperReferenceImpl():
-        _resolver.visitSuperReference(receiver);
+        _typeAnalyzer.visitSuperReference(receiver);
         if (target.operator.type == TokenType.QUESTION_PERIOD) {
-          _resolver.startNullAwareAssignmentTarget(
+          _typeAnalyzer.startNullAwareAssignmentTarget(
             receiver,
             offset: target.operator.offset,
           );
         }
         return;
       case ExtensionOverride2Impl():
-        _resolver.visitExtensionOverride2(receiver);
+        _typeAnalyzer.visitExtensionOverride2(receiver);
         receiver.legacyStaticType =
             receiver.extendedType ?? InvalidTypeImpl.instance;
         if (target.operator.type == TokenType.QUESTION_PERIOD) {
-          _resolver.startNullAwareAssignmentTarget(
+          _typeAnalyzer.startNullAwareAssignmentTarget(
             receiver,
             offset: target.operator.offset,
           );
         }
         return;
       case ExpressionImpl():
-        _resolver.analyzeExpression(
+        _typeAnalyzer.analyzeExpression(
           receiver,
           SharedTypeSchemaView(UnknownInferredType.instance),
           continueNullShorting: true,
         );
-        receiver = _resolver.popRewrite()!;
+        receiver = _typeAnalyzer.popRewrite()!;
         target.receiver = receiver;
         var receiverDoesNotComplete = identical(
           _typeSystem.resolveToBound(receiver.typeOrThrow),
@@ -75,15 +78,15 @@ class AssignmentExpressionResolver {
         );
         if (target.operator.type == TokenType.QUESTION_PERIOD &&
             !receiverDoesNotComplete) {
-          _resolver.startNullAwareAssignmentTarget(
+          _typeAnalyzer.startNullAwareAssignmentTarget(
             receiver,
             offset: target.operator.offset,
           );
-          _resolver.nullSafetyDeadCodeVerifier.recordDeadIntervalAt(
+          _typeAnalyzer.nullSafetyDeadCodeVerifier.recordDeadIntervalAt(
             node,
             target.name,
           );
-          _resolver.nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
+          _typeAnalyzer.nullSafetyDeadCodeVerifier.verifyNullAwareAccess(
             node,
             receiver,
             target.operator,
@@ -94,7 +97,7 @@ class AssignmentExpressionResolver {
 
   ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
   resolveCascadeIndexReadWriteTarget(CascadeIndexAssignmentTargetImpl target) {
-    var result = _resolver.resolveCascadeIndex(
+    var result = _typeAnalyzer.resolveCascadeIndex(
       target,
       hasRead: true,
       hasWrite: true,
@@ -102,19 +105,19 @@ class AssignmentExpressionResolver {
     target.read = result?.read;
     target.write = result?.write;
 
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       target.index,
       SharedTypeSchemaView(
         result?.read?.indexContextType ?? UnknownInferredType.instance,
       ),
     );
-    target.index = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(target.index),
+    target.index = _typeAnalyzer.popRewrite()!;
+    var whyNotPromoted = _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+      _typeAnalyzer.flowAnalysis.getExpressionInfo(target.index),
     );
     var readElement = result?.read?.elementOrRecovery;
     var writeElement = result?.write?.elementOrRecovery;
-    _resolver.checkIndexExpressionIndex(
+    _typeAnalyzer.checkIndexExpressionIndex(
       target.index,
       readElement: readElement,
       writeElement: writeElement,
@@ -135,7 +138,7 @@ class AssignmentExpressionResolver {
     ExpressionImpl node,
     CascadePropertyAssignmentTargetImpl target,
   ) {
-    var result = _resolver.resolveCascadeProperty(
+    var result = _typeAnalyzer.resolveCascadeProperty(
       node,
       target.name,
       hasRead: true,
@@ -165,13 +168,16 @@ class AssignmentExpressionResolver {
       case CascadeIndexAssignmentTargetImpl():
         var targetResult = resolveCascadeIndexReadWriteTarget(target);
         if (targetResult == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
+          node.value = _typeAnalyzer.popRewrite()!;
           node.operatorResultType = NeverTypeImpl.instance;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         readType = targetResult.read.type;
@@ -179,13 +185,16 @@ class AssignmentExpressionResolver {
       case CascadePropertyAssignmentTargetImpl():
         var targetResult = resolveCascadePropertyReadWriteTarget(node, target);
         if (targetResult == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
+          node.value = _typeAnalyzer.popRewrite()!;
           node.operatorResultType = NeverTypeImpl.instance;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         readType = targetResult.read.type;
@@ -193,29 +202,35 @@ class AssignmentExpressionResolver {
       case ReceiverIndexAssignmentTargetImpl():
         var targetResult = resolveIndexReadWriteTarget(target);
         if (targetResult == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
+          node.value = _typeAnalyzer.popRewrite()!;
           node.operatorResultType = NeverTypeImpl.instance;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
       case ReceiverPropertyAssignmentTargetImpl():
         analyzePropertyTargetReceiver(node, target);
-        var targetResult = _resolver
+        var targetResult = _typeAnalyzer
             .resolveReceiverPropertyReadWriteAssignmentTarget(target);
         if (targetResult == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
+          node.value = _typeAnalyzer.popRewrite()!;
           node.operatorResultType = NeverTypeImpl.instance;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         target.read = targetResult.read;
@@ -230,11 +245,11 @@ class AssignmentExpressionResolver {
           readType = InvalidTypeImpl.instance;
         }
       case ImportPrefixedAssignmentTargetImpl():
-        _resolver.resolveImportPrefixedAssignmentTarget(target);
+        _typeAnalyzer.resolveImportPrefixedAssignmentTarget(target);
         readType = target.read!.type;
         writeAcceptedType = target.write!.acceptedType;
       case UnqualifiedNameAssignmentTargetImpl():
-        var targetResult = _resolver
+        var targetResult = _typeAnalyzer
             .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
         target.read = targetResult.read;
         target.write = targetResult.write;
@@ -265,7 +280,7 @@ class AssignmentExpressionResolver {
     // variable; other targets use the type accepted by their write resolution.
     var writeContextType = writeAcceptedType;
     if (variableElement case var element?) {
-      writeContextType = _resolver.localVariableTypeProvider.getWriteType(
+      writeContextType = _typeAnalyzer.localVariableTypeProvider.getWriteType(
         element,
       );
     }
@@ -274,10 +289,13 @@ class AssignmentExpressionResolver {
       writeContextType: writeContextType,
       element: node.element,
     );
-    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
-    node.value = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(node.value),
+    _typeAnalyzer.analyzeExpression(
+      node.value,
+      SharedTypeSchemaView(rhsContext),
+    );
+    node.value = _typeAnalyzer.popRewrite()!;
+    var whyNotPromoted = _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+      _typeAnalyzer.flowAnalysis.getExpressionInfo(node.value),
     );
 
     var operatorResultType = _computeCompoundOperatorResultType(
@@ -285,7 +303,7 @@ class AssignmentExpressionResolver {
       readType: readType,
     );
     node.operatorResultType = operatorResultType;
-    node.recordStaticType(operatorResultType, resolver: _resolver);
+    node.recordStaticType(operatorResultType, typeAnalyzer: _typeAnalyzer);
 
     _checkForInvalidAssignment(
       writeAcceptedType,
@@ -293,15 +311,15 @@ class AssignmentExpressionResolver {
       operatorResultType,
       whyNotPromoted: null,
     );
-    _resolver.checkForArgumentTypeNotAssignableForArgument(
+    _typeAnalyzer.checkForArgumentTypeNotAssignableForArgument(
       node.value,
       whyNotPromoted: whyNotPromoted,
     );
 
-    var flow = _resolver.flowAnalysis.flow;
+    var flow = _typeAnalyzer.flowAnalysis.flow;
     if (flow == null) return;
     if (variableElement case PromotableElementImpl element) {
-      _resolver.flowAnalysis.storeExpressionInfo(
+      _typeAnalyzer.flowAnalysis.storeExpressionInfo(
         node,
         flow.write(
           node,
@@ -323,42 +341,45 @@ class AssignmentExpressionResolver {
     InternalVariableElement? variableElement;
     switch (target) {
       case CascadeIndexAssignmentTargetImpl():
-        var result = _resolver.resolveCascadeIndex(
+        var result = _typeAnalyzer.resolveCascadeIndex(
           target,
           hasRead: false,
           hasWrite: true,
         );
         var resolution = result?.write;
         target.write = resolution;
-        _resolver.analyzeExpression(
+        _typeAnalyzer.analyzeExpression(
           target.index,
           SharedTypeSchemaView(
             resolution?.indexContextType ?? UnknownInferredType.instance,
           ),
         );
-        target.index = _resolver.popRewrite()!;
-        var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-          _resolver.flowAnalysis.getExpressionInfo(target.index),
+        target.index = _typeAnalyzer.popRewrite()!;
+        var whyNotPromoted = _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+          _typeAnalyzer.flowAnalysis.getExpressionInfo(target.index),
         );
         var writeElement = resolution?.elementOrRecovery;
-        _resolver.checkIndexExpressionIndex(
+        _typeAnalyzer.checkIndexExpressionIndex(
           target.index,
           readElement: null,
           writeElement: writeElement,
           whyNotPromoted: whyNotPromoted,
         );
         if (resolution == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.value = _typeAnalyzer.popRewrite()!;
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         writeAcceptedType = resolution.acceptedType;
       case CascadePropertyAssignmentTargetImpl():
-        var result = _resolver.resolveCascadeProperty(
+        var result = _typeAnalyzer.resolveCascadeProperty(
           node,
           target.name,
           hasRead: false,
@@ -367,17 +388,20 @@ class AssignmentExpressionResolver {
         var resolution = result?.write;
         target.write = resolution;
         if (resolution == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.value = _typeAnalyzer.popRewrite()!;
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         writeAcceptedType = resolution.acceptedType;
       case ReceiverIndexAssignmentTargetImpl():
-        target.receiver = _resolver.analyzeInstanceReceiver(
+        target.receiver = _typeAnalyzer.analyzeInstanceReceiver(
           target.receiver,
           continueNullShorting: true,
         );
@@ -385,32 +409,34 @@ class AssignmentExpressionResolver {
             target.receiver is! ExtensionOverride2Impl &&
             identical(
               _typeSystem.resolveToBound(
-                _resolver.instanceReceiverType(target.receiver),
+                _typeAnalyzer.instanceReceiverType(target.receiver),
               ),
               NeverTypeImpl.instance,
             );
         if (target.question case var question? when !receiverDoesNotComplete) {
-          _resolver.startNullAwareAssignmentTarget(
+          _typeAnalyzer.startNullAwareAssignmentTarget(
             target.receiver,
             offset: question.offset,
           );
-          _resolver.nullSafetyDeadCodeVerifier.visitNode(target.index);
+          _typeAnalyzer.nullSafetyDeadCodeVerifier.visitNode(target.index);
         }
-        var resolution = _resolver.resolveIndexDirectAssignmentTarget(target);
+        var resolution = _typeAnalyzer.resolveIndexDirectAssignmentTarget(
+          target,
+        );
         target.write = resolution;
 
-        _resolver.analyzeExpression(
+        _typeAnalyzer.analyzeExpression(
           target.index,
           SharedTypeSchemaView(
             resolution?.indexContextType ?? UnknownInferredType.instance,
           ),
         );
-        target.index = _resolver.popRewrite()!;
-        var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-          _resolver.flowAnalysis.getExpressionInfo(target.index),
+        target.index = _typeAnalyzer.popRewrite()!;
+        var whyNotPromoted = _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+          _typeAnalyzer.flowAnalysis.getExpressionInfo(target.index),
         );
         var writeElement = resolution?.elementOrRecovery;
-        _resolver.checkIndexExpressionIndex(
+        _typeAnalyzer.checkIndexExpressionIndex(
           target.index,
           readElement: null,
           writeElement: writeElement,
@@ -418,35 +444,41 @@ class AssignmentExpressionResolver {
         );
 
         if (resolution == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.value = _typeAnalyzer.popRewrite()!;
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         writeAcceptedType = resolution.acceptedType;
       case ReceiverPropertyAssignmentTargetImpl():
         analyzePropertyTargetReceiver(node, target);
-        var resolution = _resolver
+        var resolution = _typeAnalyzer
             .resolveReceiverPropertyDirectAssignmentTarget(target);
         target.write = resolution;
         if (resolution == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.value = _typeAnalyzer.popRewrite()!;
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         writeAcceptedType = resolution.acceptedType;
       case ImportPrefixedAssignmentTargetImpl():
-        _resolver.resolveImportPrefixedAssignmentTarget(target);
+        _typeAnalyzer.resolveImportPrefixedAssignmentTarget(target);
         writeAcceptedType = target.write!.acceptedType;
       case UnqualifiedNameAssignmentTargetImpl():
-        var resolution = _resolver.resolveUnqualifiedNameAssignmentTarget(
+        var resolution = _typeAnalyzer.resolveUnqualifiedNameAssignmentTarget(
           target,
         );
         target.write = resolution;
@@ -470,18 +502,23 @@ class AssignmentExpressionResolver {
 
     var rhsContext = writeAcceptedType;
     if (variableElement case var element?) {
-      rhsContext = _resolver.localVariableTypeProvider.getWriteType(element);
+      rhsContext = _typeAnalyzer.localVariableTypeProvider.getWriteType(
+        element,
+      );
     }
 
-    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
-    node.value = _resolver.popRewrite()!;
+    _typeAnalyzer.analyzeExpression(
+      node.value,
+      SharedTypeSchemaView(rhsContext),
+    );
+    node.value = _typeAnalyzer.popRewrite()!;
     var valueType = node.value.typeOrThrow;
-    var flow = _resolver.flowAnalysis.flow;
+    var flow = _typeAnalyzer.flowAnalysis.flow;
     var whyNotPromoted = flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(node.value),
+      _typeAnalyzer.flowAnalysis.getExpressionInfo(node.value),
     );
 
-    node.recordStaticType(valueType, resolver: _resolver);
+    node.recordStaticType(valueType, typeAnalyzer: _typeAnalyzer);
     _checkForInvalidAssignment(
       writeAcceptedType,
       node.value,
@@ -491,13 +528,13 @@ class AssignmentExpressionResolver {
 
     if (flow == null) return;
     if (variableElement case PromotableElementImpl element) {
-      _resolver.flowAnalysis.storeExpressionInfo(
+      _typeAnalyzer.flowAnalysis.storeExpressionInfo(
         node,
         flow.write(
           node,
           element,
           SharedTypeView(node.typeOrThrow),
-          _resolver.flowAnalysis.getExpressionInfo(node.value),
+          _typeAnalyzer.flowAnalysis.getExpressionInfo(node.value),
           offset: node.end,
         ),
       );
@@ -517,12 +554,15 @@ class AssignmentExpressionResolver {
       case CascadeIndexAssignmentTargetImpl():
         var targetResult = resolveCascadeIndexReadWriteTarget(target);
         if (targetResult == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.value = _typeAnalyzer.popRewrite()!;
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         readType = targetResult.read.type;
@@ -530,12 +570,15 @@ class AssignmentExpressionResolver {
       case CascadePropertyAssignmentTargetImpl():
         var targetResult = resolveCascadePropertyReadWriteTarget(node, target);
         if (targetResult == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.value = _typeAnalyzer.popRewrite()!;
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         readType = targetResult.read.type;
@@ -544,27 +587,33 @@ class AssignmentExpressionResolver {
       case ReceiverIndexAssignmentTargetImpl():
         var targetResult = resolveIndexReadWriteTarget(target);
         if (targetResult == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.value = _typeAnalyzer.popRewrite()!;
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         readType = targetResult.read.type;
         writeAcceptedType = targetResult.write.acceptedType;
       case ReceiverPropertyAssignmentTargetImpl():
         analyzePropertyTargetReceiver(node, target);
-        var targetResult = _resolver
+        var targetResult = _typeAnalyzer
             .resolveReceiverPropertyReadWriteAssignmentTarget(target);
         if (targetResult == null) {
-          _resolver.analyzeExpression(
+          _typeAnalyzer.analyzeExpression(
             node.value,
             SharedTypeSchemaView(UnknownInferredType.instance),
           );
-          node.value = _resolver.popRewrite()!;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.value = _typeAnalyzer.popRewrite()!;
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         target.read = targetResult.read;
@@ -573,11 +622,11 @@ class AssignmentExpressionResolver {
         writeAcceptedType = targetResult.write.acceptedType;
         readExpressionInfo = targetResult.readExpressionInfo;
       case ImportPrefixedAssignmentTargetImpl():
-        _resolver.resolveImportPrefixedAssignmentTarget(target);
+        _typeAnalyzer.resolveImportPrefixedAssignmentTarget(target);
         readType = target.read!.type;
         writeAcceptedType = target.write!.acceptedType;
       case UnqualifiedNameAssignmentTargetImpl():
-        var targetResult = _resolver
+        var targetResult = _typeAnalyzer
             .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
         target.read = targetResult.read;
         target.write = targetResult.write;
@@ -607,21 +656,26 @@ class AssignmentExpressionResolver {
 
     var rhsContext = writeAcceptedType;
     if (variableElement case var element?) {
-      rhsContext = _resolver.localVariableTypeProvider.getWriteType(element);
+      rhsContext = _typeAnalyzer.localVariableTypeProvider.getWriteType(
+        element,
+      );
     }
 
-    var flow = _resolver.flowAnalysis.flow;
+    var flow = _typeAnalyzer.flowAnalysis.flow;
     flow?.ifNullExpression_rightBegin(
       readExpressionInfo,
       SharedTypeView(readType),
       offset: node.operator.offset,
     );
 
-    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
-    node.value = _resolver.popRewrite()!;
+    _typeAnalyzer.analyzeExpression(
+      node.value,
+      SharedTypeSchemaView(rhsContext),
+    );
+    node.value = _typeAnalyzer.popRewrite()!;
     var valueType = node.value.typeOrThrow;
     var whyNotPromoted = flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(node.value),
+      _typeAnalyzer.flowAnalysis.getExpressionInfo(node.value),
     );
 
     var nodeType = _computeIfNullType(
@@ -629,7 +683,7 @@ class AssignmentExpressionResolver {
       valueType: valueType,
       contextType: contextType,
     );
-    node.recordStaticType(nodeType, resolver: _resolver);
+    node.recordStaticType(nodeType, typeAnalyzer: _typeAnalyzer);
     _checkForInvalidAssignment(
       writeAcceptedType,
       node.value,
@@ -639,7 +693,7 @@ class AssignmentExpressionResolver {
 
     if (flow == null) return;
     if (variableElement case PromotableElementImpl element) {
-      _resolver.flowAnalysis.storeExpressionInfo(
+      _typeAnalyzer.flowAnalysis.storeExpressionInfo(
         node,
         flow.write(
           node,
@@ -655,7 +709,7 @@ class AssignmentExpressionResolver {
 
   ({IndexReadResolutionImpl read, IndexWriteResolutionImpl write})?
   resolveIndexReadWriteTarget(ReceiverIndexAssignmentTargetImpl target) {
-    target.receiver = _resolver.analyzeInstanceReceiver(
+    target.receiver = _typeAnalyzer.analyzeInstanceReceiver(
       target.receiver,
       continueNullShorting: true,
     );
@@ -664,35 +718,35 @@ class AssignmentExpressionResolver {
         target.receiver is! ExtensionOverride2Impl &&
         identical(
           _typeSystem.resolveToBound(
-            _resolver.instanceReceiverType(target.receiver),
+            _typeAnalyzer.instanceReceiverType(target.receiver),
           ),
           NeverTypeImpl.instance,
         );
     if (target.question case var question? when !receiverDoesNotComplete) {
-      _resolver.startNullAwareAssignmentTarget(
+      _typeAnalyzer.startNullAwareAssignmentTarget(
         target.receiver,
         offset: question.offset,
       );
-      _resolver.nullSafetyDeadCodeVerifier.visitNode(target.index);
+      _typeAnalyzer.nullSafetyDeadCodeVerifier.visitNode(target.index);
     }
 
-    var result = _resolver.resolveIndexReadWriteAssignmentTarget(target);
+    var result = _typeAnalyzer.resolveIndexReadWriteAssignmentTarget(target);
     target.read = result?.read;
     target.write = result?.write;
 
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       target.index,
       SharedTypeSchemaView(
         result?.read.indexContextType ?? UnknownInferredType.instance,
       ),
     );
-    target.index = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(target.index),
+    target.index = _typeAnalyzer.popRewrite()!;
+    var whyNotPromoted = _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+      _typeAnalyzer.flowAnalysis.getExpressionInfo(target.index),
     );
     var readElement = result?.read.elementOrRecovery;
     var writeElement = result?.write.elementOrRecovery;
-    _resolver.checkIndexExpressionIndex(
+    _typeAnalyzer.checkIndexExpressionIndex(
       target.index,
       readElement: readElement,
       writeElement: writeElement,
@@ -711,7 +765,7 @@ class AssignmentExpressionResolver {
       return;
     }
 
-    var strictCasts = _resolver.analysisOptions.strictCasts;
+    var strictCasts = _typeAnalyzer.analysisOptions.strictCasts;
     if (_typeSystem.isAssignableTo(
       rightType,
       writeType,
@@ -744,7 +798,7 @@ class AssignmentExpressionResolver {
             expectedStaticType: writeType,
           )
           .withContextMessages(
-            _resolver.computeWhyNotPromotedMessages(
+            _typeAnalyzer.computeWhyNotPromotedMessages(
               right,
               whyNotPromoted?.call(),
             ),
@@ -828,11 +882,11 @@ class AssignmentExpressionResolver {
     var nonNullT1 = _typeSystem.promoteToNonNull(t1);
     var t = _typeSystem.leastUpperBound(nonNullT1, t2);
     // - Let `S` be the greatest closure of `K`.
-    var s = _resolver.operations
+    var s = _typeAnalyzer.operations
         .greatestClosureOfSchema(SharedTypeSchemaView(contextType))
         .unwrapTypeView<TypeImpl>();
     // If `inferenceUpdate3` is not enabled, then the type of `E` is `T`.
-    if (!_resolver.definingLibrary.featureSet.isEnabled(
+    if (!_typeAnalyzer.definingLibrary.featureSet.isEnabled(
       Feature.inference_update_3,
     )) {
       return t;
@@ -890,11 +944,11 @@ class AssignmentExpressionResolver {
     CompoundAssignmentImpl node,
     InvalidExpressionAssignmentTargetImpl target,
   ) {
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       target.expression,
       SharedTypeSchemaView(UnknownInferredType.instance),
     );
-    target.expression = _resolver.popRewrite()!;
+    target.expression = _typeAnalyzer.popRewrite()!;
     target.read = const InvalidReadResolutionImpl();
     target.write = const InvalidWriteResolutionImpl();
 
@@ -909,10 +963,13 @@ class AssignmentExpressionResolver {
       writeContextType: readType,
       element: node.element,
     );
-    _resolver.analyzeExpression(node.value, SharedTypeSchemaView(rhsContext));
-    node.value = _resolver.popRewrite()!;
-    var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(
-      _resolver.flowAnalysis.getExpressionInfo(node.value),
+    _typeAnalyzer.analyzeExpression(
+      node.value,
+      SharedTypeSchemaView(rhsContext),
+    );
+    node.value = _typeAnalyzer.popRewrite()!;
+    var whyNotPromoted = _typeAnalyzer.flowAnalysis.flow?.whyNotPromoted(
+      _typeAnalyzer.flowAnalysis.getExpressionInfo(node.value),
     );
 
     var operatorResultType = _computeCompoundOperatorResultType(
@@ -920,8 +977,8 @@ class AssignmentExpressionResolver {
       readType: readType,
     );
     node.operatorResultType = operatorResultType;
-    node.recordStaticType(operatorResultType, resolver: _resolver);
-    _resolver.checkForArgumentTypeNotAssignableForArgument(
+    node.recordStaticType(operatorResultType, typeAnalyzer: _typeAnalyzer);
+    _typeAnalyzer.checkForArgumentTypeNotAssignableForArgument(
       node.value,
       whyNotPromoted: whyNotPromoted,
     );
@@ -933,34 +990,34 @@ class AssignmentExpressionResolver {
     bool expressionIsResolved = false,
   }) {
     if (!expressionIsResolved) {
-      _resolver.analyzeExpression(
+      _typeAnalyzer.analyzeExpression(
         target.expression,
         SharedTypeSchemaView(UnknownInferredType.instance),
       );
-      target.expression = _resolver.popRewrite()!;
+      target.expression = _typeAnalyzer.popRewrite()!;
     }
     target.write = const InvalidWriteResolutionImpl();
 
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       node.value,
       SharedTypeSchemaView(InvalidTypeImpl.instance),
     );
-    node.value = _resolver.popRewrite()!;
-    node.recordStaticType(node.value.typeOrThrow, resolver: _resolver);
+    node.value = _typeAnalyzer.popRewrite()!;
+    node.recordStaticType(node.value.typeOrThrow, typeAnalyzer: _typeAnalyzer);
   }
 
   void _resolveInvalidExtensionOverride(
     AssignmentExpression2Impl node,
     InvalidExtensionOverrideAssignmentTargetImpl target,
   ) {
-    _resolver.visitExtensionOverride2(target.extensionOverride);
+    _typeAnalyzer.visitExtensionOverride2(target.extensionOverride);
     if (target.hasRead) target.read = const InvalidReadResolutionImpl();
     target.write = const InvalidWriteResolutionImpl();
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       node.value,
       SharedTypeSchemaView(InvalidTypeImpl.instance),
     );
-    node.value = _resolver.popRewrite()!;
+    node.value = _typeAnalyzer.popRewrite()!;
     if (node is CompoundAssignmentImpl) {
       node.operatorResultType = InvalidTypeImpl.instance;
     }
@@ -968,7 +1025,7 @@ class AssignmentExpressionResolver {
       DirectAssignmentImpl() => node.value.typeOrThrow,
       IfNullAssignmentImpl() => DynamicTypeImpl.instance,
       _ => InvalidTypeImpl.instance,
-    }, resolver: _resolver);
+    }, typeAnalyzer: _typeAnalyzer);
   }
 
   void _resolveInvalidIfNull(
@@ -978,28 +1035,28 @@ class AssignmentExpressionResolver {
     bool expressionIsResolved = false,
   }) {
     if (!expressionIsResolved) {
-      _resolver.analyzeExpression(
+      _typeAnalyzer.analyzeExpression(
         target.expression,
         SharedTypeSchemaView(UnknownInferredType.instance),
       );
-      target.expression = _resolver.popRewrite()!;
+      target.expression = _typeAnalyzer.popRewrite()!;
     }
     target.read = const InvalidReadResolutionImpl();
     target.write = const InvalidWriteResolutionImpl();
 
     var readType = target.expression.typeOrThrow;
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       node.value,
       SharedTypeSchemaView(InvalidTypeImpl.instance),
     );
-    node.value = _resolver.popRewrite()!;
+    node.value = _typeAnalyzer.popRewrite()!;
     node.recordStaticType(
       _computeIfNullType(
         readType: readType,
         valueType: node.value.typeOrThrow,
         contextType: contextType,
       ),
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
     );
   }
 
@@ -1007,14 +1064,14 @@ class AssignmentExpressionResolver {
     AssignmentExpression2Impl node,
     InvalidSuperAssignmentTargetImpl target,
   ) {
-    _resolver.visitSuperReference(target.superReference);
+    _typeAnalyzer.visitSuperReference(target.superReference);
     if (target.hasRead) target.read = const InvalidReadResolutionImpl();
     target.write = const InvalidWriteResolutionImpl();
-    _resolver.analyzeExpression(
+    _typeAnalyzer.analyzeExpression(
       node.value,
       SharedTypeSchemaView(InvalidTypeImpl.instance),
     );
-    node.value = _resolver.popRewrite()!;
+    node.value = _typeAnalyzer.popRewrite()!;
     if (node is CompoundAssignmentImpl) {
       node.operatorResultType = InvalidTypeImpl.instance;
     }
@@ -1022,18 +1079,18 @@ class AssignmentExpressionResolver {
       node is DirectAssignmentImpl
           ? node.value.typeOrThrow
           : InvalidTypeImpl.instance,
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
     );
   }
 }
 
 class AssignmentExpressionShared {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  AssignmentExpressionShared({required TypeAnalyzer resolver})
-    : _resolver = resolver;
+  AssignmentExpressionShared({required TypeAnalyzer typeAnalyzer})
+    : _typeAnalyzer = typeAnalyzer;
 
-  DiagnosticReporter get _errorReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _errorReporter => _typeAnalyzer.diagnosticReporter;
 
   /// Reports a write to [target] if it is a final local variable that might
   /// already be assigned.
@@ -1041,7 +1098,7 @@ class AssignmentExpressionShared {
     UnqualifiedNameAssignmentTargetImpl target, {
     bool isWrittenRepeatedly = false,
   }) {
-    if (_resolver.flowAnalysis.flow == null) return;
+    if (_typeAnalyzer.flowAnalysis.flow == null) return;
     var element = target.scopeLookupResult?.getter;
     if (element is PromotableElementImpl) {
       _checkFinalAlreadyAssigned(
@@ -1057,7 +1114,7 @@ class AssignmentExpressionShared {
     PromotableElementImpl element, {
     required bool isWrittenRepeatedly,
   }) {
-    var flowAnalysis = _resolver.flowAnalysis;
+    var flowAnalysis = _typeAnalyzer.flowAnalysis;
     var assigned = flowAnalysis.isDefinitelyAssigned(node, element);
     var unassigned = flowAnalysis.isDefinitelyUnassigned(node, element);
 
