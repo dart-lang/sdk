@@ -210,6 +210,7 @@ class _HttpHeaders implements HttpHeaders {
 
   void set host(String? host) {
     _checkMutable();
+    if (host != null) _validateValue(host);
     _host = host;
     _updateHostHeader();
   }
@@ -296,7 +297,9 @@ class _HttpHeaders implements HttpHeaders {
     if (contentType == null) {
       _headers.remove(HttpHeaders.contentTypeHeader);
     } else {
-      _set(HttpHeaders.contentTypeHeader, contentType.toString());
+      var value = contentType.toString();
+      _validateValue(value);
+      _set(HttpHeaders.contentTypeHeader, value);
     }
   }
 
