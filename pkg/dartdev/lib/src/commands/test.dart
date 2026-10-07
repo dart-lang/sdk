@@ -118,11 +118,15 @@ Run "${runner!.executableName} help" to see global options.''');
     }
 
     try {
-      var testExecutable = await getExecutableForCommand('test:test');
+      var testExecutable = await withProgressGracePeriod(
+        () => getExecutableForCommand('test:test'),
+        progressGracePeriod: progressGracePeriod,
+      );
       final sourceExecutable = testExecutable.executable;
       testExecutable = await ExecutableCompiler.compile(
         resolvedExecutable: testExecutable,
         enabledExperiments: enabledExperiments,
+        verbose: verbose,
       );
       var executablePath = testExecutable.executable;
       if (nativeAssets != null &&

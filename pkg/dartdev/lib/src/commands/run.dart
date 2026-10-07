@@ -490,6 +490,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
         return _runLocal(args, mainCommand, runArgs);
       },
       output: quiet ? ProgressOutput.none : ProgressOutput.stderr,
+      transientProgress: true,
     );
   }
 
@@ -621,12 +622,16 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
     DartExecutableWithPackageConfig executable;
     final String sourceExecutable;
     try {
-      executable = await getExecutableForCommand(mainCommand);
+      executable = await withProgressGracePeriod(
+        () => getExecutableForCommand(mainCommand),
+        progressGracePeriod: progressGracePeriod,
+      );
       sourceExecutable = executable.executable;
       if (!useResidentCompiler) {
         executable = await ExecutableCompiler.compile(
           resolvedExecutable: executable,
           enabledExperiments: enabledExperiments,
+          verbose: verbose,
         );
       }
     } on CommandResolutionFailedException catch (e) {
@@ -858,6 +863,7 @@ See https://dart.dev/to/package-descriptors for more details.''', verbose) {
             sourcePackagePubspecFile,
             verbose,
             verbosity,
+            logGenerated: verbose,
           );
 
           await InstallCommand.createAppBundleDirectory(

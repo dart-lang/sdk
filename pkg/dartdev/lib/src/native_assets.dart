@@ -27,6 +27,7 @@ import 'package:package_config/package_config.dart' as package_config;
 import 'package:pub/pub.dart';
 
 import 'core.dart';
+import 'progress.dart';
 
 class DartNativeAssetsBuilder {
   final Uri? pubspecUri;
@@ -336,7 +337,10 @@ class DartNativeAssetsBuilder {
         // Silently run `pub get`, this is what would happen in
         // `getExecutableForCommand` later.
         try {
-          await ensurePubspecResolved(pubspecMaybe.resolve('.').toFilePath());
+          await ensurePubspecResolved(
+            pubspecMaybe.resolve('.').toFilePath(),
+            progressGracePeriod: progressGracePeriod,
+          );
         } on ResolutionFailedException catch (e) {
           log.stderr(e.message);
           return null;

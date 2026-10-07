@@ -300,7 +300,7 @@ void main(List<String> args) async {
 
       expect(firstRunResult.stdout, contains('Hello World'));
       expect(firstRunResult.exitCode, 0);
-      expect(firstRunResult.stderr, contains('Generated: '));
+      expect(firstRunResult.stderr, isNot(contains('Generated: ')));
       // No hooks.
       expect(firstRunResult.stderr, isNot(contains('Running build hooks')));
       expect(firstRunResult.stderr, isNot(contains('Running link hooks')));
@@ -320,8 +320,8 @@ void main(List<String> args) async {
     });
   });
 
-  for (final verbosityError in [true, false]) {
-    final testName = verbosityError ? ' --verbosity=error' : '';
+  for (final flag in ['', '--verbosity=error', '--verbose']) {
+    final testName = flag.isEmpty ? '' : ' $flag';
     test(
       'dart run from git with build hook$testName',
       timeout: longTimeout,
@@ -334,7 +334,7 @@ void main(List<String> args) async {
           );
 
           final arguments = [
-            if (verbosityError) '--verbosity=error',
+            if (flag.isNotEmpty) flag,
             'test_app_with_hook@{git: {url: ${gitUri.toFilePath()}, ref: $gitRef}}',
             'ignored',
             'arguments',
@@ -360,17 +360,15 @@ void main(List<String> args) async {
 
           expect(runResult.stdout, contains('Hello World'));
           expect(runResult.exitCode, 0);
-          if (verbosityError) {
+          if (flag == '--verbose') {
+            expect(runResult.stderr, contains('Generated: '));
+          } else {
             expect(runResult.stderr, isNot(contains('Running build hooks')));
             expect(runResult.stderr, isNot(contains('Running link hooks')));
             expect(runResult.stderr, isNot(contains('Generated: ')));
-            // Should have no other output than the program.
-            expect(runResult.stdout.trim(), equals('Hello World'));
-          } else {
-            expect(runResult.stderr, contains('Running build hooks'));
-            expect(runResult.stderr, contains('Running link hooks'));
-            expect(runResult.stderr, contains('Generated: '));
           }
+          // Should have no other output than the program on stdout.
+          expect(runResult.stdout.trim(), equals('Hello World'));
         });
       },
     );

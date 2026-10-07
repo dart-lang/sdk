@@ -16,6 +16,7 @@ import 'package:pub_formats/pub_formats.dart';
 import 'package:yaml/yaml.dart';
 
 import '../core.dart';
+import '../progress.dart';
 
 class InstallCommand extends DartdevCommand {
   static const cmdName = 'install';
@@ -183,12 +184,15 @@ See https://dart.dev/to/package-descriptors for more details.''';
       case NonDescriptorInstallCommandParsedArguments _:
         switch (parsedArgs.sourceKind) {
           case RemoteSourceKind.git:
-            return await getPackageNameFromGitRepo(
-              parsedArgs.source,
-              ref: parsedArgs.gitRef,
-              path: parsedArgs.gitPath,
-              relativeTo: Directory.current.path,
-              tagPattern: null,
+            return await withProgressGracePeriod(
+              () => getPackageNameFromGitRepo(
+                parsedArgs.source,
+                ref: parsedArgs.gitRef,
+                path: parsedArgs.gitPath,
+                relativeTo: Directory.current.path,
+                tagPattern: null,
+              ),
+              progressGracePeriod: progressGracePeriod,
             );
           case RemoteSourceKind.hosted:
             return parsedArgs.source;
@@ -257,7 +261,10 @@ See https://dart.dev/to/package-descriptors for more details.''';
 
   static Future<void> resolveHelperPackage(Directory helperPackageDir) async {
     try {
-      await ensurePubspecResolved(helperPackageDir.path);
+      await ensurePubspecResolved(
+        helperPackageDir.path,
+        progressGracePeriod: progressGracePeriod,
+      );
     } on ResolutionFailedException catch (e) {
       installException(e.message);
     }
@@ -312,8 +319,9 @@ See https://dart.dev/to/package-descriptors for more details.''';
     File helperPackageConfigFile,
     File sourcePackagePubspecFile,
     bool verbose,
-    String verbosity,
-  ) async {
+    String verbosity, {
+    required bool logGenerated,
+  }) async {
     // TODO(https://github.com/dart-lang/native/issues/2465): Add a test for
     // user-defines in the source package pubspec.
     final buildResult = await BuildCliSubcommand.doBuild(
@@ -326,6 +334,7 @@ See https://dart.dev/to/package-descriptors for more details.''';
       dataAssetsExperimentEnabled: false,
       verbose: verbose,
       verbosity: verbosity,
+      logGenerated: logGenerated,
     );
     if (buildResult != 0) {
       installException('Build failed.', exitCode: buildResult);
@@ -595,6 +604,7 @@ See https://dart.dev/to/package-descriptors for more details.''';
           sourcePackagePubspecFile,
           verbose,
           Verbosity.all.name,
+          logGenerated: true,
         );
 
         _uniinstallAllPackageVersions(packageName);

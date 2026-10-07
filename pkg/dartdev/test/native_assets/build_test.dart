@@ -102,6 +102,33 @@ void main([List<String> args = const []]) async {
     });
   }
 
+  test('dart build cli --verbosity=error is silent', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runPubGet(workingDirectory: dartAppUri, logger: logger);
+      // Build twice, so that the second build also deletes the previous
+      // output directory.
+      for (var i = 0; i < 2; i++) {
+        final result = await runDart(
+          arguments: [
+            if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
+            'build',
+            'cli',
+            '--verbosity=error',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+        expect(result.stdout, isEmpty);
+        // Errors (such as the hooks' toolchain probing) are still reported,
+        // but status messages are not.
+        expect(result.stderr, isNot(contains('Running build hooks')));
+        expect(result.stderr, isNot(contains('Deleting output directory')));
+        expect(result.stderr, isNot(contains('Generated: ')));
+      }
+    });
+  });
+
   test('dart build native assets build failure', timeout: longTimeout,
       () async {
     await nativeAssetsTest('dart_app', (dartAppUri) async {
