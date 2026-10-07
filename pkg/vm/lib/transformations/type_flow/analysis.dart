@@ -312,6 +312,10 @@ final class _DirectInvocation extends _Invocation {
 
   Type _processField(TypeFlowAnalysis typeFlowAnalysis) {
     final Field field = selector.member as Field;
+    if (!field.isStatic &&
+        args.receiver.hasEmptySpecialization(typeFlowAnalysis.hierarchyCache)) {
+      return emptyType;
+    }
     final int firstParamIndex = field.isStatic ? 0 : 1;
     final _FieldValue fieldValue = typeFlowAnalysis.getFieldValue(field);
 
@@ -1259,7 +1263,9 @@ class _FieldValue extends _DependencyTracker {
 
   _FieldValue(this.field, this.typeGuardSummary, TypesBuilder typesBuilder)
     : staticType = typesBuilder.fromStaticType(field.type, true) {
-    if (field.initializer == null && _isDefaultValueOfFieldObservable()) {
+    if (field.initializer == null &&
+        field.type.nullability == Nullability.nullable &&
+        _isDefaultValueOfFieldObservable()) {
       value = nullableEmptyType;
     }
   }

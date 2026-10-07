@@ -126,12 +126,21 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: MethodInvocation
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
+        name: A
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -183,12 +192,21 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: MethodInvocation
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
+        name: A
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -368,12 +386,21 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: MethodInvocation
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
+        name: A
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -400,12 +427,21 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: MethodInvocation
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
+        name: A
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: A
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -751,12 +787,21 @@ ConstructorDeclaration
     rightParenthesis: )
   body: ExpressionFunctionBody
     functionDefinition: =>
-    expression2: MethodInvocation
+    expression2: ParsedValueArguments
+      operand: ParsedUnqualifiedName
+        name: E
+      argumentList: ArgumentList
+        leftParenthesis: (
+        arguments2
+          IntegerLiteral
+            literal: 0
+        rightParenthesis: )
+    expression(v1): MethodInvocation
       methodName: SimpleIdentifier
         token: E
       argumentList: ArgumentList
         leftParenthesis: (
-        arguments2
+        arguments
           IntegerLiteral
             literal: 0
         rightParenthesis: )
@@ -1376,6 +1421,8 @@ ExtensionTypeDeclaration
   metadata
     Annotation
       atSign: @
+      expression: ParsedUnqualifiedName
+        name: foo
       name: SimpleIdentifier
         token: foo
   extensionKeyword: extension
@@ -3397,6 +3444,8 @@ ExtensionTypeDeclaration
           metadata
             Annotation
               atSign: @
+              expression: ParsedUnqualifiedName
+                name: foo
               name: SimpleIdentifier
                 token: foo
           type: NamedType
@@ -3542,6 +3591,8 @@ ExtensionTypeDeclaration
           metadata
             Annotation
               atSign: @
+              expression: ParsedUnqualifiedName
+                name: foo
               name: SimpleIdentifier
                 token: foo
           name: it

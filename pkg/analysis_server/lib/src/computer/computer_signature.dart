@@ -51,9 +51,7 @@ class DartUnitSignatureComputer {
       parameters = element is FunctionTypedElement
           ? element.formalParameters
           : null;
-    } else if (parent case FunctionExpressionInvocation(
-      function: Identifier function,
-    )) {
+    } else if (parent case FunctionExpressionInvocation(:Identifier function)) {
       name = function.name;
 
       if (function.staticType case FunctionType functionType) {

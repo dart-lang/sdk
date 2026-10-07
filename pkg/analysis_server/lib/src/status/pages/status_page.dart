@@ -103,7 +103,15 @@ class StatusPage extends DiagnosticPageWithNav {
 
       buf.writeln('<div class="column one-half">');
       h3('File Byte Store');
-      if (byteStoreStats.usesFileByteStore) {
+      if (byteStoreStats.singleFileStorePath case var path?) {
+        buf.writeln(formatOption('Single-file cache path', path));
+        buf.writeln(
+          formatOption(
+            'Pending entries',
+            byteStoreStats.singleFilePendingEntryCount ?? 0,
+          ),
+        );
+      } else if (byteStoreStats.usesFileByteStore) {
         buf.writeln(
           formatOption(
             'File cache path',

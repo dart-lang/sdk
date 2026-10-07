@@ -1071,10 +1071,7 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    PositionalParameter copyPositionalParameter(
-      PositionalParameter formal, {
-      required bool isPositional,
-    }) {
+    PositionalParameter copyPositionalParameter(PositionalParameter formal) {
       PositionalParameter copy = extern.createPositionalParameter(
         parameterName: formal.parameterName,
         type: const UnknownType(),
@@ -1091,10 +1088,7 @@ class KernelTarget {
       return copy;
     }
 
-    NamedParameter copyNamedParameter(
-      NamedParameter formal, {
-      required bool isPositional,
-    }) {
+    NamedParameter copyNamedParameter(NamedParameter formal) {
       NamedParameter copy = extern.createNamedParameter(
         parameterName: formal.parameterName,
         type: const UnknownType(),
@@ -1121,28 +1115,29 @@ class KernelTarget {
         }
       }
     }
-    List<PositionalParameter> positionalParameters = [];
-    List<NamedParameter> namedParameters = [];
-    List<Expression> positional = <Expression>[];
-    List<NamedExpression> named = <NamedExpression>[];
-
-    for (PositionalParameter formal
-        in superConstructor.function.positionalParameters) {
-      positionalParameters.add(
-        copyPositionalParameter(formal, isPositional: true),
-      );
-      positional.add(new VariableGet(positionalParameters.last));
-    }
-    for (NamedParameter formal in superConstructor.function.namedParameters) {
-      NamedParameter clone = copyNamedParameter(formal, isPositional: false);
-      namedParameters.add(clone);
-      named.add(
-        new NamedExpression(
-          formal.parameterName,
-          new VariableGet(namedParameters.last),
-        ),
-      );
-    }
+    List<PositionalParameter> superPositional =
+        superConstructor.function.positionalParameters;
+    List<NamedParameter> superNamed = superConstructor.function.namedParameters;
+    PositionalParameterList positionalParameters =
+        PositionalParameterList.mapped(
+          superPositional,
+          copyPositionalParameter,
+        );
+    NamedParameterList namedParameters = NamedParameterList.mapped(
+      superNamed,
+      copyNamedParameter,
+    );
+    ExpressionList positional = ExpressionList.mapped(
+      positionalParameters,
+      VariableGet.new,
+    );
+    NamedExpressionList named = NamedExpressionList.mapped(
+      namedParameters,
+      (NamedParameter parameter) => new NamedExpression(
+        parameter.parameterName,
+        new VariableGet(parameter),
+      ),
+    );
     FunctionNode function = new FunctionNode(
       new EmptyStatement(),
       positionalParameters: positionalParameters,
@@ -1226,7 +1221,8 @@ class KernelTarget {
       fileUri: classBuilder.fileUri,
       constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      introductory: declaration,
+      declarations: [declaration],
+      implementation: declaration,
       isConst: isConst,
     );
 
@@ -1344,23 +1340,20 @@ class KernelTarget {
       fileUri: classBuilder.fileUri,
       constructorReferences: constructorReferences,
       nameScheme: nameScheme,
-      introductory: declaration,
+      declarations: [declaration],
+      implementation: declaration,
       isConst: false,
     );
   }
 
   DartType makeConstructorReturnType(Class enclosingClass) {
-    List<DartType> typeParameterTypes = <DartType>[];
-    for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
-      TypeParameter typeParameter = enclosingClass.typeParameters[i];
-      typeParameterTypes.add(
-        new TypeParameterType.withDefaultNullability(typeParameter),
-      );
-    }
     return new InterfaceType(
       enclosingClass,
       enclosingClass.enclosingLibrary.nonNullable,
-      typeParameterTypes,
+      getAsTypeArguments(
+        enclosingClass.typeParameters,
+        enclosingClass.enclosingLibrary,
+      ),
     );
   }
 

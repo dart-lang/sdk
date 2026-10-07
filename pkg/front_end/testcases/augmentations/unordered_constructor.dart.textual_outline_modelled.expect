@@ -1,0 +1,36 @@
+part 'unordered_constructor_part1.dart';
+
+part 'unordered_constructor_part2.dart';
+
+class Class1 {
+  factory fact() {}
+  factory redirect() = Class1;
+  new() {}
+  new alias() : this();
+}
+
+class Class2 {
+  @annotation1
+  factory fact();
+  @annotation1
+  factory redirect();
+  @annotation1
+  new();
+  @annotation1
+  new alias();
+}
+
+class Class3 {
+  @annotation1
+  factory fact();
+  @annotation1
+  factory redirect();
+  @annotation1
+  new();
+  @annotation1
+  new alias();
+}
+
+const annotation1 = 1;
+
+const annotation2 = 2;

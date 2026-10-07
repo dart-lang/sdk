@@ -155,6 +155,9 @@ bool hasWasmPureFunctionPragma(CoreTypes coreTypes, Member member) {
 T addWasmEntryPointPragma<T extends Annotatable>(T node, CoreTypes coreTypes) =>
     addPragma(node, 'wasm:entry-point', coreTypes);
 
+bool hasWasmCfgPragma(CoreTypes coreTypes, Member member) =>
+    hasPragma(coreTypes, member, 'wasm:cfg');
+
 T addPragma<T extends Annotatable>(
   T node,
   String pragmaName,
@@ -163,7 +166,7 @@ T addPragma<T extends Annotatable>(
 }) => node
   ..addAnnotation(
     ConstantExpression(
-      InstanceConstant(coreTypes.pragmaClass.reference, [], {
+      InstanceConstant(coreTypes.pragmaClass.reference, DartTypeList.empty, {
         coreTypes.pragmaName.fieldReference: StringConstant(pragmaName),
         coreTypes.pragmaOptions.fieldReference: value ?? NullConstant(),
       }),

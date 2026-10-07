@@ -3,8 +3,8 @@ import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 
-abstract class A<T extends core::Object? = dynamic> extends core::Object {
-  synthetic constructor •() → self::A<self::A::T%>
+abstract class A<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::A<self::A::T%>
     : super core::Object::•()
     ;
 }
@@ -39,6 +39,28 @@ class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:9,getterSelectorId:10]
   method testNullableT2() → dynamic
     return _in::unsafeCast<self::B::T?>(#C2);
+}
+class C1 extends core::Object {
+  synthetic constructor •() → self::C1
+    : super core::Object::•()
+    ;
+}
+class C2 extends core::Object {
+  synthetic constructor •() → self::C2
+    : super core::Object::•()
+    ;
+}
+class D<T extends core::Object? = dynamic> extends self::A<self::D::T%> /*hasConstConstructor*/  {
+
+  [@vm.inferred-type.metadata=dart.core::_Smi]
+  [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:11]
+  [@vm.unboxing-info.metadata=()->i]
+  final field core::int id;
+
+  [@vm.unboxing-info.metadata=(i)->b]
+  const constructor •([@vm.inferred-arg-type.metadata=dart.core::_Smi] initializing-formal core::int id) → self::D<self::D::T%>
+    : self::D::id = id, super self::A::•()
+    ;
 }
 
 [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
@@ -99,6 +121,54 @@ static method testNullableAOfNumNegative([@vm.inferred-arg-type.metadata=#lib::B
 static method testNullableAOfNullableNum([@vm.inferred-arg-type.metadata=#lib::B<dart.core::int?>] dynamic x) → dynamic
   return _in::unsafeCast<self::A<core::num?>?>(x);
 
+[@vm.inferred-return-type.metadata=!]
+static method makeSet1([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond) → dynamic
+  return cond ?{core::Object} new self::D::•<core::int>(1) : new self::C1::•();
+
+[@vm.inferred-return-type.metadata=!]
+static method makeSet2([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond) → dynamic
+  return cond ?{core::Object} new self::D::•<core::int>(2) : new self::C2::•();
+
+[@vm.inferred-return-type.metadata=#lib::D<dart.core::int>]
+static method testSetUnionOfGenericAllocations([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c1, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c2) → dynamic
+  return _in::unsafeCast<self::A<core::num>>((c1 ?{dynamic} [@vm.inferred-type.metadata=!] self::makeSet1(c2) : [@vm.inferred-type.metadata=!] self::makeSet2(c2)) as self::D<dynamic>);
+
+[@vm.inferred-return-type.metadata=#lib::D<dart.core::int> (value: const #lib::D<dart.core::int>{#lib::D.id: 1})]
+static method testConstDOfInt() → dynamic
+  return _in::unsafeCast<self::A<core::num>>(#C5);
+
+[@vm.inferred-return-type.metadata=#lib::D<dart.core::int>]
+static method testUnionOfTwoConstsSameTypeArgs([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond) → dynamic
+  return _in::unsafeCast<self::A<core::num>>(cond ?{self::D<core::int>} #C5 : #C7);
+
+[@vm.inferred-return-type.metadata=#lib::D<dart.core::int>]
+static method testUnionOfConstAndNewSameTypeArgs([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond) → dynamic
+  return _in::unsafeCast<self::A<core::num>>(cond ?{self::D<core::int>} #C5 : new self::D::•<core::int>(2));
+
+[@vm.inferred-return-type.metadata=#lib::D<dynamic> (inexact type args)]
+static method testUnionOfConstAndNewDifferentTypeArgsNegative([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond) → dynamic
+  return (cond ?{self::D<core::int?>} #C5 : new self::D::•<core::int?>(2)) as self::A<core::num>;
+
+[@vm.inferred-return-type.metadata=!]
+static method makeConstSet1([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond) → dynamic
+  return cond ?{core::Object} #C5 : new self::C1::•();
+
+[@vm.inferred-return-type.metadata=!]
+static method makeConstSet2([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool cond) → dynamic
+  return cond ?{core::Object} #C7 : new self::C2::•();
+
+[@vm.inferred-return-type.metadata=#lib::D<dart.core::int>]
+static method testSetUnionOfConstsSameTypeArgs([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c1, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c2) → dynamic
+  return _in::unsafeCast<self::A<core::num>>((c1 ?{dynamic} [@vm.inferred-type.metadata=!] self::makeConstSet1(c2) : [@vm.inferred-type.metadata=!] self::makeConstSet2(c2)) as self::D<dynamic>);
+
+[@vm.inferred-return-type.metadata=#lib::D<dart.core::int>]
+static method testSetUnionWithConstSameTypeArgs([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c1, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c2) → dynamic
+  return _in::unsafeCast<self::A<core::num>>((c1 ?{dynamic} [@vm.inferred-type.metadata=!] self::makeConstSet1(c2) : #C7) as self::D<dynamic>);
+
+[@vm.inferred-return-type.metadata=#lib::D<dart.core::int>]
+static method testSetUnionWithNewSameTypeArgs([@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c1, [@vm.inferred-arg-type.metadata=dart.core::bool] core::bool c2) → dynamic
+  return _in::unsafeCast<self::A<core::num>>((c1 ?{dynamic} [@vm.inferred-type.metadata=!] self::makeConstSet1(c2) : new self::D::•<core::int>(2)) as self::D<dynamic>);
+
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {
   self::testInt1();
@@ -120,9 +190,22 @@ static method main() → void {
   [@vm.direct-call.metadata=#lib::B.testT3] [@vm.inferred-type.metadata=? (skip check)] new self::B::•<core::int?>().{self::B::testT3}(){(dynamic) → dynamic};
   [@vm.direct-call.metadata=#lib::B.testNullableT1] [@vm.inferred-type.metadata=? (skip check)] new self::B::•<core::int>().{self::B::testNullableT1}(){(dynamic) → dynamic};
   [@vm.direct-call.metadata=#lib::B.testNullableT2] [@vm.inferred-type.metadata=? (skip check)] new self::B::•<core::int>().{self::B::testNullableT2}(){(dynamic) → dynamic};
+  final core::bool cond = [@vm.direct-call.metadata=dart.core::_IntegerImplementation.==] [@vm.inferred-type.metadata=dart.core::bool (skip check)] [@vm.inferred-type.metadata=int] core::int::parse("1") =={core::num::==}{(core::Object) → core::bool} 1;
+  self::testSetUnionOfGenericAllocations(cond, !cond);
+  self::testConstDOfInt();
+  self::testUnionOfTwoConstsSameTypeArgs(cond);
+  self::testUnionOfConstAndNewSameTypeArgs(cond);
+  self::testUnionOfConstAndNewDifferentTypeArgsNegative(cond);
+  self::testSetUnionOfConstsSameTypeArgs(cond, !cond);
+  self::testSetUnionWithConstSameTypeArgs(cond, !cond);
+  self::testSetUnionWithNewSameTypeArgs(cond, !cond);
 }
 constants  {
   #C1 = 42
   #C2 = null
   #C3 = "hi"
+  #C4 = 1
+  #C5 = self::D<core::int> {id:#C4}
+  #C6 = 2
+  #C7 = self::D<core::int> {id:#C6}
 }

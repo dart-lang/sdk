@@ -4,7 +4,7 @@
 
 part of "dart:_vmservice";
 
-typedef void ClientServiceHandle(Message? response);
+typedef ClientServiceHandle = void Function(Message? response);
 
 // A service client.
 abstract class Client {

@@ -208,6 +208,7 @@ class Pivot /* target */ extends Base2 {}
     });
   }
 
+  @TestTimeout(Timeout.factor(2)) // This test can be slow on bots.
   Future<void> test_getTypeHierarchy() async {
     pathname = sourcePath('test.dart');
     // Write a dummy file which will be overridden by tests using

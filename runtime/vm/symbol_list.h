@@ -25,6 +25,7 @@ namespace dart {
   V(ArgDescVar, ":arg_desc")                                                   \
   V(ArgumentError, "ArgumentError")                                            \
   V(Array, "Array")                                                            \
+  V(_Array, "_Array")                                                          \
   V(StateError, "StateError")                                                  \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
@@ -70,7 +71,6 @@ namespace dart {
   V(DartNativeWrappers, "dart:nativewrappers")                                 \
   V(DartNativeWrappersLibName, "nativewrappers")                               \
   V(DartScheme, "dart:")                                                       \
-  V(DartSchemePrivate, "dart:_")                                               \
   V(DartTypedData, "dart:typed_data")                                          \
   V(DartVM, "dart:_vm")                                                        \
   V(DartVMProduct, "dart.vm.product")                                          \
@@ -211,6 +211,7 @@ namespace dart {
   V(LoadLibrary, "_loadLibrary")                                               \
   V(LoadingUnit, "LoadingUnit")                                                \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
+  V(LocalVarDescriptor, "LocalVarDescriptor")                                  \
   V(Map, "Map")                                                                \
   V(MapLiteralFactory, "Map._fromLiteral")                                     \
   V(MapKeyValuesFactory, "Map._fromKeyValues")                                 \
@@ -219,6 +220,7 @@ namespace dart {
   V(MoveNext, "moveNext")                                                      \
   V(Mutex, "Mutex")                                                            \
   V(Namespace, "Namespace")                                                    \
+  V(NativeFieldWrapperClass1, "NativeFieldWrapperClass1")                      \
   V(Never, "Never")                                                            \
   V(NoSuchMethod, "noSuchMethod")                                              \
   V(NoSuchMethodError, "NoSuchMethodError")                                    \
@@ -407,6 +409,7 @@ namespace dart {
   V(_TypeVariableMirror, "_TypeVariableMirror")                                \
   V(_TypedList, "_TypedList")                                                  \
   V(_TypedListBase, "_TypedListBase")                                          \
+  V(_TypedListView, "_TypedListView")                                          \
   V(_Uint16ArrayFactory, "Uint16List.")                                        \
   V(_Uint16ArrayView, "_Uint16ArrayView")                                      \
   V(_Uint16List, "_Uint16List")                                                \

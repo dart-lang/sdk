@@ -109,7 +109,7 @@ void testDiv() {
 void testComparison() {
   var m = Float32x4(1.0, 2.0, 0.1, 0.001);
   var n = Float32x4(2.0, 2.0, 0.001, 0.1);
-  var cmp;
+  Int32x4 cmp;
   cmp = m.lessThan(n);
   Expect.equals(-1, cmp.x);
   Expect.equals(0, cmp.y);
@@ -608,7 +608,7 @@ void testSpecialValues() {
   ];
 
   for (var (input, expected) in allTests) {
-    var f;
+    Float32x4 f;
     f = Float32x4(input, 2.0, 3.0, 4.0);
     checkEquals(expected, f.x);
     checkEquals(2.0, f.y);

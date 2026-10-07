@@ -349,6 +349,9 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitStoreExternalField(StoreExternalField instr) {}
+
+  @override
   void visitLoadArrayElement(LoadArrayElement instr) {
     _setNonConstant(instr);
   }
@@ -432,10 +435,14 @@ final class ConstantPropagation extends Pass
     }
     ConstantValue? operand = _getConstantValue(instr.operand);
     if (operand != null) {
-      _setResult(
-        instr,
-        ConstantValue.fromBool(operand.type.isSubtypeOf(instr.testedType)),
-      );
+      if (operand.type.isSubtypeOf(instr.testedType)) {
+        _setResult(instr, ConstantValue.fromBool(true));
+      } else if (instr.inputCount == 1) {
+        _setResult(instr, ConstantValue.fromBool(false));
+      } else {
+        // Type test is inconclusive as it depends on type parameters.
+        _setNonConstant(instr);
+      }
     }
   }
 

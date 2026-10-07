@@ -97,6 +97,14 @@ bool get readableTypeStrings =>
 bool get minifiedSymbols =>
     const bool.fromEnvironment('dart.tool.dart2wasm.minify');
 
+/// Whether stack traces contain symbolic, unminified function names.
+bool get symbolicUnminifiedStackTraces =>
+    !const bool.fromEnvironment('dart.tool.dart2js.minify') &&
+    !const bool.fromEnvironment('dart.tool.dart2wasm.minify') &&
+    !(isVmConfiguration &&
+        (configAsString.contains('obfuscate') ||
+            configAsString.contains('dwarf')));
+
 /// Whether specific subtypes of [Error] with details are thrown or generic
 /// [Error]s.
 bool get preciseErrorsWithDetails =>

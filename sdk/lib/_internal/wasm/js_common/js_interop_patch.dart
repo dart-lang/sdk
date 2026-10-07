@@ -226,6 +226,56 @@ extension FunctionToJSExportedDartFunction<T extends Function> on T {
   );
 }
 
+@patch
+extension FunctionToJSExportedDartFunctionVarArgs<
+  R extends JSAny?,
+  E extends JSAny?
+>
+    on R Function(JSArray<E>) {
+  // TODO(https://github.com/dart-lang/sdk/issues/64214) - avoid
+  // double-wrapping.
+  @patch
+  JSExportedDartFunction<R Function(JSArray<E>)> get toJSVarArgs =>
+      JSExportedDartFunction<R Function(JSArray<E>)>._(
+        JSExportedDartFunctionType(
+          JSValue(
+            js_helper.JS<WasmExternRef>('''(f) => {
+              const result = (...args) => f(args);
+              finalizeWrapper(f.dartFunction, result);
+              return result;
+            }''', this.toJS.toExternRef),
+          ),
+        ),
+      );
+}
+
+@patch
+extension FunctionToJSExportedDartFunctionCaptureThisVarArgs<
+  R extends JSAny?,
+  T extends JSObject,
+  E extends JSAny?
+>
+    on R Function(T, JSArray<E>) {
+  // TODO(https://github.com/dart-lang/sdk/issues/64214) - avoid
+  // double-wrapping.
+  @patch
+  JSExportedDartFunction<R Function(T, JSArray<E>)>
+  get toJSCaptureThisVarArgs =>
+      JSExportedDartFunction<R Function(T, JSArray<E>)>._(
+        JSExportedDartFunctionType(
+          JSValue(
+            js_helper.JS<WasmExternRef>('''(f) => {
+              const result = function(...args) {
+                return f(this, args);
+              };
+              finalizeWrapper(f.dartFunction, result);
+              return result;
+            }''', this.toJS.toExternRef),
+          ),
+        ),
+      );
+}
+
 // Embedded global property for wrapped Dart objects passed via JS interop.
 //
 // This is a Symbol so that different Dart applications don't share Dart

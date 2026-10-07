@@ -796,7 +796,7 @@ class ParameterUsage {
         ? null
         : 0;
     if (_parameterStructure.namedParameters.isNotEmpty) {
-      _unprovidedNamedParameters = Set<String>.from(
+      _unprovidedNamedParameters = Set<String>.of(
         _parameterStructure.namedParameters,
       );
     }

@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/src/expected_diagnostics.dart'
@@ -127,6 +126,7 @@ extension ParseStringResultExtension on ParseStringResult {
     return FindNode2(content, unit);
   }
 
+  @ToBeDeprecated('Use findNode instead.')
   FindNode get findNodeV1 {
     return FindNode(content, unit);
   }

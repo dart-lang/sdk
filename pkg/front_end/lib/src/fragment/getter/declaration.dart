@@ -59,7 +59,7 @@ abstract class GetterDeclaration {
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   });
@@ -78,12 +78,13 @@ abstract class GetterDeclaration {
 
   int computeGetterDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createGetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  );
+  void createGetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  });
 
   void ensureGetterTypes({
     required SourceLibraryBuilder libraryBuilder,
@@ -92,10 +93,6 @@ abstract class GetterDeclaration {
     required Set<ClassMember>? getterOverrideDependencies,
   });
 
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  );
-
   List<ClassMember> get localMembers;
 }
 
@@ -103,10 +100,14 @@ class RegularGetterDeclaration
     implements GetterDeclaration, GetterFragmentDeclaration {
   final GetterFragment _fragment;
   late final GetterEncoding _encoding;
+  late final bool _isImplementation;
 
   new(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  bool get isImplementation => _isImplementation;
 
   @override
   UriOffsetLength get uriOffset => _fragment.uriOffset;
@@ -186,14 +187,14 @@ class RegularGetterDeclaration
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
     _encoding.buildOutlineNode(
       libraryBuilder: libraryBuilder,
       nameScheme: nameScheme,
-      f: f,
+      callback: callback,
       references: references,
       isAbstractOrExternal:
           _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
@@ -245,12 +246,14 @@ class RegularGetterDeclaration
   }
 
   @override
-  void createGetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createGetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {
+    _isImplementation = isImplementation;
     _fragment.builder = builder;
     typeParameterFactory.createNominalParameterBuilders(
       _fragment.declaredTypeParameters,
@@ -297,11 +300,6 @@ class RegularGetterDeclaration
   }
 
   @override
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  ) => [references.getterReference];
-
-  @override
   List<ClassMember> get localMembers => [
     new GetterClassMember(_fragment.builder),
   ];
@@ -335,6 +333,9 @@ class RegularGetterDeclaration
         ? const UnknownType()
         : _encoding.function.returnType;
   }
+
+  @override
+  String toString() => '$runtimeType($_fragment)';
 }
 
 /// Interface for using a [GetterFragment] to create a [BodyBuilderContext].
@@ -346,6 +347,13 @@ abstract class GetterFragmentDeclaration {
   bool get isNoSuchMethodForwarder;
 
   bool get isExternal;
+
+  /// Whether this declaration hold the implementation for the getter.
+  ///
+  /// For augmentations, only one of the getter declarations is considered
+  /// as the implementation. Other declarations can only provide annotations
+  /// for the generated AST node.
+  bool get isImplementation;
 
   String get name;
 

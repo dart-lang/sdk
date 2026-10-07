@@ -992,7 +992,7 @@ class FileState {
             hasDartCoreImport = true;
           }
         case LibraryDirectiveImpl():
-          libraryDirective = UnlinkedLibraryDirective(
+          libraryDirective ??= UnlinkedLibraryDirective(
             docImports: buildDocImports(directive),
             name: directive.name?.tokens.map((e) => e.lexeme).join(),
           );
@@ -1225,6 +1225,12 @@ class FileSystemState {
 
   final FeatureSetProvider featureSetProvider;
 
+  /// Overrides package and workspace language versions for non-SDK files.
+  ///
+  /// A file's `// @dart=` comment takes precedence over this value.
+  /// If `null`, the default version comes from the package, workspace, or SDK.
+  final Version? languageVersionOverride;
+
   /// Mapping from a URI to the corresponding [FileState].
   final Map<Uri, FileState> _uriToFile = {};
 
@@ -1292,6 +1298,7 @@ class FileSystemState {
     this._saltForElements,
     this.featureSetProvider,
     AnalysisOptionsMap analysisOptionsMap, {
+    this.languageVersionOverride,
     required this.fileContentStrategy,
     required this.unlinkedUnitStore,
     required this.prefetchFiles,
@@ -1404,6 +1411,9 @@ class FileSystemState {
     }
 
     var languageVersion = workspacePackage?.languageVersion;
+    if (!uri.isScheme('dart')) {
+      languageVersion = languageVersionOverride ?? languageVersion;
+    }
 
     if (featureSet != null && languageVersion != null) {
       return (featureSet, languageVersion);
@@ -1858,13 +1868,32 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
     return _apiSignature = builder.toByteList();
   }
 
+  /// The libraries imported by `@docImport`s of the files of this library.
+  ///
+  /// This includes doc imports of part files, even if they are not used
+  /// because the 'enhanced-parts' feature is not enabled.
+  Set<LibraryFileKind> get docImportedLibraries {
+    return {
+      for (var kind in fileKinds)
+        for (var import in kind.docLibraryImports)
+          if (import is LibraryImportWithFile) ?import.importedLibrary,
+    };
+  }
+
   /// The list of files that this library consists of:
   /// - the library file itself;
   /// - the part files, in the depth-first pre-order order.
+  ///
+  /// Each file is visited once, so cycles of parts, e.g. a part file that
+  /// includes itself, which can happen when [asLibrary] is used, terminate.
   List<FileKind> get fileKinds {
     var result = <FileKind>[];
+    var visited = <FileState>{};
 
     void visitParts(FileKind kind) {
+      if (!visited.add(kind.file)) {
+        return;
+      }
       result.add(kind);
       for (var directive in kind.partIncludes) {
         if (directive is PartIncludeWithFile) {
@@ -1882,7 +1911,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
 
   /// The files extracted from [fileKinds].
   List<FileState> get files {
-    return fileKinds.map((kind) => kind.file).toSet().toList();
+    return fileKinds.map((kind) => kind.file).toList();
   }
 
   LibraryCycle? get internal_libraryCycle => _libraryCycle;

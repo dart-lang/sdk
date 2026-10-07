@@ -64,20 +64,15 @@ void matchIL$useList(FlowGraph graph) {
     'B3' <<
         match.block('Target', [
           // No bounds check here.
-          if (is32BitConfiguration)
-            'i_boxed' << match.BoxInt64('i', skipUntilMatched: false),
-          'a.data' <<
-              match.LoadField(
-                'a',
-                slot: 'GrowableObjectArray.data',
-                skipUntilMatched: false,
-              ),
-          'value' <<
-              match.LoadIndexed(
-                'a.data',
-                is32BitConfiguration ? 'i_boxed' : 'i',
-                skipUntilMatched: false,
-              ),
+          match.tight([
+            if (is32BitConfiguration) 'i_boxed' << match.BoxInt64('i'),
+            'a.data' << match.LoadField('a', slot: 'GrowableObjectArray.data'),
+            'value' <<
+                match.LoadIndexed(
+                  'a.data',
+                  is32BitConfiguration ? 'i_boxed' : 'i',
+                ),
+          ]),
           'value_unboxed' << match.UnboxInt64('value'),
           match.StaticCall('value_unboxed'),
           if (is32BitConfiguration) ...[

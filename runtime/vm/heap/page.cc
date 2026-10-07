@@ -112,6 +112,7 @@ Page* Page::Allocate(Cage* cage, intptr_t size, uword flags) {
   result->survivor_end_ = 0;
   result->resolved_top_ = 0;
   result->live_bytes_ = 0;
+  result->free_next_ = nullptr;
 
   if ((flags & kNew) != 0) {
     uword top = result->object_start();

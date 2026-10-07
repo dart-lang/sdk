@@ -11,7 +11,8 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/src/dart/resolver/exit_detector.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/dart/ast/ast.dart' // ignore: implementation_imports
+    show StatementImpl;
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -1373,21 +1374,16 @@ extension on AsyncState? {
 }
 
 extension on AstNode {
+  /// Whether this branch of an `if` statement or element terminates control,
+  /// so that code after the `if` is reached only through the other branch.
+  ///
+  /// For statements this is the reachability computed by flow analysis, so
+  /// `return`, `throw`, `break`, `continue`, and expressions of type `Never`
+  /// all terminate control. Collection elements are conservatively considered
+  /// to not terminate control.
   bool get terminatesControl {
     var self = this;
-    if (self is Block) {
-      return self.statements.isNotEmpty &&
-          self.statements.last.terminatesControl;
-    }
-    // TODO(srawlins): Make ExitDetector 100% functional for our needs. The
-    // basic (only?) difference is that it doesn't consider a `break` statement
-    // to be exiting.
-    if (self is ReturnStatement ||
-        self is BreakStatement ||
-        self is ContinueStatement) {
-      return true;
-    }
-    return ExitDetector.exits(this);
+    return self is StatementImpl && !self.mayCompleteNormally;
   }
 }
 
@@ -1433,26 +1429,6 @@ extension on Expression {
       return self.operand.buildContextTypedElement;
     }
     return null;
-  }
-}
-
-extension on Statement {
-  /// Whether this statement terminates control, via a [BreakStatement], a
-  /// [ContinueStatement], or other definite exits, as determined by
-  /// [ExitDetector].
-  bool get terminatesControl {
-    var self = this;
-    if (self is Block) {
-      var last = self.statements.lastOrNull;
-      return last != null && last.terminatesControl;
-    }
-    // TODO(srawlins): Make ExitDetector 100% functional for our needs. The
-    // basic (only?) difference is that it doesn't consider a `break` statement
-    // to be exiting.
-    if (self is BreakStatement || self is ContinueStatement) {
-      return true;
-    }
-    return ExitDetector.exits(this);
   }
 }
 

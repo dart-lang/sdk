@@ -221,7 +221,7 @@ void StubCodeCompiler::GenerateEnterSafepointStub() {
 
   __ ReserveAlignedFrameSpace(0);
 
-  __ lx(TMP, Address(THR, kEnterSafepointRuntimeEntry.OffsetFromThread()));
+  __ LoadFromOffset(TMP, THR, kEnterSafepointRuntimeEntry.OffsetFromThread());
   __ Comment("Leaf runtime call: %s", kEnterSafepointRuntimeEntry.name());
   __ jalr(TMP);
 
@@ -241,7 +241,7 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
 
   __ VerifyNotInGenerated(TMP);
 
-  __ lx(TMP, Address(THR, kExitSafepointRuntimeEntry.OffsetFromThread()));
+  __ LoadFromOffset(TMP, THR, kExitSafepointRuntimeEntry.OffsetFromThread());
   __ Comment("Leaf runtime call: %s", kExitSafepointRuntimeEntry.name());
   __ jalr(TMP);
 
@@ -391,6 +391,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label tail;
+  ASSERT_EQUAL(target::CallbackMetadata::kCall, 0);
   __ bnez(T3, &tail, Assembler::kNearJump);
 
   {
@@ -444,6 +445,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 #endif
 #endif
+}
+
+void StubCodeCompiler::GenerateInterpretedFfiCallbackTrampolineStub() {
+  __ Breakpoint();  // currently only used in ARM64 runtimes.
 }
 
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {

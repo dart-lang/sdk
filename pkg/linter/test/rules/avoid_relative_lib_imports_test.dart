@@ -17,18 +17,74 @@ class AvoidRelativeLibImportsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_relative_lib_imports;
 
-  @override
-  void setUp() {
+  test_externalPackage() async {
     newPackage('foo').addFile('lib/foo.dart', r'''
 class Foo {}
 ''');
-    super.setUp();
-  }
-
-  test_externalPackage() async {
+    writeTestPackageConfig2();
     await assertNoDiagnostics(r'''
 /// This provides [Foo].
 import 'package:foo/foo.dart';
+''');
+  }
+
+  test_externalPackage_inPart() async {
+    newPackage('foo').addFile('lib/foo.dart', r'''
+class Foo {}
+''');
+    writeTestPackageConfig2();
+    newFile('$testPackageRootPath/test/a.dart', r'''
+part 'test.dart';
+''');
+    await assertNoDiagnosticsInTestDir(r'''
+part of 'a.dart';
+
+/// This provides [Foo].
+import 'package:foo/foo.dart';
+''');
+  }
+
+  test_samePackage_packageSchema() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+    await assertNoDiagnosticsInTestDir(r'''
+/// This provides [C].
+import 'package:test/lib.dart';
+''');
+  }
+
+  test_samePackage_packageSchema_inPart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+    newFile('$testPackageRootPath/test/a.dart', r'''
+part 'test.dart';
+''');
+    await assertNoDiagnosticsInTestDir(r'''
+part of 'a.dart';
+
+/// This provides [C].
+import 'package:test/lib.dart';
+''');
+  }
+
+  test_samePackage_packageSchema_inSubpart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+    newFile('$testPackageRootPath/test/a.dart', r'''
+part 'b.dart';
+''');
+    newFile('$testPackageRootPath/test/b.dart', r'''
+part of 'a.dart';
+part 'test.dart';
+''');
+    await assertNoDiagnosticsInTestDir(r'''
+part of 'b.dart';
+
+/// This provides [C].
+import 'package:test/lib.dart';
 ''');
   }
 
@@ -53,6 +109,28 @@ part 'test.dart';
 
     await assertDiagnosticsInTestDirFromMarkup(r'''
 part of 'a.dart';
+
+/// This provides [C].
+import [!'../lib/lib.dart'!];
+''');
+  }
+
+  test_samePackage_relativeUri_inSubpart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+
+    newFile('$testPackageRootPath/test/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageRootPath/test/b.dart', r'''
+part of 'a.dart';
+part 'test.dart';
+''');
+
+    await assertDiagnosticsInTestDirFromMarkup(r'''
+part of 'b.dart';
 
 /// This provides [C].
 import [!'../lib/lib.dart'!];

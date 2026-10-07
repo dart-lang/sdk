@@ -1675,7 +1675,17 @@ class UntaggedClosureData : public UntaggedObject {
   using CapturesOnlySharedFields = BitField<decltype(packed_fields_),
                                             bool,
                                             PackedAwaiterLinkIndex::kNextBit>;
+  // Used by the interpreter to detect that a tearoff was affected by reload
+  // and so the tearoff function should be re-resolved.
+  //
+  // Unused in compiled code, since clearing the code of the tearoff forces
+  // re-resolution there.
+  using ReloadedImplicitClosure = BitField<decltype(packed_fields_),
+                                           bool,
+                                           CapturesOnlySharedFields::kNextBit>;
+
   friend class Function;
+  friend class Interpreter;
   friend class UnitDeserializationRoots;
   friend class module_snapshot::ClosureDataDeserializationCluster;
 };
@@ -1913,6 +1923,7 @@ class UntaggedLibrary : public UntaggedObject {
 
   friend class Class;
   friend class Isolate;
+  friend class module_snapshot::FunctionDeserializationCluster;
 };
 
 class UntaggedNamespace : public UntaggedObject {
@@ -2525,6 +2536,18 @@ class UntaggedInstructionsTable : public UntaggedObject {
   friend class Deserializer;
 };
 
+class UntaggedLocalVarDescriptor : public UntaggedObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptor);
+
+  COMPRESSED_POINTER_FIELD(StringPtr, name)
+  VISIT_FROM(name)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, static_type)
+  VISIT_TO(static_type)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+  friend class Object;
+};
+
 class UntaggedLocalVarDescriptors : public UntaggedObject {
  public:
   enum VarInfoKind {
@@ -2574,14 +2597,16 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
   // platforms.
   uword num_entries_;
 
-  VISIT_FROM_PAYLOAD_START(CompressedStringPtr)
-  COMPRESSED_VARIABLE_POINTER_FIELDS(StringPtr, name, names, num_entries)
-
-  CompressedStringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
-
-  // Variable info with [num_entries_] entries.
+  VISIT_FROM_PAYLOAD_START(CompressedLocalVarDescriptorPtr)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(LocalVarDescriptorPtr,
+                                     descriptor,
+                                     descriptors,
+                                     num_entries)
+  CompressedLocalVarDescriptorPtr* descriptorAddrAt(intptr_t i) {
+    return &(descriptors()[i]);
+  }
   VarInfo* data() {
-    return reinterpret_cast<VarInfo*>(nameAddrAt(num_entries_));
+    return reinterpret_cast<VarInfo*>(descriptorAddrAt(num_entries_));
   }
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind, intptr_t num_entries) {
@@ -2647,8 +2672,10 @@ class UntaggedContext : public UntaggedObject {
 
 #define CONTEXT_SCOPE_VARIABLE_DESC_FLAG_LIST(V)                               \
   V(Final)                                                                     \
+  V(EffectivelyFinal)                                                          \
   V(Late)                                                                      \
   V(Nullable)                                                                  \
+  V(ExactType)                                                                 \
   V(Invisible)                                                                 \
   V(AwaiterLink)                                                               \
   V(Shared)

@@ -22,6 +22,22 @@ part of "dart:core";
 /// * [Built-in number types](https://dart.dev/language/built-in-types#numbers)
 /// * [Number representation](https://dart.dev/resources/language/number-representation)
 abstract final class double extends num {
+  /// A Not-a-Number (NaN) value of type [double].
+  ///
+  /// NaN represents the result of a floating-point operation that has no
+  /// meaningful numeric value, for example `double.infinity - double.infinity`.
+  ///
+  /// A NaN is not meaningfully comparable to actual values. It compares unequal
+  /// to every value, including itself, so `double.nan == double.nan` is `false`
+  /// and every ordering comparison with a NaN is `false`. Test for a NaN with
+  /// [isNaN], never with `== double.nan` or `identical(..., double.nan)`.
+  ///
+  /// There is more than one NaN value. Any 64 bits define a `double` value as
+  /// an IEEE 754 64-bit floating point value, and a significant number of those
+  /// bit patterns are NaN values. The Dart `double` type does not make any
+  /// attempt to distinguish different NaN representations, or promise that any
+  /// specific one is used. The bit pattern of this value is not stable across
+  /// platforms or releases, and must not be relied upon.
   static const double nan = 0.0 / 0.0;
   static const double infinity = 1.0 / 0.0;
   static const double negativeInfinity = -infinity;

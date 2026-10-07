@@ -11,7 +11,7 @@ import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
-import '../rules/control_flow_in_finally.dart';
+import 'control_flow_in_finally.dart';
 
 const _desc = r'Avoid `throw` in `finally` block.';
 

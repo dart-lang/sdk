@@ -206,8 +206,8 @@ void f(int? a, int b) {
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 }
 ''');
-    assertType(result.findNode.methodInvocation('E(a)'), 'bool?');
-    assertType(result.findNode.methodInvocation('E(b)'), 'bool?');
+    assertType(result.findNode.receiverMethodInvocation('E(a)'), 'bool?');
+    assertType(result.findNode.receiverMethodInvocation('E(b)'), 'bool?');
   }
 
   test_extensionOverride_propertyAccess() async {
@@ -223,8 +223,8 @@ void f(int? a, int b) {
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 }
 ''');
-    assertType(result.findNode.propertyAccess('E(a)'), 'bool?');
-    assertType(result.findNode.propertyAccess('E(b)'), 'bool?');
+    assertType(result.findNode.receiverPropertyExtraction('E(a)'), 'bool?');
+    assertType(result.findNode.receiverPropertyExtraction('E(b)'), 'bool?');
   }
 
   test_getter_class() async {

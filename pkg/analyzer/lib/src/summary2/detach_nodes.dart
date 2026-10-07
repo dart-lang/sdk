@@ -67,7 +67,9 @@ class _Visitor extends GeneralizingElementVisitor2<void> {
     for (var annotation in element.metadata.annotations) {
       var ast = (annotation as ElementAnnotationImpl).annotationAst;
       _detachNode(ast);
-      _sanitizeArguments(ast.arguments?.arguments2);
+      if (ast.expression case ConstructorInvocationImpl(:var argumentList)) {
+        _sanitizeArguments(argumentList.arguments2);
+      }
     }
     super.visitElement(element);
   }

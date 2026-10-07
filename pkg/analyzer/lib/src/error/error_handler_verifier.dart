@@ -59,19 +59,6 @@ class ErrorHandlerVerifier {
          strictCasts: strictCasts,
        );
 
-  void verifyMethodInvocation(MethodInvocation node) {
-    var target = node.realTarget2;
-    if (target == null) {
-      return;
-    }
-    _verifyInvocation(
-      node,
-      target: target,
-      methodName: node.methodName.name,
-      argumentList: node.argumentList,
-    );
-  }
-
   void verifyNamedFunctionInvocation(
     NamedFunctionInvocation node,
     Expression target,

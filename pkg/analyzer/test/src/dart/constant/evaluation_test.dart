@@ -729,6 +729,104 @@ bool false
 ''');
   }
 
+  test_equalEqual_typeLiteral_typeAlias_dynamic() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = A == A;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_dynamic_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = A == dynamic;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_dynamic_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = dynamic == A;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_dynamic_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+typedef B = dynamic;
+const c = A == B;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = A == A;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+typedef B = void;
+const c = A == B;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void_typeArgument_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = List<A> == List<void>;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_equalEqual_typeLiteral_typeAlias_void_typeArgument_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = List<void> == List<A>;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_equalEqual_userClass_hasEqEq() async {
     var unitResult = await resolveTestCodeWithDiagnostics('''
 class A {
@@ -1180,6 +1278,104 @@ bool true
 ''');
   }
 
+  test_identical_typeLiteral_typeAlias_dynamic() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = identical(A, A);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_dynamic_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = identical(A, dynamic);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_dynamic_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+const c = identical(dynamic, A);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_dynamic_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = dynamic;
+typedef B = dynamic;
+const c = identical(A, B);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = identical(A, A);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void_differentAlias() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+typedef B = void;
+const c = identical(A, B);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void_typeArgument_aliasLeft() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = identical(List<A>, List<void>);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_identical_typeLiteral_typeAlias_void_typeArgument_aliasRight() async {
+    var unitResult = await resolveTestCodeWithDiagnostics('''
+typedef A = void;
+const c = identical(List<void>, List<A>);
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
   test_instanceCreation_generic_noTypeArguments_inferred_imported() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
@@ -1408,6 +1604,18 @@ int 3
     var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const String? s = null;
 const int? c = s?.length;
+''');
+    var result = _topLevelVar(unitResult, 'c');
+    assertDartObjectText(result, r'''
+Null null
+  variable: <testLibrary>::@topLevelVariable::c
+''');
+  }
+
+  test_propertyAccess_nullAware_string_length_null_parenthesized() async {
+    var unitResult = await resolveTestCodeWithDiagnostics(r'''
+const String? s = null;
+const int? c = (s)?.length;
 ''');
     var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
@@ -1965,8 +2173,7 @@ class C<T> {
 }
 
 const x = C<int>.();
-//        ^^^^^^^^
-// [diag.classInstantiationAccessToUnknownMember] The class 'C' doesn't have a constructor named '('.
+//        ^^^^^^^^^
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 //               ^
 // [diag.missingIdentifier] Expected an identifier.
@@ -3186,7 +3393,7 @@ void main() {
 class RequiresNonEmptyList {
   const RequiresNonEmptyList(List<int> numbers) : assert(numbers.length > 0);
 //                                                       ^^^^^^^^^^^^^^
-// [context 1] The error is in the assert initializer of 'RequiresNonEmptyList', and occurs here.
+// [context 1] The error is in the assert initializer of 'RequiresNonEmptyList.new', and occurs here.
 }
 ''');
   }
@@ -3810,6 +4017,19 @@ Type
   toTypeValue: C
   toTypeValueNotExtensionTypeErased: C
   variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_visitSimpleIdentifier_extensionName() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+const foo = E;
+//          ^
+// [diag.extensionAsExpression] Extension 'E' can't be used as an expression.
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
+    assertDartObjectText(_topLevelVar(result, 'foo'), r'''
+<null>
 ''');
   }
 
@@ -5391,7 +5611,7 @@ class B {
   final l;
   const B(Object o) : l = o.length;
 //                        ^^^^^^^^
-// [context 1] The error is in the field initializer of 'B', and occurs here.
+// [context 1] The error is in the field initializer of 'B.new', and occurs here.
 }
 
 const b = B('');
@@ -5437,7 +5657,7 @@ class B {
   final l;
   const B(String o) : l = o.length;
 //                        ^^^^^^^^
-// [context 1] The error is in the field initializer of 'B', and occurs here.
+// [context 1] The error is in the field initializer of 'B.new', and occurs here.
 }
 
 const y = B(x);
@@ -5743,7 +5963,7 @@ class A {
 class B extends A {
   const B(int i) : super(i);
 //      ^
-// [context 1] The evaluated constructor 'A' is called by 'B' and 'B' is defined here.
+// [context 1] The evaluated constructor 'A.new' is called by 'B.new' and 'B.new' is defined here.
 }
 main() {
   print(const B(2)); // (1)
@@ -5845,7 +6065,7 @@ class A {
 class B extends A {
   const B() : super();
 //      ^
-// [context 1] The evaluated constructor 'A' is called by 'B' and 'B' is defined here.
+// [context 1] The evaluated constructor 'A.new' is called by 'B.new' and 'B.new' is defined here.
 }
 const b = const B();
 //        ^^^^^^^^^
@@ -7632,7 +7852,7 @@ class A<T> {
   final Object f;
   const A(): f = T;
 //               ^
-// [context 1] The error is in the field initializer of 'A', and occurs here.
+// [context 1] The error is in the field initializer of 'A.new', and occurs here.
 // [diag.invalidConstant] Invalid constant value.
 }
 const a = const A<int>();
@@ -7771,8 +7991,6 @@ void main() {
   }
 
   test_issue49389() async {
-    // TODO(kallentu): Fix [InvalidConstant.genericError] to handle
-    // NamedExpressions.
     await resolveTestCodeWithDiagnostics(r'''
 class Foo {
   const Foo({required this.bar});
@@ -7783,7 +8001,7 @@ void main() {
   final data = <String, String>{};
   const Foo(bar: data);
 //               ^^^^
-// [diag.invalidConstant] Invalid constant value.
+// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 }
 ''');
   }
@@ -8249,14 +8467,14 @@ class C {
 class D extends C {
   const D(d) : super(d);
 //      ^
-// [context 1] The evaluated constructor 'C' is called by 'D' and 'D' is defined here.
+// [context 1] The evaluated constructor 'C.new' is called by 'D.new' and 'D.new' is defined here.
 //                   ^
 // [context 3] The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here.
 }
 class E extends D {
   const E(e) : super(e);
 //      ^
-// [context 2] The evaluated constructor 'D' is called by 'E' and 'E' is defined here.
+// [context 2] The evaluated constructor 'D.new' is called by 'E.new' and 'E.new' is defined here.
 }
 const f = const E('0.0');
 //        ^^^^^^^^^^^^^^

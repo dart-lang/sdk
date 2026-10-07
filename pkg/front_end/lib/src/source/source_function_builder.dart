@@ -45,18 +45,29 @@ void buildTypeParametersAndFormals(
     for (int i = 0; i < declaredTypeParameters.length; i++) {
       SourceNominalParameterBuilder t = declaredTypeParameters[i];
       TypeParameter parameter = t.parameter;
-      if (supportsTypeParameters) {
-        function.typeParameters.add(parameter);
-      }
       if (needsCheckVisitor != null) {
         if (parameter.bound.accept(needsCheckVisitor)) {
           parameter.isCovariantByClass = true;
         }
       }
     }
+    if (supportsTypeParameters) {
+      final TypeParameterList existing = function.typeParameters;
+      final int existingLength = existing.length;
+      function.typeParameters = new TypeParameterList.generate(
+        existingLength + declaredTypeParameters.length,
+        (int i) => i < existingLength
+            ? existing[i]
+            : declaredTypeParameters[i - existingLength].parameter,
+      );
+    }
     setParents(function.typeParameters, function);
   }
   if (declaredFormals != null) {
+    List<PositionalParameter> positionalParameters = [
+      ...function.positionalParameters,
+    ];
+    List<NamedParameter> namedParameters = [...function.namedParameters];
     for (int i = 0; i < declaredFormals.length; i++) {
       FormalParameterBuilder formal = declaredFormals[i];
       FunctionParameter parameter = formal
@@ -69,9 +80,9 @@ void buildTypeParametersAndFormals(
       }
       switch (parameter) {
         case PositionalParameter():
-          function.positionalParameters.add(parameter);
+          positionalParameters.add(parameter);
         case NamedParameter():
-          function.namedParameters.add(parameter);
+          namedParameters.add(parameter);
       }
       parameter.parent = function;
       if (formal.isRequiredPositional) {
@@ -90,6 +101,10 @@ void buildTypeParametersAndFormals(
         );
       }
     }
+    function.positionalParameters = new PositionalParameterList.from(
+      positionalParameters,
+    );
+    function.namedParameters = new NamedParameterList.from(namedParameters);
   }
 }
 

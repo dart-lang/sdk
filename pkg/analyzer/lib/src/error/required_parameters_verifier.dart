@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
@@ -24,22 +23,6 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
         arguments: node.argumentList.arguments2,
         errorEntity: node.name,
       );
-    }
-  }
-
-  @override
-  void visitAnnotation(Annotation node) {
-    var element = node.element;
-    var argumentList = node.arguments;
-    if (element is ConstructorElement && argumentList != null) {
-      var errorNode = node.constructorIdentifier ?? node.classIdentifier;
-      if (errorNode != null) {
-        _check(
-          parameters: element.formalParameters,
-          arguments: argumentList.arguments2,
-          errorEntity: errorNode,
-        );
-      }
     }
   }
 
@@ -69,20 +52,6 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    var constructorElement = node.constructorName.element;
-    if (constructorElement is ConstructorElement) {
-      _check(
-        parameters: constructorElement.formalParameters,
-        arguments: node.argumentList.arguments2,
-        errorEntity: node.constructorName,
-      );
-    }
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
@@ -94,15 +63,6 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
         errorEntity: node.name,
       );
     }
-  }
-
-  @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    _check(
-      parameters: _executableElement(node.memberName.element)?.formalParameters,
-      arguments: node.argumentList.arguments2,
-      errorEntity: node.memberName,
-    );
   }
 
   @override
@@ -124,27 +84,6 @@ class RequiredParametersVerifier extends SimpleAstVisitor2<void> {
     ImportPrefixedFunctionInvocation node,
   ) {
     verifyNamedFunctionInvocation(node);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.name == MethodElement.CALL_METHOD_NAME) {
-      var targetType = node.realTarget2?.staticType;
-      if (targetType is FunctionType) {
-        _check(
-          parameters: targetType.formalParameters,
-          arguments: node.argumentList.arguments2,
-          errorEntity: node.argumentList,
-        );
-        return;
-      }
-    }
-
-    _check(
-      parameters: _executableElement(node.methodName.element)?.formalParameters,
-      arguments: node.argumentList.arguments2,
-      errorEntity: node.methodName,
-    );
   }
 
   @override
@@ -312,50 +251,5 @@ class _RequiredAnnotation {
     var constantValue = annotation!.computeConstantValue();
     var value = constantValue?.getField('reason')?.toStringValue();
     return (value == null || value.isEmpty) ? null : value;
-  }
-}
-
-/// The annotation should be a constructor invocation.
-///
-// TODO(scheglov): This is not ideal.
-// Ideally when resolving an annotation we should restructure it into
-// specific components - an import prefix, top-level declaration, getter,
-// constructor, etc. So that later in the analyzer, or in clients, we
-// don't have to identify it again and again.
-extension _InstantiatedAnnotation on Annotation {
-  SimpleIdentifier? get classIdentifier {
-    assert(arguments != null);
-    var name = this.name;
-    if (name is SimpleIdentifier) {
-      return _ifClassElement(name);
-    } else if (name is PrefixedIdentifier) {
-      return _ifClassElement(name.identifier);
-    }
-    return null;
-  }
-
-  SimpleIdentifier? get constructorIdentifier {
-    assert(arguments != null);
-    var constructorName = _ifConstructorElement(this.constructorName);
-    if (constructorName != null) {
-      return constructorName;
-    }
-
-    var name = this.name;
-    if (name is SimpleIdentifier) {
-      return _ifConstructorElement(name);
-    } else if (name is PrefixedIdentifier) {
-      return _ifConstructorElement(name.identifier);
-    }
-
-    return null;
-  }
-
-  static SimpleIdentifier? _ifClassElement(SimpleIdentifier? node) {
-    return node?.element is InterfaceElement ? node : null;
-  }
-
-  static SimpleIdentifier? _ifConstructorElement(SimpleIdentifier? node) {
-    return node?.element is ConstructorElement ? node : null;
   }
 }

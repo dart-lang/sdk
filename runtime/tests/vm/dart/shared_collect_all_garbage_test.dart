@@ -5,7 +5,7 @@
 // VMOptions=--experimental-shared-data
 //
 import 'dart:_internal' show VMInternalsForTesting;
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
+import 'dart:_vm' show IsolateGroup;
 
 main() {
   IsolateGroup.runSync(() {

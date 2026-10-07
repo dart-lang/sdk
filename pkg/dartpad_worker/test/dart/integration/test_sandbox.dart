@@ -5,13 +5,23 @@
 @TestOn('browser')
 library;
 
+import 'package:vm_service/vm_service.dart';
+
 import '../../integration_harness.dart';
 
 void main() {
   testDartIntegration('sandbox can run code', (ctx) async {
     await ctx.ws.writeFileFromText('main.dart', '''
+      import 'dart:developer' as developer;
+
+      class _Item {
+        @override
+        String toString() => 'custom-item';
+      }
+
       void main() {
         print('Hello World');
+        developer.inspect([_Item()]);
       }
     ''');
 
@@ -21,9 +31,15 @@ void main() {
         sdk: ^3.11.0
     ''');
     await ctx.ws.pub(command: 'get');
-    await ctx.sandbox.runMain('main.dart');
+    await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await ctx.checkConsole((m) => m.contains('Hello World'));
+    await ctx.checkConsole(.it()..contains('Hello World'));
+    await ctx.checkConsole(.it()..equals('[custom-item]'), level: .debug);
+
+    // Closing the iframe triggers pagehide in sandbox.js, which posts null on
+    // the sandbox MessagePort and closes the sandbox in the worker.
+    await ctx.iframe.close();
+    await check(ctx.sandbox.hotReload()).throws<SandboxNotFoundException>();
   });
 
   testDartIntegration('sandbox handles unhandled error', (ctx) async {
@@ -36,16 +52,20 @@ void main() {
       }
     ''');
 
-    final errorFuture = ctx.sandbox.errors.first;
     await ctx.ws.writeFileFromText('pubspec.yaml', '''
       name: pad
       environment:
         sdk: ^3.11.0
     ''');
     await ctx.ws.pub(command: 'get');
-    await ctx.sandbox.runMain('main.dart');
+    await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await check(errorFuture).completes((r) => r.contains('Error\n'));
+    // The message of the Dart exception, not just the bare `Error` that V8
+    // captured before DDC filled it in. See `renderError` in `sandbox.js`.
+    await ctx.checkConsole(
+      .it()..contains('Exception: uncaught error in sandbox'),
+      level: .error,
+    );
   });
 
   testDartIntegration('sandbox handles unhandled promise rejection', (
@@ -67,19 +87,18 @@ void main() {
       }
     ''');
 
-    final rejectionFuture = ctx.sandbox.unhandledRejections.first;
-
     await ctx.ws.writeFileFromText('pubspec.yaml', '''
       name: pad
       environment:
         sdk: ^3.11.0
     ''');
     await ctx.ws.pub(command: 'get');
-    await ctx.sandbox.runMain('main.dart');
+    await ctx.sandbox.run('main.dart', mode: 'console');
 
-    await check(
-      rejectionFuture,
-    ).completes((r) => r.contains('unhandled rejection in sandbox'));
+    await ctx.checkConsole(
+      .it()..contains('unhandled rejection in sandbox'),
+      level: .error,
+    );
   });
 
   testDartIntegration('sandbox handles extension event', (ctx) async {
@@ -91,7 +110,13 @@ void main() {
       }
     ''');
 
-    final eventFuture = ctx.sandbox.extensionEvents.first;
+    final service = await ctx.sandbox.startServiceProtocol();
+    await service.streamListen(EventStreams.kExtension);
+    check(service.onExtensionEvent).withQueue.emitsThrough(
+      .it()
+        ..extensionKind.equals('my.custom.event')
+        ..extensionData.isNotNull().data.isNotNull().deepEquals({'foo': 'bar'}),
+    );
 
     await ctx.ws.writeFileFromText('pubspec.yaml', '''
       name: pad
@@ -99,15 +124,11 @@ void main() {
         sdk: ^3.11.0
     ''');
     await ctx.ws.pub(command: 'get');
-    await ctx.sandbox.runMain('main.dart');
-
-    await check(eventFuture).completes((r) {
-      r.kind.equals('my.custom.event');
-      r.data.deepEquals({'foo': 'bar', '__destinationStream': 'Extension'});
-    });
+    await ctx.sandbox.run('main.dart', mode: 'console');
+    await service.dispose();
   });
 
-  testDartIntegration('sandbox handles invokeExtension', (ctx) async {
+  testDartIntegration('sandbox handles callServiceExtension', (ctx) async {
     await ctx.ws.writeFileFromText('main.dart', '''
       import 'dart:developer';
       import 'dart:convert';
@@ -126,13 +147,20 @@ void main() {
         sdk: ^3.11.0
     ''');
     await ctx.ws.pub(command: 'get');
-    await ctx.sandbox.runMain('main.dart');
+    await ctx.sandbox.run('main.dart', mode: 'console');
 
     // Wait for registration!
-    await ctx.checkConsole((m) => m.contains('extension registered'));
+    await ctx.checkConsole(.it()..contains('extension registered'));
 
-    final response = await ctx.sandbox.invokeExtension('ext.dartpad.test', {});
+    final service = await ctx.sandbox.startServiceProtocol();
+    final vm = await service.getVM();
+    final isolateId = vm.isolates!.first.id!;
+    final response = await service.callServiceExtension(
+      'ext.dartpad.test',
+      isolateId: isolateId,
+    );
 
-    check(response).equals('{"hello":"world"}');
+    check(response.json?['hello']).equals('world');
+    await service.dispose();
   });
 }

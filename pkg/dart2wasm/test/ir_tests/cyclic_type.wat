@@ -76,7 +76,7 @@
     local.get $var0
   )
   (func $CyclicClass.chain (param $other (ref $CyclicClass)) (result (ref $CyclicClass))
-    i32.const 119
+    i32.const 118
     i32.const 0
     local.get $other
     call $"new CyclicClass.chain (initializer)"
@@ -101,7 +101,7 @@
     unreachable
   )
   (func $CyclicClass.initGlobalBox (result (ref $CyclicClass))
-    i32.const 119
+    i32.const 118
     i32.const 0
     call $"new CyclicClass.initGlobalBox (initializer)"
     unreachable

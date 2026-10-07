@@ -43,6 +43,7 @@ final class AssetServer {
       flutterAssetPath: flutterAssetPath,
     );
     ts._server = await io.serve(ts._handler, '127.0.0.1', 0);
+    ts._server.defaultResponseHeaders.removeAll('x-frame-options');
     return ts;
   }
 
@@ -79,6 +80,9 @@ final class AssetServer {
 
   /// Add [package] to this pub server.
   void addPackage(Package package) {
+    _packages.removeWhere(
+      (p) => p.name == package.name && p.version == package.version,
+    );
     _packages.add(package);
   }
 

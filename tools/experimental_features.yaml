@@ -181,6 +181,9 @@ features:
   single-combinators:
     help: "Allow at most one `show` or `hide` combinator per import or export directive."
 
+  promotion-chain-intersection-join:
+    help: "Enhanced promotion chain join algorithm (https://github.com/dart-lang/language/issues/4757)"
+
 # Experiment flag only used for testing.
   test-experiment:
     help: >-

@@ -27,7 +27,9 @@ final dartMigrateClasses = <LspEntity>[
       type: 'MigrationStep',
       array: true,
       canBeUndefined: true,
-      comment: 'The specific migration steps to run.',
+      comment:
+          'The specific migration steps to run. When omitted, the prepare and '
+          'bump steps run.',
     ),
     field(
       'targetSdk',

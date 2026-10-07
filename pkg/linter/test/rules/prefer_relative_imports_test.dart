@@ -18,16 +18,28 @@ class PreferRelativeImportsTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.prefer_relative_imports;
 
-  @override
-  void setUp() {
+  test_externalPackage() async {
     newPackage('foo').addFile('lib/foo.dart', r'''
 class Foo {}
 ''');
-    super.setUp();
+    writeTestPackageConfig2();
+    await assertNoDiagnostics(r'''
+/// This provides [Foo].
+import 'package:foo/foo.dart';
+''');
   }
 
-  test_externalPackage() async {
+  test_externalPackage_inPart() async {
+    newPackage('foo').addFile('lib/foo.dart', r'''
+class Foo {}
+''');
+    writeTestPackageConfig2();
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
     await assertNoDiagnostics(r'''
+part of 'a.dart';
+
 /// This provides [Foo].
 import 'package:foo/foo.dart';
 ''');
@@ -45,6 +57,28 @@ import 'package:foo/foo.dart';
 class C {}
 ''');
     await assertNoDiagnostics(r'''
+/// This provides [C].
+import 'package:internal_package/lib.dart';
+''');
+  }
+
+  test_internalPackage_inPart() async {
+    var packageConfigBuilder = PackageConfigFileBuilder();
+    packageConfigBuilder.add(
+      name: 'internal_package',
+      rootFolder: getFolder('$testPackageRootPath/vendor/internal_package'),
+    );
+    writeTestPackageConfig2(config: packageConfigBuilder);
+
+    newFile('$testPackageRootPath/vendor/internal_package/lib/lib.dart', r'''
+class C {}
+''');
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    await assertNoDiagnostics(r'''
+part of 'a.dart';
+
 /// This provides [C].
 import 'package:internal_package/lib.dart';
 ''');
@@ -76,7 +110,7 @@ import 'package:test/lib.dart';
 class C {}
 ''');
 
-    newFile('$testPackageRootPath/test/a.dart', r'''
+    newFile('$testPackageLibPath/a.dart', r'''
 part 'test.dart';
 ''');
 
@@ -88,11 +122,119 @@ import [!'package:test/lib.dart'!];
 ''');
   }
 
+  test_samePackage_packageSchema_inPart_fromOutsideLib() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+
+    newFile('$testPackageRootPath/bin/a.dart', r'''
+part 'part.dart';
+''');
+
+    var part = newFile('$testPackageRootPath/bin/part.dart', r'''
+part of 'a.dart';
+
+/// This provides [C].
+import 'package:test/lib.dart';
+''');
+    await assertNoDiagnosticsInFile(part.path);
+  }
+
+  test_samePackage_packageSchema_inSubpart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'test.dart';
+''');
+
+    await assertDiagnosticsFromMarkup(r'''
+part of 'b.dart';
+
+/// This provides [C].
+import [!'package:test/lib.dart'!];
+''');
+  }
+
   test_samePackage_relativeUri() async {
     newFile('$testPackageLibPath/lib.dart', r'''
 class C {}
 ''');
     await assertNoDiagnostics(r'''
+/// This provides [C].
+import 'lib.dart';
+''');
+  }
+
+  test_samePackage_relativeUri_fromOutsideLib() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+    var bin = newFile('$testPackageRootPath/bin/bin.dart', r'''
+/// This provides [C].
+import '../lib/lib.dart';
+''');
+    await assertNoDiagnosticsInFile(bin.path);
+  }
+
+  test_samePackage_relativeUri_inPart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+
+    await assertNoDiagnostics(r'''
+part of 'a.dart';
+
+/// This provides [C].
+import 'lib.dart';
+''');
+  }
+
+  test_samePackage_relativeUri_inPart_fromOutsideLib() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+
+    newFile('$testPackageRootPath/bin/a.dart', r'''
+part 'part.dart';
+''');
+
+    var part = newFile('$testPackageRootPath/bin/part.dart', r'''
+part of 'a.dart';
+
+/// This provides [C].
+import '../lib/lib.dart';
+''');
+    await assertNoDiagnosticsInFile(part.path);
+  }
+
+  test_samePackage_relativeUri_inSubpart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+class C {}
+''');
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'test.dart';
+''');
+
+    await assertNoDiagnostics(r'''
+part of 'b.dart';
+
 /// This provides [C].
 import 'lib.dart';
 ''');

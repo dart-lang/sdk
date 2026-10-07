@@ -10,6 +10,7 @@ import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../../../find_node.dart';
 import 'data_driven_test_support.dart';
 
 void main() {
@@ -19,7 +20,8 @@ void main() {
   });
 }
 
-abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest {
+abstract class AbstractElementMatcherTest extends DataDrivenFixProcessorTest
+    with FindNodeMixin {
   /// Assert that there is exactly one [ElementMatcher] for the node described
   /// by [search] that satisfies `expectedXyz` requirements.
   void _assertHasMatcher(

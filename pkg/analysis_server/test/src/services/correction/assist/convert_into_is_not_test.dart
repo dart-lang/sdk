@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIntoIsNotTest extends AssistProcessorTest {
+class ConvertIntoIsNotTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertIntoIsNot;
 

@@ -237,8 +237,8 @@ class ImportsVerifier {
           continue;
         }
 
-        // Ignore the group of imports with a prefix in a comment reference.
-        if (tracking.hasPrefixUsedInCommentReference) {
+        // Ignore the group of imports with a prefix used without a name.
+        if (tracking.hasPrefixUsedWithoutName) {
           continue;
         }
 

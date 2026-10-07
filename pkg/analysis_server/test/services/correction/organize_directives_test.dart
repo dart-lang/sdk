@@ -6,10 +6,10 @@ import 'package:analysis_server/src/services/correction/organize_imports.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
+import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class OrganizeDirectivesTest extends AbstractSingleUnitTest {
+class OrganizeDirectivesTest extends SingleUnitTest {
   late List<Diagnostic> testDiagnostics;
 
   @override
@@ -820,6 +820,41 @@ import 'annotations.dart'; // used
 // annotations
 import 'annotations.dart'; // used
 ''', removeUnused: true);
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/41792
+  Future<void> test_sort_libraryAnnotation_testOn() async {
+    // A stub for `package:test_api`, where `TestOn` is declared (and
+    // re-exported by `package:test`) with `@Target({TargetKind.library})`.
+    var testApiPath = '$packagesRootPath/test_api';
+    newFile('$testApiPath/lib/test_api.dart', r'''
+import 'package:meta/meta_meta.dart';
+
+@Target({TargetKind.library})
+class TestOn {
+  final String expression;
+  const TestOn(this.expression);
+}
+''');
+    writeTestPackageConfig2(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'test_api', rootFolder: getFolder(testApiPath)),
+    );
+    await _computeUnitAndErrors(r'''
+@TestOn('vm')
+import 'package:test_api/test_api.dart';
+import 'dart:io';
+import 'dart:async';
+''');
+    // `@TestOn` stays at the top of the file, where `package:test` looks for
+    // it, rather than moving along with its import.
+    _assertOrganize(r'''
+@TestOn('vm')
+import 'dart:async';
+import 'dart:io';
+
+import 'package:test_api/test_api.dart';
+''');
   }
 
   Future<void> test_sort_multipleAnnotation_movedDirective() async {

@@ -6,10 +6,13 @@ import 'dart:async';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
+import 'package:logging/logging.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 
 import 'dds_backend.dart';
 import 'logging_repository.dart';
+
+final _logger = Logger('DdsStreamManager');
 
 /// An event wrapping a VM service event for streaming.
 final class VmServiceStreamEvent extends StreamEvent {
@@ -188,20 +191,31 @@ final class DdsStreamManager {
                 'streamId': streamId,
               },
             );
-          } catch (_) {}
+          } on vm.RPCError catch (e, st) {
+            // _setStreamIncludePrivateMembers is an optional private RPC not
+            // implemented by all VM service backends (e.g. web/DWDS).
+            _logger.fine(
+              'Failed to invoke _setStreamIncludePrivateMembers on $streamId',
+              e,
+              st,
+            );
+          }
         }
         _streamSubscriptions[streamId] = backend.vmServiceClient
             .onEvent(streamId)
             .listen((vm.Event event) => _handleVmServiceEvent(streamId, event));
       }
       return true;
-    } on vm.RPCError catch (e) {
+    } on vm.RPCError catch (e, st) {
       if (e.code == vm.RPCErrorKind.kInvalidParams.code) {
+        // vmServiceClient.streamListen returns kInvalidParams for custom
+        // streams registered by external clients/extensions rather than the VM.
+        // DDS allows clients to subscribe to custom streams even though the
+        // remote VM service does not host them.
         return true;
       }
+      _logger.warning('Failed to subscribe to stream $streamId', e, st);
       return false;
-    } catch (_) {
-      return true;
     }
   }
 
@@ -215,7 +229,11 @@ final class DdsStreamManager {
     await sub?.cancel();
     try {
       await backend.vmServiceClient.streamCancel(streamId);
-    } catch (_) {}
+    } on vm.RPCError catch (e, st) {
+      // Canceling custom streams or streams when the VM is shutting down
+      // can throw RPCError.
+      _logger.fine('Failed to cancel stream $streamId on VM service', e, st);
+    }
   }
 
   /// Cancels all subscriptions and clears logging history upon shutdown.

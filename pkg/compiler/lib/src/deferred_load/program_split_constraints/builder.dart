@@ -158,7 +158,7 @@ abstract class _Builder<T extends Object> {
     Map<T, Set<T>> singletonTransitions = {};
     Map<Constraint, SetTransition<T>> setTransitions = {};
     Map<Constraint, Set<T>> processed = {};
-    Queue<_WorkItem<T>> queue = Queue.from(
+    Queue<_WorkItem<T>> queue = Queue.of(
       nodeToConstraintMap.values.map((node) => _WorkItem(node)),
     );
     while (queue.isNotEmpty) {

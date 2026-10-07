@@ -102,8 +102,9 @@ class ResponseConverter extends Converter<Map<String, Object?>, Response?> {
 /// objects that allow an [AnalysisServer] to receive [Request]s and to return
 /// both [Response]s and [Notification]s.
 abstract class ServerCommunicationChannel {
-  /// The single-subscription stream of requests and responses.
-  Stream<RequestOrResponse> get requests;
+  /// The single-subscription stream of messages from the client (requests,
+  /// responses to requests sent by the server, and notifications).
+  Stream<ClientMessage> get requests;
 
   /// Close the communication channel.
   void close();

@@ -206,9 +206,6 @@ extension AstNodeExtension2 on AstNode? {
     if (node is ImportPrefixReference) {
       node = node.parent2;
     }
-    if (node is SimpleIdentifier) {
-      node = node.parent2;
-    }
     if (node is ConstructorSelector) {
       node = node.parent2;
     }
@@ -237,20 +234,14 @@ extension AstNodeExtension2 on AstNode? {
         continue;
       }
 
-      if (node is AssignmentExpression) {
+      if (node is AssignmentExpression2) {
         return null;
       }
 
       var parent = node.parent2;
 
-      if (parent is AssignmentExpression) {
-        if (parent.rightHandSide2 == node) {
-          return node as Expression;
-        }
-        return null;
-      }
-
       if (parent is ArgumentList ||
+          parent is AssignmentExpression2 && parent.value == node ||
           parent is ConditionalExpression && parent.thenExpression2 == node ||
           parent is ConditionalExpression && parent.elseExpression2 == node ||
           parent is ExpressionFunctionBody && parent.expression2 == node ||
@@ -292,11 +283,6 @@ extension AstNodeExtension2 on AstNode? {
       argument = self;
     } else if (self?.parent2 case NamedArgument parent) {
       argument = parent;
-    } else if (self is SimpleIdentifier) {
-      var parent = self.parent2;
-      if (parent is Label && parent.parent2 is NamedArgument) {
-        argument = parent.parent2 as NamedArgument;
-      }
     }
 
     if (argument == null || argument.name.lexeme != name) {

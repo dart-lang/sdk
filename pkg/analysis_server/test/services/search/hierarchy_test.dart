@@ -6,11 +6,12 @@ import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_single_unit.dart';
+import '../../find_element.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -20,13 +21,13 @@ void main() {
 }
 
 @reflectiveTest
-class GetHierarchyMembersTest extends AbstractSingleUnitTest {
+class GetHierarchyMembersTest extends SingleUnitTest with FindElementMixin {
   late SearchEngineImpl searchEngine;
 
   @override
   void setUp() {
     super.setUp();
-    searchEngine = SearchEngineImpl([contextFor(testFile).driver]);
+    searchEngine = SearchEngineImpl([contextFor2(testFile).driver]);
   }
 
   Future<void> test_constructors() async {
@@ -341,13 +342,13 @@ class E {
 }
 
 @reflectiveTest
-class HierarchyTest extends AbstractSingleUnitTest {
+class HierarchyTest extends SingleUnitTest with FindElementMixin {
   late SearchEngineImpl searchEngine;
 
   @override
   void setUp() {
     super.setUp();
-    searchEngine = SearchEngineImpl([contextFor(testFile).driver]);
+    searchEngine = SearchEngineImpl([contextFor2(testFile).driver]);
   }
 
   Future<void> test_getClassMembers() async {

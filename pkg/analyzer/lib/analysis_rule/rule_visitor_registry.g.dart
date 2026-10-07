@@ -523,8 +523,6 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addAssignmentExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addAwaitExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
@@ -602,6 +600,12 @@ abstract class RuleVisitorRegistry2 {
 
   void addCommentReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addCommentReferenceComponent(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
   void addCompilationUnit(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
@@ -660,18 +664,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addDoStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addDotShorthandConstructorInvocation(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
   @experimental
   void addDotShorthandConstructorInvocation2(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
-  void addDotShorthandInvocation(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -684,11 +678,6 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addDotShorthandNameExpression(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
-  void addDotShorthandPropertyAccess(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -729,7 +718,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addExtensionOnClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addExtensionOverride(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addExtensionOverride2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addExtensionTypeDeclaration(
     AbstractAnalysisRule rule,
@@ -790,8 +780,6 @@ abstract class RuleVisitorRegistry2 {
   @experimental
   void addFunctionInstantiation(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addFunctionReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addFunctionTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addFunctionTypedFormalParameterSuffix(
@@ -822,8 +810,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addImplementsClause(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addImplicitCallReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   @experimental
   void addImplicitCallTearOff(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -834,6 +820,12 @@ abstract class RuleVisitorRegistry2 {
   );
 
   void addImportDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addImportPrefixedAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   @experimental
   void addImportPrefixedFunctionInvocation(
@@ -855,8 +847,6 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addIndexExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addIntegerLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addInterpolationExpression(
@@ -868,6 +858,30 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addInvalidExpressionAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addInvalidExtensionOverrideAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addInvalidExtensionOverrideExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addInvalidSuperAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addInvalidSuperExpression(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
@@ -909,8 +923,6 @@ abstract class RuleVisitorRegistry2 {
 
   @experimental
   void addMethodDeclaration2(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
-  void addMethodInvocation(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addMixinDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -955,6 +967,45 @@ abstract class RuleVisitorRegistry2 {
 
   void addParenthesizedPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
+  @experimental
+  void addParsedCascadeName(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addParsedDotShorthandExpression(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addParsedDotShorthandName(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addParsedNameAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addParsedNameAccessAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addParsedTypeArguments(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addParsedUnqualifiedName(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addParsedUnqualifiedNameAssignmentTarget(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
+  void addParsedValueArguments(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
   void addPartDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addPartOfDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);
@@ -975,8 +1026,6 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addPrefixedIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addPrimaryConstructorBody(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
@@ -991,8 +1040,6 @@ abstract class RuleVisitorRegistry2 {
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );
-
-  void addPropertyAccess(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addReceiverIndexAssignmentTarget(
@@ -1077,11 +1124,12 @@ abstract class RuleVisitorRegistry2 {
 
   void addShowCombinator(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addSimpleIdentifier(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addSimpleStringLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addSpreadElement(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addStaticQualifier(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addStringInterpolation(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
@@ -1090,9 +1138,10 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addSuperExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addSuperFormalParameter(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addSuperReference(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addSwitchCase(AbstractAnalysisRule rule, AstVisitor2 visitor);
 

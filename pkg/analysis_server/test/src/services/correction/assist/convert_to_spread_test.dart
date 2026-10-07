@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToSpreadTest extends AssistProcessorTest {
+class ConvertToSpreadTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToSpread;
 

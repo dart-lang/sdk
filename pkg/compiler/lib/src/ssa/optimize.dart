@@ -1075,7 +1075,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
       FieldEntity field = element;
       if (!_nativeData.isNativeMember(field) && !node.isCallOnInterceptor) {
         // Insertion point for the closure call.
-        HInstruction insertionPoint = node;
         HInstruction load;
         FieldAnalysisData fieldData = _closedWorld.fieldAnalysis.getFieldData(
           field,
@@ -1095,7 +1094,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
                   ..sourceInformation = node.sourceInformation;
             _log?.registerNullCheck(node, check);
             node.block!.addBefore(node, check);
-            insertionPoint = check;
           }
           HConstant constant = _graph.addConstant(
             fieldData.constantValue!,
@@ -1118,7 +1116,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
           );
           _log?.registerFieldCall(node, fieldGet);
           node.block!.addBefore(node, fieldGet);
-          insertionPoint = fieldGet;
           load = fieldGet;
         }
         Selector callSelector = Selector.callClosureFrom(node.selector);
@@ -1136,7 +1133,6 @@ class SsaInstructionSimplifier extends HBaseVisitor<HInstruction>
           node.instructionType,
           node.typeArguments,
         )..sourceInformation = node.sourceInformation;
-        node.block!.addAfter(insertionPoint, closureCall);
         return closureCall;
       }
     }

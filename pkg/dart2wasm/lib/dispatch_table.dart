@@ -222,9 +222,7 @@ class SelectorInfo {
       outputSets.length,
       (i) => _upperBound(outputSets[i], ensureBoxed: false),
     );
-    if (outputs case [
-      w.RefType(heapType: w.HeapType.none, nullable: final nullable),
-    ]) {
+    if (outputs case [w.RefType(heapType: w.HeapType.none, :final nullable)]) {
       // All functions are guaranteed to return null or are unreachable.
       // => Prune signature to not return anything
       // => Tell callers to synthesize `null` or emit `unreachable`.
@@ -580,9 +578,14 @@ class DispatchTable {
           final procedureMetadata = procedureAttributeMetadata[member]!;
           // `hasTearOffUses` can be true for operators as well, even though
           // it's not possible to tear-off an operator. (no syntax for it)
-          if (member.kind == ProcedureKind.Method &&
-              procedureMetadata.hasTearOffUses) {
-            addMember(member.tearOffReference, staticDispatch);
+          if (member.kind == ProcedureKind.Method) {
+            if (procedureMetadata.hasTearOffUses) {
+              addMember(member.tearOffReference, staticDispatch);
+            } else {
+              // Even when there are no possible targets, there may still be
+              // call sites that rely on this selector existing.
+              _createSelectorForTarget(member.tearOffReference);
+            }
           }
         }
       }
@@ -598,7 +601,9 @@ class DispatchTable {
       final cls = translator.classes[classId].cls;
       if (cls != null) {
         selectorsInClass[cls]!.forEach((selectorInfo, target) {
-          if (!target.asMember.isAbstract) {
+          final member = target.asMember;
+          if (!member.isAbstract &&
+              translator.unreachableMetadata.mapping[member] == null) {
             selectorTargets.putIfAbsent(selectorInfo, () => {})[classId] =
                 target;
           }

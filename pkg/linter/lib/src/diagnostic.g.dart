@@ -130,7 +130,7 @@ const LinterLintWithoutArguments alwaysSpecifyTypesSplitToTypes =
       name: 'always_specify_types',
       problemMessage: "Missing type annotation.",
       correctionMessage:
-          "Try splitting the declaration and specify the different type "
+          "Try splitting the declaration and specifying the different type "
           "annotations.",
       uniqueName: 'always_specify_types_split_to_types',
       expectedTypes: [],
@@ -310,6 +310,34 @@ const LinterLintWithoutArguments analyzerPublicApiImplInPublicApi =
       uniqueName: 'analyzer_public_api_impl_in_public_api',
       expectedTypes: [],
     );
+
+/// Lint issued if an element annotated with `@ToBeDeprecated` is used from
+/// a declaration that is not itself annotated with `@ToBeDeprecated`.
+///
+/// `@ToBeDeprecated` marks the API, such as the V1 AST, that will become
+/// deprecated once its replacement is stable. Such API should be used only
+/// to implement other API that will be deprecated too, like
+/// `@Deprecated` with `deprecated_member_use_from_same_package`.
+///
+/// Parameters:
+/// String name: the name of the used element
+/// String details: the message of the `@ToBeDeprecated` annotation, preceded
+///                 by a space; or empty if there is no message
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String details})
+>
+analyzerToBeDeprecatedUse = LinterLintTemplate(
+  name: 'analyzer_to_be_deprecated_use',
+  problemMessage:
+      "'{0}' is to be deprecated, and should be used only by declarations that "
+      "are also to be deprecated.{1}",
+  correctionMessage:
+      "Try using the replacement, or annotating the enclosing declaration "
+      "with '@ToBeDeprecated'.",
+  uniqueName: 'analyzer_to_be_deprecated_use',
+  withArguments: _withArgumentsAnalyzerToBeDeprecatedUse,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
 
 /// Parameters:
 /// Object p0: undocumented
@@ -502,16 +530,16 @@ avoidEscapingInnerQuotes = LinterLintTemplate(
 );
 
 /// No parameters.
-const LinterLintWithoutArguments avoidFieldInitializersInConstClasses =
-    LinterLintWithoutArguments(
-      name: 'avoid_field_initializers_in_const_classes',
-      problemMessage: "Fields in 'const' classes should not have initializers.",
-      correctionMessage:
-          "Try converting the field to a getter or initialize the field in the "
-          "constructors.",
-      uniqueName: 'avoid_field_initializers_in_const_classes',
-      expectedTypes: [],
-    );
+const LinterLintWithoutArguments
+avoidFieldInitializersInConstClasses = LinterLintWithoutArguments(
+  name: 'avoid_field_initializers_in_const_classes',
+  problemMessage: "Fields in 'const' classes should not have initializers.",
+  correctionMessage:
+      "Try converting the field to a getter or initializing the field in the "
+      "constructors.",
+  uniqueName: 'avoid_field_initializers_in_const_classes',
+  expectedTypes: [],
+);
 
 /// No parameters.
 const LinterLintWithoutArguments avoidFinalParameters =
@@ -1258,7 +1286,8 @@ const LinterLintWithoutArguments discardedFutureOr = LinterLintWithoutArguments(
   name: 'discarded_futures',
   problemMessage: "'FutureOr'-returning calls in a non-'async' function.",
   correctionMessage:
-      "Try converting the enclosing function to be 'async' and then 'await'.",
+      "Try making the enclosing function 'async' and awaiting the "
+      "expression.",
   uniqueName: 'discarded_future_or',
   expectedTypes: [],
 );
@@ -1268,8 +1297,8 @@ const LinterLintWithoutArguments discardedFutures = LinterLintWithoutArguments(
   name: 'discarded_futures',
   problemMessage: "'Future'-returning calls in a non-'async' function.",
   correctionMessage:
-      "Try converting the enclosing function to be 'async' and then 'await', "
-      "or wrap the expression in 'unawaited'.",
+      "Try either making the enclosing function 'async' and awaiting the "
+      "expression or wrapping the expression in 'unawaited'.",
   uniqueName: 'discarded_futures',
   expectedTypes: [],
 );
@@ -1824,7 +1853,7 @@ const DiagnosticWithArguments<
 matchingSuperParameters = LinterLintTemplate(
   name: 'matching_super_parameters',
   problemMessage:
-      "The super parameter named '{0}'' does not share the same name as the "
+      "The super parameter named '{0}' does not share the same name as the "
       "corresponding parameter in the super constructor, '{1}'.",
   correctionMessage:
       "Try using the name of the corresponding parameter in the super "
@@ -1981,15 +2010,15 @@ noLeadingUnderscoresForLocalIdentifiersShadowed = LinterLintTemplate(
 );
 
 /// No parameters.
-const LinterLintWithoutArguments noLiteralBoolComparisons =
-    LinterLintWithoutArguments(
-      name: 'no_literal_bool_comparisons',
-      problemMessage: "Unnecessary comparison to a boolean literal.",
-      correctionMessage:
-          "Remove the comparison and use the negate `!` operator if necessary.",
-      uniqueName: 'no_literal_bool_comparisons',
-      expectedTypes: [],
-    );
+const LinterLintWithoutArguments
+noLiteralBoolComparisons = LinterLintWithoutArguments(
+  name: 'no_literal_bool_comparisons',
+  problemMessage: "Unnecessary comparison to a boolean literal.",
+  correctionMessage:
+      "Remove the comparison and use the negation operator `!` if necessary.",
+  uniqueName: 'no_literal_bool_comparisons',
+  expectedTypes: [],
+);
 
 /// No parameters.
 const LinterLintWithoutArguments noLogicInCreateState =
@@ -2596,7 +2625,8 @@ preferInitializingFormals = LinterLintTemplate(
   problemMessage:
       "Use an initializing formal to assign a parameter to a field.",
   correctionMessage:
-      "Try using an initialing formal ('this.{0}') to initialize the field.",
+      "Try using an initializing formal ('this.{0}') to initialize the "
+      "field.",
   hasPublishedDocs: true,
   uniqueName: 'prefer_initializing_formals',
   withArguments: _withArgumentsPreferInitializingFormals,
@@ -3090,7 +3120,7 @@ const LinterLintWithoutArguments strictTopLevelInferenceSplitToTypes =
       name: 'strict_top_level_inference',
       problemMessage: "Missing type annotation.",
       correctionMessage:
-          "Try splitting the declaration and specify the different type "
+          "Try splitting the declaration and specifying the different type "
           "annotations.",
       uniqueName: 'strict_top_level_inference_split_to_types',
       expectedTypes: [],
@@ -3136,7 +3166,7 @@ const DiagnosticWithArguments<
 >
 throwInFinally = LinterLintTemplate(
   name: 'throw_in_finally',
-  problemMessage: "Use of '{0}' in 'finally' block.",
+  problemMessage: "Use of '{0}' in a 'finally' block.",
   correctionMessage: "Try moving the '{0}' outside the 'finally' block.",
   hasPublishedDocs: true,
   uniqueName: 'throw_in_finally',
@@ -3903,7 +3933,7 @@ const LinterLintWithoutArguments useLateForPrivateFieldsAndVariables =
       name: 'use_late_for_private_fields_and_variables',
       problemMessage:
           "Use 'late' for private members with a non-nullable type.",
-      correctionMessage: "Try making adding the modifier 'late'.",
+      correctionMessage: "Try adding the 'late' modifier.",
       hasPublishedDocs: true,
       uniqueName: 'use_late_for_private_fields_and_variables',
       expectedTypes: [],
@@ -4167,6 +4197,16 @@ LocatableDiagnostic _withArgumentsAnalyzerPublicApiExportsNonPublicName({
 }) {
   return LocatableDiagnosticImpl(diag.analyzerPublicApiExportsNonPublicName, [
     elements,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsAnalyzerToBeDeprecatedUse({
+  required String name,
+  required String details,
+}) {
+  return LocatableDiagnosticImpl(diag.analyzerToBeDeprecatedUse, [
+    name,
+    details,
   ]);
 }
 

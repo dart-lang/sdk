@@ -17,6 +17,8 @@
 
 namespace dart {
 
+struct SourceReportCodeInfo;
+
 // A SourceReport object is used to generate reports about the program
 // source code, with information associated with source token
 // positions.  There are multiple possible kinds of reports.
@@ -78,24 +80,17 @@ class SourceReport {
   bool ShouldSkipField(const Field& field);
   intptr_t GetScriptIndex(const Script& script);
   bool ScriptIsLoadedByLibrary(const Script& script, const Library& lib);
-  intptr_t GetTokenPosOrLine(const Script& script,
-                             const TokenPosition& token_pos);
   bool IsLibraryAlreadyCompiled(const Library& lib);
   bool ShouldFiltersIncludeScript(const Script& script);
   bool ShouldFiltersIncludeUrl(const String& url);
 
   void PrintCallSitesData(JSONObject* jsobj,
-                          const Function& func,
-                          const Code& code);
+                          const SourceReportCodeInfo& params);
   void PrintCoverageData(JSONObject* jsobj,
-                         const Script& script,
-                         intptr_t script_index,
-                         const Function& func,
+                         const SourceReportCodeInfo& params,
                          bool report_branch_coverage);
   void PrintPossibleBreakpointsData(JSONObject* jsobj,
-                                    const Script& script,
-                                    const Function& func,
-                                    const Code& code);
+                                    const SourceReportCodeInfo& params);
   void PrintProfileData(JSONObject* jsobj, ProfileFunction* profile_function);
 #if defined(DEBUG)
   void VerifyScriptTable();
@@ -105,12 +100,6 @@ class SourceReport {
   void VisitFunction(JSONArray* jsarr,
                      const Function& func,
                      CompileMode compile_mode);
-  void VisitCodeOrBytecode(JSONObject* jsobj,
-                           const Script& script,
-                           intptr_t script_index,
-                           const Function& func,
-                           const Code& code,
-                           CompileMode compile_mode);
   void VisitField(JSONArray* jsarr,
                   const Field& field,
                   CompileMode compile_mode);

@@ -36,6 +36,9 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   final StreamController<NotificationMessage> _notificationsFromServer =
       StreamController<NotificationMessage>.broadcast();
 
+  /// The server capabilities returned during initialization.
+  ServerCapabilities? serverCapabilities;
+
   bool _hasSetClientCapabilities = false;
 
   new() {
@@ -223,11 +226,33 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       lspCapabilities: clientCapabilities,
     ).toRequest('${nextRequestId++}', clientUriConverter: server.uriConverter);
 
-    await handleSuccessfulRequest(request);
+    var response = await handleSuccessfulRequest(request);
+    var result = ServerSetClientCapabilitiesResult.fromResponse(
+      response,
+      clientUriConverter: uriConverter,
+    );
+
+    if (result.lspCapabilities case Map<String, Object?> lspCapabilities?) {
+      serverCapabilities = ServerCapabilities.fromJson(lspCapabilities);
+    }
   }
 
   Future<ResponseMessage> sendLspRequest(Method method, Object params) {
     return server.sendLspRequest(method, params);
+  }
+
+  /// Sends [notification] to the server wrapped in a legacy
+  /// `lsp.notification` notification.
+  ///
+  /// Unlike [sendRequestToServer] there is nothing to wait for and no
+  /// [lastSentLegacyRequestId] to record: a notification is not acknowledged
+  /// and has no LSP response, so a failure to handle it is only logged by the
+  /// server.
+  void sendNotificationToServer(NotificationMessage notification) {
+    serverChannel.simulateNotificationFromClient(
+      LspNotificationParams(notification.toJson())
+          .toNotification(clientUriConverter: uriConverter),
+    );
   }
 
   @override

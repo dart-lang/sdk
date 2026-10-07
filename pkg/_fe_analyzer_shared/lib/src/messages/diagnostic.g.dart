@@ -143,6 +143,16 @@ const MessageCode assignmentToPrimaryConstructorParameter = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode augmentationExtendsClauseAlreadyPresent = const MessageCode(
+  "AugmentationExtendsClauseAlreadyPresent",
+  sharedCode: SharedCode.augmentationExtendsClauseAlreadyPresent,
+  problemMessage:
+      """The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.""",
+  correctionMessage:
+      """Try removing the 'extends' clause, either here or in the augmentation target.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitAsIdentifier = const MessageCode(
   "AwaitAsIdentifier",
   pseudoSharedCode: PseudoSharedCode.asyncKeywordUsedAsIdentifier,
@@ -2277,6 +2287,16 @@ Message _withArgumentsMultipleClauses({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode multipleCombinators = const MessageCode(
+  "MultipleCombinators",
+  sharedCode: SharedCode.multipleCombinators,
+  problemMessage:
+      """At most one 'show' or 'hide' combinator can be used on an import or export directive.""",
+  correctionMessage:
+      """Try combining all of the combinators into a single combinator.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode multipleExtends = const MessageCode(
   "MultipleExtends",
   sharedCode: SharedCode.multipleExtendsClauses,
@@ -3166,6 +3186,7 @@ enum SharedCode {
   annotationWithTypeArgumentsUninstantiated,
   anonymousMethodWrongParameterList,
   assignmentToPrimaryConstructorParameter,
+  augmentationExtendsClauseAlreadyPresent,
   baseEnum,
   binaryOperatorWrittenOut,
   breakOutsideOfLoop,
@@ -3306,6 +3327,7 @@ enum SharedCode {
   mixinWithClause,
   modifierOutOfOrder,
   multipleClauses,
+  multipleCombinators,
   multipleExtendsClauses,
   multipleLibraryDirectives,
   multipleOnClauses,

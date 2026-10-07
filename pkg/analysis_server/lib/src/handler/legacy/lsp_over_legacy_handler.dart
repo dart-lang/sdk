@@ -26,6 +26,7 @@ class LspOverLegacyHandler extends LegacyHandler {
   @override
   Future<void> handle() async {
     server.initializeLspOverLegacy();
+    server.ensureLspInitializedForClientWithoutCapabilities();
 
     var params = LspHandleParams.fromRequest(
       request,

@@ -26,10 +26,8 @@ void main() => testDartIntegration('dartpad', (ctx) async {
   ''');
 
   printOnFailure('# Running code in sandbox');
-  final result = await ctx.sandbox.runMain(
-    ctx.ws.workspaceFolder.resolve('main.dart').toString(),
-  );
+  final result = await ctx.sandbox.run('main.dart', mode: 'console');
   check(result.log).isNotNull();
 
-  await ctx.checkConsole((m) => m.contains('Hello from DartPad!'));
+  await ctx.checkConsole(.it()..contains('Hello from DartPad!'));
 });

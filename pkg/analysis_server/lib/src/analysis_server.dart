@@ -80,9 +80,11 @@ import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/performance_logger.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
+import 'package:analyzer/src/dart/analysis/single_file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/status.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
@@ -279,6 +281,17 @@ abstract class AnalysisServer {
   /// the last idle state.
   final Set<String> filesResolvedSinceLastIdle = {};
 
+  /// A completer for [lspInitialized].
+  final Completer<lsp.InitializedStateMessageHandler> _lspInitializedCompleter =
+      Completer<lsp.InitializedStateMessageHandler>();
+
+  /// The handler passed to [completeLspInitialization], or `null` if LSP
+  /// initialization has not completed yet.
+  ///
+  /// This allows [lspInitialized] to provide the handler synchronously once it
+  /// is known.
+  lsp.InitializedStateMessageHandler? _initializedLspHandler;
+
   /// A completer for [lspUninitialized].
   final Completer<void> _lspUninitializedCompleter = Completer<void>();
 
@@ -294,6 +307,9 @@ abstract class AnalysisServer {
 
   /// The memory caching byte store created by [createByteStore], if any.
   MemoryCachingByteStore? _memoryCachingByteStore;
+
+  /// The single-file byte store owned by this server, if any.
+  SingleFileByteStore? _singleFileByteStore;
 
   /// Whether notifications caused by analysis should be suppressed.
   ///
@@ -324,9 +340,12 @@ abstract class AnalysisServer {
     this.performanceLogger,
     required bool usePlugins,
     Map<String, String>? environment,
-  }) : resourceProvider = OverlayResourceProvider(baseResourceProvider),
+  }) : resourceProvider = OverlayResourceProvider(
+         TimingResourceProvider(baseResourceProvider),
+       ),
        pubApi = PubApi(
          instrumentationService,
+         sessionLogger,
          httpClient,
          platform.environment['PUB_HOSTED_URL'],
        ),
@@ -352,6 +371,7 @@ abstract class AnalysisServer {
     var pubCommand = processRunner != null && disablePubCommandVariable == null
         ? PubCommand(
             instrumentationService,
+            sessionLogger,
             resourceProvider.pathContext,
             processRunner,
           )
@@ -359,6 +379,7 @@ abstract class AnalysisServer {
 
     pubPackageService = PubPackageService(
       instrumentationService,
+      sessionLogger,
       baseResourceProvider,
       pubApi,
       pubCommand,
@@ -425,7 +446,11 @@ abstract class AnalysisServer {
         dartFixPromptManager ??
         DartFixPromptManager(
           this,
-          UserPromptPreferences(resourceProvider, instrumentationService),
+          UserPromptPreferences(
+            resourceProvider,
+            instrumentationService,
+            sessionLogger,
+          ),
         );
   }
 
@@ -473,12 +498,21 @@ abstract class AnalysisServer {
       readMissCount: fileByteStore?.readMissCount,
       writeBytes: fileByteStore?.writeBytes,
       writeCount: fileByteStore?.writeCount,
+      singleFileStorePath: _singleFileByteStore?.filePath,
+      singleFilePendingEntryCount: _singleFileByteStore?.pendingEntryCount,
     );
   }
 
   /// A list of timings for the byte store, or `null` if timing is not being
   /// tracked.
   List<ByteStoreTimings>? get byteStoreTimings => _timingByteStore?.timings;
+
+  /// The workspace folders to request resource-scoped configuration for, in
+  /// addition to the global configuration.
+  ///
+  /// Only the LSP server tracks workspace folders, so for other servers this
+  /// is always empty and only the global configuration is requested.
+  List<String> get configurationWorkspaceFolders => const [];
 
   /// The list of current analysis sessions in all contexts.
   Future<List<AnalysisSessionImpl>> get currentSessions async {
@@ -513,7 +547,16 @@ abstract class AnalysisServer {
   lsp.LspClientCapabilities? get editorClientCapabilities;
 
   /// The initialization options provided by the client for LSP initialization.
+  ///
+  /// These are only ever set for the LSP server and always null for
+  /// LSP-over-Legacy. We now favor using [editorClientCapabilities]
+  /// for clients to indicate their capabilities and preferences (and
+  /// [lspClientConfiguration] for the users config/preferences).
   lsp.LspInitializationOptions? get initializationOptions;
+
+  /// Whether [completeLspInitialization] has been called, and therefore whether
+  /// [lspInitialized] returns the handler itself instead of a [Future].
+  bool get isLspInitialized => _initializedLspHandler != null;
 
   /// The configuration (user/workspace settings) from the LSP client.
   ///
@@ -525,10 +568,14 @@ abstract class AnalysisServer {
   /// state and can handle normal LSP requests.
   ///
   /// Completes with the [lsp.InitializedStateMessageHandler] that is active.
+  /// Before [completeLspInitialization] has been called this is a [Future],
+  /// afterwards it is the handler itself, so callers that are not already async
+  /// can avoid an `await`.
   ///
   /// When the server leaves the initialized state, [lspUninitialized] will
   /// complete.
-  FutureOr<lsp.InitializedStateMessageHandler> get lspInitialized;
+  FutureOr<lsp.InitializedStateMessageHandler> get lspInitialized =>
+      _initializedLspHandler ?? _lspInitializedCompleter.future;
 
   /// A [Future] that completes once the server transitions out of an
   /// initialized state.
@@ -549,6 +596,10 @@ abstract class AnalysisServer {
   /// Callers should use [userPromptSender] instead of checking this directly.
   @protected
   bool get supportsShowMessageRequest;
+
+  /// Resource operations measured since this server was created.
+  TimingResourceProvider get timingResourceProvider =>
+      resourceProvider.baseProvider as TimingResourceProvider;
 
   /// Return the total time the server's been alive.
   Duration get uptime {
@@ -624,6 +675,17 @@ abstract class AnalysisServer {
     }
   }
 
+  /// Completes [lspInitialized], signalling that the server has moved into an
+  /// initialized state where it can handle standard LSP requests.
+  ///
+  /// This must be called exactly once; a second call throws. The legacy server
+  /// can have initialization completed from more than one code path and routes
+  /// them through `LegacyAnalysisServer.completeLspInitializationIfNeeded`.
+  void completeLspInitialization(lsp.InitializedStateMessageHandler handler) {
+    _initializedLspHandler = handler;
+    _lspInitializedCompleter.complete(handler);
+  }
+
   /// Completes [lspUninitialized], signalling that the server has moved out
   /// of a state where it can handle standard LSP requests.
   void completeLspUninitialization() {
@@ -685,13 +747,28 @@ abstract class AnalysisServer {
     if (resourceProvider is OverlayResourceProvider) {
       resourceProvider = resourceProvider.baseProvider;
     }
-    if (resourceProvider is PhysicalResourceProvider) {
+    var baseProvider = resourceProvider is TimingResourceProvider
+        ? resourceProvider.baseProvider
+        : resourceProvider;
+    if (baseProvider is PhysicalResourceProvider) {
       var stateLocation = resourceProvider.getStateLocation('.analysis-driver');
       if (stateLocation != null) {
-        var fileByteStore = _fileByteStore = EvictingFileByteStore(
-          stateLocation.path,
-          fileCacheSize,
-        );
+        ByteStore fileByteStore;
+        if (options.useSingleFileByteStore) {
+          fileByteStore = _singleFileByteStore = SingleFileByteStore.file(
+            stateLocation.parent.getFile('cache_v001.bin').path,
+            filePageCountLog2: 22, // 4 GiB, including metadata.
+            tableSlotCountLog2: 19, // 524,288 entries.
+            bufferPoolCapacityLog2: 12, // 4 MiB of cached pages.
+            maxPendingValueBytes: M,
+            maxPendingEntryCount: 64,
+          );
+        } else {
+          fileByteStore = _fileByteStore = EvictingFileByteStore(
+            stateLocation.path,
+            fileCacheSize,
+          );
+        }
         var timingByteStore = _timingByteStore = TimingByteStore(fileByteStore);
         return _memoryCachingByteStore = MemoryCachingByteStore(
           timingByteStore,
@@ -713,8 +790,80 @@ abstract class AnalysisServer {
     surveyManager = SurveyManager(
       this,
       instrumentationService,
+      sessionLogger,
       analyticsManager.analytics,
     );
+  }
+
+  /// Fetches the configuration from the client (if supported) and updates
+  /// [lspClientConfiguration] with it.
+  ///
+  /// Configuration is requested for the whole workspace and additionally for
+  /// each of [configurationWorkspaceFolders].
+  Future<void> fetchClientConfiguration() async {
+    if (!(editorClientCapabilities?.configuration ?? false)) {
+      return;
+    }
+
+    // Take a copy of workspace folders because we need to match up the
+    // responses to the request by index and it's possible the folders will
+    // change after we sent the request but before we get the response.
+    var folders = configurationWorkspaceFolders.toList();
+
+    // Fetch all configuration we care about from the client. This is just
+    // "dart" for now, but in future this may be extended to include
+    // others (for example "flutter").
+    var response = await sendLspRequest(
+      lsp.Method.workspace_configuration,
+      lsp.ConfigurationParams(
+        items: [
+          // Dart settings for each workspace folder.
+          for (var folder in folders)
+            lsp.ConfigurationItem(
+              scopeUri: uriConverter.toClientUri(folder),
+              section: 'dart',
+            ),
+          // Global Dart settings. This comes last to simplify matching up the
+          // indexes in the results (folder[i] is the i'th item).
+          lsp.ConfigurationItem(section: 'dart'),
+        ],
+      ),
+    );
+
+    var result = response.result;
+
+    // Expect the result to be a list with 1 + folders.length items to
+    // match the request above, and each should be a standard map of settings.
+    // If the above code is extended to support multiple sets of config
+    // this will need tweaking to handle the item for each section.
+    if (result != null &&
+        result is List<Object?> &&
+        result.length == 1 + folders.length) {
+      // Config is stored as a map keyed by the workspace folder, and a key of
+      // null for the global config
+      var workspaceFolderConfig = {
+        for (var i = 0; i < folders.length; i++)
+          folders[i]: result[i] as Map<String, Object?>? ?? {},
+      };
+      var newGlobalConfig = result.last as Map<String, Object?>? ?? {};
+
+      var oldGlobalConfig = lspClientConfiguration.global;
+      lspClientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
+
+      // Refreshing the analysis roots also re-analyzes, so only one of these is
+      // needed. Where [refreshAnalysisRoots] does nothing the settings that
+      // affect the roots (such as excluded folders) have no effect either, so
+      // skipping the re-analysis only matters for a change that affects both.
+      if (lspClientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
+        await refreshAnalysisRoots();
+      } else if (lspClientConfiguration.affectsAnalysisResults(
+        oldGlobalConfig,
+      )) {
+        // Some settings affect analysis results and require re-analysis
+        // (such as showTodos).
+        await reanalyze();
+      }
+    }
   }
 
   /// Return an analysis driver to which the file with the given [path] is
@@ -833,8 +982,13 @@ abstract class AnalysisServer {
       return null;
     }
 
-    var result = session.getParsedUnit(path);
-    return result is ParsedUnitResult ? result : null;
+    try {
+      RequestPerformanceAdditionalTimings.current?.pushAnalysis();
+      var result = session.getParsedUnit(path);
+      return result is ParsedUnitResult ? result : null;
+    } finally {
+      RequestPerformanceAdditionalTimings.current?.popAnalysis();
+    }
   }
 
   /// Return the resolved library for the library containing the file with the
@@ -850,11 +1004,15 @@ abstract class AnalysisServer {
       return null;
     }
     try {
+      RequestPerformanceAdditionalTimings.current?.pushAnalysis();
       return await driver.currentSession.getResolvedContainingLibrary(path);
     } on InconsistentAnalysisException {
       return null;
     } catch (exception, stackTrace) {
       instrumentationService.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
+    } finally {
+      RequestPerformanceAdditionalTimings.current?.popAnalysis();
     }
     return null;
   }
@@ -866,7 +1024,7 @@ abstract class AnalysisServer {
     String path, {
     bool sendCachedToStream = false,
     bool interactive = true,
-  }) {
+  }) async {
     if (!file_paths.isDart(resourceProvider.pathContext, path)) {
       return null;
     }
@@ -876,17 +1034,21 @@ abstract class AnalysisServer {
       return Future.value();
     }
 
-    return driver
-        .getResolvedUnit(
-          path,
-          sendCachedToStream: sendCachedToStream,
-          interactive: interactive,
-        )
-        .then((value) => value is ResolvedUnitResult ? value : null)
-        .catchError((Object e, StackTrace st) {
-          instrumentationService.logException(e, st);
-          return null;
-        });
+    try {
+      RequestPerformanceAdditionalTimings.current?.pushAnalysis();
+      var value = await driver.getResolvedUnit(
+        path,
+        sendCachedToStream: sendCachedToStream,
+        interactive: interactive,
+      );
+      return value is ResolvedUnitResult ? value : null;
+    } catch (exception, stackTrace) {
+      instrumentationService.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
+      return null;
+    } finally {
+      RequestPerformanceAdditionalTimings.current?.popAnalysis();
+    }
   }
 
   /// Gets the version of a document known to the server, returning a
@@ -913,6 +1075,9 @@ abstract class AnalysisServer {
 
   @mustCallSuper
   FutureOr<void> handleAnalysisStatusChange(analysis.AnalysisStatus status) {
+    if (!status.isWorking) {
+      _singleFileByteStore?.flush();
+    }
     if (_isFirstAnalysisSinceContextsBuilt && !status.isWorking) {
       _timingByteStore?.newTimings('initial analysis completed');
       _isFirstAnalysisSinceContextsBuilt = false;
@@ -937,8 +1102,9 @@ abstract class AnalysisServer {
     lsp.MessageInfo messageInfo, {
     lsp.CancellationToken? cancellationToken,
   }) async {
-    // This is FutureOr<> because for the legacy server it's never a future, so
-    // we can skip the await.
+    // `lspInitialized` returns the handler itself once
+    // `completeLspInitialization` has run and only before that a future, so the
+    // await can usually be skipped.
     var initializedLspHandler = lspInitialized;
     var handler = initializedLspHandler is lsp.InitializedStateMessageHandler
         ? initializedLspHandler
@@ -972,6 +1138,10 @@ abstract class AnalysisServer {
       SilentException.wrapInMessage(message, result.exception),
       null,
       attachments,
+    );
+    sessionLogger.logException(
+      exception: SilentException.wrapInMessage(message, result.exception),
+      attachments: attachments,
     );
   }
 
@@ -1012,11 +1182,33 @@ abstract class AnalysisServer {
     }
   }
 
+  void publishLspClosingLabels(String path, List<lsp.ClosingLabel> labels) {
+    var params = lsp.PublishClosingLabelsParams(
+      uri: uriConverter.toClientUri(path),
+      labels: labels,
+    );
+    var message = lsp.NotificationMessage(
+      method: lsp.CustomMethods.publishClosingLabels,
+      params: params,
+      jsonrpc: lsp.jsonRpcVersion,
+    );
+    sendLspNotification(message);
+  }
+
   /// Read all files, resolve all URIs, and perform required analysis in
   /// all current analysis drivers.
   Future<void> reanalyze() async {
     await contextManager.refresh();
   }
+
+  /// Recomputes the analysis roots because client configuration that affects
+  /// them (such as excluded folders) has changed.
+  ///
+  /// Analysis roots are only computed from client configuration by the LSP
+  /// server. Other clients set their roots explicitly (for the legacy protocol
+  /// with `analysis.setAnalysisRoots`) so there is nothing to do here.
+  @protected
+  Future<void> refreshAnalysisRoots() async {}
 
   /// Report analytics data related to the number and size of files that were
   /// analyzed.
@@ -1142,8 +1334,9 @@ abstract class AnalysisServer {
         offset: offset,
         performance: performance,
       );
-    } catch (e, st) {
-      instrumentationService.logException(e, st);
+    } catch (exception, stackTrace) {
+      instrumentationService.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
     }
     return null;
   }
@@ -1173,8 +1366,9 @@ abstract class AnalysisServer {
         column: column,
         performance: performance,
       );
-    } catch (e, st) {
-      instrumentationService.logException(e, st);
+    } catch (exception, stackTrace) {
+      instrumentationService.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
     }
     return null;
   }
@@ -1233,6 +1427,7 @@ abstract class AnalysisServer {
     surveyManager?.shutdown();
     await contextManager.dispose();
     await _fileByteStore?.flush();
+    _singleFileByteStore?.close();
     await analyticsManager.shutdown();
     await shutdownPerfWitness();
     await sessionLogger.shutdown();
@@ -1260,8 +1455,9 @@ abstract class AnalysisServer {
           resolvedNodes: [result.unit],
         );
       }
-    } catch (e, st) {
-      instrumentationService.logException(e, st);
+    } catch (exception, stackTrace) {
+      instrumentationService.logException(exception, stackTrace);
+      sessionLogger.logException(exception: exception, stackTrace: stackTrace);
     }
     return null;
   }
@@ -1270,8 +1466,8 @@ abstract class AnalysisServer {
 /// A snapshot of the sizes and counters of the byte stores used by the
 /// server, for display on the diagnostics pages.
 ///
-/// The file byte store fields are `null` when the server uses only an
-/// in-memory byte store.
+/// Fields specific to a persistent byte store are `null` when that store is
+/// not used by the server.
 class AnalysisServerByteStoreStats {
   final int cacheHitCount;
   final int cacheMissCount;
@@ -1295,6 +1491,8 @@ class AnalysisServerByteStoreStats {
   final int putCount;
   final int? readCount;
   final int? readMissCount;
+  final int? singleFilePendingEntryCount;
+  final String? singleFileStorePath;
   final int storeHitCount;
   final int storeMissCount;
   final int? writeBytes;
@@ -1325,6 +1523,8 @@ class AnalysisServerByteStoreStats {
     this.pendingWriteCount,
     this.readCount,
     this.readMissCount,
+    this.singleFilePendingEntryCount,
+    this.singleFileStorePath,
     this.writeBytes,
     this.writeCount,
   });
@@ -1504,8 +1704,12 @@ extension on OverlayResourceProvider {
   /// The path to the location of the byte store on disk, or `null` if there is
   /// no on-disk byte store.
   String? get byteStorePath {
-    if (baseProvider is PhysicalResourceProvider) {
-      var stateLocation = baseProvider.getStateLocation('.analysis-driver');
+    var provider = baseProvider;
+    var physicalProvider = provider is TimingResourceProvider
+        ? provider.baseProvider
+        : provider;
+    if (physicalProvider is PhysicalResourceProvider) {
+      var stateLocation = provider.getStateLocation('.analysis-driver');
       return stateLocation?.path;
     }
     return null;

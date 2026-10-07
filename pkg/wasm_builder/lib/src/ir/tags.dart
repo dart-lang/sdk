@@ -60,8 +60,10 @@ class DefinedTag extends Tag implements Serializable {
   void printTo(IrPrinter p) {
     p.write('(tag ');
     p.writeTagReference(this);
-    p.write(' ');
-    type.printOneLineSignatureTo(p);
+    if (type.inputs.isNotEmpty || type.outputs.isNotEmpty) {
+      p.write(' ');
+      type.printOneLineSignatureTo(p);
+    }
     p.write(')');
   }
 }
@@ -98,8 +100,10 @@ class ImportedTag extends Tag implements Import {
     p.writeTagReference(this);
     p.write(' ');
     p.writeImport(module, name);
-    p.write(' ');
-    type.printOneLineSignatureTo(p);
+    if (type.inputs.isNotEmpty || type.outputs.isNotEmpty) {
+      p.write(' ');
+      type.printOneLineSignatureTo(p);
+    }
     p.write(')');
   }
 }

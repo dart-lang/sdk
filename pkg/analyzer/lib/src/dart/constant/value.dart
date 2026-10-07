@@ -2546,15 +2546,21 @@ class InvalidConstant implements Constant {
     bool isUnresolved = false,
   }) {
     var parent = node.parent2;
-    var parent2 = parent?.parent2;
-    if (parent is ArgumentList &&
-        parent2 is ast.ConstructorInvocation &&
-        parent2.isConst) {
-      return InvalidConstant.forEntity(
-        entity: node,
-        locatableDiagnostic: diag.constWithNonConstantArgument,
-        isUnresolved: isUnresolved,
-      );
+    // The value of a named argument is in the argument list too.
+    if (parent is NamedArgument) {
+      parent = parent.parent2;
+    }
+    // Don't ask an `Annotation` for its parent: an element annotation's AST is
+    // detached, and `Annotation.parent2` throws then.
+    if (parent is ArgumentList) {
+      if (parent.parent2 case ast.ConstructorInvocation invocation
+          when invocation.isConst) {
+        return InvalidConstant.forEntity(
+          entity: node,
+          locatableDiagnostic: diag.constWithNonConstantArgument,
+          isUnresolved: isUnresolved,
+        );
+      }
     }
     return InvalidConstant.forEntity(
       entity: node,

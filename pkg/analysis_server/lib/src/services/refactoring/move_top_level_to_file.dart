@@ -15,6 +15,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -243,9 +244,7 @@ class MoveTopLevelToFile extends ParameterizedRefactoringProducer {
         if (library == null || library.isDartCore) {
           continue;
         }
-        var hasShowCombinator = import.combinators
-            .whereType<ShowElementCombinator>()
-            .isNotEmpty;
+        var hasShowCombinator = import.showCombinators.isNotEmpty;
         builder.importLibrary(
           library.uri,
           prefix: import.prefix?.element.name,

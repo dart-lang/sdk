@@ -57,7 +57,7 @@ static method useFinalizableAsyncStar([@vm.inferred-arg-type.metadata=#lib::MyFi
   _in::reachabilityFence(finalizable);
 }
 
-[@vm.inferred-return-type.metadata=dart.async::_Future]
+[@vm.inferred-return-type.metadata=dart.async::_Future<dynamic> (inexact type args)]
 static method main() → void async /* emittedValueType= void */ {
   final self::MyFinalizable finalizable = new self::MyFinalizable::•();
   final asy::Stream<core::int> asyncStarResult = [@vm.inferred-type.metadata=!] self::useFinalizableAsyncStar(finalizable);

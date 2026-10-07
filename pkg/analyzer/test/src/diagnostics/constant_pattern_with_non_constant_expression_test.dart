@@ -50,7 +50,18 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression2: PrefixedIdentifier
+    expression2: ReceiverPropertyExtraction
+      receiver: StaticQualifier
+        name: A
+        element: <testLibrary>::@class::A
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: <testLibrary>::@class::A::@getter::a
+        invokeType: int Function()
+        type: int
+      staticType: int
+    expression(v1): PrefixedIdentifier
       prefix: SimpleIdentifier
         token: A
         element: <testLibrary>::@class::A
@@ -117,8 +128,23 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression2: PropertyAccess
-      target2: PrefixedIdentifier
+    expression2: ReceiverPropertyExtraction
+      receiver: StaticQualifier
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
+          element: <testLibraryFragment>::@prefix::prefix
+        name: A
+        element: package:test/a.dart::@class::A
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: package:test/a.dart::@class::A::@getter::a
+        invokeType: int Function()
+        type: int
+      staticType: int
+    expression(v1): PropertyAccess
+      target: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
           element: <testLibraryFragment>::@prefix::prefix
@@ -159,8 +185,23 @@ void f(x) {
     assertResolvedNodeText(node, r'''
 GuardedPattern
   pattern: ConstantPattern
-    expression2: PropertyAccess
-      target2: PrefixedIdentifier
+    expression2: ReceiverPropertyExtraction
+      receiver: StaticQualifier
+        importPrefix: ImportPrefixReference
+          name: prefix
+          period: .
+          element: <testLibraryFragment>::@prefix::prefix
+        name: A
+        element: package:test/a.dart::@class::A
+      operator: .
+      name: a
+      resolution: GetterInvocationResolution
+        element: package:test/a.dart::@class::A::@getter::a
+        invokeType: int Function()
+        type: int
+      staticType: int
+    expression(v1): PropertyAccess
+      target: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
           element: <testLibraryFragment>::@prefix::prefix
@@ -665,9 +706,7 @@ GuardedPattern
     expression2: UnqualifiedNameExpression
       name: foo
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-        recovery: <null>
+        recoveryElement: <null>
       staticType: InvalidType
     expression(v1): SimpleIdentifier
       token: foo

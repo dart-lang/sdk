@@ -223,7 +223,7 @@ main() {
   // [cfe] unspecified
 
   // Int32x4
-  final int32x4 = Int32x4(0, 0, 0, 0);
+  final int32x4 = Int32x4.zero();
   int32x4 + null;
   //        ^^^^
   // [analyzer] unspecified

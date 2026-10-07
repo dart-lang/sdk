@@ -28,16 +28,16 @@ class DartUnitOverridesComputer {
   List<proto.Override> compute() {
     for (var unitMember in _unit.declarations) {
       switch (unitMember) {
-        case ClassDeclaration(:var namePart, body: var body):
+        case ClassDeclaration(:var namePart, :var body):
           _primaryConstructor(namePart);
           _classMembers(body.members);
-        case EnumDeclaration(:var namePart, body: var body):
+        case EnumDeclaration(:var namePart, :var body):
           _primaryConstructor(namePart);
           _classMembers(body.members);
-        case ExtensionTypeDeclaration(:var namePart, body: var body):
+        case ExtensionTypeDeclaration(:var namePart, :var body):
           _primaryConstructor(namePart);
           _classMembers(body.members);
-        case MixinDeclaration(body: var body):
+        case MixinDeclaration(:var body):
           _classMembers(body.members);
       }
     }

@@ -190,6 +190,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
       if (expectMatch.outcome != Expectation.pass) return expectMatch;
 
       if (containsUnknownChunk) {
+        print('Unknown chunks:\n${info.unknownChunks}');
         return new Result(
           null,
           context.expectationSet["UnknownChunk"],

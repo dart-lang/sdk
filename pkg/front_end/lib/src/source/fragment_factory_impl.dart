@@ -1164,7 +1164,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required String name,
     required List<TypeParameterFragment>? typeParameters,
     required Modifiers modifiers,
-    required TypeBuilder? supertype,
+    required TypeBuilder supertype,
     required List<TypeBuilder> mixins,
     required List<TypeBuilder>? interfaces,
     required int startOffset,
@@ -1502,6 +1502,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required Token? initializersStartToken,
     required bool hasNewKeyword,
     required bool forAbstractClassOrEnumOrMixin,
+    required bool isComplete,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1560,6 +1561,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       buildInitializersForOutline:
           modifiers.isConst || libraryFeatures.superParameters.isEnabled,
       beginInitializers: initializersStartToken,
+      isComplete: isComplete,
     );
 
     _addFragment(fragment);
@@ -1635,6 +1637,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int endOffset,
     required String? nativeMethodName,
     required AsyncModifier asyncModifier,
+    required bool isComplete,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1670,6 +1673,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       redirectionTarget: redirectionTarget,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
+      isComplete: isComplete,
     );
 
     TypeScope typeParameterScope = _typeScopes.pop();

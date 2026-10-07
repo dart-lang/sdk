@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToDotShorthandTest extends AssistProcessorTest {
+class ConvertToDotShorthandTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToDotShorthand;
 

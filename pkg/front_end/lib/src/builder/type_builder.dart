@@ -9,6 +9,7 @@ import 'package:kernel/src/bounds_checks.dart' show VarianceCalculationValue;
 
 import '../base/messages.dart';
 import '../base/scope.dart';
+import '../base/uri_offset.dart';
 import '../kernel/type_algorithms.dart';
 import '../source/source_loader.dart';
 import '../source/type_parameter_factory.dart';
@@ -728,4 +729,10 @@ class QualifiedTypeName implements TypeName {
 
   @override
   int get fullNameLength => nameOffset - qualifierOffset + name.length;
+}
+
+extension TypeBuilderExtension on TypeBuilder {
+  UriOffsetLength? get uriOffset => fileUri != null && charOffset != null
+      ? new UriOffset(fileUri!, charOffset!)
+      : null;
 }

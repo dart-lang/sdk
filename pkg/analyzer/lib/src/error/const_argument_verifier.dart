@@ -19,7 +19,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   ConstArgumentsVerifier(this._diagnosticReporter);
 
   void checkNameExpression(NameExpression node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
+    if (node.resolution?.element case var element?) {
       _checkTearoff(node, element);
     }
   }
@@ -32,7 +32,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
 
   @override
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
-    var parameters = node.parameters?.parameters;
+    var parameters = node.parameters?.allFormalParameters;
     if (parameters == null || parameters.isEmpty) {
       return;
     }
@@ -53,11 +53,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         );
       }
     }
-  }
-
-  @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _check(arguments: [node.rightHandSide2], errorNode: node.operator);
   }
 
   @override
@@ -119,26 +114,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
   }
 
   @override
-  void visitIndexExpression(IndexExpression node) {
-    _check(arguments: [node.index2], errorNode: node.leftBracket);
-  }
-
-  @override
-  void visitMethodInvocation(MethodInvocation node) {
-    _check(arguments: node.argumentList.arguments2, errorNode: node.methodName);
-  }
-
-  @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    _checkTearoff(node.identifier, node.element);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    _checkTearoff(node.propertyName, node.propertyName.element);
-  }
-
-  @override
   void visitReceiverIndexExpression(ReceiverIndexExpression node) {
     _check(arguments: [node.index], errorNode: node.leftBracket);
   }
@@ -156,19 +131,6 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
       arguments: node.argumentList.arguments2,
       errorNode: node.constructorSelector?.name2 ?? node.thisKeyword,
     );
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var parent = node.parent2;
-    if (parent is PropertyAccess && parent.propertyName == node) return;
-    if (parent is PrefixedIdentifier && parent.identifier == node) return;
-    if (parent is DotShorthandPropertyAccess && parent.propertyName == node) {
-      return;
-    }
-    if (parent is DotShorthandInvocation && parent.memberName == node) return;
-    if (parent is MethodInvocation && parent.methodName == node) return;
-    _checkTearoff(node, node.element);
   }
 
   @override
@@ -221,7 +183,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         _diagnosticReporter.report(
           diag.tearoffWithMustBeConstParameter
               .withArguments(name: name)
-              .at(node),
+              .at(node is PropertyExtraction ? node.name : node),
         );
       }
     }
@@ -246,16 +208,8 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
         // TODO(mosum): Expand the logic to check if the individual interpolation elements are const.
         StringInterpolation() => false,
       };
-    } else if (expression is Identifier) {
-      var element = expression.element;
-      switch (element) {
-        case GetterElement():
-          return element.variable.isConst;
-        case VariableElement():
-          return element.isConst;
-      }
     } else if (expression is NameExpression) {
-      var element = expression.resolution.elementOrRecovery;
+      var element = expression.resolution?.elementOrRecovery;
       return switch (element) {
         GetterElement() => element.variable.isConst,
         VariableElement() => element.isConst,
@@ -267,21 +221,10 @@ class ConstArgumentsVerifier extends SimpleAstVisitor2<void> {
 
   bool _isTearOff(Expression node) {
     if (node is ConstructorTearOff) return true;
-    if (node is FunctionReference) return true;
     if (node is FunctionInstantiation) return true;
     if (node is ImplicitFunctionInstantiation) return true;
     if (node is DotShorthandNameExpression) return true;
-    if (node is DotShorthandPropertyAccess) return true;
     if (node.inCommentReference2) return false;
-    if (node is SimpleIdentifier) {
-      var parent = node.parent2;
-      while (parent is ParenthesizedExpression) {
-        parent = parent.parent2;
-      }
-      if (parent is InvocationExpression) return false;
-      if (node.element is TopLevelFunctionElement) return true;
-      if (node.element is MethodElement) return true;
-    }
     if (node is NameExpression) {
       return node.resolution is ExecutableTearOffResolution;
     }

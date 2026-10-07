@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -28,44 +29,6 @@ class UseResultVerifier {
     _check(node, element);
   }
 
-  void checkDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    var element = node.constructorName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
-  void checkDotShorthandInvocation(DotShorthandInvocation node) {
-    var element = node.memberName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
-  void checkDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    var element = node.propertyName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
-  void checkMethodInvocation(MethodInvocation node) {
-    var element = node.methodName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
-  }
-
   void checkNamedFunctionInvocation(NamedFunctionInvocation node) {
     if (node.resolution case ExecutableInvocationResolution(:var element)) {
       _check(node, element, nameToken: node.name);
@@ -76,55 +39,19 @@ class UseResultVerifier {
     if (node.parent2 is CallInvocation) {
       return;
     }
-    if (resolution case NamedReadResolutionWithElement(:var element)) {
+    if (resolution?.element case var element?) {
       _check(node, element);
     }
-  }
-
-  void checkPropertyAccess(PropertyAccess node) {
-    var element = node.propertyName.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
   }
 
   void checkPropertyExtraction(PropertyExtraction node) {
-    if (node.resolution case NamedReadResolutionWithElementImpl(:var element)) {
-      _check(node, element);
+    if (node.resolution?.element case var element?) {
+      _check(node, element, nameToken: node.name);
     }
-  }
-
-  void checkSimpleIdentifier(SimpleIdentifier node) {
-    if (node.inDeclarationContext()) {
-      return;
-    }
-
-    var parent = node.parent2;
-    // Covered by the checks for the complete parent expressions.
-    if (parent is DotShorthandConstructorInvocation ||
-        parent is DotShorthandInvocation ||
-        parent is DotShorthandPropertyAccess ||
-        parent is PropertyAccess ||
-        parent is MethodInvocation ||
-        parent is CallInvocation) {
-      return;
-    }
-
-    var element = node.element;
-    if (element == null) {
-      return;
-    }
-
-    _check(node, element);
   }
 
   void _check(AstNode node, Element element, {Token? nameToken}) {
     var parent = node.parent2;
-    if (parent is PrefixedIdentifier) {
-      parent = parent.parent2;
-    }
     if (parent is CommentReference) {
       // Don't flag references in comments.
       return;
@@ -149,7 +76,7 @@ class UseResultVerifier {
     var toAnnotate = nameToken ?? node.nodeToAnnotate;
     var displayName = switch (toAnnotate) {
       Token(:var lexeme) => lexeme,
-      SimpleIdentifier(:var name) => name,
+      UnqualifiedNameExpression(:var name) => name.lexeme,
       _ => element.displayName,
     };
 
@@ -219,14 +146,6 @@ class UseResultVerifier {
       return parent.target2 == node;
     }
 
-    if (parent is PrefixedIdentifier) {
-      if (parent.prefix == node) {
-        return true;
-      } else {
-        return _isUsed(parent);
-      }
-    }
-
     // Null-checking a result is not a "use".
     if (parent is NullAssertionExpression) {
       return _isUsed(parent);
@@ -257,7 +176,6 @@ class UseResultVerifier {
         parent is AssertStatement ||
         // Node should always be RHS so no need to check for a property
         // assignment.
-        parent is AssignmentExpression ||
         parent is DirectAssignment ||
         parent is IfNullAssignment ||
         parent is BinaryOperatorInvocation ||
@@ -270,16 +188,13 @@ class UseResultVerifier {
         parent is CallInvocation ||
         parent is IfStatement ||
         parent is IndexAssignmentTarget ||
-        parent is IndexExpression ||
         parent is IndexExpression2 ||
         parent is InterpolationExpression ||
         parent is ListLiteral ||
         parent is MapLiteralEntry ||
-        parent is MethodInvocation ||
         parent is NamedArgument ||
         parent is PatternAssignment ||
         parent is PatternVariableDeclaration ||
-        parent is PropertyAccess ||
         parent is PropertyExtraction ||
         parent is RecordLiteral ||
         parent is RecordLiteralNamedField ||
@@ -313,12 +228,9 @@ extension on ElementAnnotation {
 }
 
 extension on AstNode {
-  AstNode get nodeToAnnotate => switch (this) {
-    DotShorthandConstructorInvocation node => node.constructorName,
-    DotShorthandInvocation node => node.memberName,
-    DotShorthandPropertyAccess node => node.propertyName,
-    MethodInvocation node => node.methodName,
-    PropertyAccess node => node.propertyName,
+  SyntacticEntity get nodeToAnnotate => switch (this) {
+    ReceiverMethodInvocation node => node.name,
+    CallInvocation(receiver: ReceiverPropertyExtraction(:var name)) => name,
     CallInvocation node => node.receiver.nodeToAnnotate,
     _ => this,
   };

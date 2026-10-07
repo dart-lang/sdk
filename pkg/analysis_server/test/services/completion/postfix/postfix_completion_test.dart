@@ -5,10 +5,9 @@
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/completion/postfix/postfix_completion.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -25,7 +24,7 @@ void main() {
   });
 }
 
-class PostfixCompletionTest extends AbstractSingleUnitTest {
+class PostfixCompletionTest extends SingleUnitTest {
   late TestCode testCodeCode;
   late PostfixCompletionProcessor processor;
   late SourceChange change;
@@ -227,6 +226,24 @@ f() {
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/41093
+  Future<void> test_forPrefixedIdentifier() async {
+    await _prepareCompletion('.for', '''
+f() {
+  var addresses = <String, String>{};
+  addresses.keys^
+}
+''');
+    _assertHasChange('Expand .for', '''
+f() {
+  var addresses = <String, String>{};
+  for (var value in addresses.keys) {
+    ^
+  }
+}
+''');
+  }
+
   Future<void> test_iter_List_dynamic() async {
     await _prepareCompletion('.iter', '''
 f(List values) {
@@ -405,6 +422,27 @@ f(int i, int j) {
     _assertHasChange('Expand .not', '''
 f(int i, int j) {
   if (i + 3 >= j - 4)
+}
+''');
+  }
+
+  Future<void> test_negatePrefixedIdentifier() async {
+    await _prepareCompletion('.not', '''
+f(A a) {
+  if (a.f^)
+}
+
+class A {
+  bool f = false;
+}
+''');
+    _assertHasChange('Expand .not', '''
+f(A a) {
+  if (!a.f)
+}
+
+class A {
+  bool f = false;
 }
 ''');
   }

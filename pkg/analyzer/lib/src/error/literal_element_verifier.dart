@@ -142,6 +142,11 @@ class LiteralElementVerifier {
   /// Verify that the [entry]'s key and value are assignable to [mapKeyType]
   /// and [mapValueType].
   void _verifyMapLiteralEntry(MapLiteralEntry entry) {
+    _verifyMapLiteralEntryKey(entry);
+    _verifyMapLiteralEntryValue(entry);
+  }
+
+  void _verifyMapLiteralEntryKey(MapLiteralEntry entry) {
     var mapKeyType = this.mapKeyType!;
     var keyType = entry.key2.typeOrThrow;
 
@@ -154,21 +159,6 @@ class LiteralElementVerifier {
 
     if (mapKeyType is! VoidType &&
         _errorVerifier.checkForUseOfVoidResult(entry.key2)) {
-      return;
-    }
-
-    var mapValueType = this.mapValueType!;
-    var valueType = entry.value2.typeOrThrow;
-
-    // A null-aware marker tests this expression for `null`, so a `void` value
-    // is used even when the stored value type is also `void`.
-    if (entry.valueQuestion != null && valueType is VoidType) {
-      _errorVerifier.checkForUseOfVoidResult(entry.value2);
-      return;
-    }
-
-    if (mapValueType is! VoidType &&
-        _errorVerifier.checkForUseOfVoidResult(entry.value2)) {
       return;
     }
 
@@ -200,6 +190,23 @@ class LiteralElementVerifier {
               .at(entry.key2),
         );
       }
+    }
+  }
+
+  void _verifyMapLiteralEntryValue(MapLiteralEntry entry) {
+    var mapValueType = this.mapValueType!;
+    var valueType = entry.value2.typeOrThrow;
+
+    // A null-aware marker tests this expression for `null`, so a `void` value
+    // is used even when the stored value type is also `void`.
+    if (entry.valueQuestion != null && valueType is VoidType) {
+      _errorVerifier.checkForUseOfVoidResult(entry.value2);
+      return;
+    }
+
+    if (mapValueType is! VoidType &&
+        _errorVerifier.checkForUseOfVoidResult(entry.value2)) {
+      return;
     }
 
     // If the value is null-aware, the entry is only added when the value is not

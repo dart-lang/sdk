@@ -586,6 +586,38 @@ library a;
 ''');
   }
 
+  test_deprecatedLibrary_export_inPart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+@deprecated
+library a;
+''');
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    await assertDiagnosticsFromMarkup(r'''
+part of 'a.dart';
+[!export 'lib.dart';!]
+''');
+  }
+
+  test_deprecatedLibrary_export_inSubpart() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+@deprecated
+library a;
+''');
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'part.dart';
+''');
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'a.dart';
+part 'test.dart';
+''');
+    await assertDiagnosticsFromMarkup(r'''
+part of 'part.dart';
+[!export 'lib.dart';!]
+''');
+  }
+
   test_deprecatedLibrary_import() async {
     newFile('$testPackageLibPath/lib.dart', r'''
 @deprecated

@@ -32,7 +32,7 @@ class A(final int field) {}
 class B extends A {
   new(super.field);
 }
-''', matchFixMessage: 'Create constructor to call super.');
+''', fixMessageContains: 'Create constructor to call super.');
   }
 
   Future<void> test_emptyBody_semicolon() async {
@@ -47,7 +47,7 @@ class A(final int field);
 class B extends A {
   new(super.field);
 }
-''', matchFixMessage: 'Create constructor to call super.');
+''', fixMessageContains: 'Create constructor to call super.');
   }
 
   Future<void> test_fieldInitializer() async {
@@ -76,7 +76,7 @@ class B extends A {
 
   void existingMethod() {}
 }
-''', matchFixMessage: 'Create constructor to call super.');
+''', fixMessageContains: 'Create constructor to call super.');
   }
 
   Future<void> test_fieldInitializer_withoutPrimaryConstructors() async {
@@ -107,7 +107,7 @@ class B extends A {
 
   void existingMethod() {}
 }
-''', matchFixMessage: 'Create constructor to call super.');
+''', fixMessageContains: 'Create constructor to call super.');
   }
 
   Future<void> test_importType() async {
@@ -186,7 +186,7 @@ class B extends A {
 
   void existingMethod() {}
 }
-''', matchFixMessage: 'Create constructor to call super.named()');
+''', fixMessageContains: 'Create constructor to call super.named()');
   }
 
   Future<void> test_namedConstructor_withPrimaryConstructors() async {
@@ -211,7 +211,7 @@ class B extends A {
 
   void existingMethod() {}
 }
-''', matchFixMessage: 'Create constructor to call super.named()');
+''', fixMessageContains: 'Create constructor to call super.named()');
   }
 
   Future<void> test_namedOptionalParams() async {
@@ -385,7 +385,7 @@ class B extends A {
 
   void existingMethod() {}
 }
-''', matchFixMessage: 'Create constructor to call super(...)');
+''', fixMessageContains: 'Create constructor to call super(...)');
   }
 
   Future<void> test_importType() async {
@@ -465,7 +465,7 @@ class B extends A {
 
   void existingMethod() {}
 }
-''', matchFixMessage: 'Create constructor to call super.named(...)');
+''', fixMessageContains: 'Create constructor to call super.named(...)');
   }
 
   Future<void> test_namedOptionalParams() async {

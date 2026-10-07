@@ -2020,6 +2020,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
@@ -2714,6 +2715,25 @@ class OutlineBuilder extends StackListenerImpl {
         kind == DeclarationKind.Mixin ||
         kind == DeclarationKind.Enum;
 
+    // A constructor declaration is incomplete if all of:
+    //   * It has no body.
+    //   * It is not marked external.
+    //   * There is no initializer list, initializing formals,
+    //     or super parameters.
+    // If a constructor is not incomplete then it is complete.
+    bool isIncomplete =
+        bodyKind == MethodBody.Abstract &&
+        !modifiers.isExternal &&
+        beginInitializers == null;
+    if (isIncomplete && formals != null) {
+      for (FormalParameterBuilder formal in formals) {
+        if (formal.isInitializingFormal || formal.isSuperInitializingFormal) {
+          isIncomplete = false;
+          break;
+        }
+      }
+    }
+
     _builderFactory.addConstructor(
       offsetMap: _offsetMap,
       metadata: metadata,
@@ -2728,6 +2748,7 @@ class OutlineBuilder extends StackListenerImpl {
       initializersStartToken: beginInitializers,
       hasNewKeyword: newToken != null,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
+      isComplete: !isIncomplete,
     );
 
     nativeMethodName = null;
@@ -2820,17 +2841,16 @@ class OutlineBuilder extends StackListenerImpl {
       Identifier identifier = name as Identifier;
       String classNameForErrors = identifier.name;
       List<TypeBuilder> mixins = mixinApplication as List<TypeBuilder>;
-      if (supertype is TypeBuilder) {
-        if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
-          _compilationUnit.addProblem(
-            diag.nullableSuperclassError.withArguments(
-              supertypeName: supertype.fullNameForErrors,
-            ),
-            identifier.nameOffset,
-            classNameForErrors.length,
-            uri,
-          );
-        }
+      supertype as TypeBuilder;
+      if (supertype.nullabilityBuilder.build() == Nullability.nullable) {
+        _compilationUnit.addProblem(
+          diag.nullableSuperclassError.withArguments(
+            supertypeName: supertype.fullNameForErrors,
+          ),
+          identifier.nameOffset,
+          classNameForErrors.length,
+          uri,
+        );
       }
       for (TypeBuilder mixin in mixins) {
         if (mixin.nullabilityBuilder.build() == Nullability.nullable) {
@@ -2870,7 +2890,7 @@ class OutlineBuilder extends StackListenerImpl {
         name: identifier.name,
         typeParameters: typeParameters?.fragments,
         modifiers: modifiers,
-        supertype: supertype as TypeBuilder?,
+        supertype: supertype,
         mixins: mixins,
         interfaces: interfaces,
         startOffset: startOffset,
@@ -4251,13 +4271,16 @@ class OutlineBuilder extends StackListenerImpl {
         /* metadata = */ ValueKinds.MetadataListOrNull,
       ]),
     );
-    if (staticToken != null && abstractToken != null) {
-      handleRecoverableError(
-        diag.abstractStaticField,
-        abstractToken,
-        abstractToken,
-      );
-      abstractToken = null;
+    if (!libraryFeatures.augmentations.isEnabled) {
+      // TODO(johnniwinther): Move this check after applying augmentations.
+      if (staticToken != null && abstractToken != null) {
+        handleRecoverableError(
+          diag.abstractStaticField,
+          abstractToken,
+          abstractToken,
+        );
+        abstractToken = null;
+      }
     }
     if (abstractToken != null && lateToken != null) {
       handleRecoverableError(
@@ -4693,6 +4716,13 @@ class OutlineBuilder extends StackListenerImpl {
       );
       _builderFactory.endFactoryMethodForParserRecovery();
     } else {
+      // A factory constructor declaration is incomplete if all of:
+      //   * It has no body.
+      //   * It is not marked external.
+      //   * There is no redirection.
+      // If a factory constructor is not incomplete then it is complete.
+      bool isIncomplete = kind == MethodBody.Abstract && !modifiers.isExternal;
+
       _builderFactory.addFactoryMethod(
         offsetMap: _offsetMap,
         metadata: metadata,
@@ -4706,6 +4736,7 @@ class OutlineBuilder extends StackListenerImpl {
         endOffset: endToken.charOffset,
         nativeMethodName: nativeMethodName,
         asyncModifier: asyncModifier,
+        isComplete: !isIncomplete,
       );
     }
     nativeMethodName = null;
@@ -4742,7 +4773,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
-    if (!libraryFeatures.constFunctions.isEnabled) {
+    if (!libraryFeatures.constFunctions.isEnabled &&
+        !libraryFeatures.augmentations.isEnabled) {
       handleRecoverableError(diag.constFactory, constKeyword, constKeyword);
     }
   }
@@ -4930,7 +4962,6 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleNoEnumBody(Token semicolon) {
     debugEvent("handleNoEnumBody");
     _builderFactory.beginEnumBody();

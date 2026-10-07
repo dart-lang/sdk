@@ -34,9 +34,28 @@ name: non_flutter_app
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ^3.0.0
 ''');
     await assertNoDiagnostics(r'''
+// ignore: unused_import
+import 'dart:html';
+''');
+  }
+
+  test_nonFlutterPackage_inPart() async {
+    newFile('$testPackageRootPath/pubspec.yaml', r'''
+name: non_flutter_app
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.0.0
+''');
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    await assertNoDiagnostics(r'''
+part of 'a.dart';
+
 // ignore: unused_import
 import 'dart:html';
 ''');
@@ -48,21 +67,75 @@ name: sample_project
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ^3.0.0
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^0.1.2
 
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
-
 flutter:
   uses-material-design: true
 ''');
     await assertDiagnosticsFromMarkup(r'''
+// ignore: unused_import
+[!import 'dart:html';!]
+''');
+  }
+
+  test_nonWebApp_inPart() async {
+    newFile('$testPackageRootPath/pubspec.yaml', r'''
+name: sample_project
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+
+flutter:
+  uses-material-design: true
+''');
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    await assertDiagnosticsFromMarkup(r'''
+part of 'a.dart';
+
+// ignore: unused_import
+[!import 'dart:html';!]
+''');
+  }
+
+  test_nonWebApp_inSubpart() async {
+    newFile('$testPackageRootPath/pubspec.yaml', r'''
+name: sample_project
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+
+flutter:
+  uses-material-design: true
+''');
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'test.dart';
+''');
+    await assertDiagnosticsFromMarkup(r'''
+part of 'b.dart';
+
 // ignore: unused_import
 [!import 'dart:html';!]
 ''');
@@ -81,16 +154,12 @@ name: sample_project
 version: 1.0.0+1
 
 environment:
-  sdk: ">=3.0.0 <4.0.0"
+  sdk: ^3.0.0
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^0.1.2
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
 
 flutter:
   uses-material-design: true
@@ -111,16 +180,12 @@ name: sample_project
 version: 1.0.0+1
 
 environment:
-  sdk: ">=2.1.0 <3.0.0"
+  sdk: ^3.0.0
 
 dependencies:
   flutter:
     sdk: flutter
   cupertino_icons: ^0.1.2
-
-dev_dependencies:
-  flutter_test:
-    sdk: flutter
 
 flutter:
   plugin:
@@ -130,6 +195,72 @@ flutter:
         fileName: main.dart
 ''');
     await assertNoDiagnostics(r'''
+// ignore: unused_import
+import 'dart:html';
+''');
+  }
+
+  test_webPlugin_inPart() async {
+    newFile('$testPackageRootPath/pubspec.yaml', r'''
+name: sample_project
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+
+flutter:
+  plugin:
+    platforms:
+      web:
+        pluginClass: SamplePlugin
+        fileName: main.dart
+''');
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'test.dart';
+''');
+    await assertNoDiagnostics(r'''
+part of 'a.dart';
+
+// ignore: unused_import
+import 'dart:html';
+''');
+  }
+
+  test_webPlugin_inSubpart() async {
+    newFile('$testPackageRootPath/pubspec.yaml', r'''
+name: sample_project
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.0.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^0.1.2
+
+flutter:
+  plugin:
+    platforms:
+      web:
+        pluginClass: SamplePlugin
+        fileName: main.dart
+''');
+    newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'test.dart';
+''');
+    await assertNoDiagnostics(r'''
+part of 'b.dart';
+
 // ignore: unused_import
 import 'dart:html';
 ''');

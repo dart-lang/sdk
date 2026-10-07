@@ -1,0 +1,119 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:8:5: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   a.();
+//     ^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:9:5: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   a.(0);
+//     ^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:10:5: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   a.(0, b: 1);
+//     ^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:11:16: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   a.toString().(0).isEmpty;
+//                ^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:12:17: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   a..toString().(0);
+//                 ^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:13:5: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   a.[0];
+//     ^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:14:5: Error: Expected an identifier, but got '<'.
+// Try inserting an identifier before '<'.
+//   a.<int>[];
+//     ^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:15:5: Error: Expected an identifier, but got '{'.
+// Try inserting an identifier before '{'.
+//   a.{};
+//     ^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:16:5: Error: Expected an identifier, but got '"s"'.
+// Try inserting an identifier before '"s"'.
+//   a."s";
+//     ^^^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:20:6: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   a?.(0);
+//      ^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:24:8: Error: Expected an identifier, but got '('.
+// Try inserting an identifier before '('.
+//   math.(0);
+//        ^
+//
+// pkg/front_end/testcases/general/period_missing_name.dart:25:8: Error: Expected an identifier, but got '['.
+// Try inserting an identifier before '['.
+//   math.[0];
+//        ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:math" as math;
+
+static method f(core::int a) → void {
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:8:5: Error: This couldn't be parsed.
+  a.();
+    ^";
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:9:5: Error: This couldn't be parsed.
+  a.(0);
+    ^";
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:10:5: Error: This couldn't be parsed.
+  a.(0, b: 1);
+    ^";
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:11:16: Error: This couldn't be parsed.
+  a.toString().(0).isEmpty;
+               ^";
+  let final core::int #t1 = a in block {
+    invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:12:17: Error: This couldn't be parsed.
+  a..toString().(0);
+                ^";
+  } =>#t1;
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:13:5: Error: Expected an identifier, but got '['.
+Try inserting an identifier before '['.
+  a.[0];
+    ^";
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:14:5: Error: Expected an identifier, but got '<'.
+Try inserting an identifier before '<'.
+  a.<int>[];
+    ^";
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:15:5: Error: Expected an identifier, but got '{'.
+Try inserting an identifier before '{'.
+  a.{};
+    ^";
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:16:5: Error: Expected an identifier, but got '\"s\"'.
+Try inserting an identifier before '\"s\"'.
+  a.\"s\";
+    ^^^";
+}
+static method g(core::int? a) → void {
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:20:6: Error: This couldn't be parsed.
+  a?.(0);
+     ^";
+}
+static method h() → void {
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:24:8: Error: This couldn't be parsed.
+  math.(0);
+       ^";
+  invalid-expression "pkg/front_end/testcases/general/period_missing_name.dart:25:8: Error: Expected an identifier, but got '['.
+Try inserting an identifier before '['.
+  math.[0];
+       ^";
+}
+static method main() → dynamic {}

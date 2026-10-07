@@ -44,6 +44,11 @@ class MemoryFileSystem implements FileSystem {
     return '$sb';
   }
 
+  // Coverage-ignore(suite): Not run.
+  void removeFile(Uri uri) {
+    _files.remove(uri);
+  }
+
   static Uri _addTrailingSlash(Uri uri) {
     if (!uri.path.endsWith('/')) {
       // Coverage-ignore-block(suite): Not run.

@@ -26,9 +26,8 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show StatementImpl;
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/resolver/exit_detector.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -568,6 +567,16 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
           }
         }
         if (selectedStatements.length == selectedNodes.length) {
+          var jumpVisitor = _HasJumpOutOfSelectionVisitor(_selectionRange);
+          for (var statement in selectedStatements) {
+            statement.accept(jumpVisitor);
+          }
+          if (jumpVisitor.hasJumpOut) {
+            return RefactoringStatus.fatal(
+              "Cannot extract a 'break' or 'continue' statement that jumps "
+              'outside of the selection.',
+            );
+          }
           _selectionStatements = selectedStatements;
           return RefactoringStatus();
         }
@@ -781,7 +790,11 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     var selectionStatements = _selectionStatements;
     if (selectionStatements != null) {
       var hasReturn = selectionStatements.any(_mayEndWithReturnStatement);
-      if (hasReturn && !ExitDetector.exits(selectionStatements.last)) {
+      // Jumps out of the selection are rejected by `_checkSelection`, so if
+      // the end of the last statement is unreachable, every execution flow
+      // ends with a `return` or a `throw`.
+      var lastStatement = selectionStatements.last as StatementImpl;
+      if (hasReturn && lastStatement.mayCompleteNormally) {
         result.addError(errorExits);
       }
     }
@@ -1288,6 +1301,32 @@ class _HasAwaitVisitor extends GeneralizingAstVisitor<void> {
   }
 }
 
+/// Checks whether any visited `break` or `continue` statement transfers
+/// control to a target outside of [selection], which an extracted method
+/// cannot do.
+class _HasJumpOutOfSelectionVisitor extends RecursiveAstVisitor<void> {
+  final SourceRange selection;
+  bool hasJumpOut = false;
+
+  new(this.selection);
+
+  @override
+  void visitBreakStatement(BreakStatement node) {
+    _checkTarget(node.target);
+  }
+
+  @override
+  void visitContinueStatement(ContinueStatement node) {
+    _checkTarget(node.target);
+  }
+
+  void _checkTarget(AstNode? target) {
+    if (target != null && !selection.covers(range.node(target))) {
+      hasJumpOut = true;
+    }
+  }
+}
+
 class _HasReturnStatementVisitor extends RecursiveAstVisitor<void> {
   bool hasReturn = false;
 
@@ -1379,7 +1418,7 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
     if (selectionPattern.isCompatible(nodePattern)) {
       var occurrence = _Occurrence(
         nodeRange,
-        ref._selectionRange.intersects(nodeRange),
+        ref._selectionRange.covers(nodeRange),
       );
       ref._occurrences.add(occurrence);
       // prepare mapping of parameter names to the occurrence variables
@@ -1409,6 +1448,16 @@ class _InitializeOccurrencesVisitor extends GeneralizingAstVisitor<void> {
         statements[beginStatementIndex],
         statements[beginStatementIndex + selectionCount - 1],
       );
+      // A window that partially overlaps the selection can't be an
+      // occurrence; matching it would consume some of the selected
+      // statements, so the selection itself would never be found.
+      // https://github.com/dart-lang/sdk/issues/37297
+      var selectionRange = ref._selectionRange;
+      if (nodeRange.intersects(selectionRange) &&
+          !selectionRange.covers(nodeRange)) {
+        beginStatementIndex++;
+        continue;
+      }
       var found = _tryToFindOccurrence(nodeRange);
       // next statement
       if (found) {

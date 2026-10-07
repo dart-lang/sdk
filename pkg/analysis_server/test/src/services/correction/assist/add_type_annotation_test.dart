@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddTypeAnnotationBinTest extends AssistProcessorTest {
+class AddTypeAnnotationBinTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.addTypeAnnotation;
 
@@ -51,7 +51,7 @@ void f() {
 }
 
 @reflectiveTest
-class AddTypeAnnotationTest extends AssistProcessorTest {
+class AddTypeAnnotationTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.addTypeAnnotation;
 

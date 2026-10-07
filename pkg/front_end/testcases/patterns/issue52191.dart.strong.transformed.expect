@@ -5,29 +5,26 @@ import "dart:core" as core;
 static method printBugsSwitch(core::int n) → void
   return block {
     void #t1;
-    final synthesized core::int #0#0 = n;
-    final const synthesized core::int #0#1 = #C1;
-    final const synthesized core::int #0#3 = #C2;
     #L1:
-    {
-      {
-        if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+    switch(n) /* core::int */ {
+      #L2:
+      case #C1:
+        {
           #t1 = core::print("no bugs");
           break #L1;
         }
-      }
-      {
-        if(#C2 =={core::num::==}{(core::Object) → core::bool} #0#0) {
+      #L3:
+      case #C2:
+        {
           #t1 = core::print("one bug");
           break #L1;
         }
-      }
-      {
-        if(true) {
+      #L4:
+      default:
+        {
           #t1 = core::print("${n} bugs");
           break #L1;
         }
-      }
     }
   } =>#t1;
 static method printBugsConditional(core::int n) → void

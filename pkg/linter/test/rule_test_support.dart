@@ -69,7 +69,7 @@ abstract class LintRuleTest extends AnalysisRuleTest {
     String content,
   ) async {
     var testCode = TestCode.parse(content);
-    var filePath = '$testPackageLibPath/$fileName';
+    var filePath = convertPath('$testPackageLibPath/$fileName');
     newFile(filePath, testCode.code);
     var expectedDiagnostics = [
       for (var range in testCode.ranges)

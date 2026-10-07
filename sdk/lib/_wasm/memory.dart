@@ -13,9 +13,17 @@ part of 'dart:_wasm';
 @pragma("wasm:entry-point")
 final class MemoryType {
   /// Minimum and optional maximum size for the memory.
+  @pragma("wasm:entry-point")
   final Limits limits;
 
-  const MemoryType({required this.limits});
+  /// Whether this memory can be shared between WebAssembly threads.
+  ///
+  /// Shared memories must specify [Limits.maximum]. When importing a memory,
+  /// this must match whether the supplied memory instance is shared.
+  @pragma("wasm:entry-point")
+  final bool shared;
+
+  const MemoryType({required this.limits, this.shared = false});
 }
 
 /// Limits for the size of memories or tables in WebAssembly.
@@ -93,6 +101,17 @@ final class Limits {
 /// @pragma('wasm:import', 'module.name')
 /// external Memory get mySecondMemory;
 /// ```
+///
+/// To import a shared memory, set [MemoryType.shared] and specify a maximum:
+///
+/// ```
+/// @pragma('wasm:memory-type', MemoryType(limits: Limits(1, 10), shared: true))
+/// @pragma('wasm:import', 'module.sharedMemory')
+/// external Memory get sharedMemory;
+/// ```
+///
+/// Declaring a memory as shared does not make the load and store methods
+/// atomic or provide synchronization with other threads.
 ///
 /// ## Restrictions
 ///

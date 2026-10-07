@@ -68,14 +68,14 @@ namespace bin {
   V(serve_observatory, enable_observatory)                                     \
   V(print_dtd, print_dtd)                                                      \
   V(profile_microtasks, profile_microtasks)                                    \
-  /* The purpose of this flag is documented in */                              \
-  /* pkg/dartdev/lib/src/commands/run.dart. */                                 \
-  V(resident, resident)                                                        \
   V(disable_experimental_vm_service, disable_experimental_vm_service)
 
 // Boolean flags that have a short form.
 #define SHORT_BOOL_OPTIONS_LIST(V)                                             \
   V(h, help, help_option)                                                      \
+  /* The purpose of this flag is documented in */                              \
+  /* pkg/dartdev/lib/src/commands/run.dart. */                                 \
+  V(r, resident, resident)                                                     \
   V(v, verbose, verbose_option)
 
 #define DEBUG_BOOL_OPTIONS_LIST(V)                                             \

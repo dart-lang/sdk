@@ -82,11 +82,6 @@ class Options {
   SHORT_BOOL_OPTIONS_LIST(SHORT_BOOL_OPTION_GETTER)
 #undef SHORT_BOOL_OPTION_GETTER
 
-  static bool resident() { return resident_; }
-  static const char* resident_compiler_info_file_path() {
-    return resident_compiler_info_file_path_;
-  }
-
 // Callbacks have to be public.
 #define CB_OPTIONS_DECL(callback)                                              \
   static bool callback(const char* arg, CommandLineOptions* vm_options);

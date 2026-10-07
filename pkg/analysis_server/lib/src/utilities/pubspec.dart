@@ -19,34 +19,8 @@ List<String> checkDependencyCompatibility({
 }) {
   var incompatible = <String>[];
   for (var package in packages) {
-    var pubspecFile = package.rootFolder.getFile(file_paths.pubspecYaml);
-    if (!pubspecFile.exists) continue;
-
-    var extractor = SdkConstraintExtractor(pubspecFile);
-    var constraint = extractor.constraint();
+    var constraint = packageSdkConstraint(package.rootFolder);
     if (constraint == null) continue;
-
-    // Apply Dart 3 package compatibility re-interpretation:
-    // If the package is null-safe (min SDK >= 2.12.0) and has max constraint
-    // <3.0.0 (which is parsed as max: 3.0.0-0, includeMax: false),
-    // re-interpret the max constraint as <4.0.0.
-    // https://dart.dev/resources/dart-3-migration#dart-3-backwards-compatibility
-    if (constraint is VersionRange) {
-      var min = constraint.min;
-      var max = constraint.max;
-      var nullSafetyVersion = Version(2, 12, 0).firstPreRelease;
-      var dart3Version = Version(3, 0, 0).firstPreRelease;
-      if (min != null &&
-          min >= nullSafetyVersion &&
-          max == dart3Version &&
-          !constraint.includeMax) {
-        constraint = VersionRange(
-          min: min,
-          includeMin: constraint.includeMin,
-          max: Version(4, 0, 0),
-        );
-      }
-    }
 
     // A dependency is incompatible only if its upper bound forbids all versions
     // at or above [targetVersion]. Dependencies that require an even higher
@@ -71,30 +45,39 @@ PubspecEdit? computeEdit(File pubspecFile, Version minimumVersion) {
     return null;
   }
 
-  var length = text.length;
-  var spaceOffset = text.indexOf(' ');
-  if (spaceOffset >= 0) {
-    length = spaceOffset;
-  }
-
-  String newText;
-  if (text == 'any') {
-    newText = '^$minimumVersion';
-  } else if (text.startsWith('^')) {
-    newText = '^$minimumVersion';
-  } else if (text.startsWith('>=')) {
-    newText = '>=$minimumVersion';
+  String newConstraint;
+  if (text == 'any' || text.startsWith('^')) {
+    newConstraint = '^$minimumVersion';
   } else if (text.startsWith('>')) {
-    newText = '>=$minimumVersion';
+    var constraint = extractor.constraint();
+    if (constraint is! VersionRange) return null;
+
+    /// If the [constraint] allows no version at or above [minimumVersion],
+    /// replace the whole constraint. e.g., `>=3.12.0 <3.13.0` allows nothing from
+    /// 3.13.0 up, so raising its lower bound to 3.13.0 would make it
+    /// unsatisfiable.
+    if (!constraint.allowsAny(
+      VersionRange(min: minimumVersion, includeMin: true),
+    )) {
+      newConstraint = '^$minimumVersion';
+    } else {
+      // Raise the lower bound and keep the upper bound, whatever whitespace
+      // the original constraint was written with.
+      newConstraint = VersionRange(
+        min: minimumVersion,
+        includeMin: true,
+        max: constraint.max,
+        includeMax: constraint.includeMax,
+      ).toString();
+    }
   } else {
     return null;
   }
 
   return PubspecEdit(
     offset: offset,
-    length: length,
-    replacement: newText,
     originalConstraint: text,
+    newConstraint: newConstraint,
     targetVersion: minimumVersion,
   );
 }
@@ -112,47 +95,109 @@ Version? minimumSdkConstraint(File pubspecFile) {
   return null;
 }
 
-/// The result of computing an edit to a pubspec file's SDK constraint.
-class PubspecEdit {
-  /// The character offset in the document where the edit should be applied.
-  final int offset;
+/// Returns the SDK constraint declared by the package rooted at [packageRoot],
+/// or `null` if it doesn't declare one that can be checked against.
+///
+/// The constraint of a null-safe package whose upper bound is `<3.0.0` is
+/// re-interpreted as `<4.0.0`, matching how such a package is resolved by pub.
+/// See
+/// https://dart.dev/resources/dart-3-migration#dart-3-backwards-compatibility.
+VersionConstraint? packageSdkConstraint(Folder packageRoot) {
+  var pubspecFile = packageRoot.getFile(file_paths.pubspecYaml);
+  if (!pubspecFile.exists) return null;
 
-  /// The length of the text to be replaced.
-  final int length;
+  var constraint = SdkConstraintExtractor(pubspecFile).constraint();
+  if (constraint is! VersionRange) return constraint;
 
-  /// The text to be inserted at [offset], replacing [length] characters.
-  final String replacement;
-
-  /// The full original SDK constraint text before the edit is applied.
-  final String originalConstraint;
-
-  /// The target version to migrate to.
-  final Version targetVersion;
-
-  new({
-    required this.offset,
-    required this.length,
-    required this.replacement,
-    required this.originalConstraint,
-    required this.targetVersion,
-  });
-
-  /// The full new SDK constraint text after the edit is applied.
-  String get newConstraint =>
-      originalConstraint.replaceRange(0, length, replacement);
+  var min = constraint.min;
+  var nullSafetyVersion = Version(2, 12, 0).firstPreRelease;
+  var dart3Version = Version(3, 0, 0).firstPreRelease;
+  if (min != null &&
+      min >= nullSafetyVersion &&
+      constraint.max == dart3Version &&
+      !constraint.includeMax) {
+    return VersionRange(
+      min: min,
+      includeMin: constraint.includeMin,
+      max: Version(4, 0, 0),
+    );
+  }
+  return constraint;
 }
 
-/// A target package's `pubspec.yaml` file and its derived display name.
+/// The result of computing an edit to a pubspec file's SDK constraint.
+///
+/// The edit replaces the whole of [originalConstraint] with [newConstraint].
+class PubspecEdit({
+  /// The character offset in the document where the edit should be applied.
+  required final int offset,
+
+  /// The full original SDK constraint text before the edit is applied.
+  required final String originalConstraint,
+
+  /// The full new SDK constraint text after the edit is applied.
+  required final String newConstraint,
+
+  /// The target version to migrate to.
+  required final Version targetVersion,
+}) {
+  /// The length of the text to be replaced.
+  final int length = originalConstraint.length;
+}
+
+/// A target package's `pubspec.yaml` file and the parts of it a migration
+/// needs.
 ///
 /// Used to avoid reading and parsing the `pubspec.yaml` file multiple times.
 class PubspecTarget {
   /// The `pubspec.yaml` file for the package.
   final File file;
 
-  /// The display name of the package, which defaults to the defined package
-  /// name in `pubspec.yaml`, or the parent directory name as a fallback.
-  final String displayName;
+  /// The name the package declares, or `null` if it doesn't declare one.
+  ///
+  /// This is the name a dependent writes in [dependencyNames] to refer to this
+  /// package, so it is what identifies the package to anything reasoning about
+  /// dependencies. Use [displayName] to name the package in output instead: a
+  /// package without a declared name still has to be reported somehow.
+  final String? name;
 
-  new({required this.file, required YamlMap pubspec})
-    : displayName = (pubspec['name'] as String?) ?? file.parent.shortName;
+  /// The names of the packages this one depends on, directly or transitively.
+  ///
+  /// Dev dependencies are included: they take part in the version solve for
+  /// the package that declares them, so they're subject to the same SDK
+  /// constraint ordering as regular dependencies.
+  ///
+  /// Transitive dependencies are only known when the package has been
+  /// resolved. They include `dependency_overrides`.
+  final Set<String> dependencyNames;
+
+  /// Creates a target from the parsed [pubspec] in [file].
+  ///
+  /// The [resolvedPackages] are the packages in the package config the package
+  /// is analyzed with. That config can belong to a parent directory and list
+  /// packages this one doesn't depend on, which only holds back more than
+  /// needed.
+  new({
+    required this.file,
+    required YamlMap pubspec,
+    required Packages resolvedPackages,
+  }) : name = switch (pubspec['name']) {
+         String name => name,
+         _ => null,
+       },
+       dependencyNames = _dependencyNamesIn(pubspec, resolvedPackages);
+
+  /// The name to show for the package, falling back to the directory it sits
+  /// in when it doesn't declare one.
+  String get displayName => name ?? file.parent.shortName;
+
+  static Set<String> _dependencyNamesIn(
+    YamlMap pubspec,
+    Packages resolvedPackages,
+  ) => {
+    for (var section in const ['dependencies', 'dev_dependencies'])
+      if (pubspec[section] case YamlMap dependencies)
+        ...dependencies.keys.whereType<String>(),
+    for (var package in resolvedPackages.packages) package.name,
+  };
 }

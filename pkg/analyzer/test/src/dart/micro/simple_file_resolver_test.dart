@@ -1138,6 +1138,24 @@ void f() {
     expect(result, unorderedEquals(expected));
   }
 
+  test_findReferences_constructor_primary_unnamed() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A(int x) {}
+void f() {
+  A(0);
+}
+''');
+    var resolved = await resolveFile(a);
+    var element = resolved.libraryElement.getClass('A')!.unnamedConstructor!;
+    var result = await fileResolver.findReferences(element);
+    expect(result, [
+      CiderSearchMatch(a.path, [
+        CiderSearchInfo(CharacterLocation(1, 8), 0, MatchKind.DECLARATION),
+        CiderSearchInfo(CharacterLocation(3, 4), 0, MatchKind.INVOCATION),
+      ]),
+    ]);
+  }
+
   test_findReferences_field() async {
     var a = newFile('/workspace/dart/test/lib/a.dart', r'''
 class A {
@@ -1361,6 +1379,38 @@ main() {
       ]),
     ];
     expect(result, unorderedEquals(expected));
+  }
+
+  test_findReferences_top_level_setter_importPrefixed() async {
+    var a = newFile('/workspace/dart/test/lib/a.dart', '''
+int get foo => 0;
+set foo(int value) {}
+''');
+    var b = newFile('/workspace/dart/test/lib/b.dart', '''
+import 'a.dart' as p;
+void f() {
+  p.foo = 0;
+  p.foo += 1;
+  p.foo ??= 2;
+  ++p.foo;
+  p.foo--;
+}
+''');
+    await resolveFile(b);
+    var element = await _findElement(
+      a.readAsStringSync().indexOf('foo(int'),
+      a,
+    );
+    var result = await fileResolver.findReferences(element);
+    expect(result, [
+      CiderSearchMatch(b.path, [
+        CiderSearchInfo(CharacterLocation(3, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(4, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(5, 5), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(6, 7), 3, MatchKind.WRITE),
+        CiderSearchInfo(CharacterLocation(7, 5), 3, MatchKind.WRITE),
+      ]),
+    ]);
   }
 
   test_findReferences_top_level_variable() async {
@@ -1944,7 +1994,9 @@ void f(A a) {
 
     var result = await resolveTestFile();
     {
-      var element = result.findNode.simple('foo();').element!;
+      var invocation = result.findNode.receiverMethodInvocation('foo();');
+      var element =
+          (invocation.resolution as ExecutableInvocationResolution).element;
       expect(element.firstFragment.nameOffset, 17);
     }
 
@@ -1953,7 +2005,9 @@ void f(A a) {
     createFileResolver();
     result = await resolveTestFile();
     {
-      var element = result.findNode.simple('foo();').element!;
+      var invocation = result.findNode.receiverMethodInvocation('foo();');
+      var element =
+          (invocation.resolution as ExecutableInvocationResolution).element;
       expect(element.firstFragment.nameOffset, 17);
     }
   }

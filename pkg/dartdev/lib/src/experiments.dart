@@ -59,13 +59,14 @@ extension ArgResultsExtensions on ArgResults {
       // look for `--enable-experiment=`. Currently, this path is only taken for
       // the `pub` and `test` commands, as well as when we are trying to send
       // analytics.
-      final experiments = arguments.firstWhereOrNull(
-        (e) => e.startsWith('--$experimentFlagName='),
-      );
-      if (experiments == null) {
+      enabledExperiments = [
+        for (final e in arguments)
+          if (e.startsWith('--$experimentFlagName='))
+            ...e.split('=')[1].split(','),
+      ];
+      if (enabledExperiments.isEmpty) {
         return [];
       }
-      enabledExperiments = experiments.split('=')[1].split(',');
     }
 
     for (final feature in experimentalFeatures) {

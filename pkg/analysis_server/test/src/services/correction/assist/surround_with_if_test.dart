@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class SurroundWithIfTest extends AssistProcessorTest {
+class SurroundWithIfTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.surroundWithIf;
 

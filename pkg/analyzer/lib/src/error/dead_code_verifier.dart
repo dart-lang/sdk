@@ -385,6 +385,16 @@ class NullSafetyDeadCodeVerifier {
     }
   }
 
+  /// Records a dead interval structurally anchored at [node] and beginning at
+  /// [firstToken].
+  ///
+  /// Canonical property nodes store the selected name as a token, so unlike
+  /// their V1 projections they have no name child at which dead-code
+  /// traversal can begin.
+  void recordDeadIntervalAt(AstNode node, Token firstToken) {
+    _visitNode(node, firstToken);
+  }
+
   void tryStatementEnter(TryStatement node) {
     var verifier = _CatchClausesVerifier(_typeSystem, (
       first,
@@ -409,11 +419,9 @@ class NullSafetyDeadCodeVerifier {
     var first = node.sections.firstOrNull;
     var body = first?.body;
     if (body is CascadePropertyExtraction ||
-        body is PropertyAccess ||
-        body is MethodInvocation ||
         body is CascadeMethodInvocation ||
         body is CascadeIndexExpression) {
-      _verifyUnassignedSimpleIdentifier(node, node.target2, first!.operator);
+      _verifyUnassignedVariable(node, node.target2, first!.operator);
     }
   }
 
@@ -424,42 +432,22 @@ class NullSafetyDeadCodeVerifier {
     verifier.nextCatchClause(node);
   }
 
-  void verifyIndexExpression(IndexExpression node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target2, node.question);
-  }
-
-  void verifyMethodInvocation(MethodInvocation node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
-  }
-
   void verifyNullAwareAccess(
     AstNode node,
     Expression receiver,
     Token operator,
   ) {
-    _verifyUnassignedSimpleIdentifier(node, receiver, operator);
-  }
-
-  void verifyPropertyAccess(PropertyAccess node) {
-    _verifyUnassignedSimpleIdentifier(node, node.target2, node.operator);
+    _verifyUnassignedVariable(node, receiver, operator);
   }
 
   void verifyReceiverIndexExpression(ReceiverIndexExpression node) {
-    _verifyUnassignedSimpleIdentifier(node, node.receiver, node.question);
+    if (node.receiver case Expression receiver) {
+      _verifyUnassignedVariable(node, receiver, node.question);
+    }
   }
 
   void visitNode(AstNode node) {
     _visitNode(node, node.beginToken);
-  }
-
-  /// Records a dead interval structurally anchored at [node] and beginning at
-  /// [firstToken].
-  ///
-  /// Canonical property nodes store the selected name as a token, so unlike
-  /// their V1 projections they have no name child at which dead-code
-  /// traversal can begin.
-  void visitNullAwareAccess(AstNode node, Token firstToken) {
-    _visitNode(node, firstToken);
   }
 
   bool _containsFirstDeadNode(AstNode parent) {
@@ -469,7 +457,7 @@ class NullSafetyDeadCodeVerifier {
     return false;
   }
 
-  void _verifyUnassignedSimpleIdentifier(
+  void _verifyUnassignedVariable(
     AstNode node,
     Expression? target,
     Token? operator,
@@ -490,7 +478,6 @@ class NullSafetyDeadCodeVerifier {
 
     target = target?.unParenthesized2;
     var element = switch (target) {
-      SimpleIdentifier(:var element) => element,
       UnqualifiedNameExpression(
         resolution: VariableReadResolution(:var element),
       ) =>
@@ -500,11 +487,10 @@ class NullSafetyDeadCodeVerifier {
     if (target != null && element is PromotableElementImpl) {
       if (flowAnalysis.isDefinitelyUnassigned(target, element)) {
         var parent = node.parent2;
-        while (parent is MethodInvocation ||
-            parent is PropertyAccess ||
+        while (parent is FunctionInvocation ||
+            parent is ParsedExpression ||
             parent is PropertyExtraction ||
-            parent is IndexExpression2 ||
-            parent is IndexExpression) {
+            parent is IndexExpression2) {
           node = parent!;
           parent = node.parent2;
         }

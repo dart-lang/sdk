@@ -13,25 +13,28 @@ dependencies:
   analyzer: any
   args: any
   async: any
+  clock: any
+  dart_runtime_service: any
   dartpad: any
-  dev_compiler: any
   file: any
-  front_end: any
+  frontend_server: any
   http: any
   json_rpc_2: any
-  kernel: any
   linter: any
+  package_config: any
   path: any
   pool: any
   pub: any
   stream_channel: any
   tar: any
   unified_analytics: any
+  vm_service: any
   watcher: any
   web: any
 dev_dependencies:
   checks: any
   collection: any
+  fake_async: any
   pub_semver: any
   shelf: any
   shelf_static: any

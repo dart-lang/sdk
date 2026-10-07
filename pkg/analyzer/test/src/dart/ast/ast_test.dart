@@ -22,6 +22,7 @@ main() {
     defineReflectiveTests(ForEachPartsImplTest);
     defineReflectiveTests(IntegerLiteralImplTest);
     defineReflectiveTests(NodeCoveringTest);
+    defineReflectiveTests(ReceiverPropertyExtractionImplTest);
   });
 }
 
@@ -286,6 +287,7 @@ class C {
     assertIsConst(result, "C()]", false);
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_typeArgumentsAfterConstructorName_v1Projection() async {
     var result = await resolveTestCode('''
 void f() {
@@ -307,6 +309,7 @@ class C<E> {
     expect(node?.parent, isA<InstanceCreationExpressionImpl>());
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_v1Projection() async {
     var result = await resolveTestCode('''
 var x = C<int>.named(0);
@@ -399,6 +402,16 @@ var x = 1 + 2;
     expect(result.value!.toIntValue(), 3);
   }
 
+  test_hasValue_booleanLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = true;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toBoolValue(), isTrue);
+  }
+
   test_hasValue_constantReference() async {
     var unitResult = await resolveTestCode('''
 const a = 42;
@@ -431,16 +444,22 @@ import 'a.dart' as p;
 const x = p.a;
 ''');
     var declaration = unitResult.findNode.topVariableDeclarationByName('x');
-    for (var expression in [
-      declaration.initializer2!,
-      declaration.initializer!,
-    ]) {
-      expect(expression.inConstantContext, isTrue);
-      var result = expression.computeConstantValue();
-      expect(result, isNotNull);
-      expect(result!.diagnostics, isEmpty);
-      expect(result.value!.toIntValue(), 42);
-    }
+    var expression = declaration.initializer2!;
+    expect(expression.inConstantContext, isTrue);
+    var result = expression.computeConstantValue();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  test_hasValue_doubleLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = 3.14;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toDoubleValue(), 3.14);
   }
 
   test_hasValue_intLiteral() async {
@@ -453,6 +472,26 @@ var x = 42;
     expect(result.value!.toIntValue(), 42);
   }
 
+  test_hasValue_nullLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = null;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.isNull, isTrue);
+  }
+
+  test_hasValue_stringLiteral() async {
+    var unitResult = await resolveTestCode('''
+var x = 'hello';
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toStringValue(), 'hello');
+  }
+
   test_nonConstant() async {
     var unitResult = await resolveTestCode('''
 var a = 42;
@@ -460,6 +499,158 @@ var x = a;
 ''');
     var result = _evaluateX(unitResult);
     expect(result, isNull);
+  }
+
+  test_nonConstant_assignment() async {
+    var unitResult = await resolveTestCode('''
+var a = 0;
+var x = (a = 1);
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_cascade() async {
+    var unitResult = await resolveTestCode('''
+var x = [1]..add(2);
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_functionExpression() async {
+    var unitResult = await resolveTestCode('''
+var x = () => 42;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_getter() async {
+    var unitResult = await resolveTestCode('''
+int get g => 42;
+var x = g;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_instanceCreation() async {
+    var unitResult = await resolveTestCode('''
+class C {
+  C();
+}
+var x = C();
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_nullAssertion() async {
+    var unitResult = await resolveTestCode('''
+int? a = 42;
+var x = a!;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_postfix() async {
+    var unitResult = await resolveTestCode('''
+var a = 0;
+var x = a++;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_prefixIncrement() async {
+    var unitResult = await resolveTestCode('''
+var a = 0;
+var x = ++a;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  test_nonConstant_throw() async {
+    var unitResult = await resolveTestCode('''
+var x = throw 42;
+''');
+    var result = _evaluateX(unitResult);
+    expect(result, isNull);
+  }
+
+  @ToBeDeprecated('Tests the V1 projection.')
+  test_v1_constantReference_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', 'const a = 42;');
+    var unitResult = await resolveTestCode('''
+import 'a.dart' as p;
+const x = p.a;
+''');
+    var declaration = unitResult.findNode.topVariableDeclarationByName('x');
+    var expression = declaration.initializer!;
+    expect(expression.inConstantContext, isTrue);
+    var result = expression.computeConstantValue();
+    expect(result, isNotNull);
+    expect(result!.diagnostics, isEmpty);
+    expect(result.value!.toIntValue(), 42);
+  }
+
+  @ToBeDeprecated('Tests the V1 projection.')
+  test_v1_extensionOverride() async {
+    var unitResult = await resolveTestCode('''
+extension E on int {
+  int get foo => 0;
+}
+
+var x = E(0).foo;
+''');
+    var node = unitResult.findNodeV1.extensionOverride('E(0)');
+    expect(node.computeConstantValue(), isNull);
+  }
+
+  @ToBeDeprecated('Tests the V1 projection.')
+  test_v1_prefixedIdentifier_assignmentTarget() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+var a = 0;
+''');
+    var unitResult = await resolveTestCode('''
+import 'a.dart' as p;
+
+void f() {
+  p.a = 0;
+}
+''');
+    var node = unitResult.findNodeV1.prefixed('p.a');
+    expect(node.computeConstantValue(), isNull);
+  }
+
+  @ToBeDeprecated('Tests the V1 projection.')
+  test_v1_simpleIdentifier_propertyName() async {
+    var unitResult = await resolveTestCode('''
+class A {
+  static const foo = 42;
+}
+
+var x = A.foo;
+''');
+    var node = unitResult.findNodeV1.prefixed('A.foo');
+    expect(node.computeConstantValue()!.value!.toIntValue(), 42);
+    expect(node.identifier.computeConstantValue(), isNull);
+  }
+
+  @ToBeDeprecated('Tests the V1 projection.')
+  test_v1_superExpression() async {
+    var unitResult = await resolveTestCode('''
+class A {
+  void f() {
+    super.toString();
+  }
+}
+''');
+    var node = unitResult.findNodeV1.super_('super');
+    expect(node.computeConstantValue(), isNull);
   }
 
   AttemptedConstantEvaluationResult? _evaluateX(TestResolvedUnitResult result) {
@@ -476,7 +667,9 @@ class ExpressionImplTest extends ParserDiagnosticsTest {
   assertInContext(String snippet, bool isInContext) {
     int index = testSource.indexOf(snippet);
     expect(index >= 0, isTrue);
-    var node = testUnit.nodeCovering2(offset: index)! as AstNodeImpl;
+    var node = testUnit
+        .nodeCovering2(offset: index)!
+        .thisOrAncestorOfType2<ExpressionImpl>();
     expect(node, TypeMatcher<ExpressionImpl>());
     expect(
       (node as ExpressionImpl).inConstantContext,
@@ -506,6 +699,7 @@ var x = const C(0);
     expect(context?.$2?.lexeme, 'const');
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_constantContext_constructorInvocation_v1Projection() {
     parse('''
 class C {
@@ -1075,10 +1269,21 @@ final x = const (0, (1, 2));
 ''');
     assertInContext('(1, 2)', true);
   }
+
+  @ToBeDeprecated('Tests the V1 projection.')
+  test_inConstantContext_topLevelGetter_v1Projection() {
+    parse('''
+int get foo => 0;
+''');
+    var getter = testUnit.declarations2.single as TopLevelGetterDeclarationImpl;
+    var functionExpression = getter.v1Projection.functionExpression;
+    expect(functionExpression.inConstantContext, isFalse);
+  }
 }
 
 @reflectiveTest
 class ForEachPartsImplTest extends PubPackageResolutionTest {
+  @ToBeDeprecated('Tests the V1 projection.')
   test_iterable_constructorInvocation_astViews() async {
     var result = await resolveTestCode('''
 class C {}
@@ -1410,7 +1615,7 @@ class IntegerLiteralImplTest extends ParserDiagnosticsTest {
   IntegerLiteral _parseLiteral(String source) {
     var code = 'var x = $source;';
     var result = parseTestCodeWithDiagnostics(code);
-    return FindNode(code, result.unit).singleIntegerLiteral;
+    return FindNode2(code, result.unit).singleIntegerLiteral;
   }
 }
 
@@ -1534,7 +1739,8 @@ void f(int a, int b, int c) {
   f(a,^,c);
 }
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
+    expect(node.isSynthetic, isTrue);
   }
 
   Future<void> test_between_commaAndIdentifier_arguments() async {
@@ -1596,7 +1802,7 @@ class C {
   void m() {}
 }
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_between_identifierAndArgumentList_synthetic() async {
@@ -1608,7 +1814,8 @@ class C {
   void m() {}
 }
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverMethodInvocation;
+    expect(node.name.isSynthetic, isTrue);
   }
 
   Future<void> test_between_identifierAndComma_arguments() async {
@@ -1654,7 +1861,7 @@ void f^() {}
     var node = await coveringNode('''
 var x = o^.m();
 ''');
-    node as SimpleIdentifier;
+    node as UnqualifiedNameExpression;
   }
 
   Future<void>
@@ -1667,7 +1874,7 @@ class C {
   void m<T>() {}
 }
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_between_identifierAndTypeParameterList() async {
@@ -1704,7 +1911,7 @@ class C {
     var node = await coveringNode('''
 var x = o.^m();
 ''');
-    node as SimpleIdentifier;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_between_statements() async {
@@ -1723,7 +1930,7 @@ void f() {
 /// A [^B].
 class C {}
 ''');
-    node as SimpleIdentifier;
+    node as CommentReferenceComponent;
   }
 
   Future<void> test_inComment_beginning_qualified() async {
@@ -1731,7 +1938,7 @@ class C {}
 /// A [B.^b].
 class C {}
 ''');
-    node as SimpleIdentifier;
+    node as CommentReferenceComponent;
   }
 
   Future<void> test_inComment_end() async {
@@ -1739,7 +1946,7 @@ class C {}
 /// A [B.b^].
 class C {}
 ''');
-    node as SimpleIdentifier;
+    node as CommentReferenceComponent;
   }
 
   Future<void> test_inComment_middle() async {
@@ -1747,7 +1954,7 @@ class C {}
 /// A [B.b^b].
 class C {}
 ''');
-    node as SimpleIdentifier;
+    node as CommentReferenceComponent;
   }
 
   Future<void> test_inName_class() async {
@@ -1786,7 +1993,7 @@ void f(int x) {
     var node = await coveringNode('''
 var x = o?^.m();
 ''');
-    node as MethodInvocation;
+    node as ReceiverMethodInvocation;
   }
 
   Future<void> test_inOperator_postfix() async {
@@ -1834,5 +2041,47 @@ class C { void call() {} }  Function f = C^();
         sourceCode.substring(0, offset) + sourceCode.substring(offset + 1);
     var result = await resolveTestCode(testCode);
     return (result, SourceRange(offset, 0));
+  }
+}
+
+@reflectiveTest
+class ReceiverPropertyExtractionImplTest extends PubPackageResolutionTest {
+  @ToBeDeprecated('Tests the V1 projection.')
+  test_v1Projection_recordReceiver_parent() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f((int,) r) {
+  (r.$1);
+}
+''');
+    var resolved =
+        result.findNode.singleReceiverPropertyExtraction
+            as ReceiverPropertyExtractionImpl;
+    var resolvedParent = resolved.parent2 as ParenthesizedExpressionImpl;
+    var receiver = resolved.receiver as ExpressionImpl;
+    var receiverType = receiver.staticType;
+    receiver.setPseudoExpressionStaticType(null);
+    var node = ReceiverPropertyExtractionImpl(
+      receiver: receiver,
+      operator: resolved.operator,
+      name: resolved.name,
+    );
+    var parent = ParenthesizedExpressionImpl(
+      leftParenthesis: resolvedParent.leftParenthesis,
+      expression2: node,
+      rightParenthesis: resolvedParent.rightParenthesis,
+    );
+
+    var provisional = parent.expression;
+    expect(provisional, isA<PrefixedIdentifier>());
+    expect(provisional.parent, same(parent));
+
+    receiver.setPseudoExpressionStaticType(receiverType);
+
+    var finalized = parent.expression;
+    expect(finalized, isA<PropertyAccess>());
+    expect(finalized.parent, same(parent));
+    expect(provisional.parent, isNull);
+    expect(node.parent2, same(parent));
+    expect(node.v1Projection, same(finalized));
   }
 }

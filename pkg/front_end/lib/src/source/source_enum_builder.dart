@@ -78,6 +78,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
     required super.name,
     required super.typeParameters,
     required TypeBuilder underscoreEnumTypeBuilder,
+    required super.mixedInTypeBuilders,
+    required super.interfaceBuilders,
     required super.typeParameterScope,
     required super.nameSpaceBuilder,
     required List<EnumElementFragment> enumElements,
@@ -92,7 +94,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
     required super.modifiers,
   }) : _underscoreEnumTypeBuilder = underscoreEnumTypeBuilder,
        _introductory = introductory,
-       _enumElements = enumElements;
+       _enumElements = enumElements,
+       super(supertypeBuilder: underscoreEnumTypeBuilder);
 
   @override
   void buildScopes(LibraryBuilder coreLibrary) {
@@ -170,12 +173,19 @@ class SourceEnumBuilder extends SourceClassBuilder {
         ? new LibraryName(indexedClass!.library.reference)
         : libraryBuilder.libraryName;
 
-    Reference? toStringReference;
-    if (indexedClass != null) {
-      toStringReference = indexedClass!.lookupGetterReference(
-        new Name("_enumToString", coreLibrary.library),
-      );
-    }
+    String toStringName = "_enumToString";
+    NameScheme toStringNameScheme = new NameScheme(
+      isInstanceMember: true,
+      containerName: new ClassName(name),
+      containerType: ContainerType.Class,
+      libraryName: new LibraryName(coreLibrary.library.reference),
+    );
+    MethodReferences toStringReferences = new MethodReferences(
+      toStringName,
+      toStringNameScheme,
+      indexedClass,
+      kind: ProcedureKind.Method,
+    );
 
     for (String restrictedInstanceMemberName in const [
       "index",
@@ -292,7 +302,8 @@ class SourceEnumBuilder extends SourceClassBuilder {
             fileOffset: fileOffset,
             constructorReferences: constructorReferences,
             nameScheme: nameScheme,
-            introductory: constructorDeclaration,
+            declarations: [constructorDeclaration],
+            implementation: constructorDeclaration,
             isConst: true,
           );
       constructorDeclaration.createEncoding(
@@ -302,6 +313,7 @@ class SourceEnumBuilder extends SourceClassBuilder {
         constructorBuilder: constructorBuilder,
         typeParameterFactory: libraryBuilder.typeParameterFactory,
         encodingStrategy: encodingStrategy,
+        isImplementation: true,
       );
 
       addConstructorInternal(constructorBuilder, addToNameSpace: true);
@@ -313,30 +325,25 @@ class SourceEnumBuilder extends SourceClassBuilder {
       );
     }
 
+    MethodDeclaration toStringDeclaration = new _EnumToStringMethodDeclaration(
+      this,
+      libraryBuilder.loader.target.stringType,
+      _underscoreEnumTypeBuilder,
+      fileUri: fileUri,
+      fileOffset: fileOffset,
+    );
     SourceMethodBuilder toStringBuilder = new SourceMethodBuilder(
-      name: "_enumToString",
+      name: toStringName,
       fileUri: fileUri,
       fileOffset: fileOffset,
       libraryBuilder: libraryBuilder,
       declarationBuilder: this,
-      nameScheme: new NameScheme(
-        isInstanceMember: true,
-        containerName: new ClassName(name),
-        containerType: ContainerType.Class,
-        libraryName: new LibraryName(coreLibrary.library.reference),
-      ),
-      introductory: new _EnumToStringMethodDeclaration(
-        this,
-        libraryBuilder.loader.target.stringType,
-        _underscoreEnumTypeBuilder,
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-      ),
-      augmentations: const [],
+      nameScheme: toStringNameScheme,
+      declarations: [toStringDeclaration],
+      implementation: toStringDeclaration,
       isStatic: false,
       modifiers: Modifiers.empty,
-      reference: toStringReference,
-      tearOffReference: null,
+      references: toStringReferences,
     );
     addMemberInternal(toStringBuilder, addToNameSpace: true);
     nameSpaceBuilder.checkTypeParameterConflict(
@@ -498,7 +505,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
           new SuperMethodInvocation(
             new ThisExpression(),
             toStringName,
-            new Arguments([]),
+            new Arguments.empty(),
             toStringSuperTarget,
           ),
         ),
@@ -517,16 +524,18 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
 
       _procedure.function.registerFunctionBody(
         new ReturnStatement(
-          new StringConcatenation([
-            new StringLiteral("${_enumBuilder.cls.demangledName}."),
-            new InstanceGet.byReference(
-              InstanceAccessKind.Instance,
-              new ThisExpression(),
-              nameField.name,
-              interfaceTargetReference: nameField.getterReference,
-              resultType: nameField.getterType,
+          new StringConcatenation(
+            new ExpressionList(
+              new StringLiteral("${_enumBuilder.cls.demangledName}."),
+              new InstanceGet.byReference(
+                InstanceAccessKind.Instance,
+                new ThisExpression(),
+                nameField.name,
+                interfaceTargetReference: nameField.getterReference,
+                resultType: nameField.getterType,
+              ),
             ),
-          ]),
+          ),
         ),
       );
       // TODO(cstefantsova): Verify that null should be passed for
@@ -536,13 +545,12 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
     FunctionNode function =
@@ -561,12 +569,12 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
             ProcedureKind.Method,
             function,
             fileUri: fileUri,
-            reference: reference,
+            reference: references?.methodReference,
           )
           ..fileOffset = _fileOffset
           ..fileEndOffset = _fileOffset
           ..containsSuperCalls = true;
-    f(kind: BuiltMemberKind.Method, member: _procedure);
+    callback(kind: BuiltMemberKind.Method, member: _procedure);
   }
 
   @override
@@ -587,12 +595,13 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
   }
 
   @override
-  void createEncoding(
-    ProblemReporting problemReporting,
-    SourceMethodBuilder builder,
-    MethodEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createEncoding({
+    required ProblemReporting problemReporting,
+    required SourceMethodBuilder builder,
+    required MethodEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {
     throw new UnsupportedError("$runtimeType.createEncoding");
   }
 
@@ -628,7 +637,7 @@ class _EnumValuesFieldDeclaration
 
   SourcePropertyBuilder? _builder;
 
-  DartType _type = const DynamicType();
+  late DartType _type;
 
   Field? _field;
 
@@ -692,7 +701,7 @@ class _EnumValuesFieldDeclaration
     }
 
     _field!.initializer = new ListLiteral(
-      values,
+      new ExpressionList.from(values),
       typeArgument: instantiateToBounds(
         _sourceEnumBuilder.rawType(Nullability.nonNullable),
         classHierarchy.coreTypes.objectClass,
@@ -702,14 +711,14 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
-  void buildFieldOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    NameScheme nameScheme,
-    BuildNodesCallback f,
-    PropertyReferences references, {
+  void buildFieldOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
-    fieldType = _typeBuilder.build(libraryBuilder, TypeUse.fieldType);
+    _type = _typeBuilder.build(libraryBuilder, TypeUse.fieldType);
     _field =
         new Field.immutable(
             dummyName,
@@ -718,8 +727,8 @@ class _EnumValuesFieldDeclaration
             isConst: true,
             isStatic: true,
             fileUri: uriOffset.fileUri,
-            fieldReference: references.fieldReference,
-            getterReference: references.getterReference,
+            fieldReference: references?.fieldReference,
+            getterReference: references?.getterReference,
             isEnumElement: false,
           )
           ..fileOffset = uriOffset.fileOffset
@@ -727,15 +736,8 @@ class _EnumValuesFieldDeclaration
     nameScheme
         .getFieldMemberName(FieldNameType.Field, name, isSynthesized: false)
         .attachMember(_field!);
-    f(member: _field!, kind: BuiltMemberKind.Field);
+    callback(member: _field!, kind: BuiltMemberKind.Field);
   }
-
-  @override
-  void checkFieldTypes(
-    ProblemReporting problemReporting,
-    TypeEnvironment typeEnvironment,
-    SourcePropertyBuilder? setterBuilder,
-  ) {}
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -802,17 +804,7 @@ class _EnumValuesFieldDeclaration
   Member get readTarget => _field!;
 
   @override
-  // Coverage-ignore(suite): Not run.
   DartType get fieldType => _type;
-
-  @override
-  void set fieldType(DartType value) {
-    _type = value;
-    _field
-            // Coverage-ignore(suite): Not run.
-            ?.type =
-        value;
-  }
 
   @override
   DartType inferType(ClassHierarchyBase hierarchy) {
@@ -839,7 +831,7 @@ class _EnumValuesFieldDeclaration
   void buildGetterOutlineNode({
     required SourceLibraryBuilder libraryBuilder,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {}
@@ -865,12 +857,13 @@ class _EnumValuesFieldDeclaration
   }
 
   @override
-  void createGetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {}
+  void createGetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {}
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -886,19 +879,14 @@ class _EnumValuesFieldDeclaration
   Uri get fileUri => _sourceEnumBuilder.fileUri;
 
   @override
-  // Coverage-ignore(suite): Not run.
-  Iterable<Reference> getExportedGetterReferences(
-    PropertyReferences references,
-  ) {
-    return [references.getterReference];
-  }
-
-  @override
   Initializer takePrimaryConstructorFieldInitializer() {
     throw new UnsupportedError(
       "${runtimeType}.takePrimaryConstructorFieldInitializer",
     );
   }
+
+  @override
+  String toString() => '$runtimeType($_sourceEnumBuilder)';
 }
 
 class _EnumValuesClassMember implements ClassMember {

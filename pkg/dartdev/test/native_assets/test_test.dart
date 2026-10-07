@@ -31,28 +31,38 @@ void main([List<String> args = const []]) async {
     'native_dynamic_linking',
     'system_library',
   ]) {
-    test('package:$package dart test', timeout: longTimeout, () async {
-      await nativeAssetsTest(package, usePubWorkspace: true,
-          (packageUri) async {
-        final result = await runDart(
-          arguments: [
-            'test',
-          ],
-          workingDirectory: packageUri,
-          logger: logger,
-        );
-        expect(result.stdout, contains('Running build hooks'));
-        expect(result.stdout, isNot(contains('Running link hooks')));
-        expect(
-          result.stdout,
-          stringContainsInOrder(
-            [
-              'All tests passed!',
+    for (final compiler in [
+      null,
+      if (package == 'dev_dependency_with_hook') 'cli',
+    ]) {
+      final compilerArgs = [
+        if (compiler != null) ...['--compiler', compiler]
+      ];
+      final suffix = compiler != null ? ' --compiler $compiler' : '';
+      test('package:$package dart test$suffix', timeout: longTimeout, () async {
+        await nativeAssetsTest(package, usePubWorkspace: true,
+            (packageUri) async {
+          final result = await runDart(
+            arguments: [
+              'test',
+              ...compilerArgs,
             ],
-          ),
-        );
+            workingDirectory: packageUri,
+            logger: logger,
+          );
+          expect(result.stdout, contains('Running build hooks'));
+          expect(result.stdout, isNot(contains('Running link hooks')));
+          expect(
+            result.stdout,
+            stringContainsInOrder(
+              [
+                'All tests passed!',
+              ],
+            ),
+          );
+        });
       });
-    });
+    }
   }
 
   for (final compiler in ['kernel', 'cli']) {

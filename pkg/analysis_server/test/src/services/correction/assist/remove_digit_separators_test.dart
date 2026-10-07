@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveDigitSeparatorsTest extends AssistProcessorTest {
+class RemoveDigitSeparatorsTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.removeDigitSeparators;
 

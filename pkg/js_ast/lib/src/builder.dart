@@ -408,6 +408,7 @@ enum _Category {
   colon,
   semicolon,
   arrow,
+  rest,
   hash,
   whitespace,
   other;
@@ -672,6 +673,13 @@ class MiniJsParser {
         position++;
       }
       lastToken = src.substring(lastPosition, position);
+    } else if (code == char_codes.$PERIOD &&
+        position + 2 < src.length &&
+        src.codeUnitAt(position + 1) == char_codes.$PERIOD &&
+        src.codeUnitAt(position + 2) == char_codes.$PERIOD) {
+      _lastCategory = _Category.rest;
+      position += 3;
+      lastToken = '...';
     } else {
       // All other tokens handled here.
       final cat = _category(src.codeUnitAt(position));
@@ -844,27 +852,9 @@ class MiniJsParser {
   }
 
   Fun parseFun() {
-    List<Parameter> params = [];
     _expectCategory(_Category.lparen);
-    if (!_acceptCategory(_Category.rparen)) {
-      for (;;) {
-        if (_acceptCategory(_Category.hash)) {
-          var nameOrPosition = parseHash();
-          InterpolatedParameter parameter = InterpolatedParameter(
-            nameOrPosition,
-          );
-          interpolatedValues.add(parameter);
-          params.add(parameter);
-        } else {
-          String argumentName = lastToken;
-          _expectCategory(_Category.alpha);
-          params.add(Parameter(argumentName));
-        }
-        if (_acceptCategory(_Category.comma)) continue;
-        _expectCategory(_Category.rparen);
-        break;
-      }
-    }
+    var params = parseParameters();
+    _expectCategory(_Category.rparen);
     AsyncModifier asyncModifier;
     if (acceptString('async')) {
       if (acceptString('*')) {
@@ -881,6 +871,29 @@ class MiniJsParser {
     _expectCategory(_Category.lbrace);
     Block block = parseBlock();
     return Fun(params, block, asyncModifier: asyncModifier);
+  }
+
+  /// Consumes a parameter list but not any parentheses surrounding it.
+  List<Parameter> parseParameters() {
+    if (_lastCategory == _Category.rparen) return [];
+    List<Parameter> params = [];
+    for (;;) {
+      if (_acceptCategory(_Category.hash)) {
+        var nameOrPosition = parseHash();
+        InterpolatedParameter parameter = InterpolatedParameter(nameOrPosition);
+        interpolatedValues.add(parameter);
+        params.add(parameter);
+      } else if (_acceptCategory(_Category.rest)) {
+        String argumentName = lastToken;
+        _expectCategory(_Category.alpha);
+        params.add(RestParameter(argumentName));
+      } else {
+        String argumentName = lastToken;
+        _expectCategory(_Category.alpha);
+        params.add(Parameter(argumentName));
+      }
+      if (!_acceptCategory(_Category.comma)) return params;
+    }
   }
 
   Expression parseObjectInitializer() {
@@ -1104,27 +1117,49 @@ class MiniJsParser {
       _expectCategory(_Category.arrow);
       return parseArrowFunctionBody([]);
     }
+
+    if (_lastCategory == _Category.rest) {
+      var params = parseParameters();
+      _expectCategory(_Category.rparen);
+      _expectCategory(_Category.arrow);
+      return parseArrowFunctionBody(params);
+    }
+
     List<Expression> expressions = [parseAssignment()];
     while (_acceptCategory(_Category.comma)) {
+      if (_lastCategory == _Category.rest) {
+        var params = [
+          ...reparseAsParameters(expressions),
+          ...parseParameters(),
+        ];
+        _expectCategory(_Category.rparen);
+        _expectCategory(_Category.arrow);
+        return parseArrowFunctionBody(params);
+      }
+
       expressions.add(parseAssignment());
     }
+
     _expectCategory(_Category.rparen);
+
     if (_acceptCategory(_Category.arrow)) {
-      var params = <Parameter>[];
-      for (Expression e in expressions) {
-        if (e is VariableUse) {
-          params.add(Parameter(e.name));
-        } else if (e is InterpolatedExpression) {
-          params.add(InterpolatedParameter(e.nameOrPosition));
-        } else {
-          error('Expected arrow function parameter list');
-        }
-      }
-      return parseArrowFunctionBody(params);
+      return parseArrowFunctionBody(reparseAsParameters(expressions));
     }
     return expressions.reduce(
       (Expression value, Expression element) => Binary(',', value, element),
     );
+  }
+
+  /// Returns a copy of [expressions] reinterpreted as parameter declarations.
+  List<Parameter> reparseAsParameters(List<Expression> expressions) {
+    return [
+      for (var e in expressions)
+        switch (e) {
+          VariableUse() => Parameter(e.name),
+          InterpolatedExpression() => InterpolatedParameter(e.nameOrPosition),
+          _ => error('Expected arrow function parameter list'),
+        },
+    ];
   }
 
   Expression parseArrowFunctionBody(List<Parameter> params) {

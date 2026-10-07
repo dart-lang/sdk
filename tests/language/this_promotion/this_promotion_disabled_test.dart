@@ -94,6 +94,61 @@ extension on G? {
       this.expectStaticType<Exactly<G?>>;
     }
   }
+
+  void nullAssertPatternAssignment() {
+    (_!) = this;
+    this.expectStaticType<Exactly<G?>>;
+  }
+
+  void nullAssertPatternVariableDeclaration() {
+    var (_!) = this;
+    this.expectStaticType<Exactly<G?>>;
+  }
+
+  void nullAssertPatternIfCase() {
+    if (this case _!) {
+      this.expectStaticType<Exactly<G?>>;
+    }
+  }
+
+  void nullCheckPatternIfCase() {
+    if (this case _?) {
+      this.expectStaticType<Exactly<G?>>;
+    } else {
+      this.expectStaticType<Exactly<G?>>;
+    }
+  }
+
+  void nullCheckPatternSwitch() {
+    switch (this) {
+      case _?:
+        this.expectStaticType<Exactly<G?>>;
+    }
+  }
+
+  void notEqualNullPatternIfCase() {
+    if (this case != null) {
+      this.expectStaticType<Exactly<G?>>;
+    }
+  }
+
+  void equalNullPatternIfCase() {
+    if (this case == null) {
+      this.expectStaticType<Exactly<G?>>;
+    } else {
+      this.expectStaticType<Exactly<G?>>;
+    }
+  }
+}
+
+extension on List<Object?> {
+  void listPatternElementIfCase() {
+    if (this case [int()]) {
+      // `this` is never promoted when the feature is disabled (remains
+      // List<Object?>).
+      this.expectStaticType<Exactly<List<Object?>>>;
+    }
+  }
 }
 
 extension type H(C r) {
@@ -126,7 +181,7 @@ extension type H(C r) {
 
 extension type I(D r) implements H {}
 
-main() {
+void main() {
   C().equality();
   C().isSameType();
   C().isSubtype();
@@ -142,9 +197,21 @@ main() {
   G().equality();
   G().isSameType();
   G().isSubtype();
+  G().nullAssertPatternAssignment();
+  G().nullAssertPatternVariableDeclaration();
+  G().nullAssertPatternIfCase();
+  G().nullCheckPatternIfCase();
+  G().nullCheckPatternSwitch();
+  G().notEqualNullPatternIfCase();
+  G().equalNullPatternIfCase();
   (null as G?).equality();
   (null as G?).isSameType();
   (null as G?).isSubtype();
+  (null as G?).nullCheckPatternIfCase();
+  (null as G?).nullCheckPatternSwitch();
+  (null as G?).notEqualNullPatternIfCase();
+  (null as G?).equalNullPatternIfCase();
+  <Object?>[0].listPatternElementIfCase();
   H(C()).equality();
   H(C()).isSameType();
   H(C()).isSubtype();

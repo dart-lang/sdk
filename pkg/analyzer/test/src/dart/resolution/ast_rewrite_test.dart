@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -588,17 +589,19 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitCallTearOff('c.c;');
     assertResolvedNodeText(node, r'''
 ImplicitCallTearOff
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::foo::@formalParameter::c
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::foo::@formalParameter::c
+        type: C
       staticType: C
-    period: .
-    identifier: SimpleIdentifier
-      token: c
+    operator: .
+    name: c
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::c
-      staticType: C
-    element: <testLibrary>::@class::C::@getter::c
+      invokeType: C Function()
+      type: C
     staticType: C
   element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
@@ -635,24 +638,27 @@ void Function(int) foo(C c) {
     var node = result.findNode.implicitCallTearOff('c.c.c');
     assertResolvedNodeText(node, r'''
 ImplicitCallTearOff
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: c
-        element: <testLibrary>::@function::foo::@formalParameter::c
+  operand: ReceiverPropertyExtraction
+    receiver: ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: c
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::foo::@formalParameter::c
+          type: C
         staticType: C
-      period: .
-      identifier: SimpleIdentifier
-        token: c
+      operator: .
+      name: c
+      resolution: GetterInvocationResolution
         element: <testLibrary>::@class::C::@getter::c
-        staticType: C
-      element: <testLibrary>::@class::C::@getter::c
+        invokeType: C Function()
+        type: C
       staticType: C
     operator: .
-    propertyName: SimpleIdentifier
-      token: c
+    name: c
+    resolution: GetterInvocationResolution
       element: <testLibrary>::@class::C::@getter::c
-      staticType: C
+      invokeType: C Function()
+      type: C
     staticType: C
   element: <testLibrary>::@class::C::@method::call
   staticType: void Function(int)
@@ -1087,9 +1093,9 @@ f(A a) {
   E<int>(a).foo();
 }
 ''');
-    var node = result.findNode.extensionOverride('E<int>(a)');
+    var node = result.findNode.extensionOverride2('E<int>(a)');
     assertResolvedNodeText(node, r'''
-ExtensionOverride
+ExtensionOverride2
   name: E
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1118,7 +1124,6 @@ ExtensionOverride
     rightParenthesis: )
   element: <testLibrary>::@extension::E
   extendedType: A
-  staticType: null
   typeArgumentTypes
     int
 ''');
@@ -1564,55 +1569,6 @@ V1: InstanceCreationExpression
 ''');
   }
 
-  test_targetPrefixedIdentifier_prefix_getter_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-A get foo => A();
-
-class A {
-  void bar(int a) {}
-}
-''');
-
-    var result = await resolveTestCodeWithDiagnostics(r'''
-import 'a.dart' as prefix;
-
-f() {
-  prefix.foo.bar(0);
-}
-''');
-    var node = result.findNode.methodInvocation('bar(0);');
-    assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: prefix
-      element: <testLibraryFragment>::@prefix::prefix
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: foo
-      element: package:test/a.dart::@getter::foo
-      staticType: A
-    element: package:test/a.dart::@getter::foo
-    staticType: A
-  operator: .
-  methodName: SimpleIdentifier
-    token: bar
-    element: package:test/a.dart::@class::A::@method::bar
-    staticType: void Function(int)
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments2
-      IntegerLiteral
-        literal: 0
-        correspondingParameter: package:test/a.dart::@class::A::@method::bar::@formalParameter::a
-        staticType: int
-    rightParenthesis: )
-  staticInvokeType: void Function(int)
-  staticType: void
-''');
-  }
-
   test_targetPrefixedIdentifier_typeAlias_interfaceType_constructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T> {
@@ -1944,41 +1900,6 @@ V1: InstanceCreationExpression
 ''');
   }
 
-  test_targetSimpleIdentifier_class_staticMethod() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class A {
-  static void foo(int a) {}
-}
-
-f() {
-  A.foo(0);
-}
-''');
-    var node = result.findNode.methodInvocation('foo(0);');
-    assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
-    token: A
-    element: <testLibrary>::@class::A
-    staticType: null
-  operator: .
-  methodName: SimpleIdentifier
-    token: foo
-    element: <testLibrary>::@class::A::@method::foo
-    staticType: void Function(int)
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments2
-      IntegerLiteral
-        literal: 0
-        correspondingParameter: <testLibrary>::@class::A::@method::foo::@formalParameter::a
-        staticType: int
-    rightParenthesis: )
-  staticInvokeType: void Function(int)
-  staticType: void
-''');
-  }
-
   test_targetSimpleIdentifier_prefix_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A<T, U> {
@@ -2086,9 +2007,9 @@ f(prefix.A a) {
   prefix.E<int>(a).foo();
 }
 ''');
-    var node = result.findNode.extensionOverride('E<int>(a)');
+    var node = result.findNode.extensionOverride2('E<int>(a)');
     assertResolvedNodeText(node, r'''
-ExtensionOverride
+ExtensionOverride2
   importPrefix: ImportPrefixReference
     name: prefix
     period: .
@@ -2121,7 +2042,6 @@ ExtensionOverride
     rightParenthesis: )
   element: package:test/a.dart::@extension::E
   extendedType: A
-  staticType: null
   typeArgumentTypes
     int
 ''');
@@ -2302,13 +2222,9 @@ void f() {
 }
 ''');
 
-    var identifier = result.findNode.prefixed('C.new');
-    // The left side of the assignment is resolved by
-    // [PropertyElementResolver._resolveTargetClassElement], which looks for
-    // getters and setters on `C`, and does not recover with other elements
-    // (methods, constructors). This prefixed identifier can have a real
-    // `staticElement` if we add such recovery.
-    expect(identifier.element, isNull);
+    var target = result.findNode.singleDirectAssignment.target;
+    // A constructor name in a write position is not a constructor tear-off.
+    expect(target.write!.elementOrRecovery, isNull);
   }
 
   test_constructorTearOff_inAssignment_onRightSide() async {

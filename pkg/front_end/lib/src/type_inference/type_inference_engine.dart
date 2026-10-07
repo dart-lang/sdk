@@ -227,11 +227,23 @@ abstract class TypeInferenceEngine {
     Member? member,
     ClassHierarchyBase hierarchy,
   ) {
-    // TODO(johnniwinther): Can we remove this now?
+    // TODO(johnniwinther): Use [toBeInferred] for this.
     if (member is Field) {
       DartType type = member.type;
       if (type is InferredType) {
         type.inferType(hierarchy);
+      }
+    } else if (member is Procedure) {
+      if (member.kind == ProcedureKind.Getter) {
+        DartType type = member.getterType;
+        if (type is InferredType) {
+          type.inferType(hierarchy);
+        }
+      } else if (member.kind == ProcedureKind.Setter) {
+        DartType type = member.setterType;
+        if (type is InferredType) {
+          type.inferType(hierarchy);
+        }
       }
     }
     return member;
@@ -781,7 +793,7 @@ class OperationsCfe
       new InterfaceType(
         typeEnvironment.coreTypes.iterableClass,
         Nullability.nonNullable,
-        <DartType>[elementTypeSchema.unwrapTypeSchemaView()],
+        new DartTypeList(elementTypeSchema.unwrapTypeSchemaView()),
       ),
     );
   }
@@ -791,7 +803,7 @@ class OperationsCfe
     return new InterfaceType(
       typeEnvironment.coreTypes.listClass,
       Nullability.nonNullable,
-      <DartType>[elementType],
+      new DartTypeList(elementType),
     );
   }
 
@@ -828,7 +840,7 @@ class OperationsCfe
     return new InterfaceType(
       typeEnvironment.coreTypes.mapClass,
       Nullability.nonNullable,
-      <DartType>[keyType, valueType],
+      new DartTypeList(keyType, valueType),
     );
   }
 
@@ -930,8 +942,11 @@ class OperationsCfe
     }
     namedFields.sort((f1, f2) => f1.name.compareTo(f2.name));
     return new RecordType(
-      positional.cast<DartType>(),
-      namedFields,
+      new DartTypeList.generate(
+        positional.length,
+        (i) => positional[i] as DartType,
+      ),
+      new NamedDartTypeList.from(namedFields),
       Nullability.nonNullable,
     );
   }
@@ -944,7 +959,7 @@ class OperationsCfe
       new InterfaceType(
         typeEnvironment.coreTypes.streamClass,
         Nullability.nonNullable,
-        <DartType>[elementTypeSchema.unwrapTypeSchemaView()],
+        new DartTypeList(elementTypeSchema.unwrapTypeSchemaView()),
       ),
     );
   }
@@ -995,7 +1010,7 @@ class OperationsCfe
     return new InterfaceType(
       typeEnvironment.coreTypes.futureClass,
       Nullability.nonNullable,
-      <DartType>[argumentType],
+      new DartTypeList(argumentType),
     );
   }
 

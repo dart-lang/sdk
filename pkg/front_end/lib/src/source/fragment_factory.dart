@@ -297,7 +297,7 @@ abstract class FragmentFactory {
     required String name,
     required List<TypeParameterFragment>? typeParameters,
     required Modifiers modifiers,
-    required TypeBuilder? supertype,
+    required TypeBuilder supertype,
     required List<TypeBuilder> mixins,
     required List<TypeBuilder>? interfaces,
     required int startOffset,
@@ -350,6 +350,7 @@ abstract class FragmentFactory {
     required Token? initializersStartToken,
     required bool hasNewKeyword,
     required bool forAbstractClassOrEnumOrMixin,
+    required bool isComplete,
   });
 
   void addPrimaryConstructor({
@@ -397,6 +398,7 @@ abstract class FragmentFactory {
     required int endOffset,
     required String? nativeMethodName,
     required AsyncModifier asyncModifier,
+    required bool isComplete,
   });
 
   ConstructorName computeAndValidateConstructorName(

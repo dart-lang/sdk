@@ -18,7 +18,7 @@ import 'package:analyzer/src/util/file_paths.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/document_links.dart';
 
 class DocumentLinkHandler
-    extends LspMessageHandler<DocumentLinkParams, List<lsp.DocumentLink>?>
+    extends SharedMessageHandler<DocumentLinkParams, List<lsp.DocumentLink>?>
     with LspPluginRequestHandlerMixin {
   new(super.server);
 
@@ -28,6 +28,9 @@ class DocumentLinkHandler
   @override
   LspJsonHandler<DocumentLinkParams> get jsonHandler =>
       DocumentLinkParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<List<lsp.DocumentLink>?>> handle(

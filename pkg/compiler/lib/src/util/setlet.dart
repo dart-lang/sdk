@@ -275,7 +275,7 @@ class Setlet<E> extends SetBase<E> {
   }
 
   @override
-  Set<E> union(Set<E> other) => Set<E>.from(this)..addAll(other);
+  Set<E> union(Set<E> other) => Set<E>.of(this)..addAll(other);
 
   @override
   Setlet<E> intersection(Set<Object?> other) =>

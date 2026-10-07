@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class JoinElseWithIf extends AssistProcessorTest {
+class JoinElseWithIf extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.joinElseWithIf;
 
@@ -184,7 +184,7 @@ void f() {
 }
 
 @reflectiveTest
-class JoinIfWithElseTest extends AssistProcessorTest {
+class JoinIfWithElseTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.joinIfWithElse;
 

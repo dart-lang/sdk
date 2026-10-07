@@ -24,8 +24,24 @@ void listPattern(C c) {
   }
 }
 
+void listPatternWithSubpattern(C c) {
+  if (c._o case [int()]) {
+    // The type test is performed on the list element, not on `c._o`, so `c._o`
+    // is promoted to `List<Object?>` and no further.
+    c._o.expectStaticType<Exactly<List<Object?>>>();
+  }
+}
+
 void mapPattern(C c) {
   if (c._o case {0: _}) {
+    c._o.expectStaticType<Exactly<Map<Object?, Object?>>>();
+  }
+}
+
+void mapPatternWithSubpattern(C c) {
+  if (c._o case {0: int()}) {
+    // The type test is performed on the map value, not on `c._o`, so `c._o` is
+    // promoted to `Map<Object?, Object?>` and no further.
     c._o.expectStaticType<Exactly<Map<Object?, Object?>>>();
   }
 }
@@ -33,6 +49,14 @@ void mapPattern(C c) {
 void nullAssertPattern(C c) {
   if (c._o case _!) {
     c._o.expectStaticType<Exactly<Object>>();
+  }
+}
+
+void nullAssertPatternInSubpattern(C c) {
+  if (c._o case [_!]) {
+    // The null assert is performed on the list element, not on `c._o`, so
+    // `c._o` is promoted to `List<Object?>` and no further.
+    c._o.expectStaticType<Exactly<List<Object?>>>();
   }
 }
 
@@ -54,6 +78,14 @@ void recordPattern(C c) {
   }
 }
 
+void recordPatternWithSubpattern(C c) {
+  if (c._o case (int(),)) {
+    // The type test is performed on the record field, not on `c._o`; `c._o` is
+    // promoted to the record pattern's demonstrated type.
+    c._o.expectStaticType<Exactly<(int,)>>();
+  }
+}
+
 void variablePattern(C c) {
   if (c._o case int x) {
     c._o.expectStaticType<Exactly<int>>();
@@ -69,11 +101,15 @@ void wildcardPattern(C c) {
 main() {
   castPattern(C(0));
   listPattern(C([]));
+  listPatternWithSubpattern(C([0]));
   mapPattern(C({}));
+  mapPatternWithSubpattern(C({0: 0}));
   nullAssertPattern(C(0));
+  nullAssertPatternInSubpattern(C([0]));
   nullCheckPattern(C(0));
   objectPattern(C(0));
   recordPattern(C(()));
+  recordPatternWithSubpattern(C((0,)));
   variablePattern(C(0));
   wildcardPattern(C(0));
 }

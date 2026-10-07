@@ -339,6 +339,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
       return null;
     }
     if (!useV2 && declaration is TopLevelGetterDeclarationImpl) {
+      // ignore: analyzer_to_be_deprecated_use
       declaration = V1Projection.toV1CompilationUnitMember(declaration);
     }
 
@@ -497,6 +498,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
       return null;
     }
     if (!useV2 && declaration is TopLevelGetterDeclarationImpl) {
+      // ignore: analyzer_to_be_deprecated_use
       declaration = V1Projection.toV1CompilationUnitMember(declaration);
     }
 

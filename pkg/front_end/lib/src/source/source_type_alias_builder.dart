@@ -353,18 +353,18 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
   }
 
   @override
-  List<DartType> buildAliasedTypeArguments(
+  DartTypeList buildAliasedTypeArguments(
     LibraryBuilder library,
     List<TypeBuilder>? arguments,
     ClassHierarchyBase? hierarchy,
   ) {
     if (arguments == null && typeParameters == null) {
-      return <DartType>[];
+      return DartTypeList.empty;
     }
 
     if (arguments == null && typeParameters != null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      List<DartType> result = new List<DartType>.generate(
+      return new DartTypeList.generate(
         typeParameters!.length,
         (int i) =>
             typeParameters![i].defaultType!
@@ -377,9 +377,7 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
               TypeUse.defaultTypeAsTypeArgument,
               hierarchy,
             ),
-        growable: true,
       );
-      return result;
     }
 
     if (arguments != null && arguments.length != typeParametersCount) {
@@ -402,11 +400,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
 
     // arguments.length == typeParameters.length
-    return new List<DartType>.generate(
+    return new DartTypeList.generate(
       arguments!.length,
       (int i) =>
           arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
-      growable: true,
     );
   }
 

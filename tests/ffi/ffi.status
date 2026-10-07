@@ -97,6 +97,9 @@ vmspecific_highmem_32bit_test/*: Skip # Test harness doesn't support multitest w
 vmspecific_leaf_call_test/*: Skip # Test harness doesn't support multitest with Fuchsia
 vmspecific_pointer_load_il_test: SkipByDesign # Not bloating the Fuchsia test package with package:vm/testing/il_matchers.dart
 
+[ $system != macos ]
+autorelease_pool_test: SkipByDesign # Autorelease pools are Apple-only.
+
 [ $system == windows ]
 regress_47594_test: Skip # DynamicLibrary.process() is not available on Windows.
 

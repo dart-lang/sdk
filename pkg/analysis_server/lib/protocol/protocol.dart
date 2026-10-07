@@ -12,11 +12,21 @@ import 'package:analyzer/src/utilities/cancellation.dart';
 
 export 'package:analyzer_plugin/protocol/protocol.dart' show Enum;
 
-/// A notification that can be sent from the server about an event that
-/// occurred.
+/// A message that was received from the client.
+///
+/// A client can send a [Request], a [Notification], or a [Response] to a
+/// request that the server sent to it.
 ///
 /// Clients may not extend, implement or mix-in this class.
-class Notification {
+sealed class ClientMessage {}
+
+/// A notification about an event that occurred.
+///
+/// Notifications are usually sent by the server, but a client can send some of
+/// them to the server too (currently only `lsp.notification`).
+///
+/// Clients may not extend, implement or mix-in this class.
+class Notification extends ClientMessage {
   /// The name of the JSON attribute containing the name of the event that
   /// triggered the notification.
   static const String eventAttributeName = 'event';
@@ -50,6 +60,33 @@ class Notification {
     eventAttributeName: event,
     paramsAttributeName: ?params,
   };
+
+  /// Returns a notification parsed from the given JSON [result], or `null` if
+  /// the data is not a valid JSON representation of a notification. The data is
+  /// expected to have the following format:
+  ///
+  ///     {
+  ///       'event': String,
+  ///       'params': {
+  ///         parameter_name: value
+  ///       }
+  ///     }
+  ///
+  /// where the parameters are optional.
+  ///
+  /// Unlike [Notification.fromJson], this does not throw for data that is not a
+  /// notification, so it can be used to test whether some data is one.
+  static Notification? tryFromJson(Map<String, Object?> result) {
+    var event = result[Notification.eventAttributeName];
+    if (event is! String) {
+      return null;
+    }
+    var params = result[Notification.paramsAttributeName];
+    if (params is! Map<String, Object?>?) {
+      return null;
+    }
+    return Notification(event, params);
+  }
 }
 
 /// A request that was received from the client.
@@ -238,7 +275,7 @@ abstract class RequestHandler {
 /// A request or response that was received from the client.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class RequestOrResponse {
+sealed class RequestOrResponse extends ClientMessage {
   /// The unique identifier associated with this request or response.
   String get id;
 }

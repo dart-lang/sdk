@@ -17,7 +17,7 @@ class Typedef extends NamedNode
   String name;
 
   @override
-  final List<TypeParameter> typeParameters;
+  TypeParameterList typeParameters;
 
   // TODO(johnniwinther): Make this non-nullable.
   DartType? type;
@@ -27,11 +27,11 @@ class Typedef extends NamedNode
     this.type, {
     Reference? reference,
     required this.fileUri,
-    List<TypeParameter>? typeParameters,
-    List<TypeParameter>? typeParametersOfFunctionType,
+    TypeParameterList? typeParameters,
+    TypeParameterList? typeParametersOfFunctionType,
     List<Variable>? positionalParameters,
     List<Variable>? namedParameters,
-  }) : this.typeParameters = typeParameters ?? <TypeParameter>[],
+  }) : this.typeParameters = typeParameters ?? TypeParameterList.empty,
        super(reference) {
     setParents(this.typeParameters, this);
   }

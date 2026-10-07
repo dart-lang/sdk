@@ -1238,6 +1238,7 @@ class DietListener extends StackListenerImpl {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
@@ -1258,7 +1259,7 @@ class DietListener extends StackListenerImpl {
         constructorBuilder: functionFragment.builder,
         functionBodyBuildingContext: functionBodyBuildingContext,
         fileUri: uri,
-        startToken: beginToken,
+        thisToken: thisToken,
         metadata: metadata,
       );
     }
@@ -1331,7 +1332,6 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleNoEnumBody(Token semicolonToken) {
     assert(
       checkState(semicolonToken, [

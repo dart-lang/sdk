@@ -105,7 +105,7 @@ general/issue45101/main: SemiFuzzFailure
 general/mixin_from_patch/main: SemiFuzzFailure
 general/multiple_class_patches/main: SemiFuzzFailure
 general/nested_lib_spec/main: SemiFuzzFailure
-general/patching/main: SemiFuzzFailure
+general/patching/main: RuntimeError, SemiFuzzFailure # TODO(johnniwinther): Support augmenting external constructor with an incomplete constructor.
 general/patch_annotations/main: SemiFuzzFailure
 general/patch_conflict/main: SemiFuzzFailure
 general/patch_extends_implements/main: SemiFuzzFailure
@@ -123,11 +123,21 @@ nnbd/platform_nonnullable_fields/main: SemiFuzzFailure
 nnbd/platform_optional_parameters/main: SemiFuzzFailure
 # Augmentations cannot be applied before the introductory declaration.
 augmentations/class_declarations: SemiFuzzFailure
+augmentations/constructor_declarations: SemiFuzzFailure
 augmentations/enum_declarations: SemiFuzzFailure
 augmentations/extension_declarations: SemiFuzzFailure
 augmentations/extension_type_declarations: SemiFuzzFailure
+augmentations/implements: SemiFuzzFailure
 augmentations/mixin_declarations: SemiFuzzFailure
+augmentations/named_parameters: SemiFuzzFailure
+augmentations/optional_parameters: SemiFuzzFailure
+augmentations/property_declarations: SemiFuzzFailure
+augmentations/required_named_parameters: SemiFuzzFailure
 augmentations/top_level_declarations: SemiFuzzFailure
+augmentations/unordered_constructor: semiFuzzFailureOnForceRebuildBodies
+augmentations/unordered_method: semiFuzzFailureOnForceRebuildBodies
+augmentations/unordered_property: semiFuzzFailureOnForceRebuildBodies
+augmentations/with: SemiFuzzFailure
 
 # Unclear exactly what is going on here - but target none isn't super important.
 none/issue_63440: SemiFuzzFailure

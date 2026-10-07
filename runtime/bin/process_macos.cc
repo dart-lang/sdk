@@ -7,18 +7,17 @@
 
 #include "bin/process.h"
 
-#if !DART_HOST_OS_IOS
-#include <crt_externs.h>  // NOLINT
-#endif
-#include <errno.h>      // NOLINT
-#include <fcntl.h>      // NOLINT
-#include <mach/mach.h>  // NOLINT
-#include <poll.h>       // NOLINT
-#include <signal.h>     // NOLINT
-#include <stdio.h>      // NOLINT
-#include <stdlib.h>     // NOLINT
-#include <string.h>     // NOLINT
-#include <unistd.h>     // NOLINT
+#include <errno.h>
+#include <fcntl.h>
+#include <mach/mach.h>
+#include <poll.h>
+#include <signal.h>
+#include <spawn.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/event.h>
+#include <unistd.h>
 
 #include "bin/dartutils.h"
 #include "bin/fdutils.h"
@@ -40,92 +39,6 @@ Process::ExitHook Process::exit_hook_ = nullptr;
 // Spawning new processes isn't supported on iOS.
 #if !defined(DART_HOST_OS_IOS)
 
-// ProcessInfo is used to map a process id to the file descriptor for
-// the pipe used to communicate the exit code of the process to Dart.
-// ProcessInfo objects are kept in the static singly-linked
-// ProcessInfoList.
-class ProcessInfo {
- public:
-  ProcessInfo(pid_t pid, intptr_t fd) : pid_(pid), fd_(fd) {}
-  ~ProcessInfo() {
-    int closed = close(fd_);
-    if (closed != 0) {
-      FATAL("Failed to close process exit code pipe");
-    }
-  }
-  pid_t pid() { return pid_; }
-  intptr_t fd() { return fd_; }
-  ProcessInfo* next() { return next_; }
-  void set_next(ProcessInfo* info) { next_ = info; }
-
- private:
-  pid_t pid_;
-  intptr_t fd_;
-  ProcessInfo* next_;
-
-  DISALLOW_COPY_AND_ASSIGN(ProcessInfo);
-};
-
-// Singly-linked list of ProcessInfo objects for all active processes
-// started from Dart.
-class ProcessInfoList {
- public:
-  static void Init();
-  static void Cleanup();
-
-  static void AddProcess(pid_t pid, intptr_t fd) {
-    MutexLocker locker(mutex_);
-    ProcessInfo* info = new ProcessInfo(pid, fd);
-    info->set_next(active_processes_);
-    active_processes_ = info;
-  }
-
-  static intptr_t LookupProcessExitFd(pid_t pid) {
-    MutexLocker locker(mutex_);
-    ProcessInfo* current = active_processes_;
-    while (current != nullptr) {
-      if (current->pid() == pid) {
-        return current->fd();
-      }
-      current = current->next();
-    }
-    return 0;
-  }
-
-  static void RemoveProcess(pid_t pid) {
-    MutexLocker locker(mutex_);
-    ProcessInfo* prev = nullptr;
-    ProcessInfo* current = active_processes_;
-    while (current != nullptr) {
-      if (current->pid() == pid) {
-        if (prev == nullptr) {
-          active_processes_ = current->next();
-        } else {
-          prev->set_next(current->next());
-        }
-        delete current;
-        return;
-      }
-      prev = current;
-      current = current->next();
-    }
-  }
-
- private:
-  // Linked list of ProcessInfo objects for all active processes
-  // started from Dart code.
-  static ProcessInfo* active_processes_;
-  // Mutex protecting all accesses to the linked list of active
-  // processes.
-  static Mutex* mutex_;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessInfoList);
-};
-
-ProcessInfo* ProcessInfoList::active_processes_ = nullptr;
-Mutex* ProcessInfoList::mutex_ = nullptr;
-
 // The exit code handler sets up a separate thread which waits for child
 // processes to terminate. That separate thread can then get the exit code from
 // processes that have exited and communicate it to Dart through the
@@ -137,42 +50,60 @@ class ExitCodeHandler {
 
   static void EnsureStarted() {
     MonitorLocker locker(monitor_);
-    if (running_) {
+    if (kqueue_fd_ != -1) {
       return;
     }
+
+    kqueue_fd_ = NO_RETRY_EXPECTED(kqueue());
+    if (kqueue_fd_ == -1) {
+      FATAL("Failed creating kqueue");
+    }
+    if (!FDUtils::SetCloseOnExec(kqueue_fd_)) {
+      FATAL("Failed to set kqueue fd close on exec\n");
+    }
+
     // Start thread that handles process exits when wait returns.
     Thread::Start("dart:io Process.start", ExitCodeHandlerEntry, 0);
-    running_ = true;
-  }
-
-  // Notify the ExitCodeHandler that another process exists.
-  static void ProcessStarted() {
-    MonitorLocker locker(monitor_);
-    ASSERT(running_);
-    process_count_++;
-    monitor_->Notify();
   }
 
   static void TerminateExitCodeThread() {
     MonitorLocker locker(monitor_);
-
-    if (!running_) {
+    if (kqueue_fd_ == -1) {
       return;
     }
 
-    // Set terminate_done_ to false, so we can use it as a guard for our
-    // monitor.
-    running_ = false;
-
-    // Fork to wake up waitpid.
-    if (TEMP_FAILURE_RETRY(fork()) == 0) {
-      _Exit(0);
+    struct kevent event;
+    EV_SET(&event, kShutdown, EVFILT_USER, EV_ADD | EV_ENABLE | EV_ONESHOT,
+           NOTE_TRIGGER, 0, 0);
+    int status = kevent(kqueue_fd_, &event, 1, nullptr, 0, nullptr);
+    if (status == -1) {
+      FATAL("kevent failed");
     }
 
-    monitor_->Notify();
+    while (kqueue_fd_ != -1) {
+      locker.Wait();
+    }
+  }
 
-    while (!terminate_done_) {
-      monitor_->Wait(Monitor::kNoTimeout);
+  static void AddProcess(pid_t pid, int exit_pipe) {
+    ASSERT(pid != kShutdown);
+
+    struct kevent event;
+    EV_SET(&event, pid, EVFILT_PROC, EV_ADD | EV_ONESHOT, NOTE_EXIT, 0,
+           reinterpret_cast<void*>(exit_pipe));
+    int status = kevent(kqueue_fd_, &event, 1, nullptr, 0, nullptr);
+    if (status == -1) {
+      if (errno == ESRCH) {
+        // Process already exited.
+        EV_SET(&event, pid, EVFILT_USER, EV_ADD | EV_ENABLE | EV_ONESHOT,
+               NOTE_TRIGGER, 0, reinterpret_cast<void*>(exit_pipe));
+        status = kevent(kqueue_fd_, &event, 1, nullptr, 0, nullptr);
+        if (status == -1) {
+          FATAL("kevent failed");
+        }
+      } else {
+        FATAL("kevent failed");
+      }
     }
   }
 
@@ -180,70 +111,68 @@ class ExitCodeHandler {
   // Entry point for the separate exit code handler thread started by
   // the ExitCodeHandler.
   static void ExitCodeHandlerEntry(uword param) {
-    pid_t pid = 0;
-    int status = 0;
     while (true) {
-      {
-        MonitorLocker locker(monitor_);
-        while (running_ && process_count_ == 0) {
-          monitor_->Wait(Monitor::kNoTimeout);
-        }
-        if (!running_) {
-          terminate_done_ = true;
-          monitor_->Notify();
-          return;
-        }
+      struct kevent event;
+      int r = kevent(kqueue_fd_, nullptr, 0, &event, 1, nullptr);
+      if ((r == -1) && (errno != EINTR)) {
+        FATAL("kevent failed");
+      }
+      if (r == 0) continue;
+      ASSERT(event.filter == EVFILT_PROC || event.filter == EVFILT_USER);
+
+      int exit_pipe = reinterpret_cast<intptr_t>(event.udata);
+      pid_t pid = event.ident;
+
+      if (pid == kShutdown) break;
+
+      int status;
+      pid_t wait_result;
+      do {
+        wait_result = waitpid(pid, &status, 0);
+      } while (wait_result == -1 && errno == EINTR);
+      ASSERT(wait_result == pid);
+
+      int exit_code = 0;
+      int negative = 0;
+      if (WIFEXITED(status)) {
+        exit_code = WEXITSTATUS(status);
+      }
+      if (WIFSIGNALED(status)) {
+        exit_code = WTERMSIG(status);
+        negative = 1;
       }
 
-      if ((pid = TEMP_FAILURE_RETRY(wait(&status))) > 0) {
-        int exit_code = 0;
-        int negative = 0;
-        if (WIFEXITED(status)) {
-          exit_code = WEXITSTATUS(status);
-        }
-        if (WIFSIGNALED(status)) {
-          exit_code = WTERMSIG(status);
-          negative = 1;
-        }
-        intptr_t exit_code_fd = ProcessInfoList::LookupProcessExitFd(pid);
-        if (exit_code_fd != 0) {
-          int message[2] = {exit_code, negative};
-          ssize_t result =
-              FDUtils::WriteToBlocking(exit_code_fd, &message, sizeof(message));
-          // If the process has been closed, the read end of the exit
-          // pipe has been closed. It is therefore not a problem that
-          // write fails with a broken pipe error. Other errors should
-          // not happen.
-          if ((result != -1) && (result != sizeof(message))) {
-            FATAL("Failed to write entire process exit message");
-          } else if ((result == -1) && (errno != EPIPE)) {
-            FATAL("Failed to write exit code: %d", errno);
-          }
-          ProcessInfoList::RemoveProcess(pid);
-          {
-            MonitorLocker locker(monitor_);
-            process_count_--;
-          }
-        }
-      } else if (pid < 0) {
-        FATAL("Wait for process exit failed: %d", errno);
+      int message[2] = {exit_code, negative};
+      ssize_t result =
+          FDUtils::WriteToBlocking(exit_pipe, &message, sizeof(message));
+      // If the process has been closed, the read end of the exit
+      // pipe has been closed. It is therefore not a problem that
+      // write fails with a broken pipe error. Other errors should
+      // not happen.
+      if ((result != -1) && (result != sizeof(message))) {
+        FATAL("Failed to write entire process exit message");
+      } else if ((result == -1) && (errno != EPIPE)) {
+        FATAL("Failed to write exit code: %d", errno);
       }
+      close(exit_pipe);
     }
+
+    MonitorLocker locker(monitor_);
+    close(kqueue_fd_);
+    kqueue_fd_ = -1;
+    locker.NotifyAll();
   }
 
-  static bool terminate_done_;
-  static int process_count_;
-  static bool running_;
   static Monitor* monitor_;
+  static int kqueue_fd_;
+  static constexpr pid_t kShutdown = 0;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ExitCodeHandler);
 };
 
-bool ExitCodeHandler::running_ = false;
-int ExitCodeHandler::process_count_ = 0;
-bool ExitCodeHandler::terminate_done_ = false;
 Monitor* ExitCodeHandler::monitor_ = nullptr;
+int ExitCodeHandler::kqueue_fd_ = -1;
 
 class ProcessStarter {
  public:
@@ -275,8 +204,6 @@ class ProcessStarter {
     stderr_pipe_[1] = -1;
     stdin_pipe_[0] = -1;
     stdin_pipe_[1] = -1;
-    exec_control_[0] = -1;
-    exec_control_[1] = -1;
     exit_pipe_[0] = -1;
     exit_pipe_[1] = -1;
 
@@ -306,62 +233,22 @@ class ProcessStarter {
       return err;
     }
 
+    pid_t pid;
+    err = Spawn(&pid);
+    if (err != 0) {
+      errno = err;
+      return CleanupAndReturnError();
+    }
+
     if (Process::ModeIsAttached(mode_)) {
       ExitCodeHandler::EnsureStarted();
     }
-
-    // Fork to create the new process.
-    pid_t pid = TEMP_FAILURE_RETRY(fork());
-    if (pid < 0) {
-      // Failed to fork.
-      return CleanupAndReturnError();
-    } else if (pid == 0) {
-      // This runs in the new process.
-      NewProcess();
-    }
-
-    // This runs in the original process.
 
     // If the child process is not started in detached mode, be sure to
     // listen for exit-codes, now that we have a non detached child process
     // and also Register this child process.
     if (Process::ModeIsAttached(mode_)) {
       RegisterProcess(pid);
-      ExitCodeHandler::ProcessStarted();
-
-      // Notify child process to start. This is done to delay the call to exec
-      // until the process is registered above, and we are ready to receive the
-      // exit code.
-      char msg = '1';
-      int bytes_written =
-          FDUtils::WriteToBlocking(stdin_pipe_[1], &msg, sizeof(msg));
-      if (bytes_written != sizeof(msg)) {
-        return CleanupAndReturnError();
-      }
-    }
-
-    // Read the result of executing the child process.
-    CloseWriteEndOfPipe(exec_control_);
-    if (Process::ModeIsAttached(mode_)) {
-      err = ReadExecResult();
-    } else {
-      err = ReadDetachedExecResult(&pid);
-    }
-    CloseReadEndOfPipe(exec_control_);
-
-    // Return error code if any failures.
-    if (err != 0) {
-      if (Process::ModeIsAttached(mode_)) {
-        // Since exec() failed, we're not interested in the exit code.
-        // We close the reading side of the exit code pipe here.
-        // GetProcessExitCodes will get a broken pipe error when it
-        // tries to write to the writing side of the pipe and it will
-        // ignore the error.
-        close(*exit_event_);
-        *exit_event_ = -1;
-      }
-      CloseAllPipes();
-      return err;
     }
 
     if (Process::ModeHasStdio(mode_)) {
@@ -386,8 +273,6 @@ class ProcessStarter {
       ASSERT(stderr_pipe_[0] == -1);
       ASSERT(stderr_pipe_[1] == -1);
     }
-    ASSERT(exec_control_[0] == -1);
-    ASSERT(exec_control_[1] == -1);
     ASSERT(exit_pipe_[0] == -1);
     ASSERT(exit_pipe_[1] == -1);
 
@@ -398,14 +283,15 @@ class ProcessStarter {
  private:
   int CreatePipes() {
     int result;
-    result = TEMP_FAILURE_RETRY(pipe(exec_control_));
-    if (result < 0) {
-      return CleanupAndReturnError();
-    }
-    FDUtils::SetCloseOnExec(exec_control_[0]);
-    FDUtils::SetCloseOnExec(exec_control_[1]);
 
     if (Process::ModeHasStdio(mode_)) {
+      result = TEMP_FAILURE_RETRY(pipe(stdin_pipe_));
+      if (result < 0) {
+        return CleanupAndReturnError();
+      }
+      FDUtils::SetCloseOnExec(stdin_pipe_[0]);
+      FDUtils::SetCloseOnExec(stdin_pipe_[1]);
+
       result = TEMP_FAILURE_RETRY(pipe(stdout_pipe_));
       if (result < 0) {
         return CleanupAndReturnError();
@@ -421,19 +307,6 @@ class ProcessStarter {
       FDUtils::SetCloseOnExec(stderr_pipe_[1]);
     }
 
-    // The stdin_pipe_ pipe is used for connecting stdin when ModeHasStdio is
-    // true (kNormal, kDetachedWithStdio), and also for the 1-byte
-    // synchronization message when ModeIsAttached is true (kNormal,
-    // kInheritStdio). Only in kDetached mode is stdin_pipe_ not needed at all.
-    if (Process::ModeHasStdio(mode_) || Process::ModeIsAttached(mode_)) {
-      result = TEMP_FAILURE_RETRY(pipe(stdin_pipe_));
-      if (result < 0) {
-        return CleanupAndReturnError();
-      }
-      FDUtils::SetCloseOnExec(stdin_pipe_[0]);
-      FDUtils::SetCloseOnExec(stdin_pipe_[1]);
-    }
-
     if (Process::ModeIsAttached(mode_)) {
       result = TEMP_FAILURE_RETRY(pipe(exit_pipe_));
       if (result < 0) {
@@ -446,234 +319,79 @@ class ProcessStarter {
     return 0;
   }
 
-  void NewProcess() {
-    CloseUnusedPipeEndsInChild();
-    if (Process::ModeIsAttached(mode_)) {
-      // Wait for parent process before setting up the child process.
-      char msg;
-      int bytes_read =
-          FDUtils::ReadFromBlocking(stdin_pipe_[0], &msg, sizeof(msg));
-      if (bytes_read != sizeof(msg)) {
-        perror("Failed receiving notification message");
-        _Exit(1);
-      }
-      if (!Process::ModeHasStdio(mode_)) {
-        CloseReadEndOfPipe(stdin_pipe_);
-      }
-      ExecProcess();
-    } else {
-      ExecDetachedProcess();
-    }
-  }
+  int Spawn(pid_t* pid) {
+#define TRY(expr)                                                              \
+  do {                                                                         \
+    int err = (expr);                                                          \
+    if (err != 0) return err;                                                  \
+  } while (false)
 
-  void CloseUnusedPipeEndsInChild() {
-    CloseReadEndOfPipe(exec_control_);
-    CloseReadEndOfPipe(stderr_pipe_);
-    CloseReadEndOfPipe(stdout_pipe_);
-    CloseWriteEndOfPipe(stdin_pipe_);
-    ClosePipe(exit_pipe_);
-  }
+    class DestroyFileActions {
+     public:
+      explicit DestroyFileActions(posix_spawn_file_actions_t* facts)
+          : facts_(facts) {}
+      ~DestroyFileActions() { posix_spawn_file_actions_destroy(facts_); }
+      posix_spawn_file_actions_t* facts_;
+    };
+    class DestroyAttr {
+     public:
+      explicit DestroyAttr(posix_spawnattr_t* attr) : attr_(attr) {}
+      ~DestroyAttr() { posix_spawnattr_destroy(attr_); }
+      posix_spawnattr_t* attr_;
+    };
 
-  void ExecProcess() {
-    if (mode_ == kNormal) {
-      if (TEMP_FAILURE_RETRY(dup2(stdin_pipe_[0], STDIN_FILENO)) == -1) {
-        ReportChildError();
-      }
-      ClosePipe(stdin_pipe_);
+    posix_spawn_file_actions_t facts = {};
+    posix_spawnattr_t attr = {};
 
-      if (TEMP_FAILURE_RETRY(dup2(stdout_pipe_[1], STDOUT_FILENO)) == -1) {
-        ReportChildError();
-      }
-      ClosePipe(stdout_pipe_);
+    TRY(posix_spawn_file_actions_init(&facts));
+    DestroyFileActions dfa(&facts);
 
-      if (TEMP_FAILURE_RETRY(dup2(stderr_pipe_[1], STDERR_FILENO)) == -1) {
-        ReportChildError();
-      }
-      ClosePipe(stderr_pipe_);
+    if (Process::ModeHasStdio(mode_)) {
+      TRY(posix_spawn_file_actions_adddup2(&facts, stdin_pipe_[0],
+                                           STDIN_FILENO));
+      TRY(posix_spawn_file_actions_adddup2(&facts, stdout_pipe_[1],
+                                           STDOUT_FILENO));
+      TRY(posix_spawn_file_actions_adddup2(&facts, stderr_pipe_[1],
+                                           STDERR_FILENO));
+    } else if (mode_ == kDetached) {
+      TRY(posix_spawn_file_actions_addopen(&facts, STDIN_FILENO, "/dev/null",
+                                           O_RDWR, 0));
+      TRY(posix_spawn_file_actions_addopen(&facts, STDOUT_FILENO, "/dev/null",
+                                           O_RDWR, 0));
+      TRY(posix_spawn_file_actions_addopen(&facts, STDERR_FILENO, "/dev/null",
+                                           O_RDWR, 0));
     } else {
       ASSERT(mode_ == kInheritStdio);
+      TRY(posix_spawn_file_actions_addinherit_np(&facts, STDIN_FILENO));
+      TRY(posix_spawn_file_actions_addinherit_np(&facts, STDOUT_FILENO));
+      TRY(posix_spawn_file_actions_addinherit_np(&facts, STDERR_FILENO));
     }
 
-    if (working_directory_ != nullptr &&
-        TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1) {
-      ReportChildError();
+    if (working_directory_ != nullptr) {
+      TRY(posix_spawn_file_actions_addchdir_np(&facts, working_directory_));
     }
 
-    if (program_environment_ != nullptr) {
-      // On MacOS you have to do a bit of magic to get to the
-      // environment strings.
-      char*** environ = _NSGetEnviron();
-      *environ = program_environment_;
-    }
+    TRY(posix_spawnattr_init(&attr));
+    DestroyAttr da(&attr);
 
-    execvp(path_, const_cast<char* const*>(program_arguments_));
-    ReportChildError();
-  }
+    TRY(posix_spawnattr_setflags(
+        &attr, POSIX_SPAWN_CLOEXEC_DEFAULT |
+                   (Process::ModeIsAttached(mode_) ? 0 : POSIX_SPAWN_SETSID)));
 
-  void ExecDetachedProcess() {
-    if (mode_ == kDetached) {
-      ASSERT(stdin_pipe_[0] == -1);
-      ASSERT(stdin_pipe_[1] == -1);
-      ASSERT(stderr_pipe_[0] == -1);
-      ASSERT(stderr_pipe_[1] == -1);
-      ASSERT(stdout_pipe_[0] == -1);
-      ASSERT(stdout_pipe_[1] == -1);
-    } else {
-      // Don't close any fds if keeping stdio open to the detached process.
-      ASSERT(mode_ == kDetachedWithStdio);
-    }
-    // Fork once more to start a new session.
-    pid_t pid = TEMP_FAILURE_RETRY(fork());
-    if (pid < 0) {
-      ReportChildError();
-    } else if (pid == 0) {
-      // Start a new session.
-      if (TEMP_FAILURE_RETRY(setsid()) == -1) {
-        ReportChildError();
-      } else {
-        // Do a final fork to not be the session leader.
-        pid = TEMP_FAILURE_RETRY(fork());
-        if (pid < 0) {
-          ReportChildError();
-        } else if (pid == 0) {
-          if (mode_ == kDetached) {
-            SetupDetached();
-          } else {
-            SetupDetachedWithStdio();
-          }
-
-          if ((working_directory_ != nullptr) &&
-              (TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1)) {
-            ReportChildError();
-          }
-
-          if (program_environment_ != nullptr) {
-            // On MacOS you have to do a bit of magic to get to the
-            // environment strings.
-            char*** environ = _NSGetEnviron();
-            *environ = program_environment_;
-          }
-
-          // Report the final PID and do the exec.
-          ReportPid(getpid());  // getpid cannot fail.
-          execvp(path_, const_cast<char* const*>(program_arguments_));
-          ReportChildError();
-        } else {
-          // Exit the intermediate process. Avoid any atexit callbacks
-          // to prevent deadlocks.
-          _Exit(0);
-        }
-      }
-    } else {
-      // Exit the intermediate process. Avoid any atexit callbacks
-      // to prevent deadlocks.
-      _Exit(0);
-    }
+    return posix_spawnp(pid, path_, &facts, &attr,
+                        const_cast<char* const*>(program_arguments_),
+                        program_environment_);
+#undef TRY
   }
 
   void RegisterProcess(pid_t pid) {
     ASSERT(exit_pipe_[0] != -1);
     ASSERT(exit_pipe_[1] != -1);
-    ProcessInfoList::AddProcess(pid, exit_pipe_[1]);
+    ExitCodeHandler::AddProcess(pid, exit_pipe_[1]);
     exit_pipe_[1] = -1;
     *exit_event_ = exit_pipe_[0];
     FDUtils::SetNonBlocking(exit_pipe_[0]);
     exit_pipe_[0] = -1;
-  }
-
-  int ReadExecResult() {
-    int child_errno;
-    int bytes_read = -1;
-    // Read exec result from child. If no data is returned the exec was
-    // successful and the exec call closed the pipe. Otherwise the errno
-    // is written to the pipe.
-    bytes_read = FDUtils::ReadFromBlocking(exec_control_[0], &child_errno,
-                                           sizeof(child_errno));
-    if (bytes_read == sizeof(child_errno)) {
-      ReadChildError();
-      return child_errno;
-    } else if (bytes_read == -1) {
-      return errno;
-    }
-    return 0;
-  }
-
-  int ReadDetachedExecResult(pid_t* pid) {
-    int child_errno;
-    int bytes_read = -1;
-    // Read exec result from child. If only pid data is returned the exec was
-    // successful and the exec call closed the pipe. Otherwise the errno
-    // is written to the pipe as well.
-    int result[2];
-    bytes_read =
-        FDUtils::ReadFromBlocking(exec_control_[0], result, sizeof(result));
-    if (bytes_read == sizeof(int)) {
-      *pid = result[0];
-    } else if (bytes_read == 2 * sizeof(int)) {
-      *pid = result[0];
-      child_errno = result[1];
-      ReadChildError();
-      return child_errno;
-    } else if (bytes_read == -1) {
-      return errno;
-    }
-    return 0;
-  }
-
-  void SetupDetached() {
-    ASSERT(mode_ == kDetached);
-
-    // Close all open file descriptors except for exec_control_[1].
-    int max_fds = sysconf(_SC_OPEN_MAX);
-    if (max_fds == -1) {
-      max_fds = _POSIX_OPEN_MAX;
-    }
-    for (int fd = 0; fd < max_fds; fd++) {
-      if (fd != exec_control_[1]) {
-        close(fd);
-      }
-    }
-
-    // Re-open stdin, stdout and stderr and connect them to /dev/null.
-    // The loop above should already have closed all of them, so
-    // creating new file descriptors should start at STDIN_FILENO.
-    int fd = TEMP_FAILURE_RETRY(open("/dev/null", O_RDWR));
-    if (fd != STDIN_FILENO) {
-      ReportChildError();
-    }
-    if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDOUT_FILENO)) !=
-        STDOUT_FILENO) {
-      ReportChildError();
-    }
-    if (TEMP_FAILURE_RETRY(dup2(STDIN_FILENO, STDERR_FILENO)) !=
-        STDERR_FILENO) {
-      ReportChildError();
-    }
-  }
-
-  void SetupDetachedWithStdio() {
-    if (TEMP_FAILURE_RETRY(dup2(stdin_pipe_[0], STDIN_FILENO)) == -1) {
-      ReportChildError();
-    }
-
-    if (TEMP_FAILURE_RETRY(dup2(stdout_pipe_[1], STDOUT_FILENO)) == -1) {
-      ReportChildError();
-    }
-
-    if (TEMP_FAILURE_RETRY(dup2(stderr_pipe_[1], STDERR_FILENO)) == -1) {
-      ReportChildError();
-    }
-
-    // Close all open file descriptors except for std* and exec_control_[1].
-    int max_fds = sysconf(_SC_OPEN_MAX);
-    if (max_fds == -1) {
-      max_fds = _POSIX_OPEN_MAX;
-    }
-    for (int fd = 3; fd < max_fds; fd++) {
-      if (fd != exec_control_[1]) {
-        close(fd);
-      }
-    }
   }
 
   int CleanupAndReturnError() {
@@ -693,46 +411,6 @@ class ProcessStarter {
     char* error_message = DartUtils::ScopedCString(kBufferSize);
     Utils::StrError(errno, error_message, kBufferSize);
     *os_error_message_ = error_message;
-  }
-
-  void ReportChildError() {
-    // In the case of failure in the child process write the errno and
-    // the OS error message to the exec control pipe and exit.
-    int child_errno = errno;
-    const int kBufferSize = 1024;
-    char os_error_message[kBufferSize];
-    Utils::StrError(errno, os_error_message, kBufferSize);
-    int bytes_written = FDUtils::WriteToBlocking(exec_control_[1], &child_errno,
-                                                 sizeof(child_errno));
-    if (bytes_written == sizeof(child_errno)) {
-      FDUtils::WriteToBlocking(exec_control_[1], os_error_message,
-                               strlen(os_error_message) + 1);
-    }
-    close(exec_control_[1]);
-    // Avoid calling any atexit callbacks to prevent deadlocks.
-    _Exit(1);
-  }
-
-  void ReportPid(int pid) {
-    // In the case of starting a detached process the actual pid of that process
-    // is communicated using the exec control pipe.
-    int bytes_written =
-        FDUtils::WriteToBlocking(exec_control_[1], &pid, sizeof(pid));
-    ASSERT(bytes_written == sizeof(int));
-    USE(bytes_written);
-  }
-
-  void ReadChildError() {
-    const int kMaxMessageSize = 256;
-    char* message = DartUtils::ScopedCString(kMaxMessageSize);
-    if (message != nullptr) {
-      FDUtils::ReadFromBlocking(exec_control_[0], message, kMaxMessageSize);
-      message[kMaxMessageSize - 1] = '\0';
-      *os_error_message_ = message;
-    } else {
-      // Could not get error message. It will be nullptr.
-      ASSERT(*os_error_message_ == nullptr);
-    }
   }
 
   void ClosePipe(int* fds) {
@@ -755,18 +433,16 @@ class ProcessStarter {
   }
 
   void CloseAllPipes() {
-    ClosePipe(exec_control_);
     ClosePipe(stdout_pipe_);
     ClosePipe(stderr_pipe_);
     ClosePipe(stdin_pipe_);
     ClosePipe(exit_pipe_);
   }
 
-  int stdout_pipe_[2];   // Pipe for stdout to child process.
-  int stderr_pipe_[2];   // Pipe for stderr to child process.
-  int stdin_pipe_[2];    // Pipe for stdin to child process.
-  int exec_control_[2];  // Pipe to get the result from exec.
-  int exit_pipe_[2];     // Pipe for exit event.
+  int stdout_pipe_[2];  // Pipe for stdout to child process.
+  int stderr_pipe_[2];  // Pipe for stderr to child process.
+  int stdin_pipe_[2];   // Pipe for stdin to child process.
+  int exit_pipe_[2];    // Pipe for exit event.
 
   const char** program_arguments_;
   char** program_environment_;
@@ -1209,22 +885,7 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
 }
 
 #if !defined(DART_HOST_OS_IOS)
-void ProcessInfoList::Init() {
-  active_processes_ = nullptr;
-  ASSERT(ProcessInfoList::mutex_ == nullptr);
-  ProcessInfoList::mutex_ = new Mutex();
-}
-
-void ProcessInfoList::Cleanup() {
-  ASSERT(ProcessInfoList::mutex_ != nullptr);
-  delete ProcessInfoList::mutex_;
-  ProcessInfoList::mutex_ = nullptr;
-}
-
 void ExitCodeHandler::Init() {
-  running_ = false;
-  process_count_ = 0;
-  terminate_done_ = false;
   ASSERT(ExitCodeHandler::monitor_ == nullptr);
   ExitCodeHandler::monitor_ = new Monitor();
 }
@@ -1239,7 +900,6 @@ void ExitCodeHandler::Cleanup() {
 void Process::Init() {
 #if !defined(DART_HOST_OS_IOS)
   ExitCodeHandler::Init();
-  ProcessInfoList::Init();
 #endif  // !defined(DART_HOST_OS_IOS)
 
   ASSERT(signal_mutex == nullptr);
@@ -1262,7 +922,6 @@ void Process::Cleanup() {
   Process::global_exit_code_mutex_ = nullptr;
 
 #if !defined(DART_HOST_OS_IOS)
-  ProcessInfoList::Cleanup();
   ExitCodeHandler::Cleanup();
 #endif  // !defined(DART_HOST_OS_IOS)
 }

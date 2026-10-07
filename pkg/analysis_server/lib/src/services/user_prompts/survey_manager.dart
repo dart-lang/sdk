@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:unified_analytics/unified_analytics.dart';
@@ -28,6 +29,8 @@ class SurveyManager {
 
   final InstrumentationService _instrumentationService;
 
+  final SessionLogger _sessionLogger;
+
   /// The timer for triggering the next survey check.
   Timer? _timer;
 
@@ -43,6 +46,7 @@ class SurveyManager {
   new(
     this._server,
     this._instrumentationService,
+    this._sessionLogger,
     this._analytics, {
     // Delay the first check slightly because there are other prompts that
     // may appear at startup (fetching packages, analytics, "dart fix") that
@@ -97,6 +101,9 @@ class SurveyManager {
       }
     } catch (e) {
       _instrumentationService.logError('Failed to perform survey checks: $e');
+      _sessionLogger.logException(
+        exception: 'Failed to perform survey checks: $e',
+      );
     } finally {
       // Wait for the usual check period before checking again.
       if (!_isShutdown) {

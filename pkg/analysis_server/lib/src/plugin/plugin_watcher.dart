@@ -190,6 +190,10 @@ class PluginWatcher implements DriverWatcher {
         "Creating shared plugin folder at '${sharedPluginFolder.path}' for "
         "context root: '${contextRoot.root.path}' group $i",
       );
+      manager.sessionLogger.logInfo(
+        "Creating shared plugin folder at '${sharedPluginFolder.path}' for "
+        "context root: '${contextRoot.root.path}' group $i",
+      );
       sharedPluginFolder.create();
       var pubspecFile = sharedPluginFolder.getFile(file_paths.pubspecYaml);
       var newPubspecContent = packageGenerator.generatePubspec();
@@ -209,6 +213,10 @@ class PluginWatcher implements DriverWatcher {
       }
 
       manager.instrumentationService.logInfo(
+        'Adding ${groupConfigurations.length} analyzer plugins for '
+        "context root: '${contextRoot.root.path}' group $i",
+      );
+      manager.sessionLogger.logInfo(
         'Adding ${groupConfigurations.length} analyzer plugins for '
         "context root: '${contextRoot.root.path}' group $i",
       );

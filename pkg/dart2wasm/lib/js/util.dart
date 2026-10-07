@@ -138,11 +138,14 @@ class JsTrampolineWrapperData extends JsInteropMemberData {
   }
 
   @override
-  ListConstant get toPragmaValue => ListConstant(DynamicType(), [
-    IntConstant(numJsParameters),
-    BoolConstant(captureThis),
-    BoolConstant(needsCastClosure),
-  ]);
+  ListConstant get toPragmaValue => ListConstant(
+    DynamicType(),
+    ConstantList(
+      IntConstant(numJsParameters),
+      BoolConstant(captureThis),
+      BoolConstant(needsCastClosure),
+    ),
+  );
 
   String jsCode() {
     final jsParameters = <String>[];
@@ -759,7 +762,9 @@ class CoreTypesUtil {
   Expression variableCheckConstant(Variable variable, Constant constant) =>
       StaticInvocation(
         coreTypes.identicalProcedure,
-        Arguments([VariableGet(variable), ConstantExpression(constant)]),
+        Arguments(
+          ExpressionList(VariableGet(variable), ConstantExpression(constant)),
+        ),
       );
 
   Expression variableGreaterThanOrEqualToConstant(
@@ -769,7 +774,7 @@ class CoreTypesUtil {
     InstanceAccessKind.Instance,
     VariableGet(variable),
     greaterThanOrEqualToTarget.name,
-    Arguments([ConstantExpression(constant)]),
+    Arguments(ExpressionList(ConstantExpression(constant))),
     interfaceTarget: greaterThanOrEqualToTarget,
     functionType: greaterThanOrEqualToTarget.getterType as FunctionType,
   );
@@ -867,7 +872,7 @@ class CoreTypesUtil {
               invokeMethod(
                 expressionCache.createRead(),
                 coreTypes.objectEquals,
-                Arguments([resultCache.createRead()]),
+                Arguments(ExpressionList(resultCache.createRead())),
               ),
               resultCache.createRead(),
               Throw(
@@ -953,7 +958,7 @@ class CoreTypesUtil {
 }
 
 StaticInvocation invokeOneArg(Procedure target, Expression arg) =>
-    StaticInvocation(target, Arguments([arg]));
+    StaticInvocation(target, Arguments(ExpressionList(arg)));
 
 InstanceInvocation invokeMethod(
   Expression receiver,
@@ -963,7 +968,7 @@ InstanceInvocation invokeMethod(
   InstanceAccessKind.Instance,
   receiver,
   target.name,
-  arguments ?? Arguments([]),
+  arguments ?? Arguments.empty(),
   interfaceTarget: target,
   functionType: target.function.computeFunctionType(Nullability.nonNullable),
 );

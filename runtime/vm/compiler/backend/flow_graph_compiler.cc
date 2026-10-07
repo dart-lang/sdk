@@ -1339,7 +1339,8 @@ void FlowGraphCompiler::FinalizeVarDescriptors(const Code& code) {
     info.end_pos = TokenPosition::kMinSource;
     info.set_index(compiler::target::frame_layout.FrameSlotForVariable(
         parsed_function().current_context_var()));
-    var_descs.SetVar(0, Symbols::CurrentContextVar(), &info);
+    var_descs.SetVar(0, Symbols::CurrentContextVar(), Object::dynamic_type(),
+                     &info);
   }
   code.set_var_descriptors(var_descs);
 #endif

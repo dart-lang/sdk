@@ -8,6 +8,290 @@ part of '../../ast.dart';
 //                            FUNCTIONS
 // ------------------------------------------------------------------------
 
+/// A fixed-length list of [TypeParameter]s.
+extension type const TypeParameterList._(List<TypeParameter> _list)
+    implements List<TypeParameter> {
+  static const TypeParameterList empty = TypeParameterList._(
+    const <TypeParameter>[],
+  );
+
+  /// Creates a fixed-length list of 1–4 elements without allocating a
+  /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
+  factory(
+    TypeParameter t1, [
+    TypeParameter? t2,
+    TypeParameter? t3,
+    TypeParameter? t4,
+  ]) {
+    if (t2 == null) {
+      assert(t3 == null && t4 == null);
+      return TypeParameterList._1(t1);
+    }
+    if (t3 == null) {
+      assert(t4 == null);
+      return TypeParameterList._2(t1, t2);
+    }
+    if (t4 == null) {
+      return TypeParameterList._3(t1, t2, t3);
+    }
+    return TypeParameterList._4(t1, t2, t3, t4);
+  }
+
+  factory _1(TypeParameter t1) =>
+      TypeParameterList._(List<TypeParameter>.filled(1, t1));
+
+  factory _2(TypeParameter t1, TypeParameter t2) =>
+      TypeParameterList._(List<TypeParameter>.filled(2, t1)..[1] = t2);
+
+  factory _3(TypeParameter t1, TypeParameter t2, TypeParameter t3) =>
+      TypeParameterList._(
+        List<TypeParameter>.filled(3, t1)
+          ..[1] = t2
+          ..[2] = t3,
+      );
+
+  factory _4(
+    TypeParameter t1,
+    TypeParameter t2,
+    TypeParameter t3,
+    TypeParameter t4,
+  ) => TypeParameterList._(
+    List<TypeParameter>.filled(4, t1)
+      ..[1] = t2
+      ..[2] = t3
+      ..[3] = t4,
+  );
+
+  @pragma('vm:prefer-inline')
+  factory generate(int length, TypeParameter Function(int index) generator) {
+    if (length == 0) return empty;
+    return TypeParameterList._(
+      List<TypeParameter>.generate(length, generator, growable: false),
+    );
+  }
+
+  @pragma('vm:prefer-inline')
+  static TypeParameterList mapped<T>(
+    List<T> list,
+    TypeParameter Function(T) func,
+  ) {
+    final int length = list.length;
+    if (length == 0) return empty;
+    return TypeParameterList._(
+      List<TypeParameter>.generate(
+        length,
+        (i) => func(list[i]),
+        growable: false,
+      ),
+    );
+  }
+
+  /// Copies [typeParameters] into a new fixed-length list.
+  factory from(List<TypeParameter> typeParameters) {
+    if (typeParameters.isEmpty) return empty;
+    return TypeParameterList._(
+      List<TypeParameter>.generate(
+        typeParameters.length,
+        (i) => typeParameters[i],
+        growable: false,
+      ),
+    );
+  }
+}
+
+/// A fixed-length list of [PositionalParameter]s.
+extension type const PositionalParameterList._(List<PositionalParameter> _list)
+    implements List<PositionalParameter> {
+  static const PositionalParameterList empty = PositionalParameterList._(
+    const <PositionalParameter>[],
+  );
+
+  /// Creates a fixed-length list of 1–4 elements without allocating a
+  /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
+  factory(
+    PositionalParameter p1, [
+    PositionalParameter? p2,
+    PositionalParameter? p3,
+    PositionalParameter? p4,
+  ]) {
+    if (p2 == null) {
+      assert(p3 == null && p4 == null);
+      return PositionalParameterList._1(p1);
+    }
+    if (p3 == null) {
+      assert(p4 == null);
+      return PositionalParameterList._2(p1, p2);
+    }
+    if (p4 == null) {
+      return PositionalParameterList._3(p1, p2, p3);
+    }
+    return PositionalParameterList._4(p1, p2, p3, p4);
+  }
+
+  factory _1(PositionalParameter p1) =>
+      PositionalParameterList._(List<PositionalParameter>.filled(1, p1));
+
+  factory _2(PositionalParameter p1, PositionalParameter p2) =>
+      PositionalParameterList._(
+        List<PositionalParameter>.filled(2, p1)..[1] = p2,
+      );
+
+  factory _3(
+    PositionalParameter p1,
+    PositionalParameter p2,
+    PositionalParameter p3,
+  ) => PositionalParameterList._(
+    List<PositionalParameter>.filled(3, p1)
+      ..[1] = p2
+      ..[2] = p3,
+  );
+
+  factory _4(
+    PositionalParameter p1,
+    PositionalParameter p2,
+    PositionalParameter p3,
+    PositionalParameter p4,
+  ) => PositionalParameterList._(
+    List<PositionalParameter>.filled(4, p1)
+      ..[1] = p2
+      ..[2] = p3
+      ..[3] = p4,
+  );
+
+  @pragma('vm:prefer-inline')
+  factory generate(
+    int length,
+    PositionalParameter Function(int index) generator,
+  ) {
+    if (length == 0) return empty;
+    return PositionalParameterList._(
+      List<PositionalParameter>.generate(length, generator, growable: false),
+    );
+  }
+
+  @pragma('vm:prefer-inline')
+  static PositionalParameterList mapped<T>(
+    List<T> list,
+    PositionalParameter Function(T) func,
+  ) {
+    final int length = list.length;
+    if (length == 0) return empty;
+    return PositionalParameterList._(
+      List<PositionalParameter>.generate(
+        length,
+        (i) => func(list[i]),
+        growable: false,
+      ),
+    );
+  }
+
+  /// Copies [positionalParameters] into a new fixed-length list.
+  factory from(List<PositionalParameter> positionalParameters) {
+    if (positionalParameters.isEmpty) return empty;
+    return PositionalParameterList._(
+      List<PositionalParameter>.generate(
+        positionalParameters.length,
+        (i) => positionalParameters[i],
+        growable: false,
+      ),
+    );
+  }
+}
+
+/// A fixed-length list of [NamedParameter]s.
+extension type const NamedParameterList._(List<NamedParameter> _list)
+    implements List<NamedParameter> {
+  static const NamedParameterList empty = NamedParameterList._(
+    const <NamedParameter>[],
+  );
+
+  /// Creates a fixed-length list of 1–4 elements without allocating a
+  /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
+  factory(
+    NamedParameter p1, [
+    NamedParameter? p2,
+    NamedParameter? p3,
+    NamedParameter? p4,
+  ]) {
+    if (p2 == null) {
+      assert(p3 == null && p4 == null);
+      return NamedParameterList._1(p1);
+    }
+    if (p3 == null) {
+      assert(p4 == null);
+      return NamedParameterList._2(p1, p2);
+    }
+    if (p4 == null) {
+      return NamedParameterList._3(p1, p2, p3);
+    }
+    return NamedParameterList._4(p1, p2, p3, p4);
+  }
+
+  factory _1(NamedParameter p1) =>
+      NamedParameterList._(List<NamedParameter>.filled(1, p1));
+
+  factory _2(NamedParameter p1, NamedParameter p2) =>
+      NamedParameterList._(List<NamedParameter>.filled(2, p1)..[1] = p2);
+
+  factory _3(NamedParameter p1, NamedParameter p2, NamedParameter p3) =>
+      NamedParameterList._(
+        List<NamedParameter>.filled(3, p1)
+          ..[1] = p2
+          ..[2] = p3,
+      );
+
+  factory _4(
+    NamedParameter p1,
+    NamedParameter p2,
+    NamedParameter p3,
+    NamedParameter p4,
+  ) => NamedParameterList._(
+    List<NamedParameter>.filled(4, p1)
+      ..[1] = p2
+      ..[2] = p3
+      ..[3] = p4,
+  );
+
+  @pragma('vm:prefer-inline')
+  factory generate(int length, NamedParameter Function(int index) generator) {
+    if (length == 0) return empty;
+    return NamedParameterList._(
+      List<NamedParameter>.generate(length, generator, growable: false),
+    );
+  }
+
+  @pragma('vm:prefer-inline')
+  static NamedParameterList mapped<T>(
+    List<T> list,
+    NamedParameter Function(T) func,
+  ) {
+    final int length = list.length;
+    if (length == 0) return empty;
+    return NamedParameterList._(
+      List<NamedParameter>.generate(
+        length,
+        (i) => func(list[i]),
+        growable: false,
+      ),
+    );
+  }
+
+  /// Copies [namedParameters] into a new fixed-length list.
+  factory from(List<NamedParameter> namedParameters) {
+    if (namedParameters.isEmpty) return empty;
+    return NamedParameterList._(
+      List<NamedParameter>.generate(
+        namedParameters.length,
+        (i) => namedParameters[i],
+        growable: false,
+      ),
+    );
+  }
+}
+
 /// A function declares parameters and has a body.
 ///
 /// This may occur in a procedure, constructor, function expression, or local
@@ -37,10 +321,10 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   /// a Dart async function might be represented by a Kernel sync function.
   AsyncMarker dartAsyncMarker;
 
-  List<TypeParameter> typeParameters;
+  TypeParameterList typeParameters;
   int requiredParameterCount;
-  List<PositionalParameter> positionalParameters;
-  List<NamedParameter> namedParameters;
+  PositionalParameterList positionalParameters;
+  NamedParameterList namedParameters;
   ThisVariable? thisVariable;
   DartType returnType; // Not null.
   Statement? _body;
@@ -103,20 +387,21 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
 
   new(
     this._body, {
-    List<TypeParameter>? typeParameters,
-    List<PositionalParameter>? positionalParameters,
-    List<NamedParameter>? namedParameters,
+    TypeParameterList? typeParameters,
+    PositionalParameterList? positionalParameters,
+    NamedParameterList? namedParameters,
     int? requiredParameterCount,
     this.returnType = const DynamicType(),
     this.asyncMarker = AsyncMarker.Sync,
     AsyncMarker? dartAsyncMarker,
     this.emittedValueType,
     this.thisVariable,
-  }) : this.positionalParameters = positionalParameters ?? [],
+  }) : this.positionalParameters =
+           positionalParameters ?? PositionalParameterList.empty,
        this.requiredParameterCount =
            requiredParameterCount ?? positionalParameters?.length ?? 0,
-       this.namedParameters = namedParameters ?? [],
-       this.typeParameters = typeParameters ?? <TypeParameter>[],
+       this.namedParameters = namedParameters ?? NamedParameterList.empty,
+       this.typeParameters = typeParameters ?? TypeParameterList.empty,
        this.dartAsyncMarker = dartAsyncMarker ?? asyncMarker {
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
@@ -149,7 +434,7 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   FunctionType computeThisFunctionType(Nullability nullability) {
     TreeNode? parent = this.parent;
 
-    List<TypeParameter> typeParametersToCopy = parent is Constructor
+    TypeParameterList typeParametersToCopy = parent is Constructor
         ? parent.enclosingClass.typeParameters
         : typeParameters;
 
@@ -186,26 +471,24 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     required Nullability nullability,
     required int requiredParameterCount,
   }) {
-    List<StructuralParameter> structuralParameters;
+    StructuralParameterList structuralParameters;
     DartType functionReturnType;
-    List<DartType> positionalParameterTypes;
-    List<NamedType> namedParameterTypes;
+    DartTypeList positionalParameterTypes;
+    NamedDartTypeList namedParameterTypes;
     if (typeParameters.isEmpty) {
-      structuralParameters = const <StructuralParameter>[];
+      structuralParameters = StructuralParameterList.empty;
       functionReturnType = returnType;
-      positionalParameterTypes = List.generate(
+      positionalParameterTypes = DartTypeList.generate(
         positionalParameters.length,
         (index) => _getTypeOfVariable(positionalParameters[index]),
-        growable: false,
       );
 
       if (namedParameters.isEmpty) {
-        namedParameterTypes = const <NamedType>[];
+        namedParameterTypes = NamedDartTypeList.empty;
       } else {
-        namedParameterTypes = List.generate(
+        namedParameterTypes = NamedDartTypeList.generate(
           namedParameters.length,
           (index) => _getNamedTypeOfVariable(namedParameters[index]),
-          growable: false,
         );
         namedParameterTypes.sort();
       }
@@ -218,21 +501,19 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
       Substitution substitution = freshStructuralParameters.substitution;
       functionReturnType = substitution.substituteType(returnType);
 
-      positionalParameterTypes = List.generate(
+      positionalParameterTypes = DartTypeList.generate(
         positionalParameters.length,
         (index) => substitution.substituteType(
           _getTypeOfVariable(positionalParameters[index]),
         ),
-        growable: false,
       );
       if (namedParameters.isEmpty) {
-        namedParameterTypes = const <NamedType>[];
+        namedParameterTypes = NamedDartTypeList.empty;
       } else {
-        namedParameterTypes = List.generate(
+        namedParameterTypes = NamedDartTypeList.generate(
           namedParameters.length,
           (index) =>
               _getNamedTypeOfVariable(namedParameters[index], substitution),
-          growable: false,
         );
         namedParameterTypes.sort();
       }
@@ -284,7 +565,9 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
       emittedValueType = v.visitDartType(emittedValueType!);
     }
     if (redirectingFactoryTarget?.typeArguments != null) {
-      v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
+      redirectingFactoryTarget!.typeArguments = v.transformDartTypeList(
+        redirectingFactoryTarget!.typeArguments!,
+      );
     }
     if (body != null) {
       body = v.transform(body!);
@@ -309,7 +592,9 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
       );
     }
     if (redirectingFactoryTarget?.typeArguments != null) {
-      v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
+      redirectingFactoryTarget!.typeArguments = v.transformDartTypeList(
+        redirectingFactoryTarget!.typeArguments!,
+      );
     }
     if (body != null) {
       body = v.transformOrRemoveStatement(body!);

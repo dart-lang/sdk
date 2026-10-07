@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AssignToLocalVariableTest extends AssistProcessorTest {
+class AssignToLocalVariableTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.assignToLocalVariable;
 

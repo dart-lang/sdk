@@ -77,7 +77,10 @@ void main() {
       final p = project();
       final analytics = await p.runLocalWithFakeAnalytics(['help']);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(name: 'help', enabledExperiments: ''),
+        Event.dartCliCommandExecuted(
+          name: 'help',
+          enabledExperiments: '',
+        ),
       ]);
     });
 
@@ -90,7 +93,12 @@ void main() {
         path.join(io.Directory.systemTemp.createTempSync().path, 'name'),
       ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(name: 'create', enabledExperiments: ''),
+        Event.dartCliCommandExecuted(
+          name: 'create',
+          enabledExperiments: '',
+          pubspecHasFlutterSdk: false,
+          pubspecEnvironmentSdk: '^3.0.0',
+        ),
       ]);
     });
 
@@ -111,6 +119,9 @@ void main() {
             Event.dartCliCommandExecuted(
               name: 'pub/get',
               enabledExperiments: '',
+              pubspecHasFlutterSdk: false,
+              pubspecDependencies: const {'lints'},
+              pubspecEnvironmentSdk: '^3.0.0',
             ),
           ]);
         },
@@ -128,7 +139,21 @@ void main() {
         '.',
       ]);
       expect(analytics.sentEvents, [
-        Event.dartCliCommandExecuted(name: 'format', enabledExperiments: ''),
+        Event.dartCliCommandExecuted(
+          name: 'format',
+          enabledExperiments: '',
+        ),
+      ]);
+    });
+
+    test('info', () async {
+      final p = project();
+      final analytics = await p.runLocalWithFakeAnalytics(['info']);
+      expect(analytics.sentEvents, [
+        Event.dartCliCommandExecuted(
+          name: 'info/dump',
+          enabledExperiments: '',
+        ),
       ]);
     });
 
@@ -143,7 +168,12 @@ void main() {
           '--argument',
         ]);
         expect(analytics.sentEvents, [
-          Event.dartCliCommandExecuted(name: 'run', enabledExperiments: ''),
+          Event.dartCliCommandExecuted(
+            name: 'run',
+            enabledExperiments: '',
+            pubspecHasFlutterSdk: false,
+            pubspecEnvironmentSdk: '^3.0.0',
+          ),
         ]);
       });
     });
@@ -151,9 +181,9 @@ void main() {
     group('run --enable-experiments', () {
       for (final experiment in experiments) {
         test(experiment.name, () async {
-          final p = project(mainSrc: experiment.validation);
           {
             for (final no in ['', 'no-']) {
+              final p = project(mainSrc: experiment.validation);
               await pub.withHttpClient(client: http.Client(), () async {
                 final analytics = await p.runLocalWithFakeAnalytics([
                   'run',
@@ -164,6 +194,8 @@ void main() {
                   Event.dartCliCommandExecuted(
                     name: 'run',
                     enabledExperiments: '$no${experiment.name}',
+                    pubspecHasFlutterSdk: false,
+                    pubspecEnvironmentSdk: '^3.0.0',
                   ),
                 ]);
               });
@@ -188,6 +220,8 @@ void main() {
         Event.dartCliCommandExecuted(
           name: 'compile/kernel',
           enabledExperiments: '',
+          pubspecHasFlutterSdk: false,
+          pubspecEnvironmentSdk: '^3.0.0',
         ),
       ]);
     });

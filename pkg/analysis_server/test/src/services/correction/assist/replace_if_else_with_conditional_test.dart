@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceIfElseWithConditionalTest extends AssistProcessorTest {
+class ReplaceIfElseWithConditionalTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.replaceIfElseWithConditional;
 

@@ -188,8 +188,8 @@ List<TestFile> splitMultitest(
   var sourceDir = multitest.path.directoryPath;
   var targetDir = _createMultitestDirectory(outputDir, suiteDir, sourceDir);
 
-  // Copy all the relative imports of the multitest.
-  var importsToCopy = _findAllRelativeImports(multitest.path);
+  // Copy all the relative imports and otherResources of the multitest.
+  var importsToCopy = _findAllRelativeImports(multitest);
   for (var relativeImport in importsToCopy) {
     var importPath = Path(relativeImport);
     // Make sure the target directory exists.
@@ -291,9 +291,10 @@ class Annotation {
   }
 }
 
-/// Finds all relative imports and copies them into the directory with the
-/// generated tests.
-Set<String> _findAllRelativeImports(Path topLibrary) {
+/// Finds all relative imports and otherResources and copies them into the
+/// directory with the generated tests.
+Set<String> _findAllRelativeImports(TestFile multitest) {
+  var topLibrary = multitest.path;
   var found = <String>{};
   var libraryDir = topLibrary.directoryPath;
   var relativeImportRegExp = RegExp(
@@ -336,6 +337,11 @@ Set<String> _findAllRelativeImports(Path topLibrary) {
   }
 
   processFile(topLibrary);
+  for (var resource in multitest.otherResources) {
+    if (found.add(resource) && resource.endsWith('.dart')) {
+      processFile(libraryDir.append(resource));
+    }
+  }
 
   return found;
 }

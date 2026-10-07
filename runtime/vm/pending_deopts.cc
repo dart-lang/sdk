@@ -101,7 +101,7 @@ uword PendingDeopts::RemapExceptionPCForDeopt(uword program_counter,
     ObjectPtr pc_marker = *(reinterpret_cast<ObjectPtr*>(
         frame_pointer + runtime_frame_layout.code_from_fp * kWordSize));
     Code& code = Code::Handle(Code::RawCast(pc_marker));
-    ASSERT(code.is_optimized() && !code.is_force_optimized());
+    ASSERT(code.can_be_deoptimized());
 #endif
     if (FLAG_trace_deoptimization) {
       THR_Print("Throwing to frame scheduled for lazy deopt fp=%" Pp "\n",

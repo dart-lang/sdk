@@ -430,6 +430,76 @@ void main(List<String> args) => print("$b $args");
     expect(abbreviationResult.exitCode, 0);
   });
 
+  test(
+    'with VM environment declaration options specified many times before run',
+    () async {
+      p = project(
+        mainSrc: r'''
+    void main() {
+      for (int i = 1; i <= 50; i++) {
+        if (String.fromEnvironment('x$i') != '$i') throw "Bad string";
+        if (int.fromEnvironment('x$i') != i) throw "Bad int";
+      }
+      print("Good");
+    }
+    ''',
+      );
+
+      final result = await p.run([
+        for (int i = 1; i <= 50; i++) '--define=x$i=$i',
+        'run',
+        p.relativeFilePath,
+      ]);
+
+      expect(result.exitCode, 0);
+      expect(result.stderr, isEmpty);
+      expect(result.stdout, contains('Good'));
+
+      final abbreviationResult = await p.run([
+        for (int i = 1; i <= 50; i++) '-Dx$i=$i',
+        'run',
+        p.relativeFilePath,
+      ]);
+
+      expect(abbreviationResult.stderr, isEmpty);
+      expect(abbreviationResult.exitCode, 0);
+      expect(abbreviationResult.stdout, contains('Good'));
+    },
+  );
+
+  test('environment declaration options before and after run', () async {
+    p = project(
+      mainSrc: r'''
+void main() async {
+  // Non-const.
+  if (String.fromEnvironment('x1') != '1') throw "Bad string";
+  if (int.fromEnvironment('x1') != 1) throw "Bad int";
+  if (String.fromEnvironment('x2') != '2') throw "Bad string";
+  if (int.fromEnvironment('x2') != 2) throw "Bad int";
+
+  // Const.
+  if (const String.fromEnvironment('x1') != '1') throw "Bad string";
+  if (const int.fromEnvironment('x1') != 1) throw "Bad int";
+  if (const String.fromEnvironment('x2') != '2') throw "Bad string";
+  if (const int.fromEnvironment('x2') != 2) throw "Bad int";
+
+  print("Good");
+}
+    ''',
+    );
+
+    final result = await p.run([
+      '--define=x1=1',
+      'run',
+      '--define=x2=2',
+      p.relativeFilePath,
+    ]);
+
+    expect(result.exitCode, 0);
+    expect(result.stderr, isEmpty);
+    expect(result.stdout, contains('Good'));
+  });
+
   test('with accepted VM flags related to the timeline', () async {
     p = project(
       mainSrc:
@@ -1066,6 +1136,47 @@ Script2: ${script2.uri}
     },
   );
 
+  for (String? usedResidentFlag in [null, '-r']) {
+    test(
+      'Platform.executableArguments does not contain internal arguments'
+      '${usedResidentFlag != null ? ' (resident ($usedResidentFlag))' : ''}',
+      () async {
+        p = project(
+          mainSrc: '''
+import "dart:convert";
+import "dart:io";
+void main() {
+  print(json.encode(Platform.executableArguments));
+}
+''',
+        );
+        final result = await p.run([
+          '--enable-asserts',
+          'run',
+          if (usedResidentFlag != null) ...[
+            usedResidentFlag,
+            '--$residentCompilerInfoFileOption=$serverInfoFile',
+          ],
+          p.relativeFilePath,
+        ]);
+        expect(result.exitCode, 0, reason: result.stderr.toString());
+        expect(result.stderr, isEmpty);
+        expect(result.stdout, isNotEmpty);
+        List<dynamic> jsonDecoded = json.decode(result.stdout);
+        expect(jsonDecoded, contains('--enable-asserts'));
+        expect(jsonDecoded, isNot(contains(startsWith('--executable_name='))));
+        expect(
+          jsonDecoded,
+          isNot(contains(startsWith('--resolved_executable_name='))),
+        );
+        expect(
+          jsonDecoded,
+          isNot(contains(startsWith('--script_uri_override='))),
+        );
+      },
+    );
+  }
+
   test(
     'resident compiler works with non-ASCII filenames',
     () async {
@@ -1093,6 +1204,250 @@ Future<void> main() async {
       expect(stdout, 'Hello, æble!');
     },
   );
+
+  Future<void> compareResidentAndNonResidentCompile(String content) async {
+    p = project();
+    p.file('hello.dart', content);
+    var script = File(path.join(p.dir.path, 'hello.dart'));
+    expect(script.existsSync(), true);
+
+    ProcessResult residentResult = await p.run([
+      'run',
+      '--resident',
+      '--$residentCompilerInfoFileOption=$serverInfoFile',
+      'hello.dart',
+    ]);
+    ProcessResult nonResidentResult = await p.run([
+      'run',
+      'hello.dart',
+    ]);
+    expect(residentResult.exitCode, nonResidentResult.exitCode);
+
+    // Compile time errors have more text via the resident compiler, but should
+    // contain the same actual error text as the non-resident compiler.
+    String residentStderr = residentResult.stderr.toString().fixupForWindows();
+    String nonResidentStderr = nonResidentResult.stderr
+        .toString()
+        .fixupForWindows();
+    expect(residentStderr, contains(nonResidentStderr));
+
+    // Expect stdout to be the same.
+    String residentStdout = residentResult.stdout.toString().fixupForWindows();
+    String nonResidentStdout = nonResidentResult.stdout
+        .toString()
+        .fixupForWindows();
+    expect(residentStdout, nonResidentStdout);
+  }
+
+  test(
+    'compile time error via the resident compiler '
+    'gives same exit code as a non-resident compile',
+    () async {
+      await compareResidentAndNonResidentCompile(r'''
+void main(List<String> args) {
+  print(args.isEven);
+}
+''');
+    },
+  );
+
+  test(
+    'runtime error via the resident compiler '
+    'gives same exit code as a non-resident compile',
+    () async {
+      await compareResidentAndNonResidentCompile(r'''
+void main(List<String> args) {
+  print(42 ~/ args.length);
+}
+''');
+    },
+  );
+
+  Future<Set<String>> runResidentExpectGoodAndReturnOptionsReceived(
+    List<String> arguments, {
+    String? scriptData,
+  }) async {
+    p = project();
+    p.file('file.dart', scriptData ?? 'void main() => print("Good");');
+    var script = File(path.join(p.dir.path, 'file.dart'));
+    expect(script.existsSync(), true);
+
+    ProcessResult result = await p.run(arguments);
+
+    expect(result.stderr, isEmpty);
+    String stdout = result.stdout.toString().trim();
+    expect(stdout, 'Good');
+    expect(result.exitCode, 0);
+
+    return getCachedCompilerOptions(
+      script.path,
+    ).toSet();
+  }
+
+  test('resident compiler environment declaration after run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived(
+          scriptData: r'''
+void main() async {
+  // Non-const.
+  if (String.fromEnvironment('x1') != '1') throw "Bad string";
+  if (int.fromEnvironment('x1') != 1) throw "Bad int";
+  if (String.fromEnvironment('x2') != '2') throw "Bad string";
+  if (int.fromEnvironment('x2') != 2) throw "Bad int";
+
+  // Const.
+  if (const String.fromEnvironment('x1') != '1') throw "Bad string";
+  if (const int.fromEnvironment('x1') != 1) throw "Bad int";
+  if (const String.fromEnvironment('x2') != '2') throw "Bad string";
+  if (const int.fromEnvironment('x2') != 2) throw "Bad int";
+
+  print("Good");
+}
+''',
+          [
+            'run',
+            '--resident',
+            '--$residentCompilerInfoFileOption=$serverInfoFile',
+            '-Dx1=1',
+            '-Dx2=2',
+            'file.dart',
+            // This is not a define, but an argument to the script.
+            '-Dx3=3',
+          ],
+        );
+
+    expect(optionsReceived, contains('--define=x1=1'));
+    expect(optionsReceived, contains('--define=x2=2'));
+    expect(optionsReceived, isNot(contains('--define=x3=3')));
+  });
+
+  test(
+    'resident compiler environment declaration before and after run',
+    () async {
+      Set<String> optionsReceived =
+          await runResidentExpectGoodAndReturnOptionsReceived(
+            scriptData: r'''
+void main() async {
+  // Non-const.
+  if (String.fromEnvironment('x1') != '1') throw "Bad string x1";
+  if (int.fromEnvironment('x1') != 1) throw "Bad int x1";
+  if (String.fromEnvironment('x2') != '2') throw "Bad string x2";
+  if (int.fromEnvironment('x2') != 2) throw "Bad int x2";
+  if (String.fromEnvironment('x3') == '3') throw "Bad string x3";
+  if (int.fromEnvironment('x3') == 3) throw "Bad int x3";
+
+  // Const.
+  if (const String.fromEnvironment('x1') != '1') throw "Bad string const x1";
+  if (const int.fromEnvironment('x1') != 1) throw "Bad int const x1";
+  if (const String.fromEnvironment('x2') != '2') throw "Bad string const x2";
+  if (const int.fromEnvironment('x2') != 2) throw "Bad int const x2";
+  if (const String.fromEnvironment('x3') == '3') throw "Bad string const x3";
+  if (const int.fromEnvironment('x3') == 3) throw "Bad int const x3";
+
+  print("Good");
+}
+''',
+            [
+              '-Dx1=1',
+              'run',
+              '--resident',
+              '--$residentCompilerInfoFileOption=$serverInfoFile',
+              '-Dx2=2',
+              'file.dart',
+              // This is not a define, but an argument to the script.
+              '-Dx3=3',
+            ],
+          );
+
+      expect(optionsReceived, contains('--define=x1=1'));
+      expect(optionsReceived, contains('--define=x2=2'));
+      expect(optionsReceived, isNot(contains('--define=x3=3')));
+    },
+  );
+
+  test('resident compiler experiment before run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          '--enable-experiment=test-experiment',
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          'file.dart',
+          // This is not an experiment, but an argument to the script.
+          '--enable-experiment=foo',
+        ]);
+
+    expect(optionsReceived, contains('--enable-experiment=test-experiment'));
+    expect(optionsReceived, isNot(contains('--enable-experiment=foo')));
+  });
+
+  test('resident compiler experiment after run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          '--enable-experiment=test-experiment',
+          'file.dart',
+          // This is not an experiment, but an argument to the script.
+          '--enable-experiment=foo',
+        ]);
+
+    expect(optionsReceived, contains('--enable-experiment=test-experiment'));
+    expect(optionsReceived, isNot(contains('--enable-experiment=foo')));
+  });
+
+  test('resident compiler enable asserts before run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          '--enable-asserts',
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          'file.dart',
+        ]);
+
+    expect(optionsReceived, contains('--enable-asserts'));
+  });
+
+  test('resident compiler enable asserts after run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          '--enable-asserts',
+          'file.dart',
+        ]);
+
+    expect(optionsReceived, contains('--enable-asserts'));
+  });
+
+  test('resident compiler negated enable asserts before run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          '--no-enable-asserts',
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          'file.dart',
+        ]);
+
+    expect(optionsReceived, isNot(contains('--enable-asserts')));
+  });
+
+  test('resident compiler negated enable asserts after run', () async {
+    Set<String> optionsReceived =
+        await runResidentExpectGoodAndReturnOptionsReceived([
+          'run',
+          '--resident',
+          '--$residentCompilerInfoFileOption=$serverInfoFile',
+          '--no-enable-asserts',
+          'file.dart',
+        ]);
+
+    expect(optionsReceived, isNot(contains('--enable-asserts')));
+  });
 
   test(
     'passing --resident is a prerequisite for passing --resident-compiler-info-file',
@@ -1661,34 +2016,40 @@ Future<void> main() async {
     expect(sawCFEMsg, false);
   });
 
-  test('custom package_config path', () async {
-    p = project(
-      name: 'foo',
-      mainSrc: '''
+  for (String? usedResidentFlag in [null, '--resident', '-r']) {
+    for (bool relative in [false, true]) {
+      test(
+        'custom package_config path'
+        '${usedResidentFlag != null ? ' (resident ($usedResidentFlag))' : ''}'
+        '${relative ? ' (relative)' : ''}',
+        () async {
+          p = project(
+            name: 'foo',
+            mainSrc: '''
 import 'package:bar/main.dart';
 void main() {
   cmd();
 }
 ''',
-    );
-    final bar1 = project(
-      name: 'bar1',
-      mainSrc: '''
+          );
+          final bar1 = project(
+            name: 'bar1',
+            mainSrc: '''
 cmd() {
   print('hi');
 }
 ''',
-    );
-    final bar2 = project(
-      name: 'bar2',
-      mainSrc: '''
+          );
+          final bar2 = project(
+            name: 'bar2',
+            mainSrc: '''
 cmd() {
   print('bye');
 }
 ''',
-    );
+          );
 
-    p.file('custom_packages1.json', '''
+          p.file('custom_packages1.json', '''
 {
   "configVersion": 2,
   "packages": [
@@ -1700,7 +2061,7 @@ cmd() {
   ]
 }
 ''');
-    p.file('custom_packages2.json', '''
+          p.file('custom_packages2.json', '''
 {
   "configVersion": 2,
   "packages": [
@@ -1712,25 +2073,85 @@ cmd() {
   ]
 }
 ''');
-    final runResult1 = await p.run([
-      'run',
-      '--packages=${path.join(p.dirPath, 'custom_packages1.json')}',
-      p.relativeFilePath,
-    ]);
-    expect(runResult1.stderr, isEmpty);
-    expect(runResult1.stdout, contains('hi'));
-    expect(runResult1.exitCode, 0);
-    // Test that --packages can precede the command name
-    final runResult2 = await p.run([
-      '--packages=${path.join(p.dirPath, 'custom_packages2.json')}',
-      'run',
-      p.relativeFilePath,
-    ]);
+          String packagesPath = 'custom_packages1.json';
+          if (!relative) packagesPath = path.join(p.dirPath, packagesPath);
+          final runResult1 = await p.run([
+            'run',
+            if (usedResidentFlag != null) ...[
+              usedResidentFlag,
+              '--$residentCompilerInfoFileOption=$serverInfoFile',
+            ],
+            '--packages=$packagesPath',
+            p.relativeFilePath,
+          ]);
+          expect(runResult1.stderr, isEmpty);
+          expect(runResult1.stdout, contains('hi'));
+          expect(runResult1.exitCode, 0);
 
-    expect(runResult2.stderr, isEmpty);
-    expect(runResult2.stdout, contains('bye'));
-    expect(runResult2.exitCode, 0);
-  });
+          // Test that --packages can precede the command name
+          packagesPath = 'custom_packages2.json';
+          if (!relative) packagesPath = path.join(p.dirPath, packagesPath);
+          final runResult2 = await p.run([
+            '--packages=$packagesPath',
+            'run',
+            if (usedResidentFlag != null) ...[
+              usedResidentFlag,
+              '--$residentCompilerInfoFileOption=$serverInfoFile',
+            ],
+            p.relativeFilePath,
+          ]);
+          expect(runResult2.stderr, isEmpty);
+          expect(runResult2.stdout, contains('bye'));
+          expect(runResult2.exitCode, 0);
+        },
+      );
+    }
+  }
+
+  for (String? usedResidentFlag in [null, '--resident', '-r']) {
+    test(
+      'bad package config relative path'
+      '${usedResidentFlag != null ? ' (resident ($usedResidentFlag))' : ''}',
+      () async {
+        p = project(
+          name: 'foo',
+          mainSrc: 'void main() {}',
+        );
+        p.file('custom_packages.json', 'wrong package config content');
+
+        // Below we run each command several times because it's been observed
+        // to work correctly on the first run but not on subsequent runs.
+
+        // Test that --packages can be after run.
+        for (int i = 0; i < 3; i++) {
+          final runResult = await p.run([
+            'run',
+            if (usedResidentFlag != null) ...[
+              usedResidentFlag,
+              '--$residentCompilerInfoFileOption=$serverInfoFile',
+            ],
+            '--packages=custom_packages1.json',
+            p.relativeFilePath,
+          ], workingDir: p.dirPath);
+          expect(runResult.exitCode, 254);
+        }
+
+        // Test that --packages can be before run.
+        for (int i = 0; i < 3; i++) {
+          final runResult = await p.run([
+            '--packages=custom_packages1.json',
+            'run',
+            if (usedResidentFlag != null) ...[
+              usedResidentFlag,
+              '--$residentCompilerInfoFileOption=$serverInfoFile',
+            ],
+            p.relativeFilePath,
+          ], workingDir: p.dirPath);
+          expect(runResult.exitCode, 254);
+        }
+      },
+    );
+  }
 
   group('getPackageForCommand', () {
     test('returns null for empty string or test command', () {
@@ -1751,4 +2172,23 @@ cmd() {
       expect(getPackageForCommand('my_package'), equals('my_package'));
     });
   });
+}
+
+List<String> getCachedCompilerOptions(String mainPath) {
+  final cachedCompilerOptionsFileContents = jsonDecode(
+    File(
+      computeCachedDillAndCompilerOptionsPaths(
+        mainPath,
+      ).cachedCompilerOptionsPath,
+    ).readAsStringSync(),
+  );
+  return [...cachedCompilerOptionsFileContents];
+}
+
+extension on String {
+  /// Trims, and converts a string with windows line-endings (\r\n) to posix
+  /// line endings (\n) and converts to lower case.
+  String fixupForWindows() {
+    return trim().split('\n').map((s) => s.trim()).join('\n').toLowerCase();
+  }
 }

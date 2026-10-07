@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ShadowFieldTest extends AssistProcessorTest {
+class ShadowFieldTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.shadowField;
 

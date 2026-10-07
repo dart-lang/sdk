@@ -889,15 +889,17 @@ void f() {
     var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
-    element: <null>
+  leftOperand: UnqualifiedNameExpression
+    name: <empty> <synthetic>
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   operator: *
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: UnqualifiedNameExpression
+    name: <empty> <synthetic>
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     correspondingParameter: <null>
-    element: <null>
     staticType: InvalidType
   binaryOperator: multiply
   element: <null>
@@ -933,9 +935,10 @@ void f() {
     var node = result.findNode.singleBinaryOperatorInvocation;
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
-    element: <null>
+  leftOperand: UnqualifiedNameExpression
+    name: <empty> <synthetic>
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     staticType: InvalidType
   operator: *
   rightOperand: IntegerLiteral
@@ -979,10 +982,11 @@ BinaryOperatorInvocation
     literal: 2
     staticType: int
   operator: *
-  rightOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  rightOperand: UnqualifiedNameExpression
+    name: <empty> <synthetic>
+    resolution: InvalidNamedReadResolution
+      recoveryElement: <null>
     correspondingParameter: dart:core::@class::num::@method::*::@formalParameter::other
-    element: <null>
     staticType: InvalidType
   binaryOperator: multiply
   element: dart:core::@class::num::@method::*
@@ -1000,6 +1004,24 @@ V1: BinaryExpression
   element: dart:core::@class::num::@method::*
   staticInvokeType: num Function(num)
   staticType: double
+''');
+  }
+
+  test_super_nonOverloadable_left() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void f() {
+    super && true;
+//  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+    super || false;
+//  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+    super ?? 0;
+//  ^^^^^
+// [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
+  }
+}
 ''');
   }
 
@@ -1021,9 +1043,8 @@ class B extends A {
     var node = result.findNode.binaryOperatorInvocation('+ 0');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: SuperExpression
+  leftOperand: SuperReference
     superKeyword: super
-    staticType: B
   operator: +
   rightOperand: IntegerLiteral
     literal: 0
@@ -1147,7 +1168,7 @@ void f(int a) {
     var node = result.findNode.binaryOperatorInvocation('!= 0');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1162,7 +1183,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   operator: !=
   rightOperand: IntegerLiteral
     literal: 0
@@ -1297,7 +1317,7 @@ void f(int a) {
     var node = result.findNode.binaryOperatorInvocation('== 0');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -1312,7 +1332,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   operator: ==
   rightOperand: IntegerLiteral
     literal: 0
@@ -2358,9 +2377,11 @@ f(int Function() a, int b) {
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
   leftOperand: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -2416,7 +2437,7 @@ f(int a, int b) {
     var node = result.findNode.binaryOperatorInvocation('E(a) + b');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -2431,7 +2452,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   operator: +
   rightOperand: UnqualifiedNameExpression
     name: b
@@ -2574,9 +2594,7 @@ BinaryOperatorInvocation
   leftOperand: UnqualifiedNameExpression
     name: x
     resolution: InvalidNamedReadResolution
-      type: InvalidType
-      candidates
-      recovery: <null>
+      recoveryElement: <null>
     staticType: InvalidType
   operator: +
   rightOperand: IntegerLiteral
@@ -2842,7 +2860,7 @@ f(A a, int b) {
     var node = result.findNode.binaryOperatorInvocation('E(a) + b');
     assertResolvedNodeText(node, r'''
 BinaryOperatorInvocation
-  leftOperand: ExtensionOverride
+  leftOperand: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -2857,7 +2875,6 @@ BinaryOperatorInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: A
-    staticType: null
   operator: +
   rightOperand: UnqualifiedNameExpression
     name: b

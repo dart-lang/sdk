@@ -709,7 +709,10 @@ void KernelLoader::ReadInferredType(const Field& field,
   field.set_guarded_cid(type.cid);
   field.set_is_nullable(type.IsNullable());
   field.set_guarded_list_length(Field::kNoFixedLength);
-  field.set_exact_type(type.exact_type);
+  if (type.IsExactType()) {
+    ASSERT(!type.dart_type.IsNull());
+    field.set_exact_type(type.dart_type);
+  }
   if (FLAG_precompiled_mode) {
     field.set_is_unboxed(!field.is_late() && !field.is_static() &&
                          !field.is_nullable() &&
@@ -1748,7 +1751,7 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
         }
         if (constant_reader.IsStringConstant(name_index, "vm:shared")) {
           if (!FLAG_experimental_shared_data) {
-            if (!library.IsAnyCoreLibrary()) {
+            if (!library.is_dart_scheme()) {
               FATAL(
                   "Encountered vm:shared when functionality is disabled. "
                   "Pass --experimental-shared-data");

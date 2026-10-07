@@ -6,7 +6,7 @@
 
 import 'dart:typed_data';
 
-import '../../source_map.dart';
+import '../../debug_info.dart';
 import '../ir/ir.dart' as ir;
 import 'builder.dart';
 
@@ -79,15 +79,6 @@ class If extends Label {
   bool hasElse = false;
 
   If(super.inputs, super.outputs) : super._();
-
-  @override
-  List<ir.ValueType> get targetTypes => outputs;
-}
-
-class Try extends Label {
-  bool hasCatch = false;
-
-  Try(super.inputs, super.outputs) : super._();
 
   @override
   List<ir.ValueType> get targetTypes => outputs;
@@ -173,6 +164,12 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// The module containing these instructions.
   final ModuleBuilder moduleBuilder;
 
+  /// Inputs to the instruction block.
+  final List<ir.ValueType> inputs;
+
+  /// Outputs of the instruction block.
+  final List<ir.ValueType> outputs;
+
   /// Locals declared in this body, including parameters.
   final List<ir.Local> locals = [];
 
@@ -197,11 +194,9 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// middle of the stack are left out.
   int maxStackShown = 10;
 
-  /// Mappings for the instructions in [_instructions] to their source code.
-  ///
-  /// Since we add mappings as we generate instructions, this will be sorted
-  /// based on [SourceMapping.instructionOffset].
-  final List<SourceMapping>? _sourceMappings;
+  /// Compact bytecode builder for debug info, or `null` if debug info
+  /// recording is disabled.
+  DebugInfoWriter? _debugInfoWriter;
 
   int _indent = 1;
   final List<String> _inlinedFrames = [];
@@ -232,18 +227,50 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Create a new instruction sequence.
   InstructionsBuilder(
     this.moduleBuilder,
-    List<ir.ValueType> inputs,
-    List<ir.ValueType> outputs, {
+    this.inputs,
+    this.outputs, {
     this.constantExpression = false,
   }) : _stackTraces = moduleBuilder.watchPoints.isNotEmpty ? {} : null,
-       _sourceMappings = moduleBuilder.sourceMapUrl == null ? null : [] {
+       _debugInfoWriter = moduleBuilder.debugInfoTables == null
+           ? null
+           : DebugInfoWriter(moduleBuilder.debugInfoTables!) {
     _labelStack.add(Expression(const [], outputs));
     for (ir.ValueType paramType in inputs) {
       _addParameter(paramType);
     }
   }
 
+  /// Resets this [InstructionsBuilder] to its initial state right after
+  /// construction.
+  void reset() {
+    assert(!isBuilt);
+    assert(!hasPatchPoints);
+    locals.length = inputs.length;
+    localNames.clear();
+    _debugInfoWriter = moduleBuilder.debugInfoTables == null
+        ? null
+        : DebugInfoWriter(moduleBuilder.debugInfoTables!);
+    _indent = 1;
+    _inlinedFrames.clear();
+    _traceLines.clear();
+    _labelCount = 0;
+    _labelStack.clear();
+    _labelStack.add(Expression(const [], outputs));
+    _stackTypes.clear();
+    _reachable = true;
+    _localInitialized.length = inputs.length;
+    _localInitialized.fillRange(0, inputs.length, true);
+    _localInitializationStack.clear();
+    _instructions.clear();
+    _stackTraces?.clear();
+    _patchPoints.clear();
+  }
+
   ir.Module get module => moduleBuilder.module;
+
+  /// Whether relaxed SIMD instructions may be emitted, see
+  /// [ModuleBuilder.allowRelaxedSimd].
+  bool get allowRelaxedSimd => moduleBuilder.allowRelaxedSimd;
 
   /// Whether the instruction sequence has been completed by the final `end`.
   bool get isComplete => _labelStack.isEmpty;
@@ -251,7 +278,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Textual trace of the instructions.
   String get trace => _traceLines.join();
 
-  bool get recordSourceMaps => _sourceMappings != null;
+  bool get recordDebugInfo => _debugInfoWriter != null;
 
   bool get isEmpty => _instructions.isEmpty;
 
@@ -259,6 +286,10 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   @override
   ir.Instructions forceBuild() {
+    final builtDebugInfo = _debugInfoWriter?.build();
+    final debugInfo = builtDebugInfo == null || builtDebugInfo.isEmpty
+        ? null
+        : builtDebugInfo;
     if (_patchPoints.isEmpty) {
       return ir.Instructions(
         locals,
@@ -266,23 +297,26 @@ class InstructionsBuilder with Builder<ir.Instructions> {
         _instructions,
         _stackTraces,
         _traceLines,
-        _sourceMappings,
+        debugInfo,
       );
     }
 
-    // We have to fill in the patched instructions & update stack maps.
+    // We have to fill in the patched instructions & update debug info.
 
     final instructions = _instructions;
-    final newInstructions = <ir.Instruction>[];
-    final sourceMappings = _sourceMappings;
-    final newSourceMappings = _sourceMappings == null
+    final debugInfoReader = debugInfo == null
         ? null
-        : <SourceMapping>[];
+        : DebugInfoReader(debugInfo, moduleBuilder.debugInfoTables!);
+
+    final newInstructions = <ir.Instruction>[];
+    final newDebugInfoWriter = debugInfo == null
+        ? null
+        : DebugInfoWriter(moduleBuilder.debugInfoTables!);
 
     // The number of additional patch instructions emitted.
     int shift = 0;
     int ini = 0;
-    int smi = _sourceMappings != null ? 0 : -1;
+    bool hasMapping = debugInfoReader?.moveNext() ?? false;
 
     for (final patch in _patchPoints) {
       assert(
@@ -293,13 +327,24 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       while (ini < patch.start) {
         newInstructions.add(instructions[ini++]);
       }
-      // Advance current source mapping to be the last that covers the start of
-      // patchable region.
-      if (sourceMappings != null && smi < sourceMappings.length) {
-        while (smi < (sourceMappings.length - 1) &&
-            sourceMappings[smi + 1].instructionOffset <= patch.start) {
-          newSourceMappings!.add(sourceMappings[smi].shiftBy(shift));
-          smi++;
+      // Advance current source position to be before the start of patchable
+      // region.
+      if (debugInfoReader != null && hasMapping) {
+        while (hasMapping && debugInfoReader.offset < patch.start) {
+          if (debugInfoReader.hasSourcePosition) {
+            newDebugInfoWriter!.setSourcePosition(
+              debugInfoReader.offset + shift,
+              debugInfoReader.fileUri,
+              debugInfoReader.line,
+              debugInfoReader.col,
+              debugInfoReader.name,
+            );
+          } else {
+            newDebugInfoWriter!.clearSourcePosition(
+              debugInfoReader.offset + shift,
+            );
+          }
+          hasMapping = debugInfoReader.moveNext();
         }
       }
       // Add patched instructions & update shift.
@@ -308,15 +353,33 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       shift += replacement.length;
     }
 
-    // Add remaining instructions & shift remaining source map entries.
+    // Add remaining instructions & shift remaining debug info entries.
     for (; ini < instructions.length; ini++) {
       newInstructions.add(instructions[ini]);
     }
-    if (sourceMappings != null && shift != 0) {
-      for (; smi < sourceMappings.length; smi++) {
-        newSourceMappings!.add(sourceMappings[smi].shiftBy(shift));
+    if (debugInfoReader != null && hasMapping) {
+      while (hasMapping) {
+        if (debugInfoReader.hasSourcePosition) {
+          newDebugInfoWriter!.setSourcePosition(
+            debugInfoReader.offset + shift,
+            debugInfoReader.fileUri,
+            debugInfoReader.line,
+            debugInfoReader.col,
+            debugInfoReader.name,
+          );
+        } else {
+          newDebugInfoWriter!.clearSourcePosition(
+            debugInfoReader.offset + shift,
+          );
+        }
+        hasMapping = debugInfoReader.moveNext();
       }
     }
+
+    final newBuiltDebugInfo = newDebugInfoWriter?.build();
+    final newDebugInfo = newBuiltDebugInfo == null || newBuiltDebugInfo.isEmpty
+        ? null
+        : newBuiltDebugInfo;
 
     return ir.Instructions(
       locals,
@@ -324,7 +387,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       newInstructions,
       _stackTraces,
       _traceLines,
-      newSourceMappings,
+      newDebugInfo,
     );
   }
 
@@ -585,54 +648,26 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     );
   }
 
-  // Source maps
+  // Debug info
 
-  /// Start mapping added instructions to the source location given in
-  /// arguments.
+  /// Set the active source position for subsequently added instructions.
   ///
-  /// This assumes [recordSourceMaps] is `true`.
-  void startSourceMapping(Uri fileUri, int line, int col, String? name) {
-    _addSourceMapping(
-      SourceMapping(_instructions.length, fileUri, line, col, name),
+  /// This assumes [recordDebugInfo] is `true`.
+  void setSourcePosition(Uri fileUri, int line, int col, String? name) {
+    _debugInfoWriter!.setSourcePosition(
+      _instructions.length,
+      fileUri,
+      line,
+      col,
+      name,
     );
   }
 
-  /// Stop mapping added instructions to the last source location given in
-  /// [startSourceMapping].
+  /// Clear the active source position for subsequently added instructions.
   ///
-  /// The instructions added after this won't have a mapping in the source map.
-  ///
-  /// This assumes [recordSourceMaps] is `true`.
-  void stopSourceMapping() {
-    _addSourceMapping(SourceMapping.unmapped(_instructions.length));
-  }
-
-  void _addSourceMapping(SourceMapping mapping) {
-    final sourceMappings = _sourceMappings!;
-
-    if (sourceMappings.isNotEmpty) {
-      final lastMapping = sourceMappings.last;
-
-      // Check if we are overriding the current source location. This can
-      // happen when we restore the source location after a compiling a
-      // sub-tree, and the next node in the AST immediately updates the source
-      // location. The restored location is then never used.
-      if (lastMapping.instructionOffset == mapping.instructionOffset) {
-        sourceMappings.removeLast();
-        sourceMappings.add(mapping);
-        return;
-      }
-
-      // Check if we the new mapping maps to the same source as the old
-      // mapping. This happens when we have e.g. an instance field get like
-      // `length`, which gets transformed by the front-end as `this.length`. In
-      // this case `this` and `length` will have the same source location.
-      if (lastMapping.sourceInfo == mapping.sourceInfo) {
-        return;
-      }
-    }
-
-    sourceMappings.add(mapping);
+  /// This assumes [recordDebugInfo] is `true`.
+  void clearSourcePosition() {
+    _debugInfoWriter!.clearSourcePosition(_instructions.length);
   }
 
   // Meta
@@ -775,38 +810,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.Else());
   }
 
-  /// Emit a legacy `try` instruction.
-  Label try_legacy([
-    List<ir.ValueType> inputs = const [],
-    List<ir.ValueType> outputs = const [],
-  ]) => _beginBlock(
-    _pushLabel(Try(inputs, outputs), trace: const ['try']),
-    ir.BeginNoEffectTry.new,
-    ir.BeginOneOutputTry.new,
-    ir.BeginFunctionTry.new,
-  );
-
-  /// Emit a legacy `catch` instruction.
-  void catch_legacy(ir.Tag tag) {
-    assert(
-      _topOfLabelStack is Try ||
-          _reportError("Unexpected 'catch' (not in 'try' block)"),
-    );
-    final Try try_ = _topOfLabelStack as Try;
-    assert(
-      _verifyEndOfBlock(
-        tag.type.inputs,
-        trace: ['catch', tag],
-        reachableAfter: try_.reachable,
-        reindent: true,
-      ),
-    );
-    assert(tag.enclosingModule == module);
-    try_.hasCatch = true;
-    _reachable = try_.reachable;
-    _add(ir.CatchLegacy(tag));
-  }
-
   /// Emit a `throw` instruction.
   void throw_(ir.Tag tag) {
     assert(_verifyTypes(tag.type.inputs, const [], trace: ['throw', tag]));
@@ -815,16 +818,15 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _reachable = false;
   }
 
-  /// Emit a `rethrow` instruction.
-  void rethrow_(Label label) {
-    assert(label is Try && label.hasCatch);
-    assert(_verifyTypes(const [], const [], trace: ['rethrow', label]));
-    _add(ir.Rethrow(_labelIndex(label)));
-    _reachable = false;
-  }
-
   /// Emit a `throw_ref` instruction.
   void throw_ref() {
+    assert(
+      _verifyTypes(
+        const [ir.RefType.exn(nullable: true)],
+        const [],
+        trace: const ['throw_ref'],
+      ),
+    );
     _add(ir.ThrowRef());
     _reachable = false;
   }
@@ -2535,18 +2537,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.F32Eq());
   }
 
-  /// Emit an `f32.ne` instruction.
-  void f32_ne() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.i32],
-        trace: const ['f32.ne'],
-      ),
-    );
-    _add(const ir.F32Ne());
-  }
-
   /// Emit an `f32.lt` instruction.
   void f32_lt() {
     assert(
@@ -2559,18 +2549,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.F32Lt());
   }
 
-  /// Emit an `f32.gt` instruction.
-  void f32_gt() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.i32],
-        trace: const ['f32.gt'],
-      ),
-    );
-    _add(const ir.F32Gt());
-  }
-
   /// Emit an `f32.le` instruction.
   void f32_le() {
     assert(
@@ -2581,18 +2559,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(const ir.F32Le());
-  }
-
-  /// Emit an `f32.ge` instruction.
-  void f32_ge() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.i32],
-        trace: const ['f32.ge'],
-      ),
-    );
-    _add(const ir.F32Ge());
   }
 
   /// Emit an `f64.eq` instruction.
@@ -3099,18 +3065,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.I64Rotr());
   }
 
-  /// Emit an `f32.abs` instruction.
-  void f32_abs() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.abs'],
-      ),
-    );
-    _add(const ir.F32Abs());
-  }
-
   /// Emit an `f32.neg` instruction.
   void f32_neg() {
     assert(
@@ -3123,30 +3077,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.F32Neg());
   }
 
-  /// Emit an `f32.ceil` instruction.
-  void f32_ceil() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.ceil'],
-      ),
-    );
-    _add(const ir.F32Ceil());
-  }
-
-  /// Emit an `f32.floor` instruction.
-  void f32_floor() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.floor'],
-      ),
-    );
-    _add(const ir.F32Floor());
-  }
-
   /// Emit an `f32.trunc` instruction.
   void f32_trunc() {
     assert(
@@ -3157,30 +3087,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(const ir.F32Trunc());
-  }
-
-  /// Emit an `f32.nearest` instruction.
-  void f32_nearest() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.nearest'],
-      ),
-    );
-    _add(const ir.F32Nearest());
-  }
-
-  /// Emit an `f32.sqrt` instruction.
-  void f32_sqrt() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.sqrt'],
-      ),
-    );
-    _add(const ir.F32Sqrt());
   }
 
   /// Emit an `f32.add` instruction.
@@ -3205,78 +3111,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(const ir.F32Sub());
-  }
-
-  /// Emit an `f32.mul` instruction.
-  void f32_mul() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.mul'],
-      ),
-    );
-    _add(const ir.F32Mul());
-  }
-
-  /// Emit an `f32.div` instruction.
-  void f32_div() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.div'],
-      ),
-    );
-    _add(const ir.F32Div());
-  }
-
-  /// Emit an `f32.min` instruction.
-  void f32_min() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.min'],
-      ),
-    );
-    _add(const ir.F32Min());
-  }
-
-  /// Emit an `f32.max` instruction.
-  void f32_max() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.max'],
-      ),
-    );
-    _add(const ir.F32Max());
-  }
-
-  /// Emit an `f32.copysign` instruction.
-  void f32_copysign() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f32, ir.NumType.f32],
-        const [ir.NumType.f32],
-        trace: const ['f32.copysign'],
-      ),
-    );
-    _add(const ir.F32Copysign());
-  }
-
-  /// Emit an `f64.abs` instruction.
-  void f64_abs() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f64],
-        const [ir.NumType.f64],
-        trace: const ['f64.abs'],
-      ),
-    );
-    _add(const ir.F64Abs());
   }
 
   /// Emit an `f64.neg` instruction.
@@ -3325,18 +3159,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(const ir.F64Trunc());
-  }
-
-  /// Emit an `f64.nearest` instruction.
-  void f64_nearest() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.f64],
-        const [ir.NumType.f64],
-        trace: const ['f64.nearest'],
-      ),
-    );
-    _add(const ir.F64Nearest());
   }
 
   /// Emit an `f64.sqrt` instruction.
@@ -3567,30 +3389,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.I64TruncF64U());
   }
 
-  /// Emit an `f32.convert_i32_s` instruction.
-  void f32_convert_i32_s() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.i32],
-        const [ir.NumType.f32],
-        trace: const ['f32.convert_i32_s'],
-      ),
-    );
-    _add(const ir.F32ConvertI32S());
-  }
-
-  /// Emit an `f32.convert_i32_u` instruction.
-  void f32_convert_i32_u() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.i32],
-        const [ir.NumType.f32],
-        trace: const ['f32.convert_i32_u'],
-      ),
-    );
-    _add(const ir.F32ConvertI32U());
-  }
-
   /// Emit an `f32.convert_i64_s` instruction.
   void f32_convert_i64_s() {
     assert(
@@ -3661,18 +3459,6 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(const ir.F64ConvertI64S());
-  }
-
-  /// Emit an `f64.convert_i64_u` instruction.
-  void f64_convert_i64_u() {
-    assert(
-      _verifyTypes(
-        const [ir.NumType.i64],
-        const [ir.NumType.f64],
-        trace: const ['f64.convert_i64_u'],
-      ),
-    );
-    _add(const ir.F64ConvertI64U());
   }
 
   /// Emit an `f64.promote_f32` instruction.
@@ -4577,6 +4363,61 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.F64x2ReplaceLane(lane));
   }
 
+  void i8x16_narrow_i16x8_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.narrow_i16x8_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16NarrowI16x8S);
+  }
+
+  void i8x16_narrow_i16x8_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.narrow_i16x8_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16NarrowI16x8U);
+  }
+
+  void i8x16_shl() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.shl'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16Shl);
+  }
+
+  void i8x16_shr_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.shr_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16ShrS);
+  }
+
+  void i8x16_shr_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.shr_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16ShrU);
+  }
+
   void i8x16_add() {
     assert(
       _verifyTypes(
@@ -4586,6 +4427,83 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i8x16Add);
+  }
+
+  void i8x16_add_sat_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.add_sat_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16AddSatS);
+  }
+
+  void i8x16_add_sat_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.add_sat_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16AddSatU);
+  }
+
+  void i8x16_min_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.min_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16MinS);
+  }
+
+  void i8x16_min_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.min_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16MinU);
+  }
+
+  void i8x16_max_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.max_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16MaxS);
+  }
+
+  void i8x16_max_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.max_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16MaxU);
+  }
+
+  void i8x16_avgr_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.avgr_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16AvgrU);
   }
 
   void i8x16_sub() {
@@ -4599,6 +4517,50 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.i8x16Sub);
   }
 
+  void i8x16_sub_sat_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.sub_sat_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16SubSatS);
+  }
+
+  void i8x16_sub_sat_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.sub_sat_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16SubSatU);
+  }
+
+  void i8x16_abs() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.abs'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16Abs);
+  }
+
+  void i8x16_popcnt() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.popcnt'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16Popcnt);
+  }
+
   void i8x16_neg() {
     assert(
       _verifyTypes(
@@ -4608,6 +4570,17 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i8x16Neg);
+  }
+
+  void i8x16_swizzle() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.swizzle'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16Swizzle);
   }
 
   void i8x16_eq() {
@@ -4621,6 +4594,105 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.i8x16Eq);
   }
 
+  void i8x16_ne() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.ne'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16Ne);
+  }
+
+  void i8x16_lt_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.lt_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16LtS);
+  }
+
+  void i8x16_lt_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.lt_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16LtU);
+  }
+
+  void i8x16_gt_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.gt_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16GtS);
+  }
+
+  void i8x16_gt_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.gt_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16GtU);
+  }
+
+  void i8x16_le_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.le_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16LeS);
+  }
+
+  void i8x16_le_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.le_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16LeU);
+  }
+
+  void i8x16_ge_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.ge_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16GeS);
+  }
+
+  void i8x16_ge_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.ge_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16GeU);
+  }
+
   void i16x8_eq() {
     assert(
       _verifyTypes(
@@ -4630,6 +4702,105 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i16x8Eq);
+  }
+
+  void i16x8_ne() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.ne'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8Ne);
+  }
+
+  void i16x8_lt_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.lt_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8LtS);
+  }
+
+  void i16x8_lt_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.lt_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8LtU);
+  }
+
+  void i16x8_gt_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.gt_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8GtS);
+  }
+
+  void i16x8_gt_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.gt_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8GtU);
+  }
+
+  void i16x8_le_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.le_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8LeS);
+  }
+
+  void i16x8_le_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.le_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8LeU);
+  }
+
+  void i16x8_ge_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.ge_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8GeS);
+  }
+
+  void i16x8_ge_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.ge_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8GeU);
   }
 
   void i32x4_eq() {
@@ -4654,6 +4825,94 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.i32x4Ne);
   }
 
+  void i32x4_lt_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.lt_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4LtS);
+  }
+
+  void i32x4_lt_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.lt_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4LtU);
+  }
+
+  void i32x4_gt_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.gt_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4GtS);
+  }
+
+  void i32x4_gt_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.gt_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4GtU);
+  }
+
+  void i32x4_le_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.le_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4LeS);
+  }
+
+  void i32x4_le_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.le_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4LeU);
+  }
+
+  void i32x4_ge_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.ge_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4GeS);
+  }
+
+  void i32x4_ge_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.ge_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4GeU);
+  }
+
   void i64x2_eq() {
     assert(
       _verifyTypes(
@@ -4663,6 +4922,160 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i64x2Eq);
+  }
+
+  void i64x2_ne() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.ne'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2Ne);
+  }
+
+  void i64x2_lt_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.lt_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2LtS);
+  }
+
+  void i64x2_gt_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.gt_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2GtS);
+  }
+
+  void i64x2_le_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.le_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2LeS);
+  }
+
+  void i64x2_ge_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.ge_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2GeS);
+  }
+
+  void i16x8_narrow_i32x4_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.narrow_i32x4_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8NarrowI32x4S);
+  }
+
+  void i16x8_narrow_i32x4_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.narrow_i32x4_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8NarrowI32x4U);
+  }
+
+  void i16x8_extend_low_i8x16_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.extend_low_i8x16_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ExtendLowI8x16S);
+  }
+
+  void i16x8_extend_high_i8x16_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.extend_high_i8x16_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ExtendHighI8x16S);
+  }
+
+  void i16x8_extend_low_i8x16_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.extend_low_i8x16_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ExtendLowI8x16U);
+  }
+
+  void i16x8_extend_high_i8x16_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.extend_high_i8x16_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ExtendHighI8x16U);
+  }
+
+  void i16x8_shl() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.shl'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8Shl);
+  }
+
+  void i16x8_shr_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.shr_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ShrS);
+  }
+
+  void i16x8_shr_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.shr_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ShrU);
   }
 
   void i16x8_add() {
@@ -4676,6 +5089,149 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.i16x8Add);
   }
 
+  void i16x8_add_sat_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.add_sat_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8AddSatS);
+  }
+
+  void i16x8_add_sat_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.add_sat_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8AddSatU);
+  }
+
+  void i16x8_min_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.min_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8MinS);
+  }
+
+  void i16x8_min_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.min_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8MinU);
+  }
+
+  void i16x8_max_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.max_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8MaxS);
+  }
+
+  void i16x8_max_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.max_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8MaxU);
+  }
+
+  void i16x8_avgr_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.avgr_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8AvgrU);
+  }
+
+  void i16x8_extmul_low_i8x16_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.extmul_low_i8x16_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ExtMulLowI8x16S);
+  }
+
+  void i16x8_extmul_high_i8x16_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.extmul_high_i8x16_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ExtMulHighI8x16S);
+  }
+
+  void i16x8_extmul_low_i8x16_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.extmul_low_i8x16_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ExtMulLowI8x16U);
+  }
+
+  void i16x8_extmul_high_i8x16_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.extmul_high_i8x16_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ExtMulHighI8x16U);
+  }
+
+  void i32x4_extadd_pairwise_i16x8_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.extadd_pairwise_i16x8_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ExtAddPairwiseI16x8S);
+  }
+
+  void i32x4_extadd_pairwise_i16x8_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.extadd_pairwise_i16x8_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ExtAddPairwiseI16x8U);
+  }
+
   void i16x8_sub() {
     assert(
       _verifyTypes(
@@ -4687,6 +5243,28 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.i16x8Sub);
   }
 
+  void i16x8_sub_sat_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.sub_sat_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8SubSatS);
+  }
+
+  void i16x8_sub_sat_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.sub_sat_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8SubSatU);
+  }
+
   void i16x8_mul() {
     assert(
       _verifyTypes(
@@ -4696,6 +5274,50 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i16x8Mul);
+  }
+
+  void i16x8_extadd_pairwise_i8x16_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.extadd_pairwise_i8x16_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ExtAddPairwiseI8x16S);
+  }
+
+  void i16x8_extadd_pairwise_i8x16_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.extadd_pairwise_i8x16_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8ExtAddPairwiseI8x16U);
+  }
+
+  void i16x8_abs() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.abs'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8Abs);
+  }
+
+  void i16x8_q15mulr_sat_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.q15mulr_sat_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8Q15MulrSatS);
   }
 
   void i16x8_neg() {
@@ -4742,6 +5364,50 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.i32x4Mul);
   }
 
+  void i32x4_min_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.min_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4MinS);
+  }
+
+  void i32x4_min_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.min_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4MinU);
+  }
+
+  void i32x4_max_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.max_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4MaxS);
+  }
+
+  void i32x4_max_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.max_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4MaxU);
+  }
+
   void i32x4_dot_i16x8() {
     assert(
       _verifyTypes(
@@ -4753,6 +5419,50 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(ir.V128Instruction.i32x4DotI16x8);
   }
 
+  void i32x4_extmul_low_i16x8_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.extmul_low_i16x8_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ExtMulLowI16x8S);
+  }
+
+  void i32x4_extmul_high_i16x8_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.extmul_high_i16x8_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ExtMulHighI16x8S);
+  }
+
+  void i32x4_extmul_low_i16x8_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.extmul_low_i16x8_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ExtMulLowI16x8U);
+  }
+
+  void i32x4_extmul_high_i16x8_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.extmul_high_i16x8_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ExtMulHighI16x8U);
+  }
+
   void i32x4_neg() {
     assert(
       _verifyTypes(
@@ -4762,6 +5472,581 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i32x4Neg);
+  }
+
+  void i32x4_abs() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.abs'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4Abs);
+  }
+
+  void i32x4_extend_low_i16x8_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.extend_low_i16x8_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ExtendLowI16x8S);
+  }
+
+  void i32x4_extend_high_i16x8_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.extend_high_i16x8_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ExtendHighI16x8S);
+  }
+
+  void i32x4_extend_low_i16x8_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.extend_low_i16x8_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ExtendLowI16x8U);
+  }
+
+  void i32x4_extend_high_i16x8_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.extend_high_i16x8_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ExtendHighI16x8U);
+  }
+
+  void i32x4_shl() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.shl'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4Shl);
+  }
+
+  void i32x4_shr_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.shr_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ShrS);
+  }
+
+  void i32x4_shr_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.shr_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4ShrU);
+  }
+
+  void i32x4_trunc_sat_f32x4_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.trunc_sat_f32x4_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4TruncSatF32x4S);
+  }
+
+  void i32x4_trunc_sat_f32x4_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.trunc_sat_f32x4_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4TruncSatF32x4U);
+  }
+
+  void i32x4_trunc_sat_f64x2_s_zero() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.trunc_sat_f64x2_s_zero'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4TruncSatF64x2SZero);
+  }
+
+  void i32x4_trunc_sat_f64x2_u_zero() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.trunc_sat_f64x2_u_zero'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4TruncSatF64x2UZero);
+  }
+
+  void f32x4_convert_i32x4_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f32x4.convert_i32x4_s'],
+      ),
+    );
+    _add(ir.V128Instruction.f32x4ConvertI32x4S);
+  }
+
+  void f32x4_convert_i32x4_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f32x4.convert_i32x4_u'],
+      ),
+    );
+    _add(ir.V128Instruction.f32x4ConvertI32x4U);
+  }
+
+  void f64x2_convert_low_i32x4_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f64x2.convert_low_i32x4_s'],
+      ),
+    );
+    _add(ir.V128Instruction.f64x2ConvertLowI32x4S);
+  }
+
+  void f64x2_convert_low_i32x4_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f64x2.convert_low_i32x4_u'],
+      ),
+    );
+    _add(ir.V128Instruction.f64x2ConvertLowI32x4U);
+  }
+
+  void f32x4_demote_f64x2_zero() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f32x4.demote_f64x2_zero'],
+      ),
+    );
+    _add(ir.V128Instruction.f32x4DemoteF64x2Zero);
+  }
+
+  void f64x2_promote_low_f32x4() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f64x2.promote_low_f32x4'],
+      ),
+    );
+    _add(ir.V128Instruction.f64x2PromoteLowF32x4);
+  }
+
+  void i8x16_relaxed_swizzle() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.relaxed_swizzle'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16RelaxedSwizzle);
+  }
+
+  void i32x4_relaxed_trunc_f32x4_s() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.relaxed_trunc_f32x4_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4RelaxedTruncF32x4S);
+  }
+
+  void i32x4_relaxed_trunc_f32x4_u() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.relaxed_trunc_f32x4_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4RelaxedTruncF32x4U);
+  }
+
+  void i32x4_relaxed_trunc_f64x2_s_zero() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.relaxed_trunc_f64x2_s_zero'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4RelaxedTruncF64x2SZero);
+  }
+
+  void i32x4_relaxed_trunc_f64x2_u_zero() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.relaxed_trunc_f64x2_u_zero'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4RelaxedTruncF64x2UZero);
+  }
+
+  void f32x4_relaxed_madd() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f32x4.relaxed_madd'],
+      ),
+    );
+    _add(ir.V128Instruction.f32x4RelaxedMadd);
+  }
+
+  void f32x4_relaxed_nmadd() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f32x4.relaxed_nmadd'],
+      ),
+    );
+    _add(ir.V128Instruction.f32x4RelaxedNmadd);
+  }
+
+  void f64x2_relaxed_madd() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f64x2.relaxed_madd'],
+      ),
+    );
+    _add(ir.V128Instruction.f64x2RelaxedMadd);
+  }
+
+  void f64x2_relaxed_nmadd() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f64x2.relaxed_nmadd'],
+      ),
+    );
+    _add(ir.V128Instruction.f64x2RelaxedNmadd);
+  }
+
+  void i8x16_relaxed_laneselect() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i8x16.relaxed_laneselect'],
+      ),
+    );
+    _add(ir.V128Instruction.i8x16RelaxedLaneSelect);
+  }
+
+  void i16x8_relaxed_laneselect() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.relaxed_laneselect'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8RelaxedLaneSelect);
+  }
+
+  void i32x4_relaxed_laneselect() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.relaxed_laneselect'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4RelaxedLaneSelect);
+  }
+
+  void i64x2_relaxed_laneselect() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.relaxed_laneselect'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2RelaxedLaneSelect);
+  }
+
+  void f32x4_relaxed_min() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f32x4.relaxed_min'],
+      ),
+    );
+    _add(ir.V128Instruction.f32x4RelaxedMin);
+  }
+
+  void f32x4_relaxed_max() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f32x4.relaxed_max'],
+      ),
+    );
+    _add(ir.V128Instruction.f32x4RelaxedMax);
+  }
+
+  void f64x2_relaxed_min() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f64x2.relaxed_min'],
+      ),
+    );
+    _add(ir.V128Instruction.f64x2RelaxedMin);
+  }
+
+  void f64x2_relaxed_max() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['f64x2.relaxed_max'],
+      ),
+    );
+    _add(ir.V128Instruction.f64x2RelaxedMax);
+  }
+
+  void i16x8_relaxed_q15mulr_s() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.relaxed_q15mulr_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8RelaxedQ15MulrS);
+  }
+
+  void i16x8_relaxed_dot_i8x16_i7x16_s() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i16x8.relaxed_dot_i8x16_i7x16_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i16x8RelaxedDotI8x16I7x16S);
+  }
+
+  void i32x4_relaxed_dot_i8x16_i7x16_add_s() {
+    assert(
+      allowRelaxedSimd,
+      'Relaxed SIMD instruction used without `allowRelaxedSimd`',
+    );
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i32x4.relaxed_dot_i8x16_i7x16_add_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i32x4RelaxedDotI8x16I7x16AddS);
+  }
+
+  void i64x2_extend_low_i32x4_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.extend_low_i32x4_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2ExtendLowI32x4S);
+  }
+
+  void i64x2_extend_high_i32x4_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.extend_high_i32x4_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2ExtendHighI32x4S);
+  }
+
+  void i64x2_extend_low_i32x4_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.extend_low_i32x4_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2ExtendLowI32x4U);
+  }
+
+  void i64x2_extend_high_i32x4_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.extend_high_i32x4_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2ExtendHighI32x4U);
+  }
+
+  void i64x2_shl() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.shl'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2Shl);
+  }
+
+  void i64x2_shr_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.shr_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2ShrS);
+  }
+
+  void i64x2_shr_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.i32],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.shr_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2ShrU);
   }
 
   void i64x2_add() {
@@ -4795,6 +6080,61 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       ),
     );
     _add(ir.V128Instruction.i64x2Mul);
+  }
+
+  void i64x2_extmul_low_i32x4_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.extmul_low_i32x4_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2ExtMulLowI32x4S);
+  }
+
+  void i64x2_extmul_high_i32x4_s() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.extmul_high_i32x4_s'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2ExtMulHighI32x4S);
+  }
+
+  void i64x2_extmul_low_i32x4_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.extmul_low_i32x4_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2ExtMulLowI32x4U);
+  }
+
+  void i64x2_extmul_high_i32x4_u() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128, ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.extmul_high_i32x4_u'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2ExtMulHighI32x4U);
+  }
+
+  void i64x2_abs() {
+    assert(
+      _verifyTypes(
+        const [ir.NumType.v128],
+        const [ir.NumType.v128],
+        trace: const ['i64x2.abs'],
+      ),
+    );
+    _add(ir.V128Instruction.i64x2Abs);
   }
 
   void i64x2_neg() {

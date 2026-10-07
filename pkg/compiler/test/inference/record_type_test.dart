@@ -255,6 +255,23 @@ main() {
       shape2Mask,
       shape1FooMask,
     ]);
+    // (A, string) | [subclass=_Record_2] => [subclass=_Record_2]
+    expectFlatRecordMask(
+      recordAStringMask.union(shape2Mask, domain),
+      shape2Class,
+    );
+    // (A, string) | [subclass=_Record_2|null] => [subclass=_Record_2|null]
+    expectFlatRecordMask(
+      recordAStringMask.union(shape2Mask.nullable(domain), domain),
+      shape2Class,
+      expectNullable: true,
+    );
+    // (A, string) | [subclass=_Record_2|late] => [subclass=_Record_2|late]
+    expectFlatRecordMask(
+      recordAStringMask.union(shape2Mask.withLateSentinel(domain), domain),
+      shape2Class,
+      expectHasLateSentinel: true,
+    );
     // (A, string) | [subclass=_Record2] => [subclass=_Record2]
     expectFlatRecordMask(
       recordAStringMask.union(record2ArityMask, domain),
@@ -1034,8 +1051,37 @@ main() {
     Expect.isFalse(recordAMask.nullable(domain).isNull);
   }
 
+  runNoRecordsInstantiatedTest() async {
+    TypeEnvironment env = await TypeEnvironment.create(r"""
+      class A {}
+      main() {
+        print(A());
+      }
+      """, testBackendWorld: true);
+    JClosedWorld world = env.jClosedWorld;
+    final domain = world.abstractValueDomain as CommonMasks;
+    final aMask = FlatTypeMask.nonNullExact(env.getClass('A'), domain);
+    final shape3 = RecordShape(2, ["bar"]);
+    final uninstantiatedRecordMask = RecordTypeMask.createRecord(domain, [
+      aMask,
+      aMask,
+      aMask,
+    ], shape3) as RecordTypeMask;
+    Expect.equals(
+      domain.emptyType,
+      uninstantiatedRecordMask.toFlatTypeMask(domain),
+    );
+    Expect.equals(
+      domain.nullType,
+      (uninstantiatedRecordMask.nullable(domain) as RecordTypeMask)
+          .toFlatTypeMask(domain),
+    );
+    Expect.equals(aMask, uninstantiatedRecordMask.union(aMask, domain));
+  }
+
   asyncTest(() async {
     print('--test from kernel------------------------------------------------');
     await runTest();
+    await runNoRecordsInstantiatedTest();
   });
 }

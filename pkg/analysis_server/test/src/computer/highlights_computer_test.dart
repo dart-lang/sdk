@@ -4,10 +4,9 @@
 
 import 'package:analysis_server/src/computer/computer_highlights.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {

@@ -32,10 +32,27 @@ main() {
 }
 ''');
 
-    var node = result.findNode.assignment('_foo =');
+    var node = result.findNode.directAssignment('_foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: package:test/a.dart::@class::A
+    operator: .
+    name: _foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: package:test/a.dart::@class::A::@setter::_foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::value
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/a.dart::@class::A
@@ -48,7 +65,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::value
     staticType: int
@@ -92,10 +109,27 @@ main() {
 }
 ''');
 
-    var node = result.findNode.assignment('_foo =');
+    var node = result.findNode.directAssignment('_foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: package:test/a.dart::@class::A
+    operator: .
+    name: _foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: package:test/a.dart::@class::A::@setter::_foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/a.dart::@class::A
@@ -108,7 +142,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
     staticType: int
@@ -137,10 +171,27 @@ main() {
 }
 ''');
 
-    var node = result.findNode.assignment('_foo =');
+    var node = result.findNode.directAssignment('_foo =');
     assertResolvedNodeText(node, r'''
-AssignmentExpression
-  leftHandSide2: PrefixedIdentifier
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: StaticQualifier
+      name: A
+      element: package:test/a.dart::@class::A
+    operator: .
+    name: _foo
+    read: <null>
+    write: SetterInvocationResolution
+      element: package:test/a.dart::@class::A::@setter::_foo
+      acceptedType: int
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: A
       element: package:test/a.dart::@class::A
@@ -153,7 +204,7 @@ AssignmentExpression
     element: <null>
     staticType: null
   operator: =
-  rightHandSide2: IntegerLiteral
+  rightHandSide: IntegerLiteral
     literal: 0
     correspondingParameter: package:test/a.dart::@class::A::@setter::_foo::@formalParameter::_
     staticType: int

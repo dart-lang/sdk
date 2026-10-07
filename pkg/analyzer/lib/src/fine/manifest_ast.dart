@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/binary/binary_reader.dart';
 import 'package:analyzer/src/binary/binary_writer.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/manifest_context.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -232,7 +233,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitAnnotation(Annotation node) {
     node.visitChildren2(this);
-    _addElement(node.element);
   }
 
   @override
@@ -261,10 +261,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
 
   @override
   void visitCascadePropertyExtraction(CascadePropertyExtraction node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     _addElement(element);
   }
 
@@ -312,10 +309,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
 
   @override
   void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     _addElement(element);
   }
 
@@ -325,15 +319,8 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
     node.visitChildren2(this);
-    switch (node.write) {
-      case InvalidNamedWriteResolution(:var candidates):
-        for (var element in candidates) {
-          _addElement(element);
-        }
-      case NamedWriteResolutionWithElement(:var element):
-        _addElement(element);
-      case null:
-      case DynamicPropertyWriteResolution():
+    if (node.write?.elementOrRecovery case var element?) {
+      _addElement(element);
     }
   }
 
@@ -427,17 +414,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(MethodInvocation node) {
-    if (node.methodName.element case TopLevelFunctionElement element) {
-      if (element.isDartCoreIdentical) {
-        node.visitChildren2(this);
-        return;
-      }
-    }
-    isValid = false;
-  }
-
-  @override
   void visitNamedArgument(NamedArgument node) {
     node.argumentExpression2.accept2(this);
   }
@@ -467,17 +443,6 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    node.prefix.accept2(this);
-    _addElement(node.element);
-  }
-
-  @override
-  void visitPropertyAccess(PropertyAccess node) {
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitReceiverMethodInvocation(ReceiverMethodInvocation node) {
     _visitNamedFunctionInvocation(node);
   }
@@ -485,10 +450,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   @override
   void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
     node.visitChildren2(this);
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.resolution?.element;
     _addElement(element);
   }
 
@@ -510,16 +472,17 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _addElement(node.element);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {}
 
   @override
   void visitSpreadElement(SpreadElement node) {
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitStaticQualifier(StaticQualifier node) {
+    node.visitChildren2(this);
+    _addElement(node.element);
   }
 
   @override
@@ -627,11 +590,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
 
   void _addReadResolution(NamedReadResolution? resolution) {
     // Keep one manifest slot per syntactic name, even when resolution fails.
-    _addElement(switch (resolution) {
-      InvalidNamedReadResolution(:var candidates) => candidates.firstOrNull,
-      NamedReadResolutionWithElement(:var element) => element,
-      _ => null,
-    });
+    _addElement(resolution?.elementOrRecovery);
   }
 
   void _visitNamedFunctionInvocation(NamedFunctionInvocation node) {

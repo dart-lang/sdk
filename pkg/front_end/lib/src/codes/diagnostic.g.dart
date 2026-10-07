@@ -263,6 +263,14 @@ Message _withArgumentsArgumentTypeNotAssignable({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode augmentationExtendsClassAlreadyPresentCause =
+    const MessageCode(
+      "AugmentationExtendsClassAlreadyPresentCause",
+      severity: CfeSeverity.context,
+      problemMessage: """The previous 'extends' clause.""",
+    );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitInLateLocalInitializer = const MessageCode(
   "AwaitInLateLocalInitializer",
   problemMessage:
@@ -2271,6 +2279,26 @@ Message _withArgumentsDeferredTypeAnnotation({
     correctionMessage:
         """Try removing 'deferred' from the import of '${prefix_0}' or use a supertype of '${type_0}' that isn't deferred.""",
     arguments: {'type': type, 'prefix': prefix},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required Uri uri})>
+deprecatedJsInteropLibraryImport = const Template(
+  "DeprecatedJsInteropLibraryImport",
+  withArguments: _withArgumentsDeprecatedJsInteropLibraryImport,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDeprecatedJsInteropLibraryImport({required Uri uri}) {
+  var uri_0 = conversions.relativizeUri(uri);
+  return new Message(
+    deprecatedJsInteropLibraryImport,
+    problemMessage:
+        """Import of deprecated JS interop library '${uri_0}' is not allowed.
+Deprecated JS interop libraries are planned for removal in Dart 4.0.
+Migrate to 'package:web' and 'dart:js_interop' (see https://dart.dev/interop/js-interop/past-js-interop), or temporarily enable the 'deprecated-js-interop' option.""",
+    arguments: {'uri': uri},
   );
 }
 
@@ -12968,6 +12996,14 @@ const MessageCode wasmImportOrExportInUserCode = const MessageCode(
 const MessageCode wasmIntrinsicTearOff = const MessageCode(
   "WasmIntrinsicTearOff",
   problemMessage: """This intrinsic extension member may not be torn off.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmSharedMemoryMissingMaximum = const MessageCode(
+  "WasmSharedMemoryMissingMaximum",
+  problemMessage:
+      """A shared WebAssembly memory must specify a maximum size.""",
+  correctionMessage: """Try specifying a maximum size.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

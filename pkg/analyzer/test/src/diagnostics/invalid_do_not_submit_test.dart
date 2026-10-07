@@ -43,7 +43,7 @@ import 'a.dart';
 void b() {
   A();
 //^
-// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A' should not be submitted to source control.
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A.new' should not be submitted to source control.
 }
 ''');
   }
@@ -65,7 +65,7 @@ import 'a.dart';
 
 var a = A();
 //      ^
-// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A' should not be submitted to source control.
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A.new' should not be submitted to source control.
 ''');
   }
 
@@ -103,7 +103,7 @@ import 'a.dart';
 void b() {
   A();
 //^
-// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A' should not be submitted to source control.
+// [diag.invalidUseOfDoNotSubmitMember] Uses of 'A.new' should not be submitted to source control.
 }
 ''');
   }

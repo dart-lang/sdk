@@ -31,7 +31,8 @@ class C {}
   test_animation_missingHeight() async {
     await resolveTestCodeWithDiagnostics(r'''
 /// {@animation 600}
-// [diag.docDirectiveMissingTwoArguments][column 5][length 17] The 'animation' directive is missing a 'height' and a 'url' argument.
+//  ^^^^^^^^^^^^^^^^
+// [diag.docDirectiveMissingTwoArguments] The 'animation' directive is missing a 'height' and a 'url' argument.
 class C {}
 ''');
   }
@@ -46,7 +47,8 @@ class C {}
   test_youtube_missingHeight() async {
     await resolveTestCodeWithDiagnostics(r'''
 /// {@youtube 600}
-// [diag.docDirectiveMissingTwoArguments][column 5][length 15] The 'youtube' directive is missing a 'height' and a 'url' argument.
+//  ^^^^^^^^^^^^^^
+// [diag.docDirectiveMissingTwoArguments] The 'youtube' directive is missing a 'height' and a 'url' argument.
 class C {}
 ''');
   }
@@ -54,8 +56,10 @@ class C {}
   test_youtube_missingHeight_andCurlyBrace() async {
     await resolveTestCodeWithDiagnostics(r'''
 /// {@youtube 600
-// [diag.docDirectiveMissingTwoArguments][column 5][length 14] The 'youtube' directive is missing a 'height' and a 'url' argument.
-// [diag.docDirectiveMissingClosingBrace][column 18][length 1] Doc directive is missing a closing curly brace ('}').
+//  ^^^^^^^^^^^^^
+// [diag.docDirectiveMissingTwoArguments] The 'youtube' directive is missing a 'height' and a 'url' argument.
+//              ^
+// [diag.docDirectiveMissingClosingBrace] Doc directive is missing a closing curly brace ('}').
 class C {}
 ''');
   }

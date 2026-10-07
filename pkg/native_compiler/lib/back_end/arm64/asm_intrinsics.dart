@@ -187,7 +187,7 @@ final class Arm64AsmIntrinsics(
     final notString = Label();
 
     _asm.ldr(R0, _asm.address(stackPointerReg, 0));
-    _asm.loadClassIdMayBeSmi(R1, R0);
+    _asm.loadClassId(R1, R0, canBeSmi: true);
 
     _asm.cmpImmediate(R1, ClassId.ClosureCid.index);
     _asm.b(fallback, .equal); // Instance is a closure.

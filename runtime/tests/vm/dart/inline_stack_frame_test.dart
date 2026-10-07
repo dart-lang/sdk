@@ -16,6 +16,8 @@
 //       and functions that have try/catch in them are not optimized (func1).
 //       func2 is not inlined as func1 has not been optimized.
 
+import "package:expect/variations.dart";
+
 class Test {
   @pragma("vm:entry-point")
   String func1(k) {
@@ -79,18 +81,22 @@ main() {
   var x = new Test();
   var result = x.func1(100000);
   expectHasSubstring(result, "show me inlined functions");
-  expectHasSubstring(result, "Test.func1");
-  expectHasSubstring(result, "Test.func2");
-  expectHasSubstring(result, "Test.func3");
-  expectHasSubstring(result, "Test.func4");
-  expectHasSubstring(result, "Test.func5");
+  if (symbolicUnminifiedStackTraces) {
+    expectHasSubstring(result, "Test.func1");
+    expectHasSubstring(result, "Test.func2");
+    expectHasSubstring(result, "Test.func3");
+    expectHasSubstring(result, "Test.func4");
+    expectHasSubstring(result, "Test.func5");
+  }
   for (var i = 0; i <= 10; i++) {
     result = x.func1(i);
   }
   expectHasSubstring(result, "show me inlined functions");
-  expectHasSubstring(result, "Test.func1");
-  expectHasSubstring(result, "Test.func2");
-  expectHasSubstring(result, "Test.func3");
-  expectHasSubstring(result, "Test.func4");
-  expectHasSubstring(result, "Test.func5");
+  if (symbolicUnminifiedStackTraces) {
+    expectHasSubstring(result, "Test.func1");
+    expectHasSubstring(result, "Test.func2");
+    expectHasSubstring(result, "Test.func3");
+    expectHasSubstring(result, "Test.func4");
+    expectHasSubstring(result, "Test.func5");
+  }
 }

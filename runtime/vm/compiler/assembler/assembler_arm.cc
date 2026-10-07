@@ -1387,6 +1387,10 @@ void Assembler::vandq(QRegister qd, QRegister qn, QRegister qm) {
   EmitSIMDqqq(B8 | B4, kByte, qd, qn, qm);
 }
 
+void Assembler::vbicq(QRegister qd, QRegister qn, QRegister qm) {
+  EmitSIMDqqq(B20 | B8 | B4, kByte, qd, qn, qm);
+}
+
 void Assembler::vmvnq(QRegister qd, QRegister qm) {
   EmitSIMDqqq(B25 | B24 | B23 | B10 | B8 | B7, kWordPair, qd, Q0, qm);
 }
@@ -1418,6 +1422,13 @@ void Assembler::vpmaxu(OperandSize sz,
                        DRegister dn,
                        DRegister dm) {
   EmitSIMDddd(B24 | B11 | B9, sz, dd, dn, dm);
+}
+
+void Assembler::vpminu(OperandSize sz,
+                       DRegister dd,
+                       DRegister dn,
+                       DRegister dm) {
+  EmitSIMDddd(B24 | B11 | B9 | B4, sz, dd, dn, dm);
 }
 
 void Assembler::vminqs(QRegister qd, QRegister qn, QRegister qm) {

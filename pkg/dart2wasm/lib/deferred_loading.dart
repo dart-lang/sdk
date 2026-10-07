@@ -197,7 +197,9 @@ class StressTestModuleStrategy extends ModuleStrategy {
     final asyncStart = ExpressionStatement(
       StaticInvocation(
         coreTypes.printProcedure,
-        Arguments([StringLiteral('unittest-suite-wait-for-done')]),
+        Arguments(
+          ExpressionList(StringLiteral('unittest-suite-wait-for-done')),
+        ),
       ),
     );
     invokeMain.function.body = Block([asyncStart, ...loadStatements, oldBody]);
@@ -360,7 +362,7 @@ class DeferredLoadingLowering extends Transformer {
     final loadId = _libraryLoadIds[node.import]!;
     return StaticInvocation(
       _loadLibraryFromLoadId,
-      Arguments([IntLiteral(loadId)]),
+      Arguments(ExpressionList(IntLiteral(loadId))),
     );
   }
 
@@ -369,7 +371,7 @@ class DeferredLoadingLowering extends Transformer {
     final loadId = _libraryLoadIds[node.import]!;
     return StaticInvocation(
       _checkLibraryIsLoadedFromLoadId,
-      Arguments([IntLiteral(loadId)]),
+      Arguments(ExpressionList(IntLiteral(loadId))),
     );
   }
 

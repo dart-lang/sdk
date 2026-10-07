@@ -45,13 +45,16 @@
 /// across isolates, or a map with keys and values that are all serializable across
 /// isolates.
 ///
-/// ## Status: Unstable
+/// ## Status: Deprecated
 ///
-/// The dart:mirrors library is unstable and its API might change slightly as a
-/// result of user feedback. This library is only supported by the Dart VM and
-/// only available on some platforms.
+/// The `dart:mirrors` library is `@deprecated` and will be removed in a future
+/// release. For details, see https://github.com/dart-lang/sdk/issues/44489.
+///
+/// This library is only supported by the Dart VM and only available on some
+/// platforms.
 ///
 /// {@category VM}
+@deprecated
 library dart.mirrors;
 
 import "dart:core";

@@ -17,7 +17,7 @@ class NamedMixinApplicationFragment implements Fragment {
   final List<TypeParameterFragment>? typeParameters;
   final LookupScope typeParameterScope;
   final NominalParameterNameSpace nominalParameterNameSpace;
-  final TypeBuilder? supertype;
+  final TypeBuilder supertype;
   final List<TypeBuilder> mixins;
   final List<TypeBuilder>? interfaces;
   final LookupScope enclosingScope;

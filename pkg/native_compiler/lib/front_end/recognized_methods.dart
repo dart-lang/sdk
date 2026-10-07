@@ -95,6 +95,7 @@ void buildArrayElementGetter(
   CField lengthField,
   CType elemType, {
   CField? indirectDataField,
+  bool checkIndex = true,
 }) {
   final index = builder.pop();
   final array = builder.pop();
@@ -103,9 +104,11 @@ void buildArrayElementGetter(
     builder.addLoadInstanceField(indirectDataField);
   }
   builder.push(index);
-  builder.push(array);
-  builder.addLoadInstanceField(lengthField);
-  builder.addIndexCheck();
+  if (checkIndex) {
+    builder.push(array);
+    builder.addLoadInstanceField(lengthField);
+    builder.addIndexCheck();
+  }
   builder.addLoadArrayElement(kind, elemType);
 }
 
@@ -428,6 +431,24 @@ void buildTypedDataMemMove(FlowGraphBuilder builder, ArrayKind kind) {
   builder.addNullConstant();
 }
 
+/// Build IR for dart:developer::_getNextTaskId.
+void buildTimelineGetNextTaskId(
+  FlowGraphBuilder builder,
+  ObjectLayout objectLayout,
+) {
+  final id = builder.addLoadExternalField(
+    objectLayout.Thread_nextTaskId,
+    hasObject: false,
+  );
+  builder.push(id);
+  builder.addIntConstant(1);
+  builder.addBinaryIntOp(.add);
+  builder.addStoreExternalField(
+    objectLayout.Thread_nextTaskId,
+    hasObject: false,
+  );
+}
+
 /// Build IR for ThreadLocal._hasValue.
 void buildThreadLocalHasValue(
   FlowGraphBuilder builder,
@@ -505,23 +526,69 @@ void buildUnimplementedRecognizedMethod(
 
 extension on ArrayKind {
   String get elementName => switch (this) {
-    .int8List => 'Int8',
-    .uint8List => 'Uint8',
-    .uint8ClampedList => 'Uint8Clamped',
-    .int16List => 'Int16',
-    .uint16List => 'Uint16',
-    .int32List => 'Int32',
-    .uint32List => 'Uint32',
-    .int64List => 'Int64',
-    .uint64List => 'Uint64',
-    .float32List => 'Float32',
-    .float64List => 'Float64',
-    .float32x4List => 'Float32x4',
-    .float64x2List => 'Float64x2',
-    .int32x4List => 'Int32x4',
+    .int8List || .int8ListView || .int8ByteData => 'Int8',
+    .uint8List || .uint8ListView || .uint8ByteData => 'Uint8',
+    .uint8ClampedList || .uint8ClampedListView => 'Uint8Clamped',
+    .int16List || .int16ListView || .int16ByteData => 'Int16',
+    .uint16List || .uint16ListView || .uint16ByteData => 'Uint16',
+    .int32List || .int32ListView || .int32ByteData => 'Int32',
+    .uint32List || .uint32ListView || .uint32ByteData => 'Uint32',
+    .int64List || .int64ListView || .int64ByteData => 'Int64',
+    .uint64List || .uint64ListView || .uint64ByteData => 'Uint64',
+    .float32List || .float32ListView || .float32ByteData => 'Float32',
+    .float64List || .float64ListView || .float64ByteData => 'Float64',
+    .float32x4List || .float32x4ListView || .float32x4ByteData => 'Float32x4',
+    .float64x2List || .float64x2ListView || .float64x2ByteData => 'Float64x2',
+    .int32x4List || .int32x4ListView || .int32x4ByteData => 'Int32x4',
     .fixedLengthList ||
     .oneByteString ||
     .twoByteString => throw 'ArrayKind.elementName is not defined for $this',
+  };
+  CType get elementType => switch (this) {
+    .int8List ||
+    .int8ListView ||
+    .int8ByteData ||
+    .uint8List ||
+    .uint8ListView ||
+    .uint8ByteData ||
+    .uint8ClampedList ||
+    .uint8ClampedListView ||
+    .int16List ||
+    .int16ListView ||
+    .int16ByteData ||
+    .uint16List ||
+    .uint16ListView ||
+    .uint16ByteData ||
+    .int32List ||
+    .int32ListView ||
+    .int32ByteData ||
+    .uint32List ||
+    .uint32ListView ||
+    .uint32ByteData ||
+    .int64List ||
+    .int64ListView ||
+    .int64ByteData ||
+    .uint64List ||
+    .uint64ListView ||
+    .uint64ByteData => const IntType(),
+    .float32List ||
+    .float32ListView ||
+    .float32ByteData ||
+    .float64List ||
+    .float64ListView ||
+    .float64ByteData => const DoubleType(),
+    .float32x4List ||
+    .float32x4ListView ||
+    .float32x4ByteData ||
+    .float64x2List ||
+    .float64x2ListView ||
+    .float64x2ByteData ||
+    .int32x4List ||
+    .int32x4ListView ||
+    .int32x4ByteData ||
+    .fixedLengthList ||
+    .oneByteString ||
+    .twoByteString => throw 'ArrayKind.elementType is not defined for $this',
   };
   int get elementSize => switch (this) {
     .uint8List => 1,
@@ -618,6 +685,13 @@ final class VmRecognizedMethods(
     ): (FlowGraphBuilder builder) {
       buildUnaryIntOp(builder, .bitLength);
     },
+    index.getProcedure(
+      'dart:core',
+      '_IntegerImplementation',
+      'toDouble',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryIntOp(builder, .toDouble);
+    },
     // TODO: implement 'operator ==' instead of '_equalToInteger'
     index.getProcedure(
       'dart:core',
@@ -681,6 +755,27 @@ final class VmRecognizedMethods(
       'get:isNaN',
     ): (FlowGraphBuilder builder) {
       buildDoubleIsNaN(builder);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'get:isNegative',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .isNegative);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'get:isInfinite',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .isInfinite);
+    },
+    index.getProcedure(
+      'dart:core',
+      '_Double',
+      'unary-',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .neg);
     },
     index.getProcedure(
       'dart:core',
@@ -1156,6 +1251,14 @@ final class VmRecognizedMethods(
       buildInstanceGetter(builder, objectLayout.RawReceivePort_sendPort);
     },
 
+    // dart:math
+    index.getTopLevelProcedure(
+      'dart:math',
+      '_sqrt',
+    ): (FlowGraphBuilder builder) {
+      buildUnaryDoubleOp(builder, .sqrt);
+    },
+
     // dart:typed_data
     index.getProcedure(
       'dart:typed_data',
@@ -1213,6 +1316,8 @@ final class VmRecognizedMethods(
       .uint32List,
       .int64List,
       .uint64List,
+      .float32List,
+      .float64List,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1223,7 +1328,57 @@ final class VmRecognizedMethods(
           builder,
           arrayKind,
           objectLayout.TypedListBase_length,
-          const IntType(),
+          arrayKind.elementType,
+        );
+      },
+    for (ArrayKind arrayKind in [
+      .int8ListView,
+      .uint8ListView,
+      .uint8ClampedListView,
+      .int16ListView,
+      .uint16ListView,
+      .int32ListView,
+      .uint32ListView,
+      .int64ListView,
+      .uint64ListView,
+      .float32ListView,
+      .float64ListView,
+    ])
+      index.getProcedure(
+        'dart:typed_data',
+        '_${arrayKind.elementName}ArrayView',
+        '[]',
+      ): (FlowGraphBuilder builder) {
+        buildArrayElementGetter(
+          builder,
+          arrayKind,
+          objectLayout.TypedListBase_length,
+          arrayKind.elementType,
+        );
+      },
+    for (ArrayKind arrayKind in [
+      .int8ListView,
+      .uint8ListView,
+      .uint8ClampedListView,
+      .int16ListView,
+      .uint16ListView,
+      .int32ListView,
+      .uint32ListView,
+      .int64ListView,
+      .uint64ListView,
+      .float32ListView,
+      .float64ListView,
+    ])
+      index.getProcedure(
+        'dart:typed_data',
+        '_External${arrayKind.elementName}Array',
+        '[]',
+      ): (FlowGraphBuilder builder) {
+        buildArrayElementGetter(
+          builder,
+          arrayKind,
+          objectLayout.TypedListBase_length,
+          arrayKind.elementType,
         );
       },
 
@@ -1237,6 +1392,8 @@ final class VmRecognizedMethods(
       .uint32List,
       .int64List,
       .uint64List,
+      .float32List,
+      .float64List,
     ])
       index.getProcedure(
         'dart:typed_data',
@@ -1250,6 +1407,56 @@ final class VmRecognizedMethods(
         );
       },
 
+    for (ArrayKind arrayKind in [
+      .int8ByteData,
+      .uint8ByteData,
+      .int16ByteData,
+      .uint16ByteData,
+      .int32ByteData,
+      .uint32ByteData,
+      .int64ByteData,
+      .uint64ByteData,
+      .float32ByteData,
+      .float64ByteData,
+    ])
+      index.getProcedure(
+        'dart:typed_data',
+        '_TypedList',
+        '_get${arrayKind.elementName}',
+      ): (FlowGraphBuilder builder) {
+        buildArrayElementGetter(
+          builder,
+          arrayKind,
+          objectLayout.TypedListBase_length,
+          arrayKind.elementType,
+          checkIndex: false,
+        );
+      },
+
+    for (ArrayKind arrayKind in [
+      .int8ByteData,
+      .uint8ByteData,
+      .int16ByteData,
+      .uint16ByteData,
+      .int32ByteData,
+      .uint32ByteData,
+      .int64ByteData,
+      .uint64ByteData,
+      .float32ByteData,
+      .float64ByteData,
+    ])
+      index.getProcedure(
+        'dart:typed_data',
+        '_TypedList',
+        '_set${arrayKind.elementName}',
+      ): (FlowGraphBuilder builder) {
+        buildArrayElementSetter(
+          builder,
+          arrayKind,
+          objectLayout.TypedListBase_length,
+          checkIndex: false,
+        );
+      },
     for (ArrayKind arrayKind in [
       .int8List,
       .uint8List,
@@ -1335,6 +1542,14 @@ final class VmRecognizedMethods(
       ): (FlowGraphBuilder builder) {
         buildTypedDataMemMove(builder, arrayKind);
       },
+
+    // dart:developer
+    index.getTopLevelProcedure(
+      'dart:developer',
+      '_getNextTaskId',
+    ): (FlowGraphBuilder builder) {
+      buildTimelineGetNextTaskId(builder, objectLayout);
+    },
 
     // dart:_vm
     index.getProcedure(

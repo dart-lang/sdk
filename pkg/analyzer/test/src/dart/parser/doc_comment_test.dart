@@ -34,7 +34,7 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [26, 70]
+        offset: [26, 69]
         type: [DocDirectiveType.animation]
         positionalArguments
           600
@@ -51,7 +51,8 @@ int x = 0;
 
 /// Text.
 /// {@animation 600 400 http://google.com arg=value
-// [diag.docDirectiveMissingClosingBrace][column 52][length 1] Doc directive is missing a closing curly brace ('}').
+//                                                ^
+// [diag.docDirectiveMissingClosingBrace] Doc directive is missing a closing curly brace ('}').
 class A {}
 ''');
 
@@ -64,7 +65,7 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [26, 74]
+        offset: [26, 73]
         type: [DocDirectiveType.animation]
         positionalArguments
           600
@@ -81,7 +82,8 @@ int x = 0;
 
 /// Text.
 /// {@animation 600 400 http://google.com arg=
-// [diag.docDirectiveMissingClosingBrace][column 47][length 1] Doc directive is missing a closing curly brace ('}').
+//                                           ^
+// [diag.docDirectiveMissingClosingBrace] Doc directive is missing a closing curly brace ('}').
 class A {}
 ''');
 
@@ -94,7 +96,7 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [26, 69]
+        offset: [26, 68]
         type: [DocDirectiveType.animation]
         positionalArguments
           600
@@ -117,7 +119,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: b
+      expression: SimpleIdentifier
         token: b
   tokens
     /// `a[i]` and [b].
@@ -136,7 +141,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: b
+      expression: SimpleIdentifier
         token: b
   tokens
     /** [:xxx [a] yyy:] [b] zzz */
@@ -154,13 +162,97 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: i
+      expression: SimpleIdentifier
         token: i
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: b
+      expression: SimpleIdentifier
         token: b
   tokens
     /** `a[i] and [b] */
+''');
+  }
+
+  test_codeSpan_unterminated_blockComment_fenced() {
+    // https://github.com/Dart-Code/Dart-Code/issues/6154
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/**
+  * Test
+  * ```dart
+  * void foo() {}
+  *
+  * `
+  */
+class C;
+''');
+
+    var node = parseResult.findNode.comment('Test');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /**
+  * Test
+  * ```dart
+  * void foo() {}
+  *
+  * `
+  */
+  codeBlocks
+    MdCodeBlock
+      infoString: dart
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 17
+          length: 7
+        MdCodeBlockLine
+          offset: 29
+          length: 13
+        MdCodeBlockLine
+          offset: 46
+          length: 0
+        MdCodeBlockLine
+          offset: 51
+          length: 1
+''');
+  }
+
+  /// Check we only exclude the end-of-comment marker and not anything else on
+  /// the same line.
+  test_codeSpan_unterminated_blockComment_fenced_endOfCommentMarkerOnPreviousLine() {
+    // https://github.com/Dart-Code/Dart-Code/issues/6154
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/**
+  * Test
+  * ```dart
+  * code*/
+class C;
+''');
+
+    var node = parseResult.findNode.comment('Test');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /**
+  * Test
+  * ```dart
+  * code*/
+  codeBlocks
+    MdCodeBlock
+      infoString: dart
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 17
+          length: 7
+        MdCodeBlockLine
+          offset: 29
+          length: 4
 ''');
   }
 
@@ -175,7 +267,10 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression2: SimpleIdentifier
+        components
+          CommentReferenceComponent
+            name: String @5
+        expression: SimpleIdentifier
           token: String @5
     tokens
       /** [String] */ @0
@@ -203,13 +298,22 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression2: SimpleIdentifier
+        components
+          CommentReferenceComponent
+            name: int @9
+        expression: SimpleIdentifier
           token: int @9
       CommentReference
-        expression2: SimpleIdentifier
+        components
+          CommentReferenceComponent
+            name: String @19
+        expression: SimpleIdentifier
           token: String @19
       CommentReference
-        expression2: SimpleIdentifier
+        components
+          CommentReferenceComponent
+            name: Object @36
+        expression: SimpleIdentifier
           token: Object @36
     tokens
       /// See [int] and [String] @0
@@ -217,6 +321,8 @@ ClassDeclaration
   metadata
     Annotation
       atSign: @ @45
+      expression: ParsedUnqualifiedName
+        name: Annotation @46
       name: SimpleIdentifier
         token: Annotation @46
   abstractKeyword: abstract @57
@@ -240,7 +346,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: a
+      expression: SimpleIdentifier
         token: a
   tokens
     /** [a]. */
@@ -267,16 +376,28 @@ ClassDeclaration
   documentationComment: Comment
     references
       CommentReference
-        expression2: SimpleIdentifier
+        components
+          CommentReferenceComponent
+            name: included @86
+        expression: SimpleIdentifier
           token: included @86
       CommentReference
-        expression2: SimpleIdentifier
+        components
+          CommentReferenceComponent
+            name: int @143
+        expression: SimpleIdentifier
           token: int @143
       CommentReference
-        expression2: SimpleIdentifier
+        components
+          CommentReferenceComponent
+            name: String @153
+        expression: SimpleIdentifier
           token: String @153
       CommentReference
-        expression2: SimpleIdentifier
+        components
+          CommentReferenceComponent
+            name: Object @240
+        expression: SimpleIdentifier
           token: Object @240
     tokens
       /// This dartdoc comment is [included]. @57
@@ -291,17 +412,19 @@ ClassDeclaration
         type: CodeBlockType.fenced
         lines
           MdCodeBlockLine
-            offset: 178
-            length: 4
+            offset: 179
+            length: 3
           MdCodeBlockLine
-            offset: 186
-            length: 36
+            offset: 187
+            length: 35
           MdCodeBlockLine
-            offset: 226
-            length: 4
+            offset: 227
+            length: 3
   metadata
     Annotation
       atSign: @ @45
+      expression: ParsedUnqualifiedName
+        name: Annotation @46
       name: SimpleIdentifier
         token: Annotation @46
   abstractKeyword: abstract @249
@@ -325,7 +448,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: <empty> <synthetic>
+      expression: SimpleIdentifier
         token: <empty> <synthetic>
   tokens
     /// [].
@@ -343,11 +469,43 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: a
+      expression: SimpleIdentifier
         token: a
   tokens
     /// Regarding [a]: it's an A.
 ''');
+  }
+
+  test_commentReference_incomplete_prefixed() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// [p.A.]
+void f() {}
+''');
+    assertParsedNodeText(parseResult.findNode.singleCommentReference, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p @5
+    CommentReferenceComponent
+      period: . @6
+      name: A @7
+    CommentReferenceComponent
+      period: . @8
+      name: <empty> @9 <synthetic>
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p @5
+      period: . @6
+      identifier: SimpleIdentifier
+        token: A @7
+    operator: . @8
+    propertyName: SimpleIdentifier
+      token: <empty> @9 <synthetic>
+''', withOffsets: true);
   }
 
   test_commentReference_multiple() {
@@ -361,10 +519,16 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: a
+      expression: SimpleIdentifier
         token: a
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: b
+      expression: SimpleIdentifier
         token: b
   tokens
     /// [a] and [b].
@@ -382,10 +546,16 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: a
+      expression: SimpleIdentifier
         token: a
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: b
+      expression: SimpleIdentifier
         token: b
   tokens
     /** [a] and [b]. */
@@ -401,15 +571,6 @@ class B {}
     var node = parseResult.findNode.comment('new');
     assertParsedNodeText(node, r'''
 Comment
-  references
-    CommentReference
-      newKeyword: new
-      expression2: PrefixedIdentifier
-        prefix: SimpleIdentifier
-          token: a
-        period: .
-        identifier: SimpleIdentifier
-          token: A
   tokens
     /// [new a.A].
 ''');
@@ -424,14 +585,39 @@ class B {}
     var node = parseResult.findNode.comment('new');
     assertParsedNodeText(node, r'''
 Comment
-  references
-    CommentReference
-      newKeyword: new
-      expression2: SimpleIdentifier
-        token: A
   tokens
     /// [new A].
 ''');
+  }
+
+  test_commentReference_operator_threeComponents() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+/// [p.A.operator +]
+void f() {}
+''');
+    assertParsedNodeText(parseResult.findNode.singleCommentReference, r'''
+CommentReference
+  components
+    CommentReferenceComponent
+      name: p @5
+    CommentReferenceComponent
+      period: . @6
+      name: A @7
+    CommentReferenceComponent
+      period: . @8
+      operatorKeyword: operator @9
+      name: + @18
+  expression: PropertyAccess
+    target: PrefixedIdentifier
+      prefix: SimpleIdentifier
+        token: p @5
+      period: . @6
+      identifier: SimpleIdentifier
+        token: A @7
+    operator: . @8
+    propertyName: SimpleIdentifier
+      token: + @18
+''', withOffsets: true);
   }
 
   test_commentReference_operator_withKeyword_notPrefixed() {
@@ -445,7 +631,11 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          operatorKeyword: operator
+          name: ==
+      expression: SimpleIdentifier
         token: ==
   tokens
     /// [operator ==].
@@ -463,7 +653,14 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: PrefixedIdentifier
+      components
+        CommentReferenceComponent
+          name: Object
+        CommentReferenceComponent
+          period: .
+          operatorKeyword: operator
+          name: ==
+      expression: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: Object
         period: .
@@ -485,7 +682,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: ==
+      expression: SimpleIdentifier
         token: ==
   tokens
     /// [==].
@@ -503,7 +703,13 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: PrefixedIdentifier
+      components
+        CommentReferenceComponent
+          name: Object
+        CommentReferenceComponent
+          period: .
+          name: ==
+      expression: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: Object
         period: .
@@ -525,7 +731,13 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: PrefixedIdentifier
+      components
+        CommentReferenceComponent
+          name: a
+        CommentReferenceComponent
+          period: .
+          name: b
+      expression: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: a
         period: .
@@ -547,7 +759,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: a
+      expression: SimpleIdentifier
         token: a
   tokens
     /// [a].
@@ -583,7 +798,7 @@ Comment
     /// @docImport 'dart:html';
   docImports
     DocImport
-      offset: 3
+      offset: 4
       import: ImportDirective
         importKeyword: import
         uri: SimpleStringLiteral
@@ -609,14 +824,14 @@ Comment
     /// @docImport 'dart:io';
   docImports
     DocImport
-      offset: 12
+      offset: 13
       import: ImportDirective
         importKeyword: import
         uri: SimpleStringLiteral
           literal: 'dart:html'
         semicolon: ;
     DocImport
-      offset: 40
+      offset: 41
       import: ImportDirective
         importKeyword: import
         uri: SimpleStringLiteral
@@ -640,7 +855,7 @@ Comment
     /// @docImport 'dart:html'
   docImports
     DocImport
-      offset: 3
+      offset: 4
       import: ImportDirective
         importKeyword: import
         uri: SimpleStringLiteral
@@ -668,7 +883,7 @@ Comment
     /// @docImport html
   docImports
     DocImport
-      offset: 3
+      offset: 4
       import: ImportDirective
         importKeyword: import
         uri: SimpleStringLiteral
@@ -690,7 +905,7 @@ Comment
     /// @docImport 'dart:html' as html;
   docImports
     DocImport
-      offset: 3
+      offset: 4
       import: ImportDirective
         importKeyword: import
         uri: SimpleStringLiteral
@@ -716,7 +931,7 @@ Comment
     /// @docImport 'dart:html' show Element, HtmlElement;
   docImports
     DocImport
-      offset: 3
+      offset: 4
       import: ImportDirective
         importKeyword: import
         uri: SimpleStringLiteral
@@ -755,7 +970,7 @@ Comment
     /// @docImport 'dart:html;
   docImports
     DocImport
-      offset: 3
+      offset: 4
       import: ImportDirective
         importKeyword: import
         uri: SimpleStringLiteral
@@ -793,30 +1008,30 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 3
-          length: 8
+          offset: 4
+          length: 7
         MdCodeBlockLine
-          offset: 15
+          offset: 16
+          length: 2
+        MdCodeBlockLine
+          offset: 23
           length: 3
-        MdCodeBlockLine
-          offset: 22
-          length: 4
     MdCodeBlock
       infoString: dart
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 58
-          length: 8
+          offset: 59
+          length: 7
         MdCodeBlockLine
-          offset: 70
+          offset: 71
+          length: 2
+        MdCodeBlockLine
+          offset: 78
           length: 3
-        MdCodeBlockLine
-          offset: 77
-          length: 4
   docImports
     DocImport
-      offset: 30
+      offset: 31
       import: ImportDirective
         importKeyword: import
         uri: SimpleStringLiteral
@@ -831,7 +1046,8 @@ int x = 0;
 
 /// Text.
 /// {@endtemplate}
-// [diag.docDirectiveMissingOpeningTag][column 5][length 15] Doc directive is missing an opening tag.
+//  ^^^^^^^^^^^^^^
+// [diag.docDirectiveMissingOpeningTag] Doc directive is missing an opening tag.
 /// More text.
 class A {}
 ''');
@@ -846,7 +1062,7 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [26, 41]
+        offset: [26, 40]
         type: [DocDirectiveType.endTemplate]
 ''');
   }
@@ -869,7 +1085,7 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [26, 63]
+        offset: [26, 62]
         type: [DocDirectiveType.example]
         positionalArguments
           /path/to/file.dart#region
@@ -894,7 +1110,7 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [26, 85]
+        offset: [26, 84]
         type: [DocDirectiveType.example]
         positionalArguments
           /path/to/file.dart#region
@@ -925,14 +1141,14 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 3
+          offset: 4
+          length: 3
+        MdCodeBlockLine
+          offset: 12
           length: 4
         MdCodeBlockLine
-          offset: 11
-          length: 5
-        MdCodeBlockLine
-          offset: 20
-          length: 4
+          offset: 21
+          length: 3
 ''');
   }
 
@@ -1054,11 +1270,11 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 3
-          length: 4
+          offset: 4
+          length: 3
         MdCodeBlockLine
-          offset: 11
-          length: 4
+          offset: 12
+          length: 3
 ''');
   }
 
@@ -1083,14 +1299,14 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 3
-          length: 6
+          offset: 4
+          length: 5
         MdCodeBlockLine
-          offset: 13
-          length: 15
+          offset: 14
+          length: 14
         MdCodeBlockLine
-          offset: 32
-          length: 6
+          offset: 33
+          length: 5
 ''');
   }
 
@@ -1119,20 +1335,20 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 3
-          length: 9
+          offset: 4
+          length: 8
         MdCodeBlockLine
-          offset: 16
-          length: 73
+          offset: 17
+          length: 72
         MdCodeBlockLine
-          offset: 93
-          length: 27
+          offset: 94
+          length: 26
         MdCodeBlockLine
-          offset: 124
-          length: 4
+          offset: 125
+          length: 3
         MdCodeBlockLine
-          offset: 132
-          length: 6
+          offset: 133
+          length: 5
 ''');
   }
 
@@ -1195,14 +1411,14 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 12
-          length: 4
+          offset: 13
+          length: 3
         MdCodeBlockLine
-          offset: 60
-          length: 13
+          offset: 61
+          length: 12
         MdCodeBlockLine
-          offset: 78
-          length: 4
+          offset: 79
+          length: 3
 ''');
   }
 
@@ -1227,11 +1443,11 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 12
-          length: 4
+          offset: 13
+          length: 3
         MdCodeBlockLine
-          offset: 20
-          length: 13
+          offset: 21
+          length: 12
 ''');
   }
 
@@ -1262,14 +1478,14 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 24
-          length: 4
+          offset: 25
+          length: 3
         MdCodeBlockLine
-          offset: 32
-          length: 13
+          offset: 33
+          length: 12
         MdCodeBlockLine
-          offset: 49
-          length: 4
+          offset: 50
+          length: 3
 ''');
   }
 
@@ -1296,11 +1512,167 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 25
+          offset: 26
+          length: 3
+        MdCodeBlockLine
+          offset: 34
+          length: 6
+''');
+  }
+
+  /// Simple fenced code block to verify the offset/length of code block lines
+  /// for each comment type and line ending type.
+  test_fencedCodeBlock_simple_blockComment_crlf() {
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''
+/**
+ * ```
+ * CODE
+ * ```
+ */
+class A {}
+'''
+          .withCrLf,
+    );
+
+    var node = parseResult.findNode.comment('CODE');
+    assertParsedNodeText(node, '''
+Comment
+  tokens
+    ${"""/**
+ * ```
+ * CODE
+ * ```
+ */""".withCrLf}
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 8
+          length: 3
+        MdCodeBlockLine
+          offset: 16
           length: 4
         MdCodeBlockLine
-          offset: 33
-          length: 7
+          offset: 25
+          length: 3
+''');
+  }
+
+  /// Simple fenced code block to verify the offset/length of code block lines
+  /// for each comment type and line ending type.
+  test_fencedCodeBlock_simple_blockComment_lf() {
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''
+/**
+ * ```
+ * CODE
+ * ```
+ */
+class A {}
+'''
+          .withLf,
+    );
+
+    var node = parseResult.findNode.comment('CODE');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /**
+ * ```
+ * CODE
+ * ```
+ */
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 7
+          length: 3
+        MdCodeBlockLine
+          offset: 14
+          length: 4
+        MdCodeBlockLine
+          offset: 22
+          length: 3
+''');
+  }
+
+  /// Simple fenced code block to verify the offset/length of code block lines
+  /// for each comment type and line ending type.
+  test_fencedCodeBlock_simple_crlf() {
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''
+/// ```
+/// CODE
+/// ```
+class A {}
+'''
+          .withCrLf,
+    );
+
+    var node = parseResult.findNode.comment('CODE');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// ```
+    /// CODE
+    /// ```
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 4
+          length: 3
+        MdCodeBlockLine
+          offset: 13
+          length: 4
+        MdCodeBlockLine
+          offset: 23
+          length: 3
+''');
+  }
+
+  /// Simple fenced code block to verify the offset/length of code block lines
+  /// for each comment type and line ending type.
+  test_fencedCodeBlock_simple_lf() {
+    var parseResult = parseTestCodeWithDiagnostics(
+      r'''
+/// ```
+/// CODE
+/// ```
+class A {}
+'''
+          .withLf,
+    );
+
+    var node = parseResult.findNode.comment('CODE');
+    assertParsedNodeText(node, r'''
+Comment
+  tokens
+    /// ```
+    /// CODE
+    /// ```
+  codeBlocks
+    MdCodeBlock
+      infoString: <empty>
+      type: CodeBlockType.fenced
+      lines
+        MdCodeBlockLine
+          offset: 4
+          length: 3
+        MdCodeBlockLine
+          offset: 12
+          length: 4
+        MdCodeBlockLine
+          offset: 21
+          length: 3
 ''');
   }
 
@@ -1337,27 +1709,27 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 12
-          length: 4
+          offset: 13
+          length: 3
         MdCodeBlockLine
-          offset: 20
-          length: 13
+          offset: 21
+          length: 12
         MdCodeBlockLine
-          offset: 37
-          length: 4
+          offset: 38
+          length: 3
     MdCodeBlock
       infoString: dart
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 54
-          length: 8
+          offset: 55
+          length: 7
         MdCodeBlockLine
-          offset: 66
-          length: 6
+          offset: 67
+          length: 5
         MdCodeBlockLine
-          offset: 76
-          length: 4
+          offset: 77
+          length: 3
 ''');
   }
 
@@ -1365,7 +1737,7 @@ Comment
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Text.
 ///
-///    a[i] = b[i];
+///     a[i] = b[i];
 class A {}
 ''');
 
@@ -1375,14 +1747,14 @@ Comment
   tokens
     /// Text.
     ///
-    ///    a[i] = b[i];
+    ///     a[i] = b[i];
   codeBlocks
     MdCodeBlock
       infoString: <empty>
       type: CodeBlockType.indented
       lines
         MdCodeBlockLine
-          offset: 17
+          offset: 18
           length: 16
 ''');
   }
@@ -1390,7 +1762,7 @@ Comment
   test_indentedCodeBlock_afterTextLine_notCodeBlock() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /// Text.
-///    a[i] = b[i];
+///     a[i] = b[i];
 class A {}
 ''');
 
@@ -1399,14 +1771,20 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: i
+      expression: SimpleIdentifier
         token: i
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: i
+      expression: SimpleIdentifier
         token: i
   tokens
     /// Text.
-    ///    a[i] = b[i];
+    ///     a[i] = b[i];
 ''');
   }
 
@@ -1427,8 +1805,8 @@ Comment
       type: CodeBlockType.indented
       lines
         MdCodeBlockLine
-          offset: 3
-          length: 9
+          offset: 4
+          length: 8
 ''');
   }
 
@@ -1460,7 +1838,7 @@ Comment
 
   test_indentedCodeBlock_firstLine() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-///    a[i] = b[i];
+///     a[i] = b[i];
 class A {}
 ''');
 
@@ -1468,14 +1846,14 @@ class A {}
     assertParsedNodeText(node, r'''
 Comment
   tokens
-    ///    a[i] = b[i];
+    ///     a[i] = b[i];
   codeBlocks
     MdCodeBlock
       infoString: <empty>
       type: CodeBlockType.indented
       lines
         MdCodeBlockLine
-          offset: 3
+          offset: 4
           length: 16
 ''');
   }
@@ -1495,7 +1873,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: c
+      expression: SimpleIdentifier
         token: c
   tokens
     /**
@@ -1539,14 +1920,14 @@ Comment
       type: CodeBlockType.fenced
       lines
         MdCodeBlockLine
-          offset: 13
-          length: 8
+          offset: 14
+          length: 7
         MdCodeBlockLine
-          offset: 25
-          length: 17
+          offset: 26
+          length: 16
         MdCodeBlockLine
-          offset: 46
-          length: 8
+          offset: 47
+          length: 7
 ''');
   }
 
@@ -1561,7 +1942,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: b
+      expression: SimpleIdentifier
         token: b
   tokens
     /// [a](http://www.google.com) [b].
@@ -1581,7 +1965,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: b
+      expression: SimpleIdentifier
         token: b
   tokens
     /// [a]: http://www.google.com Google [b]
@@ -1669,7 +2056,10 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: b
+      expression: SimpleIdentifier
         token: b
   tokens
     /// [a link][c] [b].
@@ -1688,10 +2078,16 @@ class A {}
 Comment
   references
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: a
+      expression: SimpleIdentifier
         token: a
     CommentReference
-      expression2: SimpleIdentifier
+      components
+        CommentReferenceComponent
+          name: b
+      expression: SimpleIdentifier
         token: b
   tokens
     /// [a link split across multiple
@@ -1721,12 +2117,12 @@ Comment
   docDirectives
     BlockDocDirective
       openingTag
-        offset: [26, 43]
+        offset: [26, 42]
         type: [DocDirectiveType.template]
         positionalArguments
           name
       closingTag
-        offset: [62, 77]
+        offset: [62, 76]
         type: [DocDirectiveType.endTemplate]
 ''');
   }
@@ -1755,16 +2151,16 @@ Comment
   docDirectives
     BlockDocDirective
       openingTag
-        offset: [26, 43]
+        offset: [26, 42]
         type: [DocDirectiveType.template]
         positionalArguments
           name
       closingTag
-        offset: [80, 95]
+        offset: [80, 94]
         type: [DocDirectiveType.endTemplate]
     SimpleDocDirective
       tag
-        offset: [62, 76]
+        offset: [62, 75]
         type: [DocDirectiveType.macro]
         positionalArguments
           name
@@ -1801,21 +2197,21 @@ Comment
   docDirectives
     BlockDocDirective
       openingTag
-        offset: [26, 43]
+        offset: [26, 42]
         type: [DocDirectiveType.template]
         positionalArguments
           name
       closingTag
-        offset: [134, 149]
+        offset: [134, 148]
         type: [DocDirectiveType.endTemplate]
     BlockDocDirective
       openingTag
-        offset: [62, 80]
+        offset: [62, 79]
         type: [DocDirectiveType.template]
         positionalArguments
           name2
       closingTag
-        offset: [100, 115]
+        offset: [100, 114]
         type: [DocDirectiveType.endTemplate]
 ''');
   }
@@ -1826,7 +2222,8 @@ int x = 0;
 
 /// Text.
 /// {@template name}
-// [diag.docDirectiveMissingClosingTag][column 5][length 17] Doc directive is missing a closing tag.
+//  ^^^^^^^^^^^^^^^^
+// [diag.docDirectiveMissingClosingTag] Doc directive is missing a closing tag.
 /// More text.
 class A {}
 ''');
@@ -1841,7 +2238,7 @@ Comment
   docDirectives
     BlockDocDirective
       openingTag
-        offset: [26, 43]
+        offset: [26, 42]
         type: [DocDirectiveType.template]
         positionalArguments
           name
@@ -1854,10 +2251,12 @@ int x = 0;
 
 /// Text.
 /// {@template name}
-// [diag.docDirectiveMissingClosingTag][column 5][length 17] Doc directive is missing a closing tag.
+//  ^^^^^^^^^^^^^^^^
+// [diag.docDirectiveMissingClosingTag] Doc directive is missing a closing tag.
 /// More text.
 /// {@template name2}
-// [diag.docDirectiveMissingClosingTag][column 5][length 18] Doc directive is missing a closing tag.
+//  ^^^^^^^^^^^^^^^^^
+// [diag.docDirectiveMissingClosingTag] Doc directive is missing a closing tag.
 /// More text.
 class A {}
 ''');
@@ -1874,13 +2273,13 @@ Comment
   docDirectives
     BlockDocDirective
       openingTag
-        offset: [26, 43]
+        offset: [26, 42]
         type: [DocDirectiveType.template]
         positionalArguments
           name
     BlockDocDirective
       openingTag
-        offset: [62, 80]
+        offset: [62, 79]
         type: [DocDirectiveType.template]
         positionalArguments
           name2
@@ -1893,7 +2292,8 @@ int x = 0;
 
 /// Text.
 /// {@template name}
-// [diag.docDirectiveMissingClosingTag][column 5][length 17] Doc directive is missing a closing tag.
+//  ^^^^^^^^^^^^^^^^
+// [diag.docDirectiveMissingClosingTag] Doc directive is missing a closing tag.
 /// More text.
 /// {@animation 600 400 http://google.com}
 class A {}
@@ -1910,13 +2310,13 @@ Comment
   docDirectives
     BlockDocDirective
       openingTag
-        offset: [26, 43]
+        offset: [26, 42]
         type: [DocDirectiveType.template]
         positionalArguments
           name
     SimpleDocDirective
       tag
-        offset: [62, 101]
+        offset: [62, 100]
         type: [DocDirectiveType.animation]
         positionalArguments
           600
@@ -1933,11 +2333,13 @@ int x = 0;
 /// {@template name}
 /// More text.
 /// {@inject-html}
-// [diag.docDirectiveMissingClosingTag][column 5][length 15] Doc directive is missing a closing tag.
+//  ^^^^^^^^^^^^^^
+// [diag.docDirectiveMissingClosingTag] Doc directive is missing a closing tag.
 /// HTML.
 /// {@endtemplate}
 /// {@end-inject-html}
-// [diag.docDirectiveMissingOpeningTag][column 5][length 19] Doc directive is missing an opening tag.
+//  ^^^^^^^^^^^^^^^^^^
+// [diag.docDirectiveMissingOpeningTag] Doc directive is missing an opening tag.
 class A {}
 ''');
 
@@ -1955,20 +2357,20 @@ Comment
   docDirectives
     BlockDocDirective
       openingTag
-        offset: [26, 43]
+        offset: [26, 42]
         type: [DocDirectiveType.template]
         positionalArguments
           name
       closingTag
-        offset: [91, 106]
+        offset: [91, 105]
         type: [DocDirectiveType.endTemplate]
     BlockDocDirective
       openingTag
-        offset: [62, 77]
+        offset: [62, 76]
         type: [DocDirectiveType.injectHtml]
     SimpleDocDirective
       tag
-        offset: [110, 129]
+        offset: [110, 128]
         type: [DocDirectiveType.endInjectHtml]
 ''');
   }
@@ -1995,7 +2397,7 @@ Comment
   docDirectives
     BlockDocDirective
       openingTag
-        offset: [26, 57]
+        offset: [26, 56]
         type: [DocDirectiveType.tool]
         positionalArguments
           snippets
@@ -2003,7 +2405,7 @@ Comment
           two
           three
       closingTag
-        offset: [76, 88]
+        offset: [76, 87]
         type: [DocDirectiveType.endTool]
 ''');
   }
@@ -2046,7 +2448,7 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [26, 63]
+        offset: [26, 62]
         type: [DocDirectiveType.youtube]
         positionalArguments
           600
@@ -2058,7 +2460,8 @@ Comment
   test_youTubeDirective_missingEndBrace() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /// {@youtube 600 400 http://google.com
-// [diag.docDirectiveMissingClosingBrace][column 40][length 1] Doc directive is missing a closing curly brace ('}').
+//                                    ^
+// [diag.docDirectiveMissingClosingBrace] Doc directive is missing a closing curly brace ('}').
 class A {}
 ''');
 
@@ -2070,7 +2473,7 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [4, 40]
+        offset: [4, 39]
         type: [DocDirectiveType.youtube]
         positionalArguments
           600
@@ -2093,7 +2496,7 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [4, 23]
+        offset: [4, 22]
         type: [DocDirectiveType.youtube]
         positionalArguments
           600
@@ -2115,7 +2518,7 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [4, 19]
+        offset: [4, 18]
         type: [DocDirectiveType.youtube]
         positionalArguments
           600
@@ -2136,8 +2539,18 @@ Comment
   docDirectives
     SimpleDocDirective
       tag
-        offset: [4, 16]
+        offset: [4, 15]
         type: [DocDirectiveType.youtube]
 ''');
+  }
+}
+
+extension on String {
+  String get withCrLf {
+    return replaceAll('\r', '').replaceAll('\n', '\r\n');
+  }
+
+  String get withLf {
+    return replaceAll('\r', '');
   }
 }

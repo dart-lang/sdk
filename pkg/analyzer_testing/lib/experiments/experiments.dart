@@ -17,6 +17,7 @@ import 'package:analyzer/dart/analysis/features.dart';
 final List<Feature> experimentalFeaturesForTests = List.unmodifiable([
   Feature.augmentations,
   Feature.enhanced_parts,
+  Feature.single_combinators,
   Feature.static_extensions,
   Feature.this_promotion,
   Feature.variance,

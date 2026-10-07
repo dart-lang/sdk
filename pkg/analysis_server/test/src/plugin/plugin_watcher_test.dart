@@ -12,10 +12,9 @@ import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as protocol;
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -32,7 +31,7 @@ class PluginWatcherTest extends AbstractContextTest {
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisDriver driverFor(File file) {
-    return contextFor(file).driver;
+    return contextFor2(file).driver;
   }
 
   @override

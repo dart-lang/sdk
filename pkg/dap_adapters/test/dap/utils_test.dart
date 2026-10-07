@@ -83,6 +83,19 @@ void main() {
           2,
         );
       });
+
+      test('in flutter output', () {
+        expectFrames(
+          [
+            // https://github.com/Dart-Code/Dart-Code/issues/6162
+            '  RenderConstrainedBox.performLayout (package:flutter/src/r/p.dart:1:2)',
+            '    Container Container:package:flutter/src/r/p.dart:1:2',
+          ],
+          Uri.parse('package:flutter/src/r/p.dart'),
+          1,
+          2,
+        );
+      });
     });
 
     group('dart URIs', () {
@@ -121,6 +134,19 @@ void main() {
             'flutter: #1        A.b (file:///a/b/c/d.dart   1:2)',
           ],
           Uri.parse('file:///a/b/c/d.dart'),
+          1,
+          2,
+        );
+      });
+
+      test('in flutter output', () {
+        expectFrames(
+          [
+            // https://github.com/Dart-Code/Dart-Code/issues/6162
+            '  RenderConstrainedBox.performLayout (file:///src/r/p.dart:1:2)',
+            '    Container Container:file:///src/r/p.dart:1:2',
+          ],
+          Uri.parse('file:///src/r/p.dart'),
           1,
           2,
         );
@@ -174,6 +200,19 @@ void main() {
             'flutter: #1        A.b (file:///a:/b/c/d.dart:1:2)',
           ],
           Uri.parse('file:///a:/b/c/d.dart'),
+          1,
+          2,
+        );
+      });
+
+      test('in flutter output', () {
+        expectFrames(
+          [
+            // https://github.com/Dart-Code/Dart-Code/issues/6162
+            '  RenderConstrainedBox.performLayout (file:///d:/src/r/p.dart:1:2)',
+            '    Container Container:file:///d:/src/r/p.dart:1:2',
+          ],
+          Uri.parse('file:///d:/src/r/p.dart'),
           1,
           2,
         );

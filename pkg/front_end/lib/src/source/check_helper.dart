@@ -26,6 +26,7 @@ import '../base/compiler_context.dart';
 import '../base/messages.dart';
 import '../base/uri_offset.dart';
 import '../builder/compilation_unit.dart';
+import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/type_builder.dart';
 import '../kernel/internal_ast.dart';
@@ -368,7 +369,7 @@ extension CheckHelper on ProblemReporting {
     DartType constructedType = new InterfaceType(
       klass,
       klass.enclosingLibrary.nonNullable,
-      explicitOrInferredTypeArguments,
+      new DartTypeList.from(explicitOrInferredTypeArguments),
     );
     checkBoundsInType(
       libraryFeatures: libraryFeatures,
@@ -803,13 +804,12 @@ extension CheckHelper on ProblemReporting {
     required TypeEnvironment typeEnvironment,
     required bool isInstanceMember,
     required bool isLate,
+    required bool isAbstract,
     required bool isExternal,
     required bool hasInitializer,
     required DartType fieldType,
     required String name,
-    required int nameLength,
-    required int nameOffset,
-    required Uri fileUri,
+    required UriOffsetLength uriOffset,
   }) {
     // Check that the field has an initializer if its type is potentially
     // non-nullable.
@@ -818,18 +818,17 @@ extension CheckHelper on ProblemReporting {
     // checked elsewhere.
     if (!isInstanceMember &&
         !isLate &&
+        !isAbstract &&
         !isExternal &&
         fieldType is! InvalidType &&
         fieldType.isPotentiallyNonNullable &&
         !hasInitializer) {
-      addProblem(
+      addProblem2(
         diag.fieldNonNullableWithoutInitializerError.withArguments(
           fieldName: name,
           fieldType: fieldType,
         ),
-        nameOffset,
-        nameLength,
-        fileUri,
+        uriOffset,
       );
     }
   }
@@ -1085,6 +1084,28 @@ extension CheckHelper on ProblemReporting {
     }
     return publicName;
   }
+
+  void reportImplementsRepeated(
+    Map<TypeDeclarationBuilder, RepeatedImplements> problems,
+  ) {
+    problems.forEach((
+      TypeDeclarationBuilder interface,
+      RepeatedImplements problem,
+    ) {
+      addProblem2(
+        diag.implementsRepeated.withArguments(
+          name: interface.name,
+          extraCount: problem.extraCount,
+        ),
+        problem.uriOffset,
+      );
+    });
+  }
 }
 
 class ErrorText({required final String message, required final int fileOffset});
+
+class RepeatedImplements({
+  var int extraCount = 1,
+  required final UriOffsetLength uriOffset,
+});

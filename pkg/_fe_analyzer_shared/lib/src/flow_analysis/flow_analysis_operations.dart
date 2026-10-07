@@ -61,6 +61,9 @@ abstract interface class FlowAnalysisTypeOperations {
   /// Returns the client's representation of the type `bool`.
   SharedTypeView get boolType;
 
+  /// Returns the type used by the client in the case of errors.
+  SharedTypeView get errorType;
+
   /// Classifies the given type into one of the three categories defined by
   /// the [TypeClassification] enum.
   TypeClassification classifyType(SharedTypeView type);

@@ -136,7 +136,7 @@ class DartDocumentHighlightsComputer {
 
       // And in constructor declarations that do have names, we map the type
       // name to the class element.
-      Identifier(parent: ConstructorDeclaration parent)
+      Identifier(:ConstructorDeclaration parent)
           when parent.name != null && node == parent.typeName =>
         parent.declaredFragment?.element.enclosingElement,
 

@@ -6,8 +6,7 @@
 //
 // VMOptions=--experimental-shared-data
 
-import 'package:dart_internal/isolate_group.dart' show IsolateGroup;
-import 'dart:_vm' show ScopedThreadLocal;
+import 'dart:_vm' show IsolateGroup, ScopedThreadLocal;
 
 import "package:expect/expect.dart";
 

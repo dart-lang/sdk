@@ -141,13 +141,15 @@ class _ConstListLiteralBuilder(
     required List<Expression> parts,
     required int fileOffset,
   }) {
-    return new ListConcatenation(parts, typeArgument: _elementType)
-      ..fileOffset = fileOffset;
+    return new ListConcatenation(
+      new ExpressionList.from(parts),
+      typeArgument: _elementType,
+    )..fileOffset = fileOffset;
   }
 
   @override
   Expression _createLiteral({
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required int fileOffset,
   }) {
     return _createListLiteral(
@@ -213,7 +215,10 @@ abstract class _ConstListOrSetLiteralBuilder(
               _createNullAwareGuard(
                 element.fileOffset,
                 expressionCache,
-                _createLiteral(expressions: [], fileOffset: element.fileOffset),
+                _createLiteral(
+                  expressions: ExpressionList.empty,
+                  fileOffset: element.fileOffset,
+                ),
                 iterableType,
               ),
             );
@@ -233,12 +238,15 @@ abstract class _ConstListOrSetLiteralBuilder(
             _createNullAwareGuard(
               element.fileOffset,
               expressionCache,
-              _createLiteral(expressions: [], fileOffset: element.fileOffset),
+              _createLiteral(
+                expressions: ExpressionList.empty,
+                fileOffset: element.fileOffset,
+              ),
               iterableType,
               nullCheckedValue: _createLiteral(
-                expressions: [
+                expressions: new ExpressionList(
                   _createNullCheckedVariableGet(expressionCache.variable),
-                ],
+                ),
                 fileOffset: element.fileOffset,
               ),
             ),
@@ -259,7 +267,10 @@ abstract class _ConstListOrSetLiteralBuilder(
                   elements: [element.otherwise!],
                   fileOffset: element.otherwise!.fileOffset,
                 )
-              : _createLiteral(expressions: [], fileOffset: element.fileOffset);
+              : _createLiteral(
+                  expressions: ExpressionList.empty,
+                  fileOffset: element.fileOffset,
+                );
           parts.add(
             _createConditionalExpression(
               element.fileOffset,
@@ -305,7 +316,7 @@ abstract class _ConstListOrSetLiteralBuilder(
   /// Creates the expression for a const list or set literal of the given
   /// [expressions].
   Expression _createLiteral({
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required int fileOffset,
   });
 }
@@ -528,7 +539,7 @@ class _ConstMapLiteralBuilder(
       parts.add(makeLiteral(fileOffset, currentPart));
     }
     return new MapConcatenation(
-      parts,
+      new ExpressionList.from(parts),
       keyType: _keyType,
       valueType: _valueType,
     );
@@ -546,13 +557,15 @@ class _ConstSetLiteralBuilder(
     required List<Expression> parts,
     required int fileOffset,
   }) {
-    return new SetConcatenation(parts, typeArgument: _elementType)
-      ..fileOffset = fileOffset;
+    return new SetConcatenation(
+      new ExpressionList.from(parts),
+      typeArgument: _elementType,
+    )..fileOffset = fileOffset;
   }
 
   @override
   Expression _createLiteral({
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required int fileOffset,
   }) {
     return _createSetLiteral(
@@ -567,11 +580,11 @@ class _ConstSetLiteralBuilder(
 /// Shared builder for lowering list or set literals.
 abstract class _ListOrSetLiteralBuilder(super.engine, super.libraryBuilder)
     extends _LiteralBuilder {
-  List<Expression> _convertElementsToExpressions(
+  ExpressionList _convertElementsToExpressions(
     List<InferredElement> elements, {
     int? count,
   }) {
-    return new List.generate(
+    return new ExpressionList.generate(
       count ?? elements.length,
       (int index) =>
           (elements[index] as InferredExpressionElementBase).expression,
@@ -581,7 +594,7 @@ abstract class _ListOrSetLiteralBuilder(super.engine, super.libraryBuilder)
   ListLiteral _createListLiteral({
     required int fileOffset,
     required DartType elementType,
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required bool isConst,
   }) {
     assert(fileOffset != TreeNode.noOffset);
@@ -595,7 +608,7 @@ abstract class _ListOrSetLiteralBuilder(super.engine, super.libraryBuilder)
   SetLiteral _createSetLiteral({
     required int fileOffset,
     required DartType elementType,
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required bool isConst,
   }) {
     assert(fileOffset != TreeNode.noOffset);
@@ -689,7 +702,7 @@ abstract class _LiteralBuilder(
     int fileOffset,
     List<VariableDeclaration> variables,
     Expression? condition,
-    List<Expression> updates,
+    ExpressionList updates,
     Statement body,
   ) {
     assert(fileOffset != TreeNode.noOffset);
@@ -788,7 +801,7 @@ class _NonConstListLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('add'),
-        new Arguments([argument]),
+        new Arguments(new ExpressionList(argument)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.listAdd,
       )
@@ -808,7 +821,7 @@ class _NonConstListLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('addAll'),
-        new Arguments([argument]),
+        new Arguments(new ExpressionList(argument)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.listAddAll,
       )
@@ -819,7 +832,7 @@ class _NonConstListLiteralBuilder(
   @override
   DeclaredVariable _createInitialValueFromExpressions({
     required List<Statement> body,
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required int fileOffset,
   }) {
     // Include the elements up to the first non-expression in the list
@@ -848,7 +861,10 @@ class _NonConstListLiteralBuilder(
     DeclaredVariable result = _createVariable(
       new StaticInvocation(
         _engine.listOf,
-        new Arguments([spread], types: [_elementType])..fileOffset = fileOffset,
+        new Arguments(
+          new ExpressionList(spread),
+          types: new DartTypeList(_elementType),
+        )..fileOffset = fileOffset,
       )..fileOffset = fileOffset,
       _receiverType,
     );
@@ -860,7 +876,7 @@ class _NonConstListLiteralBuilder(
 
   @override
   Expression _createLiteral({
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required int fileOffset,
   }) {
     return _createListLiteral(
@@ -973,7 +989,7 @@ abstract class _NonConstListOrSetLiteralBuilder(
   /// The declaration of the created variable is added to [body] and returned.
   DeclaredVariable _createInitialValueFromExpressions({
     required List<Statement> body,
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required int fileOffset,
   });
 
@@ -992,7 +1008,7 @@ abstract class _NonConstListOrSetLiteralBuilder(
   /// Creates the lowered expression for the list or set literal containing
   /// [expressions].
   Expression _createLiteral({
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required int fileOffset,
   });
 
@@ -1411,8 +1427,10 @@ class _NonConstMapLiteralBuilder(
         result = _createVariable(
           new StaticInvocation(
             _engine.mapOf,
-            new Arguments([value], types: [_keyType, _valueType])
-              ..fileOffset = fileOffset,
+            new Arguments(
+              new ExpressionList(value),
+              types: new DartTypeList(_keyType, _valueType),
+            )..fileOffset = fileOffset,
           )..fileOffset = fileOffset,
           _receiverType,
         );
@@ -1495,7 +1513,7 @@ class _NonConstMapLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('addAll'),
-        new Arguments([argument]),
+        new Arguments(new ExpressionList(argument)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.mapAddAll,
       )
@@ -1568,7 +1586,7 @@ class _NonConstMapLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('[]='),
-        new Arguments([key, value]),
+        new Arguments(new ExpressionList(key, value)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.mapPut,
       )
@@ -1882,7 +1900,7 @@ class _NonConstMapLiteralBuilder(
         keyExpression,
         valueExpression,
       ),
-    );
+    )..parent = addedEntryStatementParent;
 
     body.addAll(desugaredStatement.statements);
   }
@@ -1999,7 +2017,7 @@ class _NonConstMapLiteralBuilder(
       final InterfaceType variableType = new InterfaceType(
         _engine.mapEntryClass,
         Nullability.nonNullable,
-        <DartType>[const DynamicType(), const DynamicType()],
+        DartTypeList.dynamic2,
       );
       DeclaredVariable variable = _createForInVariable(
         entry.fileOffset,
@@ -2111,7 +2129,7 @@ class _NonConstSetLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('add'),
-        new Arguments([argument]),
+        new Arguments(new ExpressionList(argument)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.setAdd,
       )
@@ -2131,7 +2149,7 @@ class _NonConstSetLiteralBuilder(
         InstanceAccessKind.Instance,
         receiver,
         new Name('addAll'),
-        new Arguments([argument]),
+        new Arguments(new ExpressionList(argument)),
         functionType: functionType as FunctionType,
         interfaceTarget: _engine.setAddAll,
       )
@@ -2142,7 +2160,7 @@ class _NonConstSetLiteralBuilder(
   @override
   DeclaredVariable _createInitialValueFromExpressions({
     required List<Statement> body,
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required int fileOffset,
   }) {
     if (_libraryBuilder.loader.target.backendTarget.supportsSetLiterals) {
@@ -2174,7 +2192,10 @@ class _NonConstSetLiteralBuilder(
       DeclaredVariable result = _createVariable(
         new StaticInvocation(
           _engine.setFactory,
-          new Arguments([], types: [_elementType])..fileOffset = fileOffset,
+          new Arguments(
+            ExpressionList.empty,
+            types: new DartTypeList(_elementType),
+          )..fileOffset = fileOffset,
         )..fileOffset = fileOffset,
         _receiverType,
       );
@@ -2200,7 +2221,10 @@ class _NonConstSetLiteralBuilder(
     DeclaredVariable result = _createVariable(
       new StaticInvocation(
         _engine.setOf,
-        new Arguments([spread], types: [_elementType])..fileOffset = fileOffset,
+        new Arguments(
+          new ExpressionList(spread),
+          types: new DartTypeList(_elementType),
+        )..fileOffset = fileOffset,
       )..fileOffset = fileOffset,
       _receiverType,
     );
@@ -2212,7 +2236,7 @@ class _NonConstSetLiteralBuilder(
 
   @override
   Expression _createLiteral({
-    required List<Expression> expressions,
+    required ExpressionList expressions,
     required int fileOffset,
   }) {
     return _lowerSetLiteral(
@@ -2241,12 +2265,15 @@ class _NonConstSetLiteralBuilder(
     DeclaredVariable setVar = extern.createVariable(
       new StaticInvocation(
         _engine.setFactory,
-        new Arguments([], types: [node.typeArgument]),
+        new Arguments(
+          ExpressionList.empty,
+          types: new DartTypeList(node.typeArgument),
+        ),
       ),
       receiverType = new InterfaceType(
         _coreTypes.setClass,
         Nullability.nonNullable,
-        [node.typeArgument],
+        new DartTypeList(node.typeArgument),
       ),
     );
 
@@ -2263,7 +2290,7 @@ class _NonConstSetLiteralBuilder(
               InstanceAccessKind.Instance,
               new VariableGet(setVar),
               new Name("add"),
-              new Arguments([entry]),
+              new Arguments(new ExpressionList(entry)),
               functionType: functionType as FunctionType,
               interfaceTarget: _engine.setAddMethod,
             )

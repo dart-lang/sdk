@@ -23,6 +23,7 @@ import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 
 /// A helper class that produces candidate suggestions for all of the
@@ -480,18 +481,19 @@ class DeclarationHelper {
       parent = parent.parent;
     }
     if (parent is CompilationUnit) {
-      var library = parent.declaredFragment?.element;
-      if (library != null) {
-        _addTopLevelDeclarations(library);
+      var libraryFragment = parent.declaredFragment;
+      if (libraryFragment != null) {
+        _addTopLevelDeclarations(libraryFragment.element);
         addImportPrefixes();
         if (!skipImports) {
-          _addImportedDeclarations(library);
+          _addImportedDeclarations(libraryFragment);
         }
         _recordOperation(StaticMembersOperation(declarationHelper: this));
       }
     }
     if (topLevelMember != null && !mustBeStatic && !mustBeType) {
-      var thisType = node.thisTypeAt(offset);
+      // ignore: experimental_member_use
+      var thisType = request.unit.lookupThisType(offset: offset);
       _addInheritedMembers(topLevelMember, thisType);
     }
   }
@@ -1032,11 +1034,15 @@ class DeclarationHelper {
 
   /// Adds suggestions for any top-level declarations that are imported into the
   /// [library].
-  void _addImportedDeclarations(LibraryElement library) {
+  void _addImportedDeclarations(LibraryFragment libraryFragment) {
     // TODO(brianwilkerson): This will create suggestions for elements that
     //  conflict with different elements imported from a different library. Not
     //  sure whether that's the desired behavior.
-    for (var importElement in library.firstFragment.libraryImports) {
+    var libraryImports = libraryFragment.withEnclosing2.expand(
+      (fragment) => fragment.libraryImports,
+    );
+    for (var importElement in libraryImports) {
+      // libraryFragment.libraryImports
       var importedLibrary = importElement.importedLibrary;
       if (importedLibrary != null) {
         _addDeclarationsImportedFrom(
@@ -2118,12 +2124,15 @@ class DeclarationHelper {
       importData: importData,
     );
 
-    // Use the constructor element's name without the interface type to
-    // calculate the matcher score for dot shorthands.
+    // Match the source spelling: dot shorthands use the constructor name,
+    // while ordinary unnamed constructor invocations use the class name.
     var elementName = element.name;
-    var matcherName = suggestingDotShorthand && elementName != null
-        ? elementName
-        : element.displayName;
+    var matcherName = element.displayName;
+    if (suggestingDotShorthand && elementName != null) {
+      matcherName = elementName;
+    } else if (elementName == 'new') {
+      matcherName = element.enclosingElement.displayName;
+    }
 
     // TODO(keertip): Compute the completion string.
     var matcherScore = state.matcher.score(matcherName);
@@ -3246,25 +3255,6 @@ enum ThisPrefix {
   new(this.text);
 }
 
-extension on AstNode {
-  /// Returns the type of `this` at the given [offset].
-  ///
-  /// Assumes that the receiver is inside the same function body as the
-  /// [offset].
-  DartType? thisTypeAt(int offset) {
-    FunctionBody? outermostFunctionBody;
-    AstNode? currentNode = this;
-    while (currentNode != null) {
-      if (currentNode is FunctionBody) {
-        outermostFunctionBody = currentNode;
-      }
-      currentNode = currentNode.parent;
-    }
-    // ignore: experimental_member_use
-    return outermostFunctionBody?.lookupPromotedThisType(offset: offset);
-  }
-}
-
 extension on GetterElement {
   /// Whether this getter is the `values` getter for an enum.
   ///
@@ -3287,7 +3277,7 @@ extension on Element {
       return true;
     }
     var name = this.name;
-    return name != null && !Identifier.isPrivateName(name);
+    return name != null && !name.isPrivateName;
   }
 }
 

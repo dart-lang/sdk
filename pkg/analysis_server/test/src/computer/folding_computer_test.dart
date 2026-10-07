@@ -5,10 +5,9 @@
 import 'package:analysis_server/src/computer/computer_folding.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -1014,7 +1013,7 @@ void f() {}
 
   Future<void> test_multiple_import_directives_partFile() async {
     var content = """
-part/*[0*/ of 'part.dart';
+part of/*[0*/ 'part.dart';
 
 import 'dart:async';
 

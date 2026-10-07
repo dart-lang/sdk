@@ -1,6 +1,93 @@
-## 14.4.0-dev
+## 14.6.0-dev
 
 * Internal changes only
+
+## 14.5.0
+
+* Added the `languageVersionOverride` parameter to `AnalysisContextCollection`
+  to override the default language version for non-SDK files.
+* Removed support for the `new` keyword in comment references. Text such as `[new C]` in a documentation comment is no
+  longer a comment reference, so it  isn't resolved, indexed, or renamed. Use `[C.new]` instead.
+* Deprecated `CommentReference.newKeyword`. It now always returns `null`.
+* Removed the `deprecated_new_in_comment_reference` diagnostic, along with its quick fix.
+* The loop variable of a for-in loop, including its metadata, is resolved
+  before the iterable, in source order. As a result, `dead_code` for a loop
+  over an expression of type `Never` starts at the loop body instead of the
+  loop variable.
+* Annotations are resolved like the same expression written without a keyword
+  in a constant context, and an annotation with arguments, `@C(args)`, is the
+  constructor invocation `const C(args)`. Annotations report the same
+  diagnostics as the equivalent constant expressions, usually at the name or
+  the argument instead of the whole annotation:
+  * `undefined_identifier` or `undefined_prefixed_name` for undefined names.
+  * `creation_with_non_type` for `@f()`, where `f` isn't a class.
+  * `const_with_undefined_constructor` for undefined constructors.
+  * `const_with_non_const` for constructors that aren't const.
+  * `const_deferred_class` for constructors of classes from a deferred library.
+    `invalid_annotation_from_deferred_library` is still reported for
+    annotations without arguments.
+  * `wrong_number_of_type_arguments` for the type as written, such as a type
+    alias, instead of the class that it denotes.
+  * `const_constructor_param_type_mismatch` in addition to
+    `argument_type_not_assignable`, as for `const C(...)`.
+  * `invalid_reference_to_generative_enum_constructor` for `@E()`, where `E` is
+    an enum, and `instantiate_abstract_class` for `@C()`, where `C` is
+    abstract. These weren't reported before.
+* Removed the `undefined_annotation` diagnostic. It was reported only when the
+  first name of an annotation was undefined, while an undefined name after a
+  class, as in `@Foo.bar`, was reported as `invalid_annotation`. Annotations
+  that aren't identifiers, such as `@1` or `@'string'`, report only the syntax
+  error.
+* Removed the `non_constant_annotation_constructor` diagnostic. `@C()`, where
+  the constructor isn't const, reports `const_with_non_const`. `@C` and
+  `@C.named` report `no_annotation_constructor_arguments` whether or not the
+  constructor is const.
+* `invalid_annotation` is reported only for an annotation without arguments
+  that references neither a constant variable nor a constructor, such as a
+  getter or a function. It's no longer reported for undefined names, undefined
+  constructors, invocations of things that aren't classes, or in addition to
+  `ambiguous_import` or `annotation_with_type_arguments_uninstantiated`.
+* `missing_required_argument` for an annotation highlights the constructor
+  reference, such as `A.named` or `p.A`, and
+  `inference_failure_on_instance_creation` highlights the class name, instead
+  of the whole annotation.
+* `const_with_non_constant_argument` is no longer reported in addition to
+  `const_with_non_const` for an invocation of a constructor that isn't const in
+  the arguments of an annotation.
+* A non-constant named argument of a const constructor invocation reports
+  `const_with_non_constant_argument`, like a positional argument, instead of
+  `invalid_constant`.
+* `ElementAnnotation.constantEvaluationErrors` reports the same error as the
+  diagnostic for the annotation. For example, for `@A(x)`, where `x` isn't a
+  constant, it is now `const_with_non_constant_argument` instead of
+  `invalid_constant`.
+* Added support for prefixes in doc imports, such as `/// @docImport 'dart:io' as io;`.
+  Documentation comments can reference `[io.File]`, and the prefix itself as `[io]`.
+  The prefix is a `PrefixElement` whose `imports` are the doc imports with this prefix;
+  it isn't included into `LibraryFragment.prefixes`.
+  Removed the `doc_import_cannot_have_prefix` diagnostic.
+* Names in doc imports are now resolved like names in imports: a name exported by
+  multiple doc-imported libraries is ambiguous instead of resolving to the first one,
+  and `show` / `hide` combinators are applied.
+  Removed the `doc_import_cannot_have_combinators` diagnostic.
+* Added `PrefixElement.scopeLibraries`, the libraries that provide the names
+  in `PrefixElement.scope`. Unlike `imports`, it includes the libraries
+  imported with the same prefix in the enclosing files. When a prefix is used
+  alone, such as `[math]` in a documentation comment, it references the
+  library, if there is exactly one.
+* Added the `ambiguous_comment_reference` warning. It is reported for a name in
+  a comment reference that is imported, or doc-imported, from more than one
+  library, and for a prefix used alone, such as `[p]`, when more than one
+  library is imported with this prefix.
+
+## 14.4.0
+
+* Added experimental `CompilationUnit.lookupThisType`, which queries the type of
+  `this` at an arbitrary offset within the compilation unit.
+* Removed experimental `FunctionBody.lookupThisType`. Use
+  `CompilationUnit.lookupThisType` instead; unlike the removed method, it also
+  works at offsets that aren't inside a function body (for example inside the
+  initializer of a `late` instance field).
 
 ## 14.3.0
 

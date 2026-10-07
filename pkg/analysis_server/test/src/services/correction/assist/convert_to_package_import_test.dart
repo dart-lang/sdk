@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToPackageImportSrcTest extends AssistProcessorTest {
+class ConvertToPackageImportSrcTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToPackageImport;
 
@@ -36,7 +36,7 @@ import 'package:test/foo/bar.dart';
 }
 
 @reflectiveTest
-class ConvertToPackageImportTest extends AssistProcessorTest {
+class ConvertToPackageImportTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToPackageImport;
 

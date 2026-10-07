@@ -12,13 +12,153 @@ import 'package:cli_util/cli_logging.dart';
 import 'package:path/path.dart' as path;
 
 import 'experiments.dart';
+import 'progress.dart';
 import 'utils.dart';
 import 'vm_interop_handler.dart';
 
-// Initialize a default logger. We'll replace this with a verbose logger if
-// necessary once we start parsing.
 final Ansi ansi = Ansi(Ansi.terminalSupportsAnsi);
-Logger log = Logger.standard(ansi: ansi);
+final _defaultLogger = DartdevLogger(Logger.standard(ansi: ansi));
+final _logKey = Object();
+
+/// The [Logger] for the current [Zone].
+Logger get log => Zone.current[_logKey] as Logger? ?? _defaultLogger;
+
+/// The [DartdevLogger] for the current [Zone], or the default [DartdevLogger]
+/// if the current zone's logger is not a [DartdevLogger].
+DartdevLogger get dartdevLogger => switch (log) {
+  final DartdevLogger logger => logger,
+  _ => _defaultLogger,
+};
+
+/// Runs [callback] in a [Zone] with [logger] as the active [log].
+R withLogger<R>(Logger logger, R Function() callback) =>
+    runZoned(callback, zoneValues: {_logKey: logger});
+
+/// Runs [callback] in a [Zone] with a [DartdevLogger] configured with the given
+/// overrides, inheriting unspecified settings from the current [dartdevLogger].
+R withDartdevLogger<R>(
+  R Function() callback, {
+  Logger? delegate,
+  ProgressOutput? output,
+  bool? transientProgress,
+}) {
+  final current = dartdevLogger;
+  return withLogger(
+    DartdevLogger(
+      delegate ?? current._delegate,
+      output: output ?? current.output,
+      transientProgress: transientProgress ?? current.transientProgress,
+    ),
+    callback,
+  );
+}
+
+/// A delegating [Logger] that stops any active progress indicator and resets
+/// the progress grace period whenever output is printed to the terminal.
+///
+/// Also holds the zone-scoped [output] destination and [transientProgress]
+/// configuration for `dartdev` status messages and progress indicators.
+final class DartdevLogger implements Logger {
+  final Logger _delegate;
+
+  /// Where informational output ([stdout]) and progress indicators are written.
+  final ProgressOutput output;
+
+  /// Whether progress indicators started in this logger's zone are transient
+  /// by default.
+  final bool transientProgress;
+
+  DartdevLogger(
+    this._delegate, {
+    this.output = ProgressOutput.stdout,
+    this.transientProgress = false,
+  });
+
+  @override
+  Ansi get ansi => _delegate.ansi;
+
+  @override
+  bool get isVerbose => _delegate.isVerbose;
+
+  @override
+  void stdout(String message) {
+    switch (output) {
+      case ProgressOutput.stdout:
+        stopActiveProgress();
+        resetProgressGracePeriod();
+        _delegate.stdout(message);
+      case ProgressOutput.stderr:
+        stopActiveProgress();
+        resetProgressGracePeriod();
+        _delegate.stderr(message);
+      case ProgressOutput.none:
+        break;
+    }
+  }
+
+  @override
+  void stderr(String message) {
+    stopActiveProgress();
+    resetProgressGracePeriod();
+    _delegate.stderr(message);
+  }
+
+  @override
+  void trace(String message) {
+    if (output == ProgressOutput.none) return;
+    if (isVerbose) {
+      stopActiveProgress();
+      resetProgressGracePeriod();
+    }
+    _delegate.trace(message);
+  }
+
+  @override
+  void write(String message) {
+    switch (output) {
+      case ProgressOutput.stdout:
+        stopActiveProgress();
+        resetProgressGracePeriod();
+        _delegate.write(message);
+      case ProgressOutput.stderr:
+        stopActiveProgress();
+        resetProgressGracePeriod();
+        _delegate.stderr(message);
+      case ProgressOutput.none:
+        break;
+    }
+  }
+
+  @override
+  void writeCharCode(int charCode) {
+    switch (output) {
+      case ProgressOutput.stdout:
+        stopActiveProgress();
+        resetProgressGracePeriod();
+        _delegate.writeCharCode(charCode);
+      case ProgressOutput.stderr:
+        stopActiveProgress();
+        resetProgressGracePeriod();
+        _delegate.stderr(String.fromCharCode(charCode));
+      case ProgressOutput.none:
+        break;
+    }
+  }
+
+  @override
+  Progress progress(String message) => startProgress(
+    message,
+    transient: transientProgress,
+    output: output,
+  );
+
+  @override
+  // ignore: deprecated_member_use, deprecated_member_use_from_same_package
+  void flush() {
+    // ignore: deprecated_member_use, deprecated_member_use_from_same_package
+    _delegate.flush();
+  }
+}
 
 bool isDiagnostics = false;
 
@@ -45,6 +185,13 @@ abstract class DartdevCommand extends Command<int> {
   }) {
     flagContributor?.call(argParser, _name);
   }
+
+  /// Experiments enabled for this command (both from command-specific flags
+  /// and global/VM flags passed before the subcommand).
+  List<String> get enabledExperiments => {
+    ...?argResults?.enabledExperiments,
+    ...parseVmEnabledExperiments(Platform.executableArguments),
+  }.toList();
 
   @override
   String get name => _name;

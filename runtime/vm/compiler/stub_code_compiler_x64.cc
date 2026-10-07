@@ -566,8 +566,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   }
 
   Label tail;
-  __ cmpq(TMP, Immediate(0));
-  __ j(NOT_ZERO, &tail);
+  __ cmpq(TMP, Immediate(CallbackMetadata::kCall));
+  __ j(NOT_EQUAL, &tail);
 
   const RegisterSet return_registers(
       (1 << CallingConventions::kReturnReg) |
@@ -626,6 +626,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ Breakpoint();
   }
 #endif
+}
+
+void StubCodeCompiler::GenerateInterpretedFfiCallbackTrampolineStub() {
+  __ Breakpoint();  // currently only used in ARM64 runtimes.
 }
 
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {

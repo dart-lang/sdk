@@ -52,6 +52,22 @@ void main() {
         expect(response.statusCode, HttpStatus.forbidden);
         await response.drain();
       });
+
+      // Regression test: the Origin check used to be applied only to
+      // `/api/sse`. Every other `api/*` method (ping, and the ServerApi
+      // endpoints that perform side effects, such as the deeplink handlers
+      // that spawn a `flutter`/`xcodebuild` process for a caller-supplied
+      // path) relied solely on the Host header check, which does not stop a
+      // same-machine cross-origin request: Host reflects the request's
+      // destination, not the page that issued it, so it is always this
+      // server's own host/port regardless of who sent the request.
+      test('forbids GET request with bad Origin Header to /api/ping', () async {
+        final request = await client.getUrl(serverUri.resolve('api/ping'));
+        request.headers.set('Origin', 'http://evil.example.com');
+        final response = await request.close();
+        expect(response.statusCode, HttpStatus.forbidden);
+        await response.drain();
+      });
     });
 
     group('Disable Origin Check', () {
@@ -86,6 +102,14 @@ void main() {
 
       test('allows bad Origin Header to /api/sse', () async {
         final request = await client.getUrl(serverUri.resolve('api/sse'));
+        request.headers.set('Origin', 'http://evil.example.com');
+        final response = await request.close();
+        expect(response.statusCode, isNot(HttpStatus.forbidden));
+        await response.drain();
+      });
+
+      test('allows bad Origin Header to /api/ping', () async {
+        final request = await client.getUrl(serverUri.resolve('api/ping'));
         request.headers.set('Origin', 'http://evil.example.com');
         final response = await request.close();
         expect(response.statusCode, isNot(HttpStatus.forbidden));

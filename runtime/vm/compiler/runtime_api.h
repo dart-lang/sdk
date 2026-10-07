@@ -949,6 +949,12 @@ class CompressedStackMaps : public AllStatic {
   static word PayloadHeaderSize();
 };
 
+class LocalVarDescriptor : public AllStatic {
+ public:
+  static word InstanceSize();
+  FINAL_CLASS();
+};
+
 class LocalVarDescriptors : public AllStatic {
  public:
   static word element_offset(intptr_t index);
@@ -1665,6 +1671,34 @@ class ForwardingCorpse : public AllStatic {
 class FieldTable : public AllStatic {
  public:
   static word OffsetOf(const dart::Field& field);
+};
+
+class CallbackMetadata : public AllStatic {
+ public:
+  static const word kCall;
+  static const word kTailCall;
+  static const word kCallRet4;
+
+  static word InstanceSize();
+  static word entry_point_offset();
+  static word type_offset();
+  static word epilogue_offset();
+  static word caller_isolate_offset();
+  static word caller_isolate_group_offset();
+  static word function_handle_offset();
+  static word interpreted_runtime_entry_offset();
+};
+
+class CallbackContext : public AllStatic {
+ public:
+  static const word kNumIntegerArguments;
+  static const word kNumDoubleArguments;
+
+  static word InstanceSize();
+  static word integer_arguments_offset();
+  static word double_arguments_offset();
+  static word return_struct_pointer_offset();
+  static word sp_offset();
 };
 
 void UnboxFieldIfSupported(const dart::Field& field,

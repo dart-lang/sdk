@@ -1,0 +1,23 @@
+extension E on int {
+  static final d2 = 0;
+  static late final b2 = 0;
+  static late var e2 = 0;
+}
+
+final a1 = a2;
+
+final b1 = E.b2;
+
+final c1 = () {
+  c2 = 0;
+};
+
+final d1 = E.d2;
+
+final e1 = () {
+  E.e2 = 0;
+};
+
+late final a2 = 0;
+
+late var c2 = 0;

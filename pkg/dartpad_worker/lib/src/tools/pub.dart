@@ -31,6 +31,7 @@ Future<({String log})> pub({
   required String command,
   required List<String> args,
   required DartPadConfig config,
+  required VersionInfo version,
 }) async {
   if (!supportedPubCommands.contains(command)) {
     throw ArgumentError.value(
@@ -52,7 +53,7 @@ Future<({String log})> pub({
     stdout: stdout.sink,
     stderr: stdout.sink,
     stdin: const Stream.empty(),
-    platformVersion: '3.12.0',
+    platformVersion: version.dartVersion,
     environment: {
       'PUB_CACHE': '/pub-cache',
       'DART_ROOT': config.dartSdkPath,

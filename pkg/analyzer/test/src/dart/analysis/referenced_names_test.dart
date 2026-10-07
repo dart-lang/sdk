@@ -35,6 +35,15 @@ void f() {
     expect(names, unorderedEquals(['foo', 'void']));
   }
 
+  test_cascadeName_lexicalShadowing() {
+    var names = _computeReferencedNames('''
+f(A a, m, p) {
+  a..m(m)..p;
+}
+''');
+    expect(names, unorderedEquals(['A', 'm', 'p']));
+  }
+
   test_cascadePropertyAssignmentTarget() {
     var names = _computeReferencedNames('''
 f(A a) {
@@ -259,7 +268,11 @@ class U<T> {
   test_combinatorName() {
     var names = _computeReferencedNames('''
 import 'a.dart' show A hide B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 export 'b.dart' show C hide D;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     expect(names, unorderedEquals(['A', 'B', 'C', 'D']));
   }
@@ -446,6 +459,15 @@ A f(B b) {
 /**
  * Documentation [C.d] reference.
  */
+A f(B b) {}
+''');
+    expect(names, unorderedEquals(['A', 'B', 'C', 'd']));
+  }
+
+  test_unit_function_doc_prefixed() {
+    var names = _computeReferencedNames('''
+import 'a.dart' as p;
+/// [p.C.d]
 A f(B b) {}
 ''');
     expect(names, unorderedEquals(['A', 'B', 'C', 'd']));

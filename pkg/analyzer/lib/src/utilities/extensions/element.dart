@@ -108,6 +108,15 @@ extension Element2Extension on Element {
 
 extension ExecutableElement2OrMemberExtension on InternalExecutableElement {
   ExecutableFragmentImpl get declarationImpl => baseElement.firstFragment;
+
+  /// Returns a context message pointing at the first fragment of the
+  /// non-synthetic element, e.g. the field of an induced getter.
+  ///
+  /// See [FragmentImplExtension.contextMessageAt] for when it is `null`.
+  DiagnosticMessageImpl? contextMessageAt(String message) {
+    var element = nonSynthetic.baseElement as ElementImpl;
+    return element.firstFragment.contextMessageAt(message);
+  }
 }
 
 extension FormalParameterElementExtension on FormalParameterElement {
@@ -132,6 +141,10 @@ extension FormalParameterElementExtension on FormalParameterElement {
 }
 
 extension FragmentImplExtension on FragmentImpl {
+  /// Returns a context message pointing at the name of this fragment.
+  ///
+  /// Returns `null` if the location is not known, e.g. for a fragment read
+  /// from a summary without informative data.
   DiagnosticMessageImpl? contextMessageAt(String message) {
     var libraryFragment = this.libraryFragment;
     if (libraryFragment == null) {
@@ -139,11 +152,19 @@ extension FragmentImplExtension on FragmentImpl {
     }
 
     var (:offset, :length) = switch (this) {
-      ConstructorFragmentImpl fragment => (
-        offset: fragment.nameOffset ?? fragment.typeNameOffset,
-        length: fragment.nameOffset != null
-            ? fragment.name.length
-            : fragment.typeName?.length,
+      ConstructorFragmentImpl(:var nameOffset?, :var name) => (
+        offset: nameOffset,
+        length: name.length,
+      ),
+      ConstructorFragmentImpl(:var typeNameOffset?, :var typeName) => (
+        offset: typeNameOffset,
+        length: typeName?.length,
+      ),
+      // An implicit constructor, e.g. of a mixin application class, has no
+      // declaration of its own, so point at the name of the enclosing class.
+      ConstructorFragmentImpl(:var enclosingFragment) => (
+        offset: enclosingFragment.nameOffset,
+        length: enclosingFragment.name?.length,
       ),
       _ => (offset: nameOffset, length: name?.length),
     };
@@ -177,6 +198,19 @@ extension LibraryFragmentExtension on LibraryFragment {
     }
     return result;
   }
+}
+
+extension LibraryImportExtension on LibraryImport {
+  /// Whether this import has any combinators.
+  bool get hasCombinator => combinators.isNotEmpty;
+
+  /// The hide combinators declared on this import.
+  Iterable<HideElementCombinator> get hideCombinators =>
+      combinators.whereType<HideElementCombinator>();
+
+  /// The show combinators declared on this import.
+  Iterable<ShowElementCombinator> get showCombinators =>
+      combinators.whereType<ShowElementCombinator>();
 }
 
 extension ListOfTypeParameterElement2Extension on List<TypeParameterElement> {

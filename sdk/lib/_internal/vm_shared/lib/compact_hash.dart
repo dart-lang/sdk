@@ -652,11 +652,8 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
         if (entry < maxEntries) {
           final int d = entry << 1;
           if (_equals(_data[d], key)) {
-            _index[i] = _HashBase._DELETED_PAIR;
-            _HashBase._setDeletedAt(_data, d);
             V value = _data[d + 1] as V;
-            _HashBase._setDeletedAt(_data, d + 1);
-            ++_deletedKeys;
+            _removeAt(i, d);
             return value;
           }
         }
@@ -665,6 +662,17 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
       pair = _index[i];
     }
     return null;
+  }
+
+  // Remove entry occupying _index[indexEntry] and _data[dataEntry]/_data[dataEntry+1].
+  @pragma('vm:prefer-inline')
+  void _removeAt(int indexEntry, int dataEntry) {
+    assert(_index[indexEntry] != _HashBase._UNUSED_PAIR);
+    assert(_index[indexEntry] != _HashBase._DELETED_PAIR);
+    _index[indexEntry] = _HashBase._DELETED_PAIR;
+    _HashBase._setDeletedAt(_data, dataEntry);
+    _HashBase._setDeletedAt(_data, dataEntry + 1);
+    ++_deletedKeys;
   }
 
   // If key is absent, return _data (which is never a value).
@@ -726,6 +734,8 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   }
 
   void removeWhere(bool Function(K, V) test) {
+    final int size = _index.length;
+    final int sizeMask = size - 1;
     final data = _data;
     var checkSum = _checkSum;
     final len = _usedData;
@@ -734,14 +744,25 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
       if (_HashBase._isDeleted(data, current)) continue;
       final key = internal.unsafeCast<K>(current);
       final value = internal.unsafeCast<V>(data[offset + 1]);
-      var remove = test(key, value);
+      var testResult = test(key, value);
       if (_isModifiedSince(data, checkSum)) {
         throw ConcurrentModificationError(this);
       }
-      if (remove) {
-        _HashBase._setDeletedAt(data, offset);
-        _HashBase._setDeletedAt(data, offset + 1);
-        ++_deletedKeys;
+      if (testResult) {
+        // Find entry in the _index and remove it.
+        final int fullHash = _hashCode(key);
+        final int hashPattern = _HashBase._hashPattern(
+          fullHash,
+          _hashMask,
+          size,
+        );
+        int i = _HashBase._firstProbe(fullHash, sizeMask);
+        final int pair = (offset >> 1) ^ hashPattern;
+        while (_index[i] != pair) {
+          assert(_index[i] != _HashBase._UNUSED_PAIR);
+          i = _HashBase._nextProbe(i, sizeMask);
+        }
+        _removeAt(i, offset);
         checkSum = _checkSum;
       }
     }
@@ -1112,9 +1133,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
       if (pair != _HashBase._DELETED_PAIR) {
         final int d = hashPattern ^ pair;
         if (d < maxEntries && _equals(_data[d], key)) {
-          _index[i] = _HashBase._DELETED_PAIR;
-          _HashBase._setDeletedAt(_data, d);
-          ++_deletedKeys;
+          _removeAt(i, d);
           return true;
         }
       }
@@ -1123,6 +1142,16 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
     }
 
     return false;
+  }
+
+  // Remove entry occupying _index[indexEntry] and _data[dataEntry].
+  @pragma('vm:prefer-inline')
+  void _removeAt(int indexEntry, int dataEntry) {
+    assert(_index[indexEntry] != _HashBase._UNUSED_PAIR);
+    assert(_index[indexEntry] != _HashBase._DELETED_PAIR);
+    _index[indexEntry] = _HashBase._DELETED_PAIR;
+    _HashBase._setDeletedAt(_data, dataEntry);
+    ++_deletedKeys;
   }
 
   Iterator<E> get iterator =>
@@ -1177,6 +1206,8 @@ base class _Set<E> extends _LinkedHashBase
   }
 
   void _filter(bool Function(E) test, bool removeIf) {
+    final int size = _index.length;
+    final int sizeMask = size - 1;
     final data = _data;
     var checkSum = _checkSum;
     final len = _usedData;
@@ -1189,8 +1220,20 @@ base class _Set<E> extends _LinkedHashBase
         throw ConcurrentModificationError(this);
       }
       if (removeIf == testResult) {
-        _HashBase._setDeletedAt(data, offset);
-        ++_deletedKeys;
+        // Find entry in the _index and remove it.
+        final int fullHash = _hashCode(element);
+        final int hashPattern = _HashBase._hashPattern(
+          fullHash,
+          _hashMask,
+          size,
+        );
+        int i = _HashBase._firstProbe(fullHash, sizeMask);
+        final int pair = offset ^ hashPattern;
+        while (_index[i] != pair) {
+          assert(_index[i] != _HashBase._UNUSED_PAIR);
+          i = _HashBase._nextProbe(i, sizeMask);
+        }
+        _removeAt(i, offset);
         checkSum = _checkSum;
       }
     }

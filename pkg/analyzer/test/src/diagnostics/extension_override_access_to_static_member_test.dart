@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ExtensionOverrideAccessToStaticMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -31,7 +33,7 @@ void f() {
     var node = result.findNode.callInvocation('();');
     assertResolvedNodeText(node, r'''
 CallInvocation
-  receiver: ExtensionOverride
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -43,7 +45,6 @@ CallInvocation
       rightParenthesis: )
     element: <testLibrary>::@extension::E
     extendedType: int
-    staticType: null
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
@@ -114,14 +115,35 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('empty();');
+    var node = result.findNode.receiverMethodInvocation('empty();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: ExtensionOverride
+ReceiverMethodInvocation
+  receiver: ExtensionOverride2
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
       arguments2
+        SimpleStringLiteral
+          literal: 'a'
+      rightParenthesis: )
+    element: <testLibrary>::@extension::E
+    extendedType: String
+  operator: .
+  name: empty
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@extension::E::@method::empty
+    invokeType: String Function()
+    type: String
+  staticType: String
+V1: MethodInvocation
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
         SimpleStringLiteral
           literal: 'a'
       rightParenthesis: )

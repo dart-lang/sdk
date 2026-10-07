@@ -220,12 +220,9 @@ import 'doc_directive_missing_two_arguments_test.dart'
     as doc_directive_missing_two_arguments;
 import 'doc_import_cannot_be_deferred_test.dart'
     as doc_import_cannot_be_deferred;
-import 'doc_import_cannot_have_combinators_test.dart'
-    as doc_import_cannot_have_combinators;
 import 'doc_import_cannot_have_configurations_test.dart'
     as doc_import_cannot_have_configurations;
-import 'doc_import_cannot_have_prefix_test.dart'
-    as doc_import_cannot_have_prefix;
+import 'doc_import_in_part_file_test.dart' as doc_import_in_part_file;
 import 'duplicate_constructor_default_test.dart'
     as duplicate_constructor_default;
 import 'duplicate_constructor_name_test.dart' as duplicate_constructor_name;
@@ -525,6 +522,8 @@ import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
     as invocation_of_non_function_expression;
+import 'js_interop_extension_constructor_js_annotation_has_no_effect_test.dart'
+    as js_interop_extension_constructor_js_annotation_has_no_effect;
 import 'label_in_outer_scope_test.dart' as label_in_outer_scope;
 import 'label_undefined_test.dart' as label_undefined;
 import 'late_final_local_already_assigned_test.dart'
@@ -596,6 +595,8 @@ import 'mixin_with_non_class_superclass_test.dart'
     as mixin_with_non_class_superclass;
 import 'mixins_super_class_test.dart' as mixins_super_class;
 import 'mock_sdk_test.dart' as mock_sdk;
+import 'multiple_combinators_deprecated_test.dart'
+    as multiple_combinators_deprecated;
 import 'multiple_combinators_test.dart' as multiple_combinators;
 import 'multiple_redirecting_constructor_invocations_test.dart'
     as multiple_redirecting_constructor_invocations;
@@ -632,8 +633,6 @@ import 'non_const_generative_enum_constructor_test.dart'
     as non_const_generative_enum_constructor;
 import 'non_const_map_as_expression_statement_test.dart'
     as non_const_map_as_expression_statement;
-import 'non_constant_annotation_constructor_test.dart'
-    as non_constant_annotation_constructor;
 import 'non_constant_case_expression_from_deferred_library_test.dart'
     as non_constant_case_expression_from_deferred_library;
 import 'non_constant_case_expression_test.dart' as non_constant_case_expression;
@@ -865,7 +864,6 @@ import 'type_test_with_undefined_name_test.dart'
     as type_test_with_undefined_name;
 import 'unawaited_return_in_try_block_test.dart'
     as unawaited_return_in_try_block;
-import 'undefined_annotation_test.dart' as undefined_annotation;
 import 'undefined_class_boolean_test.dart' as undefined_class_boolean;
 import 'undefined_class_test.dart' as undefined_class;
 import 'undefined_constructor_in_initializer_default_test.dart'
@@ -1101,9 +1099,8 @@ main() {
     doc_directive_missing_three_arguments.main();
     doc_directive_missing_two_arguments.main();
     doc_import_cannot_be_deferred.main();
-    doc_import_cannot_have_combinators.main();
     doc_import_cannot_have_configurations.main();
-    doc_import_cannot_have_prefix.main();
+    doc_import_in_part_file.main();
     duplicate_constructor_default.main();
     duplicate_constructor_name.main();
     duplicate_definition.main();
@@ -1292,6 +1289,7 @@ main() {
     invalid_widget_preview_private_argument.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
+    js_interop_extension_constructor_js_annotation_has_no_effect.main();
     label_in_outer_scope.main();
     label_undefined.main();
     late_final_local_already_assigned.main();
@@ -1337,6 +1335,7 @@ main() {
     mixin_with_non_class_superclass.main();
     mixins_super_class.main();
     mock_sdk.main();
+    multiple_combinators_deprecated.main();
     multiple_combinators.main();
     multiple_redirecting_constructor_invocations.main();
     multiple_super_initializers.main();
@@ -1361,7 +1360,6 @@ main() {
     non_const_call_to_literal_constructor.main();
     non_const_generative_enum_constructor.main();
     non_const_map_as_expression_statement.main();
-    non_constant_annotation_constructor.main();
     non_constant_case_expression_from_deferred_library.main();
     non_constant_case_expression.main();
     non_constant_default_value_from_deferred_library.main();
@@ -1511,7 +1509,6 @@ main() {
     type_test_with_non_type.main();
     type_test_with_undefined_name.main();
     unawaited_return_in_try_block.main();
-    undefined_annotation.main();
     undefined_class_boolean.main();
     undefined_class.main();
     undefined_constructor_in_initializer_default.main();

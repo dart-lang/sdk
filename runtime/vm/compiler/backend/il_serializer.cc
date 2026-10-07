@@ -2407,9 +2407,6 @@ void Slot::Write(FlowGraphSerializer* s) const {
       s->Write<int8_t>(flags_);
       s->Write<intptr_t>(offset_in_bytes_);
       break;
-    case Kind::kTypeArgumentsIndex:
-      s->Write<intptr_t>(offset_in_bytes_);
-      break;
     case Kind::kArrayElement:
       s->Write<intptr_t>(offset_in_bytes_);
       break;
@@ -2447,15 +2444,6 @@ const Slot& Slot::Read(FlowGraphDeserializer* d) {
       offset = d->Read<intptr_t>();
       data = ":type_arguments";
       type = CompileType::FromCid(kTypeArgumentsCid);
-      break;
-    case Kind::kTypeArgumentsIndex:
-      flags =
-          IsImmutableBit::encode(true) |
-          IsCompressedBit::encode(TypeArguments::ContainsCompressedPointers());
-      offset = d->Read<intptr_t>();
-      data = ":argument";
-      type = CompileType(CompileType::kCannotBeNull,
-                         CompileType::kCannotBeSentinel, kDynamicCid, nullptr);
       break;
     case Kind::kArrayElement:
       flags = IsCompressedBit::encode(Array::ContainsCompressedPointers());

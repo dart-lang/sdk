@@ -16,7 +16,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
-    extends LspMessageHandler<CompletionItem, CompletionItem> {
+    extends SharedMessageHandler<CompletionItem, CompletionItem> {
   /// The last completion item we asked to be resolved.
   ///
   /// Used to abort previous requests in async handlers if another resolve request
@@ -31,6 +31,9 @@ class CompletionResolveHandler
 
   @override
   LspJsonHandler<CompletionItem> get jsonHandler => CompletionItem.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<CompletionItem>> handle(

@@ -51,6 +51,8 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.primary_constructors: ExperimentalFeatures.primary_constructors,
   EnableString.private_named_parameters:
       ExperimentalFeatures.private_named_parameters,
+  EnableString.promotion_chain_intersection_join:
+      ExperimentalFeatures.promotion_chain_intersection_join,
   EnableString.receiver_type_inference:
       ExperimentalFeatures.receiver_type_inference,
   EnableString.record_use: ExperimentalFeatures.record_use,
@@ -125,6 +127,8 @@ Feature fromSharedExperimentalFlags(
     ExperimentalFeatures.primary_constructors,
   shared.ExperimentalFlag.privateNamedParameters =>
     ExperimentalFeatures.private_named_parameters,
+  shared.ExperimentalFlag.promotionChainIntersectionJoin =>
+    ExperimentalFeatures.promotion_chain_intersection_join,
   shared.ExperimentalFlag.receiverTypeInference =>
     ExperimentalFeatures.receiver_type_inference,
   shared.ExperimentalFlag.recordUse => ExperimentalFeatures.record_use,
@@ -246,6 +250,10 @@ class EnableString {
 
   /// String to enable the experiment "private-named-parameters"
   static const String private_named_parameters = 'private-named-parameters';
+
+  /// String to enable the experiment "promotion-chain-intersection-join"
+  static const String promotion_chain_intersection_join =
+      'promotion-chain-intersection-join';
 
   /// String to enable the experiment "receiver-type-inference"
   static const String receiver_type_inference = 'receiver-type-inference';
@@ -638,8 +646,20 @@ class ExperimentalFeatures {
     channels: ["stable", "beta", "dev", "main"],
   );
 
-  static final receiver_type_inference = ExperimentalFeature(
+  static final promotion_chain_intersection_join = ExperimentalFeature(
     index: 30,
+    enableString: EnableString.promotion_chain_intersection_join,
+    isEnabledByDefault: IsEnabledByDefault.promotion_chain_intersection_join,
+    isExpired: IsExpired.promotion_chain_intersection_join,
+    documentation:
+        'Enhanced promotion chain join algorithm (https://github.com/dart-lang/language/issues/4757)',
+    experimentalReleaseVersion: null,
+    releaseVersion: null,
+    channels: ["stable", "beta", "dev", "main"],
+  );
+
+  static final receiver_type_inference = ExperimentalFeature(
+    index: 31,
     enableString: EnableString.receiver_type_inference,
     isEnabledByDefault: IsEnabledByDefault.receiver_type_inference,
     isExpired: IsExpired.receiver_type_inference,
@@ -650,7 +670,7 @@ class ExperimentalFeatures {
   );
 
   static final record_use = ExperimentalFeature(
-    index: 31,
+    index: 32,
     enableString: EnableString.record_use,
     isEnabledByDefault: IsEnabledByDefault.record_use,
     isExpired: IsExpired.record_use,
@@ -661,7 +681,7 @@ class ExperimentalFeatures {
   );
 
   static final records = ExperimentalFeature(
-    index: 32,
+    index: 33,
     enableString: EnableString.records,
     isEnabledByDefault: IsEnabledByDefault.records,
     isExpired: IsExpired.records,
@@ -672,7 +692,7 @@ class ExperimentalFeatures {
   );
 
   static final sealed_class = ExperimentalFeature(
-    index: 33,
+    index: 34,
     enableString: EnableString.sealed_class,
     isEnabledByDefault: IsEnabledByDefault.sealed_class,
     isExpired: IsExpired.sealed_class,
@@ -683,7 +703,7 @@ class ExperimentalFeatures {
   );
 
   static final set_literals = ExperimentalFeature(
-    index: 34,
+    index: 35,
     enableString: EnableString.set_literals,
     isEnabledByDefault: IsEnabledByDefault.set_literals,
     isExpired: IsExpired.set_literals,
@@ -694,7 +714,7 @@ class ExperimentalFeatures {
   );
 
   static final single_combinators = ExperimentalFeature(
-    index: 35,
+    index: 36,
     enableString: EnableString.single_combinators,
     isEnabledByDefault: IsEnabledByDefault.single_combinators,
     isExpired: IsExpired.single_combinators,
@@ -706,7 +726,7 @@ class ExperimentalFeatures {
   );
 
   static final sound_flow_analysis = ExperimentalFeature(
-    index: 36,
+    index: 37,
     enableString: EnableString.sound_flow_analysis,
     isEnabledByDefault: IsEnabledByDefault.sound_flow_analysis,
     isExpired: IsExpired.sound_flow_analysis,
@@ -718,7 +738,7 @@ class ExperimentalFeatures {
   );
 
   static final spread_collections = ExperimentalFeature(
-    index: 37,
+    index: 38,
     enableString: EnableString.spread_collections,
     isEnabledByDefault: IsEnabledByDefault.spread_collections,
     isExpired: IsExpired.spread_collections,
@@ -729,7 +749,7 @@ class ExperimentalFeatures {
   );
 
   static final static_extensions = ExperimentalFeature(
-    index: 38,
+    index: 39,
     enableString: EnableString.static_extensions,
     isEnabledByDefault: IsEnabledByDefault.static_extensions,
     isExpired: IsExpired.static_extensions,
@@ -740,7 +760,7 @@ class ExperimentalFeatures {
   );
 
   static final super_parameters = ExperimentalFeature(
-    index: 39,
+    index: 40,
     enableString: EnableString.super_parameters,
     isEnabledByDefault: IsEnabledByDefault.super_parameters,
     isExpired: IsExpired.super_parameters,
@@ -751,7 +771,7 @@ class ExperimentalFeatures {
   );
 
   static final test_experiment = ExperimentalFeature(
-    index: 40,
+    index: 41,
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
@@ -763,7 +783,7 @@ class ExperimentalFeatures {
   );
 
   static final this_promotion = ExperimentalFeature(
-    index: 41,
+    index: 42,
     enableString: EnableString.this_promotion,
     isEnabledByDefault: IsEnabledByDefault.this_promotion,
     isExpired: IsExpired.this_promotion,
@@ -774,7 +794,7 @@ class ExperimentalFeatures {
   );
 
   static final triple_shift = ExperimentalFeature(
-    index: 42,
+    index: 43,
     enableString: EnableString.triple_shift,
     isEnabledByDefault: IsEnabledByDefault.triple_shift,
     isExpired: IsExpired.triple_shift,
@@ -785,7 +805,7 @@ class ExperimentalFeatures {
   );
 
   static final unnamed_libraries = ExperimentalFeature(
-    index: 43,
+    index: 44,
     enableString: EnableString.unnamed_libraries,
     isEnabledByDefault: IsEnabledByDefault.unnamed_libraries,
     isExpired: IsExpired.unnamed_libraries,
@@ -796,7 +816,7 @@ class ExperimentalFeatures {
   );
 
   static final unquoted_imports = ExperimentalFeature(
-    index: 44,
+    index: 45,
     enableString: EnableString.unquoted_imports,
     isEnabledByDefault: IsEnabledByDefault.unquoted_imports,
     isExpired: IsExpired.unquoted_imports,
@@ -807,7 +827,7 @@ class ExperimentalFeatures {
   );
 
   static final variance = ExperimentalFeature(
-    index: 45,
+    index: 46,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -818,7 +838,7 @@ class ExperimentalFeatures {
   );
 
   static final wildcard_variables = ExperimentalFeature(
-    index: 46,
+    index: 47,
     enableString: EnableString.wildcard_variables,
     isEnabledByDefault: IsEnabledByDefault.wildcard_variables,
     isExpired: IsExpired.wildcard_variables,
@@ -922,6 +942,9 @@ class IsEnabledByDefault {
 
   /// Default state of the experiment "private-named-parameters"
   static const bool private_named_parameters = true;
+
+  /// Default state of the experiment "promotion-chain-intersection-join"
+  static const bool promotion_chain_intersection_join = false;
 
   /// Default state of the experiment "receiver-type-inference"
   static const bool receiver_type_inference = false;
@@ -1068,6 +1091,9 @@ class IsExpired {
 
   /// Expiration status of the experiment "private-named-parameters"
   static const bool private_named_parameters = true;
+
+  /// Expiration status of the experiment "promotion-chain-intersection-join"
+  static const bool promotion_chain_intersection_join = false;
 
   /// Expiration status of the experiment "receiver-type-inference"
   static const bool receiver_type_inference = false;
@@ -1227,6 +1253,10 @@ mixin _CurrentState {
   /// Current state for the flag "private-named-parameters"
   bool get private_named_parameters =>
       isEnabled(ExperimentalFeatures.private_named_parameters);
+
+  /// Current state for the flag "promotion-chain-intersection-join"
+  bool get promotion_chain_intersection_join =>
+      isEnabled(ExperimentalFeatures.promotion_chain_intersection_join);
 
   /// Current state for the flag "receiver-type-inference"
   bool get receiver_type_inference =>

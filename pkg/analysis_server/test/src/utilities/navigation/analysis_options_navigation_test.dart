@@ -8,10 +8,9 @@ import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/src/utilities/navigation/navigation.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -74,7 +73,7 @@ include: oth^er.yaml
       resourceProvider,
       collector,
       allDrivers.first.sourceFactory,
-      analysisOptionsPath,
+      convertPath(analysisOptionsPath),
       code.position.offset,
       0,
     );
@@ -94,7 +93,7 @@ include: other.yaml
       resourceProvider,
       collector,
       allDrivers.first.sourceFactory,
-      analysisOptionsPath,
+      convertPath(analysisOptionsPath),
       code.position.offset,
       0,
     );
@@ -198,7 +197,7 @@ linter:
       resourceProvider,
       collector,
       allDrivers.first.sourceFactory,
-      analysisOptionsPath,
+      convertPath(analysisOptionsPath),
       0,
       content.length,
     );

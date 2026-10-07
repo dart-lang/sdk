@@ -95,7 +95,7 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
 
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
-    for (var parameter in node.formalParameters.parameters) {
+    for (var parameter in node.formalParameters.allFormalParameters) {
       var element = parameter.declaredFragment?.element;
       if (element is! FieldFormalParameterElement) continue;
       if (!element.metadata.hasOverride) continue;

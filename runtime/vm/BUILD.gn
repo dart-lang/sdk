@@ -67,6 +67,10 @@ config("libdart_vm_config") {
       libs += [ "atomic" ]
     }
   }
+
+  if (is_mac || is_ios) {
+    libs += [ "objc" ]
+  }
 }
 
 library_for_all_configs("libdart_vm") {

@@ -30,10 +30,11 @@ extension AstNodeExtension on AstNode {
 
   /// The [FunctionExpression] that encloses this node directly or `null` if
   /// there is another enclosing executable element.
+  @ToBeDeprecated('Use enclosingClosure2 instead.')
   FunctionExpression? get enclosingClosure {
     for (var node in withAncestors) {
       switch (node) {
-        case FunctionExpression(parent: var parent)
+        case FunctionExpression(:var parent)
             when parent is! FunctionDeclaration:
           return node;
         case FunctionDeclaration() ||
@@ -64,6 +65,7 @@ extension AstNodeExtension on AstNode {
   }
 
   /// The [ExecutableElement] of the enclosing executable [AstNode].
+  @ToBeDeprecated('Use enclosingExecutableElement2 instead.')
   ExecutableElement? get enclosingExecutableElement {
     for (var node in withAncestors) {
       if (node is FunctionDeclaration) {
@@ -99,6 +101,7 @@ extension AstNodeExtension on AstNode {
   }
 
   /// The [InstanceElement] of the enclosing executable [AstNode].
+  @ToBeDeprecated('Use enclosingInstanceElement2 instead.')
   InstanceElement? get enclosingInstanceElement {
     for (var node in withAncestors) {
       var element = node
@@ -126,12 +129,14 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
+  @ToBeDeprecated('Use enclosingInterfaceElement2 instead.')
   InterfaceElement? get enclosingInterfaceElement =>
       enclosingInstanceElement.tryCast();
 
   InterfaceElement? get enclosingInterfaceElement2 =>
       enclosingInstanceElement2.tryCast();
 
+  @ToBeDeprecated('Use enclosingUnitChild2 instead.')
   AstNode? get enclosingUnitChild {
     for (var node in withAncestors) {
       if (node.parent is CompilationUnit) {
@@ -151,6 +156,7 @@ extension AstNodeExtension on AstNode {
   }
 
   /// This node and all of its ancestors.
+  @ToBeDeprecated('Use withAncestors2 instead.')
   Iterable<AstNode> get withAncestors sync* {
     AstNode? current = this;
     while (current != null) {
@@ -203,6 +209,7 @@ extension AstNodeNullableExtension on AstNode? {
 
 extension ExpressionExtension on Expression {
   /// Whether this expression is found in a [CommentReference].
+  @ToBeDeprecated('Use inCommentReference2 instead.')
   bool get inCommentReference =>
       parent is CommentReference ||
       parent?.parent is CommentReference ||
@@ -223,6 +230,12 @@ extension ExtensionElementExtension on ExtensionElement {
 extension FieldDeclarationExtension on FieldDeclaration {
   Element get firstVariableElement =>
       fields.variables.first.declaredFragment!.element;
+}
+
+extension TokenExtension on Token {
+  /// The first preceding comment before this token, or this token if there are
+  /// no preceding comments.
+  Token get precedingCommentOrThis => precedingComments ?? this;
 }
 
 extension TopLevelVariableDeclarationExtension on TopLevelVariableDeclaration {

@@ -40,12 +40,33 @@ class RemoveImportPrefixTest extends RefactoringTest {
     await _assertNoRefactoring(originalSource: originalSource);
   }
 
-  Future<void> test_good() async {
+  Future<void> test_good_inLibrary() async {
     var originalSource = '''
 ^import 'package:path/path.dart' as path;
 ''';
     var expected = '''
 >>>>>>>>>> lib/main.dart
+import 'package:path/path.dart';
+''';
+    await _assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+    );
+  }
+
+  Future<void> test_good_inPart() async {
+    newFile('$testPackageRootPath/lib/a.dart', '''
+part 'main.dart';
+''');
+    var originalSource = '''
+part of 'a.dart';
+
+^import 'package:path/path.dart' as path;
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+part of 'a.dart';
+
 import 'package:path/path.dart';
 ''';
     await _assertRefactoring(

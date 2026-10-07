@@ -165,14 +165,6 @@ external void pushWasmArray<T>(
 /// clear non-nullable reference element slots in the array when popping.
 external T popWasmArray<T>(WasmArray<T> array, int length);
 
-@patch
-@pragma("vm:entry-point")
-abstract interface class IsolateGroup {
-  @patch
-  static Object? _runSync(Object computation) =>
-      throw UnsupportedError("_runSync");
-}
-
 final List<Object> _toStringVisiting = [];
 @patch
 List<Object> get toStringVisiting => _toStringVisiting;

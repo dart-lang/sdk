@@ -22,6 +22,7 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/utilities/dot_shorthands.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -630,7 +631,7 @@ class _ContextTypeVisitor extends SimpleAstVisitor<DartType> {
           node.operator.type == TokenType.BANG_EQ ||
           node.operator.type == TokenType.QUESTION_QUESTION) {
         var rightOperand = node.rightOperand;
-        if (rightOperand is DotShorthandMixin && rightOperand.isDotShorthand) {
+        if (isDotShorthand(rightOperand)) {
           return node.leftOperand.staticType;
         }
       }

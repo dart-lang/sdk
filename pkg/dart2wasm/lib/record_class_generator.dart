@@ -140,7 +140,7 @@ class _RecordClassGenerator {
   late final Procedure objectEqualsProcedure = coreTypes.objectEquals;
 
   late final FunctionType integerEqualsFunctionType = FunctionType(
-    [intType, intType],
+    DartTypeList(intType, intType),
     boolType,
     Nullability.nonNullable,
   );
@@ -201,13 +201,13 @@ class _RecordClassGenerator {
   late final InterfaceType wasmArrayOfType = InterfaceType(
     wasmArrayClass,
     Nullability.nonNullable,
-    [nonNullableTypeType],
+    DartTypeList(nonNullableTypeType),
   );
 
   late final InterfaceType immutableWasmArrayOfString = InterfaceType(
     immutableWasmArrayClass,
     Nullability.nonNullable,
-    [nonNullableStringType],
+    DartTypeList(nonNullableStringType),
   );
 
   late final InterfaceType runtimeTypeType = InterfaceType(
@@ -256,7 +256,7 @@ class _RecordClassGenerator {
         name: className,
         isAbstract: false,
         isAnonymousMixin: false,
-        supertype: Supertype(coreTypes.recordClass, []),
+        supertype: Supertype(coreTypes.recordClass, DartTypeList.empty),
         constructors: [_generateConstructor(shape, fields)],
         procedures: [
           _generateHashCode(fields, id),
@@ -312,10 +312,14 @@ class _RecordClassGenerator {
   /// Generate a constructor with name `_`. Named fields are passed in sorted
   /// order.
   Constructor _generateConstructor(RecordShape shape, List<Field> fields) {
-    final List<PositionalParameter> positionalParameters = List.generate(
-      fields.length,
-      (i) => PositionalParameter(parameterName: 'field$i', isSynthesized: true),
-    );
+    final PositionalParameterList positionalParameters =
+        PositionalParameterList.generate(
+          fields.length,
+          (i) => PositionalParameter(
+            parameterName: 'field$i',
+            isSynthesized: true,
+          ),
+        );
 
     final List<Initializer> initializers = List.generate(
       fields.length,
@@ -346,19 +350,20 @@ class _RecordClassGenerator {
     if (fields.isEmpty) {
       returnValue = IntLiteral(shapeId);
     } else {
-      final List<Expression> arguments = [];
-      arguments.add(IntLiteral(shapeId));
-      for (Field field in fields) {
-        arguments.add(
-          InstanceGet(
+      final ExpressionList arguments = ExpressionList.generate(
+        1 + fields.length,
+        (int i) {
+          if (i == 0) return IntLiteral(shapeId);
+          final Field field = fields[i - 1];
+          return InstanceGet(
             InstanceAccessKind.Instance,
             ThisExpression(),
             field.name,
             interfaceTarget: field,
             resultType: nullableObjectType,
-          ),
-        );
-      }
+          );
+        },
+      );
       if (fields.length <= 20) {
         // Object.hash(field1, field2, ...)
         returnValue = StaticInvocation(
@@ -369,7 +374,7 @@ class _RecordClassGenerator {
         // Object.hashAll([field1, field2, ...])
         returnValue = StaticInvocation(
           objectHashAllProcedure,
-          Arguments([ListLiteral(arguments)]),
+          Arguments(ExpressionList(ListLiteral(arguments))),
         );
       }
     }
@@ -399,10 +404,10 @@ class _RecordClassGenerator {
         resultType: nullableObjectType,
       ),
       Name('toString'),
-      Arguments([]),
+      Arguments.empty(),
       interfaceTarget: objectToStringProcedure,
       functionType: FunctionType(
-        [],
+        DartTypeList.empty,
         nonNullableStringType,
         Nullability.nonNullable,
       ),
@@ -436,10 +441,10 @@ class _RecordClassGenerator {
         InstanceAccessKind.Instance,
         string,
         Name('+'),
-        Arguments([next]),
+        Arguments(ExpressionList(next)),
         interfaceTarget: stringPlusProcedure,
         functionType: FunctionType(
-          [nonNullableStringType],
+          DartTypeList(nonNullableStringType),
           nonNullableStringType,
           Nullability.nonNullable,
         ),
@@ -468,7 +473,7 @@ class _RecordClassGenerator {
     Procedure getRti,
   ) {
     final equalsFunctionType = FunctionType(
-      [nullableObjectType],
+      DartTypeList(nullableObjectType),
       boolType,
       Nullability.nonNullable,
     );
@@ -528,7 +533,7 @@ class _RecordClassGenerator {
 
     final FunctionNode function = FunctionNode(
       Block(statements),
-      positionalParameters: [parameter],
+      positionalParameters: PositionalParameterList(parameter),
       returnType: boolType,
     );
 
@@ -586,10 +591,12 @@ class _RecordClassGenerator {
         Not(
           StaticInvocation(
             identical,
-            Arguments([
-              VariableGet(namesParameter),
-              ConstantExpression(_fieldNamesConstant(shape)),
-            ]),
+            Arguments(
+              ExpressionList(
+                VariableGet(namesParameter),
+                ConstantExpression(_fieldNamesConstant(shape)),
+              ),
+            ),
           ),
         ),
         ReturnStatement(BoolLiteral(false)),
@@ -605,22 +612,27 @@ class _RecordClassGenerator {
           Not(
             StaticInvocation(
               isSubtype,
-              Arguments([
-                InstanceGet(
-                  InstanceAccessKind.Instance,
-                  ThisExpression(),
-                  field.name,
-                  interfaceTarget: field,
-                  resultType: nullableObjectType,
-                ),
-                StaticInvocation(
-                  wasmArrayIndex,
-                  Arguments(
-                    [VariableGet(typesParameter), IntLiteral(i)],
-                    types: [nonNullableTypeType],
+              Arguments(
+                ExpressionList(
+                  InstanceGet(
+                    InstanceAccessKind.Instance,
+                    ThisExpression(),
+                    field.name,
+                    interfaceTarget: field,
+                    resultType: nullableObjectType,
+                  ),
+                  StaticInvocation(
+                    wasmArrayIndex,
+                    Arguments(
+                      ExpressionList(
+                        VariableGet(typesParameter),
+                        IntLiteral(i),
+                      ),
+                      types: DartTypeList(nonNullableTypeType),
+                    ),
                   ),
                 ),
-              ]),
+              ),
             ),
           ),
           ReturnStatement(BoolLiteral(false)),
@@ -634,7 +646,10 @@ class _RecordClassGenerator {
 
     final FunctionNode function = FunctionNode(
       Block(statements),
-      positionalParameters: [typesParameter, namesParameter],
+      positionalParameters: PositionalParameterList(
+        typesParameter,
+        namesParameter,
+      ),
       returnType: boolType,
     );
 
@@ -685,28 +700,30 @@ class _RecordClassGenerator {
 
     Expression fieldRuntimeTypeExpr(Field field) => StaticInvocation(
       target,
-      Arguments([
-        InstanceGet(
-          InstanceAccessKind.Instance,
-          ThisExpression(),
-          field.name,
-          interfaceTarget: field,
-          resultType: nullableObjectType,
+      Arguments(
+        ExpressionList(
+          InstanceGet(
+            InstanceAccessKind.Instance,
+            ThisExpression(),
+            field.name,
+            interfaceTarget: field,
+            resultType: nullableObjectType,
+          ),
         ),
-      ]),
+      ),
     );
 
     // WasmArray.literal([_get*RuntimeTypeNullable(this.$1), ...])
     final fieldTypesList = ConstructorInvocation(
       wasmArrayLiteralConstructor,
       Arguments(
-        [
+        ExpressionList(
           ListLiteral(
-            fields.map(fieldRuntimeTypeExpr).toList(),
+            ExpressionList.mapped(fields, fieldRuntimeTypeExpr),
             typeArgument: runtimeTypeType,
           ),
-        ],
-        types: [runtimeTypeType],
+        ),
+        types: DartTypeList(runtimeTypeType),
       ),
     );
 
@@ -714,18 +731,20 @@ class _RecordClassGenerator {
       ReturnStatement(
         ConstructorInvocation(
           recordRuntimeTypeConstructor,
-          Arguments([
-            fieldNamesList,
-            fieldTypesList,
-            BoolLiteral(false), // declared nullable
-          ]),
+          Arguments(
+            ExpressionList(
+              fieldNamesList,
+              fieldTypesList,
+              BoolLiteral(false), // declared nullable
+            ),
+          ),
         ),
       ),
     );
 
     final FunctionNode function = FunctionNode(
       Block(statements),
-      positionalParameters: [],
+      positionalParameters: PositionalParameterList.empty,
       returnType: InterfaceType(
         recordRuntimeTypeClass,
         Nullability.nonNullable,
@@ -744,13 +763,17 @@ class _RecordClassGenerator {
   }
 
   Constant _fieldNamesConstant(RecordShape shape) {
+    final iterator = shape.names.iterator;
     return InstanceConstant(
       immutableWasmArrayClass.reference,
-      [nonNullableStringType],
+      DartTypeList(nonNullableStringType),
       {
         immutableWasmArrayValueField.fieldReference: ListConstant(
           nonNullableStringType,
-          shape.names.map((name) => StringConstant(name)).toList(),
+          ConstantList.generate(shape.names.length, (_) {
+            iterator.moveNext();
+            return StringConstant(iterator.current);
+          }),
         ),
       },
     );

@@ -1550,7 +1550,7 @@ class ThreadInfo with FileUtils {
         );
         if (results == null) {
           // If no result, all of the results are null.
-          completers.forEach((uri, completer) => completer.complete(null));
+          completers.forEach((uri, completer) => completer.complete());
         } else if (results.length != requiredUris.length) {
           // If the lengths of the lists are different, we have an invalid
           // response from the VM. This is a bug in the VM/VM Service:

@@ -6,6 +6,7 @@
 // Regression test for http://dartbug.com/28740
 
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class SomeClass {
   SomeClass.namedConstructor() {
@@ -31,30 +32,38 @@ void main() {
   try {
     SomeClass();
   } on Exception catch (e, st) {
-    final stString = st.toString();
-    Expect.isTrue(stString.contains("new SomeClass"));
-    Expect.isFalse(stString.contains("SomeClass."));
+    if (symbolicUnminifiedStackTraces) {
+      final stString = st.toString();
+      Expect.isTrue(stString.contains("new SomeClass"));
+      Expect.isFalse(stString.contains("SomeClass."));
+    }
   }
 
   try {
     SomeClass.namedConstructor();
   } on Exception catch (e, st) {
-    final stString = st.toString();
-    Expect.isTrue(stString.contains("new SomeClass.namedConstructor"));
+    if (symbolicUnminifiedStackTraces) {
+      final stString = st.toString();
+      Expect.isTrue(stString.contains("new SomeClass.namedConstructor"));
+    }
   }
 
   try {
     OnlyHasFactory();
   } on Exception catch (e, st) {
-    final stString = st.toString();
-    Expect.isTrue(stString.contains("new OnlyHasFactory"));
-    Expect.isFalse(stString.contains("OnlyHasFactory."));
+    if (symbolicUnminifiedStackTraces) {
+      final stString = st.toString();
+      Expect.isTrue(stString.contains("new OnlyHasFactory"));
+      Expect.isFalse(stString.contains("OnlyHasFactory."));
+    }
   }
 
   try {
     SomeClass.useFactory();
   } on Exception catch (e, st) {
-    final stString = st.toString();
-    Expect.isTrue(stString.contains("new SomeClass.useFactory"));
+    if (symbolicUnminifiedStackTraces) {
+      final stString = st.toString();
+      Expect.isTrue(stString.contains("new SomeClass.useFactory"));
+    }
   }
 }

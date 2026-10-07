@@ -643,8 +643,13 @@ final class PostfixCompletionProcessor {
       return _typeSystem.isSubtypeOf(type, builtInType);
     });
     var exprParent = expr?.parent;
-    if (expr is SimpleIdentifier && exprParent is PropertyAccess) {
-      expr = exprParent;
+    if (expr is SimpleIdentifier) {
+      if (exprParent is PropertyAccess) {
+        expr = exprParent;
+      } else if (exprParent is PrefixedIdentifier &&
+          exprParent.identifier == expr) {
+        expr = exprParent;
+      }
     }
     if (exprParent is CascadeExpression) {
       expr = exprParent;

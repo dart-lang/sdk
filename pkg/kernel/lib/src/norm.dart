@@ -17,14 +17,14 @@ DartType norm(CoreTypes coreTypes, DartType type) {
 Supertype normSupertype(CoreTypes coreTypes, Supertype supertype) {
   if (supertype.typeArguments.isEmpty) return supertype;
   _Norm normVisitor = new _Norm(coreTypes);
-  List<DartType>? typeArguments = null;
+  DartTypeList? typeArguments = null;
   for (int i = 0; i < supertype.typeArguments.length; ++i) {
     DartType? typeArgument = supertype.typeArguments[i].accept1(
       normVisitor,
       Variance.covariant,
     );
     if (typeArgument != null) {
-      typeArguments ??= supertype.typeArguments.toList();
+      typeArguments ??= DartTypeList.from(supertype.typeArguments);
       typeArguments[i] = typeArgument;
     }
   }
@@ -74,7 +74,7 @@ class _Norm extends ReplacementVisitor {
       return new InterfaceType(
         coreTypes.futureClass,
         node.nullability,
-        <DartType>[typeArgument],
+        DartTypeList.never1,
       );
     } else if (coreTypes.isNull(typeArgument)) {
       assert(!coreTypes.isTop(typeArgument));
@@ -83,7 +83,7 @@ class _Norm extends ReplacementVisitor {
       return new InterfaceType(
         coreTypes.futureClass,
         uniteNullabilities(typeArgument.nullability, node.nullability),
-        <DartType>[typeArgument],
+        DartTypeList(typeArgument),
       );
     }
     assert(!coreTypes.isTop(typeArgument));

@@ -1,2 +1,4 @@
 cfe=pkg/front_end/test/id_tests/definite_unassignment_test.dart
+cfe:inference-update-4=pkg/front_end/test/id_tests/definite_unassignment_test.dart
 analyzer=pkg/analyzer/test/id_tests/definite_unassignment_test.dart
+analyzer:inference-update-4=pkg/analyzer/test/id_tests/definite_unassignment_test.dart

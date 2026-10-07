@@ -512,38 +512,52 @@ class ProcessStarter {
     STARTUPINFOEXW startup_info;
     ZeroMemory(&startup_info, sizeof(startup_info));
     startup_info.StartupInfo.cb = sizeof(startup_info);
-    if (mode_ != kInheritStdio) {
-      startup_info.StartupInfo.hStdInput = stdin_handles_[kReadHandle];
-      startup_info.StartupInfo.hStdOutput = stdout_handles_[kWriteHandle];
-      startup_info.StartupInfo.hStdError = stderr_handles_[kWriteHandle];
-      startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
-
-      // Setup the handles to inherit. We only want to inherit the three
-      // handles for stdin, stdout and stderr.
-      SIZE_T size = 0;
-      // The call to determine the size of an attribute list always fails with
-      // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
-      if (!InitializeProcThreadAttributeList(nullptr, 1, 0, &size) &&
-          (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
-        return CleanupAndReturnError();
-      }
-      attribute_list_ =
-          reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
-      ZeroMemory(attribute_list_, size);
-      if (!InitializeProcThreadAttributeList(attribute_list_, 1, 0, &size)) {
-        return CleanupAndReturnError();
-      }
-      inherited_handles_ = {stdin_handles_[kReadHandle],
-                            stdout_handles_[kWriteHandle],
-                            stderr_handles_[kWriteHandle]};
-      if (!UpdateProcThreadAttribute(
-              attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
-              inherited_handles_.data(),
-              inherited_handles_.size() * sizeof(HANDLE), nullptr, nullptr)) {
-        return CleanupAndReturnError();
-      }
-      startup_info.lpAttributeList = attribute_list_;
+    HANDLE stdin_handle;
+    HANDLE stdout_handle;
+    HANDLE stderr_handle;
+    if (mode_ == kInheritStdio) {
+      stdin_handle = GetStdHandle(STD_INPUT_HANDLE);
+      stdout_handle = GetStdHandle(STD_OUTPUT_HANDLE);
+      stderr_handle = GetStdHandle(STD_ERROR_HANDLE);
+    } else {
+      stdin_handle = stdin_handles_[kReadHandle];
+      stdout_handle = stdout_handles_[kWriteHandle];
+      stderr_handle = stderr_handles_[kWriteHandle];
     }
+    startup_info.StartupInfo.hStdInput = stdin_handle;
+    startup_info.StartupInfo.hStdOutput = stdout_handle;
+    startup_info.StartupInfo.hStdError = stderr_handle;
+    startup_info.StartupInfo.dwFlags = STARTF_USESTDHANDLES;
+
+    // Setup the handles to inherit. We only want to inherit the three
+    // handles for stdin, stdout and stderr.
+    SIZE_T size = 0;
+    // The call to determine the size of an attribute list always fails with
+    // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
+    if (!InitializeProcThreadAttributeList(nullptr, 1, 0, &size) &&
+        (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
+      return CleanupAndReturnError();
+    }
+    attribute_list_ =
+        reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
+    ZeroMemory(attribute_list_, size);
+    if (!InitializeProcThreadAttributeList(attribute_list_, 1, 0, &size)) {
+      return CleanupAndReturnError();
+    }
+    inherited_handles_ = {stdin_handle};
+    if (stdout_handle != stdin_handle) {
+      inherited_handles_.push_back(stdout_handle);
+    }
+    if (stderr_handle != stdout_handle && stderr_handle != stdin_handle) {
+      inherited_handles_.push_back(stderr_handle);
+    }
+    if (!UpdateProcThreadAttribute(
+            attribute_list_, 0, PROC_THREAD_ATTRIBUTE_HANDLE_LIST,
+            inherited_handles_.data(),
+            inherited_handles_.size() * sizeof(HANDLE), nullptr, nullptr)) {
+      return CleanupAndReturnError();
+    }
+    startup_info.lpAttributeList = attribute_list_;
 
     PROCESS_INFORMATION process_info;
     ZeroMemory(&process_info, sizeof(process_info));

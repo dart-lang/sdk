@@ -142,9 +142,6 @@ class AstNodeImplGenerator {
               .toBoolValue()!;
           var tokenGroupId = entity.getField('tokenGroupId')!.toIntValue();
           var type = entity.getField('type')!.toTypeValue();
-          var isInValueExpressionSlot = entity
-              .getField('isInValueExpressionSlot')!
-              .toBoolValue()!;
 
           type ??= lookupInterfaceGetter(propertyName).returnType;
           type as InterfaceType;
@@ -166,7 +163,6 @@ class AstNodeImplGenerator {
             v1Name: v1Name,
             v1Projection: v1Projection,
             isSuper: isSuper,
-            isInValueExpressionSlot: isInValueExpressionSlot,
             withOverride: withOverride,
             withOverrideSuperNotNull: superNullAssertOverride,
             type: type,
@@ -217,7 +213,10 @@ class AstNodeImplGenerator {
   }
 
   Future<void> _buildImplClasses(ResolvedUnitResult astUnitResult) async {
-    for (var nodeImpl in astUnitResult.unit.declarations) {
+    var declarations = astUnitResult
+        .unit
+        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+    for (var nodeImpl in declarations) {
       if (nodeImpl is ClassDeclarationImpl) {
         var implClass = await _buildImplClass(nodeImpl);
         if (implClass != null) {
@@ -413,11 +412,13 @@ if (${property.name}.beginToken case var result?) {
         implClass,
         buffer,
         methodName: '_childContainingRange',
+        deprecated: '${_v1TraversalAnnotationCode('_childContainingRange2')}\n',
         propertyNameFor: (property) => property.v1ViewName,
       );
     } else {
       buffer.write('''
 \n@generated
+${_v1TraversalAnnotationCode('_childContainingRange2')}
 @override
 AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
   throw StateError('${implClass.interfaceName} is not in the V1 AST view.');
@@ -438,6 +439,7 @@ AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
         implClass,
         buffer,
         methodName: '_childContainingRange2',
+        deprecated: '',
         propertyNameFor: (property) => property.name,
       );
     } else {
@@ -455,11 +457,12 @@ AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
     _ImplClass implClass,
     StringBuffer buffer, {
     required String methodName,
+    required String deprecated,
     required String Function(_Property property) propertyNameFor,
   }) {
     buffer.write('''
 \n  @generated
-  @override
+  $deprecated@override
   AstNodeImpl? $methodName(int rangeOffset, int rangeEnd) {
 ''');
 
@@ -527,6 +530,7 @@ if ($propertyName.$invocation case var result?) {
 
     buffer.write('''
 \n@generated
+${_v1TraversalAnnotationCode('_childEntities2')}
 @override
 ChildEntities get _childEntities =>''');
 
@@ -673,20 +677,14 @@ required super.metadata,''');
         case _PropertyTypeKindNode():
           var name = property.name;
           if (property.v1Name != null) {
-            buffer.writeln('_becomeParentOf2($name);');
-            buffer.writeln(
-              '_becomeParentOf1(${property.projectToV1Code(name)});',
-            );
+            buffer.writeln('_becomeParentOf2AndExisting1($name);');
           } else {
             buffer.writeln('${implClass.api.becomeParentMethod}($name);');
           }
         case _PropertyTypeKindNodeList():
           var name = property.name;
           if (property.v1Name != null) {
-            buffer.writeln(
-              'this.$name._initializeProjected('
-              'this, $name, ${property.v1ProjectionMethod});',
-            );
+            buffer.writeln('this.$name._initializeProjected(this, $name);');
           } else {
             buffer.writeln('this.$name._initialize(this, $name);');
           }
@@ -835,105 +833,6 @@ final ${property.typeCode} $propertyName;
     }
   }
 
-  void _generateIsInValueExpressionSlot(
-    _ImplClass implClass,
-    StringBuffer buffer,
-  ) {
-    if (implClass.doNotGenerateLookupNames.contains(
-      'isInValueExpressionSlot',
-    )) {
-      return;
-    }
-
-    var parentGetter = switch (implClass.api) {
-      _AstNodeApi.v1 => 'parent',
-      _AstNodeApi.v2 || _AstNodeApi.shared => 'parent2',
-    };
-
-    var valueNodeOrListProperties = implClass.nodeOrListProperties
-        .where((property) => property.isInValueExpressionSlot)
-        .toList();
-
-    var nonValueNodeOrListProperties = implClass.nodeOrListProperties
-        .where((property) => !property.isInValueExpressionSlot)
-        .toList();
-
-    if (valueNodeOrListProperties.isEmpty) {
-      buffer.write('''
-\n@generated
-@override
-bool isInValueExpressionSlot(AstNode child) {
-  assert(identical(child.$parentGetter, this));
-  return false;
-}
-''');
-      return;
-    }
-
-    if (nonValueNodeOrListProperties.isEmpty) {
-      buffer.write('''
-\n@generated
-@override
-bool isInValueExpressionSlot(AstNode child) {
-  assert(identical(child.$parentGetter, this));
-''');
-      if (valueNodeOrListProperties case [var property]) {
-        switch (property.typeKind) {
-          case _PropertyTypeKindNode():
-            buffer.writeln('assert(identical(${property.name}, child));');
-          case _PropertyTypeKindNodeList():
-            buffer.writeln('assert(${property.name}.contains(child));');
-          default:
-            throw StateError('Unexpected property: ${property.name}');
-        }
-      }
-      buffer.write('''
-  return true;
-}
-''');
-      return;
-    }
-
-    buffer.write('''
-\n@generated
-@override
-bool isInValueExpressionSlot(AstNode child) {
-  assert(identical(child.$parentGetter, this));
-''');
-
-    String returnValue;
-    if (valueNodeOrListProperties.any(
-      (property) => property.typeKind is _PropertyTypeKindNodeList,
-    )) {
-      returnValue = nonValueNodeOrListProperties
-          .map((property) {
-            var propertyName = property.name;
-            switch (property.typeKind) {
-              case _PropertyTypeKindNode():
-                return '!identical($propertyName, child)';
-              case _PropertyTypeKindNodeList():
-                throw StateError('Cannot have both value and non-value lists.');
-              default:
-                throw StateError('Unexpected: $propertyName');
-            }
-          })
-          .join(' && ');
-    } else {
-      returnValue = valueNodeOrListProperties
-          .map((property) {
-            var propertyName = property.name;
-            switch (property.typeKind) {
-              case _PropertyTypeKindNode():
-                return 'identical($propertyName, child)';
-              default:
-                throw StateError('Unexpected: $propertyName');
-            }
-          })
-          .join(' || ');
-    }
-    buffer.write('return $returnValue;\n}');
-  }
-
   void _generateNodeGettersSetters(StringBuffer buffer, _ImplClass implClass) {
     for (var property in implClass.properties) {
       var propertyName = property.name;
@@ -964,9 +863,7 @@ ${property.typeCode} get $propertyName => _$propertyName;
           var setterBody = property.v1Name == null
               ? '_$propertyName = '
                     '${implClass.api.becomeParentMethod}($propertyName);'
-              : '_$propertyName = _becomeParentOf2($propertyName);\n'
-                    '_becomeParentOf1('
-                    '${property.projectToV1Code(propertyName)});';
+              : '_$propertyName = _becomeParentOf2AndExisting1($propertyName);';
           buffer.write('''
 \n@generated
 $setterAnnotations
@@ -983,7 +880,7 @@ set $propertyName(${property.typeCode} $propertyName) {
 \n@generated
 $v1ApiAnnotations
 @override
-${property.typeCode} get $v1Name => $projectedValue;
+${property.typeCode} get $v1Name => _becomeParentOf1($projectedValue);
 ''');
           }
         }
@@ -1148,7 +1045,6 @@ void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     _generateChildContainingRange2(implClass, buffer);
     _generateChildEntities(implClass, buffer);
     _generateChildEntities2(implClass, buffer);
-    _generateIsInValueExpressionSlot(implClass, buffer);
     _generateRemoveChild(implClass, buffer);
     _generateReplaceChild(implClass, buffer);
     _generateResolveExpression(implClass, buffer);
@@ -1167,9 +1063,12 @@ void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
     if (implClass.doNotGenerateLookupNames.contains(methodName)) {
       return;
     }
+    var deprecated = viewName == 'V1'
+        ? '${_v1TraversalAnnotationCode('_childEntities2')}\n'
+        : '';
     buffer.write('''
 \n@generated
-@override
+$deprecated@override
 ChildEntities get $methodName {
   throw StateError('${implClass.interfaceName} is not in the $viewName AST view.');
 }
@@ -1672,7 +1571,6 @@ class _ImplClass {
       'endToken',
       'firstTokenAfterCommentAndMetadata',
       'new',
-      'isInValueExpressionSlot',
       'removeChild',
       'replaceChild',
       'resolveExpression',
@@ -1755,7 +1653,6 @@ class _Property {
   final InterfaceType v1Type;
   final _PropertyTypeKind typeKind;
   final bool isSuper;
-  final bool isInValueExpressionSlot;
   final bool withOverride;
   final bool withOverrideSuperNotNull;
 
@@ -1767,7 +1664,6 @@ class _Property {
     required this.v1Type,
     required this.typeKind,
     required this.isSuper,
-    required this.isInValueExpressionSlot,
     required this.withOverride,
     required this.withOverrideSuperNotNull,
   }) {
@@ -1832,8 +1728,6 @@ class _Property {
       _V1ProjectionKind.collectionElement =>
         'V1Projection.toV1CollectionElement',
       _V1ProjectionKind.combinatorName => 'V1Projection.toV1CombinatorName',
-      _V1ProjectionKind.commentReferableExpression =>
-        'V1Projection.toV1CommentReferableExpression',
       _V1ProjectionKind.expression => 'V1Projection.toV1Expression',
       _V1ProjectionKind.recordLiteralField =>
         'V1Projection.toV1RecordLiteralField',
@@ -1863,7 +1757,6 @@ class _Property {
       _V1ProjectionKind.argument ||
       _V1ProjectionKind.collectionElement ||
       _V1ProjectionKind.combinatorName ||
-      _V1ProjectionKind.commentReferableExpression ||
       _V1ProjectionKind.expression ||
       _V1ProjectionKind.recordLiteralField =>
         '$v1ProjectionMethod($expression)',
@@ -1933,8 +1826,6 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
       'Argument' => _V1ProjectionKind.argument,
       'CollectionElement' => _V1ProjectionKind.collectionElement,
       'CombinatorName' => _V1ProjectionKind.combinatorName,
-      'CommentReferableExpression' =>
-        _V1ProjectionKind.commentReferableExpression,
       'Expression' => _V1ProjectionKind.expression,
       'RecordLiteralField' => _V1ProjectionKind.recordLiteralField,
       _ => null,
@@ -1964,7 +1855,6 @@ enum _V1ProjectionKind {
   argument,
   collectionElement,
   combinatorName,
-  commentReferableExpression,
   expression,
   recordLiteralField,
 }

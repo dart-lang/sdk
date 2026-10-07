@@ -42,6 +42,8 @@ library
               typeName: E
               typeNameOffset: 21
               thisKeywordOffset: 35
+              primaryHeaderCodeRange: 22 + 8
+              primaryBodyCodeRange: 35 + 22
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
@@ -140,13 +142,27 @@ library
               metadata
                 Annotation
                   atSign: @ @35
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: Deprecated @36
+                        element: dart:core::@class::Deprecated
+                        type: Deprecated
+                      element: dart:core::@class::Deprecated::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @46
+                      arguments2
+                        SimpleStringLiteral
+                          literal: '0' @47
+                      rightParenthesis: ) @50
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: Deprecated @36
                     element: dart:core::@class::Deprecated
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @46
-                    arguments2
+                    arguments
                       SimpleStringLiteral
                         literal: '0' @47
                     rightParenthesis: ) @50
@@ -154,6 +170,8 @@ library
               typeName: E
               typeNameOffset: 21
               thisKeywordOffset: 54
+              primaryHeaderCodeRange: 22 + 8
+              primaryBodyCodeRange: 35 + 42
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
@@ -182,13 +200,27 @@ library
           metadata
             Annotation
               atSign: @ @35
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Deprecated @36
+                    element: dart:core::@class::Deprecated
+                    type: Deprecated
+                  element: dart:core::@class::Deprecated::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @46
+                  arguments2
+                    SimpleStringLiteral
+                      literal: '0' @47
+                  rightParenthesis: ) @50
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: Deprecated @36
                 element: dart:core::@class::Deprecated
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @46
-                arguments2
+                arguments
                   SimpleStringLiteral
                     literal: '0' @47
                 rightParenthesis: ) @50
@@ -264,6 +296,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @30
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @30
                     element: dart:core::@getter::deprecated
@@ -272,6 +311,8 @@ library
               typeName: E
               typeNameOffset: 15
               thisKeywordOffset: 43
+              primaryHeaderCodeRange: 16 + 8
+              primaryBodyCodeRange: 29 + 19
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
@@ -300,6 +341,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: deprecated @30
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @30
                 element: dart:core::@getter::deprecated
@@ -345,6 +393,8 @@ library
               typeNameOffset: 21
               periodOffset: 22
               thisKeywordOffset: 41
+              primaryHeaderCodeRange: 22 + 14
+              primaryBodyCodeRange: 41 + 22
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:33) (firstTokenOffset:29) (offset:33)
                   element: <testLibrary>::@extensionType::E::@constructor::named::@formalParameter::it
@@ -440,6 +490,8 @@ library
               typeName: E
               typeNameOffset: 21
               thisKeywordOffset: 35
+              primaryHeaderCodeRange: 22 + 8
+              primaryBodyCodeRange: 35 + 22
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
@@ -533,6 +585,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 21
+              primaryHeaderCodeRange: 22 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -595,6 +648,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 15
               formalParameters
                 #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -666,6 +720,7 @@ library
               codeLength: 10
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 9
               formalParameters
                 #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:22) (firstTokenOffset:17) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -731,6 +786,7 @@ library
               codeLength: 10
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 9
               formalParameters
                 #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration this.it (nameOffset:38) (firstTokenOffset:33) (offset:38)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -795,6 +851,7 @@ library
               codeLength: 12
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 11
               formalParameters
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -861,6 +918,7 @@ library
               codeLength: 12
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 11
               formalParameters
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:39) (firstTokenOffset:34) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -922,6 +980,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 12
               formalParameters
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -985,6 +1044,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 10
               formalParameters
                 #F5 optionalNamed hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:18) (firstTokenOffset:18) (offset:18)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1057,6 +1117,7 @@ library
               codeLength: 14
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 13
               formalParameters
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.a (nameOffset:22) (firstTokenOffset:18) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -1129,6 +1190,7 @@ library
               codeLength: 12
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 11
               formalParameters
                 #F5 optionalPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1195,6 +1257,7 @@ library
               codeLength: 12
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 11
               formalParameters
                 #F5 optionalPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:39) (firstTokenOffset:34) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1257,6 +1320,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 10
               formalParameters
                 #F5 optionalPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:18) (firstTokenOffset:18) (offset:18)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1328,6 +1392,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 10
               formalParameters
                 #F5 optionalPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:18) (firstTokenOffset:18) (offset:18)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1350,6 +1415,7 @@ library
               element: <testLibrary>::@extensionType::B::@constructor::new
               typeName: B
               typeNameOffset: 46
+              primaryHeaderCodeRange: 47 + 6
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:50) (firstTokenOffset:48) (offset:50)
                   element: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
@@ -1446,6 +1512,7 @@ library
               codeLength: 14
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 13
               formalParameters
                 #F5 optionalPositional isDeclaring isFinal isOriginDeclaration this.a (nameOffset:22) (firstTokenOffset:18) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -1518,6 +1585,7 @@ library
               codeLength: 20
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 19
               formalParameters
                 #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:31) (firstTokenOffset:18) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1584,6 +1652,7 @@ library
               codeLength: 20
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 19
               formalParameters
                 #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:47) (firstTokenOffset:34) (offset:47)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1645,6 +1714,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 20
               formalParameters
                 #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.it (nameOffset:31) (firstTokenOffset:18) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1711,6 +1781,7 @@ library
               codeLength: 9
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1777,6 +1848,7 @@ library
               codeLength: 9
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1843,6 +1915,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 37
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:49) (firstTokenOffset:20) (offset:49)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1911,6 +1984,7 @@ library
               codeLength: 15
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 14
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:17) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -1977,6 +2051,7 @@ library
               codeLength: 15
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 14
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:43) (firstTokenOffset:33) (offset:43)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2042,6 +2117,7 @@ library
               codeLength: 11
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 10
               formalParameters
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:17) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2108,6 +2184,7 @@ library
               codeLength: 11
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 10
               formalParameters
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:39) (firstTokenOffset:33) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2173,6 +2250,7 @@ library
               codeLength: 11
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 10
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2239,6 +2317,7 @@ library
               codeLength: 11
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 10
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2304,6 +2383,7 @@ library
               codeLength: 5
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 4
               formalParameters
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:17) (firstTokenOffset:17) (offset:17)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2370,6 +2450,7 @@ library
               codeLength: 5
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 4
               formalParameters
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:33) (firstTokenOffset:33) (offset:33)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2435,12 +2516,20 @@ library
               codeLength: 17
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 16
               formalParameters
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:29) (firstTokenOffset:17) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   metadata
                     Annotation
                       atSign: @ @17
+                      expression: UnqualifiedNameExpression
+                        name: deprecated @18
+                        resolution: GetterInvocationResolution
+                          element: dart:core::@getter::deprecated
+                          invokeType: Deprecated Function()
+                          type: Deprecated
+                        staticType: Deprecated
                       name: SimpleIdentifier
                         token: deprecated @18
                         element: dart:core::@getter::deprecated
@@ -2464,6 +2553,13 @@ library
           metadata
             Annotation
               atSign: @ @17
+              expression: UnqualifiedNameExpression
+                name: deprecated @18
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @18
                 element: dart:core::@getter::deprecated
@@ -2483,6 +2579,13 @@ library
               metadata
                 Annotation
                   atSign: @ @17
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @18
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @18
                     element: dart:core::@getter::deprecated
@@ -2525,12 +2628,20 @@ library
               codeLength: 17
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 16
               formalParameters
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:45) (firstTokenOffset:33) (offset:45)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   metadata
                     Annotation
                       atSign: @ @33
+                      expression: UnqualifiedNameExpression
+                        name: deprecated @34
+                        resolution: GetterInvocationResolution
+                          element: dart:core::@getter::deprecated
+                          invokeType: Deprecated Function()
+                          type: Deprecated
+                        staticType: Deprecated
                       name: SimpleIdentifier
                         token: deprecated @34
                         element: dart:core::@getter::deprecated
@@ -2554,6 +2665,13 @@ library
           metadata
             Annotation
               atSign: @ @33
+              expression: UnqualifiedNameExpression
+                name: deprecated @34
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @34
                 element: dart:core::@getter::deprecated
@@ -2573,6 +2691,13 @@ library
               metadata
                 Annotation
                   atSign: @ @33
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @34
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @34
                     element: dart:core::@getter::deprecated
@@ -2614,6 +2739,7 @@ library
               codeLength: 15
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 14
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:17) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2680,6 +2806,7 @@ library
               codeLength: 15
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 14
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:43) (firstTokenOffset:33) (offset:43)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2745,6 +2872,7 @@ library
               codeLength: 19
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 18
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:31) (firstTokenOffset:17) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2811,6 +2939,7 @@ library
               codeLength: 19
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 18
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:47) (firstTokenOffset:33) (offset:47)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2876,6 +3005,7 @@ library
               codeLength: 18
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 17
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:30) (firstTokenOffset:17) (offset:30)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -2941,6 +3071,7 @@ library
               codeLength: 16
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 15
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:28) (firstTokenOffset:24) (offset:28)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -3006,12 +3137,20 @@ library
               codeLength: 21
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 20
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:33) (firstTokenOffset:17) (offset:33)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
                   metadata
                     Annotation
                       atSign: @ @17
+                      expression: UnqualifiedNameExpression
+                        name: deprecated @18
+                        resolution: GetterInvocationResolution
+                          element: dart:core::@getter::deprecated
+                          invokeType: Deprecated Function()
+                          type: Deprecated
+                        staticType: Deprecated
                       name: SimpleIdentifier
                         token: deprecated @18
                         element: dart:core::@getter::deprecated
@@ -3035,6 +3174,13 @@ library
           metadata
             Annotation
               atSign: @ @17
+              expression: UnqualifiedNameExpression
+                name: deprecated @18
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @18
                 element: dart:core::@getter::deprecated
@@ -3054,6 +3200,13 @@ library
               metadata
                 Annotation
                   atSign: @ @17
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @18
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @18
                     element: dart:core::@getter::deprecated
@@ -3095,6 +3248,7 @@ library
               codeLength: 8
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 7
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.A (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::A
@@ -3161,6 +3315,7 @@ library
               codeLength: 8
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 7
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.A (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::A
@@ -3226,6 +3381,7 @@ library
               codeLength: 9
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -3292,6 +3448,7 @@ library
               codeLength: 9
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 8
               formalParameters
                 #F5 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.it (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -3354,6 +3511,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 16
               formalParameters
                 #F5 optionalNamed hasImplicitType isFinal isOriginDeclaration super.it (nameOffset:24) (firstTokenOffset:18) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -3425,6 +3583,7 @@ library
               codeLength: 11
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 10
               formalParameters
                 #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration super.it (nameOffset:23) (firstTokenOffset:17) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -3490,6 +3649,7 @@ library
               codeLength: 11
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 10
               formalParameters
                 #F5 requiredPositional hasImplicitType isFinal isOriginDeclaration super.it (nameOffset:39) (firstTokenOffset:33) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -3554,6 +3714,7 @@ library
               codeLength: 3
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 2
           getters
             #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::#1
@@ -3611,6 +3772,7 @@ library
               codeLength: 3
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 2
           getters
             #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@extensionType::A::@getter::#1
@@ -3667,6 +3829,7 @@ library
               codeLength: 19
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 18
               formalParameters
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.a (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -3738,6 +3901,7 @@ library
               codeLength: 19
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 18
               formalParameters
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.a (nameOffset:39) (firstTokenOffset:34) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -3808,6 +3972,7 @@ library
               codeLength: 27
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 26
               formalParameters
                 #F5 optionalNamed isDeclaring isFinal isOriginDeclaration this.a (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -3878,6 +4043,7 @@ library
               codeLength: 19
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 18
               formalParameters
                 #F5 optionalPositional isDeclaring isFinal isOriginDeclaration this.a (nameOffset:23) (firstTokenOffset:18) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -3949,6 +4115,7 @@ library
               codeLength: 19
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 18
               formalParameters
                 #F5 optionalPositional isDeclaring isFinal isOriginDeclaration this.a (nameOffset:39) (firstTokenOffset:34) (offset:39)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -4019,6 +4186,7 @@ library
               codeLength: 27
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 26
               formalParameters
                 #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.a (nameOffset:31) (firstTokenOffset:18) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -4089,6 +4257,7 @@ library
               codeLength: 35
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 34
               formalParameters
                 #F5 requiredNamed isDeclaring isFinal isOriginDeclaration this.a (nameOffset:31) (firstTokenOffset:18) (offset:31)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -4159,6 +4328,7 @@ library
               codeLength: 18
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 17
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.a (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -4230,6 +4400,7 @@ library
               codeLength: 18
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 17
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.a (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -4300,6 +4471,7 @@ library
               codeLength: 18
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 17
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.a (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -4371,6 +4543,7 @@ library
               codeLength: 18
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 17
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.a (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -4441,6 +4614,7 @@ library
               codeLength: 15
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 14
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.a (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -4512,6 +4686,7 @@ library
               codeLength: 15
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 14
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.a (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::a
@@ -4582,6 +4757,7 @@ library
               codeLength: 9
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -4648,6 +4824,7 @@ library
               codeLength: 9
               typeName: A
               typeNameOffset: 31
+              primaryHeaderCodeRange: 32 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:37) (firstTokenOffset:33) (offset:37)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -4713,6 +4890,7 @@ library
               codeLength: 2
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 17 + 0
           getters
             #F3 isComplete isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::#1
@@ -4770,6 +4948,7 @@ library
               typeName: A
               typeNameOffset: 15
               periodOffset: 16
+              primaryHeaderCodeRange: 16 + 13
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:26) (firstTokenOffset:22) (offset:26)
                   element: <testLibrary>::@extensionType::A::@constructor::name::@formalParameter::it
@@ -4832,6 +5011,13 @@ library
               metadata
                 Annotation
                   atSign: @ @33
+                  expression: UnqualifiedNameExpression
+                    name: foo @34
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @34
                     element: <testLibrary>::@getter::foo
@@ -4853,12 +5039,20 @@ library
               element: <testLibrary>::@extensionType::E::@constructor::new
               typeName: E
               typeNameOffset: 31
+              primaryHeaderCodeRange: 40 + 21
               formalParameters
                 #F8 optionalPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:51) (firstTokenOffset:42) (offset:51)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
                   metadata
                     Annotation
                       atSign: @ @42
+                      expression: UnqualifiedNameExpression
+                        name: foo @43
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@extensionType::E::@getter::foo
+                          invokeType: int Function()
+                          type: int
+                        staticType: int
                       name: SimpleIdentifier
                         token: foo @43
                         element: <testLibrary>::@extensionType::E::@getter::foo
@@ -4901,6 +5095,13 @@ library
           metadata
             Annotation
               atSign: @ @33
+              expression: UnqualifiedNameExpression
+                name: foo @34
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @34
                 element: <testLibrary>::@getter::foo
@@ -4916,6 +5117,13 @@ library
           metadata
             Annotation
               atSign: @ @42
+              expression: UnqualifiedNameExpression
+                name: foo @43
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@extensionType::E::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @43
                 element: <testLibrary>::@extensionType::E::@getter::foo
@@ -4943,6 +5151,13 @@ library
               metadata
                 Annotation
                   atSign: @ @42
+                  expression: UnqualifiedNameExpression
+                    name: foo @43
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@extensionType::E::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @43
                     element: <testLibrary>::@extensionType::E::@getter::foo
@@ -5009,6 +5224,7 @@ library
               element: <testLibrary>::@extensionType::E::@constructor::new
               typeName: E
               typeNameOffset: 15
+              primaryHeaderCodeRange: 44 + 6
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:47) (firstTokenOffset:45) (offset:47)
                   element: <testLibrary>::@extensionType::E::@constructor::new::@formalParameter::it
@@ -5084,6 +5300,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -5107,6 +5324,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 52
+              primaryHeaderCodeRange: 53 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:58) (firstTokenOffset:54) (offset:58)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -5190,6 +5408,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 19 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -5217,6 +5436,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 55
+              primaryHeaderCodeRange: 59 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:64) (firstTokenOffset:60) (offset:64)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -5307,6 +5527,7 @@ library
               typeName: A
               typeNameOffset: 15
               periodOffset: 16
+              primaryHeaderCodeRange: 16 + 14
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -5331,6 +5552,7 @@ library
               typeName: A
               typeNameOffset: 58
               periodOffset: 59
+              primaryHeaderCodeRange: 59 + 14
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:70) (firstTokenOffset:66) (offset:70)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -5415,6 +5637,7 @@ library
               typeName: A
               typeNameOffset: 15
               periodOffset: 16
+              primaryHeaderCodeRange: 16 + 14
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:27) (firstTokenOffset:23) (offset:27)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -5447,6 +5670,7 @@ library
               typeName: A
               typeNameOffset: 74
               periodOffset: 75
+              primaryHeaderCodeRange: 75 + 14
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:86) (firstTokenOffset:82) (offset:86)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -5481,6 +5705,7 @@ library
               typeName: A
               typeNameOffset: 155
               periodOffset: 156
+              primaryHeaderCodeRange: 156 + 14
               formalParameters
                 #F15 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:167) (firstTokenOffset:163) (offset:167)
                   element: <testLibrary>::@extensionType::A::@constructor::named::@formalParameter::it
@@ -5562,6 +5787,7 @@ library
               typeName: A
               typeNameOffset: 15
               periodOffset: 16
+              primaryHeaderCodeRange: 16 + 10
               formalParameters
                 #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:23) (firstTokenOffset:19) (offset:23)
                   element: <testLibrary>::@extensionType::A::@constructor::_::@formalParameter::it
@@ -5656,6 +5882,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -5734,6 +5961,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -5813,6 +6041,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -5891,6 +6120,7 @@ library
               typeName: A
               typeNameOffset: 15
               periodOffset: 16
+              primaryHeaderCodeRange: 16 + 16
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
@@ -5968,6 +6198,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 10
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this._it (nameOffset:22) (firstTokenOffset:17) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_it
@@ -6048,6 +6279,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 11
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this._123 (nameOffset:22) (firstTokenOffset:17) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_123
@@ -6127,6 +6359,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 10
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this._it (nameOffset:22) (firstTokenOffset:17) (offset:22)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::_it
@@ -6208,6 +6441,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -6288,6 +6522,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -6368,6 +6603,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -6465,6 +6701,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -6543,6 +6780,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -6622,6 +6860,7 @@ library
               typeName: A
               typeNameOffset: 15
               periodOffset: 16
+              primaryHeaderCodeRange: 16 + 16
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
@@ -6701,6 +6940,7 @@ library
               typeName: A
               typeNameOffset: 15
               periodOffset: 16
+              primaryHeaderCodeRange: 16 + 16
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::primary::@formalParameter::it
@@ -7116,6 +7356,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 23
+              primaryHeaderCodeRange: 24 + 8
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -7142,6 +7383,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
+              primaryHeaderCodeRange: 79 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:84) (firstTokenOffset:80) (offset:84)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -7438,6 +7680,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -7463,6 +7706,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 52
+              primaryHeaderCodeRange: 53 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:58) (firstTokenOffset:54) (offset:58)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -7489,6 +7733,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 89
+              primaryHeaderCodeRange: 90 + 8
               formalParameters
                 #F13 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:95) (firstTokenOffset:91) (offset:95)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -7709,6 +7954,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 24
+              primaryHeaderCodeRange: 25 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:30) (firstTokenOffset:26) (offset:30)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -7908,6 +8154,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -7929,6 +8176,7 @@ library
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 57
+              primaryHeaderCodeRange: 59 + 8
               formalParameters
                 #F15 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:64) (firstTokenOffset:60) (offset:64)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
@@ -7951,6 +8199,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
+              primaryHeaderCodeRange: 96 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:101) (firstTokenOffset:97) (offset:101)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -7975,6 +8224,7 @@ library
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 137
+              primaryHeaderCodeRange: 139 + 8
               formalParameters
                 #F25 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:144) (firstTokenOffset:140) (offset:144)
                   element: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
@@ -7995,6 +8245,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 175
+              primaryHeaderCodeRange: 176 + 8
               formalParameters
                 #F18 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:181) (firstTokenOffset:177) (offset:181)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -8016,6 +8267,7 @@ library
               element: <testLibrary>::@extensionType::I3::@constructor::new
               typeName: I3
               typeNameOffset: 217
+              primaryHeaderCodeRange: 219 + 8
               formalParameters
                 #F30 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:224) (firstTokenOffset:220) (offset:224)
                   element: <testLibrary>::@extensionType::I3::@constructor::new::@formalParameter::it
@@ -8176,6 +8428,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 19 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -8197,6 +8450,7 @@ library
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 60
+              primaryHeaderCodeRange: 62 + 8
               formalParameters
                 #F17 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:67) (firstTokenOffset:63) (offset:67)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
@@ -8221,6 +8475,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 98
+              primaryHeaderCodeRange: 102 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:107) (firstTokenOffset:103) (offset:107)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -8245,6 +8500,7 @@ library
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 146
+              primaryHeaderCodeRange: 151 + 8
               formalParameters
                 #F23 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:156) (firstTokenOffset:152) (offset:156)
                   element: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
@@ -8385,6 +8641,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 19 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -8406,6 +8663,7 @@ library
               element: <testLibrary>::@extensionType::I1::@constructor::new
               typeName: I1
               typeNameOffset: 60
+              primaryHeaderCodeRange: 62 + 8
               formalParameters
                 #F19 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:67) (firstTokenOffset:63) (offset:67)
                   element: <testLibrary>::@extensionType::I1::@constructor::new::@formalParameter::it
@@ -8433,6 +8691,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 98
+              primaryHeaderCodeRange: 105 + 8
               formalParameters
                 #F12 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:110) (firstTokenOffset:106) (offset:110)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -8457,6 +8716,7 @@ library
               element: <testLibrary>::@extensionType::I2::@constructor::new
               typeName: I2
               typeNameOffset: 149
+              primaryHeaderCodeRange: 154 + 8
               formalParameters
                 #F25 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:159) (firstTokenOffset:155) (offset:159)
                   element: <testLibrary>::@extensionType::I2::@constructor::new::@formalParameter::it
@@ -9191,6 +9451,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 38
+              primaryHeaderCodeRange: 39 + 8
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:44) (firstTokenOffset:40) (offset:44)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -9354,6 +9615,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 6
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:19) (firstTokenOffset:17) (offset:19)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -9372,6 +9634,7 @@ library
               element: <testLibrary>::@extensionType::B::@constructor::new
               typeName: B
               typeNameOffset: 42
+              primaryHeaderCodeRange: 43 + 6
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:46) (firstTokenOffset:44) (offset:46)
                   element: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
@@ -9464,6 +9727,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 6
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:19) (firstTokenOffset:17) (offset:19)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -9482,6 +9746,7 @@ library
               element: <testLibrary>::@extensionType::B::@constructor::new
               typeName: B
               typeNameOffset: 42
+              primaryHeaderCodeRange: 43 + 12
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:52) (firstTokenOffset:44) (offset:52)
                   element: <testLibrary>::@extensionType::B::@constructor::new::@formalParameter::it
@@ -9572,6 +9837,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 6
               formalParameters
                 #F5 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:19) (firstTokenOffset:17) (offset:19)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -9922,6 +10188,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 34 + 14
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:45) (firstTokenOffset:35) (offset:45)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -9998,6 +10265,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 31 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:36) (firstTokenOffset:32) (offset:36)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -10025,6 +10293,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 66
+              primaryHeaderCodeRange: 85 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:90) (firstTokenOffset:86) (offset:90)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -10747,6 +11016,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -10784,6 +11054,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 76
+              primaryHeaderCodeRange: 77 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:82) (firstTokenOffset:78) (offset:82)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -10913,6 +11184,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -10954,6 +11226,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
+              primaryHeaderCodeRange: 76 + 8
               formalParameters
                 #F12 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11070,6 +11343,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11108,6 +11382,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
+              primaryHeaderCodeRange: 76 + 8
               formalParameters
                 #F12 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11143,6 +11418,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
+              primaryHeaderCodeRange: 149 + 8
               formalParameters
                 #F21 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:154) (firstTokenOffset:150) (offset:154)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11259,6 +11535,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11297,6 +11574,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
+              primaryHeaderCodeRange: 76 + 8
               formalParameters
                 #F12 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11338,6 +11616,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
+              primaryHeaderCodeRange: 149 + 8
               formalParameters
                 #F21 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:154) (firstTokenOffset:150) (offset:154)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11450,6 +11729,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11491,6 +11771,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
+              primaryHeaderCodeRange: 76 + 8
               formalParameters
                 #F12 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11603,6 +11884,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11634,6 +11916,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 80
+              primaryHeaderCodeRange: 81 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:86) (firstTokenOffset:82) (offset:86)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11748,6 +12031,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11792,6 +12076,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
+              primaryHeaderCodeRange: 76 + 8
               formalParameters
                 #F12 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -11839,6 +12124,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 143
+              primaryHeaderCodeRange: 144 + 8
               formalParameters
                 #F22 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:149) (firstTokenOffset:145) (offset:149)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12258,6 +12544,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12285,6 +12572,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
+              primaryHeaderCodeRange: 75 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:80) (firstTokenOffset:76) (offset:80)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12386,6 +12674,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 19 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12417,6 +12706,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 70
+              primaryHeaderCodeRange: 74 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:79) (firstTokenOffset:75) (offset:79)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12520,6 +12810,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12548,6 +12839,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
+              primaryHeaderCodeRange: 96 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:101) (firstTokenOffset:97) (offset:101)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12648,6 +12940,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12682,6 +12975,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
+              primaryHeaderCodeRange: 76 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12787,6 +13081,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12823,6 +13118,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
+              primaryHeaderCodeRange: 76 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12853,6 +13149,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 148
+              primaryHeaderCodeRange: 149 + 8
               formalParameters
                 #F18 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:154) (firstTokenOffset:150) (offset:154)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12956,6 +13253,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -12984,6 +13282,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 73
+              primaryHeaderCodeRange: 74 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:79) (firstTokenOffset:75) (offset:79)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13014,6 +13313,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 139
+              primaryHeaderCodeRange: 140 + 8
               formalParameters
                 #F16 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:145) (firstTokenOffset:141) (offset:145)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13163,6 +13463,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13189,6 +13490,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 69
+              primaryHeaderCodeRange: 70 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:75) (firstTokenOffset:71) (offset:75)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13278,6 +13580,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 19 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13308,6 +13611,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
+              primaryHeaderCodeRange: 82 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:87) (firstTokenOffset:83) (offset:87)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13397,6 +13701,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13426,6 +13731,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 87
+              primaryHeaderCodeRange: 88 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:93) (firstTokenOffset:89) (offset:93)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13517,6 +13823,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13550,6 +13857,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 85
+              primaryHeaderCodeRange: 89 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:94) (firstTokenOffset:90) (offset:94)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13640,6 +13948,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 19 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:24) (firstTokenOffset:20) (offset:24)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13671,6 +13980,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 78
+              primaryHeaderCodeRange: 82 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:87) (firstTokenOffset:83) (offset:87)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13760,6 +14070,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13789,6 +14100,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 69
+              primaryHeaderCodeRange: 70 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:75) (firstTokenOffset:71) (offset:75)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13820,6 +14132,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 131
+              primaryHeaderCodeRange: 132 + 8
               formalParameters
                 #F15 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:137) (firstTokenOffset:133) (offset:137)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13904,6 +14217,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13940,6 +14254,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 71
+              primaryHeaderCodeRange: 72 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:77) (firstTokenOffset:73) (offset:77)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -13980,6 +14295,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 135
+              primaryHeaderCodeRange: 136 + 8
               formalParameters
                 #F19 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:141) (firstTokenOffset:137) (offset:141)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14074,6 +14390,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14113,6 +14430,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 71
+              primaryHeaderCodeRange: 72 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:77) (firstTokenOffset:73) (offset:77)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14157,6 +14475,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 138
+              primaryHeaderCodeRange: 139 + 8
               formalParameters
                 #F21 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:144) (firstTokenOffset:140) (offset:144)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14254,6 +14573,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F7 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14290,6 +14610,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
+              primaryHeaderCodeRange: 75 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:80) (firstTokenOffset:76) (offset:80)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14330,6 +14651,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 138
+              primaryHeaderCodeRange: 139 + 8
               formalParameters
                 #F19 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:144) (firstTokenOffset:140) (offset:144)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14567,6 +14889,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F8 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14598,6 +14921,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 74
+              primaryHeaderCodeRange: 75 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:80) (firstTokenOffset:76) (offset:80)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14711,6 +15035,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14747,6 +15072,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 95
+              primaryHeaderCodeRange: 96 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:101) (firstTokenOffset:97) (offset:101)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14861,6 +15187,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 8
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
@@ -14896,6 +15223,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 75
+              primaryHeaderCodeRange: 76 + 8
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:81) (firstTokenOffset:77) (offset:81)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it

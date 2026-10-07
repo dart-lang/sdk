@@ -3566,6 +3566,30 @@ import 'package:test/b.dart';
 ''');
   }
 
+  test_getUnitElement_duplicatePart() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part 'b.dart';
+part 'b.dart';
+''');
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+''');
+
+    var driver = driverFor(a);
+    var collector = DriverEventCollector(driver);
+
+    collector.getUnitElement('B1', b);
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getUnitElement B1
+  path: /home/test/lib/b.dart
+  uri: package:test/b.dart
+  flags: isPart
+  enclosing: #F0
+''');
+  }
+
   test_getUnitElement_invalidPath_notAbsolute() async {
     var driver = driverFor(testFile);
     var result = await driver.getUnitElement('not_absolute.dart');
@@ -3605,6 +3629,52 @@ import 'package:test/b.dart';
 [future] getUnitElement A1
   MissingSdkLibraryResult #0
     missingUri: dart:core
+''');
+  }
+
+  test_getUnitElement_partCycle() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'b.dart';
+part 'b.dart';
+''');
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'a.dart';
+part 'a.dart';
+''');
+
+    var driver = driverFor(a);
+    var collector = DriverEventCollector(driver);
+
+    collector.getUnitElement('A1', a);
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getUnitElement A1
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  flags: isPart
+  enclosing: <null>
+''');
+  }
+
+  test_getUnitElement_partIncludesSelf() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+part of 'a.dart';
+part 'a.dart';
+''');
+
+    var driver = driverFor(a);
+    var collector = DriverEventCollector(driver);
+
+    collector.getUnitElement('A1', a);
+    await assertEventsText(collector, r'''
+[status] working
+[status] idle
+[future] getUnitElement A1
+  path: /home/test/lib/a.dart
+  uri: package:test/a.dart
+  flags: isPart
+  enclosing: <null>
 ''');
   }
 
@@ -3966,7 +4036,7 @@ class A {}
     // reload linked summary for [a], and crash.
     {
       var parseResult = driver.parseFileSync2(a) as ParsedUnitResult;
-      expect(parseResult.unit.declarations, isEmpty);
+      expect(parseResult.unit.declarations2, isEmpty);
     }
 
     // We have not read `a`, so `A` is still not declared.
@@ -20912,6 +20982,347 @@ mixin M {}
             allDeclaredConstructors: []
             allInheritedConstructors: #M1 #M10
 [status] idle
+''',
+    );
+  }
+
+  test_dependency_docImport_class_it_remove_importPrefix() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+/// @docImport 'a.dart' as p;
+library;
+
+/// [p.A]
+void f() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredFunctions
+      f: #M0
+    exportMapId: #M1
+    exportMap
+      f: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M2
+        interface: #M3
+      B: #M4
+        interface: #M5
+    exportMapId: #M6
+    exportMap
+      A: #M2
+      B: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M6
+        exportMap
+          A: #M2
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      B: #M4
+        interface: #M5
+    exportMapId: #M7
+    exportMap
+      B: #M4
+  requirements
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M2
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M7
+        exportMap
+          A: <null>
+          A=: <null>
+[status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_docImport_class_it_remove_notUsed_importPrefix() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+/// @docImport 'a.dart' as p;
+library;
+
+/// [p.A]
+void f() {}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredFunctions
+      f: #M0
+    exportMapId: #M1
+    exportMap
+      f: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M2
+        interface: #M3
+      B: #M4
+        interface: #M5
+    exportMapId: #M6
+    exportMap
+      A: #M2
+      B: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M6
+        exportMap
+          A: #M2
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+class A {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M2
+        interface: #M3
+    exportMapId: #M7
+    exportMap
+      A: #M2
+  requirements
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_docImport_partOf_class_it_remove() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+/// @docImport 'a.dart';
+part of 'test.dart';
+
+/// [A]
+void f() {}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+class B {}
+''',
+      testCode: r'''
+part 'part.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredFunctions
+      f: #M0
+    exportMapId: #M1
+    exportMap
+      f: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M2
+        interface: #M3
+      B: #M4
+        interface: #M5
+    exportMapId: #M6
+    exportMap
+      A: #M2
+      B: #M4
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/part.dart
+    uri: package:test/part.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M6
+        exportMap
+          A: #M2
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+[status] idle
+[future] getErrors T1
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+class B {}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      B: #M4
+        interface: #M5
+    exportMapId: #M7
+    exportMap
+      B: #M4
+  requirements
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: A
+    expectedId: #M2
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #4
+    path: /home/test/lib/part.dart
+    uri: package:test/part.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M7
+        exportMap
+          A: <null>
+          A=: <null>
+[status] idle
+[future] getErrors T2
+  ErrorsResult #5
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
 ''',
     );
   }
@@ -76225,7 +76636,6 @@ class A {}
             tokenLengthList: [1, 3]
             elementIndexList
               0 = null
-              0 = null
         supertype: Object @ dart:core
         interface: #M1
     exportMapId: #M2
@@ -76248,7 +76658,6 @@ class A {}
             tokenBuffer: @foo.bar
             tokenLengthList: [1, 3, 1, 3]
             elementIndexList
-              0 = null
               0 = null
               0 = null
         supertype: Object @ dart:core
@@ -76282,7 +76691,6 @@ class A {}
             elementIndexList
               0 = null
               0 = null
-              0 = null
         supertype: Object @ dart:core
         interface: #M1
     exportMapId: #M2
@@ -76305,7 +76713,6 @@ class A {}
             tokenBuffer: @foo
             tokenLengthList: [1, 3]
             elementIndexList
-              0 = null
               0 = null
         supertype: Object @ dart:core
         interface: #M4
@@ -85540,9 +85947,9 @@ void foo() {}
               [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
             elementIndexList
               7 = element 0
+              23 = element 1
               0 = null
               6 = typeParameter 0
-              23 = element 1
         functionType: FunctionType
           returnType: void
     exportMapId: #M3
@@ -85583,9 +85990,9 @@ final b = 0;
               [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
             elementIndexList
               7 = element 0
+              23 = element 1
               0 = null
               6 = typeParameter 0
-              23 = element 1
         functionType: FunctionType
           returnType: void
     declaredVariables
@@ -85633,12 +86040,12 @@ void foo() {}
               [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
             elementIndexList
               7 = element 0
+              23 = element 1
               0 = null
               0 = null
               22 = typeParameter 1
               22 = typeParameter 1
               6 = typeParameter 0
-              23 = element 1
         functionType: FunctionType
           returnType: void
     exportMapId: #M3
@@ -85679,12 +86086,12 @@ final b = 0;
               [1] (package:test/test.dart, interfaceConstructor, A, new) <null>
             elementIndexList
               7 = element 0
+              23 = element 1
               0 = null
               0 = null
               22 = typeParameter 1
               22 = typeParameter 1
               6 = typeParameter 0
-              23 = element 1
         functionType: FunctionType
           returnType: void
     declaredVariables

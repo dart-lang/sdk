@@ -1821,15 +1821,32 @@ package:analyzer_plugin/utilities/change_builder/change_builder_core.dart:
     write (method: void Function(String))
     writeln (method: void Function([String]))
 package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
+  AfterCommentWrite (enum):
+    newLine (enum constant: AfterCommentWrite)
+    nothing (enum constant: AfterCommentWrite)
+    space (enum constant: AfterCommentWrite)
+    values (static const getter: List<AfterCommentWrite>)
+    isNewLine (getter: bool)
+    isNothing (getter: bool)
+    isSpace (getter: bool)
+  BeforeCommentWrite (enum):
+    newLine (enum constant: BeforeCommentWrite)
+    nothing (enum constant: BeforeCommentWrite)
+    space (enum constant: BeforeCommentWrite)
+    values (static const getter: List<BeforeCommentWrite>)
+    isNewLine (getter: bool)
+    isNothing (getter: bool)
+    isSpace (getter: bool)
   DartEditBuilder (class extends Object implements EditBuilder, abstract):
     new (constructor: DartEditBuilder Function())
     addLinkedEdit (method: void Function(String, void Function(DartLinkedEditBuilder)))
     canWriteType (method: bool Function(DartType?, {List<TypeParameterElement>? typeParametersInScope}))
     getIndent (method: String Function(int))
     writeClassDeclaration (method: void Function(String, {Iterable<DartType>? interfaces, bool isAbstract, void Function()? membersWriter, Iterable<DartType>? mixins, String? nameGroupName, DartType? superclass, String? superclassGroupName}))
+    writeComment (method: void Function(CommentToken?, {AfterCommentWrite after, BeforeCommentWrite before, bool indentTrailingNewLine, String? prefix}))
     writeConstructorDeclaration (method: void Function(String, {ArgumentList? argumentList, void Function()? bodyWriter, String? classNameGroupName, String? constructorName, String? constructorNameGroupName, List<String>? fieldNames, void Function()? initializerWriter, bool isConst, void Function()? parameterWriter}))
     writeFieldDeclaration (method: void Function(String, {bool alwaysWriteType, void Function()? initializerWriter, bool isConst, bool isFinal, bool isStatic, String? nameGroupName, DartType? type, String? typeGroupName, List<TypeParameterElement>? typeParametersInScope}))
-    writeFormalParameter (method: void Function(String, {bool isCovariant, bool isRequiredNamed, bool isRequiredType, String? nameGroupName, DartType? type, String? typeGroupName, List<TypeParameterElement>? typeParametersInScope}))
+    writeFormalParameter (method: void Function(String, {bool isCovariant, bool isRequiredNamed, bool isRequiredType, String? nameGroupName, bool onClosure, DartType? type, String? typeGroupName, List<TypeParameterElement>? typeParametersInScope}))
     writeFormalParameters (method: void Function(Iterable<FormalParameterElement>, {bool fillParameterNames, String? groupNamePrefix, bool includeDefaultValues, bool includeParentheses, bool requiredTypes, List<TypeParameterElement>? typeParametersInScope}))
     writeFunctionDeclaration (method: void Function(String, {void Function()? bodyWriter, bool isStatic, String? nameGroupName, void Function()? parameterWriter, DartType? returnType, String? returnTypeGroupName, void Function()? typeParameterWriter, List<TypeParameterElement>? typeParametersInScope}))
     writeGetterDeclaration (method: void Function(String, {bool alwaysWriteType, void Function() bodyWriter, bool isStatic, String nameGroupName, DartType? returnType, String returnTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
@@ -2186,6 +2203,7 @@ package:_fe_analyzer_shared/src/base/source_range.dart:
 package:_fe_analyzer_shared/src/base/syntactic_entity.dart:
   SyntacticEntity (referenced)
 package:_fe_analyzer_shared/src/scanner/token.dart:
+  CommentToken (referenced)
   Token (referenced)
 package:analyzer/dart/analysis/analysis_context.dart:
   AnalysisContext (referenced)

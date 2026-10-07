@@ -17,6 +17,307 @@ main() {
 }
 
 abstract class MetadataElementTest extends ElementsBaseTest {
+  test_annotationArgument_forElement() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(Object? o);
+}
+
+@A([for (var i in []) i])
+void f() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration o (nameOffset:28) (firstTokenOffset:20) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+      functions
+        #F4 isComplete isOriginDeclaration isStatic f (nameOffset:66) (firstTokenOffset:35) (offset:66)
+          element: <testLibrary>::@function::f
+          metadata
+            Annotation
+              atSign: @ @35
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @36
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @37
+                  arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
+                  rightParenthesis: ) @59
+                staticType: A
+              name: SimpleIdentifier
+                token: A @36
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @37
+                arguments
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                rightParenthesis: ) @59
+              element: <testLibrary>::@class::A::@constructor::new
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional o
+              firstFragment: #F3
+              type: Object?
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @35
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @36
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @37
+              arguments2
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
+                  staticType: null
+              arguments(v1)
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
+                  staticType: null
+              rightParenthesis: ) @59
+            staticType: A
+          name: SimpleIdentifier
+            token: A @36
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @37
+            arguments
+              SimpleIdentifier
+                token: _notSerializableExpression @-1
+                element: <null>
+                staticType: null
+            rightParenthesis: ) @59
+          element: <testLibrary>::@class::A::@constructor::new
+      returnType: void
+''');
+  }
+
+  test_annotationArgument_functionExpression() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(Object? o);
+}
+
+@A(() {})
+void f() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration o (nameOffset:28) (firstTokenOffset:20) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+      functions
+        #F4 isComplete isOriginDeclaration isStatic f (nameOffset:50) (firstTokenOffset:35) (offset:50)
+          element: <testLibrary>::@function::f
+          metadata
+            Annotation
+              atSign: @ @35
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @36
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @37
+                  arguments2
+                    UnqualifiedNameExpression
+                      name: _notSerializableExpression @-1
+                      resolution: <null>
+                      staticType: null
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: _notSerializableExpression @-1
+                      element: <null>
+                      staticType: null
+                  rightParenthesis: ) @43
+                staticType: A
+              name: SimpleIdentifier
+                token: A @36
+                element: <testLibrary>::@class::A
+                staticType: null
+              arguments: ArgumentList
+                leftParenthesis: ( @37
+                arguments
+                  SimpleIdentifier
+                    token: _notSerializableExpression @-1
+                    element: <null>
+                    staticType: null
+                rightParenthesis: ) @43
+              element: <testLibrary>::@class::A::@constructor::new
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional o
+              firstFragment: #F3
+              type: Object?
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F4
+      metadata
+        Annotation
+          atSign: @ @35
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @36
+                element: <testLibrary>::@class::A
+                type: A
+              element: <testLibrary>::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @37
+              arguments2
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
+                  staticType: null
+              arguments(v1)
+                SimpleIdentifier
+                  token: _notSerializableExpression @-1
+                  element: <null>
+                  staticType: null
+              rightParenthesis: ) @43
+            staticType: A
+          name: SimpleIdentifier
+            token: A @36
+            element: <testLibrary>::@class::A
+            staticType: null
+          arguments: ArgumentList
+            leftParenthesis: ( @37
+            arguments
+              SimpleIdentifier
+                token: _notSerializableExpression @-1
+                element: <null>
+                staticType: null
+            rightParenthesis: ) @43
+          element: <testLibrary>::@class::A::@constructor::new
+      returnType: void
+''');
+  }
+
+  test_annotationArgument_functionExpression_functionTypeFormalParameter() async {
+    var library = await buildLibrary(r'''
+class A {
+  const A(Object? o);
+}
+
+void f(void Function(@A(() {}) int x) g) {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          constructors
+            #F2 isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:18)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+              typeNameOffset: 18
+              formalParameters
+                #F3 requiredPositional isOriginDeclaration o (nameOffset:28) (firstTokenOffset:20) (offset:28)
+                  element: <testLibrary>::@class::A::@constructor::new::@formalParameter::o
+      functions
+        #F4 isComplete isOriginDeclaration isStatic f (nameOffset:40) (firstTokenOffset:35) (offset:40)
+          element: <testLibrary>::@function::f
+          formalParameters
+            #F5 requiredPositional isOriginDeclaration g (nameOffset:73) (firstTokenOffset:42) (offset:73)
+              element: <testLibrary>::@function::f::@formalParameter::g
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isConst isOriginDeclaration new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F2
+          formalParameters
+            #E0 requiredPositional o
+              firstFragment: #F3
+              type: Object?
+  functions
+    isOriginDeclaration isStatic f
+      reference: <testLibrary>::@function::f
+      firstFragment: #F4
+      formalParameters
+        #E1 requiredPositional g
+          firstFragment: #F5
+          type: void Function(int)
+      returnType: void
+''');
+  }
+
   test_annotationArgument_recordLiteral() async {
     var library = await buildLibrary(r'''
 @A((2, a: 3))
@@ -232,6 +533,13 @@ library
               metadata
                 Annotation
                   atSign: @ @26
+                  expression: UnqualifiedNameExpression
+                    name: a @27
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: a @27
                     element: <testLibrary>::@getter::a
@@ -277,6 +585,13 @@ library
           metadata
             Annotation
               atSign: @ @26
+              expression: UnqualifiedNameExpression
+                name: a @27
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @27
                 element: <testLibrary>::@getter::a
@@ -349,6 +664,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: foo @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @30
                     element: <testLibrary>::@getter::foo
@@ -376,6 +698,13 @@ library
               metadata
                 Annotation
                   atSign: @ @65
+                  expression: UnqualifiedNameExpression
+                    name: foo @66
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@class::C::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @66
                     element: <testLibrary>::@class::C::@getter::foo
@@ -403,6 +732,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: foo @30
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @30
                 element: <testLibrary>::@getter::foo
@@ -434,6 +770,13 @@ library
           metadata
             Annotation
               atSign: @ @65
+              expression: UnqualifiedNameExpression
+                name: foo @66
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@class::C::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @66
                 element: <testLibrary>::@class::C::@getter::foo
@@ -1546,17 +1889,35 @@ library
           metadata
             Annotation
               atSign: @ @18
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @19
+                    element: package:test/a.dart::@class::A
+                    type: A
+                  element: package:test/a.dart::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @20
+                  arguments2
+                    NamedArgument
+                      name: value @21
+                      colon: : @26
+                      argumentExpression2: IntegerLiteral
+                        literal: 42 @28
+                        staticType: int
+                  rightParenthesis: ) @30
+                staticType: A
               name: SimpleIdentifier
                 token: A @19
                 element: package:test/a.dart::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @20
-                arguments2
+                arguments
                   NamedArgument
                     name: value @21
                     colon: : @26
-                    argumentExpression2: IntegerLiteral
+                    argumentExpression: IntegerLiteral
                       literal: 42 @28
                       staticType: int
                 rightParenthesis: ) @30
@@ -1568,17 +1929,35 @@ library
       metadata
         Annotation
           atSign: @ @18
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A @19
+                element: package:test/a.dart::@class::A
+                type: A
+              element: package:test/a.dart::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: ( @20
+              arguments2
+                NamedArgument
+                  name: value @21
+                  colon: : @26
+                  argumentExpression2: IntegerLiteral
+                    literal: 42 @28
+                    staticType: int
+              rightParenthesis: ) @30
+            staticType: A
           name: SimpleIdentifier
             token: A @19
             element: package:test/a.dart::@class::A
             staticType: null
           arguments: ArgumentList
             leftParenthesis: ( @20
-            arguments2
+            arguments
               NamedArgument
                 name: value @21
                 colon: : @26
-                argumentExpression2: IntegerLiteral
+                argumentExpression: IntegerLiteral
                   literal: 42 @28
                   staticType: int
             rightParenthesis: ) @30
@@ -1611,6 +1990,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: a @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @30
                     element: <testLibrary>::@getter::a
@@ -1642,6 +2028,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: a @30
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @30
                 element: <testLibrary>::@getter::a
@@ -1689,6 +2082,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: a @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @30
                     element: <testLibrary>::@getter::a
@@ -1719,6 +2119,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: a @30
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @30
                 element: <testLibrary>::@getter::a
@@ -1759,6 +2166,13 @@ library
   metadata
     Annotation
       atSign: @ @0
+      expression: UnqualifiedNameExpression
+        name: a @1
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: int Function()
+          type: int
+        staticType: int
       name: SimpleIdentifier
         token: a @1
         element: <testLibrary>::@getter::a
@@ -1772,6 +2186,13 @@ library
           metadata
             Annotation
               atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: a @1
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @1
                 element: <testLibrary>::@getter::a
@@ -1831,6 +2252,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: a @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @30
                     element: <testLibrary>::@getter::a
@@ -1876,6 +2304,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: a @30
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @30
                 element: <testLibrary>::@getter::a
@@ -1956,6 +2391,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @40
+                      expression: UnqualifiedNameExpression
+                        name: a @41
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::a
+                          invokeType: dynamic Function()
+                          type: dynamic
+                        staticType: dynamic
                       name: SimpleIdentifier
                         token: a @41
                         element: <testLibrary>::@getter::a
@@ -2006,6 +2448,13 @@ library
               metadata
                 Annotation
                   atSign: @ @40
+                  expression: UnqualifiedNameExpression
+                    name: a @41
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @41
                     element: <testLibrary>::@getter::a
@@ -2080,6 +2529,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @41
+                      expression: UnqualifiedNameExpression
+                        name: a @42
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::a
+                          invokeType: dynamic Function()
+                          type: dynamic
+                        staticType: dynamic
                       name: SimpleIdentifier
                         token: a @42
                         element: <testLibrary>::@getter::a
@@ -2134,6 +2590,13 @@ library
               metadata
                 Annotation
                   atSign: @ @41
+                  expression: UnqualifiedNameExpression
+                    name: a @42
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @42
                     element: <testLibrary>::@getter::a
@@ -2207,6 +2670,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: a @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @17
                 element: <testLibrary>::@getter::a
@@ -2234,6 +2704,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: a @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              invokeType: dynamic Function()
+              type: dynamic
+            staticType: dynamic
           name: SimpleIdentifier
             token: a @17
             element: <testLibrary>::@getter::a
@@ -2274,6 +2751,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: a @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @17
                 element: <testLibrary>::@getter::a
@@ -2305,6 +2789,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: a @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              invokeType: dynamic Function()
+              type: dynamic
+            staticType: dynamic
           name: SimpleIdentifier
             token: a @17
             element: <testLibrary>::@getter::a
@@ -2347,6 +2838,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: a @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @17
                 element: <testLibrary>::@getter::a
@@ -2382,6 +2880,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: a @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              invokeType: dynamic Function()
+              type: dynamic
+            staticType: dynamic
           name: SimpleIdentifier
             token: a @17
             element: <testLibrary>::@getter::a
@@ -2414,6 +2919,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: a @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @17
                 element: <testLibrary>::@getter::a
@@ -2438,6 +2950,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: a @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              invokeType: dynamic Function()
+              type: dynamic
+            staticType: dynamic
           name: SimpleIdentifier
             token: a @17
             element: <testLibrary>::@getter::a
@@ -2494,6 +3013,13 @@ library
               metadata
                 Annotation
                   atSign: @ @18
+                  expression: UnqualifiedNameExpression
+                    name: a @19
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @19
                     element: <testLibrary>::@getter::a
@@ -2525,6 +3051,13 @@ library
           metadata
             Annotation
               atSign: @ @18
+              expression: UnqualifiedNameExpression
+                name: a @19
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @19
                 element: <testLibrary>::@getter::a
@@ -2566,6 +3099,13 @@ library
               metadata
                 Annotation
                   atSign: @ @19
+                  expression: UnqualifiedNameExpression
+                    name: a @20
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @20
                     element: <testLibrary>::@getter::a
@@ -2601,6 +3141,13 @@ library
           metadata
             Annotation
               atSign: @ @19
+              expression: UnqualifiedNameExpression
+                name: a @20
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @20
                 element: <testLibrary>::@getter::a
@@ -2633,6 +3180,13 @@ library
           metadata
             Annotation
               atSign: @ @32
+              expression: UnqualifiedNameExpression
+                name: a @33
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @33
                 element: <testLibrary>::@getter::a
@@ -2640,6 +3194,13 @@ library
               element: <testLibrary>::@getter::a
             Annotation
               atSign: @ @35
+              expression: UnqualifiedNameExpression
+                name: b @36
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::b
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: b @36
                 element: <testLibrary>::@getter::b
@@ -2674,6 +3235,13 @@ library
       metadata
         Annotation
           atSign: @ @32
+          expression: UnqualifiedNameExpression
+            name: a @33
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              invokeType: dynamic Function()
+              type: dynamic
+            staticType: dynamic
           name: SimpleIdentifier
             token: a @33
             element: <testLibrary>::@getter::a
@@ -2681,6 +3249,13 @@ library
           element: <testLibrary>::@getter::a
         Annotation
           atSign: @ @35
+          expression: UnqualifiedNameExpression
+            name: b @36
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::b
+              invokeType: dynamic Function()
+              type: dynamic
+            staticType: dynamic
           name: SimpleIdentifier
             token: b @36
             element: <testLibrary>::@getter::b
@@ -2735,6 +3310,13 @@ library
   metadata
     Annotation
       atSign: @ @0
+      expression: UnqualifiedNameExpression
+        name: a @1
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: int Function()
+          type: int
+        staticType: int
       name: SimpleIdentifier
         token: a @1
         element: <testLibrary>::@getter::a
@@ -2748,6 +3330,13 @@ library
           metadata
             Annotation
               atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: a @1
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @1
                 element: <testLibrary>::@getter::a
@@ -2990,6 +3579,13 @@ library
   metadata
     Annotation
       atSign: @ @0
+      expression: UnqualifiedNameExpression
+        name: deprecated @1
+        resolution: GetterInvocationResolution
+          element: dart:core::@getter::deprecated
+          invokeType: Deprecated Function()
+          type: Deprecated
+        staticType: Deprecated
       name: SimpleIdentifier
         token: deprecated @1
         element: dart:core::@getter::deprecated
@@ -3006,6 +3602,13 @@ library
           metadata
             Annotation
               atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: deprecated @1
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @1
                 element: dart:core::@getter::deprecated
@@ -3031,6 +3634,13 @@ library
   metadata
     Annotation
       atSign: @ @0
+      expression: UnqualifiedNameExpression
+        name: deprecated @1
+        resolution: GetterInvocationResolution
+          element: dart:core::@getter::deprecated
+          invokeType: Deprecated Function()
+          type: Deprecated
+        staticType: Deprecated
       name: SimpleIdentifier
         token: deprecated @1
         element: dart:core::@getter::deprecated
@@ -3046,6 +3656,13 @@ library
           metadata
             Annotation
               atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: deprecated @1
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @1
                 element: dart:core::@getter::deprecated
@@ -3068,6 +3685,13 @@ library
   metadata
     Annotation
       atSign: @ @0
+      expression: UnqualifiedNameExpression
+        name: a @1
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: dynamic Function()
+          type: dynamic
+        staticType: dynamic
       name: SimpleIdentifier
         token: a @1
         element: <testLibrary>::@getter::a
@@ -3137,6 +3761,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: a @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @30
                     element: <testLibrary>::@getter::a
@@ -3175,6 +3806,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: a @30
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @30
                 element: <testLibrary>::@getter::a
@@ -3230,6 +3868,13 @@ library
               metadata
                 Annotation
                   atSign: @ @45
+                  expression: UnqualifiedNameExpression
+                    name: a @46
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @46
                     element: <testLibrary>::@getter::a
@@ -3237,6 +3882,13 @@ library
                   element: <testLibrary>::@getter::a
                 Annotation
                   atSign: @ @50
+                  expression: UnqualifiedNameExpression
+                    name: b @51
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::b
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: b @51
                     element: <testLibrary>::@getter::b
@@ -3279,6 +3931,13 @@ library
           metadata
             Annotation
               atSign: @ @45
+              expression: UnqualifiedNameExpression
+                name: a @46
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @46
                 element: <testLibrary>::@getter::a
@@ -3286,6 +3945,13 @@ library
               element: <testLibrary>::@getter::a
             Annotation
               atSign: @ @50
+              expression: UnqualifiedNameExpression
+                name: b @51
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::b
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: b @51
                 element: <testLibrary>::@getter::b
@@ -3349,6 +4015,13 @@ library
               metadata
                 Annotation
                   atSign: @ @45
+                  expression: UnqualifiedNameExpression
+                    name: a @46
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @46
                     element: <testLibrary>::@getter::a
@@ -3356,6 +4029,13 @@ library
                   element: <testLibrary>::@getter::a
                 Annotation
                   atSign: @ @50
+                  expression: UnqualifiedNameExpression
+                    name: b @51
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::b
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: b @51
                     element: <testLibrary>::@getter::b
@@ -3396,6 +4076,13 @@ library
           metadata
             Annotation
               atSign: @ @45
+              expression: UnqualifiedNameExpression
+                name: a @46
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @46
                 element: <testLibrary>::@getter::a
@@ -3403,6 +4090,13 @@ library
               element: <testLibrary>::@getter::a
             Annotation
               atSign: @ @50
+              expression: UnqualifiedNameExpression
+                name: b @51
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::b
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: b @51
                 element: <testLibrary>::@getter::b
@@ -3471,6 +4165,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: a @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @30
                     element: <testLibrary>::@getter::a
@@ -3512,6 +4213,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: a @30
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @30
                 element: <testLibrary>::@getter::a
@@ -3567,6 +4275,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: foo @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @30
                     element: <testLibrary>::@getter::foo
@@ -3590,6 +4305,13 @@ library
               metadata
                 Annotation
                   atSign: @ @65
+                  expression: UnqualifiedNameExpression
+                    name: foo @66
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@mixin::M::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @66
                     element: <testLibrary>::@mixin::M::@getter::foo
@@ -3617,6 +4339,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: foo @30
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @30
                 element: <testLibrary>::@getter::foo
@@ -3646,6 +4375,13 @@ library
           metadata
             Annotation
               atSign: @ @65
+              expression: UnqualifiedNameExpression
+                name: foo @66
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@mixin::M::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @66
                 element: <testLibrary>::@mixin::M::@getter::foo
@@ -3769,6 +4505,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: foo @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @30
                     element: <testLibrary>::@getter::foo
@@ -3800,6 +4543,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: foo @30
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @30
                 element: <testLibrary>::@getter::foo
@@ -3851,6 +4601,13 @@ library
               metadata
                 Annotation
                   atSign: @ @28
+                  expression: UnqualifiedNameExpression
+                    name: foo @29
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @29
                     element: <testLibrary>::@getter::foo
@@ -3864,6 +4621,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @37
+                      expression: UnqualifiedNameExpression
+                        name: foo @38
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::foo
+                          invokeType: int Function()
+                          type: int
+                        staticType: int
                       name: SimpleIdentifier
                         token: foo @38
                         element: <testLibrary>::@getter::foo
@@ -3892,6 +4656,13 @@ library
           metadata
             Annotation
               atSign: @ @28
+              expression: UnqualifiedNameExpression
+                name: foo @29
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @29
                 element: <testLibrary>::@getter::foo
@@ -3904,6 +4675,13 @@ library
               metadata
                 Annotation
                   atSign: @ @37
+                  expression: UnqualifiedNameExpression
+                    name: foo @38
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @38
                     element: <testLibrary>::@getter::foo
@@ -3958,6 +4736,13 @@ library
               metadata
                 Annotation
                   atSign: @ @28
+                  expression: UnqualifiedNameExpression
+                    name: foo @29
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @29
                     element: <testLibrary>::@getter::foo
@@ -3996,6 +4781,13 @@ library
           metadata
             Annotation
               atSign: @ @28
+              expression: UnqualifiedNameExpression
+                name: foo @29
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @29
                 element: <testLibrary>::@getter::foo
@@ -4049,6 +4841,13 @@ library
               metadata
                 Annotation
                   atSign: @ @28
+                  expression: UnqualifiedNameExpression
+                    name: foo @29
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @29
                     element: <testLibrary>::@getter::foo
@@ -4060,6 +4859,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @47
+                      expression: UnqualifiedNameExpression
+                        name: foo @48
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::foo
+                          invokeType: int Function()
+                          type: int
+                        staticType: int
                       name: SimpleIdentifier
                         token: foo @48
                         element: <testLibrary>::@getter::foo
@@ -4071,6 +4877,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @55
+                      expression: UnqualifiedNameExpression
+                        name: foo @56
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::foo
+                          invokeType: int Function()
+                          type: int
+                        staticType: int
                       name: SimpleIdentifier
                         token: foo @56
                         element: <testLibrary>::@getter::foo
@@ -4103,6 +4916,13 @@ library
           metadata
             Annotation
               atSign: @ @28
+              expression: UnqualifiedNameExpression
+                name: foo @29
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @29
                 element: <testLibrary>::@getter::foo
@@ -4114,6 +4934,13 @@ library
               metadata
                 Annotation
                   atSign: @ @47
+                  expression: UnqualifiedNameExpression
+                    name: foo @48
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @48
                     element: <testLibrary>::@getter::foo
@@ -4126,6 +4953,13 @@ library
               metadata
                 Annotation
                   atSign: @ @55
+                  expression: UnqualifiedNameExpression
+                    name: foo @56
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @56
                     element: <testLibrary>::@getter::foo
@@ -4181,6 +5015,13 @@ library
               metadata
                 Annotation
                   atSign: @ @28
+                  expression: UnqualifiedNameExpression
+                    name: foo @29
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @29
                     element: <testLibrary>::@getter::foo
@@ -4192,6 +5033,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @46
+                      expression: UnqualifiedNameExpression
+                        name: foo @47
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::foo
+                          invokeType: int Function()
+                          type: int
+                        staticType: int
                       name: SimpleIdentifier
                         token: foo @47
                         element: <testLibrary>::@getter::foo
@@ -4230,6 +5078,13 @@ library
           metadata
             Annotation
               atSign: @ @28
+              expression: UnqualifiedNameExpression
+                name: foo @29
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @29
                 element: <testLibrary>::@getter::foo
@@ -4242,6 +5097,13 @@ library
               metadata
                 Annotation
                   atSign: @ @46
+                  expression: UnqualifiedNameExpression
+                    name: foo @47
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @47
                     element: <testLibrary>::@getter::foo
@@ -4299,6 +5161,13 @@ library
               metadata
                 Annotation
                   atSign: @ @53
+                  expression: UnqualifiedNameExpression
+                    name: foo @54
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @54
                     element: <testLibrary>::@getter::foo
@@ -4340,6 +5209,13 @@ library
           metadata
             Annotation
               atSign: @ @53
+              expression: UnqualifiedNameExpression
+                name: foo @54
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @54
                 element: <testLibrary>::@getter::foo
@@ -4412,6 +5288,13 @@ library
               metadata
                 Annotation
                   atSign: @ @32
+                  expression: UnqualifiedNameExpression
+                    name: foo @33
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @33
                     element: <testLibrary>::@getter::foo
@@ -4450,6 +5333,13 @@ library
               metadata
                 Annotation
                   atSign: @ @51
+                  expression: UnqualifiedNameExpression
+                    name: foo @52
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @52
                     element: <testLibrary>::@getter::foo
@@ -4552,6 +5442,13 @@ library
           metadata
             Annotation
               atSign: @ @32
+              expression: UnqualifiedNameExpression
+                name: foo @33
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @33
                 element: <testLibrary>::@getter::foo
@@ -4576,6 +5473,13 @@ library
           metadata
             Annotation
               atSign: @ @51
+              expression: UnqualifiedNameExpression
+                name: foo @52
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @52
                 element: <testLibrary>::@getter::foo
@@ -4660,6 +5564,13 @@ library
               metadata
                 Annotation
                   atSign: @ @33
+                  expression: UnqualifiedNameExpression
+                    name: foo @34
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @34
                     element: <testLibrary>::@getter::foo
@@ -4687,6 +5598,13 @@ library
           metadata
             Annotation
               atSign: @ @33
+              expression: UnqualifiedNameExpression
+                name: foo @34
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @34
                 element: <testLibrary>::@getter::foo
@@ -4742,6 +5660,13 @@ library
               metadata
                 Annotation
                   atSign: @ @28
+                  expression: UnqualifiedNameExpression
+                    name: foo @29
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @29
                     element: <testLibrary>::@getter::foo
@@ -4754,6 +5679,13 @@ library
               metadata
                 Annotation
                   atSign: @ @59
+                  expression: UnqualifiedNameExpression
+                    name: foo @60
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @60
                     element: <testLibrary>::@getter::foo
@@ -4769,6 +5701,13 @@ library
               metadata
                 Annotation
                   atSign: @ @101
+                  expression: UnqualifiedNameExpression
+                    name: foo @102
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @102
                     element: <testLibrary>::@getter::foo
@@ -4826,6 +5765,13 @@ library
           metadata
             Annotation
               atSign: @ @28
+              expression: UnqualifiedNameExpression
+                name: foo @29
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @29
                 element: <testLibrary>::@getter::foo
@@ -4840,6 +5786,13 @@ library
           metadata
             Annotation
               atSign: @ @59
+              expression: UnqualifiedNameExpression
+                name: foo @60
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @60
                 element: <testLibrary>::@getter::foo
@@ -4856,6 +5809,13 @@ library
           metadata
             Annotation
               atSign: @ @101
+              expression: UnqualifiedNameExpression
+                name: foo @102
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @102
                 element: <testLibrary>::@getter::foo
@@ -4937,6 +5897,13 @@ library
   metadata
     Annotation
       atSign: @ @24
+      expression: UnqualifiedNameExpression
+        name: foo @25
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::foo
+          invokeType: int Function()
+          type: int
+        staticType: int
       name: SimpleIdentifier
         token: foo @25
         element: <testLibrary>::@getter::foo
@@ -4997,6 +5964,13 @@ library
               metadata
                 Annotation
                   atSign: @ @29
+                  expression: UnqualifiedNameExpression
+                    name: foo @30
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @30
                     element: <testLibrary>::@getter::foo
@@ -5024,6 +5998,13 @@ library
           metadata
             Annotation
               atSign: @ @29
+              expression: UnqualifiedNameExpression
+                name: foo @30
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @30
                 element: <testLibrary>::@getter::foo
@@ -5068,6 +6049,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @17
                 element: <testLibrary>::@getter::foo
@@ -5079,6 +6067,13 @@ library
               metadata
                 Annotation
                   atSign: @ @36
+                  expression: UnqualifiedNameExpression
+                    name: foo @37
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @37
                     element: <testLibrary>::@getter::foo
@@ -5103,6 +6098,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
           name: SimpleIdentifier
             token: foo @17
             element: <testLibrary>::@getter::foo
@@ -5114,6 +6116,13 @@ library
           metadata
             Annotation
               atSign: @ @36
+              expression: UnqualifiedNameExpression
+                name: foo @37
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @37
                 element: <testLibrary>::@getter::foo
@@ -5157,6 +6166,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @17
                 element: <testLibrary>::@getter::foo
@@ -5168,6 +6184,13 @@ library
               metadata
                 Annotation
                   atSign: @ @31
+                  expression: UnqualifiedNameExpression
+                    name: foo @32
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @32
                     element: <testLibrary>::@getter::foo
@@ -5192,6 +6215,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
           name: SimpleIdentifier
             token: foo @17
             element: <testLibrary>::@getter::foo
@@ -5203,6 +6233,13 @@ library
           metadata
             Annotation
               atSign: @ @31
+              expression: UnqualifiedNameExpression
+                name: foo @32
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @32
                 element: <testLibrary>::@getter::foo
@@ -5262,6 +6299,13 @@ library
           metadata
             Annotation
               atSign: @ @17
+              expression: UnqualifiedNameExpression
+                name: foo @18
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @18
                 element: <testLibrary>::@getter::foo
@@ -5274,6 +6318,13 @@ library
           metadata
             Annotation
               atSign: @ @38
+              expression: UnqualifiedNameExpression
+                name: foo @39
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @39
                 element: <testLibrary>::@getter::foo
@@ -5350,6 +6401,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @17
                 element: <testLibrary>::@getter::foo
@@ -5361,6 +6419,13 @@ library
               metadata
                 Annotation
                   atSign: @ @28
+                  expression: UnqualifiedNameExpression
+                    name: foo @29
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @29
                     element: <testLibrary>::@getter::foo
@@ -5372,6 +6437,13 @@ library
               metadata
                 Annotation
                   atSign: @ @37
+                  expression: UnqualifiedNameExpression
+                    name: foo @38
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @38
                     element: <testLibrary>::@getter::foo
@@ -5403,6 +6475,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
           name: SimpleIdentifier
             token: foo @17
             element: <testLibrary>::@getter::foo
@@ -5414,6 +6493,13 @@ library
           metadata
             Annotation
               atSign: @ @28
+              expression: UnqualifiedNameExpression
+                name: foo @29
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @29
                 element: <testLibrary>::@getter::foo
@@ -5426,6 +6512,13 @@ library
           metadata
             Annotation
               atSign: @ @37
+              expression: UnqualifiedNameExpression
+                name: foo @38
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @38
                 element: <testLibrary>::@getter::foo
@@ -5470,6 +6563,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @17
                 element: <testLibrary>::@getter::foo
@@ -5501,6 +6601,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
           name: SimpleIdentifier
             token: foo @17
             element: <testLibrary>::@getter::foo
@@ -5544,6 +6651,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @17
                 element: <testLibrary>::@getter::foo
@@ -5555,6 +6669,13 @@ library
               metadata
                 Annotation
                   atSign: @ @32
+                  expression: UnqualifiedNameExpression
+                    name: foo @33
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @33
                     element: <testLibrary>::@getter::foo
@@ -5587,6 +6708,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
           name: SimpleIdentifier
             token: foo @17
             element: <testLibrary>::@getter::foo
@@ -5599,6 +6727,13 @@ library
           metadata
             Annotation
               atSign: @ @32
+              expression: UnqualifiedNameExpression
+                name: foo @33
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @33
                 element: <testLibrary>::@getter::foo
@@ -5638,6 +6773,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: foo @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @17
                 element: <testLibrary>::@getter::foo
@@ -5650,6 +6792,13 @@ library
           metadata
             Annotation
               atSign: @ @42
+              expression: UnqualifiedNameExpression
+                name: foo @43
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @43
                 element: <testLibrary>::@getter::foo
@@ -5692,6 +6841,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: foo @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
           name: SimpleIdentifier
             token: foo @17
             element: <testLibrary>::@getter::foo
@@ -5706,6 +6862,13 @@ library
       metadata
         Annotation
           atSign: @ @42
+          expression: UnqualifiedNameExpression
+            name: foo @43
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::foo
+              invokeType: int Function()
+              type: int
+            staticType: int
           name: SimpleIdentifier
             token: foo @43
             element: <testLibrary>::@getter::foo
@@ -5763,6 +6926,13 @@ library
   metadata
     Annotation
       atSign: @ @0
+      expression: UnqualifiedNameExpression
+        name: a @1
+        resolution: GetterInvocationResolution
+          element: <testLibrary>::@getter::a
+          invokeType: int Function()
+          type: int
+        staticType: int
       name: SimpleIdentifier
         token: a @1
         element: <testLibrary>::@getter::a
@@ -5779,6 +6949,13 @@ library
           metadata
             Annotation
               atSign: @ @0
+              expression: UnqualifiedNameExpression
+                name: a @1
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @1
                 element: <testLibrary>::@getter::a
@@ -5846,6 +7023,13 @@ library
           metadata
             Annotation
               atSign: @ @12
+              expression: UnqualifiedNameExpression
+                name: a @13
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @13
                 element: <testLibrary>::@getter::a
@@ -5976,6 +7160,13 @@ library
           metadata
             Annotation
               atSign: @ @21
+              expression: UnqualifiedNameExpression
+                name: deprecated @22
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
@@ -6014,6 +7205,13 @@ library
           metadata
             Annotation
               atSign: @ @21
+              expression: UnqualifiedNameExpression
+                name: deprecated @22
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
@@ -6061,6 +7259,13 @@ library
           metadata
             Annotation
               atSign: @ @21
+              expression: UnqualifiedNameExpression
+                name: deprecated @22
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
@@ -6145,6 +7350,13 @@ library
               metadata
                 Annotation
                   atSign: @ @18
+                  expression: UnqualifiedNameExpression
+                    name: a @19
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @19
                     element: <testLibrary>::@getter::a
@@ -6176,6 +7388,13 @@ library
           metadata
             Annotation
               atSign: @ @18
+              expression: UnqualifiedNameExpression
+                name: a @19
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @19
                 element: <testLibrary>::@getter::a
@@ -6215,6 +7434,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @31
+                      expression: UnqualifiedNameExpression
+                        name: a @32
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::a
+                          invokeType: dynamic Function()
+                          type: dynamic
+                        staticType: dynamic
                       name: SimpleIdentifier
                         token: a @32
                         element: <testLibrary>::@getter::a
@@ -6251,6 +7477,13 @@ library
               metadata
                 Annotation
                   atSign: @ @31
+                  expression: UnqualifiedNameExpression
+                    name: a @32
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @32
                     element: <testLibrary>::@getter::a
@@ -6310,6 +7543,13 @@ library
               metadata
                 Annotation
                   atSign: @ @25
+                  expression: UnqualifiedNameExpression
+                    name: a @26
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @26
                     element: <testLibrary>::@getter::a
@@ -6346,6 +7586,13 @@ library
           metadata
             Annotation
               atSign: @ @25
+              expression: UnqualifiedNameExpression
+                name: a @26
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @26
                 element: <testLibrary>::@getter::a
@@ -6388,6 +7635,13 @@ library
               metadata
                 Annotation
                   atSign: @ @19
+                  expression: UnqualifiedNameExpression
+                    name: a @20
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @20
                     element: <testLibrary>::@getter::a
@@ -6423,6 +7677,13 @@ library
           metadata
             Annotation
               atSign: @ @19
+              expression: UnqualifiedNameExpression
+                name: a @20
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @20
                 element: <testLibrary>::@getter::a
@@ -6477,6 +7738,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @66
+                      expression: UnqualifiedNameExpression
+                        name: a @67
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@getter::a
+                          invokeType: dynamic Function()
+                          type: dynamic
+                        staticType: dynamic
                       name: SimpleIdentifier
                         token: a @67
                         element: <testLibrary>::@getter::a
@@ -6521,6 +7789,13 @@ library
               metadata
                 Annotation
                   atSign: @ @66
+                  expression: UnqualifiedNameExpression
+                    name: a @67
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @67
                     element: <testLibrary>::@getter::a
@@ -6571,6 +7846,13 @@ library
           metadata
             Annotation
               atSign: @ @16
+              expression: UnqualifiedNameExpression
+                name: a @17
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @17
                 element: <testLibrary>::@getter::a
@@ -6607,6 +7889,13 @@ library
       metadata
         Annotation
           atSign: @ @16
+          expression: UnqualifiedNameExpression
+            name: a @17
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              invokeType: dynamic Function()
+              type: dynamic
+            staticType: dynamic
           name: SimpleIdentifier
             token: a @17
             element: <testLibrary>::@getter::a
@@ -6660,6 +7949,13 @@ library
               metadata
                 Annotation
                   atSign: @ @25
+                  expression: UnqualifiedNameExpression
+                    name: a @26
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @26
                     element: <testLibrary>::@getter::a
@@ -6691,6 +7987,13 @@ library
           metadata
             Annotation
               atSign: @ @25
+              expression: UnqualifiedNameExpression
+                name: a @26
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @26
                 element: <testLibrary>::@getter::a
@@ -6742,6 +8045,13 @@ library
               metadata
                 Annotation
                   atSign: @ @24
+                  expression: UnqualifiedNameExpression
+                    name: a @25
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @25
                     element: <testLibrary>::@getter::a
@@ -6785,6 +8095,13 @@ library
           metadata
             Annotation
               atSign: @ @24
+              expression: UnqualifiedNameExpression
+                name: a @25
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @25
                 element: <testLibrary>::@getter::a
@@ -6869,6 +8186,13 @@ library
               metadata
                 Annotation
                   atSign: @ @18
+                  expression: UnqualifiedNameExpression
+                    name: a @19
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @19
                     element: <testLibrary>::@getter::a
@@ -6899,6 +8223,13 @@ library
           metadata
             Annotation
               atSign: @ @18
+              expression: UnqualifiedNameExpression
+                name: a @19
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @19
                 element: <testLibrary>::@getter::a
@@ -6928,6 +8259,13 @@ library
               metadata
                 Annotation
                   atSign: @ @26
+                  expression: UnqualifiedNameExpression
+                    name: a @27
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: dynamic Function()
+                      type: dynamic
+                    staticType: dynamic
                   name: SimpleIdentifier
                     token: a @27
                     element: <testLibrary>::@getter::a
@@ -6955,6 +8293,13 @@ library
           metadata
             Annotation
               atSign: @ @26
+              expression: UnqualifiedNameExpression
+                name: a @27
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: dynamic Function()
+                  type: dynamic
+                staticType: dynamic
               name: SimpleIdentifier
                 token: a @27
                 element: <testLibrary>::@getter::a
@@ -7008,6 +8353,13 @@ library
           metadata
             Annotation
               atSign: @ @13
+              expression: UnqualifiedNameExpression
+                name: a @14
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @14
                 element: <testLibrary>::@getter::a
@@ -7044,6 +8396,13 @@ library
       metadata
         Annotation
           atSign: @ @13
+          expression: UnqualifiedNameExpression
+            name: a @14
+            resolution: GetterInvocationResolution
+              element: <testLibrary>::@getter::a
+              invokeType: int Function()
+              type: int
+            staticType: int
           name: SimpleIdentifier
             token: a @14
             element: <testLibrary>::@getter::a
@@ -7444,6 +8803,13 @@ library
               metadata
                 Annotation
                   atSign: @ @24
+                  expression: UnqualifiedNameExpression
+                    name: foo @25
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@extension::#0::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @25
                     element: <testLibrary>::@extension::#0::@getter::foo
@@ -7471,6 +8837,13 @@ library
           metadata
             Annotation
               atSign: @ @24
+              expression: UnqualifiedNameExpression
+                name: foo @25
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@extension::#0::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @25
                 element: <testLibrary>::@extension::#0::@getter::foo

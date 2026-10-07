@@ -24,12 +24,12 @@ void main() {
   final Constructor creationLocationConstructor = new Constructor(
     new FunctionNode(
       null,
-      namedParameters: [
+      namedParameters: new NamedParameterList(
         new NamedParameter(parameterName: 'file'),
         new NamedParameter(parameterName: 'line'),
         new NamedParameter(parameterName: 'column'),
         new NamedParameter(parameterName: 'name'),
-      ],
+      ),
     ),
     name: new Name('_', developerLib),
     fileUri: developerUri,
@@ -55,7 +55,7 @@ void main() {
     new ConstantExpression(
       new InstanceConstant(
         pragmaClass.reference,
-        <DartType>[],
+        DartTypeList.empty,
         <Reference, Constant>{
           pragmaNameField.fieldReference: new StringConstant(
             'track-creation-locations',
@@ -82,7 +82,7 @@ void main() {
         new ExpressionStatement(
           new ConstructorInvocation(
             myWidgetClass.constructors.first,
-            new Arguments([]),
+            new Arguments.empty(),
           )..fileOffset = fileOffset,
         ),
       ]),
@@ -107,7 +107,7 @@ void main() {
               new ReturnStatement(
                 new ConstructorInvocation(
                   myWidgetClass.constructors.first,
-                  new Arguments([]),
+                  new Arguments.empty(),
                 )..fileOffset = fileOffset,
               ),
             ]),
@@ -125,7 +125,7 @@ void main() {
     new ConstantExpression(
       new InstanceConstant(
         pragmaClass.reference,
-        <DartType>[],
+        DartTypeList.empty,
         <Reference, Constant>{
           pragmaNameField.fieldReference: new StringConstant(
             'track-creation-locations',
@@ -149,11 +149,11 @@ void main() {
     new ExpressionStatement(
       new ConstructorInvocation(
         myWidgetClass.constructors.first,
-        new Arguments([]),
+        new Arguments.empty(),
       )..fileOffset = fileOffset,
     ),
     new ExpressionStatement(
-      new StaticInvocation(factoryMethod, new Arguments([]))
+      new StaticInvocation(factoryMethod, new Arguments.empty())
         ..fileOffset = fileOffset,
     ),
   ]);

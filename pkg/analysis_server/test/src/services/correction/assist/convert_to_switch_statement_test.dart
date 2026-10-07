@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIfStatementToSwitchStatementTest extends AssistProcessorTest {
+class ConvertIfStatementToSwitchStatementTest
+    extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToSwitchStatement;
 
@@ -497,7 +498,8 @@ bool validate(Object? x) => false;
 }
 
 @reflectiveTest
-class ConvertSwitchExpressionToSwitchStatementTest extends AssistProcessorTest {
+class ConvertSwitchExpressionToSwitchStatementTest
+    extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToSwitchStatement;
 

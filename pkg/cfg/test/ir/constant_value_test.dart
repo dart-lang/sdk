@@ -81,7 +81,7 @@ void main() {
         expect(cv.isString, isFalse);
         expect(cv.doubleValue, same(v));
         expect(cv.type is DoubleType, isTrue);
-        expect(cv.isZero, equals(v == 0.0));
+        expect(cv.isZero, equals(identical(v, 0.0)));
         expect(cv.isNegative, equals(v.isNegative));
         expect(cv.valueToString(), equals(v.toString()));
       }
@@ -500,7 +500,6 @@ void main() {
 
       testOp(UnaryDoubleOpcode.neg, (double v) => -v);
       testOp(UnaryDoubleOpcode.abs, (double v) => v.abs());
-      testOp(UnaryDoubleOpcode.sign, (double v) => v.sign);
       testOp(UnaryDoubleOpcode.square, (double v) => v * v);
       testOp(UnaryDoubleOpcode.round, (double v) => v.round());
       testOp(UnaryDoubleOpcode.floor, (double v) => v.floor());
@@ -541,7 +540,9 @@ void main() {
         ConstantValue.fromBool(false): 'false',
         ConstantValue.fromDouble(3.14): '3.14',
         ConstantValue.fromNull(): 'null',
-        ConstantValue(ast.ListConstant(const ast.DynamicType(), [])): null,
+        ConstantValue(
+          ast.ListConstant(const ast.DynamicType(), ast.ConstantList.empty),
+        ): null,
       };
 
       for (final e in testCases.entries) {
@@ -570,7 +571,7 @@ void main() {
             ast.MapConstant(
               const ast.DynamicType(),
               const ast.DynamicType(),
-              [],
+              ast.ConstantMapEntryList.empty,
             ),
           ),
           ConstantValue.fromString(', z = '),

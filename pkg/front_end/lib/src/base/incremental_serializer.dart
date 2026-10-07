@@ -9,6 +9,7 @@ import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart' show Component, Library, LibraryDependency;
 
 import '../kernel/utils.dart' show ByteSink;
+import 'loader.dart' show untranslatableUriScheme;
 
 // Coverage-ignore(suite): Not run.
 class IncrementalSerializer {
@@ -101,7 +102,8 @@ class IncrementalSerializer {
     // * to group into smaller groups so this wouldn't happen.
     // * cache the actual Libraries too, so we could re-serialize when needed
     //   (though maybe not eagerly).
-    if (!isSelfContained(component)) return;
+    // We also can't work with untranslatable uris.
+    if (!isSelfContainedWithNoUntranslatableUris(component)) return;
 
     // Remove cache pertaining to invalidated uris.
     if (invalidatedUris.isNotEmpty) {
@@ -173,9 +175,12 @@ class IncrementalSerializer {
       ..addAll(nonPackageLibraries);
   }
 
-  bool isSelfContained(Component component) {
+  bool isSelfContainedWithNoUntranslatableUris(Component component) {
     Set<Library> got = new Set<Library>.of(component.libraries);
     for (Library lib in component.libraries) {
+      if (lib.fileUri.isScheme(untranslatableUriScheme)) {
+        return false;
+      }
       for (LibraryDependency dependency in lib.dependencies) {
         if (!got.contains(dependency.targetLibrary)) {
           if (dependency.targetLibrary.importUri.isScheme("dart")) {

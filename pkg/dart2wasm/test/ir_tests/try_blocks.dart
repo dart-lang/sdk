@@ -16,6 +16,7 @@ void main() {
   tryBlocks1();
   tryBlocks2();
   tryBlocks3();
+  print(tryBlocksFinally(int.parse('1')));
 }
 
 // Catch `JSAny`: this should generate a Wasm `try` that catches both Dart and
@@ -48,6 +49,19 @@ void tryBlocks3() {
   } on Error {
     print("Caught Error");
   }
+}
+
+// Synchronous `try-finally` with multiple exits (normal fallthrough, return,
+// and exception).
+@pragma('wasm:never-inline')
+int tryBlocksFinally(int x) {
+  try {
+    if (x == 1) return 10;
+    f();
+  } finally {
+    print("Finally");
+  }
+  return 20;
 }
 
 @pragma('wasm:never-inline')

@@ -141,6 +141,9 @@ class DartFixPromptManager {
     server.instrumentationService.logInfo(
       'Checking whether to prompt about "dart fix" took ${sw.elapsed}',
     );
+    server.sessionLogger.logInfo(
+      'Checking whether to prompt about "dart fix" took ${sw.elapsed}',
+    );
 
     // If we were cancelled since the last cancellation check inside
     // bulkFixesAvailable, still return false because another check is now in
@@ -223,6 +226,9 @@ class DartFixPromptManager {
       _performCheckAndPrompt().catchError((e) {
         server.instrumentationService.logError(
           'Failed to perform bulk "dart fix" check: $e',
+        );
+        server.sessionLogger.logException(
+          exception: 'Failed to perform bulk "dart fix" check: $e',
         );
       }),
     );

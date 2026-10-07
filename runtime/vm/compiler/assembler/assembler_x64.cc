@@ -573,6 +573,13 @@ void Assembler::shufpd(XmmRegister dst, XmmRegister src, const Immediate& imm) {
   EmitUint8(imm.value());
 }
 
+void Assembler::pshufd(XmmRegister dst, XmmRegister src, const Immediate& imm) {
+  EmitL(dst, src, 0x70, 0x0F, 0x66);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  ASSERT(imm.is_uint8());
+  EmitUint8(imm.value());
+}
+
 void Assembler::roundsd(XmmRegister dst, XmmRegister src, RoundingMode mode) {
   ASSERT(src <= XMM15);
   ASSERT(dst <= XMM15);

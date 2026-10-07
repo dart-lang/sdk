@@ -5,8 +5,6 @@
 const loadIdLookup = LOAD_ID_LOOKUP;
 const moduleDir = "MODULE_DIR";
 
-globalThis.loadDeferredId = async function (loadId, reader, handleWasmBytes) {
-  return Promise.all(loadIdLookup[loadId].map((m) =>
-    Promise.resolve(reader(`${moduleDir}/${m}`))
-      .then((b) => handleWasmBytes(m, b))));
-}
+globalThis.loadDeferredId = (loadId, reader, handleWasmBytes) =>
+  Promise.all(loadIdLookup[loadId].map((m) =>
+    handleWasmBytes(m, reader(`${moduleDir}/${m}`))));

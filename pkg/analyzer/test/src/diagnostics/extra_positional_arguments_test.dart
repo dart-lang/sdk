@@ -164,6 +164,51 @@ class B extends A {
 ''');
   }
 
+  test_constructorInvocation_missingArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+void f() {
+  new C(;
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+// [diag.expectedToken] Expected to find ')'.
+}
+''');
+  }
+
+  test_dotShorthandConstructorInvocation_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named(int x);
+}
+A f() => .named(1, 2);
+//                 ^
+// [diag.extraPositionalArguments] Too many positional arguments: 1 expected, but 2 found.
+''');
+  }
+
+  test_dotShorthandConstructorInvocation_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int x);
+}
+A f() => .new(1, 2);
+//               ^
+// [diag.extraPositionalArguments] Too many positional arguments: 1 expected, but 2 found.
+''');
+  }
+
+  test_dotShorthandMethodInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static A make(int x) => throw 0;
+}
+A f() => .make(1, 2);
+//                ^
+// [diag.extraPositionalArguments] Too many positional arguments: 1 expected, but 2 found.
+''');
+  }
+
   test_enumConstant() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {

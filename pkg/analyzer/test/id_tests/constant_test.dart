@@ -4,7 +4,7 @@
 
 import 'dart:io';
 
-import 'package:_fe_analyzer_shared/src/testing/id.dart' show Id, ActualDataMap;
+import 'package:_fe_analyzer_shared/src/testing/id.dart' show ActualDataMap, Id;
 import 'package:_fe_analyzer_shared/src/testing/id_testing.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -84,7 +84,6 @@ class ConstantsDataExtractor extends AstDataExtractor<String> {
   @override
   String? computeNodeValue(Id id, AstNode node) {
     var element = switch (node) {
-      Identifier(:var element) => element,
       UnqualifiedNameExpression(
         resolution: NamedReadResolutionWithElement(:var element),
       ) =>

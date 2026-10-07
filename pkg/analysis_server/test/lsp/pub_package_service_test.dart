@@ -8,6 +8,7 @@ import 'dart:io';
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
 import 'package:analysis_server/src/services/pub/pub_package_service.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:http/http.dart';
@@ -33,7 +34,12 @@ class PubApiTest {
   late MockHttpClient httpClient;
 
   Future<void> check_pubHostedUrl(String? envValue, String expectedBase) async {
-    var api = PubApi(InstrumentationService.NULL_SERVICE, httpClient, envValue);
+    var api = PubApi(
+      InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
+      httpClient,
+      envValue,
+    );
     await api.allPackages();
     expect(
       lastCalledUrl.toString(),
@@ -71,7 +77,12 @@ class PubApiTest {
       check_pubHostedUrl('https://pub.example.org/', 'https://pub.example.org');
 
   Future<void> test_httpClient_closesOwn() async {
-    var api = PubApi(InstrumentationService.NULL_SERVICE, null, null);
+    var api = PubApi(
+      InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
+      null,
+      null,
+    );
     api.close();
     expect(
       () => api.httpClient.get(Uri.parse('https://www.google.co.uk/')),
@@ -80,7 +91,12 @@ class PubApiTest {
   }
 
   Future<void> test_httpClient_doesNotCloseProvided() async {
-    var api = PubApi(InstrumentationService.NULL_SERVICE, httpClient, null);
+    var api = PubApi(
+      InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
+      httpClient,
+      null,
+    );
     api.close();
     expect(httpClient.wasClosed, isFalse);
   }
@@ -98,6 +114,7 @@ class PubCommandTest with ResourceProviderMixin {
     processRunner = MockProcessRunner();
     pubCommand = PubCommand(
       InstrumentationService.NULL_SERVICE,
+      SessionLogger(),
       resourceProvider.pathContext,
       processRunner,
     );

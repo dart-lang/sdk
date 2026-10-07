@@ -504,7 +504,7 @@ class _DynamicDispatcherCodeGenerator extends CodeGenerator {
     if (callerShape.typeCount == 0) {
       final emptyArray = translator.constants.makeArrayOf(
         translator.coreTypes.typeNonNullableRawType,
-        [],
+        ConstantList.empty,
       );
       translator.constants.instantiateConstant(
         b,
@@ -526,7 +526,7 @@ class _DynamicDispatcherCodeGenerator extends CodeGenerator {
     if (callerShape.positionalCount == 0) {
       final emptyArray = translator.constants.makeArrayOf(
         translator.coreTypes.objectNullableRawType,
-        [],
+        ConstantList.empty,
       );
       translator.constants.instantiateConstant(
         b,
@@ -549,7 +549,7 @@ class _DynamicDispatcherCodeGenerator extends CodeGenerator {
     if (callerShape.named.isEmpty) {
       final emptyArray = translator.constants.makeArrayOf(
         translator.coreTypes.objectNullableRawType,
-        [],
+        ConstantList.empty,
       );
       translator.constants.instantiateConstant(
         b,

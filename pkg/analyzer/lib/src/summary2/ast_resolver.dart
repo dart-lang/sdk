@@ -32,7 +32,7 @@ class AstResolver {
   late final _resolutionVisitor = ResolutionVisitor(
     libraryFragment: _libraryFragment,
     nameScope: _nameScope,
-    docImportLibraries: const [],
+    docImportScope: null,
     diagnosticListener: _diagnosticListener,
     strictInference: analysisOptions.strictInference,
     strictCasts: analysisOptions.strictCasts,
@@ -75,7 +75,7 @@ class AstResolver {
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
     node.accept2(_resolutionVisitor);
     _prepareEnclosingDeclarations();
-    _flowAnalysis.bodyOrInitializer_enter(
+    _flowAnalysis.flowAnalysisRoot_enter(
       node,
       null,
       // Offsets are ignored when doing summary linking.
@@ -83,7 +83,7 @@ class AstResolver {
     );
     node.accept2(_resolverVisitor);
     _resolverVisitor.checkIdle();
-    _flowAnalysis.bodyOrInitializer_exit();
+    _flowAnalysis.flowAnalysisRoot_exit();
   }
 
   void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
@@ -100,7 +100,7 @@ class AstResolver {
     _prepareEnclosingDeclarations();
     accept(_resolutionVisitor);
 
-    _flowAnalysis.bodyOrInitializer_enter(
+    _flowAnalysis.flowAnalysisRoot_enter(
       node,
       element.formalParameters,
       visit: accept,
@@ -109,7 +109,7 @@ class AstResolver {
     );
     accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
-    _flowAnalysis.bodyOrInitializer_exit();
+    _flowAnalysis.flowAnalysisRoot_exit();
   }
 
   /// If resolving the initializer of a non-late instance field, there
@@ -118,6 +118,7 @@ class AstResolver {
     ExpressionImpl Function() getNode, {
     TypeImpl contextType = UnknownInferredType.instance,
     List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters,
+    required bool isThisAccessible,
   }) {
     ExpressionImpl node = getNode();
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
@@ -125,16 +126,30 @@ class AstResolver {
     // Node may have been rewritten so get it again.
     node = getNode();
     _prepareEnclosingDeclarations();
-    _flowAnalysis.bodyOrInitializer_enter(
-      node.parent2 as AstNodeImpl,
+    _flowAnalysis.flowAnalysisRoot_enter(
+      node.parent2 as FlowAnalysisRootImpl,
       inScopePrimaryConstructorParameters,
       // Offsets are ignored when doing summary linking.
       offset: 0,
     );
-    _resolverVisitor.analyzeExpression(node, SharedTypeSchemaView(contextType));
+    if (isThisAccessible) {
+      _resolverVisitor.flow.thisBinding_begin(
+        null,
+        thisType: SharedTypeView(
+          _resolverVisitor.thisType ?? InvalidTypeImpl.instance,
+        ),
+      );
+    }
+    _resolverVisitor.withThisAccessibility(
+      isThisAccessible,
+      () => _resolverVisitor.analyzeExpression(
+        node,
+        SharedTypeSchemaView(contextType),
+      ),
+    );
     _resolverVisitor.popRewrite();
     _resolverVisitor.checkIdle();
-    _flowAnalysis.bodyOrInitializer_exit();
+    _flowAnalysis.flowAnalysisRoot_exit();
   }
 
   void resolvePrimaryConstructor(
@@ -155,8 +170,8 @@ class AstResolver {
     _prepareEnclosingDeclarations();
     accept(_resolutionVisitor);
 
-    _flowAnalysis.bodyOrInitializer_enter(
-      node,
+    _flowAnalysis.flowAnalysisRoot_enter(
+      body,
       element.formalParameters,
       visit: accept,
       // Offsets are ignored when doing summary linking.
@@ -164,7 +179,7 @@ class AstResolver {
     );
     accept(_resolverVisitor);
     _resolverVisitor.checkIdle();
-    _flowAnalysis.bodyOrInitializer_exit();
+    _flowAnalysis.flowAnalysisRoot_exit();
   }
 
   void _prepareEnclosingDeclarations() {

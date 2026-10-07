@@ -11,11 +11,6 @@ library;
 //   Object o = Object() Test<Object,Object>.>> ((Object o) => o);
 //                                           ^^
 //
-// pkg/front_end/testcases/general/issue43401.dart:10:43: Error: Expected an identifier, but got ''.
-// Try inserting an identifier before ''.
-//   Object o = Object() Test<Object,Object>.>> ((Object o) => o);
-//                                           ^
-//
 import self as self;
 import "dart:core" as core;
 
@@ -26,8 +21,7 @@ static extension-member method Test|>><S extends core::Object? = dynamic, T exte
   return f(#this){(self::Test|>>::S%) → self::Test|>>::T%};
 static method test() → void {
   core::Object o = new core::Object::•();
-  invalid-expression "pkg/front_end/testcases/general/issue43401.dart:10:43: Error: Expected an identifier, but got ''.
-Try inserting an identifier before ''.
+  invalid-expression "pkg/front_end/testcases/general/issue43401.dart:10:43: Error: This couldn't be parsed.
   Object o = Object() Test<Object,Object>.>> ((Object o) => o);
                                           ^"{<invalid>}.>>((core::Object o##1) → core::Object => o##1);
   core::print(o);

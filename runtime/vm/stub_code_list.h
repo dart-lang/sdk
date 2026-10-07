@@ -157,6 +157,7 @@ namespace dart {
   V(CallNativeThroughSafepoint)                                                \
   V(FfiCallTrampoline)                                                         \
   V(FfiCallbackTrampoline)                                                     \
+  V(InterpretedFfiCallbackTrampoline)                                          \
   V(InitStaticField)                                                           \
   V(InitLateStaticField)                                                       \
   V(InitLateFinalStaticField)                                                  \
@@ -194,6 +195,7 @@ namespace dart {
   V(CheckIsolateFieldAccess)                                                   \
   V(CheckedStoreIntoShared)                                                    \
   V(EnsureDeeplyImmutable)                                                     \
+  V(DynamicInvocationForwarder)                                                \
   V(UnknownDartCode)
 
 }  // namespace dart

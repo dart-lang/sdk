@@ -11,6 +11,7 @@ import 'package:dartdev/src/progress.dart';
 import 'package:pub/pub.dart';
 
 import '../core.dart';
+import '../executable_compiler.dart';
 import '../native_assets.dart';
 import '../resident_frontend_utils.dart';
 import '../vm_interop_handler.dart';
@@ -42,7 +43,7 @@ class TestCommand extends DartdevCommand {
 
   @override
   void printUsage() {
-    print('''Usage: dart test [arguments]
+    log.stdout('''Usage: dart test [arguments]
 
 Note: flags and options for this command are provided by the project's package:test dependency.
 If package:test is not included as a dev_dependency in the project's pubspec.yaml, no flags or options will be listed.
@@ -117,7 +118,16 @@ Run "${runner!.executableName} help" to see global options.''');
     }
 
     try {
-      final testExecutable = await getExecutableForCommand('test:test');
+      var testExecutable = await withProgressGracePeriod(
+        () => getExecutableForCommand('test:test'),
+        progressGracePeriod: progressGracePeriod,
+      );
+      final sourceExecutable = testExecutable.executable;
+      testExecutable = await ExecutableCompiler.compile(
+        resolvedExecutable: testExecutable,
+        enabledExperiments: enabledExperiments,
+        verbose: verbose,
+      );
       var executablePath = testExecutable.executable;
       if (nativeAssets != null &&
           await isFileKernelFile(File(executablePath))) {
@@ -152,26 +162,29 @@ Run "${runner!.executableName} help" to see global options.''');
         //
         // See https://github.com/dart-lang/sdk/issues/53576
         markMainIsolateAsSystemIsolate: true,
-        scriptUriOverride: executablePath != testExecutable.executable
-            ? testExecutable.executable
+        scriptUriOverride: executablePath != sourceExecutable
+            ? sourceExecutable
             : null,
         deleteTempDirOnShutdown: builder?.tempDirUri?.toFilePath(),
       );
       return 0;
+    } on CompilationException catch (e) {
+      log.stderr(e.message);
+      return DartdevCommand.errorExitCode;
     } on CommandResolutionFailedException catch (e) {
       if (project.hasPubspecFile) {
-        print(e.message);
+        log.stdout(e.message);
         if (e.issue == CommandResolutionIssue.packageNotFound) {
-          print('You need to add a dev_dependency on package:test.');
-          print('Try running `dart pub add --dev test`.');
+          log.stdout('You need to add a dev_dependency on package:test.');
+          log.stdout('Try running `dart pub add --dev test`.');
         }
       } else {
-        print(
+        log.stdout(
           'No pubspec.yaml file found - run this command in your project folder.',
         );
       }
       if (args.rest.contains('-h') || args.rest.contains('--help')) {
-        print('');
+        log.stdout('');
         printUsage();
       }
       return DartdevCommand.errorExitCode;

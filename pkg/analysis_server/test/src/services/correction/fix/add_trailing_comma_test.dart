@@ -49,8 +49,10 @@ Object f(a, b) {
 
 @reflectiveTest
 class AddTrailingCommaInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.require_trailing_commas];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(lints: [LintNames.require_trailing_commas]);
     await resolveTestCode(r'''
 // @dart = 3.6
 // (pre tall-style)

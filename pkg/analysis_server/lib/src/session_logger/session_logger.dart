@@ -8,6 +8,7 @@ import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/log_normalizer.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
+import 'package:analyzer/exception/exception.dart';
 
 /// Used to write information about a session to a log.
 class SessionLogger {
@@ -59,6 +60,38 @@ class SessionLogger {
     });
   }
 
+  /// Log that the given [arguments] were included on the command-line.
+  void logException({
+    required Object exception,
+    StackTrace? stackTrace,
+    List<Object>? attachments,
+  }) {
+    // TODO(brianwilkerson): `InstrumentationService` is defined in the
+    //  `analyzer` package and is used in several places to report exceptions.
+    //  Those eceptions are not currently being recorded. There are two possible
+    //  paths:
+    //  - move `SessionLogger` to the analyzer package
+    //  - pass in an `InstrumentationService` that forwards exceptions to a
+    //    session logger
+    sink?.writeLogEntry({
+      key.time: DateTime.now().millisecondsSinceEpoch,
+      key.kind: EntryKind.exception.name,
+      key.message: exception.toString(),
+      key.stackTrace: ?stackTrace?.toString(),
+      key.attachments: ?attachments,
+      key.nestedException: ?_nestedException(exception),
+    });
+  }
+
+  /// Log unstructured text information for debugging purposes.
+  void logInfo(String message) {
+    sink?.writeLogEntry({
+      key.time: DateTime.now().millisecondsSinceEpoch,
+      key.kind: EntryKind.info.name,
+      key.message: message,
+    });
+  }
+
   /// Logs that the given [message] was sent [from] one process [to] another.
   void logMessage({
     required ProcessId from,
@@ -83,5 +116,22 @@ class SessionLogger {
   /// Shuts down the logger.
   Future<void> shutdown() async {
     await sink?.close();
+  }
+
+  /// Returns a map representing the exception nested inside the [exception]
+  /// when the [exception] is a [CaughtException].
+  Map<String, Object>? _nestedException(Object exception) {
+    if (exception is CaughtException) {
+      var nestedException = exception.exception;
+      var stackTrace = nestedException is CaughtException
+          ? nestedException.stackTrace
+          : null;
+      return {
+        key.message: nestedException.toString(),
+        key.stackTrace: ?stackTrace?.toString(),
+        key.nestedException: ?_nestedException(nestedException),
+      };
+    }
+    return null;
   }
 }

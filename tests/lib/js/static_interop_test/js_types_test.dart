@@ -308,6 +308,50 @@ void syncTests() {
   );
   Expect.notEquals(edfWithThis, dartFunctionThis.toJSCaptureThis);
 
+  // Var args
+  final varArgsDart = (JSArray<JSString> args) =>
+      args.toDartStringList.join().toJS;
+  final edfVarArgs = varArgsDart.toJSVarArgs;
+  Expect.equals(
+    'foobar',
+    (edfVarArgs.callAsFunction(
+      null,
+      'foo'.toJS,
+      'bar'.toJS,
+    ) as JSString).toDart,
+  );
+  Expect.equals('foobar', edfVarArgs.toDart(['foo', 'bar'].toJS).toDart);
+  Expect.identical(edfVarArgs.toDart, varArgsDart);
+  Expect.notEquals(edfVarArgs, varArgsDart.toJSVarArgs);
+  Expect.equals('', (edfVarArgs.callAsFunction(null) as JSString).toDart);
+
+  final captureThisVarArgsDart = (JSObject this__, JSArray<JSString> args) {
+    Expect.equals(this_, this__);
+    return args.toDartStringList.join().toJS;
+  };
+  final edfCaptureThisVarArgs = captureThisVarArgsDart.toJSCaptureThisVarArgs;
+  Expect.equals(
+    'foobar',
+    (edfCaptureThisVarArgs.callAsFunction(
+      this_,
+      'foo'.toJS,
+      'bar'.toJS,
+    ) as JSString).toDart,
+  );
+  Expect.equals(
+    'foobar',
+    edfCaptureThisVarArgs.toDart(this_, ['foo', 'bar'].toJS).toDart,
+  );
+  Expect.identical(edfCaptureThisVarArgs.toDart, captureThisVarArgsDart);
+  Expect.notEquals(
+    edfCaptureThisVarArgs,
+    captureThisVarArgsDart.toJSCaptureThisVarArgs,
+  );
+  Expect.equals(
+    '',
+    edfCaptureThisVarArgs.toDart(this_, <JSString>[].toJS).toDart,
+  );
+
   // [JSIterable]
   final iterable = JSSet([1.toJS, 2.toJS].toJS);
   final iterator = iterable.iterator;

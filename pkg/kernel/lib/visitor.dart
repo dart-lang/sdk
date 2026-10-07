@@ -1907,10 +1907,16 @@ class Transformer extends TreeVisitorDefault<TreeNode> {
     return node.accept<TreeNode>(this) as T;
   }
 
-  void transformDartTypeList(List<DartType> nodes) {
+  DartTypeList transformDartTypeList(DartTypeList nodes) {
+    DartTypeList? newNodes;
     for (int i = 0; i < nodes.length; ++i) {
-      nodes[i] = visitDartType(nodes[i]);
+      DartType oldNode = nodes[i];
+      DartType newNode = visitDartType(oldNode);
+      if (!identical(newNode, oldNode)) {
+        (newNodes ??= DartTypeList.from(nodes))[i] = newNode;
+      }
     }
+    return newNodes ?? nodes;
   }
 
   void transformSupertypeList(List<Supertype> nodes) {
@@ -2068,19 +2074,17 @@ class RemovingTransformer extends TreeVisitor1Default<TreeNode, TreeNode?> {
     }
   }
 
-  /// Transforms or removes [DartType] nodes in [nodes].
-  void transformDartTypeList(List<DartType> nodes) {
-    int storeIndex = 0;
+  /// Transforms [DartType] nodes in [nodes].
+  DartTypeList transformDartTypeList(DartTypeList nodes) {
+    DartTypeList? newNodes;
     for (int i = 0; i < nodes.length; ++i) {
-      DartType result = visitDartType(nodes[i], dummyDartType);
-      if (!identical(result, dummyDartType)) {
-        nodes[storeIndex] = result;
-        ++storeIndex;
+      DartType oldNode = nodes[i];
+      DartType newNode = visitDartType(oldNode, cannotRemoveSentinel);
+      if (!identical(newNode, oldNode)) {
+        (newNodes ??= DartTypeList.from(nodes))[i] = newNode;
       }
     }
-    if (storeIndex < nodes.length) {
-      nodes.length = storeIndex;
-    }
+    return newNodes ?? nodes;
   }
 
   /// Transforms or removes [Supertype] nodes in [nodes].

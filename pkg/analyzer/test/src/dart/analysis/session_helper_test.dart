@@ -94,7 +94,7 @@ class B {}
         .declaredFragment!
         .element;
     var resolvedUnit = (await helper.getResolvedUnitByElement(element))!;
-    expect(resolvedUnit.unit.declarations, hasLength(2));
+    expect(resolvedUnit.unit.declarations2, hasLength(2));
   }
 
   test_getTopLevelPropertyAccessor_defined_getter() async {

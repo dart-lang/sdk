@@ -27,11 +27,15 @@ bool get isDart2WasmConfiguration =>
 
 bool get isDdcConfiguration => _configuration.compiler == Compiler.ddc;
 
+bool get isVmDynConfiguration =>
+    _configuration.compiler == Compiler.dart2bytecode;
+
 bool get isVmJitConfiguration => _configuration.compiler == Compiler.dartk;
 
 bool get isVmAotConfiguration => _configuration.compiler == Compiler.dartkp;
 
-bool get isVmConfiguration => isVmJitConfiguration || isVmAotConfiguration;
+bool get isVmConfiguration =>
+    isVmDynConfiguration || isVmJitConfiguration || isVmAotConfiguration;
 
 bool get isBrowserConfiguration => _configuration.runtime.isBrowser;
 

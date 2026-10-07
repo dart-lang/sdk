@@ -6,10 +6,9 @@ import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_single_unit.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -18,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class FindElementByNameOffsetTest extends AbstractSingleUnitTest {
+class FindElementByNameOffsetTest extends SingleUnitTest {
   late TestCode code;
 
   late List<int> offsets = code.positions.map((p) => p.offset).toList();

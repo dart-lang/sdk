@@ -106,7 +106,7 @@ bool parseArguments(
     tests.addAll(TEST_FILES);
   }
   if (arguments.contains('--exclude')) {
-    List<String> filesToRemove = List<String>.from(tests.keys);
+    List<String> filesToRemove = List<String>.of(tests.keys);
     tests.clear();
     tests.addAll(TEST_FILES);
     filesToRemove.forEach(tests.remove);

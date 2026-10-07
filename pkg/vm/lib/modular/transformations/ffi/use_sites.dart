@@ -295,24 +295,31 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       // Check length of provided typed data, use checked constructor.
       return ConstructorInvocation(
         constructors.firstWhere((c) => c.name == Name("#fromTypedData")),
-        Arguments([
-          node.arguments.positional.first,
-          (positionalArguments.length >= 2
-              ? positionalArguments[1]
-              : ConstantExpression(IntConstant(0))),
-          // Length in bytes to check the typedData against.
-          sizeOfExpression,
-        ]),
+        Arguments(
+          ExpressionList(
+            node.arguments.positional.first,
+            (positionalArguments.length >= 2
+                ? positionalArguments[1]
+                : ConstantExpression(IntConstant(0))),
+            // Length in bytes to check the typedData against.
+            sizeOfExpression,
+          ),
+        ),
       );
     }
 
     // Correct-size typed data is allocated, use unchecked constructor.
     return ConstructorInvocation(
       constructors.firstWhere((c) => c.name == Name("#fromTypedDataBase")),
-      Arguments([
-        StaticInvocation(uint8ListFactory, Arguments([sizeOfExpression])),
-        ConstantExpression(IntConstant(0)),
-      ]),
+      Arguments(
+        ExpressionList(
+          StaticInvocation(
+            uint8ListFactory,
+            Arguments(ExpressionList(sizeOfExpression)),
+          ),
+          ConstantExpression(IntConstant(0)),
+        ),
+      ),
     );
   }
 
@@ -392,7 +399,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                 InstanceAccessKind.Instance,
                 VariableGet(arrayVar),
                 arrayCheckIndex.name,
-                Arguments([VariableGet(indexVar)]),
+                Arguments(ExpressionList(VariableGet(indexVar))),
                 interfaceTarget: arrayCheckIndex,
                 functionType: arrayCheckIndex.getterType as FunctionType,
               ),
@@ -494,7 +501,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             InstanceAccessKind.Instance,
             positiveOffset,
             unaryMinusName,
-            new Arguments([]),
+            new Arguments.empty(),
             interfaceTarget: coreTypes.intUnaryMinus,
             functionType: coreTypes.intUnaryMinus.getterType as FunctionType,
           );
@@ -522,7 +529,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             InstanceAccessKind.Instance,
             pointer,
             offsetByMethod.name,
-            Arguments([multiply(offset, inlineSizeOf)]),
+            Arguments(ExpressionList(multiply(offset, inlineSizeOf))),
             interfaceTarget: offsetByMethod,
             functionType:
                 Substitution.fromInterfaceType(
@@ -632,7 +639,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final nativeType = InterfaceType(
           nativeFunctionClass,
           currentLibrary.nonNullable,
-          [node.arguments.types[0]],
+          DartTypeList(node.arguments.types[0]),
         );
         final DartType dartType = node.arguments.types[1];
 
@@ -663,7 +670,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final InterfaceType nativeType = InterfaceType(
           nativeFunctionClass,
           Nullability.nonNullable,
-          [node.arguments.types[0]],
+          DartTypeList(node.arguments.types[0]),
         );
 
         _ensureIsLeafIsConst(node);
@@ -689,9 +696,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
         return _replaceAsFunction(
           functionPointer: node.arguments.positional[0],
-          pointerType: InterfaceType(pointerClass, Nullability.nonNullable, [
-            nativeType,
-          ]),
+          pointerType: InterfaceType(
+            pointerClass,
+            Nullability.nonNullable,
+            DartTypeList(nativeType),
+          ),
           nativeSignature: nativeSignature,
           dartSignature: dartType,
           isLeaf: isLeaf,
@@ -716,7 +725,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         final DartType nativeType = InterfaceType(
           nativeFunctionClass,
           currentLibrary.nonNullable,
-          [node.arguments.types[0]],
+          node.arguments.types,
         );
         final Expression func = node.arguments.positional[0];
         final DartType dartType = func.getStaticType(staticTypeContext!);
@@ -783,7 +792,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             InstanceAccessKind.Instance,
             node.arguments.positional[0],
             allocatorAllocateMethod.name,
-            Arguments([sizeInBytes], types: node.arguments.types),
+            Arguments(ExpressionList(sizeInBytes), types: node.arguments.types),
             interfaceTarget: allocatorAllocateMethod,
             functionType: FunctionTypeInstantiator.instantiate(
               allocateFunctionType,
@@ -885,16 +894,20 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         isSynthesized: true,
       )..addAnnotation(
         ConstantExpression(
-          InstanceConstant(coreTypes.pragmaClass.reference, [], {
-            coreTypes.pragmaName.fieldReference: StringConstant(
-              'vm:ffi:call-closure',
-            ),
-            coreTypes.pragmaOptions.fieldReference: InstanceConstant(
-              ffiCallClass.reference,
-              [nativeSignature],
-              {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
-            ),
-          }),
+          InstanceConstant(
+            coreTypes.pragmaClass.reference,
+            DartTypeList.empty,
+            {
+              coreTypes.pragmaName.fieldReference: StringConstant(
+                'vm:ffi:call-closure',
+              ),
+              coreTypes.pragmaOptions.fieldReference: InstanceConstant(
+                ffiCallClass.reference,
+                DartTypeList(nativeSignature),
+                {ffiCallIsLeafField.fieldReference: BoolConstant(isLeaf)},
+              ),
+            },
+          ),
         ),
       ),
       FunctionNode(
@@ -903,20 +916,22 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             ExpressionStatement(
               StaticInvocation(
                 nativeEffectMethod,
-                Arguments([VariableGet(param)]),
+                Arguments(ExpressionList(VariableGet(param))),
               ),
             ),
           ReturnStatement(
             StaticInvocation(
               ffiCallMethod,
               Arguments(
-                [VariableGet(pointerVar)],
-                types: [dartSignature.returnType],
+                ExpressionList(VariableGet(pointerVar)),
+                types: DartTypeList(dartSignature.returnType),
               ),
             )..fileOffset = fileOffset,
           ),
         ]),
-        positionalParameters: positionalParameters,
+        positionalParameters: PositionalParameterList.from(
+          positionalParameters,
+        ),
         requiredParameterCount: dartSignature.requiredParameterCount,
         returnType: dartSignature.returnType,
       )..fileOffset = fileOffset,
@@ -953,14 +968,17 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final DartType nativeSignature = node.arguments.types[0];
     final DartType dartSignature = node.arguments.types[1];
 
-    final List<DartType> lookupTypeArgs = [
-      InterfaceType(nativeFunctionClass, currentLibrary.nonNullable, [
-        nativeSignature,
-      ]),
-    ];
-    final Arguments lookupArgs = Arguments([
-      node.arguments.positional[1],
-    ], types: lookupTypeArgs);
+    final DartTypeList lookupTypeArgs = DartTypeList(
+      InterfaceType(
+        nativeFunctionClass,
+        currentLibrary.nonNullable,
+        DartTypeList(nativeSignature),
+      ),
+    );
+    final Arguments lookupArgs = Arguments(
+      ExpressionList(node.arguments.positional[1]),
+      types: lookupTypeArgs,
+    );
     final FunctionType lookupFunctionType =
         libraryLookupMethod.getterType as FunctionType;
 
@@ -1018,24 +1036,26 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     var getterReference = currentLibraryIndex?.lookupGetterReference(name);
     final Field field = Field.immutable(
       name,
-      type: InterfaceType(pointerClass, currentLibrary.nonNullable, [
-        nativeFunctionType,
-      ]),
+      type: InterfaceType(
+        pointerClass,
+        currentLibrary.nonNullable,
+        DartTypeList(nativeFunctionType),
+      ),
       initializer: StaticInvocation(
         createNativeCallableIsolateLocalProcedure,
         Arguments(
-          [
+          ExpressionList(
             StaticInvocation(
               nativeCallbackFunctionProcedure,
-              Arguments([
-                node.arguments.positional[0],
-                exceptionalReturn,
-              ], types: node.arguments.types),
+              Arguments(
+                ExpressionList(node.arguments.positional[0], exceptionalReturn),
+                types: node.arguments.types,
+              ),
             ),
             NullLiteral(),
             BoolLiteral(false),
-          ],
-          types: [nativeFunctionType],
+          ),
+          types: DartTypeList(nativeFunctionType),
         ),
       ),
       isStatic: true,
@@ -1076,39 +1096,42 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       pointerValue = StaticInvocation(
         createNativeCallableIsolateLocalProcedure,
         Arguments(
-          [
+          ExpressionList(
             StaticInvocation(
               nativeCallbackFunctionProcedure,
-              Arguments([
-                target,
-                exceptionalReturn,
-              ], types: node.arguments.types),
+              Arguments(
+                ExpressionList(target, exceptionalReturn),
+                types: node.arguments.types,
+              ),
             ),
             NullLiteral(),
             BoolLiteral(true),
-          ],
-          types: [nativeFunctionType],
+          ),
+          types: DartTypeList(nativeFunctionType),
         ),
       );
     } else {
       pointerValue = StaticInvocation(
         createNativeCallableIsolateLocalProcedure,
         Arguments(
-          [
+          ExpressionList(
             StaticInvocation(
               nativeIsolateLocalCallbackFunctionProcedure,
-              Arguments([exceptionalReturn], types: node.arguments.types),
+              Arguments(
+                ExpressionList(exceptionalReturn),
+                types: node.arguments.types,
+              ),
             ),
             target,
             BoolLiteral(true),
-          ],
-          types: [nativeFunctionType],
+          ),
+          types: DartTypeList(nativeFunctionType),
         ),
       );
     }
     return ConstructorInvocation(
       nativeCallablePrivateIsolateLocalConstructor,
-      Arguments([pointerValue], types: node.arguments.types),
+      Arguments(ExpressionList(pointerValue), types: node.arguments.types),
     );
   }
 
@@ -1138,23 +1161,21 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       type: listType,
       isFinal: true,
     )..fileOffset = node.fileOffset;
-    final targetArgs = <Expression>[];
-    for (int i = 0; i < targetType.positionalParameters.length; ++i) {
-      targetArgs.add(
-        InstanceInvocation(
-          InstanceAccessKind.Instance,
-          VariableGet(args),
-          listElementAt.name,
-          Arguments([IntLiteral(i)]),
-          interfaceTarget: listElementAt,
-          functionType:
-              Substitution.fromInterfaceType(
-                    listType,
-                  ).substituteType(listElementAt.getterType)
-                  as FunctionType,
-        ),
-      );
-    }
+    final targetArgs = ExpressionList.generate(
+      targetType.positionalParameters.length,
+      (int i) => InstanceInvocation(
+        InstanceAccessKind.Instance,
+        VariableGet(args),
+        listElementAt.name,
+        Arguments(ExpressionList(IntLiteral(i))),
+        interfaceTarget: listElementAt,
+        functionType:
+            Substitution.fromInterfaceType(
+                  listType,
+                ).substituteType(listElementAt.getterType)
+                as FunctionType,
+      ),
+    );
     final target = node.arguments.positional[0];
     final handlerBody = ExpressionStatement(
       FunctionInvocation(
@@ -1166,7 +1187,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     );
     final handler = FunctionNode(
       handlerBody,
-      positionalParameters: [args],
+      positionalParameters: PositionalParameterList(args),
       returnType: VoidType(),
     )..fileOffset = node.fileOffset;
 
@@ -1175,11 +1196,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       initializer: ConstructorInvocation(
         nativeCallablePrivateListenerConstructor,
         Arguments(
-          [
+          ExpressionList(
             FunctionExpression(handler),
             StringLiteral('NativeCallable($target)'),
-          ],
-          types: [targetType],
+          ),
+          types: node.arguments.types,
         ),
       ),
       type: nativeCallableType,
@@ -1191,10 +1212,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final pointerValue = StaticInvocation(
       createNativeCallableListenerProcedure,
       Arguments(
-        [
+        ExpressionList(
           StaticInvocation(
             nativeAsyncCallbackFunctionProcedure,
-            Arguments([], types: [targetType]),
+            Arguments(ExpressionList.empty, types: node.arguments.types),
           ),
           InstanceGet(
             InstanceAccessKind.Instance,
@@ -1203,8 +1224,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             interfaceTarget: nativeCallablePortField,
             resultType: nativeCallablePortField.getterType,
           ),
-        ],
-        types: [nativeFunctionType],
+        ),
+        types: DartTypeList(nativeFunctionType),
       ),
     );
     final pointerSetter = ExpressionStatement(
@@ -1254,38 +1275,41 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       pointerValue = StaticInvocation(
         createNativeCallableIsolateGroupBoundProcedure,
         Arguments(
-          [
+          ExpressionList(
             StaticInvocation(
               nativeIsolateGroupBoundCallbackFunctionProcedure,
-              Arguments([
-                target,
-                exceptionalReturn,
-              ], types: node.arguments.types),
+              Arguments(
+                ExpressionList(target, exceptionalReturn),
+                types: node.arguments.types,
+              ),
             ),
             NullLiteral(),
-          ],
-          types: [nativeFunctionType],
+          ),
+          types: DartTypeList(nativeFunctionType),
         ),
       );
     } else {
       pointerValue = StaticInvocation(
         createNativeCallableIsolateGroupBoundProcedure,
         Arguments(
-          [
+          ExpressionList(
             StaticInvocation(
               nativeIsolateGroupBoundClosureFunctionProcedure,
-              Arguments([exceptionalReturn], types: node.arguments.types),
+              Arguments(
+                ExpressionList(exceptionalReturn),
+                types: node.arguments.types,
+              ),
             ),
             target,
-          ],
-          types: [nativeFunctionType],
+          ),
+          types: DartTypeList(nativeFunctionType),
         ),
       );
     }
 
     return ConstructorInvocation(
       nativeCallablePrivateIsolateGroupBoundConstructor,
-      Arguments([pointerValue], types: node.arguments.types),
+      Arguments(ExpressionList(pointerValue), types: node.arguments.types),
     );
   }
 
@@ -1301,7 +1325,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final DartType nativeType = InterfaceType(
       nativeFunctionClass,
       currentLibrary.nonNullable,
-      [node.arguments.types[0]],
+      node.arguments.types,
     );
     final Expression func = node.arguments.positional[0];
     final DartType dartType = func.getStaticType(staticTypeContext!);
@@ -1468,9 +1492,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         InstanceAccessKind.Instance,
         pointer,
         offsetByMethod.name,
-        Arguments([
-          multiply(node.arguments.positional[1], inlineSizeOf(dartType)!),
-        ]),
+        Arguments(
+          ExpressionList(
+            multiply(node.arguments.positional[1], inlineSizeOf(dartType)!),
+          ),
+        ),
         interfaceTarget: offsetByMethod,
         functionType:
             Substitution.fromPairs(pointerClass.typeParameters, [
@@ -1557,7 +1583,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       InstanceAccessKind.Instance,
       pointer,
       castMethod.name,
-      Arguments(const [], types: [uint8Type]),
+      Arguments(ExpressionList.empty, types: DartTypeList(uint8Type)),
       interfaceTarget: castMethod,
       functionType: FunctionTypeInstantiator.instantiate(
         castMethod.getterType as FunctionType,
@@ -1567,17 +1593,19 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     return ConstructorInvocation(
       fromTypedDataCtor,
-      Arguments([
-        StaticInvocation(
-          uint8PointerAsTypedList,
-          Arguments(
-            [cast, inlineSizeOf(dartType)!],
-            named: [finalizer, if (token != null) token],
+      Arguments(
+        ExpressionList(
+          StaticInvocation(
+            uint8PointerAsTypedList,
+            Arguments(
+              ExpressionList(cast, inlineSizeOf(dartType)!),
+              named: NamedExpressionList(finalizer, token),
+            ),
           ),
+          ConstantExpression(IntConstant(0)),
+          inlineSizeOf(dartType)!,
         ),
-        ConstantExpression(IntConstant(0)),
-        inlineSizeOf(dartType)!,
-      ]),
+      ),
     );
   }
 
@@ -1608,7 +1636,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             InstanceAccessKind.Instance,
             VariableGet(arrayVar),
             arrayCheckIndex.name,
-            Arguments([VariableGet(indexVar)]),
+            Arguments(ExpressionList(VariableGet(indexVar))),
             interfaceTarget: arrayCheckIndex,
             functionType: arrayCheckIndex.getterType as FunctionType,
           ),
@@ -1616,16 +1644,21 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       ]),
       ConstructorInvocation(
         constructor,
-        Arguments([
-          getCompoundTypedDataBaseField(VariableGet(arrayVar), node.fileOffset),
-          add(
-            getCompoundOffsetInBytesField(
+        Arguments(
+          ExpressionList(
+            getCompoundTypedDataBaseField(
               VariableGet(arrayVar),
               node.fileOffset,
             ),
-            multiply(VariableGet(indexVar), inlineSizeOf(dartType)!),
+            add(
+              getCompoundOffsetInBytesField(
+                VariableGet(arrayVar),
+                node.fileOffset,
+              ),
+              multiply(VariableGet(indexVar), inlineSizeOf(dartType)!),
+            ),
           ),
-        ]),
+        ),
       ),
     );
   }
@@ -1645,7 +1678,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return ConstructorInvocation(
       arrayListConstructor,
       Arguments(
-        [
+        ExpressionList(
           node.arguments.positional[0],
           inlineSizeOf(dartType)!,
           ConstantExpression(
@@ -1656,8 +1689,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                   )
                 : ConstructorTearOffConstant(constructor),
           ),
-        ],
-        types: [dartType],
+        ),
+        types: node.arguments.types,
       ),
     );
   }
@@ -1674,11 +1707,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return ConstructorInvocation(
       arrayArrayListConstructor,
       Arguments(
-        [
+        ExpressionList(
           node.arguments.positional[0],
           inlineSizeOf(elementType as InterfaceType)!,
-        ],
-        types: [dartType],
+        ),
+        types: node.arguments.types,
       ),
     );
   }
@@ -1703,7 +1736,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     final arrayLoadVar = PositionalParameter(
       parameterName: "#array",
-      type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
+      type: InterfaceType(
+        arrayClass,
+        Nullability.nonNullable,
+        node.arguments.types,
+      ),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
     final indexLoadVar = PositionalParameter(
@@ -1728,14 +1765,21 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             fileOffset: node.fileOffset,
           ),
         ),
-        positionalParameters: [arrayLoadVar, indexLoadVar],
+        positionalParameters: PositionalParameterList(
+          arrayLoadVar,
+          indexLoadVar,
+        ),
         returnType: coreTypes.intNonNullableRawType,
       ),
     );
 
     final arrayStoreVar = PositionalParameter(
       parameterName: "#array",
-      type: InterfaceType(arrayClass, Nullability.nonNullable, [typeArg]),
+      type: InterfaceType(
+        arrayClass,
+        Nullability.nonNullable,
+        node.arguments.types,
+      ),
       isSynthesized: true,
     )..fileOffset = node.fileOffset;
     final indexStoreVar = PositionalParameter(
@@ -1766,7 +1810,11 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
             fileOffset: node.fileOffset,
           ),
         ),
-        positionalParameters: [arrayStoreVar, indexStoreVar, valueStoreVar],
+        positionalParameters: PositionalParameterList(
+          arrayStoreVar,
+          indexStoreVar,
+          valueStoreVar,
+        ),
         returnType: coreTypes.intNonNullableRawType,
       ),
     );
@@ -1774,8 +1822,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     return ConstructorInvocation(
       abiSpecificIntegerArrayListConstructor,
       Arguments(
-        [node.arguments.positional[0], loadClosure, storeClosure],
-        types: [typeArg],
+        ExpressionList(node.arguments.positional[0], loadClosure, storeClosure),
+        types: node.arguments.types,
       ),
     );
   }
@@ -1873,7 +1921,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           InstanceAccessKind.Instance,
           VariableGet(arrayVar),
           arrayCheckIndex.name,
-          Arguments([VariableGet(indexVar)]),
+          Arguments(ExpressionList(VariableGet(indexVar))),
           interfaceTarget: arrayCheckIndex,
           functionType: arrayCheckIndex.getterType as FunctionType,
         ),
@@ -1890,7 +1938,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
         ConstructorInvocation(
           arrayConstructor,
           Arguments(
-            [
+            ExpressionList(
               getCompoundTypedDataBaseField(
                 VariableGet(arrayVar),
                 node.fileOffset,
@@ -1923,8 +1971,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
                 interfaceTarget: arrayNestedDimensionsRest,
                 resultType: arrayNestedDimensionsRest.getterType,
               ),
-            ],
-            types: [dartType],
+            ),
+            types: node.arguments.types,
           ),
         ),
       );
@@ -1943,19 +1991,30 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       ]),
       StaticInvocation(
         memCopy,
-        Arguments([
-          getCompoundTypedDataBaseField(VariableGet(arrayVar), node.fileOffset),
-          add(
-            getCompoundOffsetInBytesField(
+        Arguments(
+          ExpressionList(
+            getCompoundTypedDataBaseField(
               VariableGet(arrayVar),
               node.fileOffset,
             ),
-            VariableGet(offsetVar),
+            add(
+              getCompoundOffsetInBytesField(
+                VariableGet(arrayVar),
+                node.fileOffset,
+              ),
+              VariableGet(offsetVar),
+            ),
+            getCompoundTypedDataBaseField(
+              VariableGet(valueVar),
+              node.fileOffset,
+            ),
+            getCompoundOffsetInBytesField(
+              VariableGet(valueVar),
+              node.fileOffset,
+            ),
+            VariableGet(elementSizeVar),
           ),
-          getCompoundTypedDataBaseField(VariableGet(valueVar), node.fileOffset),
-          getCompoundOffsetInBytesField(VariableGet(valueVar), node.fileOffset),
-          VariableGet(elementSizeVar),
-        ]),
+        ),
       )..fileOffset = node.fileOffset,
     );
   }
@@ -2094,7 +2153,10 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
 
     return StaticInvocation(
       nativePrivateAddressOf,
-      Arguments([ConstantExpression(nativeAnnotation)], types: [nativeType]),
+      Arguments(
+        ExpressionList(ConstantExpression(nativeAnnotation)),
+        types: DartTypeList(nativeType),
+      ),
     )..fileOffset = arg.fileOffset;
   }
 
@@ -2131,17 +2193,13 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     if (annotationType is! FunctionType) {
       return node;
     }
-    final parameterTypes = [
-      for (final varDecl in target.function.positionalParameters) varDecl.type,
-    ];
-    final numParams = parameterTypes.length;
+    final numParams = target.function.positionalParameters.length;
     String methodPostfix = '';
-    final newArguments = <Expression>[];
     final newParameters = <PositionalParameter>[];
     bool isTransformed = false;
-    for (int i = 0; i < numParams; i++) {
+    final newArguments = ExpressionList.generate(numParams, (int i) {
       final parameter = target.function.positionalParameters[i];
-      final parameterType = parameterTypes[i];
+      final parameterType = parameter.type;
       final argument = node.arguments.positional[i];
       final (
         postFix,
@@ -2163,8 +2221,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           type: newType,
         ),
       );
-      newArguments.add(newArgument);
-    }
+      return newArgument;
+    });
 
     if (!isTransformed) {
       return node;
@@ -2195,7 +2253,9 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       final cloner = CloneProcedureWithoutBody();
       newTarget = cloner.cloneProcedure(target, null);
       newTarget.name = Name(newName);
-      newTarget.function.positionalParameters = newParameters;
+      newTarget.function.positionalParameters = PositionalParameterList.from(
+        newParameters,
+      );
       setParents(newParameters, newTarget.function);
       switch (parent) {
         case Library _:
@@ -2274,7 +2334,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       final typedDataType = InterfaceType(
         typedDataClass,
         Nullability.nonNullable,
-        const <DartType>[],
+        DartTypeList.empty,
       );
       return ('T', typedDataType, subExpression);
     }
@@ -2382,13 +2442,15 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
           compoundType,
           ConstructorInvocation(
             compoundFromTypedDataBase,
-            Arguments([
-              subExpression.receiver,
-              multiply(
-                ConstantExpression(IntConstant(elementSizeInBytes)),
-                subExpression.arguments.positional.first, // index.
+            Arguments(
+              ExpressionList(
+                subExpression.receiver,
+                multiply(
+                  ConstantExpression(IntConstant(elementSizeInBytes)),
+                  subExpression.arguments.positional.first, // index.
+                ),
               ),
-            ]),
+            ),
           ),
         );
       default:
@@ -2407,8 +2469,8 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       StaticInvocation(
         fromAddressInternal,
         Arguments(
-          <Expression>[ConstantExpression(IntConstant(0))],
-          types: <DartType>[voidType],
+          ExpressionList(ConstantExpression(IntConstant(0))),
+          types: DartTypeList(voidType),
         ),
       ),
     );
@@ -2445,7 +2507,7 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
     final compoundType = InterfaceType(
       compoundClass,
       Nullability.nonNullable,
-      const <DartType>[],
+      DartTypeList.empty,
     );
 
     final valueVar = SyntheticVariable(
@@ -2457,13 +2519,15 @@ mixin _FfiUseSiteTransformer on FfiTransformer {
       Block([VariableStatement(VariableDeclaration(valueVar))]),
       ConstructorInvocation(
         compoundFromTypedDataBase,
-        Arguments([
-          getCompoundTypedDataBaseField(VariableGet(valueVar), fileOffset),
-          add(
-            getCompoundOffsetInBytesField(VariableGet(valueVar), fileOffset),
-            offsetInBytes,
+        Arguments(
+          ExpressionList(
+            getCompoundTypedDataBaseField(VariableGet(valueVar), fileOffset),
+            add(
+              getCompoundOffsetInBytesField(VariableGet(valueVar), fileOffset),
+              offsetInBytes,
+            ),
           ),
-        ]),
+        ),
       ),
     );
     return newArgument;

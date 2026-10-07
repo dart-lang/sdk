@@ -1352,6 +1352,9 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
     } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
                (instr->Bits(20, 2) == 0) && (instr->Bits(23, 2) == 0)) {
       Format(instr, "vandq 'qd, 'qn, 'qm");
+    } else if ((instr->Bits(8, 4) == 1) && (instr->Bit(4) == 1) &&
+               (instr->Bits(20, 2) == 1) && (instr->Bits(23, 2) == 0)) {
+      Format(instr, "vbicq 'qd, 'qn, 'qm");
     } else if ((instr->Bits(7, 5) == 11) && (instr->Bit(4) == 0) &&
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 5) == 7) &&
                (instr->Bits(16, 4) == 0)) {
@@ -1453,6 +1456,22 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
           break;
         case 2:
           Format(instr, "vpmax.u32 'dd, 'dn, 'dm");
+          break;
+        default:
+          Unknown(instr);
+          break;
+      }
+    } else if ((instr->Bits(8, 4) == 10) && (instr->Bit(4) == 1) &&
+               (instr->Bits(23, 2) == 2)) {
+      switch (instr->Bits(20, 2)) {
+        case 0:
+          Format(instr, "vpmin.u8 'dd, 'dn, 'dm");
+          break;
+        case 1:
+          Format(instr, "vpmin.u16 'dd, 'dn, 'dm");
+          break;
+        case 2:
+          Format(instr, "vpmin.u32 'dd, 'dn, 'dm");
           break;
         default:
           Unknown(instr);

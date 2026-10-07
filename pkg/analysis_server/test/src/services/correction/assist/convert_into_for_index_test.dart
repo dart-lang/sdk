@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIntoForIndexTest extends AssistProcessorTest {
+class ConvertIntoForIndexTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertIntoForIndex;
 

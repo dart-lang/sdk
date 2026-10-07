@@ -177,6 +177,51 @@ class LaneSumSimd extends SimdBench {
   }
 }
 
+class WithLaneScalar extends SimdBench {
+  WithLaneScalar() : super('withLaneScalar');
+
+  late final Uint32List o;
+
+  @override
+  void setup() {
+    super.setup();
+    o = Uint32List(words);
+  }
+
+  @override
+  void run() {
+    final n = a.length;
+    for (int i = 0; i < n; i += 4) {
+      o[i] = a[i];
+      o[i + 1] = a[i + 1];
+      o[i + 2] = b[i + 2];
+      o[i + 3] = a[i + 3];
+    }
+  }
+}
+
+class WithLaneSimd extends SimdBench {
+  WithLaneSimd() : super('withLaneSimd');
+
+  late final Uint32List o;
+
+  @override
+  void setup() {
+    super.setup();
+    o = Uint32List(words);
+  }
+
+  @override
+  void run() {
+    final la = Int32x4List.view(a.buffer, a.offsetInBytes, a.length >> 2);
+    final lb = Int32x4List.view(b.buffer, b.offsetInBytes, b.length >> 2);
+    final lo = Int32x4List.view(o.buffer, o.offsetInBytes, o.length >> 2);
+    for (int j = 0; j < la.length; j++) {
+      lo[j] = la[j].withZ(lb[j].z);
+    }
+  }
+}
+
 class SignMaskScalar extends SimdBench {
   SignMaskScalar() : super('signMaskScalar');
   @override
@@ -222,6 +267,8 @@ void main() {
     SubSimd.new,
     LaneSumScalar.new,
     LaneSumSimd.new,
+    WithLaneScalar.new,
+    WithLaneSimd.new,
     SignMaskScalar.new,
     SignMaskSimd.new,
   ];

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -33,14 +34,19 @@ class A {
     assertResolvedNodeText(node, r'''
 ParenthesizedExpression
   leftParenthesis: (
-  expression2: SuperExpression
+  expression2: InvalidSuperExpression
+    superReference: SuperReference
+      superKeyword: super
+    staticType: InvalidType
+  expression(v1): SuperExpression
     superKeyword: super
     staticType: A
   rightParenthesis: )
-  staticType: A
+  staticType: InvalidType
 ''');
   }
 
+  @ToBeDeprecated('Tests the V1 projection.')
   test_unParenthesized_views() async {
     var result = await resolveTestCode(r'''
 void f(int? x) {

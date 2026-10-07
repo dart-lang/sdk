@@ -1066,13 +1066,17 @@ CompilationUnit
                   contents: '
                 InterpolationExpression
                   leftBracket: $
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                 InterpolationString
                   contents: <empty> <synthetic>
                 InterpolationExpression
                   leftBracket: $
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                 InterpolationString
                   contents: '
@@ -1644,11 +1648,15 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: get
+                expression(v1): SimpleIdentifier
                   token: get
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 semicolon: ; <synthetic>
               Block
@@ -1656,7 +1664,9 @@ CompilationUnit
                 statements
                   ReturnStatement
                     returnKeyword: return
-                    expression2: SimpleIdentifier
+                    expression2: ParsedUnqualifiedName
+                      name: _x
+                    expression(v1): SimpleIdentifier
                       token: _x
                     semicolon: ;
                 rightBracket: }
@@ -1885,42 +1895,62 @@ var s = 'begin \u{110000}';
 ''');
   }
 
-  @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__new_nonIdentifier() {
+  void test_invalidCodePoint_interpolation_first() {
+    parseTestCodeWithDiagnostics(r"""
+var s = '''\u{110000}${0}''';
+//         ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
+""");
+  }
+
+  void test_invalidCodePoint_interpolation_last() {
     parseTestCodeWithDiagnostics(r'''
-/// [new 42]
-//       ^^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
-void f() {}
+var s = '${0}\u{110000}';
+//           ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
 ''');
   }
 
-  @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__new_tooMuch() {
+  void test_invalidCodePoint_interpolation_middle() {
     parseTestCodeWithDiagnostics(r'''
-/// [new a.b.c.d]
-//       ^^^^^^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
-void f() {}
+var s = '${0}\u{110000}${1}';
+//           ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
 ''');
   }
 
+  void test_invalidCodePoint_multiLine() {
+    parseTestCodeWithDiagnostics(r"""
+var s = '''\u{110000}''';
+//         ^^^^^^^^^
+// [diag.invalidCodePoint] The escape sequence '\u{...}' isn't a valid code point.
+""");
+  }
+
+  void test_invalidCodePoint_multiLine_leadingNewline() {
+    parseTestCodeWithDiagnostics(r"""
+var s = '''
+\u{110000}''';
+// [diag.invalidCodePoint][column 1][length 9] The escape sequence '\u{...}' isn't a valid code point.
+""");
+  }
+
   @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__nonNew_nonIdentifier() {
+  void test_invalidCommentReference_nonIdentifier() {
     parseTestCodeWithDiagnostics(r'''
 /// [42]
 //   ^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
+// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier, but shouldn't contain anything else.
 void f() {}
 ''');
   }
 
   @failingTest // TODO(scheglov): fix it
-  void test_invalidCommentReference__nonNew_tooMuch() {
+  void test_invalidCommentReference_tooMuch() {
     parseTestCodeWithDiagnostics(r'''
 /// [a.b.c.d]
 //   ^^^^^^^
-// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier and can start with 'new', but shouldn't contain anything else.
+// [diag.invalidCommentReference] Comment references should contain a possibly prefixed identifier, but shouldn't contain anything else.
 void f() {}
 ''');
   }
@@ -2079,12 +2109,52 @@ void f() {
 ''');
   }
 
+  void test_invalidPropertyAccess_class() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+var v = x.class;
+//        ^^^^^
+// [diag.expectedIdentifierButGotKeyword] 'class' can't be used as an identifier because it's a keyword.
+''');
+    assertParsedNodeText(
+      parseResult.findNode.singleVariableDeclaration.initializer2!,
+      r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: x
+  operator: .
+  name: class
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+  period: .
+  identifier: SimpleIdentifier
+    token: class
+''',
+    );
+  }
+
   void test_invalidPropertyAccess_this() {
-    parseTestCodeWithDiagnostics(r'''
+    var parseResult = parseTestCodeWithDiagnostics(r'''
 var v = x.this;
 //        ^^^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
+    assertParsedNodeText(
+      parseResult.findNode.singleVariableDeclaration.initializer2!,
+      r'''
+ParsedNameAccess
+  operand: ParsedUnqualifiedName
+    name: x
+  operator: .
+  name: <empty> <synthetic>
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: x
+  period: .
+  identifier: SimpleIdentifier
+    token: <empty> <synthetic>
+''',
+    );
   }
 
   void test_invalidStarAfterAsync() {
@@ -2236,6 +2306,8 @@ FunctionDeclaration
   metadata
     Annotation
       atSign: @
+      expression: ParsedUnqualifiedName
+        name: Foo
       name: SimpleIdentifier
         token: Foo
   name: f
@@ -2400,7 +2472,10 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: SuperExpression
+      expression2: InvalidSuperExpression
+        superReference: SuperReference
+          superKeyword: super
+      expression(v1): SuperExpression
         superKeyword: super
       semicolon: ;
 ''');
@@ -2426,7 +2501,10 @@ FunctionDeclaration
         leftBracket: {
         statements
           ExpressionStatement
-            expression2: SuperExpression
+            expression2: InvalidSuperExpression
+              superReference: SuperReference
+                superKeyword: super
+            expression(v1): SuperExpression
               superKeyword: super
             semicolon: ;
         rightBracket: }
@@ -2585,7 +2663,9 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression2: SimpleIdentifier
+            expression2: ParsedUnqualifiedName
+              name: x
+            expression(v1): SimpleIdentifier
               token: x
             semicolon: ;
         rightBracket: }
@@ -2611,7 +2691,9 @@ FunctionDeclaration
       rightParenthesis: ) <synthetic>
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: SimpleIdentifier
+      expression2: ParsedUnqualifiedName
+        name: x
+      expression(v1): SimpleIdentifier
         token: x
       semicolon: ;
 ''');
@@ -3198,15 +3280,31 @@ var x = a..();
 // [diag.missingIdentifier] Expected an identifier.
 ''');
 
-    var methodInvocation = result.findNode.singleMethodInvocation;
+    var methodInvocation =
+        result.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(methodInvocation, r'''
-MethodInvocation
-  operator: ..
-  methodName: SimpleIdentifier
-    token: <empty> <synthetic>
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
+CascadeExpression
+  target2: ParsedUnqualifiedName
+    name: a
+  target(v1): SimpleIdentifier
+    token: a
+  sections
+    CascadeSection
+      operator: ..
+      body: ParsedValueArguments
+        operand: ParsedCascadeName
+          name: <empty> <synthetic>
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: <empty> <synthetic>
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
 ''');
   }
 
@@ -3216,21 +3314,44 @@ var x = a..<E>();
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var methodInvocation = result.findNode.singleMethodInvocation;
+    var methodInvocation =
+        result.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(methodInvocation, r'''
-MethodInvocation
-  operator: ..
-  methodName: SimpleIdentifier
-    token: <empty> <synthetic>
-  typeArguments: TypeArgumentList
-    leftBracket: <
-    arguments
-      NamedType
-        name: E
-    rightBracket: >
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
+CascadeExpression
+  target2: ParsedUnqualifiedName
+    name: a
+  target(v1): SimpleIdentifier
+    token: a
+  sections
+    CascadeSection
+      operator: ..
+      body: ParsedValueArguments
+        operand: ParsedTypeArguments
+          operand: ParsedCascadeName
+            name: <empty> <synthetic>
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+        argumentList: ArgumentList
+          leftParenthesis: (
+          rightParenthesis: )
+  cascadeSections
+    MethodInvocation
+      operator: ..
+      methodName: SimpleIdentifier
+        token: <empty> <synthetic>
+      typeArguments: TypeArgumentList
+        leftBracket: <
+        arguments
+          NamedType
+            name: E
+        rightBracket: >
+      argumentList: ArgumentList
+        leftParenthesis: (
+        rightParenthesis: )
 ''');
   }
 
@@ -3820,11 +3941,11 @@ void main() {
     var binaryExpression = result.findNode.singleBinaryOperatorInvocation;
     assertParsedNodeText(binaryExpression, r'''
 BinaryOperatorInvocation
-  leftOperand: SimpleIdentifier
-    token: <empty> <synthetic>
+  leftOperand: ParsedUnqualifiedName
+    name: <empty> <synthetic>
   operator: +
-  rightOperand: SimpleIdentifier
-    token: x
+  rightOperand: ParsedUnqualifiedName
+    name: x
   binaryOperator: add
 V1: BinaryExpression
   leftOperand: SimpleIdentifier

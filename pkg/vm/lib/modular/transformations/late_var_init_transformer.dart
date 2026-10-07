@@ -54,7 +54,7 @@ class LateVarInitTransformer {
     )..id = localFunctionIdGenerator.allocateId();
     node.declaration.variable.initializer = LocalFunctionInvocation(
       fn.variable,
-      Arguments([]),
+      Arguments.empty(),
       functionType: functionType,
     )..parent = node.declaration.variable;
 

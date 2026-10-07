@@ -345,17 +345,15 @@ library
             #F2 optionalPositional isOriginDeclaration compare (nameOffset:22) (firstTokenOffset:8) (offset:22)
               element: <testLibrary>::@function::f::@formalParameter::compare
               initializer: expression_0
-                PrefixedIdentifier
-                  prefix: SimpleIdentifier
-                    token: Comparable @32
+                ReceiverPropertyExtraction
+                  receiver: StaticQualifier
+                    name: Comparable @32
                     element: dart:core::@class::Comparable
-                    staticType: null
-                  period: . @42
-                  identifier: SimpleIdentifier
-                    token: compare @43
+                  operator: . @42
+                  name: compare @43
+                  resolution: ExecutableTearOffResolution
                     element: dart:core::@class::Comparable::@method::compare
-                    staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
-                  element: dart:core::@class::Comparable::@method::compare
+                    type: int Function(Comparable<dynamic>, Comparable<dynamic>)
                   staticType: int Function(Comparable<dynamic>, Comparable<dynamic>)
   functions
     isOriginDeclaration isStatic f

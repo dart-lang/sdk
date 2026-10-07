@@ -1,0 +1,59 @@
+# Copyright (c) 2026, the Dart project authors. Please see the AUTHORS file
+# for details. All rights reserved. Use of this source code is governed by a
+# BSD-style license that can be found in the LICENSE file.
+
+# We invalidate both the package config and the libraries in the changed
+# package. We still have to find out that the package config changed and not
+# reuse old translations (i.e. we can't just see the invalidated dart files as
+# body-only changes and ignore the package config update).
+
+type: newworld
+worlds:
+  - entry: main.dart
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foov1",
+              "packageUri": "lib"
+            }
+          ]
+        }
+      main.dart: |
+        import "package:foo/a.dart";
+        void main() {
+          hello();
+        }
+      foov1/lib/a.dart: |
+        void hello() {
+          print("hello v1");
+        }
+      foov2/lib/a.dart: |
+        void hello() {
+          print("hello v2");
+        }
+    expectedLibraryCount: 2
+
+  - entry: main.dart
+    worldType: updated
+    expectInitializeFromDill: false
+    invalidate:
+      - .dart_tool/package_config.json
+      - package:foo/a.dart
+    sources:
+      .dart_tool/package_config.json: |
+        {
+          "configVersion": 2,
+          "packages": [
+            {
+              "name": "foo",
+              "rootUri": "../foov2",
+              "packageUri": "lib"
+            }
+          ]
+        }
+    expectedLibraryCount: 2
+    advancedInvalidation: packageUpdate

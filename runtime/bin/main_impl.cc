@@ -1122,6 +1122,9 @@ void RunMainIsolate(const char* script_name,
   }
 #endif
   flags.snapshot_is_dontneed_safe = dontneed_safe;
+  if (!Options::load_module_snapshots().is_empty()) {
+    flags.modular_aot_mode = true;
+  }
 
   Dart_Isolate isolate = CreateIsolateGroupAndSetupHelper(
       /* is_main_isolate */ true, script_name, asset_resolution_base, "main",
@@ -1417,6 +1420,9 @@ void main(int argc, char** argv) {
 #if defined(DART_PRECOMPILED_RUNTIME)
   vm_options.AddArgument("--precompilation");
 #endif
+  if (!Options::load_module_snapshots().is_empty()) {
+    vm_options.AddArgument("--modular_aot");
+  }
   if (Options::gen_snapshot_kind() == kAppJIT) {
     // App-jit snapshot can be deployed to another machine,
     // so generated code should not depend on the CPU features

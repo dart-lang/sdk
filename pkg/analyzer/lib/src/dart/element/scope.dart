@@ -46,32 +46,42 @@ class ConstructorInitializerScope extends EnclosedScope {
   }
 }
 
-/// The scope that looks up elements in documentation comments.
+/// The scope of the names provided by the `@docImport`s of a file.
 ///
-/// Attempts to look up elements in its [innerScope] before searching
-/// through any doc imports.
-class DocumentationCommentScope with _GettersAndSetters implements Scope {
-  /// The scope that will be prioritized in look ups before searching in doc
-  /// imports.
-  ///
-  /// Will be set for each specific comment scope in the `ScopeResolverVisitor`.
-  Scope innerScope;
+/// Doc imports are scoped like imports with the parts-with-imports feature:
+/// the scope of a file looks up its doc import prefixes, then the names that
+/// it doc-imports without a prefix, and then the scope of the enclosing file.
+/// A part file can shadow the names doc-imported by its enclosing files, and
+/// extend their prefixes.
+class DocImportScope implements Scope {
+  final LibraryFragmentImpl _libraryFragment;
+  final DocImportScope? _parent;
+  final List<LibraryImportImpl> _imports;
+  final Map<String, DocImportPrefixElementImpl> _prefixElements = {};
 
-  DocumentationCommentScope(
-    this.innerScope,
-    List<LibraryElement> docImportLibraries,
-  ) {
-    for (var importedLibrary in docImportLibraries) {
-      if (importedLibrary is LibraryElementImpl) {
-        // TODO(kallentu): Handle combinators.
-        for (var entry in importedLibrary.exportEntries) {
-          var element = importedLibrary.internal.elementFactory
-              .elementOfReference3(entry.reference);
-          if (element is SetterElement) {
-            _addSetter(element);
-          } else {
-            _addGetter(element);
-          }
+  /// The names imported without a prefix.
+  ///
+  /// Built lazily, because most documentation comments reference only names
+  /// that are found in their lexical scope.
+  late final PrefixScope _noPrefixScope = PrefixScope(
+    libraryFragment: _libraryFragment,
+    parent: null,
+    libraryImports: _imports,
+    prefix: null,
+  );
+
+  DocImportScope({
+    required LibraryFragmentImpl libraryFragment,
+    required DocImportScope? parent,
+    required List<LibraryImportImpl> imports,
+  }) : _libraryFragment = libraryFragment,
+       _parent = parent,
+       _imports = imports {
+    for (var import in imports) {
+      var prefix = import.prefix?.element;
+      if (prefix is DocImportPrefixElementImpl) {
+        if (prefix.name case var name?) {
+          _prefixElements[name] = prefix;
         }
       }
     }
@@ -79,9 +89,49 @@ class DocumentationCommentScope with _GettersAndSetters implements Scope {
 
   @override
   ScopeLookupResult lookup(String id) {
-    var result = innerScope.lookup(id);
+    if (_libraryFragment.isAllowedAsPrefixName(id)) {
+      if (_prefixElements[id] case var prefixElement?) {
+        return ScopeLookupResultImpl(getter: prefixElement, setter: null);
+      }
+    }
+
+    var result = _noPrefixScope.lookup(id);
+    if (result.getter != null || result.setter != null) {
+      return result;
+    }
+
+    if (_parent case var parent?) {
+      return parent.lookup(id);
+    }
+    return result;
+  }
+
+  /// Returns the doc import prefix with the [name], declared in the file of
+  /// this scope, or in an enclosing file.
+  DocImportPrefixElementImpl? lookupPrefix(String name) {
+    for (DocImportScope? scope = this; scope != null; scope = scope._parent) {
+      if (scope._prefixElements[name] case var prefix?) {
+        return prefix;
+      }
+    }
+    return null;
+  }
+}
+
+/// The scope that looks up elements in documentation comments.
+///
+/// Elements of the lexical scope shadow the names from doc imports.
+class DocumentationCommentScope implements Scope {
+  final Scope _innerScope;
+  final DocImportScope _docImportScope;
+
+  DocumentationCommentScope(this._innerScope, this._docImportScope);
+
+  @override
+  ScopeLookupResult lookup(String id) {
+    var result = _innerScope.lookup(id);
     if (result.getter != null || result.setter != null) return result;
-    return ScopeLookupResultImpl(getter: _getters[id], setter: _setters[id]);
+    return _docImportScope.lookup(id);
   }
 }
 
@@ -179,10 +229,13 @@ class ImportsTrackingOfPrefix {
   /// Excludes elements from deprecated exports.
   final Map<LibraryImportImpl, Set<Element>> importToAccessedElements2 = {};
 
-  /// Usually it is an error to use an import prefix without `.identifier`
-  /// after it, but we allow this in comment references. This makes the
-  /// corresponding group of imports "used".
-  bool hasPrefixUsedInCommentReference = false;
+  /// Whether the prefix is used without naming an element, so no lookup
+  /// tells which of the imports with this prefix is used.
+  ///
+  /// This happens in comment references like `[math]`, where it is allowed,
+  /// and in incomplete code like `math.`, where the parser reports the
+  /// missing name. This makes the whole group of imports "used".
+  bool hasPrefixUsedWithoutName = false;
 
   /// We set it temporarily to `false` while resolving combinators.
   bool active = true;
@@ -267,8 +320,8 @@ class ImportsTrackingOfPrefix {
     }
   }
 
-  void notifyPrefixUsedInCommentReference() {
-    hasPrefixUsedInCommentReference = true;
+  void notifyPrefixUsedWithoutName() {
+    hasPrefixUsedWithoutName = true;
   }
 
   void _buildElementToImportsMap() {
@@ -512,7 +565,7 @@ class LibraryFragmentScope implements Scope {
 
   ScopeLookupResult? _lookupCombined(String id) {
     // Try prefix elements.
-    if (_shouldTryPrefixElement(id)) {
+    if (fragment.isAllowedAsPrefixName(id)) {
       if (_prefixElements[id] case var prefixElement?) {
         return ScopeLookupResultImpl(getter: prefixElement, setter: null);
       }
@@ -539,14 +592,6 @@ class LibraryFragmentScope implements Scope {
       );
     }
     return null;
-  }
-
-  bool _shouldTryPrefixElement(String id) {
-    if (id == '_') {
-      var featureSet = fragment.library.featureSet;
-      return !featureSet.isEnabled(Feature.wildcard_variables);
-    }
-    return true;
   }
 }
 
@@ -581,6 +626,13 @@ class LocalScope extends EnclosedScope {
 
 class PrefixScope implements Scope {
   final LibraryFragmentImpl libraryFragment;
+
+  /// The scope of the enclosing file that this scope extends: for a prefix,
+  /// the scope of the prefix with the same name, and for the imports without
+  /// a prefix, the scope of such imports.
+  ///
+  /// It is `null` for a deferred prefix, which provides only the names of its
+  /// own library.
   final PrefixScope? parent;
 
   final List<LibraryImportImpl> _importElements = [];
@@ -628,6 +680,18 @@ class PrefixScope implements Scope {
         }
       }
     }
+  }
+
+  /// The libraries imported into this scope, and into [parent].
+  ///
+  /// Excludes the libraries of files that don't exist, because their URIs
+  /// are already reported, and they don't provide any elements.
+  List<LibraryElementImpl> get libraries {
+    return {
+      for (var library in _importedLibraries)
+        if (!library.isOriginNotExistingFile) library,
+      ...?parent?.libraries,
+    }.toList();
   }
 
   LibraryElementImpl get libraryElement {
@@ -683,9 +747,11 @@ class PrefixScope implements Scope {
     return ScopeLookupResultImpl(getter: null, setter: null);
   }
 
-  /// Usually this is an error, but we allow it in comment references.
-  void notifyPrefixUsedInCommentReference() {
-    _importsTracking?.notifyPrefixUsedInCommentReference();
+  /// Notifies that the prefix is used without naming an element.
+  ///
+  /// See [ImportsTrackingOfPrefix.hasPrefixUsedWithoutName].
+  void notifyPrefixUsedWithoutName() {
+    _importsTracking?.notifyPrefixUsedWithoutName();
   }
 
   void _add(Element element, bool isFromDeprecatedExport) {
@@ -910,5 +976,17 @@ mixin _GettersAndSetters {
       var id = considerCanonicalizeString(name.substring(0, name.length - 1));
       _setters[id] ??= element;
     }
+  }
+}
+
+extension on LibraryFragmentImpl {
+  /// Whether [id] can be the name of an import prefix.
+  ///
+  /// With wildcard variables, `as _` does not declare a prefix.
+  bool isAllowedAsPrefixName(String id) {
+    if (id == '_') {
+      return !library.featureSet.isEnabled(Feature.wildcard_variables);
+    }
+    return true;
   }
 }

@@ -1769,6 +1769,33 @@ DART_NOINLINE bool Interpreter::AllocateFloat64x2(Thread* thread,
   }
 }
 
+// Allocate an _Int32x4 box for the given simd value and put it into SP[0].
+// Returns false on exception.
+DART_NOINLINE bool Interpreter::AllocateInt32x4(Thread* thread,
+                                                simd128_value_t value,
+                                                const KBCInstr* pc,
+                                                ObjectPtr* FP,
+                                                ObjectPtr* SP) {
+  Int32x4Ptr result;
+  if (TryAllocate(thread, kInt32x4Cid, Int32x4::InstanceSize(),
+                  reinterpret_cast<ObjectPtr*>(&result))) {
+    value.writeTo(result->untag()->value_);
+    SP[0] = result;
+    return true;
+  } else {
+    SP[0] = 0;  // Space for the result.
+    SP[1] = thread->isolate_group()->object_store()->int32x4_class();
+    SP[2] = Object::null();  // Type arguments.
+    Exit(thread, FP, SP + 3, pc);
+    NativeArguments args(thread, 2, SP + 1, SP);
+    if (!InvokeRuntime(thread, this, DRT_AllocateObject, args)) {
+      return false;
+    }
+    value.writeTo(Int32x4::RawCast(SP[0])->untag()->value_);
+    return true;
+  }
+}
+
 // Allocate a _List with the given type arguments and length and put it into
 // SP[0]. Returns false on exception.
 bool Interpreter::AllocateArray(Thread* thread,
@@ -4380,11 +4407,37 @@ SwitchDispatchNoSingleStep:
     goto NoSuchMethodFromPrologue;
   }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+#define CHECK_FOR_RELOADED_IMPLICIT_CLOSURE                                    \
+  do {                                                                         \
+    if (Function::IsReloadedImplicitClosure(function)) {                       \
+      SP[1] = function;                                                        \
+      SP[2] = argdesc_;                                                        \
+      SP[3] = 0; /* Space for result. */                                       \
+      Exit(thread, FP, SP + 4, pc);                                            \
+      INVOKE_RUNTIME(DRT_ResolveReloadedImplicitClosureFunction,               \
+                     NativeArguments(thread, 2, SP + 1, SP + 3));              \
+      if (SP[3]->IsArray()) {                                                  \
+        /* The resulting array contains the arguments for */                   \
+        /* NoSuchMethodError_throwNew.                    */                   \
+        SP += 3;                                                               \
+        goto ThrowNoSuchMethodError;                                           \
+      }                                                                        \
+      /* Otherwise, the current arguments are compatible enough to use  */     \
+      /* the new implicit closure function with the existing arguments. */     \
+      function = Function::RawCast(SP[3]);                                     \
+    }                                                                          \
+  } while (0)
+#else
+#define CHECK_FOR_RELOADED_IMPLICIT_CLOSURE
+#endif
+
   {
     BYTECODE(VMInternal_ImplicitStaticClosure, 0);
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
+    CHECK_FOR_RELOADED_IMPLICIT_CLOSURE;
     ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
     FunctionPtr target = Function::RawCast(data->untag()->parent_function());
 
@@ -4450,6 +4503,7 @@ SwitchDispatchNoSingleStep:
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
+    CHECK_FOR_RELOADED_IMPLICIT_CLOSURE;
     ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
     FunctionPtr target = Function::RawCast(data->untag()->parent_function());
 
@@ -4525,6 +4579,7 @@ SwitchDispatchNoSingleStep:
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
+    CHECK_FOR_RELOADED_IMPLICIT_CLOSURE;
     ClosureDataPtr data = ClosureData::RawCast(function->untag()->data());
     FunctionPtr target = Function::RawCast(data->untag()->parent_function());
     ASSERT(Function::KindOf(target) == UntaggedFunction::kConstructor);
@@ -4632,6 +4687,8 @@ SwitchDispatchNoSingleStep:
 
     DISPATCH();
   }
+
+#undef CHECK_FOR_RELOADED_IMPLICIT_CLOSURE
 
   {
   TailCallSP1:

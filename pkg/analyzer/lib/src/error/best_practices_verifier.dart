@@ -170,7 +170,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   void visitAnnotation(Annotation node) {
     _annotationVerifier.checkAnnotation(node);
     _widgetPreviewVerifier.checkAnnotation(node);
-    _elementUsageFrontierDetector.annotation(node);
     super.visitAnnotation(node);
   }
 
@@ -189,13 +188,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _elementUsageFrontierDetector.assignmentExpression(node);
-    super.visitAssignmentExpression(node);
-  }
-
-  @override
-  void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
+  void visitBinaryOperatorInvocation(
+    covariant BinaryOperatorInvocationImpl node,
+  ) {
     _elementUsageFrontierDetector.binaryOperatorInvocation(node);
     _checkForInvariantNanComparison(node);
     _checkForInvariantNullComparison(node);
@@ -222,7 +217,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     _elementUsageFrontierDetector.namedFunctionInvocation(node);
     _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
     if (node.parent2 case CascadeSectionImpl(
-      parent2: CascadeExpressionImpl(:var target2),
+      parent2: CascadeExpressionImpl(:ExpressionImpl target2),
     )) {
       _errorHandlerVerifier.verifyNamedFunctionInvocation(node, target2);
       _nullSafeApiVerifier.namedFunctionInvocation(node, target2);
@@ -306,32 +301,15 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     for (var docDirective in node.docDirectives) {
       _docCommentVerifier.docDirective(docDirective);
     }
-    super.visitComment(node);
-  }
-
-  @override
-  void visitCommentReference(CommentReference node) {
-    var newKeyword = node.newKeyword;
-    if (newKeyword != null &&
-        _currentLibrary.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-      _diagnosticReporter.report(
-        diag.deprecatedNewInCommentReference.at(newKeyword),
-      );
+    for (var commentReference in node.references) {
+      _docCommentVerifier.commentReference(commentReference);
     }
-    super.visitCommentReference(node);
+    super.visitComment(node);
   }
 
   @override
   void visitCompoundAssignment(CompoundAssignment node) {
     _elementUsageFrontierDetector.compoundAssignment(node);
-    switch (node.target) {
-      case PropertyAssignmentTarget target:
-        _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
-      case UnqualifiedNameAssignmentTarget target:
-        _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
-      case InvalidAssignmentTarget():
-        break;
-    }
     super.visitCompoundAssignment(node);
   }
 
@@ -390,28 +368,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   @override
   void visitDirectAssignment(DirectAssignment node) {
     _elementUsageFrontierDetector.directAssignment(node);
-    var target = node.target;
-    switch (target) {
-      case IndexAssignmentTarget():
-        break;
-      case PropertyAssignmentTarget():
-        _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
-      case UnqualifiedNameAssignmentTarget():
-        _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
-      case InvalidAssignmentTarget():
-        break;
-    }
     super.visitDirectAssignment(node);
-  }
-
-  @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    _deprecatedFunctionalityVerifier.dotShorthandConstructorInvocation(node);
-    _elementUsageFrontierDetector.dotShorthandConstructorInvocation(node);
-    _checkForLiteralConstructorUseInDotShorthand(node);
-    super.visitDotShorthandConstructorInvocation(node);
   }
 
   @override
@@ -425,24 +382,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandInvocation(DotShorthandInvocation node) {
-    _deprecatedFunctionalityVerifier.dotShorthandInvocation(node);
-    _elementUsageFrontierDetector.dotShorthandInvocation(node);
-    super.visitDotShorthandInvocation(node);
-  }
-
-  @override
   void visitDotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
     _elementUsageFrontierDetector.dotShorthandMethodInvocation(node);
     _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
     _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
     super.visitDotShorthandMethodInvocation(node);
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    _elementUsageFrontierDetector.dotShorthandPropertyAccess(node);
-    super.visitDotShorthandPropertyAccess(node);
   }
 
   @override
@@ -484,9 +428,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitExtensionOverride(ExtensionOverride node) {
-    _elementUsageFrontierDetector.extensionOverride(node);
-    super.visitExtensionOverride(node);
+  void visitExtensionOverride2(ExtensionOverride2 node) {
+    _elementUsageFrontierDetector.extensionOverride2(node);
+    super.visitExtensionOverride2(node);
   }
 
   @override
@@ -656,14 +600,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   @override
   void visitIfNullAssignment(IfNullAssignment node) {
     _elementUsageFrontierDetector.ifNullAssignment(node);
-    switch (node.target) {
-      case PropertyAssignmentTarget target:
-        _invalidAccessVerifier.verifyPropertyAssignmentTarget(target);
-      case UnqualifiedNameAssignmentTarget target:
-        _invalidAccessVerifier.verifyUnqualifiedNameAssignmentTarget(target);
-      case InvalidAssignmentTarget():
-        break;
-    }
     super.visitIfNullAssignment(node);
   }
 
@@ -694,12 +630,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   ) {
     _elementUsageFrontierDetector.incrementOrDecrement(node);
     node.visitChildren2(this);
-  }
-
-  @override
-  void visitIndexExpression(IndexExpression node) {
-    _elementUsageFrontierDetector.indexExpression(node);
-    super.visitIndexExpression(node);
   }
 
   @override
@@ -801,15 +731,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(covariant MethodInvocationImpl node) {
-    _elementUsageFrontierDetector.methodInvocation(node);
-    _deprecatedFunctionalityVerifier.methodInvocation(node);
-    _errorHandlerVerifier.verifyMethodInvocation(node);
-    _nullSafeApiVerifier.methodInvocation(node);
-    super.visitMethodInvocation(node);
-  }
-
-  @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     var element = node.declaredFragment!.element;
 
@@ -863,6 +784,8 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     if (node is NameExpression) {
       _elementUsageFrontierDetector.nameExpression(node);
       _invalidAccessVerifier.verifyNameExpression(node);
+    } else if (node is NamedAssignmentTarget) {
+      _invalidAccessVerifier.verifyNamedAssignmentTarget(node);
     }
     node.visitChildren2(this);
   }
@@ -912,8 +835,10 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   ) {
     _elementUsageFrontierDetector.namedFunctionInvocation(node);
     _deprecatedFunctionalityVerifier.namedFunctionInvocation(node);
-    _errorHandlerVerifier.verifyNamedFunctionInvocation(node, node.receiver);
-    _nullSafeApiVerifier.namedFunctionInvocation(node, node.receiver);
+    if (node.receiver case ExpressionImpl receiver) {
+      _errorHandlerVerifier.verifyNamedFunctionInvocation(node, receiver);
+      _nullSafeApiVerifier.namedFunctionInvocation(node, receiver);
+    }
     _invalidAccessVerifier.verifyNamedFunctionInvocation(node);
     super.visitReceiverMethodInvocation(node);
   }
@@ -960,10 +885,10 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    _elementUsageFrontierDetector.simpleIdentifier(node);
-    _invalidAccessVerifier.verify(node);
-    super.visitSimpleIdentifier(node);
+  void visitStaticQualifier(StaticQualifier node) {
+    _elementUsageFrontierDetector.staticQualifier(node);
+    _invalidAccessVerifier.verifyStaticQualifier(node);
+    super.visitStaticQualifier(node);
   }
 
   @override
@@ -1210,9 +1135,8 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         var errorNode =
             node.combinators
                 .whereType<ShowCombinator>()
-                .map((c) => c.shownNames)
-                .expand((shownNames) => shownNames)
-                .where((n) => n.name == name)
+                .expand((c) => c.names)
+                .where((n) => n.name.lexeme == name)
                 .firstOrNull ??
             node;
         _diagnosticReporter.report(
@@ -1283,7 +1207,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
   }
 
-  void _checkForInvariantNanComparison(BinaryOperatorInvocation node) {
+  void _checkForInvariantNanComparison(BinaryOperatorInvocationImpl node) {
     void reportStartEnd(
       LocatableDiagnostic locatableDiagnostic,
       SyntacticEntity startEntity,
@@ -1299,8 +1223,8 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
 
     void checkLeftRight(LocatableDiagnostic locatableDiagnostic) {
-      if ((node.leftOperand as Expression).isDoubleNan) {
-        reportStartEnd(locatableDiagnostic, node.leftOperand, node.operator);
+      if (node.leftOperand case ExpressionImpl left when left.isDoubleNan) {
+        reportStartEnd(locatableDiagnostic, left, node.operator);
       } else if (node.rightOperand.isDoubleNan) {
         reportStartEnd(locatableDiagnostic, node.operator, node.rightOperand);
       }
@@ -1313,7 +1237,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
   }
 
-  void _checkForInvariantNullComparison(BinaryOperatorInvocation node) {
+  void _checkForInvariantNullComparison(BinaryOperatorInvocationImpl node) {
     LocatableDiagnostic locatableDiagnostic;
     if (node.operator.type == TokenType.BANG_EQ) {
       locatableDiagnostic = diag.unnecessaryNullComparisonNeverNullTrue;
@@ -1337,8 +1261,14 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
 
     if (node.rightOperand is NullLiteral) {
-      var leftType = (node.leftOperand as Expression).typeOrThrow;
-      if (_typeSystem.isStrictlyNonNullable(leftType)) {
+      var leftIsNeverNull = switch (node.leftOperand) {
+        ExtensionOverride2Impl() => false,
+        SuperReferenceImpl() => true,
+        ExpressionImpl left => _typeSystem.isStrictlyNonNullable(
+          left.typeOrThrow,
+        ),
+      };
+      if (leftIsNeverNull) {
         var offset = node.operator.offset;
         _diagnosticReporter.report(
           locatableDiagnostic.atOffset(
@@ -1353,45 +1283,16 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   /// Check that the constructor invocation is const if the constructor is
   /// marked with [literal].
   void _checkForLiteralConstructorUse(ConstructorInvocation node) {
-    var constructorReference = node.constructorReference;
-    var constructor = constructorReference.element;
+    var constructor = node.constructorReference.element;
     if (constructor == null) {
       return;
     }
     if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
-      // Echoing jwren's `TODO` from _checkForDeprecatedMemberUse:
-      // TODO(jwren): We should modify ConstructorElement.getDisplayName(), or
-      // have the logic centralized elsewhere, instead of doing this logic
-      // here.
-      var typeReference = constructorReference.typeReference;
-      var fullConstructorName = [
-        if (typeReference.importPrefix case var prefix?) prefix.name.lexeme,
-        typeReference.name.lexeme,
-      ].join('.');
-      if (constructorReference.selector case var selector?) {
-        fullConstructorName = '$fullConstructorName.${selector.name2.lexeme}';
-      }
       var warning = node.keyword?.keyword == Keyword.NEW
           ? diag.nonConstCallToLiteralConstructorUsingNew
           : diag.nonConstCallToLiteralConstructor;
       _diagnosticReporter.report(
-        warning.withArguments(constructorName: fullConstructorName).at(node),
-      );
-    }
-  }
-
-  /// Report a warning if the dot shorthand constructor is marked with [literal]
-  /// and is not const.
-  ///
-  /// See [diag.nonConstCallToLiteralConstructor].
-  void _checkForLiteralConstructorUseInDotShorthand(
-    DotShorthandConstructorInvocation node,
-  ) {
-    var constructor = node.constructorName.element;
-    if (constructor is! ConstructorElement) return;
-    if (!node.isConst && constructor.metadata.hasLiteral && node.canBeConst) {
-      _diagnosticReporter.report(
-        diag.nonConstCallToLiteralConstructor
+        warning
             .withArguments(constructorName: constructor.displayName)
             .at(node),
       );
@@ -1454,11 +1355,11 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       return;
     }
 
-    if (parameters.parameters.length != 1) {
+    if (parameters.allFormalParameters.length != 1) {
       return;
     }
 
-    var parameter = parameters.parameters.first;
+    var parameter = parameters.allFormalParameters.first;
     var parameterElement = parameter.declaredFragment!.element;
 
     var type = parameterElement.type;
@@ -1534,17 +1435,18 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       return false;
     }
     bool isNonObjectNoSuchMethodInvocation(Expression? invocation) {
-      if (invocation is MethodInvocation &&
-          invocation.target2 is SuperExpression &&
-          invocation.argumentList.arguments2.length == 1) {
-        SimpleIdentifier name = invocation.methodName;
-        if (name.name == MethodElement.NO_SUCH_METHOD_METHOD_NAME) {
-          var methodElement = name.element;
-          var classElement = methodElement?.enclosingElement;
-          return methodElement is MethodElement &&
-              classElement is ClassElement &&
-              !classElement.isDartCoreObject;
-        }
+      if (invocation case ReceiverMethodInvocation(
+        receiver: SuperReference(),
+        :var name,
+        :var argumentList,
+        resolution: ExecutableInvocationResolution(:var element),
+      )) {
+        var classElement = element.enclosingElement;
+        return name.lexeme == MethodElement.NO_SUCH_METHOD_METHOD_NAME &&
+            argumentList.arguments2.length == 1 &&
+            element is MethodElement &&
+            classElement is ClassElement &&
+            !classElement.isDartCoreObject;
       }
       return false;
     }
@@ -1634,7 +1536,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       return;
     }
 
-    var implicitlyTypedParameters = parameterList.parameters
+    var implicitlyTypedParameters = parameterList.allFormalParameters
         .whereType<RegularFormalParameterImpl>()
         .where(
           (p) =>
@@ -1716,17 +1618,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     var expressions = addTo ?? <Expression, Element>{};
 
     Element? element;
-    if (expression is PropertyAccess) {
-      element = expression.propertyName.element;
-      // Tear-off.
-      if (element is LocalFunctionElement ||
-          element is TopLevelFunctionElement ||
-          element is MethodElement) {
-        element = null;
-      }
-    } else if (expression is MethodInvocation) {
-      element = expression.methodName.element;
-    } else if (expression is NamedFunctionInvocation) {
+    if (expression is NamedFunctionInvocation) {
       element = switch (expression.resolution) {
         ExecutableInvocationResolution(:var element) => element,
         InvalidInvocationResolution(
@@ -1736,17 +1628,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         _ => null,
       };
     } else if (expression is NameExpression) {
-      element = expression.resolution.elementOrRecovery;
+      element = expression.resolution?.elementOrRecovery;
       // An executable name expression is a tear-off, not a value read from a
       // declaration carrying `doNotStore`.
-      if (element is LocalFunctionElement ||
-          element is TopLevelFunctionElement ||
-          element is MethodElement) {
-        element = null;
-      }
-    } else if (expression is Identifier) {
-      element = expression.element;
-      // Tear-off.
       if (element is LocalFunctionElement ||
           element is TopLevelFunctionElement ||
           element is MethodElement) {
@@ -1762,10 +1646,9 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         addTo: expressions,
       );
     } else if (expression is BinaryOperatorInvocation) {
-      _getSubExpressionsMarkedDoNotStore(
-        expression.leftOperand as Expression,
-        addTo: expressions,
-      );
+      if (expression.leftOperand case Expression left) {
+        _getSubExpressionsMarkedDoNotStore(left, addTo: expressions);
+      }
       _getSubExpressionsMarkedDoNotStore(
         expression.rightOperand,
         addTo: expressions,
@@ -1881,37 +1764,12 @@ class _InvalidAccessVerifier {
        ),
        _inTestDirectory = inTestDirectory;
 
-  /// Produces a warning if [identifier] is accessed from an invalid location.
-  ///
-  /// In particular, a warning is produced in either of the two following cases:
-  ///
-  /// * The element associated with [identifier] is annotated with [internal],
-  ///   and is accessed from outside the package in which the element is
-  ///   declared.
-  /// * The element associated with [identifier] is annotated with [protected],
-  ///   [visibleForTesting], and/or `visibleForTemplate`, and is accessed from a
-  ///   location which is invalid as per the rules of each such annotation.
-  ///   Conversely, if the element is annotated with more than one of these
-  ///   annotations, the access is valid (and no warning is produced) if it
-  ///   conforms to the rules of at least one of the annotations.
-  void verify(SimpleIdentifier identifier) {
-    if (identifier.inDeclarationContext() || identifier.inCommentReference2) {
-      return;
-    }
-
-    _verify(
-      node: identifier,
-      nameToken: identifier.token,
-      element: identifier.writeOrReadElement2,
-    );
-  }
-
   void verifyBinary(BinaryOperatorInvocation node) {
     var element = node.element;
     if (element != null && _hasVisibleForOverriding(element)) {
       var operator = node.operator;
 
-      if (node.leftOperand is SuperExpression) {
+      if (node.leftOperand is SuperReference) {
         var methodDeclaration = node.thisOrAncestorOfType2<MethodDeclaration>();
         if (methodDeclaration?.name.lexeme == operator.lexeme) {
           return;
@@ -1997,6 +1855,14 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(node, element);
   }
 
+  void verifyNamedAssignmentTarget(NamedAssignmentTarget node) {
+    var readElement = node.read?.elementOrRecovery;
+    var writeElement = node.write?.elementOrRecovery;
+    for (var element in {readElement, writeElement}) {
+      _verify(node: node, nameToken: node.name, element: element);
+    }
+  }
+
   void verifyNamedFunctionInvocation(NamedFunctionInvocation node) {
     var element = switch (node.resolution) {
       ExecutableInvocationResolution(:var element) => element,
@@ -2028,7 +1894,7 @@ class _InvalidAccessVerifier {
   }
 
   void verifyNameExpression(NameExpression node) {
-    var element = node.resolution.elementOrRecovery;
+    var element = node.resolution?.elementOrRecovery;
     _verify(node: node, nameToken: node.name, element: element);
   }
 
@@ -2059,17 +1925,8 @@ class _InvalidAccessVerifier {
     _checkForOtherInvalidAccess(node, element);
   }
 
-  void verifyPropertyAssignmentTarget(PropertyAssignmentTarget node) {
-    var readElement = node.read.elementOrRecovery;
-    var writeElement = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedWriteResolutionWithElement(:var element) => element,
-      _ => null,
-    };
-    for (var element in {readElement, writeElement}) {
-      _verify(node: node, nameToken: node.propertyName, element: element);
-    }
+  void verifyStaticQualifier(StaticQualifier node) {
+    _verify(node: node, nameToken: node.name, element: node.element);
   }
 
   void verifySuperConstructorInvocation(SuperConstructorInvocation node) {
@@ -2098,21 +1955,6 @@ class _InvalidAccessVerifier {
       element: element,
     );
     _checkForOtherInvalidAccess(selector, element);
-  }
-
-  void verifyUnqualifiedNameAssignmentTarget(
-    UnqualifiedNameAssignmentTarget node,
-  ) {
-    var readElement = node.read.elementOrRecovery;
-    var writeElement = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) when candidates.isNotEmpty =>
-        candidates.first,
-      NamedWriteResolutionWithElement(:var element) => element,
-      _ => null,
-    };
-    for (var element in {readElement, writeElement}) {
-      _verify(node: node, nameToken: node.name, element: element);
-    }
   }
 
   void _checkForInvalidInternalAccess({
@@ -2165,9 +2007,18 @@ class _InvalidAccessVerifier {
 
     var hasVisibleForOverriding = _hasVisibleForOverriding(element);
     if (hasVisibleForOverriding) {
-      var parent = node.parent2;
-      if (parent is MethodInvocation && parent.target2 is SuperExpression ||
-          parent is PropertyAccess && parent.target2 is SuperExpression) {
+      var parent = switch (node) {
+        ReceiverMethodInvocation() ||
+        ReceiverPropertyExtraction() ||
+        ReceiverPropertyAssignmentTarget() => node,
+        _ => node.parent2,
+      };
+      if (parent is ReceiverMethodInvocation &&
+              parent.receiver is SuperReference ||
+          parent is ReceiverPropertyExtraction &&
+              parent.receiver is SuperReference ||
+          parent is ReceiverPropertyAssignmentTarget &&
+              parent.receiver is SuperReference) {
         var grandparent = parent?.parent2;
         var methodDeclaration = grandparent
             ?.thisOrAncestorOfType2<MethodDeclaration>();
@@ -2349,18 +2200,16 @@ class _InvalidAccessVerifier {
     String name;
     SyntacticEntity errorEntity = node;
 
-    if (node is Identifier) {
-      name = node.name;
-    } else if (node is CombinatorName) {
+    if (node is CombinatorName) {
       name = node.name.lexeme;
       errorEntity = node.name;
-    } else if (node is PropertyAssignmentTarget) {
-      name = node.propertyName.lexeme;
-      errorEntity = node.propertyName;
+    } else if (node is NamedAssignmentTarget) {
+      name = node.name.lexeme;
+      errorEntity = node.name;
     } else if (node is NameExpression) {
       name = node.name.lexeme;
       errorEntity = node.name;
-    } else if (node is UnqualifiedNameAssignmentTarget) {
+    } else if (node is StaticQualifier) {
       name = node.name.lexeme;
       errorEntity = node.name;
     } else if (node is NamedType) {
@@ -2402,19 +2251,8 @@ class _UsedParameterVisitor extends RecursiveAstVisitor2<void> {
       _usedParameters.contains(parameter);
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.element?.baseElement;
-    if (_parameters.contains(element)) {
-      _usedParameters.add(element as FormalParameterElement);
-    }
-  }
-
-  @override
   void visitUnqualifiedNameExpression(UnqualifiedNameExpression node) {
-    var element = switch (node.resolution) {
-      NamedReadResolutionWithElement(:var element) => element.baseElement,
-      _ => null,
-    };
+    var element = node.resolution?.element?.baseElement;
     if (_parameters.contains(element)) {
       _usedParameters.add(element as FormalParameterElement);
     }
@@ -2422,13 +2260,15 @@ class _UsedParameterVisitor extends RecursiveAstVisitor2<void> {
 }
 
 extension on Expression {
-  /// Whether this is the [PrefixedIdentifier] referring to `double.nan`.
-  // TODO(srawlins): This will return the wrong answer for `prefixed.double.nan`
-  // and for `import 'foo.dart' as double; double.nan`.
+  /// Whether this is a reference to `double.nan`.
   bool get isDoubleNan {
-    var self = this;
-    return self is PrefixedIdentifier &&
-        self.prefix.name == 'double' &&
-        self.identifier.name == 'nan';
+    if (this case ReceiverPropertyExtraction(
+      resolution: GetterInvocationResolution(:var element),
+    )) {
+      return element.name == 'nan' &&
+          element.enclosingElement.name == 'double' &&
+          element.library.isDartCore;
+    }
+    return false;
   }
 }

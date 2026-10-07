@@ -318,7 +318,7 @@ struct AllocateMintABI {
   static constexpr Register kTempReg = RBX;
 };
 
-// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2,Int32x4}Stub.
 struct AllocateBoxABI {
   static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
   static constexpr Register kTempReg = RBX;

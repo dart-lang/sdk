@@ -1,0 +1,45 @@
+augment bool topLevel([int x = 6, int y = 5]) => x < y;
+
+bool topLevel([int x, int y]);
+
+class Class {
+  augment bool instanceMethod([int x = 6, int y = 5]) => x < y;
+  augment new constructor([int x = 6, int y = 5]) : value = x < y;
+  augment static bool staticMethod([int x = 6, int y = 5]) => x < y;
+  bool instanceMethod([int x, int y]);
+  final bool value;
+  new () : value = false;
+  new constructor([int x, int y]);
+  static bool staticMethod([int x, int y]);
+}
+
+class MixinApplication = Object with Mixin;
+
+enum Enum { a.constructor(4), b.constructor(5, 4), ; final bool value; new constructor([int x, int y]); augment new constructor([int x = 6, int y = 5]) : value = x < y; bool instanceMethod([int x, int y]); augment bool instanceMethod([int x = 6, int y = 5]) => x < y; static bool staticMethod([int x, int y]); augment static bool staticMethod([int x = 6, int y = 5]) => x < y; }
+
+expect(expected, actual) {}
+
+extension Extension on bool {
+  augment bool instanceMethod([int x = 6, int y = 5]) => x < y;
+  augment static bool staticMethod([int x = 6, int y = 5]) => x < y;
+  bool instanceMethod([int x, int y]);
+  static bool staticMethod([int x, int y]);
+}
+
+extension type ExtensionType(bool value) {
+  augment bool instanceMethod([int x = 6, int y = 5]) => x < y;
+  augment new constructor([int x = 6, int y = 5]) : this(x < y);
+  augment static bool staticMethod([int x = 6, int y = 5]) => x < y;
+  bool instanceMethod([int x, int y]);
+  new constructor([int x, int y]);
+  static bool staticMethod([int x, int y]);
+}
+
+main() {}
+
+mixin Mixin {
+  augment bool instanceMethod([int x = 6, int y = 5]) => x < y;
+  augment static bool staticMethod([int x = 6, int y = 5]) => x < y;
+  bool instanceMethod([int x, int y]);
+  static bool staticMethod([int x, int y]);
+}

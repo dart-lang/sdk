@@ -172,6 +172,8 @@ class LogPlayer {
                   '${json.encode(entry)}',
                 );
               }
+            case EntryKind.exception:
+            case EntryKind.info:
           }
         } finally {
           nextIndex++;

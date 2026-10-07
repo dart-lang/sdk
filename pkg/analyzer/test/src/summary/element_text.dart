@@ -337,9 +337,11 @@ class _Element2Writer extends _AbstractElementWriter {
       reason: 'Element constant initializers must be detached.',
     );
 
+    // ignore: analyzer_to_be_deprecated_use
     var v1 = V1Projection.toV1Expression(expression as ExpressionImpl);
     if (!identical(v1, expression)) {
       expect(
+        // ignore: analyzer_to_be_deprecated_use
         v1.thisOrAncestorOfType<CompilationUnit>(),
         isNull,
         reason: 'V1 projections of element initializers must be detached.',
@@ -471,6 +473,18 @@ class _Element2Writer extends _AbstractElementWriter {
 
       if (f.thisKeywordOffset case var thisKeywordOffset?) {
         _sink.writelnWithIndent('thisKeywordOffset: $thisKeywordOffset');
+      }
+
+      if (f.primaryHeaderCodeRange case var range?) {
+        _sink.writelnWithIndent(
+          'primaryHeaderCodeRange: ${range.offset} + ${range.length}',
+        );
+      }
+
+      if (f.primaryBodyCodeRange case var range?) {
+        _sink.writelnWithIndent(
+          'primaryBodyCodeRange: ${range.offset} + ${range.length}',
+        );
       }
 
       _writeFragmentList(

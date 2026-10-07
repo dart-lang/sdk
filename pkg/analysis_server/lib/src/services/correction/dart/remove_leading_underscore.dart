@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -60,7 +61,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
     var newName = oldName.substring(1);
 
     // Find references to the identifier.
-    Map<String, List<AstNode>>? references;
+    Map<String, List<SyntacticEntity>>? references;
     if (element is FormalParameterElement) {
       if (!element.isNamed) {
         var root = node.thisOrAncestorMatching(
@@ -99,7 +100,7 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
     for (var MapEntry(key: file, value: references) in references.entries) {
       var sourceRanges = {
         if (file == this.file) range.token(nameToken),
-        ...references.map(range.node),
+        ...references.map(range.entity),
       };
       await builder.addDartFileEdit(file, (builder) {
         for (var sourceRange in sourceRanges) {

@@ -351,9 +351,11 @@ SwitchExpressionCase
       matchedValueType: Object?
   arrow: =>
   expression2: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -448,9 +450,11 @@ SwitchExpressionCase
     whenClause: WhenClause
       whenKeyword: when
       expression2: CallInvocation
-        receiver: SimpleIdentifier
-          token: a
-          element: <testLibrary>::@function::f::@formalParameter::a
+        receiver: UnqualifiedNameExpression
+          name: a
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::a
+            type: bool Function()
           staticType: bool Function()
         argumentList: ArgumentList
           leftParenthesis: (
@@ -492,9 +496,11 @@ SwitchExpression
   switchKeyword: switch
   leftParenthesis: (
   expression2: CallInvocation
-    receiver: SimpleIdentifier
-      token: a
-      element: <testLibrary>::@function::f::@formalParameter::a
+    receiver: UnqualifiedNameExpression
+      name: a
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::a
+        type: int Function()
       staticType: int Function()
     argumentList: ArgumentList
       leftParenthesis: (
@@ -938,9 +944,7 @@ SwitchExpression
       expression2: UnqualifiedNameExpression
         name: a
         resolution: InvalidNamedReadResolution
-          type: InvalidType
-          candidates
-          recovery: <null>
+          recoveryElement: <null>
         staticType: InvalidType
       expression(v1): SimpleIdentifier
         token: a

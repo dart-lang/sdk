@@ -3,20 +3,53 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 
+@ToBeDeprecated('Use FindNode2 instead.')
 class FindNode extends _FindNodeBase {
   FindNode(super.content, super.unit);
 
   BinaryExpression get firstBinaryExpression => _first();
 
+  List<MethodInvocation> get methodInvocations {
+    return _nodes<MethodInvocation>();
+  }
+
+  AssignmentExpression get singleAssignmentExpression => _single();
+
   BinaryExpression get singleBinaryExpression => _single();
 
   ConstructorName get singleConstructorName => _single();
 
+  DotShorthandInvocation get singleDotShorthandInvocation => _single();
+
+  DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
+
+  FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
+      _single();
+
+  FunctionReference get singleFunctionReference => _single();
+
+  ImplicitCallReference get singleImplicitCallReference => _single();
+
+  IndexExpression get singleIndexExpression => _single();
+
   InstanceCreationExpression get singleInstanceCreationExpression => _single();
+
+  MethodInvocation get singleMethodInvocation => _single();
+
+  PrefixedIdentifier get singlePrefixedIdentifier => _single();
+
+  PropertyAccess get singlePropertyAccess => _single();
+
+  SimpleIdentifier get singleSimpleIdentifier => _single();
+
+  SuperExpression get singleSuperExpression => _single();
+
+  AssignmentExpression assignment(String search) {
+    return _node(search, (n) => n is AssignmentExpression);
+  }
 
   BinaryExpression binary(String search) {
     return _node(search, (node) => node is BinaryExpression);
@@ -26,12 +59,68 @@ class FindNode extends _FindNodeBase {
     return _node(search, (n) => n is ConstructorName);
   }
 
+  ConstructorReference constructorReference(String search) {
+    return _node(search, (n) => n is ConstructorReference);
+  }
+
+  DotShorthandInvocation dotShorthandInvocation(String search) {
+    return _node(search, (n) => n is DotShorthandInvocation);
+  }
+
+  DotShorthandPropertyAccess dotShorthandPropertyAccess(String search) {
+    return _node(search, (n) => n is DotShorthandPropertyAccess);
+  }
+
+  ExtensionOverride extensionOverride(String search) {
+    return _node(search, (n) => n is ExtensionOverride);
+  }
+
+  FunctionExpressionInvocation functionExpressionInvocation(String search) {
+    return _node(search, (n) => n is FunctionExpressionInvocation);
+  }
+
+  FunctionReference functionReference(String search) {
+    return _node(search, (n) => n is FunctionReference);
+  }
+
+  ImplicitCallReference implicitCallReference(String search) {
+    return _node(search, (n) => n is ImplicitCallReference);
+  }
+
+  IndexExpression index(String search) {
+    return _node(search, (n) => n is IndexExpression);
+  }
+
   InstanceCreationExpression instanceCreation(String search) {
     return _node(search, (node) => node is InstanceCreationExpression);
   }
 
+  MethodInvocation methodInvocation(String search) {
+    return _node(search, (n) => n is MethodInvocation);
+  }
+
   PostfixExpression postfixExpression(String search) {
     return _node(search, (node) => node is PostfixExpression);
+  }
+
+  PrefixExpression prefix(String search) {
+    return _node(search, (n) => n is PrefixExpression);
+  }
+
+  PrefixedIdentifier prefixed(String search) {
+    return _node(search, (n) => n is PrefixedIdentifier);
+  }
+
+  PropertyAccess propertyAccess(String search) {
+    return _node(search, (n) => n is PropertyAccess);
+  }
+
+  SimpleIdentifier simple(String search) {
+    return _node(search, (_) => true);
+  }
+
+  SuperExpression super_(String search) {
+    return _node(search, (n) => n is SuperExpression);
   }
 
   @override
@@ -55,18 +144,16 @@ class FindNode extends _FindNodeBase {
   }
 }
 
+/// Finds nodes in the canonical V2 AST, including nodes shared with V1.
+///
+/// Searches match the requested node type without falling back to a V1
+/// projection. For example, a [CompoundAssignment] must be found with
+/// [compoundAssignment], not [FindNode.assignment]. Use [FindNode] to search
+/// the V1 view.
 class FindNode2 extends _FindNodeBase {
   FindNode2(super.content, super.unit);
 
   BinaryOperatorInvocation get firstBinaryOperatorInvocation => _first();
-
-  @override
-  AssignmentExpression get singleAssignmentExpression {
-    var nodes = _nodes<AstNode>().where(
-      (node) => node is AssignmentExpression || node is DirectAssignment,
-    );
-    return _toAssignmentExpression(nodes.single);
-  }
 
   BinaryOperatorInvocation get singleBinaryOperatorInvocation => _single();
 
@@ -77,6 +164,8 @@ class FindNode2 extends _FindNodeBase {
   ConstructorInvocation get singleConstructorInvocation => _single();
 
   ConstructorTearOff get singleConstructorTearOff => _single();
+
+  ConstructorTypeReference get singleConstructorTypeReference => _single();
 
   DirectAssignment get singleDirectAssignment => _single();
 
@@ -95,6 +184,11 @@ class FindNode2 extends _FindNodeBase {
   ImportPrefixedNameExpression get singleImportPrefixedNameExpression =>
       _single();
 
+  InvalidExtensionOverrideExpression
+  get singleInvalidExtensionOverrideExpression => _single();
+
+  InvalidSuperExpression get singleInvalidSuperExpression => _single();
+
   LogicalAnd get singleLogicalAnd => _single();
 
   LogicalNot get singleLogicalNot => _single();
@@ -105,6 +199,8 @@ class FindNode2 extends _FindNodeBase {
 
   ReceiverMethodInvocation get singleReceiverMethodInvocation => _single();
 
+  SuperReference get singleSuperReference => _single();
+
   TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
 
   UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
@@ -113,15 +209,6 @@ class FindNode2 extends _FindNodeBase {
       _single();
 
   UnqualifiedNameExpression get singleUnqualifiedNameExpression => _single();
-
-  @override
-  AssignmentExpression assignment(String search) {
-    var node = _node<AstNode>(
-      search,
-      (node) => node is AssignmentExpression || node is AssignmentExpression2,
-    );
-    return _toAssignmentExpression(node);
-  }
 
   BinaryOperatorInvocation binaryOperatorInvocation(String search) {
     return _node(search, (node) => node is BinaryOperatorInvocation);
@@ -155,12 +242,20 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is DotShorthandNameExpression);
   }
 
+  ExtensionOverride2 extensionOverride2(String search) {
+    return _node(search, (n) => n is ExtensionOverride2);
+  }
+
   IfNull ifNull(String search) {
     return _node(search, (node) => node is IfNull);
   }
 
   IfNullAssignment ifNullAssignment(String search) {
     return _node(search, (node) => node is IfNullAssignment);
+  }
+
+  ImportPrefixedAssignmentTarget importPrefixedAssignmentTarget(String search) {
+    return _node(search, (node) => node is ImportPrefixedAssignmentTarget);
   }
 
   ImportPrefixedFunctionInvocation importPrefixedFunctionInvocation(
@@ -175,6 +270,10 @@ class FindNode2 extends _FindNodeBase {
 
   IncrementOrDecrementExpression incrementOrDecrement(String search) {
     return _node(search, (node) => node is IncrementOrDecrementExpression);
+  }
+
+  InvalidSuperExpression invalidSuperExpression(String search) {
+    return _node(search, (node) => node is InvalidSuperExpression);
   }
 
   LogicalAnd logicalAnd(String search) {
@@ -195,6 +294,10 @@ class FindNode2 extends _FindNodeBase {
 
   ReceiverMethodInvocation receiverMethodInvocation(String search) {
     return _node(search, (node) => node is ReceiverMethodInvocation);
+  }
+
+  SuperReference superReference(String search) {
+    return _node(search, (node) => node is SuperReference);
   }
 
   TopLevelGetterDeclaration topLevelGetterDeclaration(String search) {
@@ -219,6 +322,19 @@ class FindNode2 extends _FindNodeBase {
     return _node(search, (node) => node is UnqualifiedNameExpression);
   }
 
+  /// Rejects V1 projections so tests cannot silently keep asserting the legacy
+  /// AST after a V2 migration. Nodes shared between both views are allowed.
+  /// Use [FindNode] explicitly when testing V1 compatibility.
+  @override
+  void _checkNode(AstNode node) {
+    if ((node as AstNodeImpl).astNodeApi == AstNodeApi.v1) {
+      throw StateError(
+        'FindNode2 cannot return the V1 projection ${node.runtimeType}. '
+        'Use a V2 node finder, or findNodeV1 for a compatibility assertion.',
+      );
+    }
+  }
+
   @override
   AstNode? _locateNode(int offset) {
     return NodeLocator2(offset).searchWithin(unit);
@@ -228,6 +344,7 @@ class FindNode2 extends _FindNodeBase {
   List<T> _nodes<T extends AstNode>() {
     var visitor = _TypedNodeVisitor2<T>();
     unit.accept2(visitor);
+    visitor.nodes.forEach(_checkNode);
     return visitor.nodes;
   }
 
@@ -237,16 +354,6 @@ class FindNode2 extends _FindNodeBase {
     bool Function(AstNode) predicate,
   ) {
     return node.thisOrAncestorMatching2(predicate);
-  }
-
-  AssignmentExpression _toAssignmentExpression(AstNode node) {
-    return switch (node) {
-      AssignmentExpression node => node,
-      CompoundAssignmentImpl node => node.assignmentExpression,
-      DirectAssignmentImpl node => node.assignmentExpression,
-      IfNullAssignmentImpl node => node.assignmentExpression,
-      _ => throw StateError('Not an assignment expression: $node'),
-    };
   }
 }
 
@@ -262,10 +369,6 @@ abstract class _FindNodeBase {
 
   FormalParameterList get firstFormalParameterList => _first();
 
-  List<MethodInvocation> get methodInvocations {
-    return _nodes<MethodInvocation>();
-  }
-
   AdjacentStrings get singleAdjacentStrings => _single();
 
   Annotation get singleAnnotation => _single();
@@ -279,8 +382,6 @@ abstract class _FindNodeBase {
   AssertStatement get singleAssertStatement => _single();
 
   AssignedVariablePattern get singleAssignedVariablePattern => _single();
-
-  AssignmentExpression get singleAssignmentExpression => _single();
 
   AwaitExpression get singleAwaitExpression => _single();
 
@@ -342,10 +443,6 @@ abstract class _FindNodeBase {
   DotShorthandConstructorInvocation2
   get singleDotShorthandConstructorInvocation => _single();
 
-  DotShorthandInvocation get singleDotShorthandInvocation => _single();
-
-  DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
-
   DottedName get singleDottedName => _single();
 
   DoubleLiteral get singleDoubleLiteral => _single();
@@ -401,12 +498,7 @@ abstract class _FindNodeBase {
 
   FunctionExpression get singleFunctionExpression => _single();
 
-  FunctionExpressionInvocation get singleFunctionExpressionInvocation =>
-      _single();
-
   FunctionInstantiation get singleFunctionInstantiation => _single();
-
-  FunctionReference get singleFunctionReference => _single();
 
   FunctionTypeAlias get singleFunctionTypeAlias => _single();
 
@@ -424,8 +516,6 @@ abstract class _FindNodeBase {
 
   ImplementsClause get singleImplementsClause => _single();
 
-  ImplicitCallReference get singleImplicitCallReference => _single();
-
   ImplicitCallTearOff get singleImplicitCallTearOff => _single();
 
   ImplicitFunctionInstantiation get singleImplicitFunctionInstantiation =>
@@ -434,8 +524,6 @@ abstract class _FindNodeBase {
   ImportDirective get singleImportDirective => _single();
 
   IncrementOrDecrementExpression get singleIncrementOrDecrement => _single();
-
-  IndexExpression get singleIndexExpression => _single();
 
   IntegerLiteral get singleIntegerLiteral => _single();
 
@@ -460,8 +548,6 @@ abstract class _FindNodeBase {
   MapPatternEntry get singleMapPatternEntry => _single();
 
   MethodDeclaration get singleMethodDeclaration => _single();
-
-  MethodInvocation get singleMethodInvocation => _single();
 
   MixinDeclaration get singleMixinDeclaration => _single();
 
@@ -504,14 +590,10 @@ abstract class _FindNodeBase {
   PatternVariableDeclarationStatement
   get singlePatternVariableDeclarationStatement => _single();
 
-  PrefixedIdentifier get singlePrefixedIdentifier => _single();
-
   PrimaryConstructorBody get singlePrimaryConstructorBody => _single();
 
   PrimaryConstructorDeclaration get singlePrimaryConstructorDeclaration =>
       _single();
-
-  PropertyAccess get singlePropertyAccess => _single();
 
   ReceiverIndexExpression get singleReceiverIndexExpression => _single();
 
@@ -540,8 +622,6 @@ abstract class _FindNodeBase {
 
   ShowCombinator get singleShowCombinator => _single();
 
-  SimpleIdentifier get singleSimpleIdentifier => _single();
-
   SimpleStringLiteral get singleSimpleStringLiteral => _single();
 
   SpreadElement get singleSpreadElement => _single();
@@ -549,8 +629,6 @@ abstract class _FindNodeBase {
   StringInterpolation get singleStringInterpolation => _single();
 
   SuperConstructorInvocation get singleSuperConstructorInvocation => _single();
-
-  SuperExpression get singleSuperExpression => _single();
 
   SuperFormalParameter get singleSuperFormalParameter => _single();
 
@@ -587,6 +665,8 @@ abstract class _FindNodeBase {
 
   VariableDeclarationStatement get singleVariableDeclarationStatement =>
       _single();
+
+  WhenClause get singleWhenClause => _single();
 
   WhileStatement get singleWhileStatement => _single();
 
@@ -628,17 +708,8 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is AssignedVariablePattern);
   }
 
-  AssignmentExpression assignment(String search) {
-    return _node(search, (n) => n is AssignmentExpression);
-  }
-
   AwaitExpression awaitExpression(String search) {
     return _node(search, (n) => n is AwaitExpression);
-  }
-
-  BindPatternVariableElement bindPatternVariableElement(String search) {
-    var node = declaredVariablePattern(search);
-    return node.declaredFragment!.element;
   }
 
   Block block(String search) {
@@ -747,10 +818,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is ConstructorFieldInitializer);
   }
 
-  ConstructorReference constructorReference(String search) {
-    return _node(search, (n) => n is ConstructorReference);
-  }
-
   ConstructorSelector constructorSelector(String search) {
     return _node(search, (n) => n is ConstructorSelector);
   }
@@ -775,14 +842,6 @@ abstract class _FindNodeBase {
     String search,
   ) {
     return _node(search, (n) => n is DotShorthandConstructorInvocation2);
-  }
-
-  DotShorthandInvocation dotShorthandInvocation(String search) {
-    return _node(search, (n) => n is DotShorthandInvocation);
-  }
-
-  DotShorthandPropertyAccess dotShorthandPropertyAccess(String search) {
-    return _node(search, (n) => n is DotShorthandPropertyAccess);
   }
 
   DottedName dottedName(String search) {
@@ -831,10 +890,6 @@ abstract class _FindNodeBase {
 
   ExtensionDeclaration extensionDeclaration(String search) {
     return _node(search, (n) => n is ExtensionDeclaration);
-  }
-
-  ExtensionOverride extensionOverride(String search) {
-    return _node(search, (n) => n is ExtensionOverride);
   }
 
   ExtensionTypeDeclaration extensionTypeDeclaration(String search) {
@@ -912,16 +967,8 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is FunctionExpression);
   }
 
-  FunctionExpressionInvocation functionExpressionInvocation(String search) {
-    return _node(search, (n) => n is FunctionExpressionInvocation);
-  }
-
   FunctionInstantiation functionInstantiation(String search) {
     return _node(search, (n) => n is FunctionInstantiation);
-  }
-
-  FunctionReference functionReference(String search) {
-    return _node(search, (n) => n is FunctionReference);
   }
 
   FunctionTypeAlias functionTypeAlias(String search) {
@@ -958,10 +1005,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is ImplementsClause);
   }
 
-  ImplicitCallReference implicitCallReference(String search) {
-    return _node(search, (n) => n is ImplicitCallReference);
-  }
-
   ImplicitCallTearOff implicitCallTearOff(String search) {
     return _node(search, (n) => n is ImplicitCallTearOff);
   }
@@ -976,10 +1019,6 @@ abstract class _FindNodeBase {
 
   ImportPrefixReference importPrefixReference(String search) {
     return _node(search, (n) => n is ImportPrefixReference);
-  }
-
-  IndexExpression index(String search) {
-    return _node(search, (n) => n is IndexExpression);
   }
 
   IntegerLiteral integerLiteral(String search) {
@@ -1040,10 +1079,6 @@ abstract class _FindNodeBase {
 
   MethodDeclaration methodDeclaration(String search) {
     return _node(search, (n) => n is MethodDeclaration);
-  }
-
-  MethodInvocation methodInvocation(String search) {
-    return _node(search, (n) => n is MethodInvocation);
   }
 
   MixinDeclaration mixin(String search) {
@@ -1111,6 +1146,13 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is ParenthesizedPattern);
   }
 
+  ParsedExpression parsedExpression(String search) {
+    return _node(
+      search,
+      (n) => n is ParsedExpression && n.parent2 is! ParsedExpression,
+    );
+  }
+
   PartDirective part(String search) {
     return _node(search, (n) => n is PartDirective);
   }
@@ -1141,20 +1183,8 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is PatternVariableDeclarationStatement);
   }
 
-  PrefixExpression prefix(String search) {
-    return _node(search, (n) => n is PrefixExpression);
-  }
-
-  PrefixedIdentifier prefixed(String search) {
-    return _node(search, (n) => n is PrefixedIdentifier);
-  }
-
   PrimaryConstructorDeclaration primaryConstructorDeclaration(String search) {
     return _node(search, (n) => n is PrimaryConstructorDeclaration);
-  }
-
-  PropertyAccess propertyAccess(String search) {
-    return _node(search, (n) => n is PropertyAccess);
   }
 
   ReceiverIndexExpression receiverIndexExpression(String search) {
@@ -1211,10 +1241,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is ShowCombinator);
   }
 
-  SimpleIdentifier simple(String search) {
-    return _node(search, (_) => true);
-  }
-
   SimpleStringLiteral simpleStringLiteral(String search) {
     return _node(search, (n) => n is SimpleStringLiteral);
   }
@@ -1233,10 +1259,6 @@ abstract class _FindNodeBase {
 
   StringLiteral stringLiteral(String search) {
     return _node(search, (n) => n is StringLiteral);
-  }
-
-  SuperExpression super_(String search) {
-    return _node(search, (n) => n is SuperExpression);
   }
 
   SuperConstructorInvocation superConstructorInvocation(String search) {
@@ -1360,6 +1382,12 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is YieldStatement);
   }
 
+  /// Validates that a search result belongs to this finder's AST view.
+  ///
+  /// The default accepts all nodes; [FindNode2] overrides this to reject V1
+  /// projections. Called for both individual search results and collected nodes.
+  void _checkNode(AstNode node) {}
+
   /// If [unit] has at least one node of type [T], returns the first one.
   /// Otherwise, throws.
   T _first<T extends AstNode>() {
@@ -1387,12 +1415,18 @@ abstract class _FindNodeBase {
       );
     }
 
-    var result = _thisOrAncestorMatching(node, predicate);
+    var ancestors = <Type>[];
+    var result = _thisOrAncestorMatching(node, (node) {
+      ancestors.add(node.runtimeType);
+      return predicate(node);
+    });
     if (result == null) {
       throw StateError(
-        'The node for |$search| had no matching ancestor in:\n$content\n$unit',
+        'The node for |$search| had no matching $T ancestor in $runtimeType.\n'
+        'Found: ${ancestors.join(', ')}\n$content',
       );
     }
+    _checkNode(result);
     return result as T;
   }
 
@@ -1410,6 +1444,7 @@ abstract class _FindNodeBase {
   );
 }
 
+@ToBeDeprecated('Use _TypedNodeVisitor2 instead.')
 class _TypedNodeVisitor<T extends AstNode>
     extends GeneralizingAstVisitor<void> {
   final List<T> nodes = [];

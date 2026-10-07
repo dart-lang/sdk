@@ -245,10 +245,7 @@ mixin ErrorDetectionHelpers {
       return false;
     }
 
-    if (expression is MethodInvocation) {
-      SimpleIdentifier methodName = expression.methodName;
-      diagnosticReporter.report(diag.useOfVoidResult.at(methodName));
-    } else if (expression is NamedFunctionInvocation) {
+    if (expression is NamedFunctionInvocation) {
       diagnosticReporter.report(diag.useOfVoidResult.at(expression.name));
     } else {
       diagnosticReporter.report(diag.useOfVoidResult.at(expression));
@@ -317,20 +314,24 @@ mixin ErrorDetectionHelpers {
     DartType context,
     SyntacticEntity errorNode,
   ) {
-    var visitedTypes = {type};
+    if (!typeSystem.acceptsFunctionType(context)) {
+      return null;
+    }
+
+    Set<DartType>? visitedTypes;
     while (type is TypeParameterType) {
       if (type.nullabilitySuffix != NullabilitySuffix.none) {
         // The value might be `null`, so implicit `.call` tearoff is invalid.
         return null;
       }
+      visitedTypes ??= {type};
       type = type.bound;
       if (!visitedTypes.add(type)) {
         // A cycle!
         return null;
       }
     }
-    if (typeSystem.acceptsFunctionType(context) &&
-        type is InterfaceType &&
+    if (type is InterfaceType &&
         type.nullabilitySuffix != NullabilitySuffix.question) {
       return inheritance
           .getMember3(
@@ -344,18 +345,6 @@ mixin ErrorDetectionHelpers {
     } else {
       return null;
     }
-  }
-
-  /// Return the variable element represented by the given [expression], or
-  /// `null` if there is no such element.
-  VariableElement? getVariableElement(Expression? expression) {
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is VariableElement) {
-        return element;
-      }
-    }
-    return null;
   }
 
   void _checkForArgumentTypeNotAssignableForArgument({

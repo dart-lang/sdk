@@ -265,8 +265,29 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     );
     b.local_set(targetIndexLocal);
 
-    // The outer `try` block calls `completeOnError` on exceptions.
-    b.try_legacy();
+    // The outer `try_table` block calls `completeOnError` on exceptions.
+    final catchRefJumpLabel = b.block([], [
+      translator.topTypeNonNullable,
+      translator.stackTraceType,
+    ]);
+
+    final bool canCatchJSException = !translator.options.standalone;
+    w.Label? catchJsRefJumpLabel;
+    if (canCatchJSException) {
+      catchJsRefJumpLabel = b.block([], [w.RefType.extern(nullable: true)]);
+    }
+
+    b.try_table([
+      w.Catch(
+        translator.getDartExceptionTag(b.moduleBuilder),
+        catchRefJumpLabel,
+      ),
+      if (catchJsRefJumpLabel != null)
+        w.Catch(
+          translator.getJsExceptionTag(b.moduleBuilder),
+          catchJsRefJumpLabel,
+        ),
+    ]);
 
     // Switch on the target index.
     masterLoop = b.loop(const [], const []);
@@ -310,6 +331,9 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
     b.return_();
     b.end(); // masterLoop
 
+    b.end(); // end try_table
+    b.unreachable();
+
     final stackTraceLocal = addLocal(translator.stackTraceType);
     final exceptionLocal = addLocal(translator.topTypeNonNullable);
 
@@ -321,21 +345,14 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
       b.return_();
     }
 
-    // Handle Dart exceptions.
-    b.catch_legacy(translator.getDartExceptionTag(b.moduleBuilder));
-    b.local_set(stackTraceLocal);
-    b.local_set(exceptionLocal);
-    callCompleteError();
-
-    if (!translator.options.standalone) {
+    if (catchJsRefJumpLabel != null) {
       // Handle JS exceptions.
-      b.catch_legacy(translator.getJsExceptionTag(b.moduleBuilder));
-
+      b.end(); // catchJsRefJumpLabel
       final jsExceptionLocal = addLocal(w.RefType.extern(nullable: true));
       b.local_tee(jsExceptionLocal);
 
       call(translator.boxJsException.reference);
-      b.local_tee(exceptionLocal); // ref null #Top
+      b.local_set(exceptionLocal);
 
       b.local_get(jsExceptionLocal);
       call(translator.jsExceptionStackTrace.reference);
@@ -344,9 +361,12 @@ class AsyncStateMachineCodeGenerator extends StateMachineCodeGenerator {
       callCompleteError();
     }
 
-    b.end(); // try
+    // Handle Dart exceptions.
+    b.end(); // catchRefJumpLabel
+    b.local_set(stackTraceLocal);
+    b.local_set(exceptionLocal);
+    callCompleteError();
 
-    b.unreachable();
     b.end(); // inner function
   }
 

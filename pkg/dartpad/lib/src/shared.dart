@@ -7,11 +7,4 @@
 library;
 
 export 'exceptions.dart' hide rethrowAsDartPadException;
-
-// TODO(jonasfj): Consider a final class wouldn't be a more future proof API?
-typedef CompileResult = ({
-  String? code,
-  List<String> compiledLibraryUris,
-  String entrypointLibraryUri,
-  String log,
-});
+export 'version_info.dart';

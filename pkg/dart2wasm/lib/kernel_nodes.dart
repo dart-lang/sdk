@@ -397,6 +397,16 @@ mixin KernelNodes {
     'dart:_wasm',
     'MemoryType',
   );
+  late final Field wasmMemoryTypeLimits = index.getField(
+    'dart:_wasm',
+    'MemoryType',
+    'limits',
+  );
+  late final Field wasmMemoryTypeShared = index.getField(
+    'dart:_wasm',
+    'MemoryType',
+    'shared',
+  );
   late final Field wasmLimitsMinimum = index.getField(
     'dart:_wasm',
     'Limits',

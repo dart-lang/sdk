@@ -150,65 +150,34 @@ void main() {
   inlined_string_no_bounds_check(new Uint8List(20).toString());
 }
 
-void extractAllInstructions(dynamic data, List<String> into) {
-  if (data is Map) {
-    for (var entry in data.entries) {
-      if (entry.key == "o" && entry.value is String) {
-        into.add(entry.value);
-      } else {
-        extractAllInstructions(entry.value, into);
-      }
-    }
-  } else if (data is List) {
-    for (var entry in data) {
-      extractAllInstructions(entry, into);
-    }
-  } else {
-    if (data is int || data is String) {
-      // ok
-    } else {
-      print("Notice: Unhandled data: ${data.runtimeType}: $data");
-    }
-  }
-}
-
-bool hasCheckBounds(FlowGraph graph) {
-  List<String> ils = [];
-  extractAllInstructions(graph.blocks(), ils);
-  for (String il in ils) {
-    if (il == "GenericCheckBound") return true;
-  }
-  return false;
-}
-
 void matchIL$direct_uint8list_has_bounds_check(FlowGraph graph) {
-  Expect.isTrue(hasCheckBounds(graph), "should have bounds checks");
+  Expect.isTrue(hasBoundsCheck(graph), "should have bounds checks");
 }
 
 void matchIL$direct_uint8list_no_bounds_check(FlowGraph graph) {
-  Expect.isFalse(hasCheckBounds(graph), "should not have bounds checks");
+  Expect.isFalse(hasBoundsCheck(graph), "should not have bounds checks");
 }
 
 void matchIL$inlined_uint8list_has_bounds_check(FlowGraph graph) {
-  Expect.isTrue(hasCheckBounds(graph), "should have bounds checks");
+  Expect.isTrue(hasBoundsCheck(graph), "should have bounds checks");
 }
 
 void matchIL$inlined_uint8list_no_bounds_check(FlowGraph graph) {
-  Expect.isFalse(hasCheckBounds(graph), "should not have bounds checks");
+  Expect.isFalse(hasBoundsCheck(graph), "should not have bounds checks");
 }
 
 void matchIL$direct_string_has_bounds_check(FlowGraph graph) {
-  Expect.isTrue(hasCheckBounds(graph), "should have bounds checks");
+  Expect.isTrue(hasBoundsCheck(graph), "should have bounds checks");
 }
 
 void matchIL$direct_string_no_bounds_check(FlowGraph graph) {
-  Expect.isFalse(hasCheckBounds(graph), "should not have bounds checks");
+  Expect.isFalse(hasBoundsCheck(graph), "should not have bounds checks");
 }
 
 void matchIL$inlined_string_has_bounds_check(FlowGraph graph) {
-  Expect.isTrue(hasCheckBounds(graph), "should have bounds checks");
+  Expect.isTrue(hasBoundsCheck(graph), "should have bounds checks");
 }
 
 void matchIL$inlined_string_no_bounds_check(FlowGraph graph) {
-  Expect.isFalse(hasCheckBounds(graph), "should not have bounds checks");
+  Expect.isFalse(hasBoundsCheck(graph), "should not have bounds checks");
 }

@@ -1,0 +1,91 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  final field core::bool value;
+  constructor •() → self::Class
+    ;
+  constructor constructor({required core::int y, required core::int x}) → self::Class
+    ;
+  method instanceMethod({required core::int y, required core::int x}) → core::bool
+    ;
+  static method staticMethod({required core::int y, required core::int x}) → core::bool
+    ;
+}
+class Enum extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::Enum a = const self::Enum::constructor(0, "a", x: 4, y: 5);
+  enum-element static const field self::Enum b = const self::Enum::constructor(1, "b", y: 4, x: 5);
+  final field core::bool value;
+  static const field core::List<self::Enum> values = const <self::Enum>[self::Enum::a, self::Enum::b];
+  const constructor constructor(core::int #index, core::String #name, {required core::int y, required core::int x}) → self::Enum
+    : self::Enum::value = x.{core::num::<}(y){(core::num) → core::bool}, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "Enum.${this.{core::_Enum::_name}{core::String}}";
+  method instanceMethod({required core::int y, required core::int x}) → core::bool
+    ;
+  static method staticMethod({required core::int y, required core::int x}) → core::bool
+    ;
+}
+abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
+  method instanceMethod({required core::int y, required core::int x}) → core::bool
+    ;
+  static method staticMethod({required core::int y, required core::int x}) → core::bool
+    ;
+}
+class MixinApplication = core::Object with self::Mixin /*hasConstConstructor*/  {
+  const synthetic constructor •() → self::MixinApplication
+    : super core::Object::•()
+    ;
+  synthetic mixin-super-stub method instanceMethod({required core::int y, required core::int x}) → core::bool
+    return super.{self::Mixin::instanceMethod}(y: y, x: x);
+}
+extension Extension on core::bool {
+  method instanceMethod = self::Extension|instanceMethod;
+  method tearoff instanceMethod = self::Extension|get#instanceMethod;
+  static method staticMethod = self::Extension|staticMethod;
+}
+extension type ExtensionType(core::bool value) {
+  abstract extension-type-member representation-field get value() → core::bool;
+  method instanceMethod = self::ExtensionType|instanceMethod;
+  method tearoff instanceMethod = self::ExtensionType|get#instanceMethod;
+  static method staticMethod = self::ExtensionType|staticMethod;
+  constructor • = self::ExtensionType|constructor#;
+  constructor tearoff • = self::ExtensionType|constructor#_#new#tearOff;
+  constructor constructor = self::ExtensionType|constructor#constructor;
+  constructor tearoff constructor = self::ExtensionType|constructor#_#constructor#tearOff;
+}
+static method topLevel({required core::int y, required core::int x}) → core::bool
+  ;
+static extension-member method Extension|instanceMethod(lowered final core::bool #this, {required core::int y, required core::int x}) → core::bool
+  ;
+static extension-member method Extension|get#instanceMethod(lowered final core::bool #this) → ({required x: core::int, required y: core::int}) → core::bool
+  return ({required core::int y, required core::int x}) → core::bool => self::Extension|instanceMethod(#this, y: y, x: x);
+static extension-member method Extension|staticMethod({required core::int y, required core::int x}) → core::bool
+  ;
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::bool value) → self::ExtensionType% /* erasure=core::bool, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::bool value) → self::ExtensionType% /* erasure=core::bool, declared=! */
+  return self::ExtensionType|constructor#(value);
+static extension-type-member method ExtensionType|constructor#constructor({required core::int y, required core::int x}) → self::ExtensionType% /* erasure=core::bool, declared=! */
+  ;
+static extension-type-member synthetic method ExtensionType|constructor#_#constructor#tearOff({required core::int y, required core::int x}) → self::ExtensionType% /* erasure=core::bool, declared=! */
+  return self::ExtensionType|constructor#constructor(y: y, x: x);
+static extension-type-member method ExtensionType|instanceMethod(lowered final self::ExtensionType% /* erasure=core::bool, declared=! */ #this, {required core::int y, required core::int x}) → core::bool
+  ;
+static extension-type-member method ExtensionType|get#instanceMethod(lowered final self::ExtensionType% /* erasure=core::bool, declared=! */ #this) → ({required x: core::int, required y: core::int}) → core::bool
+  return ({required core::int y, required core::int x}) → core::bool => self::ExtensionType|instanceMethod(#this, y: y, x: x);
+static extension-type-member method ExtensionType|staticMethod({required core::int y, required core::int x}) → core::bool
+  ;
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///required_named_parameters.dart:24:5 -> InstanceConstant(const Enum{Enum.value: true, _Enum.index: 0, _Enum._name: "a"})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///required_named_parameters.dart:25:5 -> InstanceConstant(const Enum{Enum.value: false, _Enum.index: 1, _Enum._name: "b"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///required_named_parameters.dart:23:6 -> ListConstant(const <Enum>[const Enum{Enum.value: true, _Enum.index: 0, _Enum._name: "a"}, const Enum{Enum.value: false, _Enum.index: 1, _Enum._name: "b"}])
+Extra constant evaluation: evaluated: 30, effectively constant: 3

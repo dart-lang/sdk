@@ -775,8 +775,44 @@ Stream _streamOfController(_AsyncStarStreamController controller) {
 /// If yielding while the subscription is paused it will become suspended. And
 /// only resume after the subscription is resumed or canceled.
 class _AsyncStarStreamController<T> {
-  late StreamController<T> controller;
-  Stream get stream => controller.stream;
+  final StreamController<T> controller = StreamController<T>();
+  Zone zone = Zone.current; // Set to actual value in listen.
+  _AsyncStarStreamController(_WrappedAsyncBody body) {
+    controller.onListen = () {
+      final zone = Zone.current;
+      void _resumeBody() {
+        zone.scheduleMicrotask(() {
+          body(async_status_codes.SUCCESS, null);
+        });
+      }
+
+      controller
+        ..onResume = () {
+          // Only schedule again if the async* function actually is suspended.
+          // Resume directly instead of scheduling, so that the sequence
+          // `pause-resume-pause` will result in one extra event produced.
+          if (isSuspended) {
+            isSuspended = false;
+            _resumeBody();
+          }
+        }
+        ..onCancel = () {
+          // If the async* is finished we ignore cancel events.
+          if (!controller.isClosed) {
+            cancelationFuture = _Future();
+            if (isSuspended) {
+              // Resume the suspended async* function to run finalizers.
+              isSuspended = false;
+              zone.scheduleMicrotask(() {
+                body(async_status_codes.STREAM_WAS_CANCELED, null);
+              });
+            }
+            return cancelationFuture;
+          }
+        };
+      _resumeBody();
+    };
+  }
 
   /// True when the async* function has yielded while being paused.
   ///
@@ -784,9 +820,10 @@ class _AsyncStarStreamController<T> {
   /// event.
   bool isSuspended = false;
 
-  bool get isPaused => controller.isPaused;
+  _Future<void>? cancelationFuture = null;
 
-  _Future? cancelationFuture = null;
+  bool get isPaused => controller.isPaused;
+  Stream get stream => controller.stream;
 
   /// True after the StreamSubscription has been cancelled.
   ///
@@ -795,52 +832,16 @@ class _AsyncStarStreamController<T> {
   /// returning from the async function should complete [cancelationFuture].
   bool get isCanceled => cancelationFuture != null;
 
-  add(event) => controller.add(event);
+  void add(event) => controller.add(event);
 
   Future addStream(Stream<T> stream) {
     return controller.addStream(stream, cancelOnError: false);
   }
 
-  addError(error, stackTrace) => controller.addError(error, stackTrace);
+  void addError(dynamic error, dynamic stackTrace) =>
+      controller.addError(error, stackTrace);
 
-  close() => controller.close();
-
-  _AsyncStarStreamController(_WrappedAsyncBody body) {
-    _resumeBody() {
-      scheduleMicrotask(() {
-        body(async_status_codes.SUCCESS, null);
-      });
-    }
-
-    controller = StreamController<T>(
-      onListen: () {
-        _resumeBody();
-      },
-      onResume: () {
-        // Only schedule again if the async* function actually is suspended.
-        // Resume directly instead of scheduling, so that the sequence
-        // `pause-resume-pause` will result in one extra event produced.
-        if (isSuspended) {
-          isSuspended = false;
-          _resumeBody();
-        }
-      },
-      onCancel: () {
-        // If the async* is finished we ignore cancel events.
-        if (!controller.isClosed) {
-          cancelationFuture = _Future();
-          if (isSuspended) {
-            // Resume the suspended async* function to run finalizers.
-            isSuspended = false;
-            scheduleMicrotask(() {
-              body(async_status_codes.STREAM_WAS_CANCELED, null);
-            });
-          }
-          return cancelationFuture;
-        }
-      },
-    );
-  }
+  void close() => controller.close();
 }
 
 /// Creates a stream controller for an `async*` function.

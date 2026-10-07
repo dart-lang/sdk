@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:async/async.dart';
 import 'package:dartpad/src/message_port/message_port.dart';
@@ -14,8 +15,8 @@ import 'package:test/test.dart';
 
 import 'asset_server/asset_server_client.dart';
 
-/// Create a worker in the same process.
-Future<WorkerClient> createInprocessWorker(
+/// Create a [Worker] in the same process.
+Future<Worker> createInProcessWorkerInstance(
   AssetServerClient server,
   String sdkPath,
 ) async {
@@ -26,10 +27,18 @@ Future<WorkerClient> createInprocessWorker(
   }
 
   final sdkTar = r.bodyBytes;
-  final worker = await Worker.create(
+  return await Worker.create(
     Stream.value(sdkTar),
     pubHostedUrl: server.baseUrl.toString(),
   );
+}
+
+/// Create a worker in the same process.
+Future<WorkerClient> createInprocessWorker(
+  AssetServerClient server,
+  String sdkPath,
+) async {
+  final worker = await createInProcessWorkerInstance(server, sdkPath);
   final channelController = StreamChannelController<Object?>();
 
   worker.session(
@@ -62,7 +71,8 @@ Object? _jsonify(Object? obj) {
       obj == null ||
       obj is String ||
       obj is num ||
-      obj is bool) {
+      obj is bool ||
+      obj is Uint8List) {
     return obj;
   }
   if (obj is Map) {

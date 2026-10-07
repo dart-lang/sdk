@@ -117,6 +117,8 @@ A suite is expected to implement a subclass of `ChainContext` which defines the 
 
 A step is a subclass of `Step`. The input to the first step is a `TestDescription`. The input to step n+1 is the output of step n.
 
+By default, the first step that doesn't pass ends the test, and its outcome is the outcome of the test. A step can override `continueOnFailure` to return `true`, in which case a failing result (with a non-null output) is recorded and the output is passed to the next step anyway. Such a test can have multiple outcomes, and it matches its status file entry only if *every* outcome is listed in the entry. For example, a test that fails a `continueOnFailure` step and then fails at runtime needs an entry like `my_test: SomeCheckFailure, RuntimeError`.
+
 Here is an example of a suite that runs tests on the Dart VM:
 
 ```dart

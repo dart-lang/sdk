@@ -35,7 +35,7 @@ class RuntimeTypeEqualityVisitor
 
   @override
   bool visitDynamicType(DynamicType T1, DartType T2) {
-    return identical(T1, T2);
+    return T2 is DynamicType;
   }
 
   @override
@@ -182,7 +182,7 @@ class RuntimeTypeEqualityVisitor
 
   @override
   bool visitVoidType(VoidType T1, DartType T2) {
-    return identical(T1, T2);
+    return T2 is VoidType;
   }
 
   bool _compatibleNullability(DartType T1, DartType T2) {

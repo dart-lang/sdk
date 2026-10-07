@@ -9,8 +9,9 @@ import 'dart:convert';
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/file_system/overlay_file_system.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:async/async.dart';
+import 'package:clock/clock.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
 import 'package:path/path.dart' as p;
 import 'package:stream_channel/stream_channel.dart';
@@ -19,47 +20,97 @@ import 'resource_provider/resource_provider_ext.dart';
 import 'resource_provider/resource_provider_wrap_cwd.dart';
 import 'shared.dart' hide FileSystemException;
 import 'tools/file_watch.dart';
-import 'tools/hot_reload_compiler.dart' show HotReloadCompiler;
 import 'tools/language_server.dart';
 import 'tools/pub.dart';
 import 'tools/sandbox.dart';
-import 'util/message_port.dart';
+import 'util/parameters_ext.dart';
+import 'worker_protocol_version.dart';
 
 final class Worker {
-  final _rp = MemoryResourceProvider(context: p.posix);
-  var _config = DartPadConfig();
+  final ResourceProvider _rp;
+  final DartPadConfig _config;
+  final VersionInfo _version;
+  final _analysisCache = MemoryCachingByteStore(
+    NullByteStore(),
+    128 * 1024 * 1024,
+  );
   int _nextLanguageServerId = 1;
   int _nextWorkspaceId = 1;
   int _nextWatcherId = 1;
   int _nextSandboxId = 1;
 
-  Worker._();
+  Worker._(this._rp, this._config, this._version);
+
+  static String _readRequiredFile(ResourceProvider rp, String path) {
+    final file = rp.getFile(path);
+    if (!file.exists) {
+      throw FormatException('sdk.tar must contain $path');
+    }
+    return file.readAsStringSync().trim();
+  }
 
   static Future<Worker> create(
     Stream<List<int>> sdkTarStream, {
     String? pubHostedUrl,
   }) async {
-    final w = Worker._();
+    final rp = MemoryResourceProvider(context: p.posix);
+    await rp.getFolder('/').extractTarStream(sdkTarStream);
 
-    await w._rp.getFolder('/').extractTarStream(sdkTarStream);
-
-    final configFile = w._rp.getFile(DartPadConfig.defaultDartPadConfigPath);
-    if (configFile.exists) {
-      try {
-        w._config = DartPadConfig.fromJson(
-          jsonDecode(configFile.readAsStringSync()) as Map<String, Object?>,
-        );
-      } catch (e) {
-        // TODO(jonasfj): Find a better way to propogate this error.
-        //                This is only relevant for people making their own
-        //                sdk.tar files. But it'd also make general debugging
-        //                easier. To report it better we might also want to
-        //                report progress updates while loading.
-        print('Error reading dartpad-config.json: $e');
-      }
+    final configFile = rp.getFile(DartPadConfig.defaultDartPadConfigPath);
+    if (!configFile.exists) {
+      throw const FormatException(
+        'sdk.tar must contain ${DartPadConfig.defaultDartPadConfigPath}',
+      );
     }
-    w._config = w._config.copyWith(pubHostedUrl: pubHostedUrl);
-    return w;
+    final DartPadConfig config;
+    try {
+      config = DartPadConfig.fromJson(
+        jsonDecode(configFile.readAsStringSync()) as Map<String, Object?>,
+      ).copyWith(pubHostedUrl: pubHostedUrl);
+    } catch (e) {
+      throw FormatException(
+        'Error reading ${DartPadConfig.defaultDartPadConfigPath}: $e',
+      );
+    }
+
+    final dartVersion = _readRequiredFile(
+      rp,
+      rp.pathContext.join(config.dartSdkPath, 'version'),
+    );
+    final dartRevision = _readRequiredFile(
+      rp,
+      rp.pathContext.join(config.dartSdkPath, 'revision'),
+    );
+
+    final properties = <String, String>{};
+    if (config.flutterSdkPath case final flutterSdkPath?) {
+      final flutterVersionPath = rp.pathContext.join(
+        flutterSdkPath,
+        'bin',
+        'cache',
+        'flutter.version.json',
+      );
+      final flutterVersionContent = _readRequiredFile(rp, flutterVersionPath);
+      final Map<String, Object?> flutterVersionJson;
+      try {
+        flutterVersionJson =
+            jsonDecode(flutterVersionContent) as Map<String, Object?>;
+      } catch (e) {
+        throw FormatException('Error reading $flutterVersionPath: $e');
+      }
+      properties.addAll(extractFlutterVersionProperties(flutterVersionJson));
+    }
+
+    final version = createVersionInfo(
+      workerProtocolMajor: workerProtocolMajorVersion,
+      workerProtocolMinor: workerProtocolMinorVersion,
+      modes: [for (final m in config.modes) m.mode],
+      dartVersion: dartVersion,
+      dartRevision: dartRevision,
+      properties: properties,
+    );
+
+    return Worker._(rp, config, version);
   }
 
   void session(StreamChannel<Object?> channel) {
@@ -68,111 +119,155 @@ final class Worker {
 }
 
 class _Session {
+  static const _idleTimeout = Duration(minutes: 5);
+  static const _idleCheckInterval = Duration(seconds: 60);
+  static const _idleConfirmDelay = Duration(seconds: 40);
+
   final Worker _worker;
   late final Peer _rpc;
   final _workspaces = <int, _Workspace>{};
+  DateTime _lastActivity = clock.now();
 
   _Session(StreamChannel<Object?> channel, this._worker) {
     _rpc = Peer.withoutJson(channel, onUnhandledError: _onUnhandledError);
-    _rpc.registerMethod('createWorkspace', _createWorkspace);
-    _rpc.registerMethod('workspace/dispose', _disposeWorkspace);
-    _rpc.registerMethod(
+    _registerMethod('version', _version);
+    _registerMethod('ping', (_) => <String, Object?>{});
+    _registerMethod('createWorkspace', _createWorkspace);
+    _registerMethod('workspace/close', _closeWorkspace);
+    _registerMethod(
       'workspace/writeFileFromText',
       _forwardToWorkspace((ws) => ws._writeFileFromText),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/writeFileFromBytes',
       _forwardToWorkspace((ws) => ws._writeFileFromBytes),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/readFileAsText',
       _forwardToWorkspace((ws) => ws._readFileAsText),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/readFileAsBytes',
       _forwardToWorkspace((ws) => ws._readFileAsBytes),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/deleteFileSystemEntity',
       _forwardToWorkspace((ws) => ws._deleteFileSystemEntity),
     );
-    _rpc.registerMethod(
-      'workspace/stat',
-      _forwardToWorkspace((ws) => ws._stat),
-    );
-    _rpc.registerMethod(
+    _registerMethod('workspace/stat', _forwardToWorkspace((ws) => ws._stat));
+    _registerMethod(
       'workspace/listDirectory',
       _forwardToWorkspace((ws) => ws._listDirectory),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/importTarArchive',
       _forwardToWorkspace((ws) => ws._importTarArchive),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/exportTarArchive',
       _forwardToWorkspace((ws) => ws._exportTarArchive),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/createFolder',
       _forwardToWorkspace((ws) => ws._createFolder),
     );
-    _rpc.registerMethod('workspace/pub', _forwardToWorkspace((ws) => ws._pub));
-    _rpc.registerMethod(
+    _registerMethod('workspace/pub', _forwardToWorkspace((ws) => ws._pub));
+    _registerMethod(
       'workspace/startLanguageServer',
       _forwardToWorkspace((ws) => ws._startLanguageServer),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/languageServer/message',
       _forwardToWorkspace((ws) => ws._languageServerMessage),
     );
-    _rpc.registerMethod(
-      'workspace/languageServer/stop',
-      _forwardToWorkspace((ws) => ws._stopLanguageServer),
+    _registerMethod(
+      'workspace/languageServer/close',
+      _closeInWorkspace((ws) => ws._closeLanguageServer),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/startWatcher',
       _forwardToWorkspace((ws) => ws._watch),
     );
-    _rpc.registerMethod(
-      'workspace/watcher/stop',
-      _forwardToWorkspace((ws) => ws._unwatch),
+    _registerMethod(
+      'workspace/watcher/close',
+      _closeInWorkspace((ws) => ws._closeWatcher),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/connectSandbox',
       _forwardToWorkspace((ws) => ws._connectSandbox),
     );
-    _rpc.registerMethod(
-      'workspace/sandbox/runMain',
-      _forwardToWorkspace((ws) => ws._sandboxRunMain),
+    _registerMethod(
+      'workspace/sandbox/run',
+      _forwardToWorkspace((ws) => ws._sandboxRun),
     );
-    _rpc.registerMethod(
-      'workspace/sandbox/runApp',
-      _forwardToWorkspace((ws) => ws._sandboxRunApp),
-    );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/sandbox/hotRestart',
       _forwardToWorkspace((ws) => ws._sandboxHotRestart),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/sandbox/hotReload',
       _forwardToWorkspace((ws) => ws._sandboxHotReload),
     );
-    _rpc.registerMethod(
+    _registerMethod(
       'workspace/sandbox/close',
-      _forwardToWorkspace((ws) => ws._sandboxClose),
+      _closeInWorkspace((ws) => ws._sandboxClose),
     );
-    _rpc.registerMethod(
-      'workspace/sandbox/invokeExtension',
-      _forwardToWorkspace((ws) => ws._sandboxInvokeExtension),
+    _registerMethod(
+      'workspace/sandbox/connectServiceProtocol',
+      _forwardToWorkspace((ws) => ws._sandboxConnectServiceProtocol),
     );
+    // Every 60s, if the session has been idle for at least 5 minutes, wait an
+    // extra 40s (30s ping interval + 10s slack) and re-check before closing.
+    // This gives a client that unfroze simultaneously with the worker (or whose
+    // pings were queued behind a long compile) time to send a ping before the
+    // session is reaped.
+    bool isIdle() => clock.now().difference(_lastActivity) >= _idleTimeout;
+
+    Timer? confirmTimer;
+    final idleTimer = Timer.periodic(_idleCheckInterval, (_) {
+      if (isIdle() && !(confirmTimer?.isActive ?? false)) {
+        confirmTimer = Timer(_idleConfirmDelay, () {
+          if (isIdle()) {
+            _rpc.close().ignore();
+          }
+        });
+      }
+    });
     unawaited(() async {
-      await _rpc.listen();
-      // Delete all workspaces to cleanup resources
-      await Future.wait(
-        _workspaces.values.toList().map((ws) => ws._deleteWorkspace()),
-      );
+      try {
+        await _rpc.listen();
+      } finally {
+        idleTimer.cancel();
+        confirmTimer?.cancel();
+        // Delete all workspaces to cleanup resources
+        await Future.wait(
+          _workspaces.values.toList().map((ws) => ws._closeWorkspace()),
+        );
+      }
     }());
   }
+
+  void _registerMethod(
+    String name,
+    FutureOr<Object?> Function(Parameters) callback,
+  ) {
+    _rpc.registerMethod(name, (Parameters params) async {
+      _lastActivity = clock.now();
+      try {
+        return await callback(params);
+      } finally {
+        _lastActivity = clock.now();
+      }
+    });
+  }
+
+  void _sendNotification(String method, Map<String, Object?> params) {
+    if (!_rpc.isClosed) {
+      _rpc.sendNotification(method, params);
+    }
+  }
+
+  Map<String, Object?> _version(Parameters _) => _worker._version.toJson();
 
   Object? _createWorkspace(Parameters params) async {
     final workspaceId = _worker._nextWorkspaceId++;
@@ -185,23 +280,20 @@ class _Session {
       workspaceFolder,
       resourceProviderWithCurrentWorkingDirectory(_worker._rp, workspaceFolder),
     );
-    return {
-      'workspaceId': workspaceId,
-      'workspaceFolder': Uri.directory(workspaceFolder).toString(),
-    };
+    return {'workspaceId': workspaceId, 'workspaceFolder': workspaceFolder};
   }
 
-  Object? _disposeWorkspace(Parameters params) async {
+  Object? _closeWorkspace(Parameters params) async {
     final workspace = _workspaces.remove(params['workspaceId'].asNum.toInt());
     if (workspace != null) {
-      await workspace._deleteWorkspace();
+      await workspace._closeWorkspace();
     }
-    // Deleting a workspace that doesn't exist is a no-op
-    // This ensures that deletion is an idempotent operation!
+    // Closing a workspace that doesn't exist is a no-op
+    // This ensures that closing is an idempotent operation!
     return <String, Object?>{};
   }
 
-  Object? Function(Parameters) _forwardToWorkspace(
+  Future<Object?> Function(Parameters) _forwardToWorkspace(
     Object? Function(Parameters params) Function(_Workspace ws) resolveHandler,
   ) {
     return (Parameters params) async {
@@ -212,6 +304,21 @@ class _Session {
           'Invalid "workspaceId", no such workspace exists',
           data: {'workspaceId': workspaceId},
         );
+      }
+      return resolveHandler(workspace)(params);
+    };
+  }
+
+  /// Like [_forwardToWorkspace], but for methods closing a resource held by
+  /// the workspace. Closing a workspace closes all its resources, so these
+  /// are a no-op when the workspace doesn't exist.
+  Future<Object?> Function(Parameters) _closeInWorkspace(
+    Object? Function(Parameters params) Function(_Workspace ws) resolveHandler,
+  ) {
+    return (Parameters params) async {
+      final workspace = _workspaces[params['workspaceId'].asNum.toInt()];
+      if (workspace == null) {
+        return <String, Object?>{};
       }
       return resolveHandler(workspace)(params);
     };
@@ -240,92 +347,72 @@ class _Workspace {
     this._rp,
   );
 
-  String _resolvePath(Uri u) {
-    final path = _rp.pathContext.fromUri(u);
-    if (_rp.pathContext.isAbsolute(path)) {
-      return _rp.pathContext.normalize(path);
-    }
-    return _rp.pathContext.normalize(
-      _rp.pathContext.join(_workspaceFolder, path),
-    );
-  }
+  String _resolvePath(String path) =>
+      _rp.pathContext.normalize(_rp.pathContext.join(_workspaceFolder, path));
 
   Object? _writeFileFromText(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final text = params['text'].asString;
     try {
       final file = _rp.getFile(path);
-      file.parent.createRecursively();
       file.writeAsStringSync(text);
     } on FileSystemException catch (e) {
-      throw FileWriteConflictException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileWriteConflictException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _writeFileFromBytes(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
-    final bytes = base64.decode(params['base64'].asString);
+    final path = _resolvePath(params['path'].asString);
+    final bytes = params.bytesAsUint8List;
     try {
       final file = _rp.getFile(path);
-      file.parent.createRecursively();
       file.writeAsBytesSync(bytes);
     } on FileSystemException catch (e) {
-      throw FileWriteConflictException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileWriteConflictException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _readFileAsText(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
       return {'text': _rp.getFile(path).readAsStringSync()};
     } on FileSystemException catch (e) {
-      throw FileNotFoundException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException(e.message, data: {'path': path});
     }
   }
 
   Object? _readFileAsBytes(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
-      return {'base64': base64.encode(_rp.getFile(path).readAsBytesSync())};
+      return {'bytes': _rp.getFile(path).readAsBytesSync()};
     } on FileSystemException catch (e) {
-      throw FileNotFoundException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException(e.message, data: {'path': path});
     }
   }
 
   Object? _deleteFileSystemEntity(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
-      _rp.getResource(path).delete();
+      final resource = _rp.getResource(path);
+      // Safe to check before delete: synchronous on an in-memory filesystem.
+      if (resource.exists) {
+        resource.delete();
+      }
     } on FileSystemException catch (e) {
-      throw FileDeletionFailedException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileDeletionFailedException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _stat(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final resource = _rp.getResource(path);
     if (!resource.exists) {
       throw FileNotFoundException(
         'File or directory not found',
-        data: {'resolvedUri': Uri.file(path).toString()},
+        data: {'path': path},
       );
     }
     if (resource is File) {
@@ -338,20 +425,17 @@ class _Workspace {
   }
 
   Object? _createFolder(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     try {
-      _rp.getFolder(path).createRecursively();
+      _rp.getFolder(path).create();
     } on FileSystemException catch (e) {
-      throw FileWriteConflictException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileWriteConflictException(e.message, data: {'path': path});
     }
     return <String, Object?>{};
   }
 
   Object? _listDirectory(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final recursive = params['recursive'].asBoolOr(false);
     final ignoreHidden = params['ignoreHidden'].asBoolOr(false);
 
@@ -382,16 +466,13 @@ class _Workspace {
 
       return {'entries': entries};
     } on FileSystemException catch (e) {
-      throw FileNotFoundException(
-        e.message,
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException(e.message, data: {'path': path});
     }
   }
 
   Object? _importTarArchive(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
-    final bytes = base64.decode(params['base64'].asString);
+    final path = _resolvePath(params['path'].asString);
+    final bytes = params.bytesAsUint8List;
 
     await _rp.getFolder(path).extractTarStream(Stream.value(bytes));
 
@@ -399,42 +480,17 @@ class _Workspace {
   }
 
   Object? _exportTarArchive(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final folder = _rp.getFolder(path);
     if (!folder.exists) {
-      throw FileNotFoundException(
-        'Directory not found',
-        data: {'resolvedUri': Uri.file(path).toString()},
-      );
+      throw FileNotFoundException('Directory not found', data: {'path': path});
     }
 
-    return {
-      'base64': base64.encode(await collectBytes(folder.createTarStream())),
-    };
-  }
-
-  String _findPackageConfigFromEntrypoint(String entrypoint) {
-    var parent = _rp.getFile(entrypoint).parent;
-    do {
-      final pkgConfig = parent
-          .getFolder('.dart_tool')
-          .getFile('package_config.json');
-
-      if (pkgConfig.exists) {
-        return pkgConfig.path;
-      }
-
-      parent = parent.parent;
-    } while (!parent.isRoot);
-    throw PackageConfigNotFoundException(
-      'Unable to find `.dart_tool/package_config.json` in any '
-      'parent directory of `$entrypoint`.',
-      data: {'entrypoint': entrypoint},
-    );
+    return {'bytes': await collectBytes(folder.createTarStream())};
   }
 
   Object? _pub(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final command = params['command'].asString;
     final args = params['args'].asListOr(const <String>[]);
     if (!supportedPubCommands.contains(command)) {
@@ -453,6 +509,7 @@ class _Workspace {
       command: command,
       args: args.whereType<String>().toList(),
       config: _worker._config,
+      version: _worker._version,
     );
 
     return {'log': log};
@@ -463,9 +520,10 @@ class _Workspace {
     final ls = _languageServers[languageServerId] = LanguageServer(
       resourceProvider: _rp,
       config: _worker._config,
+      byteStore: _worker._analysisCache,
     );
     ls.messages.listen((m) {
-      _session._rpc.sendNotification('workspace/languageServer/message', {
+      _session._sendNotification('workspace/languageServer/message', {
         'workspaceId': _workspaceId,
         'languageServerId': languageServerId,
         'message': m,
@@ -473,7 +531,8 @@ class _Workspace {
     });
     unawaited(
       ls.closed.whenComplete(() {
-        _session._rpc.sendNotification('workspace/languageServer/exited', {
+        _languageServers.remove(languageServerId);
+        _session._sendNotification('workspace/languageServer/exited', {
           'workspaceId': _workspaceId,
           'languageServerId': languageServerId,
         });
@@ -498,7 +557,7 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  Object? _stopLanguageServer(Parameters params) async {
+  Object? _closeLanguageServer(Parameters params) async {
     final languageServerId = params['languageServerId'].asNum.toInt();
     final languageServer = _languageServers.remove(languageServerId);
     await languageServer?.close();
@@ -506,113 +565,49 @@ class _Workspace {
   }
 
   Object? _watch(Parameters params) async {
-    final path = _resolvePath(params['uri'].asUri);
+    final path = _resolvePath(params['path'].asString);
     final watcherId = _worker._nextWatcherId++;
 
     _fileWatches[watcherId] = await FileWatch.create(_rp, path, (events) {
-      _session._rpc.sendNotification('workspace/watcher/events', {
+      _session._sendNotification('workspace/watcher/events', {
         'workspaceId': _workspaceId,
         'watcherId': watcherId,
-        'events': events
-            .map((e) => {'type': e.event, 'uri': e.uri.toString()})
-            .toList(),
+        'events': events.map((e) => {'type': e.event, 'path': e.path}).toList(),
       });
     });
 
     return {'watcherId': watcherId};
   }
 
-  Object? _unwatch(Parameters params) async {
+  Object? _closeWatcher(Parameters params) async {
     final watcherId = params['watcherId'].asNum.toInt();
     final fileWatch = _fileWatches.remove(watcherId);
-    await fileWatch?.stop();
+    await fileWatch?.close();
     return <String, Object?>{};
   }
 
-  HotReloadCompiler _createCompiler(Uri path, {required bool withBootstrap}) {
-    var entrypoint = _resolvePath(path);
-
-    // Test if the file we're compiling exists.
-    // Otherwise, we get really ugly errors if there is a bootstrap file in play
-    if (!_rp.getFile(entrypoint).exists) {
-      throw CompilationFailedException(
-        'Compilation entrypoint "$entrypoint" not found',
-        data: {'entrypoint': entrypoint},
-      );
-    }
-
-    var rp = _rp;
-    final bootstrapCodeTemplate = _worker._config.bootstrapCode;
-    if (withBootstrap && bootstrapCodeTemplate != null) {
-      final originalEntrypoint = entrypoint;
-      entrypoint = '$originalEntrypoint.virtual-bootstrap-wrapper.dart';
-
-      final overlay = rp = OverlayResourceProvider(_rp);
-      overlay.setOverlay(
-        entrypoint,
-        content: bootstrapCodeTemplate.replaceAll(
-          '{{entrypoint}}',
-          // Convert to a `file:` URI so the Common Front End (CFE) treats the
-          // import as an absolute file URI. Otherwise, entrypoints inside
-          // `lib/` match the package root prefix in `package_config.json` and
-          // resolve relatively, causing duplicated path segments and build
-          // failure.
-          _rp.pathContext.toUri(originalEntrypoint).toString(),
-        ),
-        modificationStamp: 0,
-      );
-    }
-
-    return HotReloadCompiler(
-      resourceProvider: rp,
-      packageConfig: _findPackageConfigFromEntrypoint(entrypoint),
-      targetPath: entrypoint,
-      config: _worker._config,
-    );
-  }
-
   Object? _connectSandbox(Parameters params) async {
-    final port = params['port'].value;
-    if (port is! MessagePort) {
-      throw RpcException.invalidParams('port must be a MessagePort');
-    }
+    final port = params.portAsMessagePort;
     final sandboxId = _worker._nextSandboxId++;
-    final sandbox = _sandboxes[sandboxId] = Sandbox(
+    final sandbox = _sandboxes[sandboxId] = await Sandbox.create(
       port: port,
-      createMainCompiler: (u) => _createCompiler(u, withBootstrap: false),
-      createAppCompiler: (u) => _createCompiler(u, withBootstrap: true),
+      resourceProvider: _rp,
+      config: _worker._config,
+      version: _worker._version,
       onClosed: () => _sandboxes.remove(sandboxId),
     );
     sandbox.onConsole.listen((e) {
-      _session._rpc.sendNotification('workspace/sandbox/console', {
+      _session._sendNotification('workspace/sandbox/console', {
         'workspaceId': _workspaceId,
         'sandboxId': sandboxId,
+        'level': e.level,
         'message': e.message,
       });
     });
-    sandbox.onError.listen((e) {
-      _session._rpc.sendNotification('workspace/sandbox/error', {
-        'workspaceId': _workspaceId,
-        'sandboxId': sandboxId,
-        'message': e.message,
-      });
-    });
-    sandbox.onUnhandledRejection.listen((e) {
-      _session._rpc.sendNotification('workspace/sandbox/unhandledRejection', {
-        'workspaceId': _workspaceId,
-        'sandboxId': sandboxId,
-        'message': e.message,
-      });
-    });
-    sandbox.onExtensionEvent.listen((e) {
-      _session._rpc.sendNotification('workspace/sandbox/extensionEvent', {
-        'workspaceId': _workspaceId,
-        'sandboxId': sandboxId,
-        'kind': e.kind,
-        'data': e.data,
-      });
-    });
-    return {'sandboxId': sandboxId};
+    return {
+      'sandboxId': sandboxId,
+      'modes': _worker._config.modes.map((m) => m.mode).toList(),
+    };
   }
 
   Sandbox _getSandbox(Parameters params) {
@@ -627,17 +622,16 @@ class _Workspace {
     return s;
   }
 
-  Object? _sandboxRunMain(Parameters params) async {
+  Object? _sandboxRun(Parameters params) async {
     final s = _getSandbox(params);
-    final path = _resolvePath(params['path'].asUri);
-    final result = await s.runMain(path);
-    return {'log': result.log};
-  }
+    final path = _resolvePath(params['path'].asString);
+    final mode = params['mode'].asString;
+    final m = _worker._config.modes.where((m) => m.mode == mode).firstOrNull;
+    if (m == null) {
+      throw RpcException.invalidParams('Unsupported mode: "$mode"');
+    }
 
-  Object? _sandboxRunApp(Parameters params) async {
-    final s = _getSandbox(params);
-    final path = _resolvePath(params['path'].asUri);
-    final result = await s.runApp(path);
+    final result = await s.run(path, m);
     return {'log': result.log};
   }
 
@@ -660,27 +654,26 @@ class _Workspace {
     return <String, Object?>{};
   }
 
-  Object? _sandboxInvokeExtension(Parameters params) async {
+  Object? _sandboxConnectServiceProtocol(Parameters params) {
     final s = _getSandbox(params);
-    final method = params['method'].asString;
-    final args = params['args'].asMap as Map<String, Object?>;
-    if (args.values.where((v) => v is! String).isNotEmpty) {
-      throw RpcException.invalidParams('key/values in args must be strings');
-    }
-
-    final result = await s.invokeExtension(method, args.cast());
-    return {'result': result};
+    final port = params.portAsMessagePort;
+    s.connectServiceProtocol(port);
+    return <String, Object?>{};
   }
 
-  Future<void> _deleteWorkspace() async {
+  Future<void> _closeWorkspace() async {
     try {
       await Future.wait([
         ..._languageServers.values.map((ls) => ls.close()),
-        ..._fileWatches.values.map((fw) => fw.stop()),
+        ..._fileWatches.values.map((fw) => fw.close()),
         ..._sandboxes.values.map((s) => s.close()),
       ]);
     } finally {
-      _rp.getFolder(_workspaceFolder).delete();
+      final folder = _rp.getFolder(_workspaceFolder);
+      // Safe to check before delete: synchronous on an in-memory filesystem.
+      if (folder.exists) {
+        folder.delete();
+      }
     }
   }
 }

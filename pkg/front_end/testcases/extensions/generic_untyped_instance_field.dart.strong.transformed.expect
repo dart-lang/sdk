@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/extensions/generic_untyped_instance_field.dart:6:7: Error: Extensions can't declare instance fields
+// Try removing the field declaration or making it a static field
+//   var field;
+//       ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+extension E<T extends core::Object? = dynamic> on core::List<T%> {
+  get field = self::E|get#field;
+  set field = self::E|set#field;
+}
+static abstract extension-member method E|get#field<T extends core::Object? = dynamic>(lowered core::List<self::E|get#field::T%> #this) → dynamic;
+static abstract extension-member method E|set#field<T extends core::Object? = dynamic>(lowered core::List<self::E|set#field::T%> #this, synthesized dynamic #externalFieldValue) → void;

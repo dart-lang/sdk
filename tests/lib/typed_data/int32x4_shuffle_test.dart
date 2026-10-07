@@ -4,16 +4,13 @@
 
 // VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
-// Library tag to be able to run in html test framework.
-library uint32x4_shuffle_test;
-
 import 'dart:typed_data';
 
 import "package:expect/expect.dart";
 
 void testShuffle() {
   var m = Int32x4(1, 2, 3, 4);
-  var c;
+  Int32x4 c;
   c = m.shuffle(Int32x4.wzyx);
   Expect.equals(4, c.x);
   Expect.equals(3, c.y);
@@ -23,7 +20,7 @@ void testShuffle() {
 
 void testShuffleNonConstant(mask) {
   var m = Int32x4(1, 2, 3, 4);
-  var c;
+  Int32x4 c;
   c = m.shuffle(mask);
   if (mask == 1) {
     Expect.equals(2, c.x);

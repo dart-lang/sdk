@@ -216,7 +216,7 @@ class Types {
 
     final names = translator.constants.makeArrayOf(
       translator.coreTypes.stringNonNullableRawType,
-      type.named.map((t) => StringConstant(t.name)).toList(),
+      ConstantList.mapped(type.named, (n) => StringConstant(n.name)),
       mutable: false,
     );
 
@@ -252,12 +252,14 @@ class Types {
       return InterfaceType(
         coreTypes.futureClass,
         Nullability.nonNullable,
-        const [NeverType.nonNullable()],
+        DartTypeList.never1,
       );
     } else if (s is NullType) {
-      return InterfaceType(coreTypes.futureClass, Nullability.nullable, const [
-        NullType(),
-      ]);
+      return InterfaceType(
+        coreTypes.futureClass,
+        Nullability.nullable,
+        DartTypeList.null1,
+      );
     }
 
     // The type is normalized, and remains a `FutureOr` so now we normalize its
@@ -321,13 +323,15 @@ class Types {
                 )
               : ConstructorInvocation(
                   namedParameterConstructor,
-                  Arguments([
-                    ConstantExpression(
-                      translator.symbols.symbolForNamedParameter(n.name),
+                  Arguments(
+                    ExpressionList(
+                      ConstantExpression(
+                        translator.symbols.symbolForNamedParameter(n.name),
+                      ),
+                      TypeLiteral(n.type),
+                      BoolLiteral(n.isRequired),
                     ),
-                    TypeLiteral(n.type),
-                    BoolLiteral(n.isRequired),
-                  ]),
+                  ),
                 ),
         );
       }
@@ -682,9 +686,10 @@ abstract class _TypeCheckers {
     // We only need to check whether the nullability and the class itself fits
     // (the [testedAgainstType] arguments are guaranteed to fit statically)
     final parameters = type.classNode.typeParameters;
-    final args = [
-      for (int i = 0; i < parameters.length; ++i) parameters[i].defaultType,
-    ];
+    final args = DartTypeList.generate(
+      parameters.length,
+      (i) => parameters[i].defaultType,
+    );
     return InterfaceType(type.classNode, type.nullability, args);
   }
 }
@@ -1364,7 +1369,7 @@ class RuntimeTypeInformation {
     final arrayOfType = InterfaceType(
       translator.wasmArrayClass,
       Nullability.nonNullable,
-      [typeType],
+      DartTypeList(typeType),
     );
     final wasmI16 = InterfaceType(
       translator.wasmI16Class,
@@ -1384,34 +1389,35 @@ class RuntimeTypeInformation {
     rows.sort((Row a, Row b) => -weight(a).compareTo(weight(b)));
     final table = buildRowDisplacementTable(rows, firstAvailable: 1);
     const invalidClassId = 0;
-    final typeRowDisplacementTable = translator.constants.makeArrayOf(wasmI32, [
-      for (final entry in table)
-        translator.constants.makeWasmI32(
+    final typeRowDisplacementTable = translator.constants.makeArrayOf(
+      wasmI32,
+      ConstantList.mapped(
+        table,
+        (entry) => translator.constants.makeWasmI32(
           entry == null ? invalidClassId : entry.$1,
         ),
-    ]);
+      ),
+    );
     final typeRowDisplacementSubstTable = translator.constants.makeArrayOf(
       wasmI16,
-      [
-        for (final entry in table)
-          translator.constants.makeWasmI32(
-            entry == null ? noSubstitutionIndex : entry.$2,
-          ),
-      ],
+      ConstantList.mapped(
+        table,
+        (entry) => translator.constants.makeWasmI32(
+          entry == null ? noSubstitutionIndex : entry.$2,
+        ),
+      ),
     );
     final canonicalSubstitutionTable = translator.constants.makeArrayOf(
       arrayOfType,
-      [for (final sustitution in _substitutionTableByIndex) sustitution],
+      ConstantList.from(_substitutionTableByIndex),
     );
 
     final typeRowDisplacementOffsets = translator.constants.makeArrayOf(
       wasmI32,
-      [
-        for (int classId = 0; classId < translator.classes.length; ++classId)
-          translator.constants.makeWasmI32(
-            rowForSuperclass[classId]?.offset ?? -1,
-          ),
-      ],
+      ConstantList.mapped(
+        rowForSuperclass,
+        (row) => translator.constants.makeWasmI32(row?.offset ?? -1),
+      ),
     );
 
     final typeNames = translator.options.minify
@@ -1431,15 +1437,14 @@ class RuntimeTypeInformation {
     );
 
     final emptyString = StringConstant('');
-    List<StringConstant> nameConstants = [];
-    for (ClassInfo classInfo in translator.classes) {
+    final nameConstants = ConstantList.mapped(translator.classes, (classInfo) {
       Class? cls = classInfo.cls;
       if (cls == null || cls.isAnonymousMixin) {
-        nameConstants.add(emptyString);
+        return emptyString;
       } else {
-        nameConstants.add(StringConstant(cls.name));
+        return StringConstant(cls.name);
       }
-    }
+    });
     return translator.constants.makeArrayOf(stringType, nameConstants);
   }
 

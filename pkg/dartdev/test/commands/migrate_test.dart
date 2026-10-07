@@ -95,6 +95,23 @@ void migrate() {
         ),
       );
     });
+
+    test('request rejected by the server', () async {
+      p = project(mainSrc: 'class Foo {}\n');
+
+      final result = await p.runMigrate([
+        '--dry-run',
+        '--step=prepare,cleanup',
+        p.dirPath,
+      ]);
+
+      expect(result.exitCode, isNot(0));
+      expect(
+        result.stderr,
+        "The 'prepare' and 'cleanup' steps cannot be run together without "
+        "also running 'bump'.\n",
+      );
+    });
   });
 
   group('perform', () {

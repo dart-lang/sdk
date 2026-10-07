@@ -470,6 +470,11 @@ ISOLATE_UNIT_TEST_CASE(Service_LocalVarDescriptors) {
     descriptors = code_c.GetLocalVarDescriptors();
   }
   EXPECT(!descriptors.IsNull());
+  AbstractType& static_type = AbstractType::Handle();
+  for (intptr_t i = 0; i < descriptors.Length(); i++) {
+    static_type = descriptors.GetStaticType(i);
+    EXPECT(!static_type.IsNull());
+  }
   // Generate an ID for this object.
   ServiceIdZone& default_id_zone = isolate->EnsureDefaultServiceIdZone();
   const char* id = default_id_zone.GetServiceId(descriptors);
@@ -876,19 +881,65 @@ ISOLATE_UNIT_TEST_CASE(Service_ClassFfiLayout) {
       "var port;\n"
       "final class Inner extends Struct {\n"
       "  @Int32() external int a;\n"
+      "  @Int32() external int b;\n"
+      "}\n"
+      "final class MyUnion extends Union {\n"
+      "  @Int32() external int u1;\n"
+      "  @Float() external double u2;\n"
+      "  external Inner u3;\n"
       "}\n"
       "final class MyStruct extends Struct {\n"
       "  @Int32() external int x;\n"
       "  @Float() external double y;\n"
       "  external Inner inner;\n"
       "  @Array(3) external Array<Uint8> tail;\n"
+      "  @Array(2) external Array<Inner> items;\n"
+      "  external MyUnion u;\n"
       "}\n"
       "MyStruct? instance;\n"
       "MyStruct? instanceAtOffset;\n"
+      "String layoutErrors = 'checkLayout() did not run';\n"
+      "String checkLayout() {\n"
+      "  final backing = Uint8List(8 + sizeOf<MyStruct>());\n"
+      "  final s = Struct.create<MyStruct>(backing, 8);\n"
+      "  final bytes = ByteData.view(backing.buffer, 8);\n"
+      "  s.x = 0x11223344;\n"
+      "  s.y = 2.5;\n"
+      "  s.inner.a = 0x55667788;\n"
+      "  s.inner.b = 0x1a2b3c4d;\n"
+      "  s.tail[0] = 0xa1;\n"
+      "  s.tail[1] = 0xa2;\n"
+      "  s.tail[2] = 0xa3;\n"
+      "  s.items[0].a = 0x0a0b0c0d;\n"
+      "  s.items[1].b = 0x7e6d5c4b;\n"
+      "  s.u.u3.a = 0x21324354;\n"
+      "  s.u.u3.b = 0x65768798;\n"
+      "  var errors = '';\n"
+      "  void check(String what, num expected, num actual) {\n"
+      "    if (expected != actual) {\n"
+      "      errors += '$what: expected $expected but got $actual. ';\n"
+      "    }\n"
+      "  }\n"
+      "  check('size', 44, sizeOf<MyStruct>());\n"
+      "  check('x@0', 0x11223344, bytes.getInt32(0, Endian.host));\n"
+      "  check('y@4', 2.5, bytes.getFloat32(4, Endian.host));\n"
+      "  check('inner.a@8', 0x55667788, bytes.getInt32(8, Endian.host));\n"
+      "  check('inner.b@12', 0x1a2b3c4d, bytes.getInt32(12, Endian.host));\n"
+      "  check('tail[0]@16', 0xa1, bytes.getUint8(16));\n"
+      "  check('tail[1]@17', 0xa2, bytes.getUint8(17));\n"
+      "  check('tail[2]@18', 0xa3, bytes.getUint8(18));\n"
+      "  check('items[0].a@20', 0x0a0b0c0d, bytes.getInt32(20, Endian.host));\n"
+      "  check('items[1].b@32', 0x7e6d5c4b, bytes.getInt32(32, Endian.host));\n"
+      "  check('u.u3.a@36', 0x21324354, bytes.getInt32(36, Endian.host));\n"
+      "  check('u.u3.b@40', 0x65768798, bytes.getInt32(40, Endian.host));\n"
+      "  check('u.u1 aliases u.u3.a', 0x21324354, s.u.u1);\n"
+      "  return errors;\n"
+      "}\n"
       "main() {\n"
       "  instance = Struct.create<MyStruct>();\n"
-      "  final backing = Uint8List(8 + 16);\n"
+      "  final backing = Uint8List(8 + sizeOf<MyStruct>());\n"
       "  instanceAtOffset = Struct.create<MyStruct>(backing, 8);\n"
+      "  layoutErrors = checkLayout();\n"
       "}";
 
   SetFlagScope<bool> sfs(&FLAG_verify_entry_points, false);
@@ -924,20 +975,74 @@ ISOLATE_UNIT_TEST_CASE(Service_ClassFfiLayout) {
   HandleIsolateMessage(isolate, service_msg);
   EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
   EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
-  EXPECT_SUBSTRING("\"ffiLayout\":{\"size\":16,\"fields\":[", handler.msg());
+  EXPECT_SUBSTRING(
+      "\"ffiLayout\":{\"size\":44,\"kind\":\"struct\",\"fields\":[",
+      handler.msg());
   EXPECT_SUBSTRING(
       "\"name\":\"x\",\"nativeType\":\"int32\",\"offset\":0,\"size\":4",
       handler.msg());
   EXPECT_SUBSTRING(
       "\"name\":\"y\",\"nativeType\":\"float\",\"offset\":4,\"size\":4",
       handler.msg());
+  // A nested struct carries its own layout.
   EXPECT_SUBSTRING(
-      "\"name\":\"inner\",\"nativeType\":\"Inner\",\"offset\":8,"
-      "\"size\":4",
+      "\"name\":\"inner\",\"nativeType\":\"Inner\",\"offset\":8,\"size\":8,"
+      "\"kind\":\"struct\",\"fields\":["
+      "{\"name\":\"a\",\"nativeType\":\"int32\",\"offset\":8,\"size\":4},"
+      "{\"name\":\"b\",\"nativeType\":\"int32\",\"offset\":12,\"size\":4}]",
       handler.msg());
+  // An array of a primitive has no nested layout.
   EXPECT_SUBSTRING(
-      "\"name\":\"tail\",\"nativeType\":\"Array\",\"offset\":12,\"size\":3,"
-      "\"length\":3,\"arrayElementType\":\"uint8\"",
+      "\"name\":\"tail\",\"nativeType\":\"Array\",\"offset\":16,\"size\":3,"
+      "\"length\":3,\"arrayElementType\":\"uint8\"}",
+      handler.msg());
+  // An array of a compound carries the layout of its first element.
+  EXPECT_SUBSTRING(
+      "\"name\":\"items\",\"nativeType\":\"Array\",\"offset\":20,\"size\":16,"
+      "\"length\":2,\"arrayElementType\":\"Inner\",\"kind\":\"struct\","
+      "\"fields\":["
+      "{\"name\":\"a\",\"nativeType\":\"int32\",\"offset\":20,\"size\":4},"
+      "{\"name\":\"b\",\"nativeType\":\"int32\",\"offset\":24,\"size\":4}]",
+      handler.msg());
+  // All members of a nested union start at the union's own offset.
+  EXPECT_SUBSTRING(
+      "\"name\":\"u\",\"nativeType\":\"MyUnion\",\"offset\":36,\"size\":8,"
+      "\"kind\":\"union\",\"fields\":["
+      "{\"name\":\"u1\",\"nativeType\":\"int32\",\"offset\":36,\"size\":4},"
+      "{\"name\":\"u2\",\"nativeType\":\"float\",\"offset\":36,\"size\":4},"
+      "{\"name\":\"u3\",\"nativeType\":\"Inner\",\"offset\":36,\"size\":8,"
+      "\"kind\":\"struct\",\"fields\":["
+      "{\"name\":\"a\",\"nativeType\":\"int32\",\"offset\":36,\"size\":4},"
+      "{\"name\":\"b\",\"nativeType\":\"int32\",\"offset\":40,\"size\":4}]}]",
+      handler.msg());
+
+  {
+    TransitionVMToNative transition(thread);
+    Dart_Handle errors = Dart_GetField(lib, NewString("layoutErrors"));
+    EXPECT_VALID(errors);
+    const char* errors_cstr = nullptr;
+    EXPECT_VALID(Dart_StringToCString(errors, &errors_cstr));
+    EXPECT_STREQ("", errors_cstr);
+  }
+
+  // A union is a compound in its own right, all of its members are at offset 0.
+  const Class& union_cls = Class::Handle(GetClass(vmlib, "MyUnion"));
+  EXPECT(!union_cls.IsNull());
+  service_msg = EvalF(lib,
+                      "[0, port, '0', 'getObject', false, "
+                      "['objectId'], ['classes/%" Pd "']]",
+                      union_cls.id());
+  HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+  EXPECT_SUBSTRING("\"type\":\"Class\"", handler.msg());
+  EXPECT_SUBSTRING(
+      "\"ffiLayout\":{\"size\":8,\"kind\":\"union\",\"fields\":["
+      "{\"name\":\"u1\",\"nativeType\":\"int32\",\"offset\":0,\"size\":4},"
+      "{\"name\":\"u2\",\"nativeType\":\"float\",\"offset\":0,\"size\":4},"
+      "{\"name\":\"u3\",\"nativeType\":\"Inner\",\"offset\":0,\"size\":8,"
+      "\"kind\":\"struct\",\"fields\":["
+      "{\"name\":\"a\",\"nativeType\":\"int32\",\"offset\":0,\"size\":4},"
+      "{\"name\":\"b\",\"nativeType\":\"int32\",\"offset\":4,\"size\":4}]}]}",
       handler.msg());
 
   Dart_Handle instance_handle;

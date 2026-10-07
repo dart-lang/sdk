@@ -4,6 +4,7 @@
 
 import 'dart:typed_data';
 
+import '../../debug_info.dart';
 import '../ir/ir.dart' as ir;
 import '../serialize/sections.dart';
 import 'builder.dart';
@@ -27,6 +28,7 @@ class ModuleBuilder with Builder<ir.Module> {
   final String moduleName;
   final Uri? sourceMapUrl;
   final List<int> watchPoints;
+  final DebugInfoTables? debugInfoTables;
   late final TypesBuilder types;
   late final functions = FunctionsBuilder(this);
   late final elements = ElementsBuilder(this);
@@ -39,6 +41,14 @@ class ModuleBuilder with Builder<ir.Module> {
   FunctionBuilder? _startFunction;
   final List<ExtraCustomSection> _extraCustomSections = [];
 
+  /// Whether relaxed SIMD instructions may be emitted into this module.
+  ///
+  /// Relaxed SIMD is a Wasm proposal separate from fixed-width SIMD, and its
+  /// instructions are allowed to produce different results on different
+  /// engines. A module containing one only runs on an engine implementing the
+  /// proposal, so using them is opt-in per module.
+  final bool allowRelaxedSimd;
+
   /// Create a new, initially empty, module.
   ///
   /// The [watchPoints] is a list of byte offsets within the final module of
@@ -50,7 +60,8 @@ class ModuleBuilder with Builder<ir.Module> {
     this.sourceMapUrl, {
     ModuleBuilder? parent,
     this.watchPoints = const [],
-  }) {
+    this.allowRelaxedSimd = false,
+  }) : debugInfoTables = sourceMapUrl == null ? null : DebugInfoTables() {
     types = TypesBuilder(parent: parent?.types);
   }
 
@@ -126,6 +137,7 @@ class ModuleBuilder with Builder<ir.Module> {
       watchPoints,
       sourceMapUrl,
       _extraCustomSections,
+      debugInfoTables,
     );
   }
 }

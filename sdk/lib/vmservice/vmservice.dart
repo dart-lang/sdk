@@ -130,49 +130,59 @@ String encodeSuccess(Message message) =>
 const shortDelay = Duration(milliseconds: 10);
 
 /// Called when DDS has connected.
-typedef Future<void> DdsConnectedCallback();
+typedef DdsConnectedCallback = Future<void> Function();
 
 /// Called when DDS has disconnected.
-typedef Future<void> DdsDisconnectedCallback();
+typedef DdsDisconnectedCallback = Future<void> Function();
 
 /// Called when the service is exiting.
-typedef Future<void> CleanupCallback();
+typedef CleanupCallback = Future<void> Function();
 
 /// Called to create a temporary directory
-typedef Future<Uri> CreateTempDirCallback(String base);
+typedef CreateTempDirCallback = Future<Uri> Function(String base);
 
 /// Called to delete a directory
-typedef Future<void> DeleteDirCallback(Uri path);
+typedef DeleteDirCallback = Future<void> Function(Uri path);
 
 /// Called to write a file.
-typedef Future<void> WriteFileCallback(Uri path, List<int> bytes);
+typedef WriteFileCallback = Future<void> Function(Uri path, List<int> bytes);
 
 /// Called to write a stream into a file.
-typedef Future<void> WriteStreamFileCallback(Uri path, Stream<List<int>> bytes);
+typedef WriteStreamFileCallback = Future<void> Function(
+  Uri path,
+  Stream<List<int>> bytes,
+);
 
 /// Called to read a file.
-typedef Future<List<int>> ReadFileCallback(Uri path);
+typedef ReadFileCallback = Future<List<int>> Function(Uri path);
 
 /// Called to list all files under some path.
-typedef Future<List<Map<String, dynamic>>> ListFilesCallback(Uri path);
+typedef ListFilesCallback = Future<List<Map<String, dynamic>>> Function(
+  Uri path,
+);
 
 /// Called when we need information about the server.
-typedef Future<Uri> ServerInformamessage_routertionCallback();
+typedef ServerInformamessage_routertionCallback = Future<Uri> Function();
 
 /// Called when we need information about the server.
-typedef Uri? ServerInformationCallback();
+typedef ServerInformationCallback = Uri? Function();
 
 /// Called when we want to [enable] or disable the web server or silence VM
 /// service console messages.
-typedef Future<Uri?> WebServerControlCallback(bool enable, bool? silenceOutput);
+typedef WebServerControlCallback = Future<Uri?> Function(
+  bool enable,
+  bool? silenceOutput,
+);
 
 /// Called when we want to [enable] or disable new websocket connections to the
 /// server.
-typedef void WebServerAcceptNewWebSocketConnectionsCallback(bool enable);
+typedef WebServerAcceptNewWebSocketConnectionsCallback = void Function(
+  bool enable,
+);
 
 /// Called when we want to get the appropriate resident compiler info file for
 /// the current program execution.
-typedef File? getResidentCompilerInfoFileCallback();
+typedef getResidentCompilerInfoFileCallback = File? Function();
 
 /// Hooks that are setup by the embedder.
 class VMServiceEmbedderHooks {

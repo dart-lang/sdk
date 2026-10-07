@@ -18,7 +18,7 @@
   (func $print (param $var0 (ref $#Top)) <...>)
   (@binaryen.inline 0)
   (func $sinkDouble (param $var0 f64)
-    i32.const 100
+    i32.const 99
     local.get $var0
     struct.new $BoxedDouble
     call $print
@@ -47,7 +47,7 @@
     i32.const 59
     call $"intA implicit getter"
     struct.new $BoxedInt
-    i32.const 100
+    i32.const 99
     call $"doubleA implicit getter"
     struct.new $BoxedDouble
     call $_maxSlow
@@ -105,16 +105,16 @@
       end
       local.get $var0
       struct.get $#Top $#classId
-      i32.const 100
+      i32.const 99
       i32.ne
       local.get $var1
       struct.get $#Top $#classId
-      i32.const 100
+      i32.const 99
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 100
+        i32.const 99
         local.get $var0
         ref.cast $BoxedDouble
         struct.get $BoxedDouble $value
@@ -143,7 +143,7 @@
     i32.const 59
     call $"intA implicit getter"
     struct.new $BoxedInt
-    i32.const 100
+    i32.const 99
     call $"doubleA implicit getter"
     struct.new $BoxedDouble
     call $_minSlow
@@ -201,16 +201,16 @@
       end
       local.get $var0
       struct.get $#Top $#classId
-      i32.const 100
+      i32.const 99
       i32.ne
       local.get $var1
       struct.get $#Top $#classId
-      i32.const 100
+      i32.const 99
       i32.ne
       i32.or
       i32.eqz
       if
-        i32.const 100
+        i32.const 99
         local.get $var0
         ref.cast $BoxedDouble
         struct.get $BoxedDouble $value

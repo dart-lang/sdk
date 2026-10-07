@@ -1,0 +1,2 @@
+# Ignore any local web/ directory created when testing setup commands.
+/web/

@@ -1,0 +1,23 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+//
+// Problems in library:
+//
+// org-dartlang-test:///main.dart:1:8: Error: Not found: 'package:foo/a.dart'
+// import "package:foo/a.dart";
+//        ^
+//
+// org-dartlang-test:///main.dart:3:3: Error: Method not found: 'hello'.
+//   hello();
+//   ^^^^^
+//
+
+  import "package:foo/a.dart";
+
+  static method main() → void {
+    invalid-expression "org-dartlang-test:///main.dart:3:3: Error: Method not found: 'hello'.\n  hello();\n  ^^^^^";
+  }
+}
+library from "package:foo/a.dart" as a {
+
+}

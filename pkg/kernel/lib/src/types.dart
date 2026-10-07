@@ -187,7 +187,7 @@ class Types with StandardBounds {
               new InterfaceType(
                 hierarchy.coreTypes.futureClass,
                 Nullability.nonNullable,
-                [sFutureOrType.typeArgument],
+                DartTypeList(sFutureOrType.typeArgument),
               ),
               tInterfaceType,
             )
@@ -759,7 +759,7 @@ class Types with StandardBounds {
           new InterfaceType(
             this.hierarchy.coreTypes.futureClass,
             tFutureOrNullability,
-            [tFutureOr.typeArgument],
+            DartTypeList(tFutureOr.typeArgument),
           ),
           this,
         );
@@ -799,7 +799,7 @@ class Types with StandardBounds {
               new InterfaceType(
                 this.hierarchy.coreTypes.futureClass,
                 tFutureOr.nullability,
-                [tFutureOr.typeArgument],
+                DartTypeList(tFutureOr.typeArgument),
               ),
               this,
             );
@@ -834,7 +834,7 @@ class Types with StandardBounds {
               new InterfaceType(
                 this.hierarchy.coreTypes.futureClass,
                 tFutureOrNullability,
-                [tFutureOr.typeArgument],
+                DartTypeList(tFutureOr.typeArgument),
               ),
               this,
             );
@@ -872,7 +872,7 @@ class Types with StandardBounds {
               new InterfaceType(
                 this.hierarchy.coreTypes.futureClass,
                 tFutureOr.nullability,
-                [tFutureOr.typeArgument],
+                DartTypeList(tFutureOr.typeArgument),
               ),
               this,
             ) // Rule 8.
@@ -888,12 +888,12 @@ class Types with StandardBounds {
         DartType sFutureOfArgument = new InterfaceType(
           hierarchy.coreTypes.futureClass,
           Nullability.nonNullable,
-          [sArgument],
+          DartTypeList(sArgument),
         );
         DartType tFutureOfArgument = new InterfaceType(
           hierarchy.coreTypes.futureClass,
           Nullability.nonNullable,
-          [tArgument],
+          DartTypeList(tArgument),
         );
         // The following is an optimized is-subtype-of test for the case where
         // both LHS and RHS are FutureOrs.  It's based on the following:
@@ -961,7 +961,7 @@ class Types with StandardBounds {
           new InterfaceType(
             this.hierarchy.coreTypes.futureClass,
             tFutureOrNullability,
-            [tFutureOr.typeArgument],
+            DartTypeList(tFutureOr.typeArgument),
           ),
           this,
         );
@@ -1254,7 +1254,7 @@ class Types with StandardBounds {
     return hierarchy.getTypeAsInstanceOf(type, typeDeclaration);
   }
 
-  List<DartType>? getTypeArgumentsAsInstanceOf(
+  DartTypeList? getTypeArgumentsAsInstanceOf(
     TypeDeclarationType type,
     TypeDeclaration typeDeclaration,
   ) {

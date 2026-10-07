@@ -393,15 +393,17 @@ const simpleTestMultiBreakpointProgram =
 /// Matches for the expected output of [simpleTestProgram].
 final simpleTestProgramExpectedOutput = [
   // First test
-  '✓ group 1 passing test',
+  matches(r'\d\d:\d\d \+1: ✓ group 1 passing test'),
   // Second test
   'Expected: <2>',
   '  Actual: <1>',
   // These lines contain paths, so just check the non-path parts.
   allOf(startsWith('package:matcher'), endsWith('expect')),
   endsWith('main.<fn>.<fn>'),
-  '✖ group 1 failing test',
-  '! group 1 skipped test',
+  matches(r'\d\d:\d\d \+1 -1: ✖ group 1 failing test'),
+  matches(r'\d\d:\d\d \+1 ~1 -1: \! group 1 skipped test'),
+  matches(r'\d\d:\d\d \+1 ~1 -1: 1 skipped test.'),
+  matches(r'\d\d:\d\d \+1 ~1 -1: Some tests failed.'),
   // Exit
   '',
   'Exited (1).',

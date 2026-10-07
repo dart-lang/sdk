@@ -65,13 +65,12 @@ sealed class MethodEncoding implements InferredTypeListener {
     required Uri annotatableFileUri,
   });
 
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   });
@@ -214,13 +213,12 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     List<TypeParameter>? classTypeParameters,
   }) {
@@ -265,7 +263,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       memberName.name,
       _procedureKind,
       function,
-      reference: reference,
+      reference: references?.methodReference,
       fileUri: _fragment.fileUri,
       fileStartOffset: _fragment.startOffset,
       fileOffset: _fragment.nameOffset,
@@ -279,7 +277,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override
@@ -557,13 +555,12 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   }
 
   @override
-  void buildOutlineNode(
-    SourceLibraryBuilder libraryBuilder,
-    ProblemReporting problemReporting,
-    NameScheme nameScheme,
-    BuildNodesCallback f, {
-    required Reference reference,
-    required Reference? tearOffReference,
+  void buildOutlineNode({
+    required SourceLibraryBuilder libraryBuilder,
+    required ProblemReporting problemReporting,
+    required NameScheme nameScheme,
+    required BuildNodesCallback callback,
+    required MethodReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
   }) {
@@ -628,7 +625,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       memberName.name,
       ProcedureKind.Method,
       function,
-      reference: reference,
+      reference: references?.methodReference,
       fileUri: _fragment.fileUri,
       fileStartOffset: _fragment.startOffset,
       fileOffset: _fragment.nameOffset,
@@ -646,11 +643,15 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       _extensionTearOff = _buildExtensionTearOff(
         procedure,
         nameScheme,
-        tearOffReference,
+        references?.tearOffReference,
       );
     }
 
-    f(kind: _builtMemberKind, member: procedure, tearOff: _extensionTearOff);
+    callback(
+      kind: _builtMemberKind,
+      member: procedure,
+      tearOff: _extensionTearOff,
+    );
   }
 
   @override

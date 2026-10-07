@@ -490,9 +490,21 @@ void f(B p) {
     var result = await _indexTestCode(r'''
 import 'test.dart' as p;
 
-class A {}
+class A {
+  A();
+  A.named();
+}
 
-/// [A] and [p.A].
+/// [A]
+/// [p.A]
+/// [new A]
+/// [A.new]
+/// [p.A.new]
+/// [new p.A.new]
+/// [new A.named]
+/// [A.named]
+/// [p.A.named]
+/// [new p.A.named]
 void f() {}
 ''');
 
@@ -501,11 +513,29 @@ void f() {}
     assertElementIndexText(result, element, r'''
 import 'test.dart' as p;
 
-class A {}
+class A {
+  A();
+  ^ IS_REFERENCED_BY
+  A.named();
+  ^ IS_REFERENCED_BY
+}
 
-/// [A] and [p.A].
+/// [A]
      ^ IS_REFERENCED_BY
-               ^ IS_REFERENCED_BY qualified
+/// [p.A]
+       ^ IS_REFERENCED_BY qualified
+/// [new A]
+/// [A.new]
+     ^ IS_REFERENCED_BY
+/// [p.A.new]
+       ^ IS_REFERENCED_BY qualified
+/// [new p.A.new]
+/// [new A.named]
+/// [A.named]
+     ^ IS_REFERENCED_BY
+/// [p.A.named]
+       ^ IS_REFERENCED_BY qualified
+/// [new p.A.named]
 void f() {}
 ''');
   }
@@ -809,9 +839,7 @@ class A {
 
   test_ConstructorElement_class_named_newHead() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.foo]
 class A {
   new foo() {}
   new bar() : this.foo();
@@ -832,9 +860,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   new foo() {}
   new bar() : this.foo();
@@ -859,9 +886,7 @@ void useConstructor() {
 
   test_ConstructorElement_class_named_primary() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.foo]
 class A.foo() {
   new bar() : this.foo();
   factory baz() = A.foo;
@@ -881,9 +906,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A.foo() {
   new bar() : this.foo();
                   ^^^^ IS_INVOKED_BY qualified
@@ -907,9 +931,10 @@ void useConstructor() {
 
   test_ConstructorElement_class_named_typeName() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+import 'test.dart' as p;
+
+/// [A.foo]
+/// [p.A.foo]
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -930,9 +955,12 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+import 'test.dart' as p;
+
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
+/// [p.A.foo]
+         ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A.foo() {}
   A.bar() : this.foo();
@@ -957,9 +985,7 @@ void useConstructor() {
 
   test_ConstructorElement_class_named_typeName_viaTypeAlias() async {
     var result = await _indexTestCode('''
-/// [new B.foo] and [B.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [B.foo]
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
@@ -981,9 +1007,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new B.foo] and [B.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [B.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A<T> {
   A.foo() {}
   A.bar() : this.foo();
@@ -1009,9 +1034,7 @@ void useConstructor() {
 
   test_ConstructorElement_class_unnamed_implicit() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 class B {
   B();
   factory B.baz() = A;
@@ -1032,9 +1055,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class B {
   B();
   factory B.baz() = A;
@@ -1132,9 +1154,7 @@ class C extends A {}
 
   test_ConstructorElement_class_unnamed_newHead() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 class A {
   new () {}
   new bar() : this();
@@ -1155,9 +1175,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   new () {}
   new bar() : this();
@@ -1211,9 +1230,7 @@ void f() {
 
   test_ConstructorElement_class_unnamed_primary() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 class A() {
   new bar() : this();
   factory baz() = A;
@@ -1233,9 +1250,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A() {
   new bar() : this();
                   ^0 IS_INVOKED_BY qualified
@@ -1259,9 +1275,10 @@ void useConstructor() {
 
   test_ConstructorElement_class_unnamed_typeName() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+import 'test.dart' as p;
+
+/// [A.new]
+/// [p.A.new]
 class A {
   A() {}
   A.bar() : this();
@@ -1282,9 +1299,12 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+import 'test.dart' as p;
+
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
+/// [p.A.new]
+         ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A() {}
   A.bar() : this();
@@ -1309,9 +1329,7 @@ void useConstructor() {
 
   test_ConstructorElement_class_unnamed_typeName_explicitNew() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 class A {
   A.new() {}
   A.bar() : this.new();
@@ -1332,9 +1350,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 class A {
   A.new() {}
   A.bar() : this.new();
@@ -1438,9 +1455,13 @@ enum E {
 }
 
 @E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 1] Generative enum constructors can only be used to create an enum constant.
 @p.E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 3] Generative enum constructors can only be used to create an enum constant.
 @E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 7] Generative enum constructors can only be used to create an enum constant.
 @p.E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 9] Generative enum constructors can only be used to create an enum constant.
 void f() {}
 ''');
 
@@ -1475,9 +1496,7 @@ void f() {}
 
   test_ConstructorElement_enum_named_newHead() async {
     var result = await _indexTestCode('''
-/// [new E.foo] and [E.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.foo]
 enum E {
   v.foo();
   const new foo();
@@ -1506,9 +1525,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [E.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ IS_INVOKED_BY qualified
@@ -1531,9 +1549,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_named_primary() async {
     var result = await _indexTestCode('''
-/// [new E.foo] and [E.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.foo]
 enum E.foo() {
   v.foo();
   const new bar() : this.foo();
@@ -1561,9 +1577,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [E.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E.foo() {
   v.foo();
    ^^^^ IS_INVOKED_BY qualified
@@ -1585,9 +1600,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_named_typeName() async {
     var result = await _indexTestCode('''
-/// [new E.foo] and [E.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.foo]
 enum E {
   v.foo();
   const E.foo();
@@ -1616,9 +1629,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new E.foo] and [E.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [E.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v.foo();
    ^^^^ IS_INVOKED_BY qualified
@@ -1641,9 +1653,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_unnamed_implicit() async {
     var result = await _indexTestCode('''
-/// [new E] and [E.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -1670,9 +1680,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
 
     assertElementIndexText(result, element, r'''
-/// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [E.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1696,9 +1705,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_unnamed_newHead() async {
     var result = await _indexTestCode('''
-/// [new E] and [E.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -1726,9 +1733,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
 
     assertElementIndexText(result, element, r'''
-/// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [E.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1753,9 +1759,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_unnamed_primary() async {
     var result = await _indexTestCode('''
-/// [new E] and [E.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.new]
 enum E() {
   v1,
   v2(),
@@ -1782,9 +1786,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
 
     assertElementIndexText(result, element, r'''
-/// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [E.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E() {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1808,9 +1811,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_unnamed_typeName() async {
     var result = await _indexTestCode('''
-/// [new E] and [E.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -1838,9 +1839,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
 
     assertElementIndexText(result, element, r'''
-/// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [E.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1865,9 +1865,7 @@ void useConstructor() {
 
   test_ConstructorElement_enum_unnamed_typeName_explicitNew() async {
     var result = await _indexTestCode('''
-/// [new E] and [E.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [E.new]
 enum E {
   v1,
   v2(),
@@ -1895,9 +1893,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('E');
 
     assertElementIndexText(result, element, r'''
-/// [new E] and [E.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [E.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 enum E {
   v1,
     ^0 IS_INVOKED_BY_ENUM_CONSTANT_WITHOUT_ARGUMENTS qualified
@@ -1964,9 +1961,7 @@ void f() {}
 
   test_ConstructorElement_extensionType_named_newHead() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.foo]
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
@@ -1984,9 +1979,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   new foo(this.it);
   new bar() : this.foo(0);
@@ -2007,9 +2001,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_named_primary() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.foo]
 extension type A.foo(int it) {
   new bar() : this.foo(0);
   factory baz(int it) = A.foo;
@@ -2026,9 +2018,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.foo(int it) {
   new bar() : this.foo(0);
                   ^^^^ IS_INVOKED_BY qualified
@@ -2048,9 +2039,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_named_typeName() async {
     var result = await _indexTestCode('''
-/// [new A.foo] and [A.foo]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.foo]
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
@@ -2068,9 +2057,8 @@ void useConstructor() {
     var element = result.findElement.constructor('foo');
 
     assertElementIndexText(result, element, r'''
-/// [new A.foo] and [A.foo]
-          ^^^^ IS_REFERENCED_BY qualified
-                      ^^^^ IS_REFERENCED_BY qualified
+/// [A.foo]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   A.foo(this.it);
   A.bar() : this.foo(0);
@@ -2091,9 +2079,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_unnamed_newHead() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
@@ -2111,9 +2097,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   new (this.it);
   new bar() : this(0);
@@ -2134,9 +2119,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_unnamed_primary() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 extension type A(int it) {
   new bar() : this(0);
   factory baz(int it) = A.new;
@@ -2153,9 +2136,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A(int it) {
   new bar() : this(0);
                   ^0 IS_INVOKED_BY qualified
@@ -2175,9 +2157,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_unnamed_typeName() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
@@ -2195,9 +2175,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   A(this.it);
   A.bar() : this(0);
@@ -2218,9 +2197,7 @@ void useConstructor() {
 
   test_ConstructorElement_extensionType_unnamed_typeName_explicitNew() async {
     var result = await _indexTestCode('''
-/// [new A] and [A.new]
-//   ^^^
-// [diag.deprecatedNewInCommentReference] Using the 'new' keyword in a comment reference is deprecated.
+/// [A.new]
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);
@@ -2238,9 +2215,8 @@ void useConstructor() {
     var element = result.findElement.unnamedConstructor('A');
 
     assertElementIndexText(result, element, r'''
-/// [new A] and [A.new]
-          ^0 IS_REFERENCED_BY qualified
-                  ^^^^ IS_REFERENCED_BY qualified
+/// [A.new]
+       ^^^ IS_REFERENCED_BY_CONSTRUCTOR_COMMENT_REFERENCE qualified
 extension type A.named(int it) {
   A.new(this.it);
   A.bar() : this.new(0);
@@ -2286,9 +2262,13 @@ enum E {
 }
 
 @E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 1] Generative enum constructors can only be used to create an enum constant.
 @p.E()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 3] Generative enum constructors can only be used to create an enum constant.
 @E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 7] Generative enum constructors can only be used to create an enum constant.
 @p.E.named()
+// [diag.invalidReferenceToGenerativeEnumConstructor][column 2][length 9] Generative enum constructors can only be used to create an enum constant.
 @E.myConstant
 @p.E.myConstant
 void f() {}
@@ -3402,6 +3382,64 @@ void useField(E e) {
   e.foo = 0;
     ^^^ setter IS_INVOKED_BY qualified
   E(foo: 0);
+}
+''',
+    );
+  }
+
+  test_FieldElement_ofEnum_instance_fieldDeclaration_final_invalidWrite() async {
+    var result = await _indexTestCode('''
+enum E {
+  v;
+  final int foo = 0;
+}
+void f(E e, dynamic d) {
+  e.foo = 1;
+//  ^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+  e..foo = 2;
+//   ^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+  d.foo = 3;
+  d..foo = 4;
+}
+''');
+
+    var field = result.findElement.field('foo');
+    assertElementsIndexText(
+      result,
+      {'field': field, 'getter': field.getter!},
+      r'''
+enum E {
+  v;
+  final int foo = 0;
+}
+void f(E e, dynamic d) {
+  e.foo = 1;
+    ^^^ getter IS_REFERENCED_BY qualified
+  e..foo = 2;
+     ^^^ getter IS_REFERENCED_BY qualified
+  d.foo = 3;
+  d..foo = 4;
+}
+''',
+    );
+
+    assertNamesIndexText(
+      result,
+      {'foo'},
+      r'''
+enum E {
+  v;
+  final int foo = 0;
+}
+void f(E e, dynamic d) {
+  e.foo = 1;
+  e..foo = 2;
+  d.foo = 3;
+    ^^^ IS_WRITTEN_BY qualified
+  d..foo = 4;
+     ^^^ IS_WRITTEN_BY qualified
 }
 ''',
     );
@@ -6892,7 +6930,9 @@ class A {
     item;
     ^^^^ IS_REFERENCED_BY
     this.item;
+         ^^^^ IS_REFERENCED_BY qualified
     (this).item;
+           ^^^^ IS_REFERENCED_BY qualified
   }
 }
 ''');
@@ -6906,9 +6946,7 @@ class A {
   void f() {
     item;
     this.item;
-         ^^^^ IS_READ_BY qualified
     (this).item;
-           ^^^^ IS_READ_BY qualified
   }
 }
 ''',

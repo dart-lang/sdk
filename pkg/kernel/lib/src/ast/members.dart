@@ -284,6 +284,7 @@ class Field extends Member implements ScopeProvider {
     this.type = const DynamicType(),
     this.initializer,
     bool isCovariantByDeclaration = false,
+    bool isCovariantByClass = false,
     bool isFinal = false,
     bool isStatic = false,
     bool isLate = false,
@@ -301,6 +302,7 @@ class Field extends Member implements ScopeProvider {
     initializer?.parent = this;
     thisVariable?.parent = this;
     this.isCovariantByDeclaration = isCovariantByDeclaration;
+    this.isCovariantByClass = isCovariantByClass;
     this.isFinal = isFinal;
     this.isStatic = isStatic;
     this.isLate = isLate;
@@ -1057,7 +1059,7 @@ class Procedure extends Member implements GenericFunction {
   }
 
   @override
-  List<TypeParameter> get typeParameters => function.typeParameters;
+  TypeParameterList get typeParameters => function.typeParameters;
 
   @override
   void bindCanonicalNames(CanonicalName parent) {
@@ -1356,18 +1358,18 @@ class RedirectingFactoryTarget {
 
   /// The type arguments passed to the target constructor if this is a valid
   /// redirecting factory. `null` otherwise.
-  final List<DartType>? typeArguments;
+  DartTypeList? typeArguments;
 
   /// The message for the error, if this is an erroneous redirection. `null`
   /// otherwise.
   final String? errorMessage;
 
-  new(Member target, List<DartType> typeArguments)
+  new(Member target, DartTypeList typeArguments)
     : this.byReference(target.reference, typeArguments);
 
   new byReference(
     Reference this.targetReference,
-    List<DartType> this.typeArguments,
+    DartTypeList this.typeArguments,
   ) : errorMessage = null;
 
   new error(String this.errorMessage)

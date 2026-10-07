@@ -360,6 +360,7 @@ class FlowGraphBuilder {
   LoadInstanceField addLoadInstanceField(
     CField field, {
     bool checkInitialized = false,
+    CType? type,
   }) {
     final object = pop();
     final instr = LoadInstanceField(
@@ -368,6 +369,7 @@ class FlowGraphBuilder {
       field,
       object,
       checkInitialized: checkInitialized,
+      type: type,
     );
     push(instr);
     appendInstruction(instr);
@@ -439,6 +441,24 @@ class FlowGraphBuilder {
       object: object,
     );
     push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [StoreExternalField] to the graph.
+  StoreExternalField addStoreExternalField(
+    CField field, {
+    required bool hasObject,
+  }) {
+    final value = pop();
+    final object = hasObject ? pop() : null;
+    final instr = StoreExternalField(
+      graph,
+      currentSourcePosition,
+      field,
+      object,
+      value,
+    );
     appendInstruction(instr);
     return instr;
   }

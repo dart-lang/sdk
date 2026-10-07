@@ -52,9 +52,6 @@ regexp/unicode-property-char-class_test: Skip # evades flake detection https://g
 regexp/unicode-property-invalid_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
 regexp/unicode-regexp-restricted-syntax_test: Skip # evades flake detection https://github.com/dart-lang/sdk/issues/50718
 
-[ $compiler == dart2wasm && $runtime == safari ]
-error_stack_trace1_test: Skip # Unstable on Safari https://dartbug.com/63543
-
 [ $runtime != dart_precompiled && $runtime != vm ]
 reg_exp_receive_port_test: SkipByDesign # uses SendPort/ReceivePort
 
@@ -65,9 +62,6 @@ typed_data_with_limited_ints_test: SkipByDesign # Requires fixed-size int64 supp
 
 [ $runtime == safari && ($compiler == dart2js || $compiler == ddc) ]
 regexp/group_modifier_test: RuntimeError # Safari lacks support for new regexp modifiers
-
-[ $builder_tag == dwarf || $builder_tag == obfuscated ]
-error_stack_trace1_test: SkipByDesign # Relies on symbol names in stack traces.
 
 [ $runtime == dart_precompiled || $runtime == vm ]
 regexp/global_test: Skip # Issue 21709

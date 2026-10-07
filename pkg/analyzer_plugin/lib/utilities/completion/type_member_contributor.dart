@@ -29,14 +29,7 @@ class TypeMemberContributor implements CompletionContributor {
     DartCompletionRequest request,
     CompletionCollector collector,
   ) async {
-    var containingLibrary = request.result.libraryElement;
-
-    // Recompute the target since resolution may have changed it
-    var expression = _computeDotTarget(request.result.unit, request.offset);
-    if (expression == null || expression.isSynthetic) {
-      return;
-    }
-    _computeSuggestions(request, collector, containingLibrary, expression);
+    _computeSuggestionsAt(request, collector, request.result.unit);
   }
 
   /// Clients should not overload this function.
@@ -45,64 +38,48 @@ class TypeMemberContributor implements CompletionContributor {
     CompletionCollector collector,
     AstNode entryPoint,
   ) async {
-    var containingLibrary = request.result.libraryElement;
-
-    // Recompute the target since resolution may have changed it
-    var expression = _computeDotTarget(entryPoint, request.offset);
-    if (expression == null || expression.isSynthetic) {
-      return;
-    }
-    _computeSuggestions(request, collector, containingLibrary, expression);
+    _computeSuggestionsAt(request, collector, entryPoint);
   }
 
-  /// Update the completion [target] and [dotTarget] based on the given [unit].
-  Expression? _computeDotTarget(AstNode entryPoint, int offset) {
-    var target = CompletionTarget.forOffset(entryPoint, offset);
-    return target.dotTarget;
+  void _buildSuggestions(
+    DartCompletionRequest request,
+    CompletionCollector collector,
+    DartType? type, {
+    String? containingMethodName,
+  }) {
+    if (type == null || type is DynamicType) {
+      // Suggest members from object if target is "dynamic"
+      type = request.result.typeProvider.objectType;
+    }
+
+    if (type is InterfaceType) {
+      var builder = _SuggestionBuilder(
+        request.resourceProvider,
+        collector,
+        request.result.libraryElement,
+      );
+      builder.buildSuggestions(type, containingMethodName);
+    }
   }
 
   void _computeSuggestions(
     DartCompletionRequest request,
     CompletionCollector collector,
-    LibraryElement containingLibrary,
     Expression expression,
   ) {
-    if (expression is Identifier) {
-      var element = expression.element;
-      if (element is ClassElement) {
-        // Suggestions provided by StaticMemberContributor
-        return;
-      }
-      if (element is PrefixElement) {
-        // Suggestions provided by LibraryMemberContributor
-        return;
-      }
+    if (expression is Identifier && _isStaticReceiver(expression.element)) {
+      return;
     }
 
     // Determine the target expression's type
     var type = expression.staticType;
-    if (type == null || type is DynamicType) {
-      // If the expression does not provide a good type
-      // then attempt to get a better type from the element
-      if (expression is Identifier) {
-        var elem = expression.element;
-        if (elem is FunctionTypedElement) {
-          type = elem.returnType;
-        } else if (elem is FormalParameterElement) {
-          type = elem.type;
-        } else if (elem is LocalVariableElement) {
-          type = elem.type;
-        }
-        if ((type == null || type is DynamicType) &&
-            expression is SimpleIdentifier) {
-          // If the element does not provide a good type
-          // then attempt to get a better type from a local declaration
-          var visitor = _LocalBestTypeVisitor(expression.name, request.offset);
-          if (visitor.visit(expression) && visitor.typeFound != null) {
-            type = visitor.typeFound;
-          }
-        }
-      }
+    if ((type == null || type is DynamicType) && expression is Identifier) {
+      type = _referencedType(
+        request,
+        expression.element,
+        name: expression is SimpleIdentifier ? expression.name : null,
+        node: expression,
+      );
     }
     String? containingMethodName;
     if (expression is SuperExpression && type is InterfaceType) {
@@ -117,20 +94,83 @@ class TypeMemberContributor implements CompletionContributor {
         containingMethodName = id.lexeme;
       }
     }
-    if (type == null || type is DynamicType) {
-      // Suggest members from object if target is "dynamic"
-      type = request.result.typeProvider.objectType;
+    _buildSuggestions(
+      request,
+      collector,
+      type,
+      containingMethodName: containingMethodName,
+    );
+  }
+
+  void _computeSuggestionsAt(
+    DartCompletionRequest request,
+    CompletionCollector collector,
+    AstNode entryPoint,
+  ) {
+    // Recompute the target since resolution may have changed it
+    var target = CompletionTarget.forOffset(entryPoint, request.offset);
+
+    if (target.dotTarget case var expression?) {
+      if (!expression.isSynthetic) {
+        _computeSuggestions(request, collector, expression);
+      }
+      return;
     }
 
-    // Build the suggestions
-    if (type is InterfaceType) {
-      var builder = _SuggestionBuilder(
-        request.resourceProvider,
-        collector,
-        containingLibrary,
+    // In recovery, `g.^ int y;` is parsed as the type `g.int`, so the
+    // receiver `g` is an import prefix that references a variable.
+    if (target.containingNode case NamedType(
+      :var importPrefix?,
+      :var name,
+    ) when identical(name, target.entity)) {
+      var element = importPrefix.element;
+      if (importPrefix.name.isSynthetic || _isStaticReceiver(element)) {
+        return;
+      }
+      var type = _referencedType(
+        request,
+        element,
+        name: importPrefix.name.lexeme,
+        node: importPrefix,
       );
-      builder.buildSuggestions(type, containingMethodName);
+      _buildSuggestions(request, collector, type);
     }
+  }
+
+  /// Whether members of a receiver that references [element] are suggested
+  /// by another contributor.
+  bool _isStaticReceiver(Element? element) {
+    // Suggestions provided by StaticMemberContributor, or by
+    // LibraryMemberContributor.
+    return element is ClassElement || element is PrefixElement;
+  }
+
+  /// Returns the type of the value of a reference to [element].
+  ///
+  /// If [element] does not provide a good type, and [name] is not `null`,
+  /// attempts to get a better type from a local declaration of [name] that
+  /// is visible at [node].
+  DartType? _referencedType(
+    DartCompletionRequest request,
+    Element? element, {
+    required String? name,
+    required AstNode node,
+  }) {
+    DartType? type;
+    if (element is FunctionTypedElement) {
+      type = element.returnType;
+    } else if (element is FormalParameterElement) {
+      type = element.type;
+    } else if (element is LocalVariableElement) {
+      type = element.type;
+    }
+    if ((type == null || type is DynamicType) && name != null) {
+      var visitor = _LocalBestTypeVisitor(name, request.offset);
+      if (visitor.visit(node) && visitor.typeFound != null) {
+        type = visitor.typeFound;
+      }
+    }
+    return type;
   }
 }
 

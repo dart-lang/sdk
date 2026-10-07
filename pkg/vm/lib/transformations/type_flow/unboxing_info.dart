@@ -23,12 +23,13 @@ class UnboxingInfoManager {
 
   final Map<Member, UnboxingInfoMetadata> _memberInfo = {};
 
+  final TypeFlowAnalysis typeFlowAnalysis;
   final CoreTypes _coreTypes;
   final NativeCodeOracle _nativeCodeOracle;
   final TFClass _intTFClass;
   final TFClass _doubleTFClass;
 
-  UnboxingInfoManager(TypeFlowAnalysis typeFlowAnalysis)
+  UnboxingInfoManager(this.typeFlowAnalysis)
     : _coreTypes = typeFlowAnalysis.environment.coreTypes,
       _nativeCodeOracle = typeFlowAnalysis.nativeCodeOracle,
       _intTFClass = typeFlowAnalysis.hierarchyCache.getTFClass(
@@ -170,18 +171,21 @@ class UnboxingInfoManager {
 
       for (int i = 0; i < positionalParams.length; i++) {
         final inferredType = argTypes.values[firstParamIndex + i];
-        _applyToArg(member, unboxingInfo, i, inferredType);
+        final staticType = positionalParams[i].type;
+        _applyToArg(member, unboxingInfo, i, inferredType, staticType);
       }
 
       final names = argTypes.names;
       for (int i = 0; i < names.length; i++) {
         final inferredType =
             argTypes.values[firstParamIndex + positionalParams.length + i];
+        final staticType = findNamedParameter(member.function!, names[i])!.type;
         _applyToArg(
           member,
           unboxingInfo,
           positionalParams.length + i,
           inferredType,
+          staticType,
         );
       }
 
@@ -189,15 +193,15 @@ class UnboxingInfoManager {
       _applyToReturn(member, unboxingInfo, resultType);
     } else if (member is Field) {
       final inferredType = typeFlowAnalysis.getFieldValue(member).value;
+      final staticType = member.type;
       if (member.hasSetter) {
-        _applyToArg(member, unboxingInfo, 0, inferredType);
         // Arguments of implicit setters for covariant fields
         // cannot be unboxed based on the field type as setter
         // performs a type check before value is assigned to the field.
         if (member.isCovariantByDeclaration || member.isCovariantByClass) {
           unboxingInfo.argsInfo.length = 0;
         } else {
-          _applyToArg(member, unboxingInfo, 0, inferredType);
+          _applyToArg(member, unboxingInfo, 0, inferredType, staticType);
         }
       }
       _applyToReturn(member, unboxingInfo, inferredType);
@@ -206,36 +210,57 @@ class UnboxingInfoManager {
     }
   }
 
-  UnboxingType _getUnboxingType(Member member, Type type, bool isReturn) {
-    if (type is! NullableType) {
-      if (type.isSubtypeOf(_intTFClass)) {
+  UnboxingType _getUnboxingType(
+    Member member,
+    Type inferredType,
+    DartType staticType,
+    bool isReturn,
+  ) {
+    if (inferredType is! NullableType) {
+      if (inferredType.isSubtypeOf(_intTFClass) &&
+          _isCompatibleWithStaticType(inferredType, staticType)) {
         return UnboxingType.kInt;
       }
-      if (type.isSubtypeOf(_doubleTFClass)) {
+      if (inferredType.isSubtypeOf(_doubleTFClass) &&
+          _isCompatibleWithStaticType(inferredType, staticType)) {
         return UnboxingType.kDouble;
       }
       if (isReturn) {
-        if (type is ConcreteType &&
-            type.cls.isRecord &&
-            type.cls.recordShape!.numFields ==
+        if (inferredType is ConcreteType &&
+            inferredType.cls.isRecord &&
+            inferredType.cls.recordShape!.numFields ==
                 numRecordFieldsForReturnValueUnboxing) {
-          return UnboxingType.record(type.cls.recordShape!);
+          return UnboxingType.record(inferredType.cls.recordShape!);
         }
       }
     }
     return UnboxingType.kBoxed;
   }
 
+  bool _isCompatibleWithStaticType(Type inferredType, DartType staticType) =>
+      !inferredType
+          .intersection(
+            typeFlowAnalysis.hierarchyCache.fromStaticType(staticType, true),
+            typeFlowAnalysis.hierarchyCache,
+          )
+          .hasEmptySpecialization(typeFlowAnalysis.hierarchyCache);
+
   void _applyToArg(
     Member member,
     UnboxingInfoMetadata unboxingInfo,
     int argPos,
-    Type type,
+    Type inferredType,
+    DartType staticType,
   ) {
     if (argPos < 0 || unboxingInfo.argsInfo.length <= argPos) {
       return;
     }
-    final unboxingType = _getUnboxingType(member, type, false);
+    final unboxingType = _getUnboxingType(
+      member,
+      inferredType,
+      staticType,
+      false,
+    );
     unboxingInfo.argsInfo[argPos] = unboxingInfo.argsInfo[argPos].intersect(
       unboxingType,
     );
@@ -244,9 +269,14 @@ class UnboxingInfoManager {
   void _applyToReturn(
     Member member,
     UnboxingInfoMetadata unboxingInfo,
-    Type type,
+    Type inferredType,
   ) {
-    final unboxingType = _getUnboxingType(member, type, true);
+    final unboxingType = _getUnboxingType(
+      member,
+      inferredType,
+      const DynamicType(), // Always compatible.
+      true,
+    );
     unboxingInfo.returnInfo = unboxingInfo.returnInfo.intersect(unboxingType);
   }
 

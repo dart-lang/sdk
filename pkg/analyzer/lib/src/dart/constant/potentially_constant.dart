@@ -37,19 +37,6 @@ bool isPotentiallyConstantTypeExpression(TypeAnnotation node) {
   return _ConstantTypeChecker(potentially: true).check(node);
 }
 
-bool _isConstantTypeName(Identifier name) {
-  var element = name.element;
-  if (element is InterfaceElement || element is TypeAliasElement) {
-    if (name is PrefixedIdentifier) {
-      if (name.isDeferred) {
-        return false;
-      }
-    }
-    return true;
-  }
-  return false;
-}
-
 class _Collector {
   final FeatureSet featureSet;
   final List<AstNode> nodes = [];
@@ -80,13 +67,9 @@ class _Collector {
         case ExecutableTearOffResolution():
           return;
         default:
-          nodes.add(node.dotShorthandPropertyAccess.propertyName);
+          nodes.add(node);
           return;
       }
-    }
-
-    if (node is DotShorthandPropertyAccess) {
-      return _identifier(node.propertyName);
     }
 
     if (node is ImportPrefixedNameExpression) {
@@ -103,13 +86,6 @@ class _Collector {
       return _nameExpression(node, node.resolution);
     }
 
-    if (node is DotShorthandConstructorInvocation) {
-      if (!node.isConst) {
-        nodes.add(node);
-      }
-      return;
-    }
-
     if (node is DotShorthandConstructorInvocation2) {
       if (!node.isConst) {
         nodes.add(node);
@@ -124,10 +100,6 @@ class _Collector {
         }
       }
       return;
-    }
-
-    if (node is Identifier) {
-      return _identifier(node);
     }
 
     if (node is ConstructorInvocation) {
@@ -148,10 +120,6 @@ class _Collector {
 
     if (node is RecordLiteral) {
       return _recordLiteral(node);
-    }
-
-    if (node is MethodInvocation) {
-      return _methodInvocation(node);
     }
 
     if (node is NamedFunctionInvocation) {
@@ -196,7 +164,7 @@ class _Collector {
     }
 
     if (node is UnaryOperatorInvocation) {
-      collect(node.operand as Expression);
+      collect(node.operand);
       return;
     }
 
@@ -210,10 +178,6 @@ class _Collector {
       collect(node.thenExpression2);
       collect(node.elseExpression2);
       return;
-    }
-
-    if (node is PropertyAccess) {
-      return _propertyAccess(node);
     }
 
     if (node is ReceiverPropertyExtraction) {
@@ -279,12 +243,6 @@ class _Collector {
       return;
     }
 
-    if (node is FunctionReference) {
-      _typeArgumentList(node.typeArguments);
-      collect(node.function2);
-      return;
-    }
-
     if (node is ImplicitFunctionInstantiation) {
       collect(node.operand);
       return;
@@ -304,90 +262,6 @@ class _Collector {
     nodes.add(node);
   }
 
-  void _identifier(Identifier node) {
-    var element = node.element;
-
-    if (node is PrefixedIdentifier) {
-      if (node.isDeferred) {
-        nodes.add(node);
-        return;
-      }
-      if (node.identifier.name == 'length') {
-        collect(node.prefix);
-        return;
-      }
-      if (element is MethodElement && element.isStatic) {
-        if (!_isConstantTypeName(node.prefix)) {
-          nodes.add(node);
-        }
-        return;
-      }
-    }
-
-    if (element is FormalParameterElement) {
-      var enclosing = element.enclosingElement;
-      if (enclosing is ConstructorElement &&
-          isConstConstructorElement(enclosing)) {
-        if (node.thisOrAncestorOfType2<ConstructorInitializer>() != null) {
-          return;
-        }
-        var fieldElement = node
-            .thisOrAncestorOfType2<VariableDeclaration>()
-            ?.declaredFragment
-            ?.element;
-        if (fieldElement is FieldElement &&
-            !fieldElement.isStatic &&
-            !fieldElement.isLate) {
-          return;
-        }
-      }
-      nodes.add(node);
-      return;
-    }
-
-    if (element is VariableElement) {
-      if (!element.isConst) {
-        nodes.add(node);
-      }
-      return;
-    }
-    if (element is GetterElement) {
-      var variable = element.variable;
-      if (!variable.isConst) {
-        nodes.add(node);
-      }
-      return;
-    }
-    if (_isConstantTypeName(node)) {
-      return;
-    }
-    if (element is TopLevelFunctionElement) {
-      return;
-    }
-    if (element is MethodElement && element.isStatic) {
-      return;
-    }
-    if (element is TypeParameterElement &&
-        featureSet.isEnabled(Feature.constructor_tearoffs)) {
-      return;
-    }
-    nodes.add(node);
-  }
-
-  void _methodInvocation(MethodInvocation node) {
-    var arguments = node.argumentList.arguments2;
-    if (arguments.length == 2) {
-      var element = node.methodName.element;
-      if (element is TopLevelFunctionElement && element.isDartCoreIdentical) {
-        collect(arguments[0]);
-        collect(arguments[1]);
-        return;
-      }
-    }
-    // TODO(srawlins): collect type arguments.
-    nodes.add(node);
-  }
-
   void _namedFunctionInvocation(NamedFunctionInvocation node) {
     var arguments = node.argumentList.arguments2;
     if (arguments.length == 2) {
@@ -404,7 +278,7 @@ class _Collector {
   }
 
   void _nameExpression(AstNode node, NamedReadResolution? resolution) {
-    var element = resolution.elementOrRecovery;
+    var element = resolution?.elementOrRecovery;
 
     if (element is FormalParameterElement) {
       var enclosing = element.enclosingElement;
@@ -446,40 +320,21 @@ class _Collector {
     nodes.add(node);
   }
 
-  void _propertyAccess(PropertyAccess node) {
-    // CascadeExpression is not a constant, so the target is never null.
-    var target = node.target2!;
-
-    if (node.propertyName.name == 'length') {
-      collect(target);
-      return;
-    }
-
-    if (target is PrefixedIdentifier) {
-      if (target.isDeferred) {
+  void _receiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    if (node.receiver case StaticQualifier(:var importPrefix)) {
+      if (importPrefix?.element case PrefixElement prefix
+          when prefix.fragments.any((fragment) => fragment.isDeferred)) {
         nodes.add(node);
         return;
       }
-
-      var element = node.propertyName.element;
-      if (element is GetterElement) {
-        var variable = element.variable;
-        if (!variable.isConst) {
-          nodes.add(node.propertyName);
-        }
-        return;
-      } else if (element is MethodElement) {
-        if (!element.isStatic) {
-          nodes.add(node.propertyName);
-        }
-        return;
+      switch (node.resolution?.element) {
+        case GetterElement(variable: VariableElement(isConst: true)):
+        case MethodElement(isStatic: true):
+          return;
       }
+      nodes.add(node);
+      return;
     }
-
-    nodes.add(node);
-  }
-
-  void _receiverPropertyExtraction(ReceiverPropertyExtraction node) {
     if (node.name.lexeme == 'length') {
       collect(node.receiver);
       return;
@@ -599,7 +454,7 @@ class _ConstantTypeChecker {
       }
     }
 
-    var formalParameters = node.parameters.parameters;
+    var formalParameters = node.parameters.allFormalParameters;
     for (var formalParameter in formalParameters) {
       if (formalParameter is RegularFormalParameter &&
           formalParameter.functionTypedSuffix == null) {

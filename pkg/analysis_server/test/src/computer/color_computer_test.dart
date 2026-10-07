@@ -5,10 +5,9 @@
 import 'package:analysis_server/src/computer/computer_color.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/src/utilities/extensions/diagnostic.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -384,6 +383,25 @@ void f() {
 }
 ''';
     await checkAllColors(testCode);
+  }
+
+  Future<void> test_nonConst_propertyAccess_and_binaryExpression() async {
+    const testCode = '''
+class MyWidget {
+  final Color? backgroundColor;
+  MyWidget(this.backgroundColor);
+
+  void m(Theme theme) {
+    final bg = this.backgroundColor ?? theme.secondaryContainer;
+  }
+}
+
+class Theme {
+  Color get secondaryContainer => Colors.white;
+}
+''';
+
+    await expectColors(testCode, {'Colors.white': 0xFFFFFFFF});
   }
 
   Future<void> test_noStackOverflow() async {

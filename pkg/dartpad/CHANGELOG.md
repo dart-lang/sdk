@@ -1,3 +1,33 @@
+## v0.0.10
+ - Add `dart run dartpad setup` CLI (`dart` and `flutter` subcommands) to
+   download or build DartPad SDK assets.
+ - Stop bundling prebuilt `web/` assets inside the published package archive.
+ - Pre-populate `/pub-cache` in the Flutter DartPad SDK `sdk.tar` so `pub get`
+   does not need to download precompiled packages.
+
+## v0.0.9
+ - Add missing `MessagePort` VM compilation stubs (`asTransferableMessagePort`
+   and `fromMessagePort`).
+
+## v0.0.8
+ - Precompile and pin `package:material_ui`, `package:cupertino_ui`, and hosted
+   dependencies in the Flutter DartPad SDK.
+ - Load CanvasKit from Google CDN (`www.gstatic.com/flutter-canvaskit/`) and
+   trim unused files from `sdk.tar`.
+
+## v0.0.7
+ - Dart stack traces printed from a sandbox are now mapped back to Dart source
+   locations instead of rendering as raw JavaScript frames.
+ - Fix stale hardcoded SDK `platformVersion` in the embedded `pub` tool.
+ - The Flutter DartPad SDK can now build its web SDK from this SDK's sources,
+   instead of copying the one Flutter pins.
+
+## v0.0.6
+ - Provide `Sandbox.run(entrypoint, mode)` for configuring different run modes.
+ - Simplifies embedding by introducing `SandboxedIframe` that manages `MessagePort`s directly.
+ - Faster binary data transfer over sandbox message ports using `Uint8List`.
+ - Fix race condition during language server shutdown.
+
 ## v0.0.5
  - Update embedded resources.
 

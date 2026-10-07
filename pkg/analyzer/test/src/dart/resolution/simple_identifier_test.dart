@@ -32,9 +32,7 @@ main() {
 UnqualifiedNameExpression
   name: dynamic
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: SimpleIdentifier
   token: dynamic
@@ -106,7 +104,7 @@ class C {
 //    ^^^^^
 // [diag.returnInGenerativeConstructor] Constructors can't return values.
 //       ^
-// [diag.returnOfInvalidTypeFromConstructor] A value of type 'int' can't be returned from the constructor 'C' because it has a return type of 'C'.
+// [diag.returnOfInvalidTypeFromConstructor] A value of type 'int' can't be returned from the constructor 'C.new' because it has a return type of 'C'.
 }
 ''');
 
@@ -407,9 +405,7 @@ extension E on ({int foo}) {
 UnqualifiedNameExpression
   name: bar
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: SimpleIdentifier
   token: bar
@@ -507,9 +503,7 @@ extension E on (int, String) {
 UnqualifiedNameExpression
   name: $3
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-    recovery: <null>
+    recoveryElement: <null>
   staticType: InvalidType
 V1: SimpleIdentifier
   token: $3

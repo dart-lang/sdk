@@ -277,7 +277,7 @@ class ResultLogger implements Logger {
     if (!matchedExpectations) {
       StringBuffer sb = new StringBuffer();
       if (printFailureLog) {
-        String outcome = "${result.outcome}";
+        String outcome = result.allOutcomes.join(", ");
         sb.write("FAILED: $testName: $outcome");
       }
       sb.write(result.log);
@@ -328,7 +328,7 @@ class ResultLogger implements Logger {
             .map((e) => e.toString())
             .join(", ");
         sb.write(
-          "\n\nThe test has outcome ${result.outcome}, "
+          "\n\nThe test has outcome(s) ${result.allOutcomes.join(', ')}, "
           "but was expected to have outcome(s) ${expectedOutcomes}. "
           "You might have to update the status file to the new outcome"
           "\nThere's a status entry looking something like"

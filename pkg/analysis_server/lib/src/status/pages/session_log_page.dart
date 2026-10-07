@@ -5,6 +5,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:analysis_server/src/session_logger/log_sanitizer.dart';
 import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
@@ -52,25 +53,86 @@ class SessionLogPage extends DiagnosticPageWithNav implements PostablePage {
       buffer.writeln(json.encode(entry));
     }
 
+    var sanitizedBuffer = StringBuffer();
+    var sanitizedEntries = LogSanitizer().sanitize(entries);
+    for (var entry in sanitizedEntries) {
+      sanitizedBuffer.writeln(json.encode(entry));
+    }
+
     buf.writeln('''
 <script>
 async function copyToClipboard() {
-  var copyText = document.getElementById("sessionLogContent");
+  const copyText = document.getElementById("sessionLogContent");
   if (copyText) {
     try {
-      await navigator.clipboard.writeText(copyText.innerText);
+      await navigator.clipboard.writeText(copyText.textContent ?? copyText.innerText);
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
   }
 }
+async function copySanitizedToClipboard() {
+  const copyText = document.getElementById("sanitizedSessionLogContent");
+  if (copyText) {
+    try {
+      await navigator.clipboard.writeText(copyText.textContent ?? copyText.innerText);
+    } catch (err) {
+      console.error('Failed to copy: ', err);
+    }
+  }
+}
+function downloadSessionLog() {
+  const content = document.getElementById("sessionLogContent");
+  if (content) {
+    const blob = new Blob([content.textContent], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    a.href = url;
+    a.download = "session_log_" + timestamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+}
+function downloadSanitizedSessionLog() {
+  const content = document.getElementById("sanitizedSessionLogContent");
+  if (content) {
+    const blob = new Blob([content.textContent], {type: "application/json"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+    a.href = url;
+    a.download = "sanitized_session_log_" + timestamp + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+}
 </script>
-<p><button class="btn" onclick="copyToClipboard()">Copy to Clipboard</button></p>
+<p>
+  <button class="btn" onclick="copyToClipboard()">Copy log to clipboard</button>
+  <button class="btn" onclick="downloadSessionLog()">Download log</button>
+</p>
+<p>
+  Logs are sanitized using an automated tool which may unintentionally leave
+  some sensitive information in the log, like snippets of code and file names.
+  Be sure to review the sanitized log for sensitive information before sharing.
+</p>
+<p>
+  <button class="btn" onclick="copySanitizedToClipboard()">Copy sanitized log to clipboard</button>
+  <button class="btn" onclick="downloadSanitizedSessionLog()">Download sanitized log</button>
+</p>
 ''');
 
     pre(() {
       buf.write('<code id="sessionLogContent">');
       buf.write(escape('$buffer'));
+      buf.writeln('</code>');
+      buf.write('<code id="sanitizedSessionLogContent" style="display:none">');
+      buf.write(escape('$sanitizedBuffer'));
       buf.writeln('</code>');
     });
   }

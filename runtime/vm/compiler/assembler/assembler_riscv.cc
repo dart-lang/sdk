@@ -5306,7 +5306,7 @@ void Assembler::CallRuntime(const RuntimeEntry& entry,
   if (FLAG_target_thread_sanitizer && tsan_enter_exit) {
     TsanFuncEntry(/*preserve_registers=*/false);
   }
-  lx(T5, compiler::Address(THR, entry.OffsetFromThread()));
+  LoadFromOffset(T5, THR, entry.OffsetFromThread());
   li(T4, argument_count);
   Comment("Runtime call: %s", entry.name());
   Call(Address(THR, target::Thread::call_to_runtime_entry_point_offset()));

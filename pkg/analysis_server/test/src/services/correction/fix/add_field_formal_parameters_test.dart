@@ -24,6 +24,72 @@ class AddFieldFormalNamedParametersTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.addInitializingFormalNamedParameters;
 
+  Future<void> test_conciseConstructor() async {
+    await resolveTestCode('''
+class Foo {
+  new();
+  final int i;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new({required this.i});
+  final int i;
+}
+''');
+  }
+
+  Future<void> test_conciseConstructor_hasNamedParameter() async {
+    await resolveTestCode('''
+class Foo {
+  new({this.i});
+  final int? i;
+  final int j;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new({this.i, required this.j});
+  final int? i;
+  final int j;
+}
+''');
+  }
+
+  Future<void> test_conciseConstructor_hasRequiredParameter() async {
+    await resolveTestCode('''
+class Foo {
+  new(this.i);
+  final int i;
+  final int j;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new(this.i, {required this.j});
+  final int i;
+  final int j;
+}
+''');
+  }
+
+  Future<void> test_conciseConstructor_multipleFields() async {
+    await resolveTestCode('''
+class Foo {
+  new();
+  final int i;
+  final String s;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new({required this.i, required this.s});
+  final int i;
+  final String s;
+}
+''');
+  }
+
   Future<void> test_enum() async {
     await resolveTestCode('''
 enum MyEnum {
@@ -561,6 +627,55 @@ class AddFieldFormalParametersTest extends FixProcessorTest {
 
   @override
   FixKind get kind => DartFixKind.addInitializingFormalParameters;
+
+  Future<void> test_conciseConstructor() async {
+    await resolveTestCode('''
+class Foo {
+  new();
+  final int i;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new(this.i);
+  final int i;
+}
+''');
+  }
+
+  Future<void> test_conciseConstructor_hasRequiredParameter() async {
+    await resolveTestCode('''
+class Foo {
+  new(this.i);
+  final int i;
+  final int j;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new(this.i, this.j);
+  final int i;
+  final int j;
+}
+''');
+  }
+
+  Future<void> test_conciseConstructor_multipleFields() async {
+    await resolveTestCode('''
+class Foo {
+  new();
+  final int i;
+  final String s;
+}
+''');
+    await assertHasFix('''
+class Foo {
+  new(this.i, this.s);
+  final int i;
+  final String s;
+}
+''');
+  }
 
   Future<void> test_enum() async {
     await resolveTestCode('''

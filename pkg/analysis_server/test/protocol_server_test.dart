@@ -8,11 +8,11 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart' as engine;
 import 'package:analyzer/error/error.dart' as engine;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'abstract_context.dart';
 import 'constants.dart';
 
 void main() {
@@ -297,6 +297,8 @@ class EnumTest {
         MatchKind.DOT_SHORTHANDS_CONSTRUCTOR_TEAR_OFF:
             SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_BY_CONSTRUCTOR_TEAR_OFF: SearchResultKind.REFERENCE,
+        MatchKind.REFERENCE_BY_CONSTRUCTOR_COMMENT_REFERENCE:
+            SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_IN_EXTENDS_CLAUSE: SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_IN_IMPLEMENTS_CLAUSE: SearchResultKind.REFERENCE,
         MatchKind.REFERENCE_IN_WITH_CLAUSE: SearchResultKind.REFERENCE,

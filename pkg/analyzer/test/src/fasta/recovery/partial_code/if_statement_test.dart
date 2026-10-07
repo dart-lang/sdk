@@ -39,7 +39,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: AssertStatement
@@ -76,7 +78,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: Block
@@ -111,7 +115,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: BreakStatement
@@ -146,7 +152,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: ContinueStatement
@@ -179,7 +187,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: DoStatement
@@ -223,11 +233,15 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -257,7 +271,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: ForStatement
@@ -268,7 +284,9 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: SimpleIdentifier
+                    iterable2: ParsedUnqualifiedName
+                      name: y
+                    iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -301,7 +319,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: IfStatement
@@ -340,7 +360,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: LabeledStatement
@@ -378,7 +400,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: FunctionDeclarationStatement
@@ -421,7 +445,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: FunctionDeclarationStatement
@@ -464,7 +490,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: VariableDeclarationStatement
@@ -501,7 +529,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: ReturnStatement
@@ -534,13 +564,17 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -572,7 +606,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: TryStatement
@@ -611,7 +647,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: a
+                expression(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: WhileStatement
@@ -651,7 +689,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: AssertStatement
@@ -689,7 +729,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: Block
@@ -724,7 +766,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: BreakStatement
@@ -759,7 +803,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ContinueStatement
@@ -793,7 +839,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: DoStatement
@@ -837,11 +885,15 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -872,7 +924,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ForStatement
@@ -883,7 +937,9 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: SimpleIdentifier
+                    iterable2: ParsedUnqualifiedName
+                      name: y
+                    iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -917,7 +973,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: IfStatement
@@ -957,7 +1015,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: LabeledStatement
@@ -996,7 +1056,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: FunctionDeclarationStatement
@@ -1040,7 +1102,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: FunctionDeclarationStatement
@@ -1084,7 +1148,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: VariableDeclarationStatement
@@ -1122,7 +1188,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ReturnStatement
@@ -1156,13 +1224,17 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -1195,7 +1267,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: TryStatement
@@ -1235,7 +1309,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: WhileStatement
@@ -1275,8 +1351,8 @@ CompilationUnit
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: CallInvocation
-                  receiver: SimpleIdentifier
-                    token: assert
+                  receiver: ParsedUnqualifiedName
+                    name: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2
@@ -1331,7 +1407,9 @@ CompilationUnit
                   isMap: false
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1364,7 +1442,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: BreakStatement
@@ -1400,7 +1480,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ContinueStatement
@@ -1435,7 +1517,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: DoStatement
@@ -1479,11 +1563,15 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1515,7 +1603,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ForStatement
@@ -1526,7 +1616,9 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: SimpleIdentifier
+                    iterable2: ParsedUnqualifiedName
+                      name: y
+                    iterable(v1): SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -1561,7 +1653,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: IfStatement
@@ -1604,15 +1698,21 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: l
+                expression(v1): SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -1660,7 +1760,9 @@ CompilationUnit
                       rightBracket: }
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1705,7 +1807,9 @@ CompilationUnit
                       rightBracket: }
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1737,7 +1841,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: VariableDeclarationStatement
@@ -1777,7 +1883,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: EmptyStatement
@@ -1815,14 +1923,18 @@ CompilationUnit
                 expression2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
                   rightBracket: }
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  expression(v1): SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1854,7 +1966,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: TryStatement
@@ -1895,7 +2009,9 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: WhileStatement

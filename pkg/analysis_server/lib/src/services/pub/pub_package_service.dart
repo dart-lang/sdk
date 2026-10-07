@@ -10,6 +10,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/services/pub/pub_api.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:meta/meta.dart';
@@ -141,6 +142,7 @@ class PubPackage {
 /// Expensive results are cached to disk using [resourceProvider].
 class PubPackageService {
   final InstrumentationService _instrumentationService;
+  final SessionLogger _sessionLogger;
   final PubApi _api;
 
   /// A wrapper over the "pub" command line too.
@@ -170,6 +172,7 @@ class PubPackageService {
 
   new(
     this._instrumentationService,
+    this._sessionLogger,
     this.resourceProvider,
     this._api,
     this._command,
@@ -341,6 +344,9 @@ class PubPackageService {
       }
     } catch (e) {
       _instrumentationService.logError('Error reading pub cache file: $e');
+      _sessionLogger.logException(
+        exception: 'Error reading pub cache file: $e',
+      );
       return null;
     }
   }
@@ -374,6 +380,9 @@ class PubPackageService {
       writeDiskCache();
     } catch (e) {
       _instrumentationService.logError('Failed to fetch packages from Pub: $e');
+      _sessionLogger.logException(
+        exception: 'Failed to fetch packages from Pub: $e',
+      );
     } finally {
       _nextPackageNameListRequestTimer = Timer(
         PackageDetailsCache.maxCacheAge,

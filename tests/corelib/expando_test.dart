@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 //
 // VMOptions=--enable-ffi=true
-// VMOptions=--enable-ffi=false
 
 import "package:expect/expect.dart";
 

@@ -39,14 +39,16 @@ void matchIL$createAndIterate(FlowGraph graph) {
           // related code was entirely eliminated - thus no wildcards
           // when matching.
           [
-            'i' << match.Phi('i+1', match.any),
-            match.CheckStackOverflow(),
-            match.Branch(
-              match.RelationalOp('i', match.any, kind: '>='),
-              ifTrue: 'loop_exit',
-              ifFalse: 'loop_body',
-            ),
-          ].withoutWildcards,
+            match.tight([
+              'i' << match.Phi('i+1', match.any),
+              match.CheckStackOverflow(),
+              match.Branch(
+                match.RelationalOp('i', match.any, kind: '>='),
+                ifTrue: 'loop_exit',
+                ifFalse: 'loop_body',
+              ),
+            ]),
+          ],
         ),
     'loop_exit' << match.block('Target', [match.DartReturn(match.any)]),
     'loop_body' <<
@@ -56,12 +58,14 @@ void matchIL$createAndIterate(FlowGraph graph) {
           // related code was entirely eliminated - thus no wildcards
           // when matching.
           [
-            if (is32BitConfiguration)
-              'i+1' << match.BinaryInt32Op('i', match.any)
-            else
-              'i+1' << match.BinaryInt64Op('i', match.any),
-            match.Goto('loop'),
-          ].withoutWildcards,
+            match.tight([
+              if (is32BitConfiguration)
+                'i+1' << match.BinaryInt32Op('i', match.any)
+              else
+                'i+1' << match.BinaryInt64Op('i', match.any),
+              match.Goto('loop'),
+            ]),
+          ],
         ),
   ]);
 }

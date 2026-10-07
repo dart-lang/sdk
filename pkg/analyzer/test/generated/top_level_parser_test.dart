@@ -78,12 +78,27 @@ CompilationUnit
                 fieldName(v1): SimpleIdentifier
                   token: a
                 equals: =
-                expression2: MethodInvocation
+                expression2: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
+                    name: f
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      FunctionExpression
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          rightParenthesis: )
+                        body: BlockFunctionBody
+                          block: Block
+                            leftBracket: {
+                            rightBracket: }
+                    rightParenthesis: )
+                expression(v1): MethodInvocation
                   methodName: SimpleIdentifier
                     token: f
                   argumentList: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       FunctionExpression
                         parameters: FormalParameterList
                           leftParenthesis: (
@@ -132,8 +147,8 @@ CompilationUnit
                   token: a
                 equals: =
                 expression2: ReceiverIndexExpression
-                  receiver: SimpleIdentifier
-                    token: x
+                  receiver: ParsedUnqualifiedName
+                    name: x
                   leftBracket: [
                   index: FunctionExpression
                     parameters: FormalParameterList
@@ -405,6 +420,8 @@ CompilationUnit
   void test_import_show_hide() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'import1_lib.dart' show hide, show hide ugly;
+//                                        ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -680,20 +697,45 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: B
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                IntegerLiteral
+                  literal: 2
+              rightParenthesis: )
           name: SimpleIdentifier
             token: B
           arguments: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               IntegerLiteral
                 literal: 2
             rightParenthesis: )
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: C
+                  period: .
+                name: foo
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                IntegerLiteral
+                  literal: 3
+              rightParenthesis: )
           name: PrefixedIdentifier
             prefix: SimpleIdentifier
               token: C
@@ -702,12 +744,30 @@ CompilationUnit
               token: foo
           arguments: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               IntegerLiteral
                 literal: 3
             rightParenthesis: )
         Annotation
           atSign: @
+          expression: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: d
+                  period: .
+                name: E
+              selector: ConstructorSelector
+                period: .
+                name2: bar
+            argumentList: ArgumentList
+              leftParenthesis: (
+              arguments2
+                IntegerLiteral
+                  literal: 4
+                IntegerLiteral
+                  literal: 5
+              rightParenthesis: )
           name: PrefixedIdentifier
             prefix: SimpleIdentifier
               token: d
@@ -719,7 +779,7 @@ CompilationUnit
             token: bar
           arguments: ArgumentList
             leftParenthesis: (
-            arguments2
+            arguments
               IntegerLiteral
                 literal: 4
               IntegerLiteral
@@ -1341,7 +1401,9 @@ CompilationUnit
                       contents: "
                     InterpolationExpression
                       leftBracket: ${
-                      expression2: SimpleIdentifier
+                      expression2: ParsedUnqualifiedName
+                        name: n
+                      expression(v1): SimpleIdentifier
                         token: n
                       rightBracket: }
                     InterpolationString
@@ -1656,6 +1718,8 @@ CompilationUnit
               metadata
                 Annotation
                   atSign: @
+                  expression: ParsedUnqualifiedName
+                    name: a
                   name: SimpleIdentifier
                     token: a
               name: E
@@ -2696,6 +2760,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
       libraryKeyword: library
@@ -2719,6 +2785,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
       libraryKeyword: library
@@ -2926,6 +2994,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: A
           name: SimpleIdentifier
             token: A
       libraryKeyword: library
@@ -2937,6 +3007,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: B
           name: SimpleIdentifier
             token: B
       importKeyword: import
@@ -3233,6 +3305,8 @@ CompilationUnit
             metadata
               Annotation
                 atSign: @
+                expression: ParsedUnqualifiedName
+                  name: annotation
                 name: SimpleIdentifier
                   token: annotation
             name: ONE
@@ -3341,6 +3415,8 @@ CompilationUnit
   void test_parseExportDirective_hide_show() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 export 'lib/lib.dart' hide A show B;
+//                           ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3419,6 +3495,8 @@ CompilationUnit
   void test_parseExportDirective_show_hide() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 export 'lib/lib.dart' show B hide A;
+//                           ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3569,6 +3647,8 @@ CompilationUnit
               metadata
                 Annotation
                   atSign: @
+                  expression: ParsedUnqualifiedName
+                    name: A
                   name: SimpleIdentifier
                     token: A
               name: a
@@ -3576,11 +3656,21 @@ CompilationUnit
               metadata
                 Annotation
                   atSign: @
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: B
+                    argumentList: ArgumentList
+                      leftParenthesis: (
+                      arguments2
+                        IntegerLiteral
+                          literal: 2
+                      rightParenthesis: )
                   name: SimpleIdentifier
                     token: B
                   arguments: ArgumentList
                     leftParenthesis: (
-                    arguments2
+                    arguments
                       IntegerLiteral
                         literal: 2
                     rightParenthesis: )
@@ -3594,6 +3684,19 @@ CompilationUnit
                 metadata
                   Annotation
                     atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          importPrefix: ImportPrefixReference
+                            name: C
+                            period: .
+                          name: foo
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          IntegerLiteral
+                            literal: 3
+                        rightParenthesis: )
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: C
@@ -3602,7 +3705,7 @@ CompilationUnit
                         token: foo
                     arguments: ArgumentList
                       leftParenthesis: (
-                      arguments2
+                      arguments
                         IntegerLiteral
                           literal: 3
                       rightParenthesis: )
@@ -3615,6 +3718,24 @@ CompilationUnit
                 metadata
                   Annotation
                     atSign: @
+                    expression: ConstructorInvocation
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          importPrefix: ImportPrefixReference
+                            name: d
+                            period: .
+                          name: E
+                        selector: ConstructorSelector
+                          period: .
+                          name2: bar
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        arguments2
+                          IntegerLiteral
+                            literal: 4
+                          IntegerLiteral
+                            literal: 5
+                        rightParenthesis: )
                     name: PrefixedIdentifier
                       prefix: SimpleIdentifier
                         token: d
@@ -3626,7 +3747,7 @@ CompilationUnit
                       token: bar
                     arguments: ArgumentList
                       leftParenthesis: (
-                      arguments2
+                      arguments
                         IntegerLiteral
                           literal: 4
                         IntegerLiteral
@@ -4546,6 +4667,8 @@ CompilationUnit
   void test_parseImportDirective_prefix_hide_show() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'lib/lib.dart' as a hide A show B;
+//                                ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4583,6 +4706,8 @@ CompilationUnit
   void test_parseImportDirective_prefix_show_hide() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 import 'lib/lib.dart' as a show B hide A;
+//                                ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 ''');
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4745,6 +4870,8 @@ CompilationUnit
       metadata
         Annotation
           atSign: @
+          expression: ParsedUnqualifiedName
+            name: Z
           name: SimpleIdentifier
             token: Z
       mixinKeyword: mixin
@@ -4871,7 +4998,9 @@ CompilationUnit
             name: g
             body: ExpressionFunctionBody
               functionDefinition: =>
-              expression2: SimpleIdentifier
+              expression2: ParsedUnqualifiedName
+                name: f
+              expression(v1): SimpleIdentifier
                 token: f
               semicolon: ;
           MethodDeclaration
@@ -4898,11 +5027,11 @@ CompilationUnit
                 statements
                   ExpressionStatement
                     expression2: DirectAssignment
-                      target: UnqualifiedNameAssignmentTarget
+                      target: ParsedUnqualifiedNameAssignmentTarget
                         name: f
                       operator: =
-                      value: SimpleIdentifier
-                        token: v
+                      value: ParsedUnqualifiedName
+                        name: v
                     expression(v1): AssignmentExpression
                       leftHandSide: SimpleIdentifier
                         token: f
@@ -4933,15 +5062,15 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: DirectAssignment
-                target: UnqualifiedNameAssignmentTarget
+                target: ParsedUnqualifiedNameAssignmentTarget
                   name: f
                 operator: =
                 value: BinaryOperatorInvocation
-                  leftOperand: SimpleIdentifier
-                    token: f
+                  leftOperand: ParsedUnqualifiedName
+                    name: f
                   operator: +
-                  rightOperand: SimpleIdentifier
-                    token: v
+                  rightOperand: ParsedUnqualifiedName
+                    name: v
                   binaryOperator: add
               expression(v1): AssignmentExpression
                 leftHandSide: SimpleIdentifier

@@ -4,15 +4,63 @@
 
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/doc_comment.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// Verifies various data parsed in doc comments.
 class DocCommentVerifier {
   final DiagnosticReporter _diagnosticReporter;
 
   DocCommentVerifier(this._diagnosticReporter);
+
+  /// Verifies that [commentReference] references a single element.
+  ///
+  /// A prefix alone, such as `[p]`, references the library imported with
+  /// this prefix, so it is ambiguous if there is more than one.
+  void commentReference(CommentReference commentReference) {
+    String libraryNames(Iterable<LibraryElement> libraries) {
+      var uris = {for (var library in libraries) library.uri.toString()};
+      return (uris.toList()..sort()).quotedAndCommaSeparatedWithAnd;
+    }
+
+    var components = commentReference.components;
+    if (components case [var component]) {
+      if (component.element case PrefixElement prefix) {
+        var libraries = prefix.scopeLibraries;
+        if (libraries.length > 1) {
+          _diagnosticReporter.report(
+            diag.ambiguousCommentReferencePrefix
+                .withArguments(
+                  prefix: component.name.lexeme,
+                  libraries: libraryNames(libraries),
+                )
+                .at(component.name),
+          );
+        }
+        return;
+      }
+    }
+
+    for (var component in components) {
+      if (component.element case MultiplyDefinedElementImpl element) {
+        _diagnosticReporter.report(
+          diag.ambiguousCommentReferenceName
+              .withArguments(
+                name: component.name.lexeme,
+                libraries: libraryNames(
+                  element.conflictingElements.map((e) => e.library).nonNulls,
+                ),
+              )
+              .at(component.name),
+        );
+      }
+    }
+  }
 
   void docDirective(DocDirective docDirective) {
     switch (docDirective) {
@@ -45,30 +93,6 @@ class DocCommentVerifier {
         diag.docImportCannotHaveConfigurations.atOffset(
           offset: configurations.first.offset,
           length: configurations.last.end - configurations.first.offset,
-        ),
-      );
-    }
-
-    // TODO(srawlins): Support combinators.
-    var combinators = docImport.import.combinators;
-    if (combinators.isNotEmpty) {
-      _diagnosticReporter.report(
-        diag.docImportCannotHaveCombinators.atOffset(
-          offset: combinators.first.offset,
-          length: combinators.last.end - combinators.first.offset,
-        ),
-      );
-    }
-
-    // TODO(srawlins): Support prefixes. This was done temporarily with
-    // https://dart-review.googlesource.com/c/sdk/+/387861, but this was
-    // reverted as it increased memory usage.
-    var prefix = docImport.import.prefixName;
-    if (prefix != null) {
-      _diagnosticReporter.report(
-        diag.docImportCannotHavePrefix.atOffset(
-          offset: prefix.offset,
-          length: prefix.end - prefix.offset,
         ),
       );
     }

@@ -90,6 +90,13 @@ library
           metadata
             Annotation
               atSign: @ @21
+              expression: UnqualifiedNameExpression
+                name: deprecated @22
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @22
                 element: dart:core::@getter::deprecated
@@ -164,6 +171,13 @@ library
           metadata
             Annotation
               atSign: @ @21
+              expression: UnqualifiedNameExpression
+                name: deprecated @22
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @22
                 element: dart:core::@getter::deprecated

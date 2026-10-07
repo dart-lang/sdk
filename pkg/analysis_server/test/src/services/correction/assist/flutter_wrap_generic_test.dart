@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterWrapGenericTest extends AssistProcessorTest {
+class FlutterWrapGenericTest extends BuiltInAssistProcessorTest {
   @override
   bool get addFlutterPackageDep => true;
 
@@ -292,6 +292,86 @@ class FakeFlutter {
   Widget f() {
     return widget(child: ClipRect.new());
   }
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/53412
+  Future<void> test_switchExpression_case() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+sealed class MyState {}
+class MyStateLoading extends MyState {}
+class MyStateEmpty extends MyState {}
+class MyStateLoaded extends MyState {}
+
+Widget f(MyState state) {
+  return switch (state) {
+    MyStateLoading() => const Center(
+        child: Text('loading'),
+      ),
+    MyStateEmpty() => const Center(child: Text('empty')),
+    MyStateLoaded() => const Te^xt('loaded'),
+  };
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+
+sealed class MyState {}
+class MyStateLoading extends MyState {}
+class MyStateEmpty extends MyState {}
+class MyStateLoaded extends MyState {}
+
+Widget f(MyState state) {
+  return switch (state) {
+    MyStateLoading() => const Center(
+        child: Text('loading'),
+      ),
+    MyStateEmpty() => const Center(child: Text('empty')),
+    MyStateLoaded() => widget(child: const Text('loaded')),
+  };
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/sdk/issues/53412
+  Future<void> test_switchExpression_case_onConst() async {
+    await resolveTestCode('''
+import 'package:flutter/widgets.dart';
+
+sealed class MyState {}
+class MyStateLoading extends MyState {}
+class MyStateEmpty extends MyState {}
+class MyStateLoaded extends MyState {}
+
+Widget f(MyState state) {
+  return switch (state) {
+    MyStateLoading() => const Center(
+        child: Text('loading'),
+      ),
+    MyStateEmpty() => const Center(child: Text('empty')),
+    MyStateLoaded() => ^const Text('loaded'),
+  };
+}
+''');
+    await assertHasAssist('''
+import 'package:flutter/widgets.dart';
+
+sealed class MyState {}
+class MyStateLoading extends MyState {}
+class MyStateEmpty extends MyState {}
+class MyStateLoaded extends MyState {}
+
+Widget f(MyState state) {
+  return switch (state) {
+    MyStateLoading() => const Center(
+        child: Text('loading'),
+      ),
+    MyStateEmpty() => const Center(child: Text('empty')),
+    MyStateLoaded() => widget(child: const Text('loaded')),
+  };
 }
 ''');
   }

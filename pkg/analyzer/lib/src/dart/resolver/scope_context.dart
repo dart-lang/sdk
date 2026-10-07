@@ -14,7 +14,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class ScopeContext {
   final LibraryFragmentImpl _libraryFragment;
-  final DocumentationCommentScope _docImportScope;
+  final DocImportScope? _docImportScope;
 
   Scope _nameScope;
   InstanceElementImpl? _enclosingInstanceElement;
@@ -23,12 +23,9 @@ class ScopeContext {
   ScopeContext({
     required LibraryFragmentImpl libraryFragment,
     required Scope nameScope,
-    List<LibraryElement> docImportLibraries = const [],
+    DocImportScope? docImportScope,
   }) : _libraryFragment = libraryFragment,
-       _docImportScope = DocumentationCommentScope(
-         nameScope,
-         docImportLibraries,
-       ),
+       _docImportScope = docImportScope,
        _nameScope = nameScope;
 
   InstanceElementImpl? get enclosingInstanceElement {
@@ -127,16 +124,17 @@ class ScopeContext {
   }
 
   void visitDocumentationComment(CommentImpl node, AstVisitor2 visitor) {
-    var docImportInnerScope = _docImportScope.innerScope;
-    _docImportScope.innerScope = nameScope;
-    try {
-      withScope(_docImportScope, () {
-        node.nameScope = nameScope;
-        node.visitChildren2(visitor);
-      });
-    } finally {
-      _docImportScope.innerScope = docImportInnerScope;
-    }
+    var commentScope = switch (_docImportScope) {
+      var docImportScope? => DocumentationCommentScope(
+        nameScope,
+        docImportScope,
+      ),
+      null => nameScope,
+    };
+    withScope(commentScope, () {
+      node.nameScope = nameScope;
+      node.visitChildren2(visitor);
+    });
   }
 
   void visitEnumDeclaration(
@@ -606,7 +604,7 @@ extension<E extends AstNode> on NodeList<E> {
 
 extension LocalScopeExtension on LocalScope {
   void addFormalParameterList(FormalParameterList node) {
-    for (var formalParameter in node.parameters) {
+    for (var formalParameter in node.allFormalParameters) {
       add(formalParameter.declaredFragment!.element);
     }
   }

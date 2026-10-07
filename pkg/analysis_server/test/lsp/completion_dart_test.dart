@@ -1079,6 +1079,40 @@ String m3() {
     );
   }
 
+  Future<void> test_functionType_parameterName() async {
+    content = '''
+void f(void Function(int i) x) {
+  x^
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'x',
+      labelDetail: ' void Function(int i)',
+      labelDescription: null,
+      filterText: null,
+      detail: 'void Function(int i)',
+    );
+  }
+
+  Future<void> test_functionType_parameterName_returnType() async {
+    content = '''
+void f(void Function(int i) Function() x) {
+  x^
+}
+''';
+
+    await expectLabel(
+      content,
+      label: 'x',
+      labelDetail: ' void Function(int i) Function()',
+      labelDescription: null,
+      filterText: null,
+      detail: 'void Function(int i) Function()',
+    );
+  }
+
   Future<void> test_imported_function_returnType_args() async {
     newFile(fileAPath, '''
 String a(String a, {String b}) {}
@@ -1630,11 +1664,19 @@ void f() {
     String completion, {
     required String? editText,
     InsertTextFormat? insertTextFormat,
+    Map<String, Object?>? config,
+    bool supportSnippets = true,
   }) async {
     this.content = content;
 
-    setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    if (supportSnippets) {
+      setCompletionItemSnippetSupport();
+    }
+    if (config != null) {
+      await provideConfig(initialize, config);
+    } else {
+      await initialize();
+    }
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -1950,6 +1992,41 @@ void f(int aaa) {
     );
   }
 
+  Future<void> test_completeFunctionCalls_disabled_byConfig() async {
+    content = '''
+void myFunction() {}
+
+void f() {
+  [!myFu^!]
+}
+''';
+
+    await checkCompleteFunctionCallInsertText(
+      config: {'completeFunctionCalls': false},
+      content,
+      'myFunction()',
+      editText: 'myFunction',
+    );
+  }
+
+  Future<void>
+  test_completeFunctionCalls_disabled_byLackOfSnippetSupport() async {
+    content = '''
+void myFunction() {}
+
+void f() {
+  [!myFu^!]
+}
+''';
+
+    await checkCompleteFunctionCallInsertText(
+      supportSnippets: false,
+      content,
+      'myFunction()',
+      editText: 'myFunction',
+    );
+  }
+
   Future<void> test_completeFunctionCalls_escapesDollarArgs() async {
     await checkCompleteFunctionCallInsertText(
       r'''
@@ -2113,7 +2190,7 @@ class _MyWidgetState extends State<MyWidget> {
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -2193,7 +2270,7 @@ void f() {
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -2220,7 +2297,7 @@ void f() {
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     await workspaceAnalysisComplete();
@@ -2269,7 +2346,7 @@ final a = Stri^
     }
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     await workspaceAnalysisComplete();
@@ -2290,7 +2367,7 @@ import 'dart:math' show mi^
 ''';
 
     setCompletionItemSnippetSupport();
-    await provideConfig(initialize, {'completeFunctionCalls': true});
+    await initialize();
 
     await openFile(mainFileUri, code.code);
     var res = await getCompletion(mainFileUri, code.position.position);
@@ -5971,7 +6048,7 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     required String prefix,
     required String label,
   }) async {
-    var (snippet: snippet, defaults: defaults) = await expectSnippet(
+    var (:snippet, :defaults) = await expectSnippet(
       code,
       prefix: prefix,
       label: label,

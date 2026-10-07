@@ -1,0 +1,27 @@
+void f(a) {
+a.();
+a.(0);
+a.(0, b: 1);
+a?.(0);
+a.b.(0).c;
+a..b.(0);
+a.[0];
+a.<int>[];
+a.{};
+a."s";
+}
+
+
+void[KeywordToken] f[StringToken]([BeginToken]a[StringToken])[SimpleToken] {[BeginToken]
+a[StringToken].[SimpleToken]([BeginToken])[SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken]([BeginToken]0[StringToken])[SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken]([BeginToken]0[StringToken],[SimpleToken] b[StringToken]:[SimpleToken] 1[StringToken])[SimpleToken];[SimpleToken]
+a[StringToken]?.[SimpleToken]([BeginToken]0[StringToken])[SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken]b[StringToken].[SimpleToken]([BeginToken]0[StringToken])[SimpleToken].[SimpleToken]c[StringToken];[SimpleToken]
+a[StringToken]..[SimpleToken]b[StringToken].[SimpleToken]([BeginToken]0[StringToken])[SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken][[BeginToken]0[StringToken]][SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken]<[BeginToken]int[StringToken]>[SimpleToken][][SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken]{[BeginToken]}[SimpleToken];[SimpleToken]
+a[StringToken].[SimpleToken]"s"[StringToken];[SimpleToken]
+}[SimpleToken]
+[SimpleToken]

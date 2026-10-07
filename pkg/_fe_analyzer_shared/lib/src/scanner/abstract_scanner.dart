@@ -40,10 +40,8 @@ import 'token.dart' as analyzer show StringToken;
 import 'token_constants.dart';
 import 'token_impl.dart' show DartDocToken, StringTokenImpl;
 
-typedef void LanguageVersionChanged(
-  Scanner scanner,
-  LanguageVersionToken languageVersion,
-);
+typedef LanguageVersionChanged =
+    void Function(Scanner scanner, LanguageVersionToken languageVersion);
 
 abstract class AbstractScanner implements Scanner {
   /**

@@ -468,6 +468,8 @@ class Assembler : public AssemblerBase {
   XX(L, pcmpeqd, 0x76, 0x0F, 0x66)
   XX(L, subpl, 0xFA, 0x0F, 0x66)
   XX(L, addpl, 0xFE, 0x0F, 0x66)
+  XX(L, pslld, 0xF2, 0x0F, 0x66)
+  XX(L, psrad, 0xE2, 0x0F, 0x66)
 #undef XX
 #undef AX
 #undef XA
@@ -560,6 +562,7 @@ class Assembler : public AssemblerBase {
   void negatepd(XmmRegister dst, XmmRegister src);
   void abspd(XmmRegister dst, XmmRegister src);
   void shufpd(XmmRegister dst, XmmRegister src, const Immediate& mask);
+  void pshufd(XmmRegister dst, XmmRegister src, const Immediate& mask);
 
   enum RoundingMode {
     kRoundToNearest = 0x0,

@@ -5,11 +5,13 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConstConstructorFieldTypeMismatchContextTest);
     defineReflectiveTests(ConstEvalThrowsExceptionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -84,8 +86,8 @@ class C<T> {
   final t;
   const C(dynamic x) : t = x as T;
 //                         ^^^^^^
-// [context 1] The error is in the field initializer of 'C', and occurs here.
-// [context 2] The error is in the field initializer of 'C', and occurs here.
+// [context 1] The error is in the field initializer of 'C.new', and occurs here.
+// [context 2] The error is in the field initializer of 'C.new', and occurs here.
 }
 
 main() {
@@ -106,8 +108,8 @@ class C<T> {
   final t;
   const C(dynamic x) : t = x as List<T>;
 //                         ^^^^^^^^^^^^
-// [context 1] The error is in the field initializer of 'C', and occurs here.
-// [context 2] The error is in the field initializer of 'C', and occurs here.
+// [context 1] The error is in the field initializer of 'C.new', and occurs here.
+// [context 2] The error is in the field initializer of 'C.new', and occurs here.
 }
 
 main() {
@@ -146,13 +148,64 @@ class A {
 class B extends A {
   const B(int i) : super(i);
 //      ^
-// [context 1] The evaluated constructor 'A' is called by 'B' and 'B' is defined here.
+// [context 1] The evaluated constructor 'A.new' is called by 'B.new' and 'B.new' is defined here.
 }
 main() {
   print(const B(2)); // (1)
 //      ^^^^^^^^^^
 // [diag.constEvalThrowsException][context 1][context 2] Evaluation of this constant expression throws an exception.
 }
+''');
+  }
+
+  test_assertInitializer_indirect_inSummary() async {
+    enableIndex = false;
+    librarySummaryFiles = [
+      await buildPackageFooSummary(
+        files: {
+          'lib/foo.dart': r'''
+class A {
+  const A(int i) : assert(i == 1);
+}
+
+class B extends A {
+  const B(int i) : super(i);
+}
+''',
+        },
+      ),
+    ];
+    sdkSummaryFile = await writeSdkSummary();
+
+    // No 'is called by' context message, the location of `B.new` in the
+    // summary is not known. The 'occurs here' context message has a wrong
+    // location, see `evaluateAndFormatErrorsInConstructorCall`.
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:foo/foo.dart';
+// [context 1][column 1][length 1] The exception is 'The assertion in this constant expression failed.' and occurs here.
+
+void f() {
+  print(const B(2));
+//      ^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+}
+''');
+  }
+
+  test_assertInitializer_indirect_mixinApplication() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(int i) : assert(i == 1);
+//                 ^^^^^^^^^^^^^^
+// [context 2] The exception is 'The assertion in this constant expression failed.' and occurs here.
+}
+mixin M {}
+class B = A with M;
+//    ^
+// [context 1] The evaluated constructor 'A.new' is called by 'B.new' and 'B.new' is defined here.
+const b = B(2);
+//        ^^^^
+// [diag.constEvalThrowsException][context 1][context 2] Evaluation of this constant expression throws an exception.
 ''');
   }
 
@@ -308,6 +361,103 @@ main() {
     });
   }
 
+  test_defaultValue_dynamic_extensionType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E(int it) {}
+const dynamic a = 0;
+const dynamic b = '';
+void f([E x = a]) {}
+void g([E x = b]) {}
+//            ^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+''');
+  }
+
+  test_defaultValue_dynamic_extensionType_generic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension type E<T>(int it) {}
+const dynamic a = 0;
+const dynamic b = '';
+void f<T>([E<T> x = a]) {}
+void g<T>([E<T> x = b]) {}
+//                  ^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+''');
+  }
+
+  test_defaultValue_dynamic_invalid() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const dynamic value = '';
+void f([int x = value]) {}
+//              ^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+''');
+  }
+
+  test_defaultValue_dynamic_invalid_imported() async {
+    var other = getFile('$testPackageLibPath/other.dart');
+
+    // Analyze the test file first, so that the default value is computed by
+    // the engine; the verifier of `other.dart` would store its own result.
+    await resolveFilesWithDiagnostics({
+      testFile: r'''
+import 'other.dart';
+
+var v = const A();
+''',
+      other: r'''
+const dynamic value = '';
+class A {
+  const A([int x = value]);
+//                 ^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+}
+''',
+    });
+  }
+
+  test_defaultValue_dynamic_null() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const dynamic value = null;
+void f([int x = value]) {}
+//              ^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+void g([int? x = value]) {}
+void h<T>([T? x = value]) {}
+''');
+  }
+
+  test_defaultValue_dynamic_valid() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const dynamic value = 1;
+void f([int x = value]) {}
+void g({num x = value}) {}
+class C {
+  const C([int x = value]);
+  void f([covariant int x = value]) {}
+}
+const c = C();
+''');
+  }
+
+  test_defaultValue_intToDouble() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const dynamic value = 1;
+void f([double x = value]) {}
+//                 ^^^^^
+// [diag.constEvalThrowsException] Evaluation of this constant expression throws an exception.
+void g([double x = 1]) {}
+''');
+  }
+
+  test_defaultValue_staticMismatch() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f([int x = '']) {}
+//              ^^
+// [diag.invalidAssignment] A value of type 'String' can't be assigned to a variable of type 'int'.
+''');
+  }
+
   test_enum_constructor_initializer_asExpression() async {
     await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -317,7 +467,7 @@ enum E {
   final int x;
   const E({int? x}) : x = x as int;
 //                        ^^^^^^^^
-// [context 1] The error is in the field initializer of 'E', and occurs here.
+// [context 1] The error is in the field initializer of 'E.new', and occurs here.
 }
 ''');
   }
@@ -443,6 +593,75 @@ var v = const A.a1(0);
 ''');
   }
 
+  test_redirectingFactory_dynamic_generic() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class D<T> {
+  const factory D(T x) = D<T>._;
+  const D._(Object? x);
+}
+const dynamic value = '';
+const d = D<int>(value);
+//        ^^^^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+//               ^^^^^
+// [context 1] The exception is 'A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here.
+''');
+  }
+
+  test_redirectingFactory_dynamic_optionalNamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class D {
+  const factory D({int x}) = D._;
+  const D._({Object? x});
+}
+const dynamic value = '';
+const d = D(x: value);
+//        ^^^^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+//          ^^^^^^^^
+// [context 1] The exception is 'A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here.
+''');
+  }
+
+  test_redirectingFactory_dynamic_optionalPositional() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class D {
+  const factory D([int x]) = D._;
+  const D._([Object? x]);
+}
+const dynamic value = '';
+const d = D(value);
+//        ^^^^^^^^
+// [diag.constEvalThrowsException][context 1] Evaluation of this constant expression throws an exception.
+//          ^^^^^
+// [context 1] The exception is 'A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.' and occurs here.
+''');
+  }
+
+  test_redirectingFactory_dynamic_valid() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class D<T> {
+  const factory D(T x) = D<T>._;
+  const D._(Object? x);
+}
+const dynamic value = 1;
+const d = D<int>(value);
+''');
+  }
+
+  test_redirectingFactory_omitted() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class D {
+  const factory D([int x]) = D._;
+  const D._([Object? x]);
+  const factory D.named({int x}) = D._named;
+  const D._named({Object? x});
+}
+const d = D();
+const e = D.named();
+''');
+  }
+
   test_superConstructor_paramTypeMismatch() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -452,7 +671,7 @@ class C {
 class D extends C {
   const D(d) : super(d);
 //      ^
-// [context 1] The evaluated constructor 'C' is called by 'D' and 'D' is defined here.
+// [context 1] The evaluated constructor 'C.new' is called by 'D.new' and 'D.new' is defined here.
 //                   ^
 // [context 2] The exception is 'A value of type 'String' can't be assigned to a parameter of type 'double' in a const constructor.' and occurs here.
 }

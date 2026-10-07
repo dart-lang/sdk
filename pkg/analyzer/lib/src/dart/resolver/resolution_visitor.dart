@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -70,7 +69,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     required LibraryFragmentImpl libraryFragment,
     required DiagnosticListener diagnosticListener,
     required Scope nameScope,
-    required List<LibraryElement> docImportLibraries,
+    required DocImportScope? docImportScope,
     required bool strictInference,
     required bool strictCasts,
     required TypeConstraintGenerationDataForTesting? dataForTesting,
@@ -88,7 +87,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     var scopeContext = ScopeContext(
       libraryFragment: libraryFragment,
       nameScope: nameScope,
-      docImportLibraries: docImportLibraries,
+      docImportScope: docImportScope,
     );
 
     var namedTypeResolver = NamedTypeResolver(
@@ -112,7 +111,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       typeProvider,
       libraryFragment,
       diagnosticReporter,
-      AstRewriter(diagnosticReporter),
+      AstRewriter(diagnosticReporter, scopeContext, libraryElement),
       namedTypeResolver,
       recordTypeResolver,
       scopeContext,
@@ -141,11 +140,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     InterfaceElementImpl? enclosingClassElement,
   }) {
     _namedTypeResolver.enclosingClass = enclosingClassElement;
-  }
-
-  @override
-  void visitAnnotation(covariant AnnotationImpl node) {
-    node.visitChildrenWithHooks(this, visitConstructorName: (_) {});
   }
 
   @override
@@ -292,6 +286,12 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitCommentReference(covariant CommentReferenceImpl node) {
+    var first = node.components.first;
+    first.scopeLookupResult = nameScope.lookup(first.name.lexeme);
+  }
+
+  @override
   void visitCompilationUnit(covariant CompilationUnitImpl node) {
     node.nameScope = nameScope;
     super.visitCompilationUnit(node);
@@ -307,34 +307,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     covariant ConstructorFieldInitializerImpl node,
   ) {
     node.visitChildren2(this);
-  }
-
-  @override
-  void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {
-    var newNode = _astRewriter.constructorInvocation(
-      nameScope,
-      node,
-      libraryElement: _libraryElement,
-      enclosingInstanceElement: _scopeContext.enclosingInstanceElement,
-    );
-    if (newNode != node) {
-      if (node.constructorReference.typeReference.typeArguments != null &&
-          newNode is MethodInvocation &&
-          newNode.target2 is FunctionReference &&
-          !_libraryElement.featureSet.isEnabled(Feature.constructor_tearoffs)) {
-        // A function reference with explicit type arguments (an expression of
-        // the form `a<...>.m(...)` or `p.a<...>.m(...)` where `a` does not
-        // refer to a class name, nor a type alias), is illegal without the
-        // constructor tearoff feature.
-        //
-        // This is a case where the parser does not report an error, because the
-        // parser thinks this could be an ConstructorInvocation.
-        _diagnosticReporter.report(diag.sdkVersionConstructorTearoffs.at(node));
-      }
-      return newNode.accept2(this);
-    }
-
-    super.visitConstructorInvocation(node);
   }
 
   @override
@@ -409,25 +381,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       _visitStatementInScope(node.body);
       node.condition2.accept2(this);
     });
-  }
-
-  @override
-  void visitDotShorthandConstructorInvocation(
-    covariant DotShorthandConstructorInvocationImpl node,
-  ) {
-    node.visitChildrenWithHooks(this, visitConstructorName: (_) {});
-  }
-
-  @override
-  void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
-    node.visitChildrenWithHooks(this, visitMemberName: (_) {});
-  }
-
-  @override
-  void visitDotShorthandPropertyAccess(
-    covariant DotShorthandPropertyAccessImpl node,
-  ) {
-    node.visitChildrenWithHooks(this, visitPropertyName: (_) {});
   }
 
   @override
@@ -689,23 +642,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitMethodInvocation(covariant MethodInvocationImpl node) {
-    var newNode = _astRewriter.methodInvocation(nameScope, node);
-    if (newNode != node) {
-      return newNode.accept2(this);
-    }
-
-    node.visitChildrenWithHooks(
-      this,
-      visitMethodName: (methodName) {
-        if (node.realTarget2 == null) {
-          methodName.accept2(this);
-        }
-      },
-    );
-  }
-
-  @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     _scopeContext.visitMixinDeclaration(node, visitor: this);
   }
@@ -737,6 +673,44 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitParsedCascadeName(covariant ParsedCascadeNameImpl node) =>
+      _visitParsedExpression(node);
+
+  @override
+  void visitParsedDotShorthandName(covariant ParsedDotShorthandNameImpl node) =>
+      _visitParsedExpression(node);
+
+  @override
+  void visitParsedNameAccess(covariant ParsedNameAccessImpl node) =>
+      _visitParsedExpression(node);
+
+  @override
+  void visitParsedNameAccessAssignmentTarget(
+    covariant ParsedNameAccessAssignmentTargetImpl node,
+  ) {
+    _astRewriter.parsedAssignmentTarget(nameScope, node).accept2(this);
+  }
+
+  @override
+  void visitParsedTypeArguments(covariant ParsedTypeArgumentsImpl node) =>
+      _visitParsedExpression(node);
+
+  @override
+  void visitParsedUnqualifiedName(covariant ParsedUnqualifiedNameImpl node) =>
+      _visitParsedExpression(node);
+
+  @override
+  void visitParsedUnqualifiedNameAssignmentTarget(
+    covariant ParsedUnqualifiedNameAssignmentTargetImpl node,
+  ) {
+    _astRewriter.parsedAssignmentTarget(nameScope, node).accept2(this);
+  }
+
+  @override
+  void visitParsedValueArguments(covariant ParsedValueArgumentsImpl node) =>
+      _visitParsedExpression(node);
+
+  @override
   void visitPartDirective(covariant PartDirectiveImpl node) {
     var partInclude = node.partInclude;
     if (partInclude != null) {
@@ -763,28 +737,15 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitPrefixedIdentifier(covariant PrefixedIdentifierImpl node) {
-    var newNode = _astRewriter.prefixedIdentifier(nameScope, node);
-    if (newNode != node) {
-      return newNode.accept2(this);
-    }
-
-    node.visitChildrenWithHooks(this, visitIdentifier: (_) {});
-  }
-
-  @override
   void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
     _scopeContext.visitPrimaryConstructorBody(node, visitor: this);
   }
 
   @override
-  void visitPropertyAccess(covariant PropertyAccessImpl node) {
-    var newNode = _astRewriter.propertyAccess(nameScope, node);
-    if (newNode != node) {
-      return newNode.accept2(this);
-    }
-
-    node.visitChildrenWithHooks(this, visitPropertyName: (_) {});
+  void visitReceiverPropertyAssignmentTarget(
+    covariant ReceiverPropertyAssignmentTargetImpl node,
+  ) {
+    node.visitChildren2(this);
   }
 
   @override
@@ -826,30 +787,6 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       super.visitShowCombinator(node);
     } finally {
       scope?.importsTrackingActive(true);
-    }
-  }
-
-  @override
-  void visitSimpleIdentifier(covariant SimpleIdentifierImpl node) {
-    var newNode = _astRewriter.simpleIdentifier(nameScope, node);
-    if (newNode != node) {
-      return newNode.accept2(this);
-    }
-
-    var scopeLookupResult = nameScope.lookup(node.name);
-    node.scopeLookupResult = scopeLookupResult;
-
-    var element = scopeLookupResult.getter;
-    if (element is PromotableElementImpl) {
-      node.element = element;
-
-      if (element is JoinPatternVariableElementImpl) {
-        element.references.add(node.token);
-      }
-    }
-
-    if (node.inSetterContext()) {
-      _recordUnqualifiedWrite(scopeLookupResult, node);
     }
   }
 
@@ -961,6 +898,17 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitUnqualifiedFunctionInvocation(
+    covariant UnqualifiedFunctionInvocationImpl node,
+  ) {
+    var lookup = node.scopeLookupResult ??= nameScope.lookup(node.name.lexeme);
+    if (lookup.getter case JoinPatternVariableElementImpl element) {
+      element.references.add(node.name);
+    }
+    node.visitChildren2(this);
+  }
+
+  @override
   void visitUnqualifiedNameAssignmentTarget(
     covariant UnqualifiedNameAssignmentTargetImpl node,
   ) {
@@ -978,8 +926,9 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
   void visitUnqualifiedNameExpression(
     covariant UnqualifiedNameExpressionImpl node,
   ) {
-    var scopeLookupResult = nameScope.lookup(node.name.lexeme);
-    node.scopeLookupResult = scopeLookupResult;
+    var scopeLookupResult = node.scopeLookupResult ??= nameScope.lookup(
+      node.name.lexeme,
+    );
 
     if (scopeLookupResult.getter case JoinPatternVariableElementImpl element) {
       element.references.add(node.name);
@@ -1432,6 +1381,31 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
         node.variables.accept2(this);
         node.condition2?.accept2(this);
         node.updaters2.accept2(this);
+    }
+  }
+
+  void _visitParsedExpression(ParsedExpressionImpl node) {
+    switch (_astRewriter.parsedExpression(nameScope, node)) {
+      case PreparedCascadeInvocation(:var valueArguments):
+        valueArguments.cascadeInvocationParts!.typeArguments?.accept2(this);
+        valueArguments.argumentList.accept2(this);
+      case PreparedDotShorthandInvocation(:var valueArguments):
+        valueArguments.dotShorthandInvocationParts!.typeArguments?.accept2(
+          this,
+        );
+        valueArguments.argumentList.accept2(this);
+      case PreparedReceiverInvocation(
+        :var receiver,
+        :var typeArguments,
+        :var valueArguments,
+      ):
+        if (receiver is ExpressionImpl) {
+          receiver.accept2(this);
+        }
+        typeArguments?.accept2(this);
+        valueArguments.argumentList.accept2(this);
+      case RewrittenParsedExpression(:var expression):
+        expression.accept2(this);
     }
   }
 

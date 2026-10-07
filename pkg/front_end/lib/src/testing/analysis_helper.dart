@@ -220,15 +220,10 @@ class AnalysisInterface {
     );
     ClassLookup classLookup = libraryLookup.getClass(className);
     Class cls = classLookup.cls;
-    return new InterfaceType(
-      cls,
-      Nullability.nonNullable,
-      typeArguments ??
-          new List<DartType>.generate(
-            cls.typeParameters.length,
-            (index) => const DynamicType(),
-          ),
-    );
+    DartTypeList? finalTypeArguments = typeArguments == null
+        ? null
+        : new DartTypeList.from(typeArguments);
+    return new InterfaceType(cls, Nullability.nonNullable, finalTypeArguments);
   }
 
   bool isSubtypeOf(DartType subtype, DartType supertype) {

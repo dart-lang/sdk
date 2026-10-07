@@ -4,9 +4,6 @@
 
 // Dart test program for testing typed data.
 
-// Library tag to be able to run in html test framework.
-library TypedDataIsolateTest;
-
 import 'dart:io';
 import 'dart:isolate';
 

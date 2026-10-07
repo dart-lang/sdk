@@ -1,0 +1,177 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+part unordered_property_part1.dart;
+part unordered_property_part2.dart;
+abstract class Class extends core::Object {
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  field core::int instanceField1 = 0;
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  field core::int instanceField2 = 0 /* from org-dartlang-testcase:///unordered_property_part1.dart */;
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C2
+  field core::int instanceField3 = 0 /* from org-dartlang-testcase:///unordered_property_part2.dart */;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  field core::int instanceFieldGetter1 = 0;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  field core::int instanceFieldSetter1 = 0;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  field core::int instanceFieldGetterSetter1 = 0;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  static field core::int staticField1 = 0;
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  static field core::int staticField2 = 0 /* from org-dartlang-testcase:///unordered_property_part1.dart */;
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C2
+  static field core::int staticField3 = 0 /* from org-dartlang-testcase:///unordered_property_part2.dart */;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  static field core::int staticFieldGetter = 0;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  static field core::int staticFieldSetter = 0;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  static field core::int staticFieldGetterSetter = 0;
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  abstract get instanceField4() → core::int;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  abstract set instanceField4(synthesized core::int #externalFieldValue) → void;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  abstract get instanceFieldGetter2() → core::int;
+  abstract set instanceFieldGetter2(synthesized core::int #externalFieldValue) → void;
+  abstract get instanceFieldSetter2() → core::int;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  abstract set instanceFieldSetter2(synthesized core::int #externalFieldValue) → void;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  abstract get instanceFieldGetterSetter2() → core::int;
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  abstract set instanceFieldGetterSetter2(synthesized core::int #externalFieldValue) → void;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  get instanceGetter1() → core::int
+    return 0;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  abstract get instanceGetter4() → core::int;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  set instanceSetter1(wildcard core::int _#wc3#formal) → void {
+    core::print("instanceSetter1");
+  }
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  abstract set instanceSetter4(wildcard core::int _#wc6#formal) → void;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  static get staticGetter1() → core::int
+    return 0;
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  static set staticSetter1(wildcard core::int _#wc7#formal) → void {
+    core::print("staticSetter1");
+  }
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  get /* from org-dartlang-testcase:///unordered_property_part1.dart */ instanceGetter2() → core::int
+    return 0;
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  set /* from org-dartlang-testcase:///unordered_property_part1.dart */ instanceSetter2(wildcard core::int _#wc7#formal) → void {
+    core::print("instanceSetter2");
+  }
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  static get /* from org-dartlang-testcase:///unordered_property_part1.dart */ staticGetter2() → core::int
+    return 0;
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+  static set /* from org-dartlang-testcase:///unordered_property_part1.dart */ staticSetter2(wildcard core::int _#wc12#formal) → void {
+    core::print("staticSetter2");
+  }
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C2
+  get /* from org-dartlang-testcase:///unordered_property_part2.dart */ instanceGetter3() → core::int
+    return 0;
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C2
+  set /* from org-dartlang-testcase:///unordered_property_part2.dart */ instanceSetter3(wildcard core::int _#wc11#formal) → void {
+    core::print("instanceSetter3");
+  }
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C2
+  static get /* from org-dartlang-testcase:///unordered_property_part2.dart */ staticGetter3() → core::int
+    return 0;
+  @/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+  @/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C2
+  static set /* from org-dartlang-testcase:///unordered_property_part2.dart */ staticSetter3(wildcard core::int _#wc17#formal) → void {
+    core::print("staticSetter3");
+  }
+}
+static const field core::int annotation1 = #C1;
+static const field core::int annotation2 = #C2;
+@/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+static field core::int topLevelField1 = 0;
+@/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+static field core::int topLevelField2 = 0 /* from org-dartlang-testcase:///unordered_property_part1.dart */;
+@/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C2
+static field core::int topLevelField3 = 0 /* from org-dartlang-testcase:///unordered_property_part2.dart */;
+@/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+static field core::int topLevelFieldGetter = 0;
+@/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+static field core::int topLevelFieldSetter = 0;
+@/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+static field core::int topLevelFieldGetterSetter = 0;
+@/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+static get topLevelGetter1() → core::int
+  return 0;
+@/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+static set topLevelSetter1(wildcard core::int _#wc0#formal) → void {
+  core::print("topLevelSetter1");
+}
+@/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+static get /* from org-dartlang-testcase:///unordered_property_part1.dart */ topLevelGetter2() → core::int
+  return 0;
+@/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part2.dart */ #C2
+static set /* from org-dartlang-testcase:///unordered_property_part1.dart */ topLevelSetter2(wildcard core::int _#wc2#formal) → void {
+  core::print("topLevelSetter2");
+}
+@/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C2
+static get /* from org-dartlang-testcase:///unordered_property_part2.dart */ topLevelGetter3() → core::int
+  return 0;
+@/* from org-dartlang-testcase:///unordered_property.dart */ #C1
+@/* from org-dartlang-testcase:///unordered_property_part1.dart */ #C2
+static set /* from org-dartlang-testcase:///unordered_property_part2.dart */ topLevelSetter3(wildcard core::int _#wc4#formal) → void {
+  core::print("topLevelSetter3");
+}
+
+constants  {
+  #C1 = 1
+  #C2 = 2
+}

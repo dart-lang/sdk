@@ -113,7 +113,7 @@ class LocalsHandler {
   /// copy the [directLocals], since the other fields can be shared
   /// throughout the AST visit.
   LocalsHandler.from(LocalsHandler other)
-    : directLocals = Map<Local, HInstruction>.from(other.directLocals),
+    : directLocals = Map<Local, HInstruction>.of(other.directLocals),
       redirectionMapping = other.redirectionMapping,
       executableContext = other.executableContext,
       memberContext = other.memberContext,
@@ -568,7 +568,7 @@ class LocalsHandler {
   /// from the back edge).  Populate the phis with the current values.
   void beginLoopHeader(HBasicBlock loopEntry) {
     // Create a copy because we modify the map while iterating over it.
-    Map<Local, HInstruction> savedDirectLocals = Map<Local, HInstruction>.from(
+    Map<Local, HInstruction> savedDirectLocals = Map<Local, HInstruction>.of(
       directLocals,
     );
 

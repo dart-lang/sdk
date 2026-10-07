@@ -234,14 +234,6 @@ class TypeArgumentsVerifier {
     );
   }
 
-  void checkFunctionReference(FunctionReference node) {
-    _checkInvocationTypeArguments(
-      node.typeArguments?.arguments,
-      node.function2.staticType,
-      node.staticType,
-    );
-  }
-
   void checkListLiteral(ListLiteral node) {
     var typeArguments = node.typeArguments;
     if (typeArguments != null) {
@@ -275,14 +267,6 @@ class TypeArgumentsVerifier {
         diag.expectedTwoMapTypeArguments,
       );
     }
-  }
-
-  void checkMethodInvocation(MethodInvocation node) {
-    _checkInvocationTypeArguments(
-      node.typeArguments?.arguments,
-      node.function.staticType,
-      node.staticInvokeType,
-    );
   }
 
   void checkNamedType(NamedTypeImpl node) {
@@ -653,7 +637,7 @@ class TypeArgumentsVerifier {
           }
         }
       case GenericFunctionType(:var returnType, :var parameters):
-        for (var parameter in parameters.parameters) {
+        for (var parameter in parameters.allFormalParameters) {
           if (parameter case RegularFormalParameter(
             functionTypedSuffix: null,
             type: var typeAnnotation?,

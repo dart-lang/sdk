@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/create_getter.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server/src/utilities/extensions/dart_type.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -146,7 +147,8 @@ class CreateField extends CreateFieldOrGetter {
 
   Future<void> _proposeFromIdentifier(ChangeBuilder builder) async {
     var nameNode = node;
-    if (nameNode is! SimpleIdentifier) {
+    if (nameNode is! SimpleIdentifier ||
+        nameNode.annotationContainingName != null) {
       return;
     }
     _fieldName = nameNode.name;

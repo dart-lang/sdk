@@ -1290,6 +1290,12 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
       current += PrintRightXMMOperand(current);
       Print(" [%x]", *current);
       current++;
+    } else if (opcode == 0x70) {
+      get_modrm(*current, &mod, &regop, &rm);
+      Print("pshufd %s,", NameOfXMMRegister(regop));
+      current += PrintRightXMMOperand(current);
+      Print(" [%x]", *current);
+      current++;
     } else if (opcode == 0x3A) {
       uint8_t third_byte = *current;
       current = data + 3;
@@ -1384,6 +1390,10 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
           mnemonic = "pxor";
         } else if (opcode == 0x76) {
           mnemonic = "pcmpeqd";
+        } else if (opcode == 0xF2) {
+          mnemonic = "pslld";
+        } else if (opcode == 0xE2) {
+          mnemonic = "psrad";
         } else {
           UnimplementedInstruction(*data);
           return 1;

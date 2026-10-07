@@ -19,9 +19,12 @@ import 'package:shelf_proxy/shelf_proxy.dart';
 import 'package:vm_service/vm_service.dart' as vm;
 import 'package:web_socket_channel/web_socket_channel.dart';
 
+import 'dds_client.dart';
+import 'dds_expression_evaluator.dart';
 import 'dds_isolate_manager.dart';
 import 'dds_rpcs.dart';
 import 'dds_stream_manager.dart';
+import 'rpc_extensions.dart';
 
 final _logger = Logger('DartRuntimeServiceDdsBackend');
 
@@ -77,10 +80,22 @@ class DartRuntimeServiceDdsBackend
 
   DdsStreamManager get streamManager => _streamManager;
 
+  @override
+  ExpressionEvaluator? get expressionEvaluator => _expressionEvaluator;
+  late final DdsExpressionEvaluator _expressionEvaluator;
+
   vm.VmService get vmServiceClient => _vmServiceClient;
 
   @override
   shelf.Handler get httpHandler => _httpHandler;
+
+  @override
+  ClientManager<DartRuntimeServiceDdsBackend> clientManagerBuilder() {
+    return DdsClientManager(
+      backend: this,
+      eventStreamMethods: frontend.eventStreams,
+    );
+  }
 
   /// Sets the external DevTools URI to redirect DevTools requests to.
   void setExternalDevToolsUri(Uri uri) {
@@ -232,6 +247,11 @@ class DartRuntimeServiceDdsBackend
 
     _streamManager = DdsStreamManager(backend: this);
 
+    _expressionEvaluator = DdsExpressionEvaluator(
+      backend: this,
+      clients: frontend.clients,
+    );
+
     _rpcHandlers = DdsRpcHandlers(this);
 
     // 5. Initialize DDS core streams and logging repositories.
@@ -258,6 +278,13 @@ class DartRuntimeServiceDdsBackend
     required Uri httpUri,
     required Uri wsUri,
   }) async {
+    try {
+      await _vmServiceClient.yieldControlToDds(uri: httpUri);
+    } on vm.RPCError catch (e, st) {
+      _logger.severe('Failed to yield control to DDS', e, st);
+      rethrow;
+    }
+
     final hostedDtd = _hostedDartToolingDaemon;
     final secret = hostedDtd?.secret;
     if (hostedDtd != null && secret != null) {
@@ -350,9 +377,15 @@ class DartRuntimeServiceDdsBackend
   }) async {
     try {
       final response = await _vmServiceClient.callMethod(method, args: args);
-      return response.toJson();
+      // Return the untouched raw JSON map (`response.json!`) rather than
+      // `response.toJson()`. `package:vm_service` model `toJson()` methods
+      // strip VM-private fields (such as `_heaps`, `_profiler`, and `_Zone`),
+      // omit nested `@Instance` (`kind: 'Null'`) fields that
+      // `createServiceObject` converts to `null`, and overwrite custom `type`
+      // values with `'Response'`.
+      return response.json!;
     } on vm.SentinelException catch (e) {
-      return e.sentinel.toJson();
+      return e.sentinel.json!;
     } on vm.RPCError catch (e) {
       throw json_rpc.RpcException(e.code, e.message, data: e.data);
     }

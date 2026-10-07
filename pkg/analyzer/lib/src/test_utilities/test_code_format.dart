@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
@@ -218,6 +220,11 @@ class TestCodePosition {
   final int offset;
 
   TestCodePosition(this.lineInfo, this.offset);
+
+  AstNode? findNode(ParsedUnitResult unitResult) {
+    // ignore: analyzer_to_be_deprecated_use
+    return unitResult.unit.nodeCovering(offset: offset);
+  }
 }
 
 class TestCodeRange {

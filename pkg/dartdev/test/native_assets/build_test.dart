@@ -102,6 +102,33 @@ void main([List<String> args = const []]) async {
     });
   }
 
+  test('dart build cli --verbosity=error is silent', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      await runPubGet(workingDirectory: dartAppUri, logger: logger);
+      // Build twice, so that the second build also deletes the previous
+      // output directory.
+      for (var i = 0; i < 2; i++) {
+        final result = await runDart(
+          arguments: [
+            if (fromDartdevSource) dartDevEntryScriptUri.toFilePath(),
+            'build',
+            'cli',
+            '--verbosity=error',
+          ],
+          workingDirectory: dartAppUri,
+          logger: logger,
+        );
+        expect(result.stdout, isEmpty);
+        // Errors (such as the hooks' toolchain probing) are still reported,
+        // but status messages are not.
+        expect(result.stderr, isNot(contains('Running build hooks')));
+        expect(result.stderr, isNot(contains('Deleting output directory')));
+        expect(result.stderr, isNot(contains('Generated: ')));
+      }
+    });
+  });
+
   test('dart build native assets build failure', timeout: longTimeout,
       () async {
     await nativeAssetsTest('dart_app', (dartAppUri) async {
@@ -667,6 +694,56 @@ void main() {
         );
         expect(processResult.stdout, contains('Hello isolated'));
       });
+    });
+  });
+
+  test('dart build cli dev_dependency_with_hook', timeout: longTimeout,
+      () async {
+    await nativeAssetsTest('dev_dependency_with_hook', (packageUri) async {
+      await runPubGet(workingDirectory: packageUri, logger: logger);
+
+      final binMain = File.fromUri(packageUri.resolve('bin/main.dart'));
+      await binMain.create(recursive: true);
+      await binMain.writeAsString('''
+void main() {
+  print('Hello bin');
+}
+''');
+
+      // Building an entrypoint in bin/ should not run dev_dependency hooks.
+      final binResult = await runDart(
+        arguments: [
+          'build',
+          'cli',
+          '--target=bin/main.dart',
+        ],
+        workingDirectory: packageUri,
+        logger: logger,
+      );
+      expect(binResult.stdout, isNot(contains('Running build hooks')));
+
+      // Building an entrypoint outside bin/ and lib/ (e.g., test/) should run
+      // dev_dependency hooks.
+      final testResult = await runDart(
+        arguments: [
+          'build',
+          'cli',
+          '--target=test/my_test.dart',
+        ],
+        workingDirectory: packageUri,
+        logger: logger,
+      );
+      expect(testResult.stdout, contains('Running build hooks'));
+      final testExeUri = packageUri.resolveUri(
+        relativeBundleUri
+            .resolve('bin/')
+            .resolve(OS.current.executableFileName('my_test')),
+      );
+      final processResult = await runProcess(
+        executable: testExeUri,
+        logger: logger,
+      );
+      expect(processResult.stdout, contains('All tests passed!'));
     });
   });
 

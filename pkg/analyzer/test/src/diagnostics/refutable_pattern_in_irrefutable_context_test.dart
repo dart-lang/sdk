@@ -17,6 +17,90 @@ main() {
 @reflectiveTest
 class RefutablePatternInIrrefutableContextTest
     extends PubPackageResolutionTest {
+  test_assignment_logicalOrPattern_assignedVariables() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int x, int y) {
+  [x || y] = [0];
+// ^^^^^^
+// [diag.refutablePatternInIrrefutableContext] Refutable patterns can't be used in an irrefutable context.
+//   ^^^^
+// [diag.deadCode] Dead code.
+}
+''');
+
+    var node = result.findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      LogicalOrPattern
+        leftOperand: AssignedVariablePattern
+          name: x
+          element: <testLibrary>::@function::f::@formalParameter::x
+          matchedValueType: int
+        operator: ||
+        rightOperand: AssignedVariablePattern
+          name: y
+          element: <testLibrary>::@function::f::@formalParameter::y
+          matchedValueType: int
+        matchedValueType: int
+    rightBracket: ]
+    matchedValueType: List<int>
+    requiredType: List<int>
+  equals: =
+  expression2: ListLiteral
+    leftBracket: [
+    elements2
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightBracket: ]
+    staticType: List<int>
+  patternTypeSchema: List<_>
+  staticType: List<int>
+''');
+  }
+
+  test_assignment_nullCheckPattern_assignedVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f(int x) {
+  [x?] = [0];
+// ^^
+// [diag.refutablePatternInIrrefutableContext] Refutable patterns can't be used in an irrefutable context.
+}
+''');
+
+    var node = result.findNode.singlePatternAssignment;
+    assertResolvedNodeText(node, r'''
+PatternAssignment
+  pattern: ListPattern
+    leftBracket: [
+    elements
+      NullCheckPattern
+        pattern: AssignedVariablePattern
+          name: x
+          element: <testLibrary>::@function::f::@formalParameter::x
+          matchedValueType: int
+        operator: ?
+        matchedValueType: int
+    rightBracket: ]
+    matchedValueType: List<int>
+    requiredType: List<int>
+  equals: =
+  expression2: ListLiteral
+    leftBracket: [
+    elements2
+      IntegerLiteral
+        literal: 0
+        staticType: int
+    rightBracket: ]
+    staticType: List<int>
+  patternTypeSchema: List<_>
+  staticType: List<int>
+''');
+  }
+
   test_declaration_constantPattern() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {

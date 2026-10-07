@@ -2110,7 +2110,9 @@ CompilationUnit
                 VariableDeclaration
                   name: A
                   equals: =
-                  initializer2: SimpleIdentifier
+                  initializer2: ParsedUnqualifiedName
+                    name: B
+                  initializer(v1): SimpleIdentifier
                     token: B
             semicolon: ; <synthetic>
           MethodDeclaration

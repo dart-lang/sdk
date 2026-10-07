@@ -25,20 +25,20 @@ import 'package:analysis_server/src/channel/channel.dart';
 /// * `getHover`
 ///
 /// Discarded requests are reported into [discardedRequests].
-Stream<RequestOrResponse> debounceRequests(
+Stream<ClientMessage> debounceRequests(
   ServerCommunicationChannel channel,
-  StreamController<RequestOrResponse> discardedRequests,
+  StreamController<ClientMessage> discardedRequests,
 ) {
   return _DebounceRequests(channel, discardedRequests).requests;
 }
 
 class _DebounceRequests {
   final ServerCommunicationChannel channel;
-  final StreamController<RequestOrResponse> discardedRequests;
-  late final Stream<RequestOrResponse> requests;
+  final StreamController<ClientMessage> discardedRequests;
+  late final Stream<ClientMessage> requests;
 
   new(this.channel, this.discardedRequests) {
-    var buffer = <RequestOrResponse>[];
+    var buffer = <ClientMessage>[];
     Timer? timer;
 
     requests = channel.requests.transform(
@@ -62,8 +62,8 @@ class _DebounceRequests {
     );
   }
 
-  List<RequestOrResponse> _filterRequests(List<RequestOrResponse> requests) {
-    var reversed = <RequestOrResponse>[];
+  List<ClientMessage> _filterRequests(List<ClientMessage> requests) {
+    var reversed = <ClientMessage>[];
     var abortCompletionRequests = false;
     var abortHoverRequests = false;
     var abortAssistsRequests = false;

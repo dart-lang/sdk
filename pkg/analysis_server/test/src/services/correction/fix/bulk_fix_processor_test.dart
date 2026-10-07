@@ -4,16 +4,20 @@
 
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart';
+import 'package:analysis_server_plugin/src/correction/dart_change_workspace.dart';
+import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/test_instrumentation_service.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../utils/test_instrumentation_service.dart';
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AdditionalEnabledCodesTest);
+    defineReflectiveTests(CannotBeAppliedAutomaticallyTest);
     defineReflectiveTests(HasFixesTest);
     defineReflectiveTests(ChangeMapTest);
     defineReflectiveTests(NoFixTest);
@@ -36,7 +40,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
@@ -50,6 +54,95 @@ var a = new A();
     var errors = processor.changeMap.libraryMap[testFile.path]!;
     expect(errors, hasLength(1));
     expect(errors[LintNames.unnecessary_new], 1);
+  }
+
+  /// Enabling additional codes causes the analysis context to be rebuilt. That
+  /// rebuild must preserve the included paths of the original context root.
+  ///
+  /// In a pub workspace the context root is the workspace directory rather
+  /// than the individual package, so rebuilding from the root alone would
+  /// silently pull every other package in the workspace into the analysis.
+  Future<void>
+  test_additionalEnabledCodes_doesNotAnalyzeOutsideIncludedPaths() async {
+    var workspaceRootPath = '/home';
+    var package1RootPath = '$workspaceRootPath/package1';
+    var package2RootPath = '$workspaceRootPath/package2';
+
+    // See https://dart.dev/tools/pub/workspaces
+    newPubspecYamlFile(workspaceRootPath, r'''
+name: _
+publish_to: none
+environment:
+  sdk: ^3.6.0
+workspace:
+  - package1
+  - package2
+''');
+    newPubspecYamlFile(package1RootPath, r'''
+name: package1
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+    newPubspecYamlFile(package2RootPath, r'''
+name: package2
+environment:
+  sdk: ^3.6.0
+resolution: workspace
+''');
+    newPackageConfigJsonFileFromBuilder(
+      workspaceRootPath,
+      PackageConfigFileBuilder()
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
+    );
+
+    // Both packages contain a fixable `unnecessary_new`, but only `package1`
+    // is included in the analysis context.
+    var file1 = newFile('$package1RootPath/lib/library1.dart', '''
+class A {}
+var a = new A();
+''');
+    var file2 = newFile('$package2RootPath/lib/library2.dart', '''
+class B {}
+var b = new B();
+''');
+
+    var collection1 = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [getFolder(package1RootPath).path],
+    );
+    var context1 = collection1.contextFor(file1.path);
+
+    var collection2 = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [getFolder(package2RootPath).path],
+    );
+    var context2 = collection2.contextFor(file2.path);
+
+    // Precondition: the context root is the whole workspace, which is strictly
+    // larger than what was asked to be analyzed. Without this the test would
+    // pass vacuously.
+    expect(context1.contextRoot.root.path, convertPath(workspaceRootPath));
+    expect(context1.contextRoot.analyzedFiles(), isNot(contains(file2.path)));
+
+    // The change workspace deliberately includes `package2`'s session as well.
+    // A [ChangeWorkspace] silently declines to edit files it does not contain,
+    // so without this the assertion below would hold even for a processor that
+    // wrongly analyzed `package2`.
+    var processor = BulkFixProcessor.withAdditionalLints(
+      TestInstrumentationService(),
+      DartChangeWorkspace([context1.currentSession, context2.currentSession]),
+      byteStore: MemoryByteStore(),
+      additionalLintCodes: [LintNames.unnecessary_new],
+    );
+
+    await processor.fixErrors([context1]);
+
+    expect(processor.changeMap.libraryMap, contains(file1.path));
+    expect(processor.changeMap.libraryMap, isNot(contains(file2.path)));
   }
 
   Future<void>
@@ -71,7 +164,7 @@ class B extends A {
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
@@ -100,7 +193,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
@@ -128,7 +221,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var processor = BulkFixProcessor.withAdditionalLints(
       TestInstrumentationService(),
@@ -146,6 +239,44 @@ var a = new A();
         .map((rule) => rule.name)
         .toList();
     expect(originalLints, isNot(contains(LintNames.unnecessary_new)));
+  }
+}
+
+/// Regression test for https://github.com/dart-lang/sdk/issues/64331.
+///
+/// Running `dart fix --apply` on a file with `comment_references` violations
+/// used to apply ALL suggested import options at once (both `@docImport`
+/// variants and regular `import ... show` variants), corrupting the file.
+/// The fix ensures each generated producer is gated on
+/// [CorrectionApplicability.canBeAppliedAcrossFiles], which [ImportLibrary]
+/// does not satisfy, so no bulk change should be produced.
+@reflectiveTest
+class CannotBeAppliedAutomaticallyTest extends BulkFixProcessorTest {
+  @override
+  String? get lintCode => LintNames.comment_references;
+
+  Future<void> test_noFixApplied_whenMultipleCandidateLibraries() async {
+    // Create two libraries that both export classes referenced in doc comments
+    // so that the `comment_references` lint fires and [ImportLibrary] would
+    // have multiple candidates to suggest.
+    newFile('$testPackageLibPath/foo.dart', '''
+library foo;
+class Foo {}
+''');
+    newFile('$testPackageLibPath/src/bar.dart', '''
+library bar;
+class Bar {}
+''');
+
+    await resolveTestCode('''
+/// Reference to [Foo] and [Bar].
+class Clazz {}
+''');
+
+    // No changes should be applied in bulk for `comment_references` because
+    // [ImportLibrary] producers have [CorrectionApplicability.singleLocation]
+    // and are therefore not safe to apply automatically across files.
+    await assertNoFix();
   }
 }
 
@@ -183,7 +314,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor2(testFile);
     var changeWorkspace = await workspace;
     var token = CancelableToken();
     var processor = BulkFixProcessor(
@@ -401,6 +532,32 @@ void bad() {
 
 @reflectiveTest
 class PubspecFixTest extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.depend_on_referenced_packages;
+
+  Future<void> test_conditionalImportsAndExports() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+  b: any
+  c: any
+  d: any
+''';
+    updateTestPubspecFile(content);
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+import 'package:a/a.dart' if (dart.library.io) 'package:b/b.dart';
+export 'package:c/c.dart' if (dart.library.html) 'package:d/d.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
   Future<void> test_dedupe_devPackages_against_packages() async {
     var content = '''
 name: test
@@ -550,6 +707,58 @@ void bad() {
   }
 }
 ''');
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_libraryWithExports() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+export 'package:a/a.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_mixedAcrossPartHierarchy() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+  b: any
+  c: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/part2.dart', '''
+part of 'part1.dart';
+import 'package:c/c.dart';
+''');
+
+    newFile('$testPackageLibPath/part1.dart', '''
+part of 'lib.dart';
+export 'package:b/b.dart';
+part 'part2.dart';
+''');
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+import 'package:a/a.dart';
+part 'part1.dart';
+''');
+
+    await getResolvedUnit(testFile);
     await assertFixPubspec(content, expected);
   }
 
@@ -734,5 +943,150 @@ dependencies:
 
     await resolveTestCode("import 'package:a/a.dart';");
     await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_partsWithExports_inLib() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'lib.dart';
+export 'package:a/a.dart';
+''');
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+part 'part.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_partsWithImports_inLib() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/part.dart', '''
+part of 'lib.dart';
+import 'package:a/a.dart';
+''');
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+part 'part.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_partsWithImports_inTest() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dev_dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageTestPath/test_part.dart', '''
+part of 'test.dart';
+import 'package:a/a.dart';
+''');
+
+    var testFile = newFile('$testPackageTestPath/test.dart', '''
+part 'test_part.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_partsWithParts_andExports() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/part2.dart', '''
+part of 'part1.dart';
+export 'package:a/a.dart';
+''');
+
+    newFile('$testPackageLibPath/part1.dart', '''
+part of 'lib.dart';
+part 'part2.dart';
+''');
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+part 'part1.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_partsWithParts_andImports() async {
+    var content = '''
+name: test
+''';
+    var expected = '''
+name: test
+dependencies:
+  a: any
+''';
+    updateTestPubspecFile(content);
+
+    newFile('$testPackageLibPath/part2.dart', '''
+part of 'part1.dart';
+import 'package:a/a.dart';
+''');
+
+    newFile('$testPackageLibPath/part1.dart', '''
+part of 'lib.dart';
+part 'part2.dart';
+''');
+
+    var testFile = newFile('$testPackageLibPath/lib.dart', '''
+part 'part1.dart';
+''');
+
+    await getResolvedUnit(testFile);
+    await assertFixPubspec(content, expected);
+  }
+
+  Future<void> test_pubspec_excluded_noLint() async {
+    createAnalysisOptionsFile(
+      experimentalFeatures: experimentalFeatures,
+      lints: [LintNames.prefer_final_locals],
+    );
+
+    var content = '''
+name: test
+''';
+    updateTestPubspecFile(content);
+
+    await resolveTestCode("import 'package:a/a.dart';");
+    await assertFixPubspec(content, content);
   }
 }

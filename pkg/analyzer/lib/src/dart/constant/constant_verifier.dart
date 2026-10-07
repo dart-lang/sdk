@@ -99,28 +99,23 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
            : null;
 
   @override
-  void visitAnnotation(Annotation node) {
+  void visitAnnotation(covariant AnnotationImpl node) {
     super.visitAnnotation(node);
-    // check annotation creation
-    var element = node.element;
-    if (element is ConstructorElement) {
-      // should be 'const' constructor
-      if (!element.isConst) {
-        _diagnosticReporter.report(
-          diag.nonConstantAnnotationConstructor.at(node),
-        );
-        return;
-      }
-      // should have arguments
-      var argumentList = node.arguments;
-      if (argumentList == null) {
+    // A type literal `@C` and a constructor tear-off `@C.named` are valid
+    // constant expressions, but not valid annotations, which must invoke a
+    // constant constructor. The intent was almost certainly to invoke the
+    // constructor, so report that the arguments are missing. Whether the
+    // constructor is const is checked once it is invoked.
+    switch (node.expression) {
+      case ConstructorTearOffImpl(element: _?):
+      case TypeLiteralImpl(
+        type: NamedTypeImpl(element: InterfaceElement(unnamedConstructor: _?)),
+      ):
         _diagnosticReporter.report(
           diag.noAnnotationConstructorArguments.at(node),
         );
-        return;
-      }
-      // arguments should be constants
-      _validateConstantArguments(argumentList);
+      default:
+        break;
     }
   }
 
@@ -248,20 +243,6 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    if (node.isConst) {
-      var constructor = node.constructorName.element;
-      if (constructor is InternalConstructorElement) {
-        _validateConstructorInvocation(node, constructor, node.argumentList);
-      }
-    } else {
-      super.visitDotShorthandConstructorInvocation(node);
-    }
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -302,23 +283,6 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     super.visitFunctionInstantiation(node);
     if (node.inConstantContext || node.inConstantExpression) {
       for (var typeArgument in node.typeArguments.arguments) {
-        _checkForConstWithTypeParameters(
-          typeArgument,
-          diag.constWithTypeParametersFunctionTearoff,
-        );
-      }
-    }
-  }
-
-  @override
-  void visitFunctionReference(FunctionReference node) {
-    super.visitFunctionReference(node);
-    if (node.inConstantContext || node.inConstantExpression) {
-      var typeArguments = node.typeArguments;
-      if (typeArguments == null) {
-        return;
-      }
-      for (var typeArgument in typeArguments.arguments) {
         _checkForConstWithTypeParameters(
           typeArgument,
           diag.constWithTypeParametersFunctionTearoff,
@@ -689,7 +653,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
           allowedTypeParameters: allowedTypeParameters,
         );
       }
-      for (var parameter in type.parameters.parameters) {
+      for (var parameter in type.parameters.allFormalParameters) {
         // In a generic function type, [parameter] can only be a non
         // function-typed regular formal parameter.
         if (parameter is RegularFormalParameter &&
@@ -723,8 +687,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   /// error code to be reported.
   Constant _evaluateAndReportError(
     Expression expression,
-    DiagnosticCode diagnosticCode,
-  ) {
+    DiagnosticCode diagnosticCode, {
+    TypeImpl? implicitCastType,
+  }) {
     var diagnosticListener = RecordingDiagnosticListener();
     var subDiagnosticReporter = DiagnosticReporter(
       diagnosticListener,
@@ -735,7 +700,10 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
       _currentLibrary,
       subDiagnosticReporter,
     );
-    var result = constantVisitor.evaluateConstant(expression);
+    var result = constantVisitor.evaluateConstant(
+      expression,
+      implicitCastType: implicitCastType,
+    );
     if (result is InvalidConstant) {
       _reportError(result, diagnosticCode);
     }
@@ -945,6 +913,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     for (var formalParameter in parameters.allFormalParameters) {
       if (formalParameter.defaultClause case var defaultClause?) {
         var defaultValue = defaultClause.value2;
+        var element = formalParameter.declaredFragment!.element;
         Constant? result;
         if (defaultValue.typeOrThrow is InvalidType) {
           // We have already reported an error.
@@ -952,9 +921,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
           result = _evaluateAndReportError(
             defaultValue,
             diag.nonConstantDefaultValue,
+            implicitCastType: element.type,
           );
         }
-        var element = formalParameter.declaredFragment!.element;
         element.evaluationResult = result;
       }
     }

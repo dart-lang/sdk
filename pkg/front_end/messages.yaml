@@ -4549,6 +4549,15 @@ unavailableDartLibrary:
   script: |
     import "dart:non_existing_library";
 
+deprecatedJsInteropLibraryImport:
+  parameters:
+    Uri uri: The URI of the deprecated JS interop library.
+  problemMessage: |
+    Import of deprecated JS interop library '#uri' is not allowed.
+    Deprecated JS interop libraries are planned for removal in Dart 4.0.
+    Migrate to 'package:web' and 'dart:js_interop' (see https://dart.dev/interop/js-interop/past-js-interop), or temporarily enable the 'deprecated-js-interop' option.
+  external: test/deprecated_js_interop_library_import_test.dart
+
 unsupportedPlatformDartLibraryImport:
   parameters:
     Uri uri: The URI of the library that is unsupported.
@@ -7228,6 +7237,11 @@ wasmExternMemoryMissingAnnotation:
   problemMessage: "This external getter returns a memory instance, but no annotation describing it was found"
   correctionMessage: "Try adding a `@MemoryType()` or `@Import.memory()` annotation."
 
+wasmSharedMemoryMissingMaximum:
+  parameters: none
+  problemMessage: "A shared WebAssembly memory must specify a maximum size."
+  correctionMessage: "Try specifying a maximum size."
+
 wasmConstantLaneOutOfRange:
   parameters:
     String name: The lane name.
@@ -7816,3 +7830,8 @@ dartExternalEffectMalformedPragma:
     const bar = 'external-effect';
     @pragma(bar)
     external void foo(Object? x);
+
+augmentationExtendsClassAlreadyPresentCause:
+  parameters: none
+  problemMessage: "The previous 'extends' clause."
+  severity: CONTEXT

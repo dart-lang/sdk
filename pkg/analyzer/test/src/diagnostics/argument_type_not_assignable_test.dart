@@ -45,6 +45,7 @@ extension type const A(String _) {}
 @A(0)
 // ^
 // [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'int' can't be assigned to a parameter of type 'String' in a const constructor.
 void f() {}
 ''');
   }
@@ -57,6 +58,7 @@ class A {
 @A.fromInt('0')
 //         ^^^
 // [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.
 main() {}
 ''');
   }
@@ -69,6 +71,7 @@ class A<T> {
 @A<int>.fromInt('0')
 //              ^^^
 // [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.
 main() {
 }''');
   }
@@ -92,6 +95,7 @@ class A {
 @A('0')
 // ^^^
 // [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+// [diag.constConstructorParamTypeMismatch] A value of type 'String' can't be assigned to a parameter of type 'int' in a const constructor.
 main() {
 }''');
   }
@@ -181,6 +185,39 @@ class B extends A {
 //                  ^^
 // [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'String'.
 }''');
+  }
+
+  test_dotShorthandConstructorInvocation_named() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named(int x);
+}
+A f() => .named('');
+//              ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+''');
+  }
+
+  test_dotShorthandConstructorInvocation_unnamed() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A(int x);
+}
+A f() => .new('');
+//            ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+''');
+  }
+
+  test_dotShorthandMethodInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  static A make(int x) => throw 0;
+}
+A f() => .make('');
+//             ^^
+// [diag.argumentTypeNotAssignable] The argument type 'String' can't be assigned to the parameter type 'int'.
+''');
   }
 
   test_downcast() async {

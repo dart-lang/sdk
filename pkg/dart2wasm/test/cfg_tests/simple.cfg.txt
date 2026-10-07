@@ -1,0 +1,27 @@
+--- main ---
+<failed>
+
+--- loopSum ---
+B0 = EntryBlock()
+  v2 = Constant(0)
+  v18 = Constant(1)
+  v1 = Parameter(n)
+  Goto(B5)
+B5 = JoinBlock(B0, B10)
+  v25 = Phi(v2, v19)
+  v24 = Phi(v2, v15)
+  v9 = Comparison int <(v25, v1)
+  Branch(v9, true: B10, false: B11)
+B10 = TargetBlock()
+  v15 = BinaryIntOp +(v24, v25)
+  v19 = BinaryIntOp +(v25, v18)
+  Goto(B5)
+B11 = TargetBlock()
+  Return(v24)
+
+--- testAdd ---
+B0 = EntryBlock()
+  v3 = Constant(42)
+  v1 = Parameter(a)
+  v4 = BinaryIntOp +(v1, v3)
+  Return(v4)

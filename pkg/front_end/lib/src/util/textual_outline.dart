@@ -48,6 +48,15 @@ abstract class _Chunk implements Comparable<_Chunk> {
     sb.write(indent);
   }
 
+  int get charOffset;
+
+  // Coverage-ignore(suite): Not run.
+  String toText() {
+    StringBuffer sb = new StringBuffer();
+    printOn(sb);
+    return sb.toString();
+  }
+
   void printOn(StringBuffer sb, {String indent = "", bool extraLine = true});
 
   void printMetadata(StringBuffer sb, String indent) {
@@ -111,10 +120,12 @@ abstract class _Chunk implements Comparable<_Chunk> {
 }
 
 class _LanguageVersionChunk extends _Chunk {
+  @override
+  final int charOffset;
   final int major;
   final int minor;
 
-  new(this.major, this.minor);
+  new({required this.charOffset, required this.major, required this.minor});
 
   @override
   void printOn(StringBuffer sb, {String indent = "", bool extraLine = true}) {
@@ -134,6 +145,9 @@ abstract class _TokenChunk extends _Chunk {
   final Token endToken;
 
   new(this.startToken, this.endToken);
+
+  @override
+  int get charOffset => startToken.charOffset;
 
   void _printOnWithoutHeaderAndMetadata(StringBuffer sb) {
     printTokenRange(startToken, endToken, sb);
@@ -184,9 +198,15 @@ abstract class _SortableChunk extends _TokenChunk {
 }
 
 class _ImportExportChunk extends _Chunk {
+  @override
+  final int charOffset;
   final List<_SingleImportExportChunk> content;
 
-  new(this.content, int originalPosition) {
+  new({
+    required this.charOffset,
+    required this.content,
+    required int originalPosition,
+  }) {
     this.originalPosition = originalPosition;
   }
 
@@ -464,8 +484,9 @@ String? textualOutline(
           );
           parsedChunks.add(
             new _LanguageVersionChunk(
-              languageVersionToken.major,
-              languageVersionToken.minor,
+              charOffset: languageVersionToken.charOffset,
+              major: languageVersionToken.major,
+              minor: languageVersionToken.minor,
             )..originalPosition = originalPosition.value++,
           );
           // Coverage-ignore-block(suite): Not run.
@@ -545,8 +566,9 @@ List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
       } else {
         if (importExportChunks != null) {
           _ImportExportChunk importExportChunk = new _ImportExportChunk(
-            importExportChunks,
-            importExportChunks.first.originalPosition,
+            charOffset: importExportChunks.first.charOffset,
+            content: importExportChunks,
+            originalPosition: importExportChunks.first.originalPosition,
           );
           importExportChunk.internalMergeAndSort(sb);
           sb.clear();
@@ -565,8 +587,9 @@ List<_Chunk> _mergeAndSort(List<_Chunk> chunks) {
   }
   if (importExportChunks != null) {
     _ImportExportChunk importExportChunk = new _ImportExportChunk(
-      importExportChunks,
-      importExportChunks.first.originalPosition,
+      charOffset: importExportChunks.first.charOffset,
+      content: importExportChunks,
+      originalPosition: importExportChunks.first.originalPosition,
     );
     importExportChunk.internalMergeAndSort(sb);
     sb.clear();
@@ -734,11 +757,12 @@ void outputUnknownChunk(
 ) {
   if (_currentUnknown.start == null) return;
   // Coverage-ignore-block(suite): Not run.
-  infoForTesting?.hasUnknownChunk = true;
-  parsedChunks.add(
-    new _UnknownChunk(_currentUnknown.start!, _currentUnknown.interimEnd!)
-      ..originalPosition = originalPosition.value++,
-  );
+  _UnknownChunk _unknownChunk = new _UnknownChunk(
+    _currentUnknown.start!,
+    _currentUnknown.interimEnd!,
+  )..originalPosition = originalPosition.value++;
+  infoForTesting?.addUnknownChunk(_unknownChunk);
+  parsedChunks.add(_unknownChunk);
   _currentUnknown.start = null;
   _currentUnknown.interimEnd = null;
 }
@@ -817,6 +841,7 @@ class TextualOutlineListener extends Listener {
   @override
   void endPrimaryConstructorBody(
     Token beginToken,
+    Token thisToken,
     Token? beginInitializers,
     Token endToken,
   ) {
@@ -1139,8 +1164,18 @@ class TextualOutlineListener extends Listener {
   }
 }
 
+// Coverage-ignore(suite): Not run.
 class TextualOutlineInfoForTesting {
   bool hasParserErrors = false;
-  bool hasUnknownChunk = false;
   List<LanguageVersionToken> languageVersionTokens = [];
+
+  List<String> _unknownChunks = [];
+
+  void addUnknownChunk(_Chunk chunk) {
+    _unknownChunks.add('@${chunk.charOffset}:\n${chunk.toText()}');
+  }
+
+  bool get hasUnknownChunk => _unknownChunks.isNotEmpty;
+
+  String get unknownChunks => _unknownChunks.join('\n');
 }

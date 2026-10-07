@@ -167,12 +167,7 @@ void f() {}
     _assertReplacementForChildren<Annotation>(
       destination: parseResult.findNode.annotation('prefix.A'),
       source: parseResult.findNode.annotation('prefix.B'),
-      childAccessors: [
-        (node) => node.arguments!,
-        (node) => node.constructorName!,
-        (node) => node.name,
-        (node) => node.typeArguments!,
-      ],
+      childAccessors: [(node) => node.expression],
     );
   }
 
@@ -416,7 +411,7 @@ void f() {}
     _assertReplacementForChildren<CommentReference>(
       destination: parseResult.findNode.commentReference('foo'),
       source: parseResult.findNode.commentReference('bar'),
-      childAccessors: [(node) => node.expression2],
+      childAccessors: [(node) => node.components.single],
     );
   }
 
@@ -435,8 +430,8 @@ class B {}
     );
     _assertReplaceInList(
       destination: unit,
-      child: unit.declarations[0],
-      replacement: unit.declarations[1],
+      child: unit.declarations2[0],
+      replacement: unit.declarations2[1],
     );
   }
 
@@ -676,6 +671,8 @@ enum E2<U> with M2 implements I2 {one, two}
 @myA1
 @myA2
 export 'a.dart' hide A show B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 export 'b.dart';
 ''');
     var export_a = parseResult.findNode.export('a.dart');
@@ -1121,6 +1118,8 @@ class A implements I, J {}
 @myA1
 @myA2
 import 'a.dart' hide A show B;
+//                     ^^^^
+// [diag.multipleCombinators] At most one 'show' or 'hide' combinator can be used on an import or export directive.
 import 'b.dart';
 ''');
     var import_a = parseResult.findNode.import('a.dart');
@@ -1278,24 +1277,6 @@ class A {
     );
   }
 
-  void test_methodInvocation() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  a.foo<int>(0);
-  b.bar<double>(1);
-}
-''');
-    _assertReplacementForChildren<MethodInvocation>(
-      destination: parseResult.findNode.methodInvocation('foo'),
-      source: parseResult.findNode.methodInvocation('bar'),
-      childAccessors: [
-        (node) => node.target2!,
-        (node) => node.typeArguments!,
-        (node) => node.argumentList,
-      ],
-    );
-  }
-
   void test_mixinDeclaration() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
@@ -1381,6 +1362,82 @@ void f() {
     );
   }
 
+  void test_parsedNameAccess() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  a.foo;
+  b.bar;
+}
+''');
+    _assertReplacementForChildren<ParsedNameAccess>(
+      destination:
+          parseResult.findNode.parsedExpression('a.foo') as ParsedNameAccess,
+      source:
+          parseResult.findNode.parsedExpression('b.bar') as ParsedNameAccess,
+      childAccessors: [(node) => node.operand],
+    );
+  }
+
+  void test_parsedTypeArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (a).foo<int>(0);
+  (b).bar<double>(1);
+}
+''');
+    _assertReplacementForChildren<ParsedTypeArguments>(
+      destination:
+          (parseResult.findNode.expressionStatement('(a)').expression2
+                      as ParsedValueArguments)
+                  .operand
+              as ParsedTypeArguments,
+      source:
+          (parseResult.findNode.expressionStatement('(b)').expression2
+                      as ParsedValueArguments)
+                  .operand
+              as ParsedTypeArguments,
+      childAccessors: [(node) => node.operand, (node) => node.typeArguments],
+    );
+  }
+
+  void test_parsedValueArguments() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  (a).foo<int>(0);
+  (b).bar<double>(1);
+}
+''');
+    _assertReplacementForChildren<ParsedValueArguments>(
+      destination:
+          parseResult.findNode.expressionStatement('(a)').expression2
+              as ParsedValueArguments,
+      source:
+          parseResult.findNode.expressionStatement('(b)').expression2
+              as ParsedValueArguments,
+      childAccessors: [(node) => node.operand, (node) => node.argumentList],
+    );
+  }
+
+  void test_parsedValueArguments_cascade() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+class A {
+  void f() {
+    a..foo<int>(0);
+    c..bar<double>(1);
+  }
+}
+''');
+    _assertReplacementForChildren<ParsedValueArguments>(
+      destination:
+          parseResult.findNode.cascade('a..').sections.single.body
+              as ParsedValueArguments,
+      source:
+          parseResult.findNode.cascade('c..').sections.single.body
+              as ParsedValueArguments,
+      childAccessors: [(node) => node.operand, (node) => node.argumentList],
+    );
+  }
+
   void test_partDirective() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 @myA1
@@ -1453,20 +1510,6 @@ void f() {
       destination: parseResult.findNode.incrementOrDecrement('a++'),
       source: parseResult.findNode.incrementOrDecrement('b++'),
       childAccessors: [(node) => node.target],
-    );
-  }
-
-  void test_prefixedIdentifier() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  a.foo;
-  b.bar;
-}
-''');
-    _assertReplacementForChildren<PrefixedIdentifier>(
-      destination: parseResult.findNode.prefixed('a.foo'),
-      source: parseResult.findNode.prefixed('b.bar'),
-      childAccessors: [(node) => node.prefix, (node) => node.identifier],
     );
   }
 

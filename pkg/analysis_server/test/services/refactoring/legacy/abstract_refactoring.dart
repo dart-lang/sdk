@@ -13,11 +13,13 @@ import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity, SourceChange, SourceEdit;
+import 'package:analyzer_testing/src/selection_mixin.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:linter/src/rules.dart';
 import 'package:test/test.dart';
 
-import '../../../abstract_single_unit.dart';
-import '../../../selection_mixin.dart';
+import '../../../find_element.dart';
+import '../../../find_node.dart';
 
 int findIdentifierLength(String search) {
   var length = 0;
@@ -34,8 +36,8 @@ int findIdentifierLength(String search) {
 }
 
 /// The base class for all [Refactoring] tests.
-abstract class RefactoringTest extends AbstractSingleUnitTest
-    with SelectionMixin {
+abstract class RefactoringTest extends SingleUnitTest
+    with FindElementMixin, FindNodeMixin, SelectionMixin {
   late SourceChange refactoringChange;
 
   Refactoring get refactoring;
@@ -159,9 +161,6 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     }
     // validate resulting code
     var actualCode = SourceEdit.applySequence(testCode, fileEdit.edits);
-    if (actualCode != expectedCode) {
-      print(actualCode);
-    }
     expect(actualCode, expectedCode);
   }
 
@@ -169,7 +168,15 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
   /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
   AnalysisDriver driverFor(File file) {
-    return contextFor(file).driver;
+    return contextFor2(file).driver;
+  }
+
+  /// Returns the offset of the first occurence of [search] in [testCode],
+  /// failing the current test if it is not found.
+  int findOffset(String search) {
+    var offset = testCode.indexOf(search);
+    expect(offset, isNonNegative, reason: "Not found '$search' in\n$testCode");
+    return offset;
   }
 
   Future<void> indexTestUnit(

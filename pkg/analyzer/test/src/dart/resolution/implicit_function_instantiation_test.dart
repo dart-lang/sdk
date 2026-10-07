@@ -32,24 +32,19 @@ int Function(int) f() => p.C.id;
       result.findNode.singleImplicitFunctionInstantiation,
       r'''
 ImplicitFunctionInstantiation
-  operand: PropertyAccess
-    target2: PrefixedIdentifier
-      prefix: SimpleIdentifier
-        token: p
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      importPrefix: ImportPrefixReference
+        name: p
+        period: .
         element: <testLibraryFragment>::@prefix::p
-        staticType: null
-      period: .
-      identifier: SimpleIdentifier
-        token: C
-        element: package:test/a.dart::@class::C
-        staticType: null
+      name: C
       element: package:test/a.dart::@class::C
-      staticType: null
     operator: .
-    propertyName: SimpleIdentifier
-      token: id
+    name: id
+    resolution: ExecutableTearOffResolution
       element: package:test/a.dart::@class::C::@method::id
-      staticType: T Function<T>(T)
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)
   typeArgumentTypes
@@ -90,17 +85,18 @@ int Function(int) f(C c) => c.id;
       result.findNode.singleImplicitFunctionInstantiation,
       r'''
 ImplicitFunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: c
-      element: <testLibrary>::@function::f::@formalParameter::c
+  operand: ReceiverPropertyExtraction
+    receiver: UnqualifiedNameExpression
+      name: c
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::c
+        type: C
       staticType: C
-    period: .
-    identifier: SimpleIdentifier
-      token: id
+    operator: .
+    name: id
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::C::@method::id
-      staticType: T Function<T>(T)
-    element: <testLibrary>::@class::C::@method::id
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)
   typeArgumentTypes
@@ -134,17 +130,15 @@ int Function(int) f() => C.id;
       result.findNode.singleImplicitFunctionInstantiation,
       r'''
 ImplicitFunctionInstantiation
-  operand: PrefixedIdentifier
-    prefix: SimpleIdentifier
-      token: C
+  operand: ReceiverPropertyExtraction
+    receiver: StaticQualifier
+      name: C
       element: <testLibrary>::@class::C
-      staticType: null
-    period: .
-    identifier: SimpleIdentifier
-      token: id
+    operator: .
+    name: id
+    resolution: ExecutableTearOffResolution
       element: <testLibrary>::@class::C::@method::id
-      staticType: T Function<T>(T)
-    element: <testLibrary>::@class::C::@method::id
+      type: T Function<T>(T)
     staticType: T Function<T>(T)
   staticType: int Function(int)
   typeArgumentTypes

@@ -1016,18 +1016,27 @@ abstract base class StoreField extends Instruction with HasSideEffects {
 /// For late fields, check if field is initialized if [checkInitialized].
 /// If it is not, then either call initializer or throw exception.
 final class LoadInstanceField extends LoadField {
+  @override
+  final CType type;
+
   LoadInstanceField(
     super.graph,
     super.sourcePosition,
     super.field,
     Definition object, {
     bool checkInitialized = false,
-  }) : super(inputCount: 1, checkInitialized: checkInitialized) {
+    CType? type,
+  }) : type = type ?? field.type,
+       super(inputCount: 1, checkInitialized: checkInitialized) {
     assert(field.isLate || !checkInitialized);
     setInputAt(0, object);
   }
 
   Definition get object => inputDefAt(0);
+
+  @override
+  bool attributesEqual(covariant LoadInstanceField other) =>
+      super.attributesEqual(other) && this.type == other.type;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadInstanceField(this);
@@ -1116,7 +1125,36 @@ enum ArrayKind {
   float32x4List,
   float64x2List,
   int32x4List,
-  // TODO: add external typed data lists, typed data views.
+  // Typed data list views reference elements through indirection.
+  // On the VM this also includes external typed data lists.
+  int8ListView,
+  uint8ListView,
+  uint8ClampedListView,
+  int16ListView,
+  uint16ListView,
+  int32ListView,
+  uint32ListView,
+  int64ListView,
+  uint64ListView,
+  float32ListView,
+  float64ListView,
+  float32x4ListView,
+  float64x2ListView,
+  int32x4ListView,
+  // ByteData provides access to elements of different types via byte offsets.
+  int8ByteData,
+  uint8ByteData,
+  int16ByteData,
+  uint16ByteData,
+  int32ByteData,
+  uint32ByteData,
+  int64ByteData,
+  uint64ByteData,
+  float32ByteData,
+  float64ByteData,
+  float32x4ByteData,
+  float64x2ByteData,
+  int32x4ByteData,
 }
 
 /// Load value from an array element.
@@ -1721,7 +1759,7 @@ enum UnaryIntOpcode(final String token) {
   abs('abs'),
   sign('sign'),
   hash('hash'),
-  bitLength('bitLength')
+  bitLength('bitLength'),
 }
 
 /// Unary operation on the int operand.
@@ -1797,8 +1835,8 @@ final class BinaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
 enum UnaryDoubleOpcode(final String token) {
   neg('-'),
   abs('abs'),
-  sign('sign'),
   square('square'),
+  sqrt('sqrt'),
   round('round'),
   floor('floor'),
   ceil('ceil'),
@@ -1806,11 +1844,13 @@ enum UnaryDoubleOpcode(final String token) {
   roundToDouble('roundToDouble'),
   floorToDouble('floorToDouble'),
   ceilToDouble('ceilToDouble'),
-  truncateToDouble('truncateToDouble')
+  truncateToDouble('truncateToDouble'),
+  isNegative('isNegative'),
+  isInfinite('isInfinite'),
 }
 
 /// Unary operation on the double operand.
-final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
+final class UnaryDoubleOp extends Definition with Pure, Idempotent {
   UnaryDoubleOpcode op;
 
   UnaryDoubleOp(super.graph, super.sourcePosition, this.op, Definition operand)
@@ -1822,11 +1862,15 @@ final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
 
   @override
   CType get type => switch (op) {
-    UnaryDoubleOpcode.round ||
-    UnaryDoubleOpcode.floor ||
-    UnaryDoubleOpcode.ceil ||
-    UnaryDoubleOpcode.truncate => const IntType(),
+    .round || .floor || .ceil || .truncate => const IntType(),
+    .isNegative || .isInfinite => const BoolType(),
     _ => const DoubleType(),
+  };
+
+  @override
+  bool get canThrow => switch (op) {
+    .round || .floor || .ceil || .truncate => true,
+    _ => false,
   };
 
   @override
@@ -1837,7 +1881,7 @@ final class UnaryDoubleOp extends Definition with NoThrow, Pure, Idempotent {
 }
 
 enum UnaryBoolOpcode(final String token) {
-  not('!')
+  not('!'),
 }
 
 /// Unary operation on the bool operand.
@@ -1926,10 +1970,35 @@ final class LoadExternalField extends LoadField with BackendInstruction {
   }
 
   bool get hasObject => inputCount > 0;
-  Definition? get object => inputDefAt(0);
+  Definition? get object => hasObject ? inputDefAt(0) : null;
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitLoadExternalField(this);
+}
+
+/// Store value to a field of a non-Dart object.
+final class StoreExternalField extends StoreField with BackendInstruction {
+  StoreExternalField(
+    super.graph,
+    super.sourcePosition,
+    super.field,
+    Definition? object,
+    Definition value,
+  ) : super(inputCount: object != null ? 2 : 1, checkNotInitialized: false) {
+    if (object != null) {
+      setInputAt(0, object);
+      setInputAt(1, value);
+    } else {
+      setInputAt(0, value);
+    }
+  }
+
+  bool get hasObject => inputCount > 1;
+  Definition? get object => hasObject ? inputDefAt(0) : null;
+  Definition get value => inputDefAt(inputCount - 1);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitStoreExternalField(this);
 }
 
 /// Load value from an element of a non-Dart array.

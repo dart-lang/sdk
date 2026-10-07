@@ -1538,14 +1538,7 @@ final class NativeFloat32x4 implements Float32x4 {
     : this.x = _truncate(x),
       this.y = _truncate(y),
       this.z = _truncate(z),
-      this.w = _truncate(w) {
-    // We would prefer to check for `double` but in dart2js we can't see the
-    // difference anyway.
-    if (x is! num) throw ArgumentError(x);
-    if (y is! num) throw ArgumentError(y);
-    if (z is! num) throw ArgumentError(z);
-    if (w is! num) throw ArgumentError(w);
-  }
+      this.w = _truncate(w);
 
   NativeFloat32x4.splat(double value) : this(value, value, value, value);
   NativeFloat32x4.zero() : this._truncated(0.0, 0.0, 0.0, 0.0);
@@ -1577,10 +1570,6 @@ final class NativeFloat32x4 implements Float32x4 {
   /// the correct range. It does not verify the type of the given arguments,
   /// either.
   NativeFloat32x4._truncated(this.x, this.y, this.z, this.w);
-
-  String toString() {
-    return '[$x, $y, $z, $w]';
-  }
 
   /// Addition operator.
   Float32x4 operator +(Float32x4 other) {
@@ -1833,19 +1822,19 @@ final class NativeFloat32x4 implements Float32x4 {
 
   /// Returns the lane-wise minimum value in this [Float32x4] or [other].
   Float32x4 min(Float32x4 other) {
-    double _x = x < other.x ? x : other.x;
-    double _y = y < other.y ? y : other.y;
-    double _z = z < other.z ? z : other.z;
-    double _w = w < other.w ? w : other.w;
+    double _x = Math.min(x, other.x);
+    double _y = Math.min(y, other.y);
+    double _z = Math.min(z, other.z);
+    double _w = Math.min(w, other.w);
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
   /// Returns the lane-wise maximum value in this [Float32x4] or [other].
   Float32x4 max(Float32x4 other) {
-    double _x = x > other.x ? x : other.x;
-    double _y = y > other.y ? y : other.y;
-    double _z = z > other.z ? z : other.z;
-    double _w = w > other.w ? w : other.w;
+    double _x = Math.max(x, other.x);
+    double _y = Math.max(y, other.y);
+    double _z = Math.max(z, other.z);
+    double _w = Math.max(w, other.w);
     return NativeFloat32x4._truncated(_x, _y, _z, _w);
   }
 
@@ -1875,6 +1864,8 @@ final class NativeFloat32x4 implements Float32x4 {
     double _w = Math.sqrt(1.0 / w);
     return NativeFloat32x4._doubles(_x, _y, _z, _w);
   }
+
+  String toString() => 'V128';
 }
 
 /// Interface of Dart Int32x4 and operations.
@@ -1897,18 +1888,14 @@ final class NativeInt32x4 implements Int32x4 {
     : this.x = _truncate(x),
       this.y = _truncate(y),
       this.z = _truncate(z),
-      this.w = _truncate(w) {
-    if (x != this.x && x is! int) throw ArgumentError(x);
-    if (y != this.y && y is! int) throw ArgumentError(y);
-    if (z != this.z && z is! int) throw ArgumentError(z);
-    if (w != this.w && w is! int) throw ArgumentError(w);
-  }
+      this.w = _truncate(w);
 
   factory NativeInt32x4.splat(int v) {
     final t = _truncate(v);
-    if (v != t && v is! int) throw ArgumentError(v);
     return NativeInt32x4._truncated(t, t, t, t);
   }
+
+  NativeInt32x4.zero() : this._truncated(0, 0, 0, 0);
 
   NativeInt32x4.bool(bool x, bool y, bool z, bool w)
     : this.x = x ? -1 : 0,
@@ -1928,8 +1915,6 @@ final class NativeInt32x4 implements Int32x4 {
   }
 
   NativeInt32x4._truncated(this.x, this.y, this.z, this.w);
-
-  String toString() => '[$x, $y, $z, $w]';
 
   /// The bit-wise or operator.
   Int32x4 operator |(Int32x4 other) {
@@ -1964,6 +1949,18 @@ final class NativeInt32x4 implements Int32x4 {
       JS('int', '# ^ #', y, other.y),
       JS('int', '# ^ #', z, other.z),
       JS('int', '# ^ #', w, other.w),
+    );
+  }
+
+  /// The bit-wise and-not operator (`this & ~other`).
+  Int32x4 andNot(Int32x4 other) {
+    // Dart2js uses unsigned results for bit-operations.
+    // We use "JS" to fall back to the signed versions.
+    return NativeInt32x4._truncated(
+      JS('int', '# & ~#', x, other.x),
+      JS('int', '# & ~#', y, other.y),
+      JS('int', '# & ~#', z, other.z),
+      JS('int', '# & ~#', w, other.w),
     );
   }
 
@@ -2008,6 +2005,50 @@ final class NativeInt32x4 implements Int32x4 {
     );
   }
 
+  Int32x4 abs() {
+    // Avoid going through the typed array by "| 0" the result, which also
+    // gives two's complement wrapping so abs(-0x80000000) yields itself.
+    return NativeInt32x4._truncated(
+      JS('int', 'Math.abs(#) | 0', x),
+      JS('int', 'Math.abs(#) | 0', y),
+      JS('int', 'Math.abs(#) | 0', z),
+      JS('int', 'Math.abs(#) | 0', w),
+    );
+  }
+
+  Int32x4 operator <<(int shiftAmount) {
+    // JavaScript's `<<` operates on 32-bit signed integers and takes the count
+    // modulo 32, matching the lane semantics.
+    return NativeInt32x4._truncated(
+      JS('int', '(# << #) | 0', x, shiftAmount),
+      JS('int', '(# << #) | 0', y, shiftAmount),
+      JS('int', '(# << #) | 0', z, shiftAmount),
+      JS('int', '(# << #) | 0', w, shiftAmount),
+    );
+  }
+
+  Int32x4 operator >>(int shiftAmount) {
+    // `>>` is the sign-propagating (arithmetic) shift on 32-bit signed
+    // integers.
+    return NativeInt32x4._truncated(
+      JS('int', '# >> #', x, shiftAmount),
+      JS('int', '# >> #', y, shiftAmount),
+      JS('int', '# >> #', z, shiftAmount),
+      JS('int', '# >> #', w, shiftAmount),
+    );
+  }
+
+  Int32x4 operator >>>(int shiftAmount) {
+    // `>>>` is the zero-filling (logical) shift on 32-bit integers. Its result
+    // is unsigned, so `| 0` reinterprets it as the signed lane value.
+    return NativeInt32x4._truncated(
+      JS('int', '(# >>> #) | 0', x, shiftAmount),
+      JS('int', '(# >>> #) | 0', y, shiftAmount),
+      JS('int', '(# >>> #) | 0', z, shiftAmount),
+      JS('int', '(# >>> #) | 0', w, shiftAmount),
+    );
+  }
+
   /// Extract the top bit from each lane return them in the first 4 bits.
   int get signMask {
     int mx = (x & 0x80000000) >> 31;
@@ -2032,6 +2073,60 @@ final class NativeInt32x4 implements Int32x4 {
       y != other.y ? -1 : 0,
       z != other.z ? -1 : 0,
       w != other.w ? -1 : 0,
+    );
+  }
+
+  Int32x4 lessThan(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x < other.x ? -1 : 0,
+      y < other.y ? -1 : 0,
+      z < other.z ? -1 : 0,
+      w < other.w ? -1 : 0,
+    );
+  }
+
+  Int32x4 lessThanOrEqual(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x <= other.x ? -1 : 0,
+      y <= other.y ? -1 : 0,
+      z <= other.z ? -1 : 0,
+      w <= other.w ? -1 : 0,
+    );
+  }
+
+  Int32x4 greaterThan(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x > other.x ? -1 : 0,
+      y > other.y ? -1 : 0,
+      z > other.z ? -1 : 0,
+      w > other.w ? -1 : 0,
+    );
+  }
+
+  Int32x4 greaterThanOrEqual(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x >= other.x ? -1 : 0,
+      y >= other.y ? -1 : 0,
+      z >= other.z ? -1 : 0,
+      w >= other.w ? -1 : 0,
+    );
+  }
+
+  Int32x4 min(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x < other.x ? x : other.x,
+      y < other.y ? y : other.y,
+      z < other.z ? z : other.z,
+      w < other.w ? w : other.w,
+    );
+  }
+
+  Int32x4 max(Int32x4 other) {
+    return NativeInt32x4._truncated(
+      x > other.x ? x : other.x,
+      y > other.y ? y : other.y,
+      z > other.z ? z : other.z,
+      w > other.w ? w : other.w,
     );
   }
 
@@ -2177,6 +2272,8 @@ final class NativeInt32x4 implements Int32x4 {
       floatList[3],
     );
   }
+
+  String toString() => 'V128';
 }
 
 final class NativeFloat64x2 implements Float64x2 {
@@ -2186,10 +2283,7 @@ final class NativeFloat64x2 implements Float64x2 {
   static NativeFloat64List _list = NativeFloat64List(2);
   static Uint32List _uint32View = _list.buffer.asUint32List();
 
-  NativeFloat64x2(this.x, this.y) {
-    if (x is! num) throw ArgumentError(x);
-    if (y is! num) throw ArgumentError(y);
-  }
+  NativeFloat64x2(this.x, this.y);
 
   NativeFloat64x2.splat(double v) : this(v, v);
 
@@ -2199,8 +2293,6 @@ final class NativeFloat64x2 implements Float64x2 {
 
   /// Arguments [x] and [y] must be doubles.
   NativeFloat64x2._doubles(this.x, this.y);
-
-  String toString() => '[$x, $y]';
 
   /// Addition operator.
   Float64x2 operator +(Float64x2 other) {
@@ -2266,37 +2358,31 @@ final class NativeFloat64x2 implements Float64x2 {
   /// Returns a new [Float64x2] copied from this [Float64x2] with a new x
   /// value.
   Float64x2 withX(double x) {
-    if (x is! num) throw ArgumentError(x);
     return NativeFloat64x2._doubles(x, y);
   }
 
   /// Returns a new [Float64x2] copied from this [Float64x2] with a new y
   /// value.
   Float64x2 withY(double y) {
-    if (y is! num) throw ArgumentError(y);
     return NativeFloat64x2._doubles(x, y);
   }
 
   /// Returns the lane-wise minimum value in this [Float64x2] or [other].
   Float64x2 min(Float64x2 other) {
-    return NativeFloat64x2._doubles(
-      x < other.x ? x : other.x,
-      y < other.y ? y : other.y,
-    );
+    return NativeFloat64x2._doubles(Math.min(x, other.x), Math.min(y, other.y));
   }
 
   /// Returns the lane-wise maximum value in this [Float64x2] or [other].
   Float64x2 max(Float64x2 other) {
-    return NativeFloat64x2._doubles(
-      x > other.x ? x : other.x,
-      y > other.y ? y : other.y,
-    );
+    return NativeFloat64x2._doubles(Math.max(x, other.x), Math.max(y, other.y));
   }
 
   /// Returns the lane-wise square root of this [Float64x2].
   Float64x2 sqrt() {
     return NativeFloat64x2._doubles(Math.sqrt(x), Math.sqrt(y));
   }
+
+  String toString() => 'V128';
 }
 
 /// Checks that the value is a Uint32. If not, it's not valid as an array

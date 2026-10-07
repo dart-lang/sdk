@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class JoinIfWithInnerTest extends AssistProcessorTest {
+class JoinIfWithInnerTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.joinIfWithInner;
 

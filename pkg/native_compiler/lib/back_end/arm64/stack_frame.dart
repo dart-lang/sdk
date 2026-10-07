@@ -84,6 +84,10 @@ final class Arm64StackFrame extends StackFrame {
   int argumentsStackSlots(Instruction instr) {
     // TODO: pass arguments on registers
     switch (instr) {
+      case DynamicCall() when !instr.hasTypeArguments:
+        // Reserve extra slot to pass default type arguments (in case target method is generic).
+        // TODO: pass type arguments on register.
+        return instr.inputCount + 1;
       case CallInstruction():
         return instr.inputCount;
       case AllocateClosure():
@@ -110,8 +114,12 @@ final class Arm64StackFrame extends StackFrame {
         return 2; // 2 arguments for _AsyncStarStreamController.add/addStream call.
       case LoadInstanceField() when instr.checkInitialized:
         return 2; // Result + 1 argument for LateFieldAssignedDuringInitializationError/LateFieldNotInitializedError runtime call.
+      case StoreInstanceField() when instr.checkNotInitialized:
+        return 2; // Result + 1 argument for LateFieldAlreadyInitializedError runtime call.
       case LoadStaticField() when instr.checkInitialized:
         return 2; // Result + 1 argument for LateFieldAssignedDuringInitializationError/LateFieldNotInitializedError runtime call.
+      case StoreStaticField() when instr.checkNotInitialized:
+        return 2; // Result + 1 argument for LateFieldAlreadyInitializedError runtime call.
       case Throw(kind: .exception):
         return 2; // Result + 1 argument for Throw runtime call.
       case Throw(kind: .rethrowException):
@@ -119,12 +127,19 @@ final class Arm64StackFrame extends StackFrame {
       case NullCheck():
         return 1; // Result + 0 arguments for NullCastError runtime call.
       case IndexCheck():
-        return 3; // Result + 2 arguments for RangeError runtime call.
+        return 1; // Result for RangeErrorUnboxedInt64 runtime call.
       case SubtypeCheck():
         return 6; // Result + 5 arguments for SubtypeCheck call.
       case BinaryIntOp(:var op)
           when op == .truncatingDiv || op == .mod || op == .rem:
         return 1; // Result for IntegerDivisionByZeroException runtime call.
+      case UnaryDoubleOp(:var op)
+          when op == .round || op == .floor || op == .ceil || op == .truncate:
+        return 2; // Result + 1 argument for UnsupportedError runtime call.
+      case BoxInt():
+        return 1; // Result for BoxInt runtime call.
+      case BoxDouble():
+        return 1; // Result for BoxDouble runtime call.
       default:
         return 0;
     }

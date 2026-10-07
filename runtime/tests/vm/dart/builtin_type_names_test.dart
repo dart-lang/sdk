@@ -9,6 +9,7 @@
 // can be adjusted as needed.
 
 import 'dart:typed_data';
+
 import "package:expect/expect.dart";
 
 class A {}
@@ -50,6 +51,7 @@ main() {
 
   testTypeName(Float64x2(2.0, 3.0), 'Float64x2');
   testTypeName(Float32x4(1.0, 2.0, 3.0, 4.0), 'Float32x4');
+  testTypeName(Int32x4(1, 2, 3, 4), 'Int32x4');
   testTypeName(Uint8List(3), 'Uint8List');
 
   // VM doesn't currently hide internal names of map and set classes.

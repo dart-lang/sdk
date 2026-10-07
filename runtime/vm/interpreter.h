@@ -253,6 +253,11 @@ class Interpreter {
                          const KBCInstr* pc,
                          ObjectPtr* FP,
                          ObjectPtr* SP);
+  bool AllocateInt32x4(Thread* thread,
+                       simd128_value_t value,
+                       const KBCInstr* pc,
+                       ObjectPtr* FP,
+                       ObjectPtr* SP);
   bool AllocateArray(Thread* thread,
                      TypeArgumentsPtr type_args,
                      ObjectPtr length,

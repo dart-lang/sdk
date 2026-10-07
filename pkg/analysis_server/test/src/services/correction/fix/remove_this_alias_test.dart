@@ -68,6 +68,9 @@ class B extends A {
 
 @reflectiveTest
 class RemoveThisAliasInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.unnecessary_this_alias];
+
   Future<void> test_file() async {
     createAnalysisOptionsFile(
       experimentalFeatures: experimentalFeatures,

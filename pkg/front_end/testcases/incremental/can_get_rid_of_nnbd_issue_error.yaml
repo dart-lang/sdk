@@ -104,7 +104,7 @@ worlds:
         // This file is in strong mode.
         int x = 42;
     expectedLibraryCount: 3
-    advancedInvalidation: problemsInLibrary
+    advancedInvalidation: packageUpdate
 
   # Update the last package to be strong.
   - entry: package:baz/main.dart
@@ -140,4 +140,4 @@ worlds:
         // This file is in strong mode.
         int y = 42;
     expectedLibraryCount: 3
-    advancedInvalidation: problemsInLibrary
+    advancedInvalidation: packageUpdate

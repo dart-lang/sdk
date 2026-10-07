@@ -55,11 +55,11 @@ vars = {
   # choose which SHA to place here is to choose a release from
   # https://dart.dev/get-dart/archive, and then look up the version SHA from
   # the tag. Prefer using the stable channel when possible.
-  "sdk_tag": "version:3.14.0-75.0.dev",
+  "sdk_tag": "version:3.14.0-226.0.dev",
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
-  "co19_rev": "046695b58f38ee8e7500adf0e91d2524331b62bc",
+  "co19_rev": "cc7dba79dcc0d4fd08b18def0bbb43c7de7f6003",
 
   # The internal benchmarks to use. See go/dart-benchmarks-internal
   "benchmarks_internal_rev": "02b00ba22d77dc489e481c33b279edf5d008e0cd",
@@ -75,15 +75,18 @@ vars = {
   # self-service update these by following the go/dart-engprod/browsers.md
   # instructions. d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:15.3.34",
-  "jsshell_tag": "version:153.0",
-  "jsc_tag": "version:318520",
+  "d8_tag": "version:15.5.28",
+  "jsshell_tag": "version:155.0.1",
+  "jsc_tag": "version:320707",
+
+  # https://chrome-infra-packages.appspot.com/p/infra/3pp/tools/gcloud
+  "gcloud_version": "version:3@584.0.0.chromium.4",
 
   # https://chrome-infra-packages.appspot.com/p/fuchsia/third_party/clang
-  "clang_version": "git_revision:dde579becf31add55c5a473f28fd010df36d2490",
+  "clang_version": "git_revision:3493720eca95cf844a8d7e58fdd12e0e5644e7d0",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:150a9d6ba0aa7f407aa4feeabc5f03ce9aa7e04b",
+  "gn_version": "git_revision:510ec7992c30f172205792f190e96111a896ba8f",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -101,13 +104,13 @@ vars = {
   ### /third_party/ dependencies
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "9926156a583cec3d22d521232b31c70fa9a87dc1",
-  "boringssl_rev": "f341ba401f765c8e4b5194e785352d8eea92ba20",
+  "binaryen_rev" : "1c0c9f3836e858e01c4f94ac2e5a936d16a6ba1d",
+  "boringssl_rev": "5e1bfb45c353b2bb36bdf26b006ea8f5566c82d5",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "c9c5bc8e936a3f8521c2296604778c8ca49a9ade",
+  "devtools_rev": "85f945ac99379d64d4df6f67d9b011e4cc418e7e",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
-  "flutter_rev": "a38c5c628774a5e5a4e11ceeee6d5bc6a509eef0",
+  "flutter_rev": "fab991537bf1ffb063579a0dd8a47cd4f2874618",
   "icu_rev": "d578f2e8b7bd5938e21cfb6bf15c079e0aa5b738",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "bd557f6f764d1e40b62528a13b124ce740624f8f",
@@ -123,30 +126,30 @@ vars = {
   # well so that the format presubmit check uses the same style as the repo.
   #
   # See: https://github.com/dart-lang/dart_style/wiki/Release-process
-  "dart_style_rev": "39edc2d946a5d7bd1caf6f1695f366b00f7b873c", # rolled manually
+  "dart_style_rev": "5a9534fad9ff2faba89596a70323d2b1f1bcf163", # rolled manually
 
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "773de9d6321bc2c7d86d6926e30b341f0b8c2cb1",
-  "dartdoc_rev": "27376696f59b8776af3a2d07291a53562767d345",
-  "ecosystem_rev": "cda8bd535dfbcff45010bc3c843d325682f944b2",
+  "core_rev": "08e4022160c465780690c43ffdbce60812975d2c",
+  "dartdoc_rev": "2a040a8fcf79b0844f7bc83254d69701122dd4f9",
+  "ecosystem_rev": "16dca7ae5d3ff896a4db47e1ed6cd50f7ebbf115",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "a9176ac97402a42e1b275a26eb20a9deaec92184",
-  "i18n_rev": "2fd9412c87f0cd3c6f018db6b2f888010c281356",
+  "http_rev": "d8e8e9cd1ae6ed0f0339cfa0f47f92e837a786f5",
+  "i18n_rev": "1f5ea2fb2381bdf7bab054a43c0d69771f104561",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "38fe1793bf894cac95bd14e688df8246c87b904a",
-  "protobuf_rev": "cde8e2865fe5a349cc9f476e0c89f4e4a23ac15c",
-  "pub_rev": "0382a52acba89ff0080d559bb22f4017962bbd1d", # rolled manually
-  "shelf_rev": "fb3f931d2c158d794e83c1b76b7be4b625db3c28",
+  "native_rev": "27f767827be80615378e3c0b2d936ac8b4cefaa8",
+  "protobuf_rev": "a73edc98c98fb25152aa3f12c1b9db91594c1369",
+  "pub_rev": "eca8f8ada939be70f0be3189db31e421dd0be7fd", # rolled manually
+  "shelf_rev": "e5c8dc663bf1325ad8f997c4a2387923d37a90d9",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "18ef597883dc6bc61f763e3600a7179975b490dd",
-  "tools_rev": "441ff2986fd495c88b59bb15dd6b35904ad329b7",
+  "test_rev": "4f92d530daf7e1c9e8a9acf518304a41408dbdc4",
+  "tools_rev": "d87eaf7946e7939592c876ea6fb2fa1d72929efe",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
-  "web_rev": "6b84f811cd67a5fd05f4dac24cb56542bcfc92e4",
-  "webdriver_rev": "3a711ebb36871eac997c5d5d2429f7414873dc63",
+  "web_rev": "ec71a4c303acb4dc15f2cf4ec2579802395653d7",
+  "webdriver_rev": "8e5c611ea242efdc9f597a8a37c38a9c586120ee",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 
   # Windows deps
@@ -158,9 +161,9 @@ vars = {
   # meant to be downloaded by users for local testing. You can self-service
   # update these by following the go/dart-engprod/browsers.md instructions.
   "download_chrome": False,
-  "chrome_tag": "153.0.8010.5",
+  "chrome_tag": "155.0.8059.12",
   "download_firefox": False,
-  "firefox_tag": "154.0",
+  "firefox_tag": "156.0.1",
 
   # Emscripten is used in dart2wasm tests.
   "download_emscripten": False,
@@ -295,6 +298,14 @@ deps = {
           "version": "version:3@5.35",
       }],
       "dep_type": "cipd",
+  },
+
+  Var("dart_root") + "/third_party/gcloud": {
+      "packages": [{
+          "package": "infra/3pp/tools/gcloud/${{platform}}",
+          "version": Var("gcloud_version"),
+      }],
+      "dep_type": "cipd"
   },
 
   Var("dart_root") + "/third_party/emsdk":
@@ -586,7 +597,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/test-scripts",
-      "version": "u_fSMsPU22VvUsvSoFqxC8RjRhpErOdWDkryN7NzlP8C",
+      "version": "fCNknap4ZI0AMcvIffJlVX1lR2ZSIA0HrLIpBMmzMuYC",
       }
     ],
     "condition": 'download_fuchsia_deps',
@@ -597,7 +608,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "ZsxUUK2SfA-TrNvb8eTBxNftQSqDU5z-cdDoS4_nWTgC",
+      "version": "PDJz3b3CL31uoLOkDb0mm8FidqJ1eCJryoRFd9iVmbIC",
       }
     ],
     "condition": 'download_fuchsia_deps',

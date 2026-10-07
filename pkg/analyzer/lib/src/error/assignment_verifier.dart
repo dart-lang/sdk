@@ -20,7 +20,7 @@ class AssignmentVerifier {
 
   AssignmentVerifier(this._diagnosticReporter);
 
-  /// We resolved [node] and found that it references the [requested] element.
+  /// We resolved [name] and found that it references the [requested] element.
   /// Verify that this element is actually writable.
   ///
   /// If the [requested] element is `null`, we might have the [recovery]
@@ -31,34 +31,18 @@ class AssignmentVerifier {
   /// [diag.undefinedSetter] instead of a more generic
   /// [diag.undefinedIdentifier].
   void verify({
-    required SimpleIdentifier node,
+    required Token name,
     required Element? requested,
     required Element? recovery,
     required DartType? receiverType,
   }) => _verify(
-    node: node,
-    name: node.name,
-    isSynthetic: node.isSynthetic,
+    node: name,
+    name: name.lexeme,
+    isSynthetic: name.isSynthetic,
     requested: requested,
     recovery: recovery,
     receiverType: receiverType,
   );
-
-  void verifyPropertyAssignmentTarget({
-    required PropertyAssignmentTarget node,
-    required Element? requested,
-    required Element? recovery,
-    required DartType receiverType,
-  }) {
-    _verify(
-      node: node.propertyName,
-      name: node.propertyName.lexeme,
-      isSynthetic: node.propertyName.isSynthetic,
-      requested: requested,
-      recovery: recovery,
-      receiverType: receiverType,
-    );
-  }
 
   void verifyUnqualifiedName({
     required SyntacticEntity node,

@@ -110,6 +110,12 @@ class PluginServer {
   /// The map of configurations for each directory, mapped to plugin names.
   Map<String, Map<String, protocol.PluginConfiguration>> _configurations = {};
 
+  /// The context roots that this plugin is configured for, if received.
+  List<protocol.ContextRoot>? _contextRoots;
+
+  /// The analysis roots that the client is analyzing, if received.
+  protocol.AnalysisSetAnalysisRootsParams? _analysisRoots;
+
   /// Whether we have received an 'analysis.setAnalysisRoots' request.
   ///
   /// If we have, we can ignore 'analysis.setContextRoots' requests.
@@ -164,6 +170,9 @@ class PluginServer {
     }
     PluginRegistryImpl.registerIgnoreProducerGenerators();
   }
+
+  @visibleForTesting
+  AnalysisContextCollectionImpl? get contextCollection => _contextCollection;
 
   @visibleForTesting
   Set<String> get priorityPaths => {..._priorityPaths};
@@ -823,13 +832,60 @@ class PluginServer {
     return result.toResponse(request.id, requestTime);
   }
 
+  /// Computes the effective included paths for this plugin by intersecting
+  /// any client-specified [_analysisRoots] with [_contextRoots].
+  List<String> _computeEffectiveIncludedPaths() {
+    var contextRoots = _contextRoots;
+    var analysisRoots = _analysisRoots;
+
+    if (contextRoots == null) {
+      return analysisRoots?.included ?? const [];
+    }
+
+    if (analysisRoots == null) {
+      return [for (var root in contextRoots) root.root];
+    }
+
+    var pathContext = _resourceProvider.pathContext;
+    var effectiveIncluded = <String>{};
+
+    for (var contextRoot in contextRoots) {
+      var contextPath = contextRoot.root;
+
+      // Skip if the context root is completely excluded by client excluded
+      // paths.
+      var isContextExcluded = analysisRoots.excluded.any(
+        (e) => pathContext.isWithin(e, contextPath) || e == contextPath,
+      );
+      if (isContextExcluded) continue;
+
+      // Check if any client included path contains this context root.
+      var isContextCovered = analysisRoots.included.any(
+        (i) => pathContext.isWithin(i, contextPath) || i == contextPath,
+      );
+      if (isContextCovered) {
+        effectiveIncluded.add(contextPath);
+      } else {
+        // Check for client included subpaths within this context root.
+        for (var clientIncluded in analysisRoots.included) {
+          if (pathContext.isWithin(contextPath, clientIncluded)) {
+            effectiveIncluded.add(clientIncluded);
+          }
+        }
+      }
+    }
+
+    return effectiveIncluded.toList();
+  }
+
   /// Handles an 'analysis.setAnalysisRoots' request.
   Future<protocol.AnalysisSetAnalysisRootsResult>
   _handleAnalysisSetAnalysisRoots(
     protocol.AnalysisSetAnalysisRootsParams parameters,
   ) async {
     _receivedAnalysisRoots = true;
-    await _createContextCollection(parameters.included);
+    _analysisRoots = parameters;
+    await _createContextCollection(_computeEffectiveIncludedPaths());
     return protocol.AnalysisSetAnalysisRootsResult();
   }
 
@@ -850,14 +906,14 @@ class PluginServer {
   Future<protocol.AnalysisSetContextRootsResult> _handleAnalysisSetContextRoots(
     protocol.AnalysisSetContextRootsParams parameters,
   ) async {
+    _contextRoots = parameters.roots;
     // Allow any "simultaneous" requests to be processed.
     await Future<void>.delayed(Duration.zero);
     if (_receivedAnalysisRoots) {
       return protocol.AnalysisSetContextRootsResult();
     }
 
-    var includedPaths = parameters.roots.map((e) => e.root).toList();
-    await _createContextCollection(includedPaths);
+    await _createContextCollection(_computeEffectiveIncludedPaths());
     return protocol.AnalysisSetContextRootsResult();
   }
 

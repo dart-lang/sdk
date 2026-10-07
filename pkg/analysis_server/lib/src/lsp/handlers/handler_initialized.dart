@@ -30,10 +30,9 @@ class InitializedMessageHandler
     server.analyticsManager.initialized(openWorkspacePaths: openWorkspacePaths);
 
     if (server.onlyAnalyzeProjectsWithOpenFiles) {
-      await server.fetchClientConfigurationAndPerformDynamicRegistration();
+      await server.fetchClientConfiguration();
     } else {
-      // This method internally calls
-      // fetchClientConfigurationAndPerformDynamicRegistration.
+      // This method internally calls fetchClientConfiguration.
       await server.updateWorkspaceFolders(openWorkspacePaths, const []);
     }
 

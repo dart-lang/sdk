@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+import "dart:math" as math;
+
+static method f(core::int a) → void
+  ;
+static method g(core::int? a) → void
+  ;
+static method h() → void
+  ;
+static method main() → dynamic
+  ;

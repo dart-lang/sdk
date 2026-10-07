@@ -25,13 +25,10 @@ class NullAssertionExpressionResolver {
   }) {
     var operand = node.operand;
 
-    if (operand is SuperExpression) {
+    if (operand is InvalidSuperExpressionImpl) {
       _resolver.diagnosticReporter.report(
         diag.missingAssignableSelector.at(node),
       );
-      operand.setPseudoExpressionStaticType(DynamicTypeImpl.instance);
-      node.recordStaticType(DynamicTypeImpl.instance, resolver: _resolver);
-      return;
     }
 
     _resolver.analyzeExpression(
@@ -40,6 +37,10 @@ class NullAssertionExpressionResolver {
       continueNullShorting: true,
     );
     operand = _resolver.popRewrite()!;
+
+    if (operand is InvalidSuperExpressionImpl) {
+      operand.superReference.legacyStaticType = DynamicTypeImpl.instance;
+    }
 
     var operandType = operand.typeOrThrow;
     var type = _typeSystem.promoteToNonNull(operandType);

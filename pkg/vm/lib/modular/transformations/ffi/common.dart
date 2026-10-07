@@ -1036,9 +1036,11 @@ class FfiTransformer extends Transformer {
       coreTypes,
       Nullability.nonNullable,
     );
-    pointerVoidType = InterfaceType(pointerClass, Nullability.nonNullable, [
-      voidType,
-    ]);
+    pointerVoidType = InterfaceType(
+      pointerClass,
+      Nullability.nonNullable,
+      DartTypeList(voidType),
+    );
     nativeTypeType = nativeTypesClasses[NativeType.kNativeType]!.getThisType(
       coreTypes,
       Nullability.nonNullable,
@@ -1046,7 +1048,7 @@ class FfiTransformer extends Transformer {
     pointerNativeTypeType = InterfaceType(
       pointerClass,
       Nullability.nonNullable,
-      [nativeTypeType],
+      DartTypeList(nativeTypeType),
     );
     intptrNativeTypeCfe =
         NativeTypeCfe(this, InterfaceType(intptrClass, Nullability.nonNullable))
@@ -1058,7 +1060,7 @@ class FfiTransformer extends Transformer {
     compoundType = InterfaceType(
       compoundClass,
       Nullability.nonNullable,
-      const <DartType>[],
+      DartTypeList.empty,
     );
   }
 
@@ -1244,7 +1246,11 @@ class FfiTransformer extends Transformer {
       );
     }
     if (argumentTypes.contains(dummyDartType)) return null;
-    return FunctionType(argumentTypes, returnType, Nullability.nonNullable);
+    return FunctionType(
+      DartTypeList.from(argumentTypes),
+      returnType,
+      Nullability.nonNullable,
+    );
   }
 
   /// Finds a native type for the given [dartType] if there is only one possible
@@ -1291,7 +1297,11 @@ class FfiTransformer extends Transformer {
         );
       }
       if (argumentTypes.contains(dummyDartType)) return null;
-      return FunctionType(argumentTypes, returnType, Nullability.nonNullable);
+      return FunctionType(
+        DartTypeList.from(argumentTypes),
+        returnType,
+        Nullability.nonNullable,
+      );
     }
 
     return null;
@@ -1331,7 +1341,7 @@ class FfiTransformer extends Transformer {
         for (final paramDartType in typeArgument.positional) paramDartType,
       ];
       return FunctionType(
-        positionalParameters,
+        DartTypeList.from(positionalParameters),
         functionTypeWithPossibleVarArgs.returnType,
         functionTypeWithPossibleVarArgs.declaredNullability,
         namedParameters: functionTypeWithPossibleVarArgs.namedParameters,
@@ -1351,17 +1361,20 @@ class FfiTransformer extends Transformer {
   InterfaceType _listOfIntType(Nullability elementNullability) => InterfaceType(
     listClass,
     Nullability.nonNullable,
-    [coreTypes.intRawType(elementNullability)],
+    DartTypeList(coreTypes.intRawType(elementNullability)),
   );
 
   ConstantExpression intListConstantExpression(
     List<int?> values,
     Nullability elementNullability,
   ) => ConstantExpression(
-    ListConstant(coreTypes.intRawType(elementNullability), [
-      for (var v in values)
-        if (v != null) IntConstant(v) else NullConstant(),
-    ]),
+    ListConstant(
+      coreTypes.intRawType(elementNullability),
+      ConstantList.mapped(
+        values,
+        (v) => v != null ? IntConstant(v) : NullConstant(),
+      ),
+    ),
     _listOfIntType(elementNullability),
   );
 
@@ -1377,7 +1390,7 @@ class FfiTransformer extends Transformer {
         for (final abi in Abi.values) values[abi],
       ], elementNullability),
       listElementAt.name,
-      Arguments([StaticInvocation(abiMethod, Arguments([]))]),
+      Arguments(ExpressionList(StaticInvocation(abiMethod, Arguments.empty()))),
       interfaceTarget: listElementAt,
       functionType:
           Substitution.fromInterfaceType(
@@ -1395,8 +1408,8 @@ class FfiTransformer extends Transformer {
       StaticInvocation(
         checkAbiSpecificIntegerMappingFunction,
         Arguments(
-          [nullableExpression],
-          types: [InterfaceType(intClass, Nullability.nonNullable)],
+          ExpressionList(nullableExpression),
+          types: DartTypeList(InterfaceType(intClass, Nullability.nonNullable)),
         ),
       );
 
@@ -1439,7 +1452,11 @@ class FfiTransformer extends Transformer {
     }
     return env.isSubtypeOf(
       type,
-      InterfaceType(arrayClass, Nullability.nonNullable, [nativeTypeType]),
+      InterfaceType(
+        arrayClass,
+        Nullability.nonNullable,
+        DartTypeList(nativeTypeType),
+      ),
     );
   }
 
@@ -1673,7 +1690,7 @@ class FfiTransformer extends Transformer {
       InstanceAccessKind.Instance,
       a,
       numAddition.name,
-      Arguments([b]),
+      Arguments(ExpressionList(b)),
       interfaceTarget: numAddition,
       functionType: numAddition.getterType as FunctionType,
     );
@@ -1684,7 +1701,7 @@ class FfiTransformer extends Transformer {
       InstanceAccessKind.Instance,
       a,
       numMultiplication.name,
-      Arguments([b]),
+      Arguments(ExpressionList(b)),
       interfaceTarget: numMultiplication,
       functionType: numMultiplication.getterType as FunctionType,
     );
@@ -1773,13 +1790,15 @@ class FfiTransformer extends Transformer {
     return StaticInvocation(
       method,
       Arguments(
-        [
+        ExpressionList(
           typedDataBase,
           offsetInBytes ?? ConstantExpression(IntConstant(0)),
-          if (index != null) index,
-          if (value != null) value,
-        ],
-        types: [InterfaceType(nativeTypeCfe.clazz, Nullability.nonNullable)],
+          index ?? value,
+          index != null ? value : null,
+        ),
+        types: DartTypeList(
+          InterfaceType(nativeTypeCfe.clazz, Nullability.nonNullable),
+        ),
       ),
     )..fileOffset = fileOffset;
   }
@@ -1798,18 +1817,24 @@ class FfiTransformer extends Transformer {
         ExpressionStatement(
           StaticInvocation(
             nativeEffectMethod,
-            Arguments([
-              ConstructorInvocation(
-                constructor,
-                Arguments([
-                  StaticInvocation(
-                    uint8ListFactory,
-                    Arguments([ConstantExpression(IntConstant(1))]),
-                  )..fileOffset = nestedExpression.fileOffset,
-                  ConstantExpression(IntConstant(0)),
-                ]),
-              )..fileOffset = nestedExpression.fileOffset,
-            ]),
+            Arguments(
+              ExpressionList(
+                ConstructorInvocation(
+                  constructor,
+                  Arguments(
+                    ExpressionList(
+                      StaticInvocation(
+                        uint8ListFactory,
+                        Arguments(
+                          ExpressionList(ConstantExpression(IntConstant(1))),
+                        ),
+                      )..fileOffset = nestedExpression.fileOffset,
+                      ConstantExpression(IntConstant(0)),
+                    ),
+                  ),
+                )..fileOffset = nestedExpression.fileOffset,
+              ),
+            ),
           ),
         ),
       ]),
@@ -2020,7 +2045,7 @@ class FfiTransformer extends Transformer {
     assert(node is Procedure || node is Constructor);
     node.addAnnotation(
       ConstantExpression(
-        InstanceConstant(pragmaClass.reference, [], {
+        InstanceConstant(pragmaClass.reference, DartTypeList.empty, {
           pragmaName.fieldReference: StringConstant("vm:prefer-inline"),
           pragmaOptions.fieldReference: NullConstant(),
         }),

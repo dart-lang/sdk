@@ -155,7 +155,10 @@ class DartUnitHoverComputer {
   /// information to disambiguate things like constructors from types (and
   /// whether they are const).
   String? _elementDisplayString(AstNode node, Element? element) {
-    var displayString = element?.displayString(multiline: true);
+    var displayString = element?.displayString(
+      multiline: true,
+      includePositionalParameterNames: true,
+    );
 
     if (displayString != null) {
       if (element is TypeParameterElement) {

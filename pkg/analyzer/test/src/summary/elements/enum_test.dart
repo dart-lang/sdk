@@ -2247,6 +2247,13 @@ library
               metadata
                 Annotation
                   atSign: @ @32
+                  expression: UnqualifiedNameExpression
+                    name: annotation @33
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::annotation
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: annotation @33
                     element: <testLibrary>::@getter::annotation
@@ -2271,6 +2278,13 @@ library
               metadata
                 Annotation
                   atSign: @ @62
+                  expression: UnqualifiedNameExpression
+                    name: annotation @63
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::annotation
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: annotation @63
                     element: <testLibrary>::@getter::annotation
@@ -2360,6 +2374,13 @@ library
           metadata
             Annotation
               atSign: @ @32
+              expression: UnqualifiedNameExpression
+                name: annotation @33
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::annotation
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: annotation @33
                 element: <testLibrary>::@getter::annotation
@@ -2377,6 +2398,13 @@ library
           metadata
             Annotation
               atSign: @ @62
+              expression: UnqualifiedNameExpression
+                name: annotation @63
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::annotation
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: annotation @63
                 element: <testLibrary>::@getter::annotation
@@ -2632,6 +2660,13 @@ library
               metadata
                 Annotation
                   atSign: @ @26
+                  expression: UnqualifiedNameExpression
+                    name: a @27
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: a @27
                     element: <testLibrary>::@getter::a
@@ -2706,6 +2741,13 @@ library
           metadata
             Annotation
               atSign: @ @26
+              expression: UnqualifiedNameExpression
+                name: a @27
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @27
                 element: <testLibrary>::@getter::a
@@ -2807,13 +2849,28 @@ library
               metadata
                 Annotation
                   atSign: @ @70
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: A @71
+                        element: <testLibrary>::@class::A
+                        type: A
+                      element: <testLibrary>::@class::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @72
+                      arguments2
+                        IntegerLiteral
+                          literal: 100 @73
+                          staticType: int
+                      rightParenthesis: ) @76
+                    staticType: A
                   name: SimpleIdentifier
                     token: A @71
                     element: <testLibrary>::@class::A
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @72
-                    arguments2
+                    arguments
                       IntegerLiteral
                         literal: 100 @73
                         staticType: int
@@ -2852,13 +2909,28 @@ library
               metadata
                 Annotation
                   atSign: @ @90
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: A @91
+                        element: <testLibrary>::@class::A
+                        type: A
+                      element: <testLibrary>::@class::A::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @92
+                      arguments2
+                        IntegerLiteral
+                          literal: 300 @93
+                          staticType: int
+                      rightParenthesis: ) @96
+                    staticType: A
                   name: SimpleIdentifier
                     token: A @91
                     element: <testLibrary>::@class::A
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @92
-                    arguments2
+                    arguments
                       IntegerLiteral
                         literal: 300 @93
                         staticType: int
@@ -2974,13 +3046,28 @@ library
           metadata
             Annotation
               atSign: @ @70
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @71
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @72
+                  arguments2
+                    IntegerLiteral
+                      literal: 100 @73
+                      staticType: int
+                  rightParenthesis: ) @76
+                staticType: A
               name: SimpleIdentifier
                 token: A @71
                 element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @72
-                arguments2
+                arguments
                   IntegerLiteral
                     literal: 100 @73
                     staticType: int
@@ -3005,13 +3092,28 @@ library
           metadata
             Annotation
               atSign: @ @90
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: A @91
+                    element: <testLibrary>::@class::A
+                    type: A
+                  element: <testLibrary>::@class::A::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @92
+                  arguments2
+                    IntegerLiteral
+                      literal: 300 @93
+                      staticType: int
+                  rightParenthesis: ) @96
+                staticType: A
               name: SimpleIdentifier
                 token: A @91
                 element: <testLibrary>::@class::A
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @92
-                arguments2
+                arguments
                   IntegerLiteral
                     literal: 300 @93
                     staticType: int
@@ -3081,6 +3183,13 @@ library
               metadata
                 Annotation
                   atSign: @ @11
+                  expression: UnqualifiedNameExpression
+                    name: v @12
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@enum::E::@getter::v
+                      invokeType: E Function()
+                      type: E
+                    staticType: E
                   name: SimpleIdentifier
                     token: v @12
                     element: <testLibrary>::@enum::E::@getter::v
@@ -3143,6 +3252,13 @@ library
           metadata
             Annotation
               atSign: @ @11
+              expression: UnqualifiedNameExpression
+                name: v @12
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@enum::E::@getter::v
+                  invokeType: E Function()
+                  type: E
+                staticType: E
               name: SimpleIdentifier
                 token: v @12
                 element: <testLibrary>::@enum::E::@getter::v
@@ -3239,9 +3355,10 @@ library
                         invokeType: E Function()
                         type: E
                       staticType: E
-                    SimpleIdentifier
-                      token: <empty> @-1 <synthetic>
-                      element: <null>
+                    UnqualifiedNameExpression
+                      name: <empty> @-1 <synthetic>
+                      resolution: InvalidNamedReadResolution
+                        recoveryElement: <null>
                       staticType: InvalidType
                   elements(v1)
                     SimpleIdentifier
@@ -3725,6 +3842,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 2
               nextFragment: #F8
           getters
             #F4 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -3843,6 +3961,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 19
+              primaryHeaderCodeRange: 6 + 2
+              primaryBodyCodeRange: 19 + 20
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
@@ -3963,6 +4083,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 34
+              primaryHeaderCodeRange: 6 + 2
+              primaryBodyCodeRange: 34 + 13
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
@@ -4103,13 +4225,27 @@ library
               metadata
                 Annotation
                   atSign: @ @34
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        name: Deprecated @35
+                        element: dart:core::@class::Deprecated
+                        type: Deprecated
+                      element: dart:core::@class::Deprecated::@constructor::new
+                    argumentList: ArgumentList
+                      leftParenthesis: ( @45
+                      arguments2
+                        SimpleStringLiteral
+                          literal: '0' @46
+                      rightParenthesis: ) @49
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: Deprecated @35
                     element: dart:core::@class::Deprecated
                     staticType: null
                   arguments: ArgumentList
                     leftParenthesis: ( @45
-                    arguments2
+                    arguments
                       SimpleStringLiteral
                         literal: '0' @46
                     rightParenthesis: ) @49
@@ -4117,6 +4253,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 53
+              primaryHeaderCodeRange: 6 + 2
+              primaryBodyCodeRange: 34 + 32
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
@@ -4161,13 +4299,27 @@ library
           metadata
             Annotation
               atSign: @ @34
+              expression: ConstructorInvocation
+                constructorReference: ConstructorReference2
+                  typeReference: ConstructorTypeReference
+                    name: Deprecated @35
+                    element: dart:core::@class::Deprecated
+                    type: Deprecated
+                  element: dart:core::@class::Deprecated::@constructor::new
+                argumentList: ArgumentList
+                  leftParenthesis: ( @45
+                  arguments2
+                    SimpleStringLiteral
+                      literal: '0' @46
+                  rightParenthesis: ) @49
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: Deprecated @35
                 element: dart:core::@class::Deprecated
                 staticType: null
               arguments: ArgumentList
                 leftParenthesis: ( @45
-                arguments2
+                arguments
                   SimpleStringLiteral
                     literal: '0' @46
                 rightParenthesis: ) @49
@@ -4269,6 +4421,13 @@ library
               metadata
                 Annotation
                   atSign: @ @27
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @28
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @28
                     element: dart:core::@getter::deprecated
@@ -4277,6 +4436,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 41
+              primaryHeaderCodeRange: 6 + 7
+              primaryBodyCodeRange: 27 + 19
               formalParameters
                 #F7 requiredPositional isOriginDeclaration x (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
@@ -4316,6 +4477,13 @@ library
           metadata
             Annotation
               atSign: @ @27
+              expression: UnqualifiedNameExpression
+                name: deprecated @28
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @28
                 element: dart:core::@getter::deprecated
@@ -4404,6 +4572,8 @@ library
               typeNameOffset: 5
               periodOffset: 6
               thisKeywordOffset: 33
+              primaryHeaderCodeRange: 6 + 8
+              primaryBodyCodeRange: 33 + 20
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::v
@@ -4626,6 +4796,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 19
+              primaryHeaderCodeRange: 6 + 2
+              primaryBodyCodeRange: 19 + 20
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
@@ -4746,6 +4918,8 @@ library
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 27
+              primaryHeaderCodeRange: 6 + 7
+              primaryBodyCodeRange: 27 + 21
               formalParameters
                 #F7 requiredPositional isOriginDeclaration x (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
@@ -4899,6 +5073,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 18
               formalParameters
                 #F9 optionalNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5033,6 +5208,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 18
               formalParameters
                 #F9 optionalPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5170,6 +5346,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 26
               formalParameters
                 #F9 requiredNamed isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:27) (firstTokenOffset:8) (offset:27)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5304,6 +5481,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 60
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:58) (firstTokenOffset:10) (offset:58)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5311,6 +5489,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @35
+                      expression: UnqualifiedNameExpression
+                        name: deprecated @36
+                        resolution: GetterInvocationResolution
+                          element: dart:core::@getter::deprecated
+                          invokeType: Deprecated Function()
+                          type: Deprecated
+                        staticType: Deprecated
                       name: SimpleIdentifier
                         token: deprecated @36
                         element: dart:core::@getter::deprecated
@@ -5355,6 +5540,13 @@ library
           metadata
             Annotation
               atSign: @ @35
+              expression: UnqualifiedNameExpression
+                name: deprecated @36
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @36
                 element: dart:core::@getter::deprecated
@@ -5375,6 +5567,13 @@ library
               metadata
                 Annotation
                   atSign: @ @35
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @36
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @36
                     element: dart:core::@getter::deprecated
@@ -5469,6 +5668,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 57
               formalParameters
                 #F9 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:57) (firstTokenOffset:10) (offset:57)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5476,6 +5676,13 @@ library
                   metadata
                     Annotation
                       atSign: @ @35
+                      expression: UnqualifiedNameExpression
+                        name: deprecated @36
+                        resolution: GetterInvocationResolution
+                          element: dart:core::@getter::deprecated
+                          invokeType: Deprecated Function()
+                          type: Deprecated
+                        staticType: Deprecated
                       name: SimpleIdentifier
                         token: deprecated @36
                         element: dart:core::@getter::deprecated
@@ -5520,6 +5727,13 @@ library
           metadata
             Annotation
               atSign: @ @35
+              expression: UnqualifiedNameExpression
+                name: deprecated @36
+                resolution: GetterInvocationResolution
+                  element: dart:core::@getter::deprecated
+                  invokeType: Deprecated Function()
+                  type: Deprecated
+                staticType: Deprecated
               name: SimpleIdentifier
                 token: deprecated @36
                 element: dart:core::@getter::deprecated
@@ -5540,6 +5754,13 @@ library
               metadata
                 Annotation
                   atSign: @ @35
+                  expression: UnqualifiedNameExpression
+                    name: deprecated @36
+                    resolution: GetterInvocationResolution
+                      element: dart:core::@getter::deprecated
+                      invokeType: Deprecated Function()
+                      type: Deprecated
+                    staticType: Deprecated
                   name: SimpleIdentifier
                     token: deprecated @36
                     element: dart:core::@getter::deprecated
@@ -5631,6 +5852,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 13
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:15) (firstTokenOffset:7) (offset:15)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -5800,6 +6022,7 @@ library
               element: <testLibrary>::@enum::B::@constructor::new
               typeName: B
               typeNameOffset: 38
+              primaryHeaderCodeRange: 39 + 11
               formalParameters
                 #F13 requiredPositional hasImplicitType isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:46) (firstTokenOffset:40) (offset:46)
                   element: <testLibrary>::@enum::B::@constructor::new::@formalParameter::foo
@@ -5961,6 +6184,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 9 + 13
               formalParameters
                 #F10 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:18) (firstTokenOffset:10) (offset:18)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -6100,6 +6324,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 10
               formalParameters
                 #F9 requiredPositional hasImplicitType isFinal isOriginDeclaration this.foo (nameOffset:12) (firstTokenOffset:7) (offset:12)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -6230,6 +6455,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 11
               formalParameters
                 #F7 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -6346,6 +6572,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 9
               formalParameters
                 #F7 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
@@ -6462,6 +6689,7 @@ library
               typeName: A
               typeNameOffset: 11
               periodOffset: 12
+              primaryHeaderCodeRange: 12 + 8
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::A::@getter::v
@@ -6571,6 +6799,7 @@ library
               typeName: A
               typeNameOffset: 5
               periodOffset: 6
+              primaryHeaderCodeRange: 6 + 8
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v
@@ -6644,6 +6873,13 @@ library
               metadata
                 Annotation
                   atSign: @ @23
+                  expression: UnqualifiedNameExpression
+                    name: foo @24
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @24
                     element: <testLibrary>::@getter::foo
@@ -6700,12 +6936,20 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 21
+              primaryHeaderCodeRange: 30 + 20
               formalParameters
                 #F10 optionalPositional isOriginDeclaration x (nameOffset:41) (firstTokenOffset:32) (offset:41)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
                   metadata
                     Annotation
                       atSign: @ @32
+                      expression: UnqualifiedNameExpression
+                        name: foo @33
+                        resolution: GetterInvocationResolution
+                          element: <testLibrary>::@enum::E::@getter::foo
+                          invokeType: int Function()
+                          type: int
+                        staticType: int
                       name: SimpleIdentifier
                         token: foo @33
                         element: <testLibrary>::@enum::E::@getter::foo
@@ -6751,6 +6995,13 @@ library
           metadata
             Annotation
               atSign: @ @23
+              expression: UnqualifiedNameExpression
+                name: foo @24
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @24
                 element: <testLibrary>::@getter::foo
@@ -6793,6 +7044,13 @@ library
               metadata
                 Annotation
                   atSign: @ @32
+                  expression: UnqualifiedNameExpression
+                    name: foo @33
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@enum::E::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @33
                     element: <testLibrary>::@enum::E::@getter::foo
@@ -6907,6 +7165,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 34 + 10
               formalParameters
                 #F9 requiredPositional isOriginDeclaration t (nameOffset:37) (firstTokenOffset:35) (offset:37)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::t
@@ -7031,6 +7290,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 11
+              primaryHeaderCodeRange: 12 + 2
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v
@@ -7136,6 +7396,7 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 2
           getters
             #F3 isComplete isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@getter::v
@@ -9874,6 +10135,13 @@ library
               metadata
                 Annotation
                   atSign: @ @32
+                  expression: UnqualifiedNameExpression
+                    name: a @33
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: a @33
                     element: <testLibrary>::@getter::a
@@ -9929,6 +10197,13 @@ library
           metadata
             Annotation
               atSign: @ @32
+              expression: UnqualifiedNameExpression
+                name: a @33
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @33
                 element: <testLibrary>::@getter::a
@@ -13883,6 +14158,13 @@ library
               metadata
                 Annotation
                   atSign: @ @28
+                  expression: UnqualifiedNameExpression
+                    name: foo @29
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @29
                     element: <testLibrary>::@getter::foo
@@ -13954,6 +14236,13 @@ library
               metadata
                 Annotation
                   atSign: @ @70
+                  expression: UnqualifiedNameExpression
+                    name: foo @71
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@enum::E::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @71
                     element: <testLibrary>::@enum::E::@getter::foo
@@ -13981,6 +14270,13 @@ library
           metadata
             Annotation
               atSign: @ @28
+              expression: UnqualifiedNameExpression
+                name: foo @29
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @29
                 element: <testLibrary>::@getter::foo
@@ -14040,6 +14336,13 @@ library
           metadata
             Annotation
               atSign: @ @70
+              expression: UnqualifiedNameExpression
+                name: foo @71
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@enum::E::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @71
                 element: <testLibrary>::@enum::E::@getter::foo
@@ -16071,6 +16374,13 @@ library
               metadata
                 Annotation
                   atSign: @ @22
+                  expression: UnqualifiedNameExpression
+                    name: a @23
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: a @23
                     element: <testLibrary>::@getter::a
@@ -16148,6 +16458,13 @@ library
           metadata
             Annotation
               atSign: @ @22
+              expression: UnqualifiedNameExpression
+                name: a @23
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @23
                 element: <testLibrary>::@getter::a
@@ -18429,9 +18746,9 @@ library
             #F7 hasInitializer isFinal isOriginDeclaration foo (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_2
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
                   staticType: null
               inducedGetter: #F8
               nextFragment: #F9
@@ -18457,9 +18774,9 @@ library
             #F9 hasInitializer isAugmentation isFinal isOriginDeclaration foo (nameOffset:119) (firstTokenOffset:119) (offset:119)
               element: <testLibrary>::@enum::A::@field::foo
               initializer: expression_3
-                SimpleIdentifier
-                  token: _notSerializableExpression @-1
-                  element: <null>
+                UnqualifiedNameExpression
+                  name: _notSerializableExpression @-1
+                  resolution: <null>
                   staticType: null
               inducedGetter: #F11
               previousFragment: #F7
@@ -22129,6 +22446,13 @@ library
               metadata
                 Annotation
                   atSign: @ @32
+                  expression: UnqualifiedNameExpression
+                    name: a @33
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::a
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: a @33
                     element: <testLibrary>::@getter::a
@@ -22191,6 +22515,13 @@ library
           metadata
             Annotation
               atSign: @ @32
+              expression: UnqualifiedNameExpression
+                name: a @33
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::a
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: a @33
                 element: <testLibrary>::@getter::a
@@ -22402,6 +22733,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 9
               formalParameters
                 #F9 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
@@ -22549,6 +22881,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 15
               formalParameters
                 #F11 requiredPositional isDeclaring isFinal isOriginDeclaration this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
@@ -22699,9 +23032,7 @@ library
                 UnqualifiedNameExpression
                   name: foo @46
                   resolution: InvalidNamedReadResolution
-                    type: InvalidType
-                    candidates
-                    recovery: <null>
+                    recoveryElement: <null>
                   staticType: InvalidType
               inducedGetter: #F7
           constructors
@@ -22709,6 +23040,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 9
               formalParameters
                 #F9 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
@@ -22890,6 +23222,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 10
               formalParameters
                 #F9 requiredPositional isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:7) (offset:12)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
@@ -23027,6 +23360,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
+              primaryHeaderCodeRange: 6 + 9
               formalParameters
                 #F9 requiredPositional isOriginDeclaration foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo

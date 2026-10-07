@@ -35,7 +35,7 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   DartType buildThisType();
 
-  List<DartType> buildAliasedTypeArguments(
+  DartTypeList buildAliasedTypeArguments(
     LibraryBuilder library,
     List<TypeBuilder>? arguments,
     ClassHierarchyBase? hierarchy,
@@ -154,7 +154,7 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   DartType buildAliasedTypeWithBuiltArguments(
     LibraryBuilder library,
     Nullability nullability,
-    List<DartType>? arguments,
+    DartTypeList? arguments,
     TypeUse typeUse,
     Uri fileUri,
     int charOffset, {

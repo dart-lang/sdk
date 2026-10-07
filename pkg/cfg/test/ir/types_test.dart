@@ -183,15 +183,18 @@ void main() {
     final comparableType = ast.InterfaceType(
       comparableClass,
       ast.Nullability.nonNullable,
-      [const ast.DynamicType()],
+      ast.DartTypeList.dynamic1,
     );
     expect(StringType().isSubtypeOf(StaticType(comparableType)), isTrue);
   });
 
   test('record', () {
     final dartType1 = ast.RecordType(
-      [coreTypes.intNonNullableRawType, coreTypes.stringNullableRawType],
-      [],
+      ast.DartTypeList(
+        coreTypes.intNonNullableRawType,
+        coreTypes.stringNullableRawType,
+      ),
+      ast.NamedDartTypeList.empty,
       .nonNullable,
     );
     final recordType1 = RecordType(dartType1);
@@ -207,8 +210,10 @@ void main() {
     expect(recordType1.canBeFuture, isFalse);
 
     final dartType2 = ast.RecordType(
-      [coreTypes.intNonNullableRawType],
-      [ast.NamedType('foo', coreTypes.boolNonNullableRawType)],
+      ast.DartTypeList(coreTypes.intNonNullableRawType),
+      ast.NamedDartTypeList(
+        ast.NamedType('foo', coreTypes.boolNonNullableRawType),
+      ),
       .nonNullable,
     );
     final recordType2 = RecordType(dartType2);
@@ -235,8 +240,11 @@ void main() {
 
     final recordType3 = RecordType(
       ast.RecordType(
-        [coreTypes.intNullableRawType, coreTypes.objectNullableRawType],
-        [],
+        ast.DartTypeList(
+          coreTypes.intNullableRawType,
+          coreTypes.objectNullableRawType,
+        ),
+        ast.NamedDartTypeList.empty,
         .nonNullable,
       ),
     );

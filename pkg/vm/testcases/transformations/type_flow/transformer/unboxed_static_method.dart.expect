@@ -32,7 +32,7 @@ static method use(dynamic object) → void {
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.unboxing-info.metadata=(i,d,b,b,b,b,b,b)->b]
-static method takePositional([@vm.inferred-arg-type.metadata=int] dynamic unboxedInt, [@vm.inferred-arg-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-arg-type.metadata=int?] dynamic boxedNullableInt, [@vm.inferred-arg-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble, [@vm.inferred-arg-type.metadata=!] dynamic boxedIntOrDouble, dynamic boxedNullableIntOrDouble, [@vm.inferred-arg-type.metadata=#lib::X?] dynamic boxedNullableX, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedX) → void {
+static method takePositional([@vm.inferred-arg-type.metadata=int] dynamic unboxedInt, [@vm.inferred-arg-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-arg-type.metadata=int?] dynamic boxedNullableInt, [@vm.inferred-arg-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble, [@vm.inferred-arg-type.metadata=dart.core::num (inexact)] dynamic boxedIntOrDouble, [@vm.inferred-arg-type.metadata=dart.core::num? (inexact)] dynamic boxedNullableIntOrDouble, [@vm.inferred-arg-type.metadata=#lib::X?] dynamic boxedNullableX, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedX) → void {
   self::use(unboxedInt);
   self::use(unboxedDouble);
   self::use(boxedNullableInt);
@@ -45,7 +45,7 @@ static method takePositional([@vm.inferred-arg-type.metadata=int] dynamic unboxe
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.unboxing-info.metadata=(i,d,b,b,b,b,b,b)->b]
-static method takeOptional([@vm.inferred-arg-type.metadata=int] dynamic unboxedInt, [@vm.inferred-arg-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-arg-type.metadata=int?] dynamic boxedNullableInt, [@vm.inferred-arg-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble, [@vm.inferred-arg-type.metadata=!] dynamic boxedIntOrDouble, dynamic boxedNullableIntOrDouble, [@vm.inferred-arg-type.metadata=#lib::X?] dynamic boxedNullableX, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedX) → void {
+static method takeOptional([@vm.inferred-arg-type.metadata=int] dynamic unboxedInt, [@vm.inferred-arg-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-arg-type.metadata=int?] dynamic boxedNullableInt, [@vm.inferred-arg-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble, [@vm.inferred-arg-type.metadata=dart.core::num (inexact)] dynamic boxedIntOrDouble, [@vm.inferred-arg-type.metadata=dart.core::num? (inexact)] dynamic boxedNullableIntOrDouble, [@vm.inferred-arg-type.metadata=#lib::X?] dynamic boxedNullableX, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedX) → void {
   self::use(unboxedInt);
   self::use(unboxedDouble);
   self::use(boxedNullableInt);
@@ -58,7 +58,7 @@ static method takeOptional([@vm.inferred-arg-type.metadata=int] dynamic unboxedI
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 [@vm.unboxing-info.metadata=(b,b,b,b,b,b,d,i)->b]
-static method takeNamed([@vm.inferred-arg-type.metadata=!] dynamic boxedIntOrDouble, [@vm.inferred-arg-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble, [@vm.inferred-arg-type.metadata=int?] dynamic boxedNullableInt, dynamic boxedNullableIntOrDouble, [@vm.inferred-arg-type.metadata=#lib::X?] dynamic boxedNullableX, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedX, [@vm.inferred-arg-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-arg-type.metadata=int] dynamic unboxedInt) → void {
+static method takeNamed([@vm.inferred-arg-type.metadata=dart.core::num (inexact)] dynamic boxedIntOrDouble, [@vm.inferred-arg-type.metadata=dart.core::_Double?] dynamic boxedNullableDouble, [@vm.inferred-arg-type.metadata=int?] dynamic boxedNullableInt, [@vm.inferred-arg-type.metadata=dart.core::num? (inexact)] dynamic boxedNullableIntOrDouble, [@vm.inferred-arg-type.metadata=#lib::X?] dynamic boxedNullableX, [@vm.inferred-arg-type.metadata=#lib::X] dynamic boxedX, [@vm.inferred-arg-type.metadata=dart.core::_Double] dynamic unboxedDouble, [@vm.inferred-arg-type.metadata=int] dynamic unboxedInt) → void {
   self::use(unboxedInt);
   self::use(unboxedDouble);
   self::use(boxedNullableInt);
@@ -92,9 +92,11 @@ static method returnBoxedNullableInt() → dynamic
 static method returnBoxedNullableDouble() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::double?} 1.1 : null;
 
-[@vm.inferred-return-type.metadata=!]
+[@vm.inferred-return-type.metadata=dart.core::num (inexact)]
 static method returnBoxedIntOrDouble() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::num} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1;
+
+[@vm.inferred-return-type.metadata=dart.core::num? (inexact)]
 static method returnBoxedNullableIntOrDouble() → dynamic
   return [@vm.inferred-type.metadata=dart.core::bool] self::kTrue ?{core::num?} [@vm.inferred-type.metadata=dart.core::bool] self::kFalse ?{core::num} [@vm.inferred-type.metadata=int] self::smiOrMint : 1.1 : null;
 
@@ -128,8 +130,8 @@ static method main() → dynamic {
   self::use([@vm.inferred-type.metadata=dart.core::_Double] self::returnUnboxedDouble());
   self::use([@vm.inferred-type.metadata=int?] self::returnBoxedNullableInt());
   self::use([@vm.inferred-type.metadata=dart.core::_Double?] self::returnBoxedNullableDouble());
-  self::use([@vm.inferred-type.metadata=!] self::returnBoxedIntOrDouble());
-  self::use(self::returnBoxedNullableIntOrDouble());
+  self::use([@vm.inferred-type.metadata=dart.core::num (inexact)] self::returnBoxedIntOrDouble());
+  self::use([@vm.inferred-type.metadata=dart.core::num? (inexact)] self::returnBoxedNullableIntOrDouble());
   self::use([@vm.inferred-type.metadata=#lib::X?] self::returnBoxedNullableX());
   self::use([@vm.inferred-type.metadata=#lib::X] self::returnBoxedX());
   self::use([@vm.inferred-type.metadata=dart.core::_Smi] self::returnBoxedSmiFromEntryPoint());

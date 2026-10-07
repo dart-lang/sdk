@@ -24,6 +24,43 @@ class CreateExtensionGetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createExtensionGetter;
 
+  Future<void> test_annotation() async {
+    await resolveTestCode('''
+extension E on int {
+  @foo
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_annotation_staticMember() async {
+    await resolveTestCode('''
+extension E on int {}
+
+class C {
+  @E.foo
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_annotation_staticMember_importPrefixed() async {
+    newFile('$testPackageLibPath/a.dart', '''
+extension E on int {}
+''');
+    await resolveTestCode('''
+import 'a.dart' as p;
+
+class C {
+  @p.E.foo
+  void m() {}
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_conflicting_setter() async {
     await resolveTestCode('''
 class A {

@@ -352,7 +352,7 @@ struct AllocateMintABI {
   static constexpr Register kTempReg = R1;
 };
 
-// ABI for Allocate{Mint,Double,Float32x4,Float64x2}Stub.
+// ABI for Allocate{Mint,Double,Float32x4,Float64x2,Int32x4}Stub.
 struct AllocateBoxABI {
   static constexpr Register kResultReg = AllocateObjectABI::kResultReg;
   static constexpr Register kTempReg = R1;
@@ -1032,6 +1032,7 @@ enum SIMDThreeSameOp {
   SIMDThreeSameMask = 0x9f200400,
   SIMDThreeSameFixed = DPSimd1Fixed | B21 | B10,
   VAND = SIMDThreeSameFixed | B30 | B12 | B11,
+  VBIC = SIMDThreeSameFixed | B30 | B22 | B12 | B11,
   VORR = SIMDThreeSameFixed | B30 | B23 | B12 | B11,
   VEOR = SIMDThreeSameFixed | B30 | B29 | B12 | B11,
   VADDW = SIMDThreeSameFixed | B30 | B23 | B15,
@@ -1059,6 +1060,8 @@ enum SIMDThreeSameOp {
   VMIND = SIMDThreeSameFixed | B30 | B23 | B22 | B15 | B14 | B13 | B12,
   VRECPSS = SIMDThreeSameFixed | B30 | B15 | B14 | B13 | B12 | B11,
   VRSQRTSS = SIMDThreeSameFixed | B30 | B23 | B15 | B14 | B13 | B12 | B11,
+  VSSHLW = SIMDThreeSameFixed | B30 | B23 | B14,
+  VSSHLX = SIMDThreeSameFixed | B30 | B23 | B22 | B14,
 };
 
 // C.3.6.17

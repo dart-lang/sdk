@@ -15,7 +15,7 @@ typedef StaticOptions =
     Either3<bool, FoldingRangeOptions, FoldingRangeRegistrationOptions>;
 
 class FoldingHandler
-    extends LspMessageHandler<FoldingRangeParams, List<FoldingRange>> {
+    extends SharedMessageHandler<FoldingRangeParams, List<FoldingRange>> {
   new(super.server);
   @override
   Method get handlesMessage => Method.textDocument_foldingRange;
@@ -23,6 +23,9 @@ class FoldingHandler
   @override
   LspJsonHandler<FoldingRangeParams> get jsonHandler =>
       FoldingRangeParams.jsonHandler;
+
+  @override
+  bool get requiresTrustedCaller => false;
 
   @override
   Future<ErrorOr<List<FoldingRange>>> handle(

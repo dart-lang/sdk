@@ -191,7 +191,7 @@ library
     expect(variables, hasLength(1));
     var x = variables[0];
     _assertTypeStr(x.type, 'Type');
-    expect(x.constantInitializer.toString(), 'FutureOr');
+    expect(x.constantInitializer2.toString(), 'FutureOr');
   }
 
   test_futureOr_inferred() async {
@@ -1884,12 +1884,9 @@ library
                 UnqualifiedNameExpression
                   name: V @44
                   resolution: InvalidNamedReadResolution
-                    type: InvalidType
-                    candidates
-                      candidate: multiplyDefinedElement
-                        package:test/a.dart::@function::V
-                        package:test/b.dart::@function::V
-                    recovery: <null>
+                    recoveryElement: multiplyDefinedElement
+                      package:test/a.dart::@function::V
+                      package:test/b.dart::@function::V
                   staticType: InvalidType
   functions
     hasImplicitReturnType isOriginDeclaration isStatic foo

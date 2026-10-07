@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -60,7 +61,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
 
     // should have a public name
     var name = nameToken.lexeme;
-    if (Identifier.isPrivateName(name)) {
+    if (name.isPrivateName) {
       return;
     }
     // should be on the name

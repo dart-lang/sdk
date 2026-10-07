@@ -61,10 +61,7 @@ class ReplaceWithDecoratedBoxInFileTest extends FixInFileProcessorTest {
   bool get addFlutterPackageDep => true;
 
   @override
-  void setUp() {
-    super.setUp();
-    createAnalysisOptionsFile(lints: [LintNames.use_decorated_box]);
-  }
+  List<String> get lintCodes => [LintNames.use_decorated_box];
 
   Future<void> test_functionExpression() async {
     await resolveTestCode(r'''

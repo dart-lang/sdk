@@ -5,6 +5,7 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -13,6 +14,7 @@ main() {
     defineReflectiveTests(FfiNativeTest);
     defineReflectiveTests(NativeFieldTest);
     defineReflectiveTests(NativeTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -987,6 +989,21 @@ const annotation = Native<Int32 Function(Int32)>();
 
 @annotation
 external int wrongFfiReturnType(int v);
+''');
+  }
+
+  test_NativeFromExtensionType() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:ffi';
+
+extension type const NativeWrapper(Native<Void Function()> it) {
+  const NativeWrapper.voidFunction() : it = const Native<Void Function()>();
+}
+
+@NativeWrapper.voidFunction()
+void f() {}
+//   ^
+// [diag.ffiNativeMustBeExternal] Native functions must be declared external.
 ''');
   }
 

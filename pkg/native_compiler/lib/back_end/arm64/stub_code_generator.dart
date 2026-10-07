@@ -22,6 +22,10 @@ abstract base class Arm64StubCodeGenerator implements StubCodeGenerator {
   Safepoint? _currentSafepoint;
   CompressedStackMaps? _compressedStackMaps;
 
+  VMOffsets get vmOffsets => _asm.vmOffsets;
+  ObjectLayout get objectLayout => _asm.objectLayout;
+  int get compressedWordSize => objectLayout.compressedWordSize;
+
   Arm64StubCodeGenerator(VMOffsets vmOffsets, ObjectLayout objectLayout) {
     _asm = Arm64Assembler(vmOffsets, addCallSiteMetadata, objectLayout);
   }
@@ -139,12 +143,14 @@ final class WriteBarrierStub extends Arm64StubCodeGenerator {
 
   final Register _objectReg;
   final Register _valueReg;
+  final bool isArray;
 
   WriteBarrierStub(
     super.vmOffsets,
     super.objectLayout,
     this._objectReg,
     this._valueReg,
+    this.isArray,
   );
 
   @override
@@ -152,18 +158,32 @@ final class WriteBarrierStub extends Arm64StubCodeGenerator {
     _asm.push(LR);
     _asm.pushPair(objectReg, valueReg);
 
-    if (_objectReg != objectReg) {
-      _asm.mov(objectReg, _objectReg);
-    }
-    if (_valueReg != valueReg) {
-      _asm.mov(valueReg, _valueReg);
+    // Parallel move (_objectReg, _valueReg) -> (objectReg, valueReg).
+    if (objectReg == _valueReg) {
+      if (valueReg == _objectReg) {
+        _asm.mov(tempReg, _valueReg);
+        _asm.mov(objectReg, _objectReg);
+        _asm.mov(valueReg, tempReg);
+      } else {
+        _asm.mov(valueReg, _valueReg);
+        _asm.mov(objectReg, _objectReg);
+      }
+    } else {
+      if (objectReg != _objectReg) {
+        _asm.mov(objectReg, _objectReg);
+      }
+      if (valueReg != _valueReg) {
+        _asm.mov(valueReg, _valueReg);
+      }
     }
 
     _asm.ldr(
       tempReg,
       _asm.address(
         threadReg,
-        _asm.vmOffsets.Thread_write_barrier_entry_point_offset,
+        isArray
+            ? vmOffsets.Thread_array_write_barrier_entry_point_offset
+            : vmOffsets.Thread_write_barrier_entry_point_offset,
       ),
     );
     _asm.blr(tempReg);
@@ -171,6 +191,170 @@ final class WriteBarrierStub extends Arm64StubCodeGenerator {
     _asm.popPair(objectReg, valueReg);
     _asm.pop(LR);
     _asm.ret();
+  }
+}
+
+final class DynamicCallStub extends Arm64StubCodeGenerator {
+  static const Register receiverReg = R0;
+
+  DynamicCallStub(super.vmOffsets, super.objectLayout);
+
+  @override
+  void _generate() {
+    final scratchRegs = Set.of(allocatableRegisters).difference(const {
+      inlineCacheDataReg,
+      argumentsDescriptorReg,
+      receiverReg,
+      codeReg,
+    }).toList();
+    final classIdReg = scratchRegs[0];
+    final entryReg = scratchRegs[1];
+
+    // TODO: do we need to bump Function::usage_counter for code coverage?
+    // TODO: do we need to check for single stepping?
+    // TODO: compressed pointers
+
+    _asm.loadClassId(classIdReg, receiverReg, canBeSmi: true, asTagged: true);
+    _asm.ldr(
+      entryReg,
+      _asm.fieldAddress(inlineCacheDataReg, vmOffsets.ICData_entries_offset),
+    );
+
+    // Look for matching class ID in ICData.
+
+    final loop = Label();
+    final found = Label();
+
+    _asm.bind(loop);
+    _asm.ldr(tempReg, _asm.fieldAddress(entryReg, vmOffsets.Array_data_offset));
+    _asm.cmp(tempReg, classIdReg);
+    _asm.b(found, .equal);
+
+    assert(ClassId.IllegalCid.index == 0);
+    _asm.add(
+      entryReg,
+      entryReg,
+      Immediate(vmOffsets.getICDataEntryLength() * compressedWordSize),
+    );
+    _asm.cbnz(tempReg, loop);
+
+    // ICData entry is not found, call runtime to resolve and cache target function.
+
+    enterStubFrame();
+
+    _frameSizeInWords = 6;
+    _asm.subImmediate(
+      stackPointerReg,
+      stackPointerReg,
+      _frameSizeInWords * wordSize,
+    );
+
+    // Save ICData and arguments descriptor.
+    _asm.stp(
+      inlineCacheDataReg,
+      argumentsDescriptorReg,
+      _asm.address(stackPointerReg, 4 * wordSize),
+    );
+    _asm.stp(
+      nullReg, // Placeholder for the result of the call.
+      nullReg, // Space for result (target function).
+      _asm.address(stackPointerReg, 2 * wordSize),
+    );
+    _asm.stp(inlineCacheDataReg, receiverReg, _asm.address(stackPointerReg, 0));
+
+    // Make sure all slots are recorded as pointers in the stackmap.
+    createSafepointForRuntimeCall(6);
+    _asm.callRuntime(RuntimeEntry.InlineCacheMissHandlerModAOT, 3);
+    _currentSafepoint = null;
+
+    // Restore preserved ICData and arguments descriptor.
+    _asm.ldp(
+      inlineCacheDataReg,
+      argumentsDescriptorReg,
+      _asm.address(stackPointerReg, 4 * wordSize),
+    );
+    // Load target function and the result of the call.
+    _asm.ldp(tempReg, functionReg, _asm.address(stackPointerReg, 2 * wordSize));
+
+    leaveStubFrame();
+
+    final callFunction = Label();
+    _asm.cmp(functionReg, nullReg);
+    _asm.b(callFunction, .notEqual);
+
+    _asm.mov(returnReg, tempReg);
+    _asm.ret();
+
+    _asm.bind(found);
+    _asm.ldr(
+      functionReg,
+      _asm.fieldAddress(
+        entryReg,
+        vmOffsets.Array_data_offset +
+            vmOffsets.getICDataTargetIndex() * compressedWordSize,
+      ),
+    );
+
+    _asm.bind(callFunction);
+    _asm.ldr(
+      codeReg,
+      _asm.fieldAddress(functionReg, vmOffsets.Function_code_offset),
+    );
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(
+        functionReg,
+        vmOffsets.Function_entry_point_offset.first,
+      ),
+    );
+    _asm.br(tempReg);
+  }
+}
+
+final class DynamicInvocationForwarderStub extends Arm64StubCodeGenerator {
+  DynamicInvocationForwarderStub(super.vmOffsets, super.objectLayout);
+
+  @override
+  void _generate() {
+    enterStubFrame();
+
+    _frameSizeInWords = 4;
+    _asm.subImmediate(
+      stackPointerReg,
+      stackPointerReg,
+      _frameSizeInWords * wordSize,
+    );
+
+    // Space for result (target function).
+    _asm.str(nullReg, _asm.address(stackPointerReg, 2 * wordSize));
+
+    _asm.stp(
+      argumentsDescriptorReg,
+      functionReg,
+      _asm.address(stackPointerReg, 0),
+    );
+
+    createSafepointForRuntimeCall(3);
+    _asm.callRuntime(RuntimeEntry.DynamicInvocationForwarderModAOT, 2);
+    _currentSafepoint = null;
+
+    _asm.ldr(argumentsDescriptorReg, _asm.address(stackPointerReg, 0));
+    _asm.ldr(functionReg, _asm.address(stackPointerReg, 2 * wordSize));
+
+    leaveStubFrame();
+
+    _asm.ldr(
+      codeReg,
+      _asm.fieldAddress(functionReg, vmOffsets.Function_code_offset),
+    );
+    _asm.ldr(
+      tempReg,
+      _asm.fieldAddress(
+        functionReg,
+        vmOffsets.Function_entry_point_offset.first,
+      ),
+    );
+    _asm.br(tempReg);
   }
 }
 
@@ -194,10 +378,6 @@ final class SubtypeTestCacheStub extends Arm64StubCodeGenerator {
 
   final int numInputs;
   SubtypeTestCacheStub(super.vmOffsets, super.objectLayout, this.numInputs);
-
-  VMOffsets get vmOffsets => _asm.vmOffsets;
-  ObjectLayout get objectLayout => _asm.objectLayout;
-  int get compressedWordSize => objectLayout.compressedWordSize;
 
   void _generateSubtypeTestCacheLoopBody(
     Register cacheEntryReg,
@@ -485,14 +665,14 @@ final class SubtypeTestCacheStub extends Arm64StubCodeGenerator {
       vmOffsets.SubtypeTestCache_cache_offset - heapObjectTag,
     );
 
-    if (numInputs >= 3) {
-      _asm.loadClassIdMayBeSmi(instanceCidOrSignatureReg, instanceReg);
-    } else {
-      // If the type is fully instantiated, then it can be determined at compile
-      // time whether Smi is a subtype of the type or not. Thus, this code should
-      // never be called with a Smi instance.
-      _asm.loadClassId(instanceCidOrSignatureReg, instanceReg);
-    }
+    // If the type is fully instantiated, then it can be determined at compile
+    // time whether Smi is a subtype of the type or not. Thus, this code should
+    // never be called with a Smi instance.
+    _asm.loadClassId(
+      instanceCidOrSignatureReg,
+      instanceReg,
+      canBeSmi: numInputs >= 3,
+    );
 
     _asm.cmpImmediate(instanceCidOrSignatureReg, ClassId.ClosureCid.index);
     final nonClosure = Label();
@@ -524,7 +704,7 @@ final class SubtypeTestCacheStub extends Arm64StubCodeGenerator {
       {
         // TODO: VerifySmi only in debug mode
         final isSmi = Label();
-        _asm.tbz(scratchReg, smiBit, isSmi);
+        _asm.branchIfSmi(scratchReg, isSmi);
         _asm.unimplemented('Smi is expected');
         _asm.bind(isSmi);
       }
@@ -731,7 +911,16 @@ final class Arm64StubFactory extends StubFactory {
   StubCodeGenerator writeBarrierStubGenerator(
     Register objectReg,
     Register valueReg,
-  ) => WriteBarrierStub(vmOffsets, objectLayout, objectReg, valueReg);
+    bool isArray,
+  ) => WriteBarrierStub(vmOffsets, objectLayout, objectReg, valueReg, isArray);
+
+  @override
+  StubCodeGenerator dynamicCallStubGenerator() =>
+      DynamicCallStub(vmOffsets, objectLayout);
+
+  @override
+  StubCodeGenerator dynamicInvocationForwarderStubGenerator() =>
+      DynamicInvocationForwarderStub(vmOffsets, objectLayout);
 
   @override
   StubCodeGenerator subtypeTestCacheStubGenerator(int n) =>

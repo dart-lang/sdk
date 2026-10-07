@@ -136,7 +136,8 @@ abstract final class Commands {
   //  other extensions. However, the refactor.* are hard-coded into Dart-Code
   //  for some improved integration, so cannot be updated until some time has
   //  passed where Dart-Code supports prefixed versions.
-  //  Support for "dart." prefixed versions shipped in Dart-Code March 2023.
+  //  Support for "dart." prefixed versions shipped in Dart-Code v3.60
+  //  (2023-03-01).
   static const performRefactor = 'refactor.perform';
   static const validateRefactor = 'refactor.validate';
 }

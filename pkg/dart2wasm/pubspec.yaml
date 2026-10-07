@@ -13,6 +13,7 @@ dependencies:
   analyzer: any
   args: any
   build_integration: any
+  cfg: any
   collection: any
   compiler: any
   front_end: any

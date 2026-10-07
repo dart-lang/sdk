@@ -43,18 +43,6 @@ class NullSafeApiVerifier {
     }
   }
 
-  /// Reports an error if `Completer<T>.complete` is invoked with a non-nullable
-  /// `T` and an argument that is effectively `null`.
-  void methodInvocation(MethodInvocationImpl node) {
-    var targetType = node.realTarget2?.staticType;
-    _checkMethodInvocation(
-      node,
-      targetType: targetType,
-      methodName: node.methodName.name,
-      argumentList: node.argumentList,
-    );
-  }
-
   void namedFunctionInvocation(
     NamedFunctionInvocationImpl node,
     ExpressionImpl target,

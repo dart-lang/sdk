@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_states.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -14,9 +15,11 @@ import 'package:analysis_server/src/scheduler/message_scheduler.dart';
 import 'package:analysis_server/src/scheduler/scheduled_message.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
+import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:dtd/dtd.dart';
 import 'package:json_rpc_2/json_rpc_2.dart';
+import 'package:meta/meta.dart';
 
 /// The state of the connection to DTD.
 enum DtdConnectionState {
@@ -54,6 +57,9 @@ class DtdServices {
   /// Whether to register experimental LSP handlers over DTD.
   final bool registerExperimentalHandlers;
 
+  @visibleForTesting
+  new forTesting(AnalysisServer server, Uri dtdUri) : this._(server, dtdUri);
+
   new _(this._server, this.dtdUri, {this.registerExperimentalHandlers = false});
 
   DtdConnectionState get state => _state;
@@ -77,32 +83,57 @@ class DtdServices {
     );
     var token = NotCancelableToken(); // We don't currently support cancel.
 
-    // Execute the handler.
-    var result = await _server.immediatelyHandleLspMessage(
-      message,
-      info,
-      cancellationToken: token,
-    );
+    try {
+      // Execute the handler.
+      var result = await _server.immediatelyHandleLspMessage(
+        message,
+        info,
+        cancellationToken: token,
+      );
 
-    // Complete with the result or error.
-    result.map(
-      // Map LSP errors on to equiv JSON-RPC errors for DTD.
-      (error) => completer.completeError(
-        RpcException(error.code.toJson(), error.message, data: error.data),
-      ),
-      // DTD requires that all results are a Map and that they contain a
-      // 'type' field. This differs slightly from LSP where we could return a
-      // boolean (for example). This means we need to put the result in a
-      // field, which we're calling 'result'.
-      (result) => completer.complete({
-        // result can be null, but DTD requires that we have a `type`, so don't
-        // use `?.` here because it results in a missing `type` instead of
-        // `Null`.
-        'type': result.runtimeType.toString(),
-        'result': result,
-      }),
-    );
-    schedulerCompleter.complete();
+      // Complete with the result or error.
+      result.map(
+        // Map LSP errors on to equiv JSON-RPC errors for DTD.
+        (error) => completer.completeError(
+          RpcException(error.code.toJson(), error.message, data: error.data),
+        ),
+        // DTD requires that all results are a Map and that they contain a
+        // 'type' field. This differs slightly from LSP where we could return a
+        // boolean (for example). This means we need to put the result in a
+        // field, which we're calling 'result'.
+        (result) => completer.complete({
+          // result can be null, but DTD requires that we have a `type`, so don't
+          // use `?.` here because it results in a missing `type` instead of
+          // `Null`.
+          'type': result.runtimeType.toString(),
+          'result': result,
+        }),
+      );
+    } on InconsistentAnalysisException {
+      if (!completer.isCompleted) {
+        completer.completeError(
+          RpcException(
+            ErrorCodes.ContentModified.toJson(),
+            'Document was modified before operation completed',
+          ),
+        );
+      }
+    } catch (error, stackTrace) {
+      _server.instrumentationService.logException(error, stackTrace);
+      _server.sessionLogger.logException(
+        exception: error,
+        stackTrace: stackTrace,
+      );
+      if (!completer.isCompleted) {
+        var errorMessage =
+            'An error occurred while handling ${message.method} request';
+        completer.completeError(
+          RpcException(ServerErrorCodes.unhandledError.toJson(), errorMessage),
+        );
+      }
+    } finally {
+      schedulerCompleter.complete();
+    }
   }
 
   /// Closes the connection to DTD and cleans up.
@@ -118,6 +149,9 @@ class DtdServices {
     } catch (error, stack) {
       // Record as INFO, since this may be common during shutdown.
       _server.instrumentationService.logInfo(
+        'Error closing DTD connection:\n$error\n$stack',
+      );
+      _server.sessionLogger.logInfo(
         'Error closing DTD connection:\n$error\n$stack',
       );
     }
@@ -171,7 +205,7 @@ class DtdServices {
     Method method,
     Parameters params,
     OperationPerformanceImpl performance,
-  ) {
+  ) async {
     // Map the incoming request into types we use for LSP request handling.
     var message = IncomingMessage.fromJson({
       'jsonrpc': jsonRpcVersion,
@@ -192,7 +226,14 @@ class DtdServices {
       to: ProcessId.server,
       message: message.toJson(),
     );
-    return completer.future;
+    var response = await completer.future;
+    _server.sessionLogger.logMessage(
+      from: ProcessId.server,
+      to: ProcessId.dtd,
+      message: response,
+    );
+
+    return response;
   }
 
   /// Handles an unexpected error occurring on the DTD connection by logging and
@@ -201,7 +242,16 @@ class DtdServices {
     _server.instrumentationService.logError(
       ['Failed to connect to/initialize DTD:', error, ?stack].join('\n'),
     );
-
+    if (error != null && stack is StackTrace?) {
+      _server.sessionLogger.logException(
+        exception: [
+          'Failed to connect to/initialize DTD:',
+          error,
+          ?stack,
+        ].join('\n'),
+        stackTrace: stack,
+      );
+    }
     _close(DtdConnectionState.error);
   }
 
@@ -219,7 +269,15 @@ class DtdServices {
 
     // Post a 'initialized' event to the LSP stream so clients know that all
     // services have finished registering.
-    await dtd.postEvent(_lspStreamName, 'initialized', {});
+    var event = 'initialized';
+    var params = <String, Object?>{};
+    // Ensure this shows up in the log to aid debugging.
+    _server.sessionLogger.logMessage(
+      from: ProcessId.server,
+      to: ProcessId.dtd,
+      message: {'event': event, 'params': params},
+    );
+    await dtd.postEvent(_lspStreamName, event, params);
   }
 
   /// Registers a single message handler to DTD only if it allows untrusted

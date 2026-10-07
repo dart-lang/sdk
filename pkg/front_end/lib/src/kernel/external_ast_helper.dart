@@ -86,8 +86,11 @@ Arguments createArguments(
   List<NamedExpression>? named,
   required int fileOffset,
 }) {
-  return new Arguments(positional, types: types, named: named)
-    ..fileOffset = fileOffset;
+  return new Arguments(
+    new ExpressionList.from(positional),
+    types: types == null ? null : new DartTypeList.from(types),
+    named: named == null ? null : new NamedExpressionList.from(named),
+  )..fileOffset = fileOffset;
 }
 
 Arguments createArgumentsForwarded(
@@ -541,7 +544,7 @@ FileUriExpression createFileUriExpression({
 ForStatement createForStatement({
   required List<VariableDeclaration> variables,
   required Expression? condition,
-  required List<Expression> updates,
+  required ExpressionList updates,
   required Statement body,
   required Scope? scope,
   required int fileOffset,
@@ -583,9 +586,15 @@ FunctionNode createFunctionNode(
 }) {
   return new FunctionNode(
       body,
-      typeParameters: typeParameters,
-      positionalParameters: positionalParameters,
-      namedParameters: namedParameters,
+      typeParameters: typeParameters != null
+          ? new TypeParameterList.from(typeParameters)
+          : null,
+      positionalParameters: positionalParameters != null
+          ? new PositionalParameterList.from(positionalParameters)
+          : null,
+      namedParameters: namedParameters != null
+          ? new NamedParameterList.from(namedParameters)
+          : null,
       returnType: returnType,
       requiredParameterCount: requiredParameterCount,
       asyncMarker: asyncMarker,
@@ -651,6 +660,7 @@ Field createImmutableField(
   bool isFinal = false,
   bool isConst = false,
   bool isStatic = false,
+  bool isCovariantByDeclaration = false,
   required Uri fileUri,
   Reference? fieldReference,
   Reference? getterReference,
@@ -665,6 +675,7 @@ Field createImmutableField(
       isFinal: isFinal,
       isConst: isConst,
       isStatic: isStatic,
+      isCovariantByDeclaration: isCovariantByDeclaration,
       fileUri: fileUri,
       fieldReference: fieldReference,
       getterReference: getterReference,
@@ -767,7 +778,8 @@ Instantiation createInstantiation(
   List<DartType> typeArguments, {
   required int fileOffset,
 }) {
-  return new Instantiation(expression, typeArguments)..fileOffset = fileOffset;
+  return new Instantiation(expression, new DartTypeList.from(typeArguments))
+    ..fileOffset = fileOffset;
 }
 
 /// Creates an integer literal of [value].
@@ -788,7 +800,7 @@ Expression createIntLiteral(
       InstanceAccessKind.Instance,
       new IntLiteral(-value)..fileOffset = fileOffset,
       unaryMinusName,
-      new Arguments([])..fileOffset = fileOffset,
+      new Arguments.empty()..fileOffset = fileOffset,
       interfaceTarget: coreTypes.intUnaryMinus,
       functionType: coreTypes.intUnaryMinus.getterType as FunctionType,
     )..fileOffset = fileOffset;
@@ -1096,6 +1108,8 @@ Field createMutableField(
   bool isLate = false,
   bool isFinal = false,
   bool isStatic = false,
+  bool isCovariantByDeclaration = false,
+  bool isCovariantByClass = false,
   required Uri fileUri,
   Reference? fieldReference,
   Reference? getterReference,
@@ -1110,6 +1124,8 @@ Field createMutableField(
       isLate: isLate,
       isFinal: isFinal,
       isStatic: isStatic,
+      isCovariantByDeclaration: isCovariantByDeclaration,
+      isCovariantByClass: isCovariantByClass,
       fileUri: fileUri,
       fieldReference: fieldReference,
       getterReference: getterReference,
@@ -1435,7 +1451,9 @@ RelationalPattern createRelationalPattern({
     accessKind: accessKind,
     name: name,
     target: target,
-    typeArguments: typeArguments,
+    typeArguments: typeArguments == null
+        ? null
+        : new DartTypeList.from(typeArguments),
     functionType: functionType,
   )..fileOffset = fileOffset;
 }
@@ -1487,7 +1505,7 @@ StaticTearOff createStaticTearOff(Procedure target, {required int fileOffset}) {
 }
 
 Expression createStringConcatenation(
-  List<Expression> expressions, {
+  ExpressionList expressions, {
   required int fileOffset,
 }) {
   return new StringConcatenation(expressions)..fileOffset = fileOffset;
@@ -1533,7 +1551,7 @@ SuperPropertySet createSuperPropertySet(
 /// Creates a switch case for the case [expressions] and their corresponding
 /// file offsets in [expressionOffsets] with the given [body].
 SwitchCase createSwitchCase({
-  required List<Expression> expressions,
+  required ExpressionList expressions,
   required List<int> expressionOffsets,
   required Statement body,
   required bool isDefault,
@@ -1619,8 +1637,11 @@ TypedefTearOff createTypedefTearOff({
   required List<DartType> typeArguments,
   required int fileOffset,
 }) {
-  return new TypedefTearOff(structuralParameters, expression, typeArguments)
-    ..fileOffset = fileOffset;
+  return new TypedefTearOff(
+    new StructuralParameterList.from(structuralParameters),
+    expression,
+    new DartTypeList.from(typeArguments),
+  )..fileOffset = fileOffset;
 }
 
 TypeLiteral createTypeLiteral(DartType type, {required int fileOffset}) {

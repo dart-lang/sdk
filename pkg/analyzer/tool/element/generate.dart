@@ -125,7 +125,10 @@ class _ElementGenerator {
   }
 
   void _replaceGeneratedFlags() {
-    for (var declaration in unitResult.unit.declarations) {
+    var declarations = unitResult
+        .unit
+        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+    for (var declaration in declarations) {
       if (declaration is! ClassDeclarationImpl) {
         continue;
       }
@@ -279,7 +282,10 @@ class _ElementGenerator {
   }
 
   void _replaceStorageEnums() {
-    for (var declaration in unitResult.unit.declarations) {
+    var declarations = unitResult
+        .unit
+        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+    for (var declaration in declarations) {
       if (declaration is EnumDeclarationImpl) {
         var name = declaration.declaredFragment!.element.name!;
         if (name == '_ElementStorageFlag' || name == '_FragmentStorageFlag') {

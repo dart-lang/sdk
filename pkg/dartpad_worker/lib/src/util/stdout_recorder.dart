@@ -1,3 +1,7 @@
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 import 'dart:async';
 import 'dart:convert' show utf8;
 import 'dart:typed_data';
@@ -10,7 +14,7 @@ final class StdoutRecorder {
 }
 
 final class _ByteSink implements StreamSink<List<int>> {
-  final builder = BytesBuilder();
+  final builder = BytesBuilder(copy: false);
   final _completer = Completer<void>();
 
   /// Access the buffered bytes as a Uint8List

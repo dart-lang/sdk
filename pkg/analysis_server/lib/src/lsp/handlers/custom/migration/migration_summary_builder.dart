@@ -38,8 +38,66 @@ class MigrationSummaryBuilder({
       }
       _writePackageSummary(output, packageSummary);
     }
+    _writeAvailableCleanUp(output);
 
     return output.toString().trim();
+  }
+
+  /// Writes the clean up fixes that packages could still apply, so the user
+  /// can choose to run them.
+  void _writeAvailableCleanUp(StringBuffer buffer) {
+    var available = [
+      for (var packageSummary in _packageSummaries.values)
+        for (var versionSummary in packageSummary._versionMigrations)
+          if (versionSummary._availableCleanUpChanges.isNotEmpty)
+            (
+              name: packageSummary._pubspec.displayName,
+              changes: versionSummary._availableCleanUpChanges,
+            ),
+    ];
+    if (available.isEmpty) return;
+
+    buffer.writeln();
+    buffer.writeln('Optional cleanup fixes can modernize your code further:');
+    for (var (:name, :changes) in available) {
+      var countsByCode = <String, int>{};
+      for (var fileFixes in changes.values) {
+        for (var MapEntry(key: code, value: count) in fileFixes.entries) {
+          countsByCode[code] = (countsByCode[code] ?? 0) + count;
+        }
+      }
+      var totalFixes = 0;
+      for (var count in countsByCode.values) {
+        totalFixes += count;
+      }
+
+      var fixPlural = totalFixes == 1 ? 'change' : 'changes';
+      var filePlural = changes.length == 1 ? 'file' : 'files';
+      buffer.writeln();
+      buffer.writeln(
+        '  $name: $totalFixes $fixPlural in ${changes.length} $filePlural',
+      );
+      var sortedCodes = countsByCode.keys.toList()..sort();
+      for (var code in sortedCodes) {
+        var count = countsByCode[code]!;
+        var fixPlural = count == 1 ? 'change' : 'changes';
+        buffer.writeln('    $code • $count $fixPlural');
+      }
+    }
+
+    // Before the migration is applied, running the clean up step on its own
+    // would use the SDK version the packages are still on. After it's applied,
+    // `.dart_tool/package_config.json` keeps the old language version until
+    // `dart pub get` updates it.
+    buffer.writeln();
+    buffer.writeln(
+      apply
+          ? "To preview them, run 'dart pub get' and then "
+                "'dart migrate --dry-run --step=cleanup' on the same packages."
+          : "To preview them, apply this migration, run 'dart pub get', and "
+                "then run 'dart migrate --dry-run --step=cleanup' on the same "
+                'packages.',
+    );
   }
 
   void _writePackageSummary(
@@ -228,6 +286,18 @@ class VersionMigrationSummary({
   ///
   /// Keyed by file path, mapping to diagnostic code names and their count.
   final Map<String, Map<String, int>> _cleanUpChanges = {};
+
+  /// Clean up changes that this version makes available but that weren't made,
+  /// because the clean up step didn't run.
+  ///
+  /// Keyed by file path, mapping to diagnostic code names and their count.
+  final Map<String, Map<String, int>> _availableCleanUpChanges = {};
+
+  /// Records clean up fixes that the package could still apply at this
+  /// version.
+  void recordAvailableCleanUpChanges(List<BulkFix> details) {
+    _recordChangeDetails(details, _availableCleanUpChanges);
+  }
 
   /// Records a successful SDK version bump constraint change for this version.
   void recordBump({

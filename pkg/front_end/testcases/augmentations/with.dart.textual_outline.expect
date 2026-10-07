@@ -1,0 +1,142 @@
+mixin M1 {
+  String get id => "M1";
+  String get id1 => "M1";
+}
+
+mixin M2 {
+  String get id => "M2";
+  String get id2 => "M2";
+}
+
+mixin M3 {
+  String get id => "M3";
+  String get id3 => "M3";
+}
+
+class C1a with M1;
+
+augment class C1a;
+
+class C1b;
+
+augment class C1b with M1;
+
+class C2a with M1, M2;
+
+augment class C2a;
+
+class C2b with M1;
+
+augment class C2b with M2;
+
+class C2c;
+
+augment class C2c with M1, M2;
+
+class C3a with M1, M2, M3;
+
+augment class C3a;
+
+augment class C3a;
+
+class C3b with M1, M2;
+
+augment class C3b with M3;
+
+augment class C3b;
+
+class C3c with M1, M2;
+
+augment class C3c;
+
+augment class C3c with M3;
+
+class C3d with M1;
+
+augment class C3d with M2;
+
+augment class C3d with M3;
+
+class C3e;
+
+augment class C3e with M1, M2;
+
+augment class C3e with M3;
+
+class C3f;
+
+augment class C3f with M1;
+
+augment class C3f with M2, M3;
+
+class C3g;
+
+augment class C3g;
+
+augment class C3g with M1, M2, M3;
+
+enum E1a with M1 { a }
+
+augment enum E1a;
+
+enum E1b { a }
+
+augment enum E1b with M1;
+
+enum E2a with M1, M2 { a }
+
+augment enum E2a;
+
+enum E2b with M1 { a }
+
+augment enum E2b with M2;
+
+enum E2c { a }
+
+augment enum E2c with M1, M2;
+
+enum E3a with M1, M2, M3 { a }
+
+augment enum E3a;
+
+augment enum E3a;
+
+enum E3b with M1, M2 { a }
+
+augment enum E3b with M3;
+
+augment enum E3b;
+
+enum E3c with M1, M2 { a }
+
+augment enum E3c;
+
+augment enum E3c with M3;
+
+enum E3d with M1 { a }
+
+augment enum E3d with M2;
+
+augment enum E3d with M3;
+
+enum E3e { a }
+
+augment enum E3e with M1, M2;
+
+augment enum E3e with M3;
+
+enum E3f { a }
+
+augment enum E3f with M1;
+
+augment enum E3f with M2, M3;
+
+enum E3g { a }
+
+augment enum E3g;
+
+augment enum E3g with M1, M2, M3;
+
+main() {}
+
+expect(expected, actual) {}

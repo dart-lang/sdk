@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../compiler/js_names.dart' as js_ast;
 import '../js_ast/js_ast.dart' as js_ast;
 import '../js_ast/js_ast.dart' show js;
+import 'js_names.dart' as js_ast;
 
 /// Defines how to emit a value of a table
 typedef EmitValue<K> = js_ast.Expression Function(K, ModuleItemData);

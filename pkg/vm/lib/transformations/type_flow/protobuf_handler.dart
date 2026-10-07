@@ -244,7 +244,7 @@ class _MetadataTransformer extends Transformer {
       node.receiver,
       ph._builderInfoAddMethod.name,
       Arguments(
-        <Expression>[
+        ExpressionList(
           IntLiteral(0), // tagNumber
           NullLiteral(), // name
           NullLiteral(), // fieldType
@@ -252,8 +252,8 @@ class _MetadataTransformer extends Transformer {
           NullLiteral(), // subBuilder
           NullLiteral(), // valueOf
           NullLiteral(), // enumValues
-        ],
-        types: <DartType>[const NullType()],
+        ),
+        types: DartTypeList.null1,
       ),
       interfaceTarget: ph._builderInfoAddMethod,
       functionType: ph._typeOfBuilderInfoAddOfNull,

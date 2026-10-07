@@ -7,14 +7,17 @@
 
 import 'dart:core';
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 class C<T> {
   static int tracefunc() {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('C.tracefunc'));
-      Expect.isTrue(s.toString().contains('ext.sfld'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('C.tracefunc'));
+        Expect.isTrue(s.toString().contains('ext.sfld'));
+      }
     }
     return 10;
   }
@@ -27,7 +30,9 @@ extension ext<T> on C<T> {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('ext.func'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('ext.func'));
+      }
     }
   }
 
@@ -35,7 +40,9 @@ extension ext<T> on C<T> {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('ext.prop'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('ext.prop'));
+      }
     }
   }
 
@@ -43,7 +50,9 @@ extension ext<T> on C<T> {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('ext.prop='));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('ext.prop='));
+      }
     }
   }
 
@@ -51,7 +60,9 @@ extension ext<T> on C<T> {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('ext.+'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('ext.+'));
+      }
     }
   }
 
@@ -59,7 +70,9 @@ extension ext<T> on C<T> {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('ext.-'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('ext.-'));
+      }
     }
   }
 
@@ -68,7 +81,9 @@ extension ext<T> on C<T> {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('ext.sfunc'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('ext.sfunc'));
+      }
     }
   }
 
@@ -76,7 +91,9 @@ extension ext<T> on C<T> {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('ext.sprop'));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('ext.sprop'));
+      }
     }
   }
 
@@ -84,7 +101,9 @@ extension ext<T> on C<T> {
     try {
       throw "producing a stack trace";
     } catch (e, s) {
-      Expect.isTrue(s.toString().contains('ext.sprop='));
+      if (symbolicUnminifiedStackTraces) {
+        Expect.isTrue(s.toString().contains('ext.sprop='));
+      }
     }
   }
 }

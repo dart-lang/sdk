@@ -11,8 +11,18 @@ import 'package:pub_semver/pub_semver.dart';
 /// Each registered lint rule must have exactly one bulk-fix enabled
 /// correction producer associated with it.
 final Map<Version, List<String>> cleanUpLintsRegistry = {
-  Version(3, 13, 0): [LintNames.unnecessary_type_name_in_constructor],
-  Version(3, 12, 0): [LintNames.prefer_initializing_formals],
+  Version(3, 0, 0): [LintNames.unnecessary_breaks],
+  Version(3, 7, 0): [LintNames.unnecessary_underscores],
+  Version(3, 8, 0): [LintNames.use_null_aware_elements],
+  // TODO(kallentu): Once we have a lint that's migrating private named
+  // parameters only, we should add that migration to 3.12.
+  // Version(3, 12, 0): [LintNames.prefer_initializing_formals],
+  Version(3, 13, 0): [
+    LintNames.empty_container_bodies,
+    LintNames.initialize_in_field_declaration,
+    LintNames.unnecessary_const_in_enum_constructor,
+    LintNames.unnecessary_primary_constructor_body,
+  ],
 };
 
 /// An ordered list of all supported SDK versions for migration.
@@ -47,18 +57,32 @@ final Map<Version, List<String>> preparatoryLintsRegistry = {
   ],
 };
 
-/// Returns the next sequential SDK version after [currentVersion] from
-/// [knownSdkVersions], or `null` if [currentVersion] is at or beyond the latest
-/// known version.
+/// Returns the supported SDK version after [currentVersion] in
+/// [knownSdkVersions], or `null` if there isn't one: [currentVersion] is
+/// outside the supported range, or already at the latest.
 Version? nextSdkVersion(Version currentVersion) {
-  var normalizedVersion = Version(
-    currentVersion.major,
-    currentVersion.minor,
-    0,
-  );
-  var index = knownSdkVersions.indexOf(normalizedVersion);
-  if (index >= 0 && index + 1 < knownSdkVersions.length) {
+  var supported = supportedSdkVersion(currentVersion);
+  if (supported == null) return null;
+
+  var index = knownSdkVersions.indexOf(supported);
+  if (index + 1 < knownSdkVersions.length) {
     return knownSdkVersions[index + 1];
   }
   return null;
+}
+
+/// Returns the supported SDK version that [version] belongs to, or `null` if
+/// migration doesn't support it.
+///
+/// Migrations work at minor-version granularity, so `3.12.5` belongs to
+/// `3.12.0`.
+Version? supportedSdkVersion(Version version) {
+  var minorVersion = version.truncatedToMinor;
+  return knownSdkVersions.contains(minorVersion) ? minorVersion : null;
+}
+
+extension VersionExtension on Version {
+  /// The minor release that this version belongs to, which is the granularity
+  ///  migrations work at.
+  Version get truncatedToMinor => Version(major, minor, 0);
 }

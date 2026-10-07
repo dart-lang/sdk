@@ -61,36 +61,34 @@ void main() {
       await ws.writeFileFromText('myfolder/file1.txt', 'one');
       await ws.writeFileFromText('myfolder/file2.txt', 'two');
 
-      final entries = await ws.listDirectory(uri: 'myfolder');
+      final entries = await ws.listDirectory('myfolder');
       check(entries).length.equals(2);
       check(
         entries.any((e) => e.path == 'file1.txt' && e.type == 'file'),
-      ).isTrue();
+      ).isTrue;
       check(
         entries.any((e) => e.path == 'file2.txt' && e.type == 'file'),
-      ).isTrue();
+      ).isTrue;
     });
 
     testDartWorkspace('can list recursively', (ws) async {
       await ws.writeFileFromText('a/b/c.txt', 'deep');
-      final entries = await ws.listDirectory(uri: 'a', recursive: true);
+      final entries = await ws.listDirectory('a', recursive: true);
       check(entries).length.equals(2); // b and b/c.txt
-      check(entries.any((e) => e.path == 'b' && e.type == 'folder')).isTrue();
-      check(
-        entries.any((e) => e.path == 'b/c.txt' && e.type == 'file'),
-      ).isTrue();
+      check(entries.any((e) => e.path == 'b' && e.type == 'folder')).isTrue;
+      check(entries.any((e) => e.path == 'b/c.txt' && e.type == 'file')).isTrue;
     });
 
     testDartWorkspace('can ignore hidden files', (ws) async {
       await ws.writeFileFromText('.hidden', 'secret');
       await ws.writeFileFromText('visible', 'hello');
 
-      final all = await ws.listDirectory(uri: '.', ignoreHidden: false);
-      check(all.any((e) => e.path == '.hidden')).isTrue();
+      final all = await ws.listDirectory('.', ignoreHidden: false);
+      check(all.any((e) => e.path == '.hidden')).isTrue;
 
-      final visible = await ws.listDirectory(uri: '.', ignoreHidden: true);
-      check(visible.any((e) => e.path == '.hidden')).isFalse();
-      check(visible.any((e) => e.path == 'visible')).isTrue();
+      final visible = await ws.listDirectory('.', ignoreHidden: true);
+      check(visible.any((e) => e.path == '.hidden')).isFalse;
+      check(visible.any((e) => e.path == 'visible')).isTrue;
     });
 
     testDartWorkspace('can create folders recursively', (ws) async {
@@ -113,9 +111,7 @@ void main() {
       await ws.createFolder('myfolder');
       await ws.writeFileFromText('myfolder/file.txt', 'inside');
       await ws.deleteFileSystemEntity('myfolder');
-      await check(
-        ws.listDirectory(uri: 'myfolder'),
-      ).throws<FileNotFoundException>();
+      await check(ws.listDirectory('myfolder')).throws<FileNotFoundException>();
     });
   });
 
@@ -131,7 +127,7 @@ void main() {
       await ws.createFolder('myfolder');
       final s = await ws.stat('myfolder');
       check(s.type).equals('folder');
-      check(s.size).isNull();
+      check(s.size).isNull;
     });
 
     testDartWorkspace('stat non-existent', (ws) async {
@@ -142,25 +138,25 @@ void main() {
   group('fileExist / folderExist', () {
     testDartWorkspace('fileExist returns true for file', (ws) async {
       await ws.writeFileFromText('test.txt', 'hello');
-      check(await ws.fileExist('test.txt')).isTrue();
-      check(await ws.folderExist('test.txt')).isFalse();
+      check(await ws.fileExist('test.txt')).isTrue;
+      check(await ws.folderExist('test.txt')).isFalse;
     });
 
     testDartWorkspace('folderExist returns true for folder', (ws) async {
       await ws.createFolder('myfolder');
-      check(await ws.folderExist('myfolder')).isTrue();
-      check(await ws.fileExist('myfolder')).isFalse();
+      check(await ws.folderExist('myfolder')).isTrue;
+      check(await ws.fileExist('myfolder')).isFalse;
     });
 
     testDartWorkspace('both return false for non-existent', (ws) async {
-      check(await ws.fileExist('notfound')).isFalse();
-      check(await ws.folderExist('notfound')).isFalse();
+      check(await ws.fileExist('notfound')).isFalse;
+      check(await ws.folderExist('notfound')).isFalse;
     });
 
     testDartWorkspace('fileExist returns true for nested file', (ws) async {
       await ws.writeFileFromText('a/b/c.txt', 'hello');
-      check(await ws.fileExist('a/b/c.txt')).isTrue();
-      check(await ws.folderExist('a/b')).isTrue();
+      check(await ws.fileExist('a/b/c.txt')).isTrue;
+      check(await ws.folderExist('a/b')).isTrue;
     });
   });
 

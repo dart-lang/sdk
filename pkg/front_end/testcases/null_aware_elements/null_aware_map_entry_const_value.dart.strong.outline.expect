@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C
+    : super core::Object::•()
+    ;
+}
+class Holder extends core::Object {
+  late final field core::Map<core::int, self::C> fieldMap;
+  synthetic constructor •() → self::Holder
+    ;
+}
+static method nullableKey() → core::int?
+  ;
+static method main() → void
+  ;

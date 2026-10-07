@@ -386,6 +386,7 @@ void InitializeTypedDataView(TypedDataViewPtr obj) {
   obj.untag()->typed_data_ = TypedDataBase::null();
   obj.untag()->offset_in_bytes_ = Smi::New(0);
   obj.untag()->length_ = Smi::New(0);
+  obj.untag()->data_ = nullptr;
 }
 
 void FreeExternalTypedData(void* isolate_callback_data, void* buffer) {
@@ -1791,6 +1792,11 @@ class ObjectCopy : public Base {
 
     const Object& obj = Types::HandlifyObject(from);
     FATAL("Unexpected object: %s\n", obj.ToCString());
+  }
+
+  void CopyLocalVarDescriptor(typename Types::LocalVarDescriptor from,
+                              typename Types::LocalVarDescriptor to) {
+    CopyUserdefinedInstanceWithoutUnboxedFields(from, to);
   }
 
   void CopyUserdefinedInstance(typename Types::Object from,

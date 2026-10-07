@@ -6,10 +6,12 @@ import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart'
     show
         DartType,
+        DartTypeList,
         FunctionType,
-        StructuralParameter,
-        Nullability,
+        NamedDartTypeList,
         NamedType,
+        Nullability,
+        StructuralParameterList,
         Supertype,
         Variance;
 import 'package:kernel/class_hierarchy.dart';
@@ -172,10 +174,12 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
       TypeUse.returnType,
       hierarchy,
     );
-    List<DartType> positionalParameters = <DartType>[];
-    List<NamedType>? namedParameters;
+    DartTypeList positionalParameters;
+    NamedDartTypeList? namedParameters;
     int requiredParameterCount = 0;
     if (formals != null) {
+      List<DartType> positionalList = <DartType>[];
+      List<NamedType>? namedList;
       for (ParameterBuilder formal in formals!) {
         DartType type = formal.type.buildAliased(
           library,
@@ -183,11 +187,11 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
           hierarchy,
         );
         if (formal.isPositional) {
-          positionalParameters.add(type);
+          positionalList.add(type);
           if (formal.isRequiredPositional) requiredParameterCount++;
         } else if (formal.isNamed) {
-          namedParameters ??= <NamedType>[];
-          namedParameters.add(
+          namedList ??= <NamedType>[];
+          namedList.add(
             new NamedType(
               formal.name!,
               type,
@@ -196,25 +200,31 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
           );
         }
       }
-      if (namedParameters != null) {
-        namedParameters.sort();
+      positionalParameters = new DartTypeList.from(positionalList);
+      if (namedList != null) {
+        namedList.sort();
+        namedParameters = new NamedDartTypeList.from(namedList);
       }
+    } else {
+      positionalParameters = DartTypeList.empty;
     }
-    List<StructuralParameter>? newTypeParameters;
+    StructuralParameterList? newTypeParameters;
     if (typeParameters != null) {
-      newTypeParameters = <StructuralParameter>[];
-      for (StructuralParameterBuilder t in typeParameters!) {
-        newTypeParameters.add(t.parameter);
-        // Build the bound to detect cycles in typedefs.
-        t.bound?.build(library, TypeUse.typeParameterBound);
-      }
+      newTypeParameters = new StructuralParameterList.generate(
+        typeParameters!.length,
+        (int i) {
+          StructuralParameterBuilder t = typeParameters![i];
+          t.bound?.build(library, TypeUse.typeParameterBound);
+          return t.parameter;
+        },
+      );
     }
     return new FunctionType(
       positionalParameters,
       builtReturnType,
       nullabilityBuilder.build(),
-      namedParameters: namedParameters ?? const <NamedType>[],
-      typeParameters: newTypeParameters ?? const <StructuralParameter>[],
+      namedParameters: namedParameters ?? NamedDartTypeList.empty,
+      typeParameters: newTypeParameters ?? StructuralParameterList.empty,
       requiredParameterCount: requiredParameterCount,
     );
   }

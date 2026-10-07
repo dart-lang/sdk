@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveAsyncTest extends AssistProcessorTest {
+class RemoveAsyncTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.removeAsync;
 

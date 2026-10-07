@@ -173,6 +173,16 @@ abstract_super_member_reference:
   notes: |-
     The only fix we could automate is to remove the call to super, which is
     unlikely to be the right solution.
+ambiguous_comment_reference_name:
+  status: needsFix
+  notes: |-
+    For each library, add a fix to hide the name from the other imports or doc
+    imports.
+ambiguous_comment_reference_prefix:
+  status: needsFix
+  notes: |-
+    For each library, add a fix to give its import or doc import a new prefix,
+    and use it in the comment reference.
 ambiguous_export:
   status: needsFix
   notes: |-
@@ -1107,6 +1117,11 @@ invocation_of_non_function:
     Suggest similarly named functions.
 invocation_of_non_function_expression:
   status: hasFix
+js_interop_extension_constructor_js_annotation_has_no_effect:
+  status: needsFix
+  notes: |-
+    Move the `@JS` annotation to the extension type declaration.
+    Remove the `@JS` annotation (`RemoveAnnotation`).
 label_in_outer_scope:
   status: noFix
 label_undefined:
@@ -1287,10 +1302,6 @@ non_const_map_as_expression_statement:
   status: needsFix
   notes: |-
     Add `const` keyword.
-non_constant_annotation_constructor:
-  status: needsFix
-  notes: |-
-    Add `const` to the constructor (if doing so would be valid).
 non_constant_case_expression:
   status: noFix
   notes: |-
@@ -1560,7 +1571,9 @@ return_of_invalid_type_from_function:
 return_of_invalid_type_from_method:
   status: hasFix
 return_without_value:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Only when the enclosing function's return type is a function type.
 sealed_class_subtype_outside_of_library:
   status: noFix
 set_element_from_deferred_library:
@@ -1676,8 +1689,6 @@ unchecked_use_of_nullable_value_in_spread:
 unchecked_use_of_nullable_value_in_yield_each:
   status: hasFix
 unawaited_return_in_try_block:
-  status: hasFix
-undefined_annotation:
   status: hasFix
 undefined_class:
   status: hasFix
@@ -1953,9 +1964,13 @@ deprecated_colon_for_default_value:
   status: hasFix
 deprecated_member_use:
   status: hasFix
-deprecated_member_use_implicit:
+deprecated_member_use_implicit_super_constructor_invocation:
   status: needsEvaluation
-deprecated_member_use_implicit_with_message:
+deprecated_member_use_implicit_super_constructor_invocation_with_message:
+  status: needsEvaluation
+deprecated_member_use_implicit_type:
+  status: needsEvaluation
+deprecated_member_use_implicit_type_with_message:
   status: needsEvaluation
 deprecated_member_use_with_message:
   status: hasFix
@@ -1996,6 +2011,8 @@ analyzer_public_api_experimental_inconsistency:
 analyzer_public_api_exports_non_public_name:
   status: noFix
 analyzer_public_api_impl_in_public_api:
+  status: noFix
+analyzer_to_be_deprecated_use:
   status: noFix
 annotate_overrides:
   status: hasFix
@@ -3224,7 +3241,11 @@ missing_get:
   notes: |-
     Add the `get`.
 missing_identifier:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Only where a function-typed expression is missing: a named argument, a
+    variable's initializer, a switch expression case's result, or an arrow
+    function's body.
 missing_initializer:
   status: noFix
 missing_keyword_operator:
@@ -3646,8 +3667,6 @@ deprecated_mixin_function:
   status: needsFix
   notes: |-
     The fix is to remove `Function` from where it's referenced.
-deprecated_new_in_comment_reference:
-  status: hasFix
 deprecated_optional:
   status: needsEvaluation
 deprecated_subclass:
@@ -3683,12 +3702,12 @@ doc_directive_unknown:
   status: noFix
 doc_import_cannot_be_deferred:
   status: needsFix
-doc_import_cannot_have_combinators:
-  status: needsFix
 doc_import_cannot_have_configurations:
   status: needsFix
-doc_import_cannot_have_prefix:
+doc_import_in_part_file:
   status: needsFix
+  notes: |-
+    The fix is to move the doc import to the library file.
 duplicate_export:
   status: needsFix
   notes: |-
@@ -3861,6 +3880,8 @@ mixin_on_sealed_class:
     `sealed` annotation is likely to be replaced by the `sealed` keyword
     in the next stable release.
 multiple_combinators:
+  status: hasFix
+multiple_combinators_deprecated:
   status: hasFix
 multiple_primary_constructor_body_declarations:
   status: needsEvaluation

@@ -85,8 +85,10 @@ class A {
 
 @reflectiveTest
 class AlwaysSpecifyTypesInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.always_specify_types];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(lints: [LintNames.always_specify_types]);
     await resolveTestCode(r'''
 final a = 0;
 class A {
@@ -399,10 +401,12 @@ void f() {
 @reflectiveTest
 class PreferTypingUninitializedVariablesInFileTest
     extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [
+    LintNames.prefer_typing_uninitialized_variables,
+  ];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(
-      lints: [LintNames.prefer_typing_uninitialized_variables],
-    );
     await resolveTestCode(r'''
 void f() {
   var a, b;
@@ -641,10 +645,12 @@ int x = 1;
 @reflectiveTest
 class SpecifyNonObviousLocalVariableTypesInFileTest
     extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [
+    LintNames.specify_nonobvious_local_variable_types,
+  ];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(
-      lints: [LintNames.specify_nonobvious_local_variable_types],
-    );
     await resolveTestCode(r'''
 f() {
   var x = g(0), y = g('');
@@ -825,8 +831,10 @@ String a = '', b = '';
 
 @reflectiveTest
 class TypeAnnotatePublicAPIsInFileTest extends FixInFileProcessorTest {
+  @override
+  List<String> get lintCodes => [LintNames.type_annotate_public_apis];
+
   Future<void> test_File() async {
-    createAnalysisOptionsFile(lints: [LintNames.type_annotate_public_apis]);
     await resolveTestCode(r'''
 var a = '', b = '';
 ''');

@@ -127,7 +127,12 @@ VariableDeclaration
   equals: =
   initializer2: ParenthesizedExpression
     leftParenthesis: (
-    expression2: SimpleIdentifier
+    expression2: UnqualifiedNameExpression
+      name: <empty> <synthetic>
+      resolution: InvalidNamedReadResolution
+        recoveryElement: <null>
+      staticType: InvalidType
+    expression(v1): SimpleIdentifier
       token: <empty> <synthetic>
       element: <null>
       staticType: InvalidType
@@ -152,8 +157,20 @@ RecordLiteral
     RecordLiteralNamedField
       name: f1
       colon: :
-      fieldExpression2: PropertyAccess
-        target2: SimpleIdentifier
+      fieldExpression2: ReceiverPropertyExtraction
+        receiver: UnqualifiedNameExpression
+          name: r
+          resolution: VariableReadResolution
+            element: <testLibrary>::@function::f::@formalParameter::r
+            type: (int, String)
+          staticType: (int, String)
+        operator: .
+        name: $1
+        resolution: RecordFieldReadResolution
+          type: int
+        staticType: int
+      fieldExpression(v1): PropertyAccess
+        target: SimpleIdentifier
           token: r
           element: <testLibrary>::@function::f::@formalParameter::r
           staticType: (int, String)
@@ -180,8 +197,21 @@ void f((int, String) r) {
 RecordLiteral
   leftParenthesis: (
   fields2
+    ReceiverPropertyExtraction
+      receiver: UnqualifiedNameExpression
+        name: r
+        resolution: VariableReadResolution
+          element: <testLibrary>::@function::f::@formalParameter::r
+          type: (int, String)
+        staticType: (int, String)
+      operator: .
+      name: $1
+      resolution: RecordFieldReadResolution
+        type: int
+      staticType: int
+  fields(v1)
     PropertyAccess
-      target2: SimpleIdentifier
+      target: SimpleIdentifier
         token: r
         element: <testLibrary>::@function::f::@formalParameter::r
         staticType: (int, String)

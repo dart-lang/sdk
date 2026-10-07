@@ -41,18 +41,6 @@ class IncrementOrDecrementResolver {
   void resolve(IncrementOrDecrementExpressionImpl node) {
     var isPrefix = node.position == IncrementOrDecrementPosition.prefix;
     var target = node.target;
-    if (target is InvalidExpressionAssignmentTargetImpl) {
-      _resolver.analyzeExpression(
-        target.expression,
-        SharedTypeSchemaView(UnknownInferredType.instance),
-      );
-      target.expression = _resolver.popRewrite()!;
-      // Keep the child's resolution, but don't expose a partially resolved
-      // read-modify-write operation for a target that cannot be written.
-      node.operatorResultType = InvalidTypeImpl.instance;
-      node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
-      return;
-    }
 
     late TypeImpl readType;
     late TypeImpl writeAcceptedType;
@@ -72,13 +60,11 @@ class IncrementOrDecrementResolver {
         }
         readType = result.read.type;
         writeAcceptedType = result.write.acceptedType;
+      case ImportPrefixedAssignmentTargetImpl():
+        _resolver.resolveImportPrefixedAssignmentTarget(target);
+        readType = target.read!.type;
+        writeAcceptedType = target.write!.acceptedType;
       case ReceiverPropertyAssignmentTargetImpl():
-        var importResult = _resolveImportPrefixedPropertyTarget(target);
-        if (importResult != null) {
-          readType = importResult.$1;
-          writeAcceptedType = importResult.$2;
-          break;
-        }
         _assignmentResolver.analyzePropertyTargetReceiver(node, target);
         var result = _resolver.resolveReceiverPropertyReadWriteAssignmentTarget(
           target,
@@ -92,7 +78,7 @@ class IncrementOrDecrementResolver {
         target.write = result.write;
         readType = result.read.type;
         writeAcceptedType = result.write.acceptedType;
-        if (target.receiver is! ExtensionOverride &&
+        if (target.receiver is! ExtensionOverride2 &&
             result.read is ExecutableTearOffResolution) {
           // TODO(scheglov): Review why ordinary method targets replace the
           // tear-off type with InvalidType, while extension overrides retain
@@ -111,8 +97,35 @@ class IncrementOrDecrementResolver {
           variableElement = element;
         }
         _assignmentShared.checkFinalTargetAlreadyAssigned(target);
+      case ParsedAssignmentTargetImpl():
+        throw StateError('Parsed assignment target was not lowered');
+      case InvalidSuperAssignmentTargetImpl():
+        _resolver.visitSuperReference(target.superReference);
+        target.read = const InvalidReadResolutionImpl();
+        target.write = const InvalidWriteResolutionImpl();
+        node.operatorResultType = InvalidTypeImpl.instance;
+        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        return;
+      case InvalidExtensionOverrideAssignmentTargetImpl():
+        _resolver.visitExtensionOverride2(target.extensionOverride);
+        target.read = const InvalidReadResolutionImpl();
+        target.write = const InvalidWriteResolutionImpl();
+        node.operatorResultType = InvalidTypeImpl.instance;
+        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        return;
       case InvalidExpressionAssignmentTargetImpl():
-        throw StateError('Handled above');
+        _resolver.analyzeExpression(
+          target.expression,
+          SharedTypeSchemaView(UnknownInferredType.instance),
+        );
+        target.expression = _resolver.popRewrite()!;
+        target.read = const InvalidReadResolutionImpl();
+        target.write = const InvalidWriteResolutionImpl();
+        // Keep the child's resolution, but don't expose a partially resolved
+        // read-modify-write operation for a target that cannot be written.
+        node.operatorResultType = InvalidTypeImpl.instance;
+        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        return;
     }
 
     _resolveOperator(
@@ -213,27 +226,6 @@ class IncrementOrDecrementResolver {
     return fallback;
   }
 
-  (TypeImpl, TypeImpl)? _resolveImportPrefixedPropertyTarget(
-    ReceiverPropertyAssignmentTargetImpl target,
-  ) {
-    // TODO(scheglov): Fold import prefixes into the ordinary property-target
-    // receiver analysis instead of resolving them through a separate path.
-    var receiver = target.receiver;
-    if (receiver is! SimpleIdentifierImpl ||
-        receiver.scopeLookupResult?.getter is! PrefixElementImpl) {
-      return null;
-    }
-    var prefix = receiver.scopeLookupResult!.getter as PrefixElementImpl;
-    receiver.element = prefix;
-    var result = _resolver.resolveImportPrefixedPropertyReadWriteTarget(
-      target,
-      prefix,
-    );
-    target.read = result.read;
-    target.write = result.write;
-    return (result.read.type, result.write.acceptedType);
-  }
-
   void _resolveOperator(
     IncrementOrDecrementExpressionImpl node, {
     required bool isPrefix,
@@ -277,21 +269,11 @@ class IncrementOrDecrementResolver {
     );
     node.element = result.getter2 as InternalMethodElement?;
     if (result.needsGetterError) {
-      if (node.target case InvalidExpressionAssignmentTargetImpl(
-        expression: SuperExpression(),
-      )) {
-        _diagnosticReporter.report(
-          diag.undefinedSuperOperator
-              .withArguments(operator: methodName, type: readType)
-              .at(operator),
-        );
-      } else {
-        _diagnosticReporter.report(
-          diag.undefinedOperator
-              .withArguments(operator: methodName, type: readType)
-              .at(operator),
-        );
-      }
+      _diagnosticReporter.report(
+        diag.undefinedOperator
+            .withArguments(operator: methodName, type: readType)
+            .at(operator),
+      );
     }
   }
 

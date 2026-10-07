@@ -7,7 +7,7 @@
   (type $WasmListBase <...>)
   (type $_Type <...>)
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 12 funcref)
-  (table $M.dispatch0 (import "M" "dispatch0") 697 funcref)
+  (table $M.dispatch0 (import "M" "dispatch0") 701 funcref)
   (elem $M.cross-module-funcs-0
     (set 0 (ref.func $runTest)))
   (@binaryen.inline 0)

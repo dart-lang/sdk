@@ -11,9 +11,17 @@
 (function () {
   // Scripts to load into the sandbox at startup
   self.$dartpadSandboxScripts = self.$dartpadSandboxScripts || [
-    './ddc_module_loader.js',
+    './sandbox_runtime.js',
     './dart_sdk.js',
   ];
+  // Execution modes
+  self.$dartpadRunModes = self.$dartpadRunModes || {
+    console: {
+      run: async (run) => await run(),
+      hotRestart: async (hotRestart) => await hotRestart(),
+      hotReload: async (hotReload) => await hotReload(),
+    },
+  };
 
   // Port for JSON-RPC 2.0 communication with host.
   const { port1: remotePort, port2: rpcPort } = new MessageChannel();
@@ -32,6 +40,7 @@
     COMPILATION_FAILED: 7101,
     PACKAGE_CONFIG_NOT_FOUND: 7102,
     HOT_RELOAD_REJECTED: 7103,
+    MODULE_LOADING_FAILED: 7104,
     EXECUTION_FAILED: 7201,
     /* END GENERATED ERROR CODE TABLE */
   };
@@ -44,26 +53,53 @@
     }
   }
 
-  // Registry of RPC methods
-  const rpcMethods = {};
+  // Wraps an error from an RPC method, preserving an explicit error code.
+  //
+  // Naming the code on a plain `Error` is the only option for run modes, which
+  // are separate scripts that cannot see `RpcError`.
+  function asRpcError(e) {
+    if (e instanceof RpcError) return e;
+    const code = errorCode[e?.name];
+    return new RpcError(
+      e?.message || String(e),
+      typeof code === 'number' ? code : errorCode.EXECUTION_FAILED,
+    );
+  }
+
+  // Registry of RPC methods, `Object.create(null)` so that inherited properties
+  // such as `constructor` aren't mistaken for methods.
+  const rpcMethods = Object.create(null);
 
   async function onRcpMessage(ev) {
-    // Ignore invalid messages from the host
-    if (!ev.data.payload) return;
+    if (ev.data === null) {
+      originalConsole.log.call(console, 'Sandbox RPC port closed by host.');
+      rpcPort.onmessage = null;
+      rpcPort.close();
+      return;
+    }
 
-    const m = JSON.parse(ev.data.payload);
+    let m;
+    try {
+      // Ignore invalid messages from the host
+      if (!ev.data?.payload) return;
 
-    // Ignore invalid payloads!
-    if (!m || m.jsonrpc !== '2.0' || !m.method) return;
+      m = JSON.parse(ev.data.payload);
 
-    for (const prop of ['port', 'bytes']) {
-      if (ev.data[prop]) {
-        for (const k of ['params', 'result']) {
-          if (m[k]) {
-            m[k][prop] = ev.data[prop];
+      // Ignore invalid payloads!
+      if (!m || m.jsonrpc !== '2.0' || !m.method) return;
+
+      for (const prop of ['port', 'bytes']) {
+        if (ev.data[prop]) {
+          for (const k of ['params', 'result']) {
+            if (m[k]) {
+              m[k][prop] = ev.data[prop];
+            }
           }
         }
       }
+    } catch (e) {
+      originalConsole.error.call(console, 'Ignoring malformed RPC message:', e);
+      return;
     }
 
     const handler = rpcMethods[m.method];
@@ -77,7 +113,7 @@
       }
 
       // Execute the registered method
-      const result = await handler(m.params);
+      const result = (await handler(m.params)) ?? {};
 
       // If it's a request (has an id), send a success response
       if (m.id !== undefined) {
@@ -95,7 +131,7 @@
           payload: JSON.stringify({
             jsonrpc: '2.0',
             id: m.id,
-            result: result ?? {}
+            result,
           }),
           bytes,
           port,
@@ -103,11 +139,11 @@
       }
     } catch (e) {
       if (m.id === undefined) {
-        console.error(`RPC Notification Error (${m.method}):`, e);
+        originalConsole.error.call(
+          console, `RPC Notification Error (${m.method}):`, e);
         return;
       }
-      const code = e instanceof RpcError ? e.code : errorCode.SERVER_ERROR;
-      const message = e instanceof Error ? e.message : String(e);
+      const { code, message } = asRpcError(e);
 
       rpcPort.postMessage({
         payload: JSON.stringify({
@@ -145,6 +181,70 @@
     });
   }
 
+  // Synthetic root for bundles of libraries from a package.
+  //
+  // `dart_stack_trace_mapper.js` rewrites a source to `package:` URI, when it
+  // is under `<root>/packages`, for some root in `$dartLoader.rootDirectories`.
+  // We use `//# sourceURL` to make this happen.
+  //
+  // Must stay relative: Chrome resolves a `//# sourceURL` starting with `/`
+  // against the document, which breaks the lookup in `setupStackTraceMapper`.
+  const packageRoot = 'dartpad';
+
+  // DDC will resolve file urls to absolute URLs using `Uri.base` which when
+  // running on web is `window.location`. As dartpad_worker normally runs from
+  // a blob-url to enable WASM loading across origins, what was supposed to be
+  // an absolute path, instead becomes mangled blob:...
+  // We undo that here, until appropriate fix is landed in DDC.
+  // See: https://github.com/dart-lang/sdk/issues/40251
+  const ddcWorkingDirectory = /^blob:[^/]*\//;
+  function undoDdcWorkingDirectory(sourceMap) {
+    if (!sourceMap.includes('blob:')) {
+      return sourceMap;
+    }
+    try {
+      const map = JSON.parse(sourceMap);
+      if (!Array.isArray(map.sources)) {
+        return sourceMap;
+      }
+      map.sources = map.sources.map((s) => s.replace(ddcWorkingDirectory, ''));
+      return JSON.stringify(map);
+    } catch (e) {
+      // The mapper has no error handling; a throw here would replace the
+      // exception whose stack trace is being rendered.
+      return sourceMap;
+    }
+  }
+
+  // Set sourceMapProvider for dart_stack_trace_mapper.js which is used when
+  // Dart renders a stacktrace.
+  //
+  // See `createAndRegisterBlob` which attaches `//# sourceURL` comment.
+  function setupStackTraceMapper() {
+    self.$dartLoader.rootDirectories.push(packageRoot);
+
+    self.$dartStackTraceUtility.setSourceMapProvider((scriptUrl) => {
+      const scriptName = scriptUrl.replace(/\.js\?\d+$/, '');
+      const moduleName = scriptName.startsWith(`${packageRoot}/`)
+        ? scriptName.substring(packageRoot.length + 1)
+        : scriptName;
+      const sourceMap =
+        self.dartDevEmbedder?.debugger?.getSourceMap(moduleName) ?? null;
+      return sourceMap === null ? null : undoDdcWorkingDirectory(sourceMap);
+    });
+  }
+
+  // Map JavaScript stack traces caught in JS world to Dart sources
+  function mapStackTrace(stack) {
+    const mapper = self.$dartStackTraceUtility?.mapper;
+    if (!mapper || typeof stack !== 'string') return stack;
+    try {
+      return mapper(stack) || stack;
+    } catch (e) {
+      return stack;
+    }
+  }
+
   async function initialize() {
     try {
       await Promise.all(self.$dartpadSandboxScripts.map(
@@ -155,8 +255,22 @@
         throw new Error("dartDevEmbedder is not initialized.");
       }
 
+      if (!self.$dartStackTraceUtility) {
+        throw new Error("$dartStackTraceUtility is not initialized.");
+      }
+
+      setupStackTraceMapper();
+
       rpcPort.onmessage = onRcpMessage;
       rpcPort.start();
+      window.addEventListener(
+        'pagehide',
+        () => {
+          rpcPort.postMessage(null);
+          rpcPort.close();
+        },
+        { once: true },
+      );
       window.parent.postMessage(
         { action: 'connect', port: remotePort },
         '*',
@@ -174,10 +288,20 @@
   function safeSerialize(arg) {
     if (arg === null) return 'null';
     if (arg === undefined) return 'undefined';
-    if (arg instanceof Error) return arg.stack || arg.toString();
+    if (arg instanceof Error) return renderError(arg);
     if (typeof arg === 'function') return `[Function: ${arg.name || 'anonymous'}]`;
     if (arg instanceof HTMLElement) return `<${arg.tagName.toLowerCase()}>`;
+    if (Array.isArray(arg)) return `[${arg.map(safeSerialize).join(', ')}]`;
     if (typeof arg === 'object') {
+      if (!(arg instanceof Date) &&
+          typeof arg.toString === 'function' &&
+          arg.toString !== Object.prototype.toString) {
+        try {
+          return String(arg);
+        } catch (_) {
+          // Fall through to JSON.stringify.
+        }
+      }
       try {
         return JSON.stringify(arg);
       } catch (_) {
@@ -188,14 +312,15 @@
   }
 
   const originalConsole = {
+    debug: console.debug,
     log: console.log,
     info: console.info,
     warn: console.warn,
-    error: console.error
+    error: console.error,
   };
 
   // Proxy console over RPC
-  for (const level of Object.keys(originalConsole)) {
+  for (const level of ['log', 'info', 'warn', 'error']) {
     console[level] = function (...args) {
       // Format message as a single string
       const message = args.map(safeSerialize).join(' ');
@@ -206,21 +331,64 @@
     };
   }
 
-  // Surface browser runtime failures on a dedicated channel instead of
-  // forcing the host to infer them from console text.
+  console.debug = function (...args) {
+    originalConsole.debug.apply(console, args);
+    if (args[0] === 'dart.developer.log' && args[1] && typeof args[1] === 'object') {
+      const items = args[1];
+      sendNotification('log', {
+        message: String(items.message),
+        name: String(items.name),
+        level: items.level,
+        sequenceNumber: items.sequenceNumber,
+        time: items.time?.millisecondsSinceEpoch,
+        error: items.error != null ? safeSerialize(items.error) : undefined,
+        stackTrace:
+            items.stackTrace != null ? String(items.stackTrace) : undefined,
+      });
+      return;
+    }
+    if (args[0] === 'dart.developer.inspect') {
+      sendNotification('console', {
+        level: 'debug',
+        message: safeSerialize(args[1]),
+      });
+      return;
+    }
+    const message = args.map(safeSerialize).join(' ');
+    sendNotification('console', { level: 'debug', message });
+  };
+
+  // Render an Javascript `Error` and map to Dart sources.
+  function renderError(e) {
+    const header = `${e}`;
+    if (typeof e.stack !== 'string' || !e.stack) {
+      return header;
+    }
+    // Mapping keeps only the frames, so the header is re-attached by hand.
+    const mapped = mapStackTrace(e.stack);
+    if (mapped !== e.stack) {
+      return `${header}\n${mapped}`;
+    }
+    // Unmapped: V8 repeats the header in `e.stack`, Firefox/Safari do not.
+    const firstFrame = e.stack.search(/^[ \t]*at /m);
+    return `${header}\n${firstFrame < 0 ? e.stack : e.stack.slice(firstFrame)}`;
+  }
+
+  // Surface uncaught browser runtime failures and unhandled promise rejections
+  // as error-level console messages.
   window.addEventListener('error', (e) => {
     const message = e.error instanceof Error
-      ? (e.error.stack || e.error.message || String(e.error))
+      ? renderError(e.error)
       : `Uncaught: ${e.message}`;
-    sendNotification('error', { message });
+    sendNotification('console', { level: 'error', message });
 
     originalConsole.error.call(console, 'Uncaught sandbox error:', e.error || e.message || e);
   });
   window.addEventListener('unhandledrejection', (e) => {
     const message = e.reason instanceof Error
-      ? (e.reason.stack || e.reason.message || String(e.reason))
+      ? renderError(e.reason)
       : `Unhandled Rejection: ${safeSerialize(e.reason)}`;
-    sendNotification('unhandledRejection', { message });
+    sendNotification('console', { level: 'error', message });
 
     originalConsole.error.call(console, 'Unhandled sandbox rejection:', e.reason);
   });
@@ -236,14 +404,31 @@
 
   // Inject event handler for extension registration.
   // This is required by DDC's dart:developer patch.
-  self.$emitRegisterEvent = (method) => { };
+  self.$emitRegisterEvent = (method) => {
+    sendNotification('registerExtension', { method });
+  };
 
   // This is required for ddc to not ignore extension events.
   self.$dwdsVersion = '1.0.0';
 
+  let generation = 0;
+
   // Create a blob URL and register it with DDC's internal loader.
   function createAndRegisterBlob(moduleName, code) {
-    const blob = new Blob([code], { type: 'application/javascript' });
+    // Name given to the script holding <moduleName>, see `//# sourceURL` below.
+    const scriptName = moduleName.startsWith('packages/')
+      ? `${packageRoot}/${moduleName}`
+      : moduleName;
+    // sourceUrl is used by browsers to name files in stack traces.
+    // We use it because blob-urls are ugly, and we don't want them in our
+    // stack traces.
+    // We put <moduleName> so that sourceMapProvider can find the source map,
+    // and we put <generation> in to burst the cache in
+    // dart_stack_trace_mapper.js
+    const blob = new Blob(
+      [code, `\n//# sourceURL=${scriptName}.js?${generation++}\n`],
+      { type: 'application/javascript' },
+    );
     const newUrl = URL.createObjectURL(blob);
 
     if (self.$dartLoader) {
@@ -270,29 +455,51 @@
     return newUrl;
   }
 
-  rpcMethods.loadModule = async (params) => {
-    const { code, moduleName } = params;
-
-    if (!code) {
-      throw new RpcError("'code' is required.", errorCode.INVALID_PARAMS);
+  // Validate a `modules` parameter and return it.
+  function validateModules(modules = []) {
+    if (!Array.isArray(modules)) {
+      throw new RpcError("'modules' is required.", errorCode.INVALID_PARAMS);
     }
-    if (!moduleName) {
-      throw new RpcError("'moduleName' is required.", errorCode.INVALID_PARAMS);
+    for (const module of modules) {
+      if (!module || !module.code) {
+        throw new RpcError("'code' is required.", errorCode.INVALID_PARAMS);
+      }
+      if (!module.moduleName) {
+        throw new RpcError(
+          "'moduleName' is required.",
+          errorCode.INVALID_PARAMS,
+        );
+      }
     }
+    return modules;
+  }
 
-    const url = createAndRegisterBlob(moduleName, code);
-    await new Promise((resolve) =>
-      // TODO(jonasfj): Handle script loading failure and throw
-      //                MODULE_LOADING_FAILED. Requires us to duplicate logic
-      //                from DDC module loader.
-      self.$dartLoader.forceLoadScript(url, resolve),
-    );
+  async function loadModule({ moduleName, code }) {
+    try {
+      await loadScript(createAndRegisterBlob(moduleName, code));
+    } catch (e) {
+      throw new RpcError(
+        `Failed to load module: ${moduleName}`,
+        errorCode.MODULE_LOADING_FAILED,
+      );
+    }
+  }
+
+  rpcMethods.loadModules = async (params) => {
+    const modules = validateModules(params.modules);
+
+    await Promise.all(modules.map(loadModule));
 
     return {};
   };
 
-  rpcMethods.runMain = async (params) => {
-    const { libraryUri, options = {} } = params;
+  // Run mode object from $dartpadRunModes for the currently running app.
+  let activeRunMode = null;
+  let activeEntrypointUri = null;
+  let activeMode = null;
+
+  rpcMethods.run = async (params) => {
+    const { libraryUri, mode, options = {} } = params;
 
     if (!libraryUri) {
       throw new RpcError(
@@ -300,75 +507,44 @@
         errorCode.INVALID_PARAMS
       );
     }
-    if (!self.dartDevEmbedder) {
+    if (!mode) {
       throw new RpcError(
-        "dartDevEmbedder is not initialized.",
-        errorCode.SERVER_ERROR
-      );
-    }
-
-    try {
-      self.dartDevEmbedder.runMain(libraryUri, options);
-      return { status: 'running' };
-    } catch (e) {
-      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
-    }
-  };
-
-  rpcMethods.runApp = async (params) => {
-    const { libraryUri, options = {} } = params;
-
-    if (!libraryUri) {
-      throw new RpcError(
-        "libraryUri is required to run code.",
+        "mode is required.",
         errorCode.INVALID_PARAMS
       );
     }
+    const runMode = self.$dartpadRunModes[mode];
+    if (!runMode) {
+      throw new RpcError(
+        `mode not found: ${mode}`,
+        errorCode.INVALID_PARAMS
+      );
+    }
+
     if (!self.dartDevEmbedder) {
       throw new RpcError(
         "dartDevEmbedder is not initialized.",
-        errorCode.SERVER_ERROR
-      );
-    }
-    if (!self._flutter || !self._flutter.loader) {
-      throw new RpcError(
-        "flutter.js is not loaded!",
-        errorCode.SERVER_ERROR
+        errorCode.INVALID_SANDBOX_STATE
       );
     }
 
-    const libraryUriJson = JSON.stringify(libraryUri);
-    const optionsJson = JSON.stringify(options);
-    const url = URL.createObjectURL(new Blob([`
-      try {
-        self.dartDevEmbedder.runMain(${libraryUriJson}, ${optionsJson});
-      } catch (e) {
-        console.error('runMain() inside runApp() failed: ', e.message || String(e));
-      }
-    `], { type: 'application/javascript' }));
-
+    activeRunMode = runMode;
+    activeEntrypointUri = libraryUri;
+    activeMode = mode;
+    sendNotification('isolateStart', { entrypointUri: libraryUri, mode });
     try {
-      const engineInitializer = await new Promise((resolve) => {
-        self._flutter.loader.loadEntrypoint({
-          entrypointUrl: url,
-          onEntrypointLoaded: resolve,
-        });
+      await activeRunMode.run(() => {
+        self.dartDevEmbedder.runMain(libraryUri, options);
       });
-
-      const appRunner = await engineInitializer.initializeEngine(
-        self.dartpadFlutterConfiguration,
-      );
-      await appRunner.runApp();
       return { status: 'running' };
     } catch (e) {
-      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
-    } finally {
-      URL.revokeObjectURL(url);
+      sendNotification('isolateExit', {});
+      throw e;
     }
   };
 
   rpcMethods.hotRestart = async (params) => {
-    const { code, moduleName } = params;
+    const modules = validateModules(params.modules);
 
     if (!self.dartDevEmbedder) {
       throw new RpcError(
@@ -376,36 +552,42 @@
         errorCode.SERVER_ERROR
       );
     }
-
-    if (code && !moduleName) {
-      throw new RpcError("'moduleName' is required.", errorCode.INVALID_PARAMS);
+    if (!activeRunMode) {
+      throw new RpcError(
+        "No application is running.",
+        errorCode.INVALID_SANDBOX_STATE,
+      );
     }
 
+    // Define the official DDC hook for reloading modules during restart.
+    // This is awaited by `hotRestart()`, so `callback()` -- which re-runs
+    // `main()` and bumps the generation -- must happen before it returns.
+    const reloadModules = async (appName, callback) => {
+      await Promise.all(modules.map(loadModule));
+      await activeRunMode.hotRestart(() => {
+        sendNotification('isolateExit', {});
+        sendNotification('isolateStart', {
+          entrypointUri: activeEntrypointUri,
+          mode: activeMode,
+        });
+        callback();
+      });
+    };
+
+    self.$dartReloadModifiedModules = reloadModules;
     try {
-      // Define the official DDC hook for reloading modules during restart
-      const reloadModules = (appName, callback) => {
-        if (code) {
-          const url = createAndRegisterBlob(moduleName, code);
-          self.$dartLoader.forceLoadScript(url, callback);
-        } else {
-          callback();
-        }
-      };
-
-      self.$dartReloadModifiedModules = reloadModules;
       await self.dartDevEmbedder.hotRestart();
-
+    } finally {
       if (self.$dartReloadModifiedModules === reloadModules) {
         self.$dartReloadModifiedModules = null;
       }
-      return { generation: self.dartDevEmbedder.hotRestartGeneration };
-    } catch (e) {
-      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
     }
+    return { generation: self.dartDevEmbedder.hotRestartGeneration };
   };
 
   rpcMethods.hotReload = async (params) => {
-    const { code, librariesToReload = [], moduleName } = params;
+    const modules = validateModules(params.modules);
+    const librariesToReload = modules.flatMap((m) => m.libraries ?? []);
 
     if (!self.dartDevEmbedder) {
       throw new RpcError(
@@ -413,24 +595,22 @@
         errorCode.SERVER_ERROR
       );
     }
-
-    const filesToLoad = [];
-    if (code) {
-      if (!moduleName) {
-        throw new RpcError("'moduleName' is required.", errorCode.INVALID_PARAMS);
-      }
-      filesToLoad.push(createAndRegisterBlob(moduleName, code));
+    if (!activeRunMode) {
+      throw new RpcError(
+        "No application is running.",
+        errorCode.INVALID_SANDBOX_STATE,
+      );
     }
 
-    try {
-      await self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload);
-      if (self.dartDevEmbedder.debugger.extensionNames.includes('ext.flutter.reassemble')) {
-        await self.dartDevEmbedder.debugger.invokeExtension('ext.flutter.reassemble', '{}');
-      }
-      return { generation: self.dartDevEmbedder.hotReloadGeneration };
-    } catch (e) {
-      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
-    }
+    const filesToLoad = modules.map(({ moduleName, code }) =>
+      createAndRegisterBlob(moduleName, code),
+    );
+
+    await activeRunMode.hotReload(() =>
+      self.dartDevEmbedder.hotReload(filesToLoad, librariesToReload),
+    );
+    sendNotification('isolateReload', {});
+    return { generation: self.dartDevEmbedder.hotReloadGeneration };
   };
 
   rpcMethods.appMetrics = async () => {
@@ -460,15 +640,10 @@
         errorCode.SERVER_ERROR
       );
     }
-    try {
-      const result = await self.dartDevEmbedder.debugger.invokeExtension(
-        method,
-        JSON.stringify(args || {})
-      );
-      return result;
-    } catch (e) {
-      throw new RpcError(e.message || String(e), errorCode.EXECUTION_FAILED);
-    }
+    return await self.dartDevEmbedder.debugger.invokeExtension(
+      method,
+      JSON.stringify(args || {})
+    );
   };
 
   initialize();

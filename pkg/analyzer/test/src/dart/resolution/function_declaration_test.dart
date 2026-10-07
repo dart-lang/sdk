@@ -375,6 +375,53 @@ FunctionDeclaration
 ''');
   }
 
+  test_getter() async {
+    var result = await resolveTestCode('''
+int get foo => 0;
+''');
+
+    var node = result.findNode.singleTopLevelGetterDeclaration;
+    assertResolvedNodeText(node, r'''
+TopLevelGetterDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  getKeyword: get
+  name: foo
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> foo@8
+    element: <testLibrary>::@getter::foo
+      type: int Function()
+V1: FunctionDeclaration
+  returnType: NamedType
+    name: int
+    element: dart:core::@class::int
+    type: int
+  propertyKeyword: get
+  name: foo
+  functionExpression: FunctionExpression
+    body: ExpressionFunctionBody
+      functionDefinition: =>
+      expression: IntegerLiteral
+        literal: 0
+        staticType: int
+      semicolon: ;
+    declaredFragment: <testLibraryFragment> foo@8
+      element: <testLibrary>::@getter::foo
+        type: int Function()
+    staticType: int Function()
+  declaredFragment: <testLibraryFragment> foo@8
+    element: <testLibrary>::@getter::foo
+      type: int Function()
+''');
+  }
+
   test_getter_formalParameters() async {
     var result = await resolveTestCodeWithDiagnostics('''
 int get foo(double a) => 0;

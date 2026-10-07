@@ -161,7 +161,7 @@ Iterable<List<Impact>> permutations(List<Impact> impacts) sync* {
   } else {
     for (int index = 0; index < length; index++) {
       Impact head = impacts[index];
-      List<Impact> tail = List<Impact>.from(impacts)..removeAt(index);
+      List<Impact> tail = List<Impact>.of(impacts)..removeAt(index);
       for (List<Impact> permutation in permutations(tail)) {
         yield [head]..addAll(permutation);
       }

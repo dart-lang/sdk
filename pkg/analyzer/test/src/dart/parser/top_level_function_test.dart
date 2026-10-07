@@ -493,7 +493,18 @@ FunctionDeclaration
           next: T5 |http|
         statements
           ExpressionStatement
-            expression2: PrefixedIdentifier
+            expression2: ParsedNameAccess
+              operand: ParsedUnqualifiedName
+                name: T5 http @15
+                  previous: T4 |{|
+                  next: T6 |.|
+              operator: T6 . @19
+                previous: T5 |http|
+                next: T7 |Response|
+              name: T7 Response @20
+                previous: T6 |.|
+                next: T8 |;|
+            expression(v1): PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: T5 http @15
                   previous: T4 |{|

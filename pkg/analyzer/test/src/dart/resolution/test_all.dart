@@ -57,6 +57,8 @@ import 'if_statement_test.dart' as if_statement;
 import 'implicit_call_tear_off_test.dart' as implicit_call_tear_off;
 import 'implicit_function_instantiation_test.dart'
     as implicit_function_instantiation;
+import 'import_prefixed_assignment_target_test.dart'
+    as import_prefixed_assignment_target;
 import 'import_prefixed_name_expression_test.dart'
     as import_prefixed_name_expression;
 import 'index_expression_test.dart' as index_expression;
@@ -109,6 +111,8 @@ import 'relational_pattern_test.dart' as relational_pattern;
 import 'scope_test.dart' as scope;
 import 'set_or_map_literal_test.dart' as set_or_map_literal;
 import 'simple_identifier_test.dart' as simple_identifier;
+import 'statement_may_complete_normally_test.dart'
+    as statement_may_complete_normally;
 import 'super_constructor_invocation_test.dart' as super_constructor_invocation;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_expression_test.dart' as switch_expression;
@@ -119,6 +123,8 @@ import 'top_type_inference_test.dart' as top_type_inference;
 import 'try_statement_test.dart' as try_statement;
 import 'type_inference/test_all.dart' as type_inference;
 import 'type_literal_test.dart' as type_literal;
+import 'unqualified_name_assignment_target_test.dart'
+    as unqualified_name_assignment_target;
 import 'variable_declaration_statement_test.dart'
     as variable_declaration_statement;
 import 'variance_test.dart' as variance_test;
@@ -173,6 +179,7 @@ main() {
     generic_type_alias.main();
     if_element.main();
     if_statement.main();
+    import_prefixed_assignment_target.main();
     import_prefixed_name_expression.main();
     index_expression.main();
     constructor_invocation.main();
@@ -220,6 +227,7 @@ main() {
     scope.main();
     set_or_map_literal.main();
     simple_identifier.main();
+    statement_may_complete_normally.main();
     super_constructor_invocation.main();
     super_formal_parameter.main();
     switch_expression.main();
@@ -230,6 +238,7 @@ main() {
     try_statement.main();
     type_inference.main();
     type_literal.main();
+    unqualified_name_assignment_target.main();
     variable_declaration_statement.main();
     variance_test.main();
     while_statement.main();

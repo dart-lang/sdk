@@ -161,7 +161,7 @@ sealed class SetterEncoding {
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -274,7 +274,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -319,10 +319,9 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
         type: const DynamicType(),
         fileOffset: TreeNode.noOffset,
       );
-      function.positionalParameters.clear();
-      function.positionalParameters.add(parameter);
+      function.positionalParameters = new PositionalParameterList(parameter);
       parameter.parent = function;
-      function.namedParameters.clear();
+      function.namedParameters = NamedParameterList.empty;
       function.requiredParameterCount = 1;
     }
     MemberName memberName = nameScheme.getProcedureMemberName(
@@ -347,7 +346,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override
@@ -573,7 +572,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required bool isAbstractOrExternal,
     required List<TypeParameter>? classTypeParameters,
@@ -626,11 +625,12 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
         type: const DynamicType(),
         fileOffset: TreeNode.noOffset,
       );
-      function.positionalParameters.clear();
-      function.positionalParameters.add(thisParameter);
-      function.positionalParameters.add(parameter);
+      function.positionalParameters = new PositionalParameterList(
+        thisParameter,
+        parameter,
+      );
       parameter.parent = function;
-      function.namedParameters.clear();
+      function.namedParameters = NamedParameterList.empty;
       function.requiredParameterCount = 2;
     }
     if (_fragment.returnType is! InferableTypeBuilder) {
@@ -672,7 +672,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     );
     memberName.attachMember(procedure);
 
-    f(kind: _builtMemberKind, member: procedure);
+    callback(kind: _builtMemberKind, member: procedure);
   }
 
   @override

@@ -67,9 +67,7 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void cascadePropertyExtraction(CascadePropertyExtraction node) {
-    if (node.resolution case NamedReadResolutionWithElement(:var element)) {
-      checkUsage(element, node);
-    }
+    checkUsage(node.resolution?.element, node);
   }
 
   /// Reports the usage of [element] at [node] if [element] is in
@@ -129,11 +127,13 @@ class ElementUsageDetector<TagInfo extends Object> {
       } else if (node is PropertyAccess) {
         errorEntity = node.propertyName;
       }
-    } else if (node is PropertyAssignmentTarget) {
-      errorEntity = node.propertyName;
+    } else if (node is NamedAssignmentTarget) {
+      errorEntity = node.name;
     } else if (node is PropertyExtraction) {
       errorEntity = node.name;
     } else if (node is ExtensionOverride) {
+      errorEntity = node.name;
+    } else if (node is ExtensionOverride2) {
       errorEntity = node.name;
     } else if (node is NamedType) {
       errorEntity = node.name;
@@ -162,14 +162,7 @@ class ElementUsageDetector<TagInfo extends Object> {
     }
 
     String displayName = element.displayName;
-    if (element is ConstructorElement) {
-      // TODO(jwren): We should modify ConstructorElement.displayName,
-      // or have the logic centralized elsewhere, instead of doing this logic
-      // here.
-      displayName = element.name == null
-          ? '${element.displayName}.new'
-          : element.displayName;
-    } else if (element is LibraryElement) {
+    if (element is LibraryElement) {
       displayName = element.uri.toString();
     } else if (node is MethodInvocation &&
         displayName == MethodElement.CALL_METHOD_NAME) {
@@ -267,6 +260,10 @@ class ElementUsageDetector<TagInfo extends Object> {
     checkUsage(node.element, node);
   }
 
+  void extensionOverride2(ExtensionOverride2 node) {
+    checkUsage(node.element, node);
+  }
+
   void formalParameter(FormalParameter node) {
     var parameterList = node.parentFormalParameterList2;
     if (parameterList.parent case ConstructorDeclaration constructor) {
@@ -308,32 +305,8 @@ class ElementUsageDetector<TagInfo extends Object> {
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
     var target = node.target;
-    if (target case IndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target);
-    }
-    var read = switch (target) {
-      PropertyAssignmentTarget(:var read) => read,
-      UnqualifiedNameAssignmentTarget(:var read) => read,
-      _ => null,
-    };
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    if (read case NamedReadResolutionWithElement(:var element)) {
-      checkUsage(element, target);
-    }
-    if (write case NamedWriteResolutionWithElement(:var element)) {
-      checkUsage(element, target);
-    }
+    checkUsage(target.read?.element, target);
+    checkUsage(target.write?.element, target);
     checkUsage(node.element, node);
   }
 
@@ -342,15 +315,7 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void indexExpression2(IndexExpression2 node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    checkUsage(element, node);
+    checkUsage(node.resolution?.elementOrRecovery, node);
   }
 
   void instanceCreationExpression(InstanceCreationExpression node) {
@@ -556,23 +521,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
   }
 
-  void annotation(Annotation node) {
-    var element = node.elementAnnotation?.element;
-    checkUsage(element, node.name, usageRange: node.name.sourceRange);
-    var arguments = node.arguments;
-    if (arguments != null) {
-      _invocationArguments(element, arguments);
-    }
-  }
-
-  void assignmentExpression(AssignmentExpression node) {
-    var target = node.leftHandSide2;
-    var targetRange = _assignmentTargetRange(target);
-    checkUsage(node.readElement, target, usageRange: targetRange);
-    checkUsage(node.writeElement, target, usageRange: targetRange);
-    checkUsage(node.element, node, usageRange: node.operator.sourceRange);
-  }
-
   void binaryOperatorInvocation(BinaryOperatorInvocation node) {
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
   }
@@ -594,13 +542,13 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   /// [usageRange] specifies the source to highlight; [node] provides the
   /// context needed to determine whether the usage should be reported.
   ///
-  /// [isImplicitTypeReference] indicates that [node] refers to the type
-  /// [element] without naming it.
+  /// [usageKind] describes how [node] uses [element], so reporters can explain
+  /// implicit usages.
   void checkUsage(
     Element? element,
     AstNode node, {
     required SourceRange usageRange,
-    bool isImplicitTypeReference = false,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
   }) {
     if (element == null) {
       return;
@@ -647,20 +595,8 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
 
     String displayName = element.displayName;
-    if (element is ConstructorElement) {
-      // TODO(jwren): We should modify ConstructorElement.displayName,
-      // or have the logic centralized elsewhere, instead of doing this logic
-      // here.
-      displayName = element.name == null
-          ? '${element.displayName}.new'
-          : element.displayName;
-    } else if (element is LibraryElement) {
+    if (element is LibraryElement) {
       displayName = element.uri.toString();
-    } else if (node is MethodInvocation &&
-        displayName == MethodElement.CALL_METHOD_NAME) {
-      var invokeType = node.staticInvokeType as InterfaceType;
-      var invokeClass = invokeType.element;
-      displayName = '${invokeClass.name}.${element.displayName}';
     }
 
     for (var reportThis in givesNonNullResults) {
@@ -669,7 +605,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         displayName,
         // Getting it again might not be ideal...
         reportThis.elementUsageSet.getTagInfo(element, elementMetadata)!,
-        isImplicitTypeReference: isImplicitTypeReference,
+        usageKind: usageKind,
         isInSamePackage: _isLibraryInWorkspacePackage(element.library),
       );
     }
@@ -688,33 +624,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void compoundAssignment(CompoundAssignment node) {
-    var target = node.target;
-    if (target case IndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    var read = switch (target) {
-      PropertyAssignmentTarget(:var read) => read,
-      UnqualifiedNameAssignmentTarget(:var read) => read,
-      _ => null,
-    };
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    if (read case NamedReadResolutionWithElement(:var element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (write case NamedWriteResolutionWithElement(:var element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
+    _checkAssignmentTarget(node.target);
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
   }
 
@@ -736,6 +646,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
       node.declaredFragment!.element.superConstructor,
       node,
       usageRange: node.errorRange,
+      usageKind: ElementUsageKind.implicitSuperConstructorInvocation,
     );
   }
 
@@ -763,35 +674,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
 
   void directAssignment(DirectAssignment node) {
     var target = node.target;
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    if (write case NamedWriteResolutionWithElement(:var element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-  }
-
-  void dotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    if (node.element?.enclosingElement case var interfaceElement?) {
-      // A dot-shorthand constructor invocation contains an implicit reference
-      // to the interface on which the constructor was declared.
-      checkUsage(
-        interfaceElement,
-        node,
-        usageRange: _rangeBetween(node.period, node.constructorName),
-        isImplicitTypeReference: true,
-      );
-    }
-    _invocationArguments(node.constructorName.element, node.argumentList);
+    checkUsage(
+      target.write?.element,
+      target,
+      usageRange: _assignmentTargetRange(target),
+    );
   }
 
   void dotShorthandConstructorInvocation2(
@@ -803,25 +690,11 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         interfaceElement,
         node,
         usageRange: _rangeBetween(node.period, node.name),
-        isImplicitTypeReference: true,
+        usageKind: ElementUsageKind.implicitTypeReference,
       );
     }
     checkUsage(element, node, usageRange: node.name.sourceRange);
     _invocationArguments(element, node.argumentList);
-  }
-
-  void dotShorthandInvocation(DotShorthandInvocation node) {
-    if (node.memberName.element?.enclosingElement case var interfaceElement?) {
-      // A dot-shorthand invocation contains an implicit reference to the
-      // interface on which the constructor was declared.
-      checkUsage(
-        interfaceElement,
-        node,
-        usageRange: _rangeBetween(node.period, node.memberName),
-        isImplicitTypeReference: true,
-      );
-    }
-    _invocationArguments(node.memberName.element, node.argumentList);
   }
 
   void dotShorthandMethodInvocation(DotShorthandMethodInvocation node) {
@@ -840,24 +713,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         interfaceElement,
         node,
         usageRange: _rangeBetween(node.period, node.name),
-        isImplicitTypeReference: true,
+        usageKind: ElementUsageKind.implicitTypeReference,
       );
     }
     namedFunctionInvocation(node);
-  }
-
-  void dotShorthandPropertyAccess(DotShorthandPropertyAccess node) {
-    if (node.propertyName.element?.enclosingElement
-        case var interfaceElement?) {
-      // A dot-shorthand property access contains an implicit reference to the
-      // interface on which the constructor was declared.
-      checkUsage(
-        interfaceElement,
-        node,
-        usageRange: _rangeBetween(node.period, node.propertyName),
-        isImplicitTypeReference: true,
-      );
-    }
   }
 
   void exportDirective(ExportDirective node) {
@@ -868,17 +727,12 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     );
   }
 
-  void extensionOverride(ExtensionOverride node) {
+  void extensionOverride2(ExtensionOverride2 node) {
     checkUsage(node.element, node, usageRange: node.name.sourceRange);
   }
 
   void forEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    var element = switch (node.write) {
-      InvalidNamedWriteResolution(:var candidates) =>
-        candidates.isEmpty ? null : candidates.first,
-      NamedWriteResolutionWithElement(:var element) => element,
-      _ => null,
-    };
+    var element = node.write?.elementOrRecovery;
     checkUsage(element, node, usageRange: node.sourceRange);
   }
 
@@ -895,7 +749,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
           checkUsage(redirectedParameter, node, usageRange: node.sourceRange);
         } else {
           // Positional.
-          var position = parameterList.parameters.indexOf(node);
+          var position = parameterList.allFormalParameters.indexOf(node);
           if (position < 0) return;
           if (position >= redirectedConstructor.formalParameters.length) {
             return;
@@ -910,25 +764,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void ifNullAssignment(IfNullAssignment node) {
-    var target = node.target;
-    if (target case IndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (target is UnqualifiedNameAssignmentTarget) {
-      if (target.read case NamedReadResolutionWithElement(:var element)) {
-        checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-      }
-      if (target.write case NamedWriteResolutionWithElement(:var element)) {
-        checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-      }
-    }
+    _checkAssignmentTarget(node.target);
   }
 
   void importDirective(ImportDirective node) {
@@ -940,54 +776,16 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void incrementOrDecrement(IncrementOrDecrementExpressionImpl node) {
-    var target = node.target;
-    if (target case IndexAssignmentTarget(
-      read: MethodIndexReadResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (target case IndexAssignmentTarget(
-      write: MethodIndexWriteResolution(:var element),
-    )) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    var read = switch (target) {
-      PropertyAssignmentTarget(:var read) => read,
-      UnqualifiedNameAssignmentTarget(:var read) => read,
-      _ => null,
-    };
-    var write = switch (target) {
-      PropertyAssignmentTarget(:var write) => write,
-      UnqualifiedNameAssignmentTarget(:var write) => write,
-      _ => null,
-    };
-    if (read case NamedReadResolutionWithElement(:var element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
-    if (write case NamedWriteResolutionWithElement(:var element)) {
-      checkUsage(element, target, usageRange: _assignmentTargetRange(target));
-    }
+    _checkAssignmentTarget(node.target);
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
   }
 
-  void indexExpression(IndexExpression node) {
-    checkUsage(node.element, node, usageRange: node.sourceRange);
-  }
-
   void indexExpression2(IndexExpression2 node) {
-    var element = switch (node.resolution) {
-      MethodIndexReadResolution(:var element) => element,
-      InvalidIndexReadResolution(
-        recovery: MethodIndexReadResolution(:var element),
-      ) =>
-        element,
-      _ => null,
-    };
-    checkUsage(element, node, usageRange: node.sourceRange);
-  }
-
-  void methodInvocation(MethodInvocation node) {
-    _invocationArguments(node.methodName.element, node.argumentList);
+    checkUsage(
+      node.resolution?.elementOrRecovery,
+      node,
+      usageRange: node.sourceRange,
+    );
   }
 
   void namedFunctionInvocation(NamedFunctionInvocation node) {
@@ -1004,7 +802,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   void nameExpression(NameExpression node) {
-    var element = node.resolution.elementOrRecovery;
+    var element = node.resolution?.elementOrRecovery;
 
     // The omitted qualifier also refers to the enclosing declaration.
     if (node is DotShorthandNameExpression) {
@@ -1012,7 +810,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
         element?.enclosingElement,
         node,
         usageRange: _rangeBetween(node.period, node.name),
-        isImplicitTypeReference: true,
+        usageKind: ElementUsageKind.implicitTypeReference,
       );
     }
 
@@ -1048,25 +846,8 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     return true;
   }
 
-  void simpleIdentifier(SimpleIdentifier node) {
-    // Don't report declared identifiers.
-    if (node.inDeclarationContext()) {
-      return;
-    }
-
-    var parent = node.parent2;
-    // Report full SuperConstructorInvocation, not just the constructor name.
-    if (parent is SuperConstructorInvocation &&
-        identical(node, parent.constructorName)) {
-      return;
-    }
-
-    // HideCombinator is forgiving.
-    if (parent is HideCombinator) {
-      return;
-    }
-
-    _simpleIdentifier(node);
+  void staticQualifier(StaticQualifier node) {
+    checkUsage(node.element, node, usageRange: node.name.sourceRange);
   }
 
   void superConstructorInvocation(SuperConstructorInvocation node) {
@@ -1096,6 +877,19 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     checkUsage(node.element, node, usageRange: node.operator.sourceRange);
   }
 
+  void _checkAssignmentTarget(AssignmentTarget target) {
+    checkUsage(
+      target.read?.element,
+      target,
+      usageRange: _assignmentTargetRange(target),
+    );
+    checkUsage(
+      target.write?.element,
+      target,
+      usageRange: _assignmentTargetRange(target),
+    );
+  }
+
   void _invocationArguments(Element? element, ArgumentList arguments) {
     element = element?.baseElement;
     if (element is ExecutableElement) {
@@ -1114,14 +908,6 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
     }
     library as LibraryElementImpl;
     return _workspacePackage.contains(library.internal.firstFragment.source);
-  }
-
-  void _simpleIdentifier(SimpleIdentifier identifier) {
-    checkUsage(
-      identifier.element,
-      identifier,
-      usageRange: identifier.sourceRange,
-    );
   }
 
   void _visitParametersAndArguments(
@@ -1164,9 +950,7 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 
   static SourceRange _assignmentTargetRange(AstNode target) => switch (target) {
-    PropertyAssignmentTarget(:var propertyName) => propertyName.sourceRange,
-    PrefixedIdentifier(:var identifier) => identifier.sourceRange,
-    PropertyAccess(:var propertyName) => propertyName.sourceRange,
+    NamedAssignmentTarget(:var name) => name.sourceRange,
     _ => target.sourceRange,
   };
 
@@ -1204,6 +988,18 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   }
 }
 
+/// The context of an element usage that may need specialized diagnostic wording.
+enum ElementUsageKind {
+  explicit,
+
+  /// A constructor declaration implicitly invokes a super constructor.
+  implicitSuperConstructorInvocation,
+
+  /// An expression refers to a type without explicitly naming it, such as the
+  /// type supplying a dot-shorthand member.
+  implicitTypeReference,
+}
+
 /// Strategy class that specifies what [ElementUsageDetectorV2] should do when it
 /// detects the use of a tagged element.
 ///
@@ -1219,9 +1015,8 @@ abstract class ElementUsageReporter<TagInfo extends Object> {
   /// [usageRange] is the source range to highlight for this usage.
   /// [displayName] is the name of the element that was used. [tagInfo] is the
   /// tag information returned by [ElementUsageSet.getTagInfo].
-  /// [isImplicitTypeReference] indicates that the usage refers to a type
-  /// without explicitly naming it, such as the type supplying a dot-shorthand
-  /// member.
+  /// [usageKind] describes how the element is used, so the diagnostic can
+  /// explain implicit usages.
   /// [isInSamePackage] indicates whether the element and its usage are in
   /// the same package.
   void report(
@@ -1229,7 +1024,7 @@ abstract class ElementUsageReporter<TagInfo extends Object> {
     String displayName,
     TagInfo tagInfo, {
     required bool isInSamePackage,
-    bool isImplicitTypeReference = false,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
   });
 }
 

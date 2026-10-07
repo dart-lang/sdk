@@ -919,11 +919,13 @@ void ConstantPropagator::VisitInstanceOf(InstanceOfInstr* instr) {
     intptr_t value_cid = instr->value()->definition()->Type()->ToCid();
     Representation rep = def->representation();
     if ((checked_type.IsFloat32x4Type() && (rep == kUnboxedFloat32x4)) ||
+        (checked_type.IsFloat64x2Type() && (rep == kUnboxedFloat64x2)) ||
         (checked_type.IsInt32x4Type() && (rep == kUnboxedInt32x4)) ||
         (checked_type.IsDoubleType() && (rep == kUnboxedDouble)) ||
         (checked_type.IsIntType() && (rep == kUnboxedInt64))) {
       // Ensure that compile time type matches representation.
       ASSERT(((rep == kUnboxedFloat32x4) && (value_cid == kFloat32x4Cid)) ||
+             ((rep == kUnboxedFloat64x2) && (value_cid == kFloat64x2Cid)) ||
              ((rep == kUnboxedInt32x4) && (value_cid == kInt32x4Cid)) ||
              ((rep == kUnboxedDouble) && (value_cid == kDoubleCid)) ||
              ((rep == kUnboxedInt64) && (value_cid == kMintCid)));

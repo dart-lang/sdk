@@ -6,10 +6,10 @@ import 'dart:io';
 
 import 'package:analysis_server_plugin/src/utilities/selection.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
+import 'package:analyzer_testing/src/single_unit.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../abstract_single_unit.dart';
 import '../../services/completion/dart/text_expectations.dart';
 
 // TODO(srawlins): This needs to move to the analysis_server_plugin package, or
@@ -22,7 +22,7 @@ void main() {
 }
 
 @reflectiveTest
-class SelectionTest extends AbstractSingleUnitTest {
+final class SelectionTest extends SingleUnitTest {
   Future<void> assertMetadata({
     String prefix = '',
     required String postfix,

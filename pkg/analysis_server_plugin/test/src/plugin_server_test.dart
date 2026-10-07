@@ -363,6 +363,34 @@ bool b = false;
     await requestFuture;
   }
 
+  Future<void> test_handleAnalysisSetRoots_narrowedToContextRoot() async {
+    writeAnalysisOptionsWithPlugin();
+    newFile(filePath, 'bool b = false;');
+
+    var otherPackagePath = convertPath('/package2');
+    var otherFilePath = join(otherPackagePath, 'lib', 'other.dart');
+    newFile(otherFilePath, 'bool b = false;');
+
+    // Simulate workspace folder / containing both /package1 and /package2.
+    // contextRoots only contains /package1 (the package with the plugin).
+    // analysisRoots contains / (the workspace folder).
+    var workspacePath = convertPath('/');
+    var future1 = channel.sendRequest(
+      protocol.AnalysisSetContextRootsParams([contextRoot]),
+    );
+    var future2 = channel.sendRequest(
+      protocol.AnalysisSetAnalysisRootsParams([workspacePath], []),
+    );
+    await Future.wait([future1, future2]);
+
+    // The context collection should only include /package1, not /package2.
+    var collection = pluginServer.contextCollection!;
+    var contextPaths = collection.contexts
+        .map((c) => c.contextRoot.root.path)
+        .toList();
+    expect(contextPaths, [packagePath]);
+  }
+
   Future<void> test_handleEditGetAssists() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');

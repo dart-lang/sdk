@@ -9,7 +9,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
-class ReanalyzeHandler extends LspMessageHandler<void, void> {
+class ReanalyzeHandler extends SharedMessageHandler<void, void> {
   new(super.server);
 
   @override
@@ -17,6 +17,11 @@ class ReanalyzeHandler extends LspMessageHandler<void, void> {
 
   @override
   LspJsonHandler<void> get jsonHandler => nullJsonHandler;
+
+  @override
+  // We don't expect anyone other than the editor to trigger full reanalysis,
+  // since it controls the overlays etc.
+  bool get requiresTrustedCaller => true;
 
   @override
   Future<ErrorOr<void>> handle(

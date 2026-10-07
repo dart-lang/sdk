@@ -16,7 +16,7 @@ const String _evalWorkspaceName = 'dart_eval_workspace';
 
 final RegExp _sdkVersionRegExp = RegExp(r'^(\d+\.\d+\.\d+)');
 
-/// Manages resolution of package dependencies for `dart -e` evaluation.
+/// Manages resolution of package dependencies for `dart run -e` evaluation.
 abstract final class EvalPackageResolver {
   /// Extracts non-core package names imported in the code snippet using the analyzer AST parser.
   static Set<String> extractPackageImports(String code) {
@@ -123,18 +123,24 @@ abstract final class EvalPackageResolver {
     final sortedDeps = deps.entries.toList()
       ..sort((a, b) => a.key.compareTo(b.key));
 
-    final pubspecBuffer = StringBuffer()
-      ..writeln('name: $_evalWorkspaceName')
-      ..writeln('environment:')
-      ..writeln('  sdk: "^$sdkVersion"')
-      ..writeln('dependencies:');
+    // Append '-0' (`preReleaseSuffix`) so the SemVer caret constraint matches
+    // pre-release SDKs (e.g., 3.14.0-75.0.dev or 3.14.0-edge), which are
+    // otherwise considered strictly lower than the base 'X.Y.Z' version by pub.
+    const preReleaseSuffix = '-0';
+    final pubspecBuffer = StringBuffer('''
+name: $_evalWorkspaceName
+environment:
+  sdk: "^$sdkVersion$preReleaseSuffix"
+dependencies:
+''');
 
-    for (final entry in sortedDeps) {
-      final val = entry.value;
-      if (val.startsWith('{') || val.startsWith('[') || val.contains('\n')) {
-        pubspecBuffer.writeln('  ${entry.key}: $val');
+    for (final MapEntry(:key, :value) in sortedDeps) {
+      if (value.startsWith('{') ||
+          value.startsWith('[') ||
+          value.contains('\n')) {
+        pubspecBuffer.writeln('  $key: $value');
       } else {
-        pubspecBuffer.writeln('  ${entry.key}: "$val"');
+        pubspecBuffer.writeln('  $key: "$value"');
       }
     }
 

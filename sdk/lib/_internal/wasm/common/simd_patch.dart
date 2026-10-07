@@ -14,6 +14,9 @@ class Int32x4 {
   factory Int32x4.splat(int value) = I32x4.splat;
 
   @patch
+  factory Int32x4.zero() = I32x4.zero;
+
+  @patch
   factory Int32x4.bool(bool x, bool y, bool z, bool w) = I32x4.bool;
 
   @patch

@@ -107,6 +107,55 @@ DEFINE_NATIVE_ENTRY(TypedDataBase_setClampedRange, 0, 5) {
   return Object::null();
 }
 
+DEFINE_NATIVE_ENTRY(TypedDataBase_memEquals, 0, 5) {
+  const TypedDataBase& a =
+      TypedDataBase::CheckedHandle(zone, arguments->NativeArgAt(0));
+  const Smi& a_start_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(1));
+  const TypedDataBase& b =
+      TypedDataBase::CheckedHandle(zone, arguments->NativeArgAt(2));
+  const Smi& b_start_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(3));
+  const Smi& count_smi = Smi::CheckedHandle(zone, arguments->NativeArgAt(4));
+
+  const intptr_t count = count_smi.Value();
+  if (count == 0) {
+    return Bool::True().ptr();
+  }
+
+  const intptr_t a_len = a.Length();
+  const intptr_t b_len = b.Length();
+  const intptr_t a_start = a_start_smi.Value();
+  const intptr_t b_start = b_start_smi.Value();
+  if (a_start < 0 || count < 0 || a_start > a_len - count) {
+    Exceptions::ThrowRangeError("aStart", a_start_smi, 0,
+                                a_len - count >= 0 ? a_len - count : 0);
+  }
+  if (b_start < 0 || b_start > b_len - count) {
+    Exceptions::ThrowRangeError("bStart", b_start_smi, 0,
+                                b_len - count >= 0 ? b_len - count : 0);
+  }
+
+  const intptr_t a_element_size = a.ElementSizeInBytes();
+  if (a_element_size != b.ElementSizeInBytes()) {
+    Exceptions::ThrowArgumentError(
+        String::Handle(String::New("Typed data element sizes do not match")));
+  }
+
+  const intptr_t a_start_in_bytes = a_start * a_element_size;
+  const intptr_t b_start_in_bytes = b_start * a_element_size;
+  const intptr_t length_in_bytes = count * a_element_size;
+
+  NoSafepointScope no_safepoint;
+  const void* a_data =
+      reinterpret_cast<const void*>(a.DataAddr(a_start_in_bytes));
+  const void* b_data =
+      reinterpret_cast<const void*>(b.DataAddr(b_start_in_bytes));
+  if (a_data == b_data) {
+    return Bool::True().ptr();
+  }
+
+  return Bool::Get(memcmp(a_data, b_data, length_in_bytes) == 0).ptr();
+}
+
 // The native getter and setter functions defined here are only called if
 // unboxing doubles or SIMD values is not supported by the flow graph compiler,
 // and the provided offsets have already been range checked by the calling code.

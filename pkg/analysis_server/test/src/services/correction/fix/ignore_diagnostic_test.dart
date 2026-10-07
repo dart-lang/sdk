@@ -23,6 +23,7 @@ class IgnoreDiagnosticAnalysisOptionFileTest extends FixProcessorTest {
 
   Future<void> test_addFixToExistingErrorMap() async {
     createAnalysisOptionsFile(
+      experimentalFeatures: [],
       errors: {'unused_label': 'ignore'},
       propagateLinterExceptions: false,
     );
@@ -80,7 +81,7 @@ analyzer:
     //  https://dart-review.googlesource.com/c/sdk/+/352220
     //
     // This deletes the file created by `super.setUp` method.
-    resourceProvider.getFile(analysisOptionsPath).delete();
+    deleteFile(analysisOptionsPath);
     await resolveTestCode('''
 void f() {
   var a = 1;
@@ -109,6 +110,7 @@ analyzer:
       // To create a valid `analyzer` label, we add a `cannot-ignore` label.
       // This also  implicitly tests when unrelated label is in `cannot-ignore`
       cannotIgnore: ['unused_label'],
+      experimentalFeatures: [],
       propagateLinterExceptions: false,
     );
 
@@ -173,6 +175,7 @@ void f() {
     // newlines and we want to test the current platforms EOLs.
     // The content is normalized in newFile().
     createAnalysisOptionsFile(
+      experimentalFeatures: [],
       includes: ['package:lints/recommended.yaml'],
       propagateLinterExceptions: false,
     );

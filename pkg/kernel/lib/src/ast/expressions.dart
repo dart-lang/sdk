@@ -8,6 +8,275 @@ part of '../../ast.dart';
 //                                EXPRESSIONS
 // ------------------------------------------------------------------------
 
+/// A fixed-length list of [Expression]s.
+extension type const ExpressionList._(List<Expression> _list)
+    implements List<Expression> {
+  static const ExpressionList empty = ExpressionList._(const <Expression>[]);
+
+  /// Creates a fixed-length list of 1–7 elements without allocating a
+  /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
+  factory(
+    Expression e1, [
+    Expression? e2,
+    Expression? e3,
+    Expression? e4,
+    Expression? e5,
+    Expression? e6,
+    Expression? e7,
+  ]) {
+    if (e2 == null) {
+      assert(
+        e3 == null && e4 == null && e5 == null && e6 == null && e7 == null,
+      );
+      return ExpressionList._1(e1);
+    }
+    if (e3 == null) {
+      assert(e4 == null && e5 == null && e6 == null && e7 == null);
+      return ExpressionList._2(e1, e2);
+    }
+    if (e4 == null) {
+      assert(e5 == null && e6 == null && e7 == null);
+      return ExpressionList._3(e1, e2, e3);
+    }
+    if (e5 == null) {
+      assert(e6 == null && e7 == null);
+      return ExpressionList._4(e1, e2, e3, e4);
+    }
+    if (e6 == null) {
+      assert(e7 == null);
+      return ExpressionList._5(e1, e2, e3, e4, e5);
+    }
+    if (e7 == null) {
+      return ExpressionList._6(e1, e2, e3, e4, e5, e6);
+    }
+    return ExpressionList._7(e1, e2, e3, e4, e5, e6, e7);
+  }
+
+  factory _1(Expression e1) => ExpressionList._(List<Expression>.filled(1, e1));
+
+  factory _2(Expression e1, Expression e2) =>
+      ExpressionList._(List<Expression>.filled(2, e1)..[1] = e2);
+
+  factory _3(Expression e1, Expression e2, Expression e3) => ExpressionList._(
+    List<Expression>.filled(3, e1)
+      ..[1] = e2
+      ..[2] = e3,
+  );
+
+  factory _4(Expression e1, Expression e2, Expression e3, Expression e4) =>
+      ExpressionList._(
+        List<Expression>.filled(4, e1)
+          ..[1] = e2
+          ..[2] = e3
+          ..[3] = e4,
+      );
+
+  factory _5(
+    Expression e1,
+    Expression e2,
+    Expression e3,
+    Expression e4,
+    Expression e5,
+  ) => ExpressionList._(
+    List<Expression>.filled(5, e1)
+      ..[1] = e2
+      ..[2] = e3
+      ..[3] = e4
+      ..[4] = e5,
+  );
+
+  factory _6(
+    Expression e1,
+    Expression e2,
+    Expression e3,
+    Expression e4,
+    Expression e5,
+    Expression e6,
+  ) => ExpressionList._(
+    List<Expression>.filled(6, e1)
+      ..[1] = e2
+      ..[2] = e3
+      ..[3] = e4
+      ..[4] = e5
+      ..[5] = e6,
+  );
+
+  factory _7(
+    Expression e1,
+    Expression e2,
+    Expression e3,
+    Expression e4,
+    Expression e5,
+    Expression e6,
+    Expression e7,
+  ) => ExpressionList._(
+    List<Expression>.filled(7, e1)
+      ..[1] = e2
+      ..[2] = e3
+      ..[3] = e4
+      ..[4] = e5
+      ..[5] = e6
+      ..[6] = e7,
+  );
+
+  factory filled(int length, Expression fill) {
+    if (length == 0) return empty;
+    return ExpressionList._(List<Expression>.filled(length, fill));
+  }
+
+  @pragma('vm:prefer-inline')
+  factory generate(int length, Expression Function(int index) generator) {
+    if (length == 0) return empty;
+    return ExpressionList._(
+      List<Expression>.generate(length, generator, growable: false),
+    );
+  }
+
+  @pragma('vm:prefer-inline')
+  static ExpressionList mapped<T>(List<T> list, Expression Function(T) func) {
+    final int length = list.length;
+    if (length == 0) return empty;
+    return ExpressionList._(
+      List<Expression>.generate(length, (i) => func(list[i]), growable: false),
+    );
+  }
+
+  /// Copies [expressions] into a new fixed-length list.
+  factory from(List<Expression> expressions) {
+    if (expressions.isEmpty) return empty;
+    return ExpressionList._(
+      List<Expression>.generate(
+        expressions.length,
+        (i) => expressions[i],
+        growable: false,
+      ),
+    );
+  }
+
+  /// Returns a fixed-length list containing the elements of [a] followed by
+  /// the elements of [b].
+  ///
+  /// May return the existing [a] / [b] if the other is empty. It's therefore
+  /// not guaranteed to return a new list.
+  factory concat(ExpressionList a, ExpressionList b) {
+    if (a.isEmpty) return b;
+    if (b.isEmpty) return a;
+    final int aLength = a.length;
+    return ExpressionList.generate(
+      aLength + b.length,
+      (i) => i < aLength ? a[i] : b[i - aLength],
+    );
+  }
+
+  ExpressionList skip(int count) {
+    assert(0 <= count);
+    if (count == 0) return this;
+    if (count >= _list.length) return empty;
+    return ExpressionList.generate(
+      _list.length - count,
+      (i) => _list[count + i],
+    );
+  }
+}
+
+/// A fixed-length list of [NamedExpression]s.
+extension type const NamedExpressionList._(List<NamedExpression> _list)
+    implements List<NamedExpression> {
+  static const NamedExpressionList empty = NamedExpressionList._(
+    const <NamedExpression>[],
+  );
+
+  /// Creates a fixed-length list of 1–4 elements without allocating a
+  /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
+  factory(
+    NamedExpression e1, [
+    NamedExpression? e2,
+    NamedExpression? e3,
+    NamedExpression? e4,
+  ]) {
+    if (e2 == null) {
+      assert(e3 == null && e4 == null);
+      return NamedExpressionList._1(e1);
+    }
+    if (e3 == null) {
+      assert(e4 == null);
+      return NamedExpressionList._2(e1, e2);
+    }
+    if (e4 == null) {
+      return NamedExpressionList._3(e1, e2, e3);
+    }
+    return NamedExpressionList._4(e1, e2, e3, e4);
+  }
+
+  factory _1(NamedExpression e1) =>
+      NamedExpressionList._(List<NamedExpression>.filled(1, e1));
+
+  factory _2(NamedExpression e1, NamedExpression e2) =>
+      NamedExpressionList._(List<NamedExpression>.filled(2, e1)..[1] = e2);
+
+  factory _3(NamedExpression e1, NamedExpression e2, NamedExpression e3) =>
+      NamedExpressionList._(
+        List<NamedExpression>.filled(3, e1)
+          ..[1] = e2
+          ..[2] = e3,
+      );
+
+  factory _4(
+    NamedExpression e1,
+    NamedExpression e2,
+    NamedExpression e3,
+    NamedExpression e4,
+  ) => NamedExpressionList._(
+    List<NamedExpression>.filled(4, e1)
+      ..[1] = e2
+      ..[2] = e3
+      ..[3] = e4,
+  );
+
+  factory filled(int length, NamedExpression fill) {
+    if (length == 0) return empty;
+    return NamedExpressionList._(List<NamedExpression>.filled(length, fill));
+  }
+
+  @pragma('vm:prefer-inline')
+  factory generate(int length, NamedExpression Function(int index) generator) {
+    if (length == 0) return empty;
+    return NamedExpressionList._(
+      List<NamedExpression>.generate(length, generator, growable: false),
+    );
+  }
+
+  @pragma('vm:prefer-inline')
+  static NamedExpressionList mapped<T>(
+    List<T> list,
+    NamedExpression Function(T) func,
+  ) {
+    final int length = list.length;
+    if (length == 0) return empty;
+    return NamedExpressionList._(
+      List<NamedExpression>.generate(
+        length,
+        (i) => func(list[i]),
+        growable: false,
+      ),
+    );
+  }
+
+  /// Copies [expressions] into a new fixed-length list.
+  factory from(List<NamedExpression> expressions) {
+    if (expressions.isEmpty) return empty;
+    return NamedExpressionList._(
+      List<NamedExpression>.generate(
+        expressions.length,
+        (i) => expressions[i],
+        growable: false,
+      ),
+    );
+  }
+}
+
 sealed class Expression extends TreeNode {
   /// Returns the static type of the expression.
   ///
@@ -62,7 +331,7 @@ sealed class Expression extends TreeNode {
       );
     }
     if (type is TypeDeclarationType) {
-      List<DartType>? upcastTypeArguments = context.typeEnvironment
+      DartTypeList? upcastTypeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(type, superclass);
       if (upcastTypeArguments != null) {
         return new InterfaceType(
@@ -1043,7 +1312,7 @@ class AbstractSuperPropertyGet extends Expression {
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    List<DartType>? receiverArguments = context.typeEnvironment
+    DartTypeList? receiverArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, declaringClass);
     return Substitution.fromPairs(
       declaringClass.typeParameters,
@@ -1122,7 +1391,7 @@ class SuperPropertyGet extends Expression {
     if (declaringClass.typeParameters.isEmpty) {
       return interfaceTarget.getterType;
     }
-    List<DartType>? receiverArguments = context.typeEnvironment
+    DartTypeList? receiverArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, declaringClass);
     return Substitution.fromPairs(
       declaringClass.typeParameters,
@@ -1528,33 +1797,35 @@ class StaticSet extends Expression {
 /// The arguments to a function call, divided into type arguments,
 /// positional arguments, and named arguments.
 class Arguments extends TreeNode {
-  final List<DartType> types;
-  final List<Expression> positional;
-  List<NamedExpression> named;
+  DartTypeList types;
+  final ExpressionList positional;
+  NamedExpressionList named;
 
-  new(this.positional, {List<DartType>? types, List<NamedExpression>? named})
-    : this.types = types ?? <DartType>[],
-      this.named = named ?? <NamedExpression>[] {
+  new(this.positional, {DartTypeList? types, NamedExpressionList? named})
+    : this.types = types ?? DartTypeList.empty,
+      this.named = named ?? NamedExpressionList.empty {
     setParents(this.positional, this);
     setParents(this.named, this);
   }
 
   new empty()
-    : types = <DartType>[],
-      positional = <Expression>[],
-      named = <NamedExpression>[];
+    : types = DartTypeList.empty,
+      positional = ExpressionList.empty,
+      named = NamedExpressionList.empty;
 
   factory forwarded(FunctionNode function) {
     return new Arguments(
-      function.positionalParameters
-          .map<Expression>((p) => new VariableGet(p))
-          .toList(),
-      named: function.namedParameters
-          .map((p) => new NamedExpression(p.parameterName, new VariableGet(p)))
-          .toList(),
-      types: function.typeParameters
-          .map<DartType>((p) => new TypeParameterType.withDefaultNullability(p))
-          .toList(),
+      ExpressionList.mapped(function.positionalParameters, VariableGet.new),
+      named: NamedExpressionList.mapped(
+        function.namedParameters,
+        (p) => new NamedExpression(p.parameterName, new VariableGet(p)),
+      ),
+      types: DartTypeList.generate(
+        function.typeParameters.length,
+        (i) => new TypeParameterType.withDefaultNullability(
+          function.typeParameters[i],
+        ),
+      ),
     );
   }
 
@@ -1573,14 +1844,14 @@ class Arguments extends TreeNode {
 
   @override
   void transformChildren(Transformer v) {
-    v.transformDartTypeList(types);
+    types = v.transformDartTypeList(types);
     v.transformList(positional, this);
     v.transformList(named, this);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    v.transformDartTypeList(types);
+    types = v.transformDartTypeList(types);
     v.transformExpressionList(positional, this);
     v.transformNamedExpressionList(named, this);
   }
@@ -2656,7 +2927,7 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     Class superclass = interfaceTarget.enclosingClass!;
-    List<DartType>? receiverTypeArguments = context.typeEnvironment
+    DartTypeList? receiverTypeArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
     DartType returnType = Substitution.fromPairs(
       superclass.typeParameters,
@@ -2760,7 +3031,7 @@ class SuperMethodInvocation extends InvocationExpression {
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
     Class superclass = interfaceTarget.enclosingClass!;
-    List<DartType>? receiverTypeArguments = context.typeEnvironment
+    DartTypeList? receiverTypeArguments = context.typeEnvironment
         .getTypeArgumentsAsInstanceOf(context.thisType!, superclass);
     DartType returnType = Substitution.fromPairs(
       superclass.typeParameters,
@@ -2986,17 +3257,11 @@ class ConstructorInvocation extends InvocationExpression {
     Class enclosingClass = target.enclosingClass;
     // TODO(cstefantsova): Get raw type from a CoreTypes object if arguments is
     // empty.
-    return arguments.types.isEmpty
-        ? new InterfaceType(
-            enclosingClass,
-            target.enclosingLibrary.nonNullable,
-            const <DartType>[],
-          )
-        : new InterfaceType(
-            enclosingClass,
-            target.enclosingLibrary.nonNullable,
-            arguments.types,
-          );
+    return new InterfaceType(
+      enclosingClass,
+      target.enclosingLibrary.nonNullable,
+      arguments.types,
+    );
   }
 
   @override
@@ -3102,7 +3367,7 @@ class RedirectingFactoryInvocation extends Expression {
 /// An explicit type instantiation of a generic function.
 class Instantiation extends Expression {
   Expression expression;
-  final List<DartType> typeArguments;
+  DartTypeList typeArguments;
 
   new(this.expression, this.typeArguments) {
     expression.parent = this;
@@ -3139,7 +3404,7 @@ class Instantiation extends Expression {
     expression = v.transform(expression);
     expression.parent = this;
 
-    v.transformDartTypeList(typeArguments);
+    typeArguments = v.transformDartTypeList(typeArguments);
   }
 
   @override
@@ -3147,7 +3412,7 @@ class Instantiation extends Expression {
     expression = v.transform(expression);
     expression.parent = this;
 
-    v.transformDartTypeList(typeArguments);
+    typeArguments = v.transformDartTypeList(typeArguments);
   }
 
   @override
@@ -3381,7 +3646,7 @@ class ConditionalExpression extends Expression {
 ///
 /// These arise from string interpolations and adjacent string literals.
 class StringConcatenation extends Expression {
-  final List<Expression> expressions;
+  final ExpressionList expressions;
 
   new(this.expressions) {
     setParents(expressions, this);
@@ -3447,7 +3712,7 @@ class StringConcatenation extends Expression {
 /// constants in constant expressions.
 class ListConcatenation extends Expression {
   DartType typeArgument;
-  final List<Expression> lists;
+  final ExpressionList lists;
 
   new(this.lists, {this.typeArgument = const DynamicType()}) {
     setParents(lists, this);
@@ -3517,7 +3782,7 @@ class ListConcatenation extends Expression {
 /// during constant evaluation.
 class SetConcatenation extends Expression {
   DartType typeArgument;
-  final List<Expression> sets;
+  final ExpressionList sets;
 
   new(this.sets, {this.typeArgument = const DynamicType()}) {
     setParents(sets, this);
@@ -3588,7 +3853,7 @@ class SetConcatenation extends Expression {
 class MapConcatenation extends Expression {
   DartType keyType;
   DartType valueType;
-  final List<Expression> maps;
+  final ExpressionList maps;
 
   new(
     this.maps, {
@@ -3665,10 +3930,10 @@ class MapConcatenation extends Expression {
 /// unevaluated constants in constant expressions.
 class InstanceCreation extends Expression {
   final Reference classReference;
-  final List<DartType> typeArguments;
+  DartTypeList typeArguments;
   final Map<Reference, Expression> fieldValues;
   final List<AssertStatement> asserts;
-  final List<Expression> unusedArguments;
+  final ExpressionList unusedArguments;
 
   new(
     this.classReference,
@@ -3721,6 +3986,7 @@ class InstanceCreation extends Expression {
 
   @override
   void transformChildren(Transformer v) {
+    typeArguments = v.transformDartTypeList(typeArguments);
     fieldValues.forEach((Reference fieldRef, Expression value) {
       Expression transformed = v.transform(value);
       if (!identical(value, transformed)) {
@@ -3734,6 +4000,7 @@ class InstanceCreation extends Expression {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
+    typeArguments = v.transformDartTypeList(typeArguments);
     fieldValues.forEach((Reference fieldRef, Expression value) {
       Expression transformed = v.transform(value);
       if (!identical(value, transformed)) {
@@ -4527,7 +4794,7 @@ class Throw extends Expression {
 class ListLiteral extends Expression {
   bool isConst;
   DartType typeArgument; // Not null, defaults to DynamicType.
-  final List<Expression> expressions;
+  final ExpressionList expressions;
 
   new(
     this.expressions, {
@@ -4592,7 +4859,7 @@ class ListLiteral extends Expression {
 class SetLiteral extends Expression {
   bool isConst;
   DartType typeArgument; // Not null, defaults to DynamicType.
-  final List<Expression> expressions;
+  final ExpressionList expressions;
 
   new(
     this.expressions, {
@@ -4795,8 +5062,8 @@ class MapLiteralEntry extends TreeNode {
 
 class RecordLiteral extends Expression {
   bool isConst;
-  final List<Expression> positional;
-  final List<NamedExpression> named;
+  final ExpressionList positional;
+  final NamedExpressionList named;
   RecordType recordType;
 
   new(this.positional, this.named, this.recordType, {this.isConst = false})
@@ -5028,7 +5295,7 @@ class FunctionExpression extends Expression implements LocalFunction {
   }
 
   @override
-  List<TypeParameter> get typeParameters => function.typeParameters;
+  TypeParameterList get typeParameters => function.typeParameters;
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
@@ -5490,9 +5757,9 @@ class RedirectingFactoryTearOff extends Expression {
 }
 
 class TypedefTearOff extends Expression {
-  final List<StructuralParameter> structuralParameters;
+  final StructuralParameterList structuralParameters;
   Expression expression;
-  final List<DartType> typeArguments;
+  DartTypeList typeArguments;
 
   new(this.structuralParameters, this.expression, this.typeArguments) {
     expression.parent = this;
@@ -5534,14 +5801,14 @@ class TypedefTearOff extends Expression {
   void transformChildren(Transformer v) {
     expression = v.transform(expression);
     expression.parent = this;
-    v.transformDartTypeList(typeArguments);
+    typeArguments = v.transformDartTypeList(typeArguments);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     expression = v.transform(expression);
     expression.parent = this;
-    v.transformDartTypeList(typeArguments);
+    typeArguments = v.transformDartTypeList(typeArguments);
   }
 
   @override

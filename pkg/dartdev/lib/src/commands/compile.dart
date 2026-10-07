@@ -8,10 +8,10 @@ import 'dart:io';
 import 'package:args/args.dart';
 import 'package:code_assets/code_assets.dart' show Architecture, OS;
 import 'package:dart2native/generate.dart';
+import 'package:dartdev/src/target.dart';
 import 'package:dartdev/src/unified_analytics.dart';
 import 'package:front_end/src/api_prototype/compiler_options.dart'
     show Verbosity;
-import 'package:hooks_runner/hooks_runner.dart' show Target;
 import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as path;
 import 'package:vm/target_os.dart';
@@ -84,8 +84,7 @@ enum Sanitizer {
 
 bool checkFile(String sourcePath) {
   if (!FileSystemEntity.isFileSync(sourcePath)) {
-    stderr.writeln('"$sourcePath" file not found.');
-    stderr.flush();
+    log.stderr('"$sourcePath" file not found.');
     return false;
   }
   return true;
@@ -349,7 +348,7 @@ class CompileKernelSnapshotCommand extends CompileSubcommandCommand {
         embedSources: args.flag('embed-sources'),
         verbose: verbose,
         verbosity: args.option('verbosity')!,
-        progressUpdatesOnStderr: false,
+        logger: log,
       );
       return 0;
     } catch (e, st) {
@@ -641,8 +640,8 @@ Remove debugging information from the output and save it separately to the speci
     // AOT compilation isn't supported on ia32. Currently, generating an
     // executable only supports AOT runtimes, so these commands are disabled.
     if (Platform.version.contains('ia32')) {
-      stderr.write(
-        "'dart compile $commandName' is not supported on x86 architectures.\n",
+      log.stderr(
+        "'dart compile $commandName' is not supported on x86 architectures.",
       );
       return 64;
     }
@@ -680,8 +679,8 @@ Remove debugging information from the output and save it separately to the speci
     final supportedTargets = CompileSubcommandCommand.supportedTargetPlatforms;
     if (target != null) {
       if (!supportedTargets.contains(target)) {
-        stderr.writeln('Unsupported target platform $target.');
-        stderr.writeln(
+        log.stderr('Unsupported target platform $target.');
+        log.stderr(
           'Supported target platforms: '
           '${supportedTargets.join(', ')}',
         );
@@ -736,7 +735,7 @@ Remove debugging information from the output and save it separately to the speci
             final packages = (await builder.packagesWithBuildHooks()).join(
               ', ',
             );
-            stderr.writeln(
+            log.stderr(
               "'dart compile' does not support build hooks, use 'dart build' instead.\n"
               'Packages with build hooks: $packages.',
             );
@@ -749,6 +748,7 @@ Remove debugging information from the output and save it separately to the speci
     final tempDir = Directory.systemTemp.createTempSync();
     try {
       final sanitizer = Sanitizer.fromString(args.option('target-sanitizer'))!;
+      final verbosity = args.option('verbosity')!;
       final kernelGenerator = KernelGenerator(
         genSnapshot: genSnapshotBinary,
         targetDartAotRuntime: dartAotRuntimeBinary,
@@ -761,22 +761,25 @@ Remove debugging information from the output and save it separately to the speci
         enableAsserts: args.flag(enableAssertsOption.flag),
         debugFile: args.option('save-debugging-info'),
         verbose: verbose,
-        verbosity: args.option('verbosity')!,
+        verbosity: verbosity,
         targetOS: target?.os ?? OS.current,
         tempDir: tempDir,
         depFile: args.option('depfile'),
-        progressUpdatesOnStderr: false,
+        logger: log,
       );
       final snapshotGenerator = await kernelGenerator.generate(
         recordedUsagesFile: args.option(recordedUsesOption.flag),
         extraOptions: args.multiOption('extra-gen-kernel-options'),
       );
-      await snapshotGenerator.generate(
+      final outputPath = await snapshotGenerator.generate(
         extraOptions: [
           ...sanitizer.genSnapshotFlags,
           ...args.multiOption('extra-gen-snapshot-options'),
         ],
       );
+      if (verbosity != Verbosity.error.name) {
+        log.stdout('Generated: $outputPath');
+      }
       return 0;
     } catch (e, st) {
       log.stderr('Error: AOT compilation failed');

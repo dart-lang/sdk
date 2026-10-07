@@ -71,21 +71,19 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
         continue;
       }
 
+      // The range is the bare constructor name, not `.name`.
+      var isBareName =
+          reference.isDotShortHandsConstructor ||
+          reference.isConstructorCommentReference;
       String replacement;
       if (newName.isNotEmpty) {
-        if (reference.isDotShortHandsConstructor) {
-          replacement = newName;
-        } else {
-          replacement = '.$newName';
-        }
+        replacement = isBareName ? newName : '.$newName';
+      } else if (isBareName) {
+        replacement = 'new';
+      } else if (reference.isConstructorTearOff) {
+        replacement = '.new';
       } else {
-        if (reference.isDotShortHandsConstructor) {
-          replacement = 'new';
-        } else if (reference.isConstructorTearOff) {
-          replacement = '.new';
-        } else {
-          replacement = '';
-        }
+        replacement = '';
       }
       if (reference.isInvocationByEnumConstantWithoutArguments) {
         replacement += '()';
@@ -195,11 +193,17 @@ class RenameConstructorRefactoringImpl extends RenameRefactoringImpl {
   }
 
   Future<AstNode?> _nodeCoveringReference(SourceReference reference) async {
-    var element = reference.element;
-    var unitResult = await sessionHelper.getResolvedUnitByElement(element);
-    return unitResult?.unit
-        .select(offset: reference.range.offset, length: 0)
-        ?.coveringNode;
+    CompilationUnit unit;
+    if (reference.file == resolvedUnit.path) {
+      unit = resolvedUnit.unit;
+    } else {
+      var unitResult = await sessionHelper.getResolvedUnitByElement(
+        reference.element,
+      );
+      if (unitResult == null) return null;
+      unit = unitResult.unit;
+    }
+    return unit.select(offset: reference.range.offset, length: 0)?.coveringNode;
   }
 
   Future<void> _replaceSynthetic({required ChangeBuilder builder}) async {

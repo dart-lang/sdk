@@ -57,6 +57,9 @@ typedef void (*Dart_NativeMessageHandler_DL)(Dart_Port_DL dest_port_id,
   F(Dart_NewNativePort, Dart_Port_DL,                                          \
     (const char* name, Dart_NativeMessageHandler_DL handler,                   \
      bool handle_concurrently))                                                \
+  F(Dart_NewConcurrentNativePort, Dart_Port_DL,                                \
+    (const char* name, Dart_NativeMessageHandler_DL handler,                   \
+     intptr_t max_concurrency))                                                \
   F(Dart_CloseNativePort, bool, (Dart_Port_DL native_port_id))
 
 // dart_api.h symbols can only be called on Dart threads.

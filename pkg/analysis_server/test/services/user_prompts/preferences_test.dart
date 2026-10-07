@@ -5,6 +5,7 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/services/user_prompts/user_prompts.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -24,6 +25,7 @@ class UserPromptPreferencesTest with ResourceProviderMixin {
   late final preferences = UserPromptPreferences(
     _optionalStateResourceProvider,
     NoopInstrumentationService(),
+    SessionLogger(),
   );
 
   late final preferencesFile = preferences.preferencesFile;

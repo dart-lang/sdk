@@ -13,11 +13,10 @@ import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
+import 'package:analyzer_testing/src/abstract_context.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../abstract_context.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -426,7 +425,7 @@ import 'package:aaa/a.dart';
 int t;
 ''').path;
 
-    var driver = contextFor(testFile).driver;
+    var driver = contextFor2(testFile).driver;
     var coreLibResult =
         await driver.getLibraryByUri('dart:core') as LibraryElementResult;
     var intElement = coreLibResult.element.classes.firstWhereOrNull(

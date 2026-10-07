@@ -375,6 +375,16 @@ class ClassPropertyModel {
   /// excluding [Object], for example `List` is implemented by several native
   /// types.
   void _collectNativeMembers(Class c, Set<String> members) {
+    _collectNativeMembersFrom(c, members, HashSet<Class>());
+  }
+
+  /// Helper for [_collectNativeMembers] that skips classes in [visited].
+  void _collectNativeMembersFrom(
+    Class c,
+    Set<String> members,
+    HashSet<Class> visited,
+  ) {
+    if (!visited.add(c)) return;
     if (extensionTypes.hasNativeSubtype(c)) {
       for (var m in c.members) {
         if (!m.name.isPrivate &&
@@ -384,11 +394,11 @@ class ClassPropertyModel {
       }
     }
     var m = c.mixedInClass;
-    if (m != null) _collectNativeMembers(m, members);
+    if (m != null) _collectNativeMembersFrom(m, members, visited);
     for (var i in c.implementedTypes) {
-      _collectNativeMembers(i.classNode, members);
+      _collectNativeMembersFrom(i.classNode, members, visited);
     }
     var s = c.superclass;
-    if (s != null) _collectNativeMembers(s, members);
+    if (s != null) _collectNativeMembersFrom(s, members, visited);
   }
 }

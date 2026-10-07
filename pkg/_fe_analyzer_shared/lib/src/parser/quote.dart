@@ -125,11 +125,29 @@ String unescapeFirstStringPart(
   Object location,
   UnescapeErrorListener listener,
 ) {
+  int startIndex = firstQuoteLength(first, quote);
   return unescape(
-    first.substring(firstQuoteLength(first, quote)),
+    first.substring(startIndex),
     quote,
     location,
     listener,
+    /* stringStartOffset = */ startIndex,
+  );
+}
+
+/// Unescapes [middle], a middle part of an interpolated string.
+String unescapeMiddleStringPart(
+  String middle,
+  Quote quote,
+  Object location,
+  UnescapeErrorListener listener,
+) {
+  return unescape(
+    middle,
+    quote,
+    location,
+    listener,
+    /* stringStartOffset = */ 0,
   );
 }
 
@@ -146,6 +164,7 @@ String unescapeLastStringPart(
     quote,
     location,
     listener,
+    /* stringStartOffset = */ 0,
   );
 }
 
@@ -166,14 +185,18 @@ String unescapeString(
     quote,
     location,
     listener,
+    /* stringStartOffset = */ startIndex,
   );
 }
 
+/// [stringStartOffset] is the offset of [string] from the start of
+/// [location].
 String unescape(
   String string,
   Quote quote,
   Object location,
   UnescapeErrorListener listener,
+  int stringStartOffset,
 ) {
   String result;
   switch (quote) {
@@ -186,6 +209,7 @@ String unescape(
               /* isRaw = */ false,
               location,
               listener,
+              /* stringStartOffset = */ stringStartOffset,
             );
       break;
     case Quote.MultiLineSingle:
@@ -197,6 +221,7 @@ String unescape(
               /* isRaw = */ false,
               location,
               listener,
+              /* stringStartOffset = */ stringStartOffset,
             );
       break;
     case Quote.RawSingle:
@@ -212,6 +237,7 @@ String unescape(
               /* isRaw = */ true,
               location,
               listener,
+              /* stringStartOffset = */ stringStartOffset,
             );
       break;
   }
@@ -220,16 +246,21 @@ String unescape(
 
 // Note: based on
 // [StringValidator.validateString](pkg/compiler/lib/src/string_validator.dart).
+/// [stringStartOffset] counts source code units before [codeUnits], relative
+/// to [location].
 String unescapeCodeUnits(
   List<int> codeUnits,
   bool isRaw,
   Object location,
   UnescapeErrorListener listener,
+  int stringStartOffset,
 ) {
   // Can't use Uint8List or Uint16List here, the code units may be larger.
   List<int> result = new List<int>.filled(codeUnits.length, /* fill = */ 0);
   int resultOffset = 0;
 
+  // When an error is reported below, `i` or `begin` is one past the
+  // backslash, so the reported offset subtracts one to point at it.
   for (int i = 0; i < codeUnits.length; i++) {
     int code = codeUnits[i];
     if (code == $CR) {
@@ -243,7 +274,7 @@ String unescapeCodeUnits(
         listener.handleUnescapeError(
           diag.invalidEscapeStarted,
           location,
-          i,
+          i + stringStartOffset - 1,
           /* length = */ 1,
         );
         return new String.fromCharCodes(codeUnits);
@@ -277,7 +308,7 @@ String unescapeCodeUnits(
           listener.handleUnescapeError(
             diag.invalidHexEscape,
             location,
-            begin,
+            begin + stringStartOffset - 1,
             codeUnits.length + 1 - begin,
           );
           return new String.fromCharCodes(codeUnits);
@@ -289,7 +320,7 @@ String unescapeCodeUnits(
             listener.handleUnescapeError(
               diag.invalidHexEscape,
               location,
-              begin,
+              begin + stringStartOffset - 1,
               i + 1 - begin,
             );
             return new String.fromCharCodes(codeUnits);
@@ -302,7 +333,7 @@ String unescapeCodeUnits(
           listener.handleUnescapeError(
             diag.invalidUnicodeEscapeUStarted,
             location,
-            begin,
+            begin + stringStartOffset - 1,
             codeUnits.length + 1 - begin,
           );
           return new String.fromCharCodes(codeUnits);
@@ -315,7 +346,7 @@ String unescapeCodeUnits(
             listener.handleUnescapeError(
               diag.invalidUnicodeEscapeUBracket,
               location,
-              begin,
+              begin + stringStartOffset - 1,
               i + 1 - begin,
             );
             return new String.fromCharCodes(codeUnits);
@@ -326,7 +357,7 @@ String unescapeCodeUnits(
               listener.handleUnescapeError(
                 diag.invalidUnicodeEscapeUBracket,
                 location,
-                begin,
+                begin + stringStartOffset - 1,
                 i + 1 - begin,
               );
               return new String.fromCharCodes(codeUnits);
@@ -342,7 +373,7 @@ String unescapeCodeUnits(
               listener.handleUnescapeError(
                 diag.invalidUnicodeEscapeUBracket,
                 location,
-                begin,
+                begin + stringStartOffset - 1,
                 i + 2 - begin,
               );
               return new String.fromCharCodes(codeUnits);
@@ -353,7 +384,7 @@ String unescapeCodeUnits(
             listener.handleUnescapeError(
               diag.invalidUnicodeEscapeUBracket,
               location,
-              begin,
+              begin + stringStartOffset - 1,
               i + 1 - begin,
             );
           }
@@ -363,7 +394,7 @@ String unescapeCodeUnits(
             listener.handleUnescapeError(
               diag.invalidUnicodeEscapeUNoBracket,
               location,
-              begin,
+              begin + stringStartOffset - 1,
               codeUnits.length + 1 - begin,
             );
             return new String.fromCharCodes(codeUnits);
@@ -375,7 +406,7 @@ String unescapeCodeUnits(
               listener.handleUnescapeError(
                 diag.invalidUnicodeEscapeUNoBracket,
                 location,
-                begin,
+                begin + stringStartOffset - 1,
                 i + 1 - begin,
               );
               return new String.fromCharCodes(codeUnits);
@@ -387,7 +418,7 @@ String unescapeCodeUnits(
           listener.handleUnescapeError(
             diag.invalidCodePoint,
             location,
-            begin,
+            begin + stringStartOffset - 1,
             i + 1 - begin,
           );
           return new String.fromCharCodes(codeUnits);

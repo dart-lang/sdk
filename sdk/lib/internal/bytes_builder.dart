@@ -25,8 +25,6 @@ abstract interface class BytesBuilder {
   /// that list is returned by [toBytes] or [takeBytes] directly, without any copying.
   /// A list added to a non-copying builder *should not* change its content
   /// after being added, and it *must not* change its length after being added.
-  /// (Normal [Uint8List]s are fixed length lists, but growing lists implementing
-  /// [Uint8List] exist.)
   factory BytesBuilder({bool copy = true}) =>
       copy ? _CopyingBytesBuilder() : _BytesBuilder();
 

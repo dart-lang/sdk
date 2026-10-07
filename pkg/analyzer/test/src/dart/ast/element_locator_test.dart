@@ -16,6 +16,7 @@ import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(ElementLocatorTest);
     defineReflectiveTests(ElementLocatorV2Test);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -23,6 +24,7 @@ main() {
 }
 
 @reflectiveTest
+@ToBeDeprecated('Use ElementLocatorV2Test instead.')
 class ElementLocatorTest extends PubPackageResolutionTest {
   test_locate_AssignedVariablePattern() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
@@ -298,7 +300,7 @@ class Class {
 }
 void main(@Class.name() parameter) {}
 ''');
-    var node = result.findNode.simple('Class.name() parameter');
+    var node = result.findNodeV1.simple('Class.name() parameter');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::Class
@@ -312,7 +314,7 @@ class Class {
 }
 void main(@Class() parameter) {}
 ''');
-    var node = result.findNode.simple('Class() parameter');
+    var node = result.findNodeV1.simple('Class() parameter');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::Class::@constructor::new
@@ -402,7 +404,7 @@ void f(int a) {
   f.call(a);
 }
 ''');
-    var node = result.findNode.methodInvocation('call');
+    var node = result.findNodeV1.methodInvocation('call');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -415,7 +417,7 @@ void f(int a) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('f.call').identifier;
+    var node = result.findNodeV1.prefixed('f.call').identifier;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -576,7 +578,7 @@ void f(A a) {
   a.call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call(1)').methodName;
+    var node = result.findNodeV1.methodInvocation('call(1)').methodName;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::call
@@ -605,7 +607,7 @@ void f(int i) {
   f.call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call').methodName;
+    var node = result.findNodeV1.methodInvocation('call').methodName;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -618,7 +620,7 @@ void f(int i) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('call').identifier;
+    var node = result.findNodeV1.prefixed('call').identifier;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -711,7 +713,7 @@ void f(int a) {
   a.isEven;
 }
 ''');
-    var node = result.findNode.prefixed('a.isEven');
+    var node = result.findNodeV1.prefixed('a.isEven');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 dart:core::@class::int::@getter::isEven
@@ -724,7 +726,7 @@ void f(int a) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('f.call');
+    var node = result.findNodeV1.prefixed('f.call');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1077,6 +1079,20 @@ void main() {
 ''');
   }
 
+  test_locate_ConstructorInvocation_annotation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class Class {
+  const Class();
+}
+void main(@Class() parameter) {}
+''');
+    var node = result.findNode.singleConstructorInvocation;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::Class::@constructor::new
+''');
+  }
+
   test_locate_ConstructorInvocation_type_prefixedIdentifier() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {}
@@ -1109,6 +1125,40 @@ void main() {
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::new
+''');
+  }
+
+  test_locate_ConstructorSelector_ConstructorInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+}
+
+void f() {
+  A.named(); // 0
+}
+''');
+    var node = result.findNode.constructorSelector('named(); // 0');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@constructor::named
+''');
+  }
+
+  test_locate_ConstructorSelector_ConstructorTearOff() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  A.named();
+}
+
+void f() {
+  A.named; // 0
+}
+''');
+    var node = result.findNode.constructorSelector('named; // 0');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::A::@constructor::named
 ''');
   }
 
@@ -1153,6 +1203,34 @@ class B extends A {
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@constructor::named
+''');
+  }
+
+  test_locate_ConstructorTypeReference_annotation_namedConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class Class {
+  const Class.name();
+}
+void main(@Class.name() parameter) {}
+''');
+    var node = result.findNode.singleConstructorTypeReference;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::Class
+''');
+  }
+
+  test_locate_ConstructorTypeReference_annotation_unnamedConstructor() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class Class {
+  const Class();
+}
+void main(@Class() parameter) {}
+''');
+    var node = result.findNode.singleConstructorTypeReference;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@class::Class
 ''');
   }
 
@@ -1328,6 +1406,22 @@ void f(int x) {
 ''');
   }
 
+  test_locate_ForEachPartsWithIdentifier_invalidWrite() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int get foo => 0;
+
+void f() {
+  for (foo in <int>[]) {}
+//     ^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+}
+''');
+    var node = result.findNode.singleForEachPartsWithIdentifier;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@getter::foo
+''');
+  }
+
   test_locate_FunctionDeclaration_local() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
@@ -1351,34 +1445,6 @@ int f() => 3;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
-''');
-  }
-
-  test_locate_Identifier_annotationClass_namedConstructor() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class Class {
-  const Class.name();
-}
-void main(@Class.name() parameter) {}
-''');
-    var node = result.findNode.simple('Class.name() parameter');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::Class
-''');
-  }
-
-  test_locate_Identifier_annotationClass_unnamedConstructor() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-class Class {
-  const Class();
-}
-void main(@Class() parameter) {}
-''');
-    var node = result.findNode.simple('Class() parameter');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@class::Class::@constructor::new
 ''');
   }
 
@@ -1425,7 +1491,7 @@ void f(int a) {
   f.call(a);
 }
 ''');
-    var node = result.findNode.methodInvocation('call');
+    var node = result.findNode.receiverMethodInvocation('call');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1438,7 +1504,7 @@ void f(int a) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('f.call').identifier;
+    var node = result.findNode.receiverPropertyExtraction('f.call');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1468,6 +1534,23 @@ import 'dart:core';
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core
+''');
+  }
+
+  test_locate_ImportPrefixedAssignmentTarget() async {
+    newFile('$testPackageLibPath/a.dart', 'int value = 0;');
+    var result = await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as p;
+void f() {
+  p.value += 1;
+}
+''');
+    var node = result.findNode.importPrefixedAssignmentTarget('p.value');
+    _assertElement(ElementLocatorV2.locate(node), r'''
+package:test/a.dart::@setter::value
+''');
+    _assertElement(ElementLocatorV2.locate(node.importPrefix), r'''
+<testLibraryFragment>::@prefix::p
 ''');
   }
 
@@ -1568,7 +1651,7 @@ void f(A a) {
   a.call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call(1)').methodName;
+    var node = result.findNode.receiverMethodInvocation('call(1)');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@class::A::@method::call
@@ -1597,7 +1680,7 @@ void f(int i) {
   f.call(1);
 }
 ''');
-    var node = result.findNode.methodInvocation('call').methodName;
+    var node = result.findNode.receiverMethodInvocation('call');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1610,7 +1693,7 @@ void f(int i) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('call').identifier;
+    var node = result.findNode.receiverPropertyExtraction('call');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1718,7 +1801,7 @@ void f(int a) {
   a.isEven;
 }
 ''');
-    var node = result.findNode.prefixed('a.isEven');
+    var node = result.findNode.receiverPropertyExtraction('a.isEven');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 dart:core::@class::int::@getter::isEven
@@ -1731,7 +1814,7 @@ void f(int a) {
   f.call;
 }
 ''');
-    var node = result.findNode.prefixed('f.call');
+    var node = result.findNode.receiverPropertyExtraction('f.call');
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1823,6 +1906,42 @@ void f(A a) {
 ''');
   }
 
+  test_locate_ReceiverIndexAssignmentTarget_invalidWrite() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  void operator []=() {}
+//              ^^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]=' should declare exactly 2 parameters, but 0 found.
+}
+
+void f(A foo) {
+  foo[0] = 1;
+}
+''');
+    var node = result.findNode.directAssignment('[0] = 1').target;
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@method::[]=
+''');
+  }
+
+  test_locate_ReceiverIndexExpression_invalidRead() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator []() => 0;
+//             ^^
+// [diag.wrongNumberOfParametersForOperator] Operator '[]' should declare exactly 1 parameters, but 0 found.
+}
+
+void f(A foo) {
+  foo[0];
+}
+''');
+    var node = result.findNode.receiverIndexExpression('[0]');
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@method::[]
+''');
+  }
+
   test_locate_ReceiverPropertyExtraction_invalidRead() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {
@@ -1836,7 +1955,9 @@ void f(A a) {
 }
 ''');
     var node = result.findNode.singleReceiverPropertyExtraction;
-    expect(ElementLocatorV2.locate(node), isNull);
+    _assertElement(ElementLocatorV2.locate(node), r'''
+<testLibrary>::@class::A::@setter::foo
+''');
   }
 
   test_locate_ReceiverPropertyExtraction_methodTearOff() async {

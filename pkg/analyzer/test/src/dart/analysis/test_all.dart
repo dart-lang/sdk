@@ -25,6 +25,7 @@ import 'results/test_all.dart' as results;
 import 'search_test.dart' as search;
 import 'session_helper_test.dart' as session_helper;
 import 'session_test.dart' as session;
+import 'single_file_byte_store_test.dart' as single_file_byte_store_test;
 import 'unlinked_api_signature_test.dart' as unlinked_api_signature;
 import 'uri_converter_test.dart' as uri_converter;
 
@@ -51,6 +52,7 @@ main() {
     search.main();
     session.main();
     session_helper.main();
+    single_file_byte_store_test.main();
     unlinked_api_signature.main();
     uri_converter.main();
   }, name: 'analysis');

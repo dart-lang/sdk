@@ -215,8 +215,13 @@ abstract base class Assembler {
   void branchIfSmi(Register object, Label target);
   void branchIfNotSmi(Register object, Label target);
 
-  void loadClassId(Register result, Register object);
-  void loadClassIdMayBeSmi(Register result, Register object);
+  void loadClassId(
+    Register result,
+    Register object, {
+    required bool canBeSmi,
+    bool asTagged = false,
+    Register scratch,
+  });
   void loadIsolateGroup(Register rd);
   void loadClassById(Register result, Register classId);
   void loadIndexed(

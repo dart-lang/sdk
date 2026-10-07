@@ -217,7 +217,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ///
   /// If [expression] is `null`, or there is no [ExpressionInfo] associated with
   /// the [expression], then `null` is returned.
-  ExpressionInfo? getExpressionInfo(Expression? expression) =>
+  ExpressionInfo? getExpressionInfo(Expression expression) =>
       _expressionInfoMap[expression];
 
   /// Returns [CaptureKind] for the given [variable].
@@ -243,9 +243,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   // Coverage-ignore(suite): Not run.
   Expression createReachabilityError(int fileOffset, Message errorMessage) {
-    Arguments arguments = new Arguments([
-      new StringLiteral(errorMessage.problemMessage)..fileOffset = fileOffset,
-    ])..fileOffset = fileOffset;
+    Arguments arguments = new Arguments(
+      new ExpressionList(
+        new StringLiteral(errorMessage.problemMessage)..fileOffset = fileOffset,
+      ),
+    )..fileOffset = fileOffset;
     return new Throw(
         new ConstructorInvocation(
           coreTypes.reachabilityErrorConstructor,
@@ -826,8 +828,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       case ObjectAccessTargetKind.extensionTypeMember:
         tearOff = new StaticInvocation(
           target.tearoffTarget as Procedure,
-          new Arguments([expression], types: target.receiverTypeArguments)
-            ..fileOffset = fileOffset,
+          new Arguments(
+            new ExpressionList(expression),
+            types: target.receiverTypeArguments,
+          )..fileOffset = fileOffset,
         )..fileOffset = fileOffset;
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.extensionTypeRepresentation:
@@ -1049,7 +1053,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// on [extension] with the static [receiverType]. If [explicitTypeArguments]
   /// are provided, these are returned, otherwise type arguments are inferred
   /// using [receiverType].
-  List<DartType> computeExtensionTypeArgument(
+  DartTypeList computeExtensionTypeArgument(
     Extension extension,
     List<DartType>? explicitTypeArguments,
     DartType receiverType, {
@@ -1057,10 +1061,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }) {
     if (explicitTypeArguments != null) {
       assert(explicitTypeArguments.length == extension.typeParameters.length);
-      return explicitTypeArguments;
+      return new DartTypeList.from(explicitTypeArguments);
     } else if (extension.typeParameters.isEmpty) {
       assert(explicitTypeArguments == null);
-      return const <DartType>[];
+      return DartTypeList.empty;
     } else {
       return inferExtensionTypeArguments(
         extension,
@@ -1072,7 +1076,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   /// Infers the type arguments for an access to an extension instance member
   /// on [extension] with the static [receiverType].
-  List<DartType> inferExtensionTypeArguments(
+  DartTypeList inferExtensionTypeArguments(
     Extension extension,
     DartType receiverType, {
     required InternalNode? internalNodeForTesting,
@@ -1084,7 +1088,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<StructuralParameter> typeParameters =
         freshTypeParameters.freshTypeParameters;
     DartType onType = freshTypeParameters.substitute(extension.onType);
-    List<DartType> inferredTypes = new List<DartType>.filled(
+    List<DartType> preliminaryTypes = new List<DartType>.filled(
       typeParameters.length,
       const UnknownType(),
     );
@@ -1106,17 +1110,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       [receiverType],
       internalNodeForTesting: internalNodeForTesting,
     );
-    inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
+    return typeSchemaEnvironment.chooseFinalTypes(
       gatherer.computeConstraints(),
       typeParameters,
-      inferredTypes,
+      preliminaryTypes,
       inferenceUsingBoundsIsEnabled:
           libraryFeatures.inferenceUsingBounds.isEnabled,
       dataForTesting: dataForTesting,
       internalNodeForTesting: internalNodeForTesting,
       typeOperations: cfeOperations,
     );
-    return inferredTypes;
   }
 
   ObjectAccessTarget? _findExtensionTypeMember(
@@ -1230,10 +1233,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       assert(thisBuilder != null || otherBuilder != null);
       DartType onType;
       DartType onTypeInstantiateToBounds;
-      List<DartType> inferredTypeArguments;
+      DartTypeList inferredTypeArguments;
       if (extensionBuilder.extension.typeParameters.isEmpty) {
         onTypeInstantiateToBounds = onType = extensionBuilder.extension.onType;
-        inferredTypeArguments = const <DartType>[];
+        inferredTypeArguments = DartTypeList.empty;
       } else {
         List<TypeParameter> typeParameters =
             extensionBuilder.extension.typeParameters;
@@ -2007,8 +2010,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       if (argMessage != null) {
         var (
-          List<Expression> positional,
-          List<NamedExpression> named,
+          ExpressionList positional,
+          NamedExpressionList named,
         ) = argumentsInfo.computeArguments(
           hoistedExpressions: hoistedExpressions,
           hoistingEndIndex: hoistingEndIndex,
@@ -2155,13 +2158,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       fileOffset: offset,
     );
     if (argMessage != null) {
-      var (
-        List<Expression> positional,
-        List<NamedExpression> named,
-      ) = argumentsInfo.computeArguments(
-        hoistedExpressions: hoistedExpressions,
-        hoistingEndIndex: hoistingEndIndex,
-      );
+      var (ExpressionList positional, NamedExpressionList named) = argumentsInfo
+          .computeArguments(
+            hoistedExpressions: hoistedExpressions,
+            hoistingEndIndex: hoistingEndIndex,
+          );
       return new WrapInProblemInferenceResult(
         message: argMessage,
         problemReporting: problemReporting,
@@ -2204,13 +2205,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       "Inferred function type: $calleeType.",
     );
 
-    var (
-      List<Expression> positional,
-      List<NamedExpression> named,
-    ) = argumentsInfo.computeArguments(
-      hoistedExpressions: hoistedExpressions,
-      hoistingEndIndex: hoistingEndIndex,
-    );
+    var (ExpressionList positional, NamedExpressionList named) = argumentsInfo
+        .computeArguments(
+          hoistedExpressions: hoistedExpressions,
+          hoistingEndIndex: hoistingEndIndex,
+        );
     return new SuccessfulInferenceResult(
       inferredType: inferredType,
       functionType: calleeType,
@@ -2507,8 +2506,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required ObjectAccessTarget target,
     required Expression receiver,
     required List<DartType> explicitOrInferredTypeArguments,
-    required List<Expression> positionalArguments,
-    required List<NamedExpression> namedArguments,
+    required ExpressionList positionalArguments,
+    required NamedExpressionList namedArguments,
   }) {
     assert(
       target.isExtensionMember ||
@@ -2518,12 +2517,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
     Procedure procedure = target.member as Procedure;
     Arguments extensionInvocationArguments = new Arguments(
-      [receiver, ...positionalArguments],
+      new ExpressionList.generate(
+        1 + positionalArguments.length,
+        (i) => i == 0 ? receiver : positionalArguments[i - 1],
+      ),
       named: namedArguments,
-      types: [
+      types: new DartTypeList.from([
         ...target.receiverTypeArguments,
         ...explicitOrInferredTypeArguments,
-      ],
+      ]),
     )..fileOffset = argumentsOffset;
     return extern.createStaticInvocation(
       procedure,
@@ -2695,8 +2697,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         target: target,
         receiver: receiver,
         explicitOrInferredTypeArguments: [],
-        positionalArguments: [],
-        namedArguments: [],
+        positionalArguments: ExpressionList.empty,
+        namedArguments: NamedExpressionList.empty,
       );
       ExpressionInferenceResult result = inferMethodInvocation(
         visitor,
@@ -2988,15 +2990,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType type,
   ) {
     return new FunctionType(
-      new List<DartType>.filled(arguments.positionalCount, type),
+      new DartTypeList.filled(arguments.positionalCount, type),
       type,
       Nullability.nonNullable,
       namedParameters: arguments.namedCount > 0
-          ? arguments.argumentList
-                .whereType<NamedArgument>()
-                .map((a) => new NamedType(a.name, type))
-                .toList()
-          : [],
+          ? (new NamedDartTypeList.wrap(
+              new List<NamedType>.of(
+                arguments.argumentList.whereType<NamedArgument>().map(
+                  (a) => new NamedType(a.name, type),
+                ),
+                growable: false,
+              )..sort(),
+            ))
+          : NamedDartTypeList.empty,
     );
   }
 
@@ -3352,8 +3358,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           );
       originalPropertyGet = checkedPropertyGet.operand as InstanceGet;
       var (
-        SharedTypeView? wrappedPromotedType,
-        ExpressionInfo? expressionInfo,
+        promotedType: SharedTypeView? wrappedPromotedType,
+        :ExpressionInfo? expressionInfo,
       ) = flowAnalysis.propertyGet(
         computePropertyTarget(originalReceiver),
         originalName.text,
@@ -3373,8 +3379,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset: fileOffset,
       );
       var (
-        SharedTypeView? wrappedPromotedType,
-        ExpressionInfo? expressionInfo,
+        promotedType: SharedTypeView? wrappedPromotedType,
+        :ExpressionInfo? expressionInfo,
       ) = flowAnalysis.propertyGet(
         computePropertyTarget(originalReceiver),
         originalName.text,
@@ -3896,13 +3902,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // Coverage-ignore(suite): Not run.
       case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         DartType type = target.getGetterType(this);
-        var (SharedTypeView? wrappedPromotedType, _) = flowAnalysis.propertyGet(
-          computePropertyTarget(receiver),
-          name.text,
-          (target as ExtensionTypeRepresentationAccessTarget)
-              .representationField,
-          new SharedTypeView(type),
-        );
+        SharedTypeView? wrappedPromotedType = flowAnalysis
+            .propertyGet(
+              computePropertyTarget(receiver),
+              name.text,
+              (target as ExtensionTypeRepresentationAccessTarget)
+                  .representationField,
+              new SharedTypeView(type),
+            )
+            .promotedType;
         // Coverage-ignore(suite): Not run.
         type = wrappedPromotedType?.unwrapTypeView() ?? type;
         Expression read = new AsExpression(receiver, type)
@@ -4097,7 +4105,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             // provide a context type.
             invocationTargetType = new InvocationTargetFunctionType(
               new FunctionType(
-                [const UnknownType()],
+                const DartTypeList.constant(<DartType>[const UnknownType()]),
                 functionType.returnType,
                 functionType.declaredNullability,
               ),
@@ -4107,10 +4115,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             // operator == always allows nullable arguments.
             invocationTargetType = new InvocationTargetFunctionType(
               new FunctionType(
-                [
+                new DartTypeList(
                   functionType.positionalParameters.single
                       .withDeclaredNullability(Nullability.nullable),
-                ],
+                ),
                 functionType.returnType,
                 functionType.declaredNullability,
               ),
@@ -4211,8 +4219,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
     }
     var (
-      SharedTypeView? wrappedPromotedType,
-      ExpressionInfo? expressionInfo,
+      promotedType: SharedTypeView? wrappedPromotedType,
+      :ExpressionInfo? expressionInfo,
     ) = flowAnalysis.propertyGet(
       SuperPropertyTarget.singleton,
       name.text,
@@ -4371,21 +4379,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     DartType declaredOrInferredType = variable.type;
     ExpressionInfo? expressionInfo;
     if (isExtensionThis(variable.astVariable)) {
-      promotedType =
-          flowAnalysis.promotedTypeOfThis
-                  // Coverage-ignore(suite): Not run.
-                  ?.unwrapTypeView()
-              as DartType?;
-      expressionInfo = flowAnalysis.thisOrSuper(
-        new SharedTypeView(promotedType ?? variable.type),
-        isSuper: true,
-      );
+      SharedTypeView? wrappedPromotedType;
+      (promotedType: wrappedPromotedType, :expressionInfo) = flowAnalysis
+          .thisExpression();
+      // Coverage-ignore-block(suite): Not run.
+      promotedType = wrappedPromotedType?.unwrapTypeView() as DartType?;
     } else if (variable is! InternalLocalFunctionVariable) {
       // Don't promote local functions.
       SharedTypeView? wrappedPromotedType;
-      (wrappedPromotedType, expressionInfo) = flowAnalysis.variableRead(
-        variable,
-      );
+      (promotedType: wrappedPromotedType, :expressionInfo) = flowAnalysis
+          .variableRead(variable);
       promotedType = wrappedPromotedType?.unwrapTypeView();
     }
     ExpressionInferenceResult result = readVariable(
@@ -4675,7 +4678,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           write = new StaticInvocation(
             writeTarget.member as Procedure,
             new Arguments(
-              <Expression>[receiver, value],
+              new ExpressionList(receiver, value),
               types: writeTarget.receiverTypeArguments,
             )..fileOffset = fileOffset,
           )..fileOffset = fileOffset;
@@ -4687,11 +4690,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           CachedExpression assignmentCache = extern.createCachedExpression(
             expression: new StaticInvocation(
               writeTarget.member as Procedure,
-              new Arguments(<Expression>[
+              new Arguments(
+                new ExpressionList(
                   receiver,
                   extern.createVariableGet(valueCache.variable),
-                ], types: writeTarget.receiverTypeArguments)
-                ..fileOffset = fileOffset,
+                ),
+                types: writeTarget.receiverTypeArguments,
+              )..fileOffset = fileOffset,
             )..fileOffset = fileOffset,
             type: const VoidType(),
           );
@@ -4813,7 +4818,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       FunctionType functionType = tearoffType;
       List<StructuralParameter> typeParameters = functionType.typeParameters;
       if (typeParameters.isNotEmpty) {
-        List<DartType> inferredTypes = new List<DartType>.filled(
+        List<DartType> preliminaryTypes = new List<DartType>.filled(
           typeParameters.length,
           const UnknownType(),
         );
@@ -4831,10 +4836,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                   ?.typeInferenceResult,
               internalNodeForTesting: internalNodeForTesting,
             );
-        inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
+        DartTypeList inferredTypes = typeSchemaEnvironment.chooseFinalTypes(
           gatherer.computeConstraints(),
           typeParameters,
-          inferredTypes,
+          preliminaryTypes,
           inferenceUsingBoundsIsEnabled:
               libraryFeatures.inferenceUsingBounds.isEnabled,
           dataForTesting: dataForTesting,
@@ -4883,7 +4888,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (implicitInstantiation != null) {
       FunctionType uninstantiatedType = implicitInstantiation.functionType;
 
-      List<DartType> typeArguments = implicitInstantiation.typeArguments;
+      DartTypeList typeArguments = implicitInstantiation.typeArguments;
       checkBoundsInInstantiation(
         uninstantiatedType,
         typeArguments,
@@ -4897,9 +4902,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               expression.structuralParameters,
               typeArguments,
             );
-        typeArguments = expression.typeArguments
-            .map(instantiator.substitute)
-            .toList();
+        final DartTypeList targetTypeArguments = expression.typeArguments;
+        typeArguments = new DartTypeList.generate(
+          targetTypeArguments.length,
+          (i) => instantiator.substitute(targetTypeArguments[i]),
+        );
         expression = expression.expression;
       } else {
         LoweredTypedefTearOff? loweredTypedefTearOff =
@@ -4909,9 +4916,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             loweredTypedefTearOff.typedefTearOff.function.typeParameters,
             typeArguments,
           );
-          typeArguments = loweredTypedefTearOff.typeArguments
-              .map(substitution.substituteType)
-              .toList();
+          typeArguments = new DartTypeList.generate(
+            loweredTypedefTearOff.typeArguments.length,
+            (i) => substitution.substituteType(
+              loweredTypedefTearOff.typeArguments[i],
+            ),
+          );
           expression = loweredTypedefTearOff.targetTearOff;
         }
       }
@@ -5055,13 +5065,15 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   }
 
   DartType wrapFutureType(DartType type, Nullability nullability) {
-    return new InterfaceType(coreTypes.futureClass, nullability, <DartType>[
-      type,
-    ]);
+    return new InterfaceType(
+      coreTypes.futureClass,
+      nullability,
+      new DartTypeList(type),
+    );
   }
 
   DartType wrapType(DartType type, Class class_, Nullability nullability) {
-    return new InterfaceType(class_, nullability, <DartType>[type]);
+    return new InterfaceType(class_, nullability, new DartTypeList(type));
   }
 
   /// Computes the `futureValueTypeSchema` for the type schema [type].
@@ -5424,7 +5436,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             read = new StaticInvocation(
               readTarget.member as Procedure,
               new Arguments(
-                <Expression>[receiver],
+                new ExpressionList(receiver),
                 types: readTarget.receiverTypeArguments,
               )..fileOffset = fileOffset,
             )..fileOffset = fileOffset;
@@ -5433,7 +5445,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             read = new StaticInvocation(
               readTarget.tearoffTarget as Procedure,
               new Arguments(
-                <Expression>[receiver],
+                new ExpressionList(receiver),
                 types: readTarget.receiverTypeArguments,
               )..fileOffset = fileOffset,
             )..fileOffset = fileOffset;
@@ -5692,7 +5704,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset,
         receiver,
         indexGetName,
-        new Arguments([index])..fileOffset = fileOffset,
+        new Arguments(new ExpressionList(index))..fileOffset = fileOffset,
       ),
       extensionAccessCandidates,
       codeMissing,
@@ -5720,7 +5732,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset,
         receiver,
         indexSetName,
-        new Arguments([index, value])..fileOffset = fileOffset,
+        new Arguments(new ExpressionList(index, value))
+          ..fileOffset = fileOffset,
       ),
       extensionAccessCandidates,
       codeMissing,
@@ -5748,7 +5761,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset,
         left,
         binaryName,
-        new Arguments([right])..fileOffset = fileOffset,
+        new Arguments(new ExpressionList(right))..fileOffset = fileOffset,
       ),
       extensionAccessCandidates,
       codeMissing,
@@ -5774,7 +5787,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         fileOffset,
         expression,
         unaryName,
-        new Arguments([])..fileOffset = fileOffset,
+        new Arguments.empty()..fileOffset = fileOffset,
       ),
       extensionAccessCandidates,
       codeMissing,
@@ -5841,8 +5854,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// This records the relation which data for testing.
   Arguments createArgumentsFromInternalNode(
     List<DartType> typeArguments,
-    List<Expression> positionalArguments,
-    List<NamedExpression> namedArguments,
+    ExpressionList positionalArguments,
+    NamedExpressionList namedArguments,
     ActualArguments node,
   ) {
     Arguments arguments = node.toArguments(
@@ -6149,7 +6162,7 @@ class _WhyNotPromotedVisitor
 
 class ImplicitInstantiation {
   /// The type arguments for the instantiation.
-  final List<DartType> typeArguments;
+  final DartTypeList typeArguments;
 
   /// The function type before the instantiation.
   final FunctionType functionType;
@@ -6270,12 +6283,34 @@ class _ArgumentInfo {
 }
 
 extension on List<_ArgumentInfo> {
-  (List<Expression> positional, List<NamedExpression> named) computeArguments({
+  (ExpressionList positional, NamedExpressionList named) computeArguments({
     required List<CachedExpression>? hoistedExpressions,
     required int hoistingEndIndex,
   }) {
-    List<Expression> positional = [];
-    List<NamedExpression> named = [];
+    int positionalCount = 0;
+    int namedCount = 0;
+    for (int index = 0; index < length; index++) {
+      _ArgumentInfo argumentInfo = this[index];
+      if (argumentInfo.isDuplicateNamed) {
+        continue;
+      }
+      switch (argumentInfo.argument) {
+        case PositionalArgument():
+          positionalCount++;
+        case NamedArgument():
+          namedCount++;
+      }
+    }
+    ExpressionList positional = new ExpressionList.filled(
+      positionalCount,
+      dummyExpression,
+    );
+    NamedExpressionList named = new NamedExpressionList.filled(
+      namedCount,
+      dummyNamedExpression,
+    );
+    int positionalIndex = 0;
+    int namedIndex = 0;
     for (int index = 0; index < length; index++) {
       _ArgumentInfo argumentInfo = this[index];
       if (argumentInfo.isDuplicateNamed) {
@@ -6293,14 +6328,12 @@ extension on List<_ArgumentInfo> {
       }
       switch (argument) {
         case PositionalArgument():
-          positional.add(argumentInfo.inferredExpression);
+          positional[positionalIndex++] = argumentInfo.inferredExpression;
         case NamedArgument():
-          named.add(
-            extern.createNamedExpression(
-              argument.name,
-              argumentInfo.inferredExpression,
-              fileOffset: argument.namedExpression.fileOffset,
-            ),
+          named[namedIndex++] = extern.createNamedExpression(
+            argument.name,
+            argumentInfo.inferredExpression,
+            fileOffset: argument.namedExpression.fileOffset,
           );
       }
     }
@@ -6369,9 +6402,8 @@ class _ObjectAccessDescriptor {
               "$interfaceMember.",
             );
             functionType = new FunctionType(
-              new List<DartType>.filled(
+              new DartTypeList.filledWithDynamic(
                 function.positionalParameters.length,
-                const DynamicType(),
               ),
               const NeverType.nonNullable(),
               Nullability.nonNullable,
@@ -6558,7 +6590,7 @@ class ExtensionSetData {
   final DartType inferredReceiverType;
   final DartType valueType;
   final InternalNode valueNode;
-  final List<DartType> extensionTypeArguments;
+  final DartTypeList extensionTypeArguments;
   final Procedure setter;
 
   new({

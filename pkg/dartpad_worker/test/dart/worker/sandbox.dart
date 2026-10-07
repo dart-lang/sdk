@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:vm_service/vm_service.dart';
+
 import '../../worker_harness.dart';
 
 void main() {
@@ -9,40 +11,54 @@ void main() {
     final iframe = FakeSandboxedIframe();
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    // Test console event
-    final consoleFuture = sandbox.console.first;
-    iframe.emitConsole('info', 'hello console');
-    check(await consoleFuture).equals('hello console');
+    // Test console events across levels
+    for (final level in ConsoleLevel.values) {
+      final consoleFuture = sandbox.console.first;
+      iframe.emitConsole(level.protocolName, 'hello ${level.protocolName}');
+      check(
+        await consoleFuture,
+      ).equals((level: level, message: 'hello ${level.protocolName}'));
+    }
 
-    // Test error event
-    final errorFuture = sandbox.errors.first;
-    iframe.emitError('hello error', 'stack trace details');
-    check(await errorFuture).equals('hello error');
+    // Test extensionEvent and callServiceExtension via startServiceProtocol()
+    final service = await sandbox.startServiceProtocol();
+    await service.streamListen(EventStreams.kIsolate);
+    await service.streamListen(EventStreams.kExtension);
 
-    // Test unhandledRejection
-    final unhandledRejectionFuture = sandbox.unhandledRejections.first;
-    iframe.emitUnhandledRejection('hello unhandledRejection');
-    check(await unhandledRejectionFuture).equals('hello unhandledRejection');
+    final extAdded = check(service.onIsolateEvent).withQueue.emitsThrough(
+      .it()
+        ..kind.equals(EventKind.kServiceExtensionAdded)
+        ..extensionRPC.equals('ext.myMethod'),
+    );
+    iframe.emitIsolateStart('workspace:///main.dart', 'console');
+    iframe.emitRegisterExtension('ext.myMethod');
+    await extAdded;
 
-    // Test extensionEvent
-    final extensionEventFuture = sandbox.extensionEvents.first;
+    check(service.onExtensionEvent).withQueue.emitsThrough(
+      .it()
+        ..extensionKind.equals('ext.testEvent')
+        ..extensionData.isNotNull().data.isNotNull().deepEquals({
+          'key': 'value',
+        }),
+    );
     iframe.emitExtensionEvent('ext.testEvent', {'key': 'value'});
-    await check(extensionEventFuture).completes(
-      (it) => it
-        ..kind.equals('ext.testEvent')
-        ..data.deepEquals({'key': 'value'}),
+
+    // Test callServiceExtension
+    final result = await service.callServiceExtension(
+      'ext.myMethod',
+      isolateId: 'isolates/1',
+      args: {'arg': 'val'},
+    );
+    check(result.json?['result']).equals('success');
+    await iframe.checkEvent(
+      .it()..isA<InvokeExtensionEvent>(
+        .it()
+          ..method.equals('ext.myMethod')
+          ..parameters.deepEquals({'arg': 'val'}),
+      ),
     );
 
-    // Test invokeExtension
-    final result = await sandbox.invokeExtension('ext.myMethod', {
-      'arg': 'val',
-    });
-    check(result).equals('success');
-    await iframe.checkEvent(
-      (it) => it.isA<InvokeExtensionEvent>()
-        ..method.equals('ext.myMethod')
-        ..parameters.deepEquals({'arg': 'val'}),
-    );
+    await service.dispose();
 
     // Test close
     await sandbox.close();

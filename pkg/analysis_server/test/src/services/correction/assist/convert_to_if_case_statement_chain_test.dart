@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToIfCaseStatementChainTest extends AssistProcessorTest {
+class ConvertToIfCaseStatementChainTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToIfCaseStatementChain;
 

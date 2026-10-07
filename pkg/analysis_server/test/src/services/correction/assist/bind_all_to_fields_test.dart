@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class BindToFieldTest extends AssistProcessorTest {
+class BindToFieldTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.bindAllToFields;
 

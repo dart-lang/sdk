@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class SplitAndConditionTest extends AssistProcessorTest {
+class SplitAndConditionTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.splitAndCondition;
 

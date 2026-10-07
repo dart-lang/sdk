@@ -1,0 +1,45 @@
+bool topLevel({required int x, required int y});
+
+augment bool topLevel({required int y, required int x}) => x < y;
+
+class Class {
+  final bool value;
+  new () : value = false;
+  new constructor({required int x, required int y});
+  augment new constructor({required int y, required int x}) : value = x < y;
+  bool instanceMethod({required int x, required int y});
+  augment bool instanceMethod({required int y, required int x}) => x < y;
+  static bool staticMethod({required int x, required int y});
+  augment static bool staticMethod({required int y, required int x}) => x < y;
+}
+
+enum Enum { a.constructor(x: 4, y: 5), b.constructor(y: 4, x: 5), ; final bool value; new constructor({required int x, required int y}); augment new constructor({required int y, required int x}) : value = x < y; bool instanceMethod({required int x, required int y}); augment bool instanceMethod({required int y, required int x}) => x < y; static bool staticMethod({required int x, required int y}); augment static bool staticMethod({required int y, required int x}) => x < y; }
+
+mixin Mixin {
+  bool instanceMethod({required int x, required int y});
+  augment bool instanceMethod({required int y, required int x}) => x < y;
+  static bool staticMethod({required int x, required int y});
+  augment static bool staticMethod({required int y, required int x}) => x < y;
+}
+
+class MixinApplication = Object with Mixin;
+
+extension Extension on bool {
+  bool instanceMethod({required int x, required int y});
+  augment bool instanceMethod({required int y, required int x}) => x < y;
+  static bool staticMethod({required int x, required int y});
+  augment static bool staticMethod({required int y, required int x}) => x < y;
+}
+
+extension type ExtensionType(bool value) {
+  new constructor({required int x, required int y});
+  augment new constructor({required int y, required int x}) : this(x < y);
+  bool instanceMethod({required int x, required int y});
+  augment bool instanceMethod({required int y, required int x}) => x < y;
+  static bool staticMethod({required int x, required int y});
+  augment static bool staticMethod({required int y, required int x}) => x < y;
+}
+
+main() {}
+
+expect(expected, actual) {}

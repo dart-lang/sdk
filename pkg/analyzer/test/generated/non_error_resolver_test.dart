@@ -1502,7 +1502,7 @@ test() {
   return f;
 }
 ''');
-    assertType(result.findNode.assignment('f = C()'), 'void Function()');
+    assertType(result.findNode.directAssignment('f = C()'), 'void Function()');
   }
 
   test_importDuplicatedLibraryName() async {
@@ -2371,7 +2371,7 @@ void test(Object x) {
       result.findNode.unqualifiedNameExpression('x; // promoted'),
       'Object Function()',
     );
-    assertType(result.findNode.assignment('x = B()'), 'B');
+    assertType(result.findNode.directAssignment('x = B()'), 'B');
     assertType(
       result.findNode.unqualifiedNameExpression('x; // demoted'),
       'Object',
@@ -2790,8 +2790,8 @@ import 'b.dart';
 @B.named8()
 main() {}
 ''');
-    expect(result.unit.declarations, hasLength(1));
-    var mainDecl = result.unit.declarations[0];
+    expect(result.unit.declarations2, hasLength(1));
+    var mainDecl = result.unit.declarations2[0];
     expect(mainDecl.metadata, hasLength(8));
     for (var metadata in mainDecl.metadata) {
       var value = metadata.elementAnnotation!.computeConstantValue()!;

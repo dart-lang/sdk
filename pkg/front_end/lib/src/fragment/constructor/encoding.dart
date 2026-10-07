@@ -63,8 +63,8 @@ abstract class ConstructorEncoding {
   /// members and to avoid reporting cascading errors.
   void markAsErroneous();
 
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required covariant DeclarationBuilder declarationBuilder,
@@ -210,8 +210,8 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   List<TypeParameter>? get thisTypeParameters => null;
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceClassBuilder declarationBuilder,
@@ -251,7 +251,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       formals: formals,
       delayedDefaultValueCloners: delayedDefaultValueCloners,
     );
-    f(
+    callback(
       member: _constructor,
       tearOff: _constructorTearOff,
       kind: BuiltMemberKind.Constructor,
@@ -320,13 +320,10 @@ class RegularConstructorEncoding implements ConstructorEncoding {
         supportsTypeParameters: false,
       );
       Class enclosingClass = classBuilder.cls;
-      List<DartType> typeParameterTypes = <DartType>[];
-      for (int i = 0; i < enclosingClass.typeParameters.length; i++) {
-        TypeParameter typeParameter = enclosingClass.typeParameters[i];
-        typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullability(typeParameter),
-        );
-      }
+      DartTypeList typeParameterTypes = getAsTypeArguments(
+        enclosingClass.typeParameters,
+        libraryBuilder.library,
+      );
       InterfaceType type = new InterfaceType(
         enclosingClass,
         Nullability.nonNullable,
@@ -335,7 +332,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       returnType.registerInferredType(type);
       _constructor.function.fileOffset = formalsOffset;
       _constructor.function.fileEndOffset = _constructor.fileEndOffset;
-      _constructor.function.typeParameters = const <TypeParameter>[];
+      _constructor.function.typeParameters = TypeParameterList.empty;
       _constructor.isConst = isConst;
       _constructor.isExternal = _isExternal;
 
@@ -568,7 +565,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
   bool _hasBeenBuilt = false;
 
-  DartType _computeThisType(T declarationBuilder, List<DartType> typeArguments);
+  DartType _computeThisType(T declarationBuilder, DartTypeList typeArguments);
 
   void _build({
     required SourceConstructorBuilder constructorBuilder,
@@ -640,15 +637,9 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
           growable: false,
         );
       }
-      List<DartType> typeArguments;
-      if (_thisTypeParameters != null) {
-        typeArguments = [
-          for (TypeParameter parameter in _thisTypeParameters!)
-            new TypeParameterType.withDefaultNullability(parameter),
-        ];
-      } else {
-        typeArguments = [];
-      }
+      DartTypeList typeArguments = _thisTypeParameters != null
+          ? getAsTypeArguments(_thisTypeParameters!, libraryBuilder.library)
+          : DartTypeList.empty;
 
       _thisVariable = intern.createSyntheticVariable(
         name: syntheticThisName,
@@ -659,13 +650,10 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
         fileOffset: fileOffset,
       );
 
-      List<DartType> typeParameterTypes = <DartType>[];
-      for (int i = 0; i < _constructor.function.typeParameters.length; i++) {
-        TypeParameter typeParameter = _constructor.function.typeParameters[i];
-        typeParameterTypes.add(
-          new TypeParameterType.withDefaultNullability(typeParameter),
-        );
-      }
+      DartTypeList typeParameterTypes = getAsTypeArguments(
+        _constructor.function.typeParameters,
+        libraryBuilder.library,
+      );
       returnType.registerInferredType(
         _computeThisType(declarationBuilder, typeParameterTypes),
       );
@@ -957,7 +945,7 @@ class ExtensionTypeConstructorEncoding
   @override
   DartType _computeThisType(
     SourceExtensionTypeDeclarationBuilder declarationBuilder,
-    List<DartType> typeArguments,
+    DartTypeList typeArguments,
   ) {
     ast.ExtensionTypeDeclaration extensionTypeDeclaration =
         declarationBuilder.extensionTypeDeclaration;
@@ -969,8 +957,8 @@ class ExtensionTypeConstructorEncoding
   }
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceExtensionTypeDeclarationBuilder declarationBuilder,
@@ -1009,7 +997,7 @@ class ExtensionTypeConstructorEncoding
       formals: formals,
       delayedDefaultValueCloners: delayedDefaultValueCloners,
     );
-    f(
+    callback(
       member: _constructor,
       tearOff: _constructorTearOff,
       kind: BuiltMemberKind.ExtensionTypeConstructor,
@@ -1067,8 +1055,8 @@ class ExtensionConstructorEncoding
   new({required bool isExternal}) : _isExternal = isExternal;
 
   @override
-  void buildOutlineNodes(
-    BuildNodesCallback f, {
+  void buildOutlineNodes({
+    required BuildNodesCallback callback,
     required SourceConstructorBuilder constructorBuilder,
     required SourceLibraryBuilder libraryBuilder,
     required SourceExtensionBuilder declarationBuilder,
@@ -1120,7 +1108,7 @@ class ExtensionConstructorEncoding
   @override
   DartType _computeThisType(
     SourceExtensionBuilder declarationBuilder,
-    List<DartType> typeArguments,
+    DartTypeList typeArguments,
   ) {
     Extension extension = declarationBuilder.extension;
     return Substitution.fromPairs(

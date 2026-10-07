@@ -149,7 +149,7 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
     Element? element,
     AstNode node, {
     required SourceRange usageRange,
-    bool isImplicitTypeReference = false,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
   }) {
     bool allTrue = true;
     for (var inElementStack in _inElementStacksArbitrary) {
@@ -172,7 +172,7 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
       element,
       node,
       usageRange: usageRange,
-      isImplicitTypeReference: isImplicitTypeReference,
+      usageKind: usageKind,
     );
   }
 

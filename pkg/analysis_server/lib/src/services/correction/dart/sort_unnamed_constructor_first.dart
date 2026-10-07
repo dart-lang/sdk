@@ -36,10 +36,10 @@ class SortUnnamedConstructorFirst extends ResolvedCorrectionProducer {
     NodeList<ClassMember> members;
     int topOfBodyOffset;
     switch (declaration) {
-      case ClassDeclaration(body: BlockClassBody body):
+      case ClassDeclaration(:BlockClassBody body):
         members = body.members;
         topOfBodyOffset = body.leftBracket.end;
-      case EnumDeclaration(body: BlockEnumBody body):
+      case EnumDeclaration(:BlockEnumBody body):
         members = body.members;
         topOfBodyOffset =
             body.semicolon?.end ??

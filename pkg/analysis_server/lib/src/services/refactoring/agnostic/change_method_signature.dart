@@ -20,6 +20,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -80,11 +81,18 @@ sealed class Available extends Availability {
     for (var parameter in _formalParameters) {
       if (parameter.isNamed) continue;
 
+      var name = parameter.name;
+      if (name == null) {
+        // Invalid positional parameter without a name. Don't attempt to handle
+        // this.
+        return false;
+      }
+
       hasPositional = true;
 
       // If the parameter has a private name, we must be able to convert it to
       // a private named parameter.
-      if (Identifier.isPrivateName(parameter.name!)) {
+      if (name.isPrivateName) {
         if (!supportsPrivateNamedParameters) {
           return false;
         }
@@ -474,7 +482,7 @@ final class _AvailableWithDeclaration extends Available {
 
       // If the parameter has a private name, make sure it can be a private
       // named parameter.
-      if (Identifier.isPrivateName(name)) {
+      if (name.isPrivateName) {
         if (!supportsPrivateNamedParameters) return false;
         // TODO(rnystrom): Check for primary constructor declaring parameter
         // here once those are implemented.

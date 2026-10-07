@@ -4,12 +4,14 @@
 // VMOptions=--no_show_internal_names
 // Dart test program testing type casts.
 import "package:expect/expect.dart";
+import "package:expect/variations.dart";
 
 checkSecondFunction(
   String expectedFileAndLine,
   int expectedColum,
   StackTrace stacktrace,
 ) {
+  if (!symbolicUnminifiedStackTraces) return;
   var topLine = stacktrace.toString().split("\n")[0];
   int startPos = topLine.lastIndexOf("/");
   int endPos = topLine.lastIndexOf(")");
@@ -34,7 +36,7 @@ class TypeTest {
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
       checkSecondFunction(
-        "type_cast_vm_test.dart:29",
+        "type_cast_vm_test.dart:31",
         23,
         (error as dynamic).stackTrace,
       );
@@ -75,7 +77,7 @@ class TypeTest {
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
       checkSecondFunction(
-        "type_cast_vm_test.dart:70",
+        "type_cast_vm_test.dart:72",
         25,
         (error as dynamic).stackTrace,
       );
@@ -98,7 +100,7 @@ class TypeTest {
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
       checkSecondFunction(
-        "type_cast_vm_test.dart:89",
+        "type_cast_vm_test.dart:91",
         16,
         (error as dynamic).stackTrace,
       );
@@ -119,7 +121,7 @@ class TypeTest {
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("String")); // srcType
       checkSecondFunction(
-        "type_cast_vm_test.dart:115",
+        "type_cast_vm_test.dart:117",
         13,
         (error as dynamic).stackTrace,
       );
@@ -141,7 +143,7 @@ class TypeTest {
       Expect.isTrue(msg.contains("int")); // dstType
       Expect.isTrue(msg.contains("() => Null")); // srcType
       checkSecondFunction(
-        "type_cast_vm_test.dart:137",
+        "type_cast_vm_test.dart:139",
         17,
         (error as dynamic).stackTrace,
       );

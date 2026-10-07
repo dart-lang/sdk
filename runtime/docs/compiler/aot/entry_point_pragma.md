@@ -147,16 +147,18 @@ three forms may be attached to static fields.
 @pragma("vm:entry-point", null)
 @pragma("vm:entry-point", true/false)
 @pragma("vm:entry-point", !const bool.fromEnvironment("dart.vm.product"))
-@pragma("vm:entry-point", "get"/"set")
+@pragma("vm:entry-point", "get"/"set"/"init")
 int foo;
 ```
 
 If the second parameter is missing, `null` or `true`, the field is marked for
 native access and for non-static fields the corresponding getter and setter in
 the interface of the enclosing class are marked for native invocation. If the
-`"get"` or `"set"` parameter is used, only the getter or setter is marked. For
-static fields, the implicit getter is always marked if the field is marked
-for native access.
+`"get"` or `"set"` parameter is used, only the getter or setter is marked. If the
+`"init"` parameter is used, the field (which may be `final`) is marked as being
+initialized by native code (e.g. in an `external` constructor) without marking
+its getter or setter. For static fields, the implicit getter is always marked if
+the field is marked for native access.
 
 A field containing a closure may only be invoked using `Dart_Invoke` if the
 getter is marked, in which case it is the same as retrieving the closure from

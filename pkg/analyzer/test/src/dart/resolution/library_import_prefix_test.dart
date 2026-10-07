@@ -51,10 +51,7 @@ ConstructorInvocation
       UnqualifiedNameExpression
         name: p
         resolution: InvalidNamedReadResolution
-          type: InvalidType
-          candidates
-            candidate: <testLibraryFragment>::@prefix::p
-          recovery: <null>
+          recoveryElement: <testLibraryFragment>::@prefix::p
         correspondingParameter: SubstitutedFormalParameterElementImpl
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           substitution: {T: dynamic}
@@ -102,10 +99,7 @@ main() {
 UnqualifiedNameExpression
   name: p
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-      candidate: <testLibraryFragment>::@prefix::p
-    recovery: <null>
+    recoveryElement: <testLibraryFragment>::@prefix::p
   staticType: InvalidType
 V1: SimpleIdentifier
   token: p
@@ -143,10 +137,7 @@ ForStatement
     iterable2: UnqualifiedNameExpression
       name: p
       resolution: InvalidNamedReadResolution
-        type: InvalidType
-        candidates
-          candidate: <testLibraryFragment>::@prefix::p
-        recovery: <null>
+        recoveryElement: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
     iterable(v1): SimpleIdentifier
       token: p

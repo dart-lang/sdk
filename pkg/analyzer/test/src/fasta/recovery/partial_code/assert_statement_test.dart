@@ -39,12 +39,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: CallInvocation
-                  receiver: SimpleIdentifier
-                    token: assert
+                  receiver: ParsedUnqualifiedName
+                    name: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2
@@ -91,7 +93,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SetOrMapLiteral
@@ -132,10 +136,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                message(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -174,10 +182,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                message(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -215,10 +227,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                message(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -262,7 +278,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -297,10 +315,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                message(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -312,7 +334,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -349,10 +373,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                message(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -396,15 +424,21 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: l
+                message(v1): SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -441,7 +475,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: FunctionExpression
@@ -485,7 +521,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: FunctionExpression
@@ -529,10 +567,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                message(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -573,10 +615,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                message(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ;
@@ -609,13 +655,17 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
                 message2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -653,10 +703,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                message(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -700,10 +754,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                message(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -745,7 +803,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -785,7 +845,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -823,7 +885,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -861,7 +925,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -897,7 +963,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -941,7 +1009,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -974,7 +1044,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -986,7 +1058,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1021,7 +1095,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1063,7 +1139,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1104,7 +1182,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1150,7 +1230,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1196,7 +1278,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1236,7 +1320,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1272,14 +1358,18 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1313,7 +1403,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1355,7 +1447,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1397,7 +1491,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1437,7 +1533,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1474,7 +1572,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1511,7 +1611,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1547,7 +1649,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1591,7 +1695,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1624,7 +1730,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1636,7 +1744,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -1671,7 +1781,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1713,7 +1825,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1754,7 +1868,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1800,7 +1916,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1846,7 +1964,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1886,7 +2006,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -1922,14 +2044,18 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -1963,7 +2089,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2005,7 +2133,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: ( <synthetic>
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2046,8 +2176,8 @@ CompilationUnit
                 assertKeyword: assert
                 leftParenthesis: (
                 condition2: CallInvocation
-                  receiver: SimpleIdentifier
-                    token: assert
+                  receiver: ParsedUnqualifiedName
+                    name: assert
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments2
@@ -2132,7 +2262,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2171,7 +2303,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2209,7 +2343,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2254,7 +2390,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2289,7 +2427,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2301,7 +2441,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -2338,7 +2480,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2382,12 +2526,16 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: l
+                condition(v1): SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -2506,7 +2654,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2547,7 +2697,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ;
@@ -2583,7 +2735,9 @@ CompilationUnit
                 condition2: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: SimpleIdentifier
+                  expression2: ParsedUnqualifiedName
+                    name: x
+                  expression(v1): SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -2621,7 +2775,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2665,7 +2821,9 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                condition(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2707,10 +2865,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2750,10 +2912,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2791,10 +2957,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2832,10 +3002,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2871,10 +3045,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2918,10 +3096,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2954,10 +3136,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -2969,7 +3155,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3004,10 +3192,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3049,10 +3241,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3093,10 +3289,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3142,10 +3342,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3191,10 +3395,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3234,10 +3442,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3273,17 +3485,23 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3317,10 +3535,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3362,10 +3584,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -3405,10 +3631,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3446,10 +3676,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3485,10 +3719,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3524,10 +3762,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3561,10 +3803,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3606,10 +3852,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3640,10 +3890,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3655,7 +3909,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -3688,10 +3944,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3731,10 +3991,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3773,10 +4037,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3820,10 +4088,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3867,10 +4139,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3908,10 +4184,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -3945,17 +4225,23 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -3987,10 +4273,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4030,10 +4320,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: )
                 semicolon: ; <synthetic>
@@ -4075,10 +4369,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4118,10 +4416,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4159,10 +4461,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4200,10 +4506,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4239,10 +4549,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4286,10 +4600,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4322,10 +4640,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4337,7 +4659,9 @@ CompilationUnit
                     keyword: var
                     name: x
                   inKeyword: in
-                  iterable2: SimpleIdentifier
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
                 body: Block
@@ -4372,10 +4696,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4417,10 +4745,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4461,10 +4793,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4510,10 +4846,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4559,10 +4899,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4602,10 +4946,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4641,17 +4989,23 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
-                expression2: SimpleIdentifier
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
                   token: x
                 rightParenthesis: )
                 leftBracket: {
@@ -4685,10 +5039,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>
@@ -4730,10 +5088,14 @@ CompilationUnit
               AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
-                condition2: SimpleIdentifier
+                condition2: ParsedUnqualifiedName
+                  name: a
+                condition(v1): SimpleIdentifier
                   token: a
                 comma: ,
-                message2: SimpleIdentifier
+                message2: ParsedUnqualifiedName
+                  name: b
+                message(v1): SimpleIdentifier
                   token: b
                 rightParenthesis: ) <synthetic>
                 semicolon: ; <synthetic>

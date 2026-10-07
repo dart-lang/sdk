@@ -337,7 +337,7 @@ List<NonSimplicityIssue> _getInboundReferenceIssues(
 
 /// Finds raw non-simple types in bounds of type parameters in [typeBuilder].
 List<NonSimplicityIssue> _getInboundReferenceIssuesInType(
-  TypeBuilder? typeBuilder,
+  TypeBuilder typeBuilder,
 ) {
   List<FunctionTypeBuilder> genericFunctionTypeBuilders =
       <FunctionTypeBuilder>[];

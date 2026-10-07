@@ -178,7 +178,6 @@ void VerifyStringMapsEqual(const std::map<std::string, int>& expected,
     return;
   }
   // Equality including order.
-  std::vector<std::string> actual_vec;
   String& key = String::Handle();
   for (int i = 0; i < expected_size; ++i) {
     key ^= entries.At(2 * i);

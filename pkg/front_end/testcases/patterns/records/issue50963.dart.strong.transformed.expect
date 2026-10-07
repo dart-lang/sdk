@@ -6,28 +6,26 @@ static method test() → dynamic {
   final(core::int, core::int) x = (1, 2);
   core::print( block {
     core::int #t1;
-    final synthesized(core::int, core::int) #0#0 = x;
     #L1:
-    {
-      {
-        if(true) {
+    switch(x) /*(core::int, core::int) */ {
+      #L2:
+      default:
+        {
           #t1 = 1;
           break #L1;
         }
-      }
     }
   } =>#t1);
   core::print( block {
     core::int #t2;
-    final synthesized(core::int, core::int) #1#0 = (1, 2);
-    #L2:
-    {
-      {
-        if(true) {
+    #L3:
+    switch((1, 2)) /*(core::int, core::int) */ {
+      #L4:
+      default:
+        {
           #t2 = 1;
-          break #L2;
+          break #L3;
         }
-      }
     }
   } =>#t2);
 }

@@ -124,6 +124,12 @@ class Configuration {
       words.remove("vm");
       words.add("dart_precompiled");
     }
+    // "vm-dyn" -> "vm-dart2bytecode"
+    // "vm-aot-dyn" -> "dart_precompiled-aot-dart2bytecode"
+    if (words.contains("dyn")) {
+      words.remove("dyn");
+      words.add("dart2bytecode");
+    }
     var optionsCopy = Map.of(optionsJson);
 
     // Apply overrides from the global environment variable.

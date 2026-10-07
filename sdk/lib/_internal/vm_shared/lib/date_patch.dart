@@ -38,19 +38,17 @@ class DateTime {
   /// Constructor for pre-validated components.
   DateTime._(this._value, {required this.isUtc});
 
-  /// Constructs a new [DateTime] instance with the given value.
-  ///
-  /// If [isUtc] is false, then the date is in the local time zone.
-  DateTime._withValue(this._value, {required this.isUtc}) {
-    _validate(millisecondsSinceEpoch, microsecond, isUtc);
-  }
-
   @patch
   DateTime.fromMillisecondsSinceEpoch(
     int millisecondsSinceEpoch, {
     bool isUtc = false,
-  }) : this._withValue(
-         _validateMilliseconds(millisecondsSinceEpoch) *
+  }) : this._(
+         RangeError.checkValueInInterval(
+               millisecondsSinceEpoch,
+               -_maxMillisecondsSinceEpoch,
+               _maxMillisecondsSinceEpoch,
+               "millisecondsSinceEpoch",
+             ) *
              Duration.microsecondsPerMillisecond,
          isUtc: isUtc,
        );
@@ -59,7 +57,15 @@ class DateTime {
   DateTime.fromMicrosecondsSinceEpoch(
     int microsecondsSinceEpoch, {
     bool isUtc = false,
-  }) : this._withValue(microsecondsSinceEpoch, isUtc: isUtc);
+  }) : this._(
+         RangeError.checkValueInInterval(
+           microsecondsSinceEpoch,
+           -_maxMicrosecondsSinceEpoch,
+           _maxMicrosecondsSinceEpoch,
+           "microsecondsSinceEpoch",
+         ),
+         isUtc: isUtc,
+       );
 
   @patch
   DateTime._internal(
@@ -88,14 +94,6 @@ class DateTime {
             '($year, $month, $day,'
             ' $hour, $minute, $second, $millisecond, $microsecond)',
           ))();
-
-  static int _validateMilliseconds(int millisecondsSinceEpoch) =>
-      RangeError.checkValueInInterval(
-        millisecondsSinceEpoch,
-        -_maxMillisecondsSinceEpoch,
-        _maxMillisecondsSinceEpoch,
-        "millisecondsSinceEpoch",
-      );
 
   @patch
   DateTime._now() : isUtc = false, _value = _getCurrentMicros();
@@ -246,12 +244,18 @@ class DateTime {
 
   @patch
   DateTime add(Duration duration) {
-    return DateTime._withValue(_value + duration.inMicroseconds, isUtc: isUtc);
+    return DateTime.fromMicrosecondsSinceEpoch(
+      _value + duration.inMicroseconds,
+      isUtc: isUtc,
+    );
   }
 
   @patch
   DateTime subtract(Duration duration) {
-    return DateTime._withValue(_value - duration.inMicroseconds, isUtc: isUtc);
+    return DateTime.fromMicrosecondsSinceEpoch(
+      _value - duration.inMicroseconds,
+      isUtc: isUtc,
+    );
   }
 
   @patch
@@ -266,11 +270,20 @@ class DateTime {
   @patch
   int get microsecondsSinceEpoch => _value;
 
+  // The two sub-second components are derived from `_value` rather than read
+  // out of `_parts`. Computing `_parts` calls `localtime`, which is expensive,
+  // so do not call it unless necessary.
+  //
+  // All time zones supported by our OSes have second granularity, so the zone
+  // offset contributes nothing below a second. This does not extend to
+  // `second`, because offsets in the timezone database are not always a whole
+  // number of minutes.
   @patch
-  int get microsecond => _parts[_MICROSECOND_INDEX];
+  int get microsecond => _value % Duration.microsecondsPerMillisecond;
 
   @patch
-  int get millisecond => _parts[_MILLISECOND_INDEX];
+  int get millisecond =>
+      millisecondsSinceEpoch % Duration.millisecondsPerSecond;
 
   @patch
   int get second => _parts[_SECOND_INDEX];
@@ -414,7 +427,7 @@ class DateTime {
       isUtc,
     );
     if (value == null) return null;
-    return DateTime._withValue(value, isUtc: isUtc);
+    return DateTime.fromMicrosecondsSinceEpoch(value, isUtc: isUtc);
   }
 
   static int _weekDay(y) {

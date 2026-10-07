@@ -44,11 +44,13 @@ void applyWorkspaceEdit(
       );
     }
 
-    // SourceEdit.applySequence applies edits from the back of the list to the
-    // front, so edits must be sorted in descending order by offset to avoid
-    // shifting character offsets for subsequent edits.
-    sourceEdits.sort((a, b) => b.offset.compareTo(a.offset));
-    final updatedContent = SourceEdit.applySequence(content, sourceEdits);
+    // The server computes edits that are applied sequentially, ordered from the
+    // highest offset to the lowest, and reverses that list on the way out
+    // because LSP expects the opposite.
+    final updatedContent = SourceEdit.applySequence(
+      content,
+      sourceEdits.reversed.toList(),
+    );
     writeFile(filePath, updatedContent);
   }
 

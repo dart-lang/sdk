@@ -77,17 +77,10 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertElement(
-    Object? nodeOrElement, {
+    Element? element, {
     required Element declaration,
     Map<String, String> substitution = const {},
   }) {
-    Element? element;
-    if (nodeOrElement is AstNode) {
-      element = getNodeElement2(nodeOrElement);
-    } else {
-      element = nodeOrElement as Element?;
-    }
-
     var actualDeclaration = element?.baseElement;
     expect(actualDeclaration, same(declaration));
 
@@ -237,57 +230,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, isDynamicType);
   }
 
-  Element? getNodeElement2(AstNode node) {
-    if (node is Annotation) {
-      return node.element;
-    } else if (node is AssignmentExpression) {
-      return node.element;
-    } else if (node is BinaryOperatorInvocation) {
-      return node.element;
-    } else if (node is ConstructorTearOff) {
-      return node.element;
-    } else if (node is FragmentDeclaringNode) {
-      return node.declaredFragment?.element;
-    } else if (node is ExtensionOverride) {
-      return node.element;
-    } else if (node is FunctionExpressionInvocation) {
-      return node.element;
-    } else if (node is FunctionReference) {
-      var function = node.function2.unParenthesized2;
-      if (function is Identifier) {
-        return function.element;
-      } else if (function is PropertyAccess) {
-        return function.propertyName.element;
-      } else if (function is ConstructorTearOff) {
-        return function.element;
-      } else {
-        fail('Unsupported node: (${function.runtimeType}) $function');
-      }
-    } else if (node is Identifier) {
-      return node.element;
-    } else if (node is ImplicitCallReference) {
-      return node.element;
-    } else if (node is IndexExpression) {
-      return node.element;
-    } else if (node is InstanceCreationExpression) {
-      return node.constructorName.element;
-    } else if (node is MethodInvocation) {
-      return node.methodName.element;
-    } else if (node is PostfixExpression) {
-      return node.element;
-    } else if (node is PrefixExpression) {
-      return node.element;
-    } else if (node is UnaryOperatorInvocation) {
-      return node.element;
-    } else if (node is PropertyAccess) {
-      return node.propertyName.element;
-    } else if (node is NamedType) {
-      return node.element;
-    } else {
-      fail('Unsupported node: (${node.runtimeType}) $node');
-    }
-  }
-
   File newFileWithLanguageFeatureDirective(String path, String content) {
     var featureDirectiveLowering = LanguageFeatureDirectiveLowering(content);
     return newFile(path, featureDirectiveLowering.loweredCode);
@@ -402,7 +344,9 @@ mixin ResolutionTest implements ResourceProviderMixin {
             nodeTextConfiguration.withInterfaceTypeElements
         ..withRedirectedConstructors =
             nodeTextConfiguration.withRedirectedConstructors
-        ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors,
+        ..withSuperConstructors = nodeTextConfiguration.withSuperConstructors
+        ..withImportPrefixScopeLibraries =
+            nodeTextConfiguration.withImportPrefixScopeLibraries,
     );
     ResolvedAstPrinter(
       sink: sink,
@@ -411,6 +355,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     ).writeNodeWithV1Projection(node);
 
     var unit = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
+        // ignore: analyzer_to_be_deprecated_use
         ? node.thisOrAncestorOfType<CompilationUnitImpl>()
         : node.thisOrAncestorOfType2<CompilationUnitImpl>();
     if (unit != null) {
@@ -456,6 +401,7 @@ final class TestResolvedUnitResult {
 
   late final FindNode2 findNode = FindNode2(content, unit);
 
+  @ToBeDeprecated('Use findNode instead.')
   late final FindNode findNodeV1 = FindNode(content, unit);
 
   TestResolvedUnitResult(this.analysisResult);
@@ -530,6 +476,7 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
     return FindNode2(content, unit);
   }
 
+  @ToBeDeprecated('Use findNode instead.')
   FindNode get findNodeV1 {
     return FindNode(content, unit);
   }

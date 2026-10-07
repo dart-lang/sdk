@@ -23,7 +23,7 @@ class MigrateCommand extends DartdevCommand {
       'Migrate Dart packages to newer SDK versions.';
 
   MigrateCommand({bool verbose = false})
-    : super(cmdName, cmdDescription, verbose, hidden: true) {
+    : super(cmdName, cmdDescription, verbose) {
     argParser
       ..addOption(
         'target-sdk',
@@ -45,7 +45,16 @@ class MigrateCommand extends DartdevCommand {
       ..addMultiOption(
         'step',
         allowed: ['prepare', 'bump', 'cleanup', 'all'],
-        defaultsTo: ['all'],
+        allowedHelp: {
+          'prepare':
+              'Apply fixes that make code ready for the new SDK version.',
+          'bump': "Raise the SDK constraint in 'pubspec.yaml'.",
+          'cleanup':
+              'Apply optional fixes that adopt features of the new SDK '
+              'version.',
+          'all': 'Run every step, including cleanup.',
+        },
+        defaultsTo: ['prepare', 'bump'],
         help: 'The migration steps to run.',
       );
   }
@@ -156,6 +165,13 @@ class MigrateCommand extends DartdevCommand {
           _printApplyTip(steps, rest, targetSdk);
         }
       }
+    } on LspRequestError catch (e) {
+      // Print only the server message without stack traces. These are errors
+      // that the user can fix and are not bugs to report.
+      progress?.cancel();
+      progress = null;
+      log.stderr(e.error.message);
+      return 1;
     } catch (e, st) {
       progress?.cancel();
       progress = null;
@@ -286,11 +302,10 @@ class MigrateCommand extends DartdevCommand {
       targetSdkArg = ' --target-sdk=$targetSdk';
     }
 
-    // Omit '--step=all' from the suggested command because running all steps is
-    // the default behavior.
+    // Repeat the steps only if the user chose them. Otherwise the suggested
+    // command runs the same default steps.
     var stepArg = '';
-    if (argResults!.wasParsed('step') &&
-        !(steps.length == 1 && steps.first == 'all')) {
+    if (argResults!.wasParsed('step')) {
       stepArg = ' --step=${steps.join(',')}';
     }
 

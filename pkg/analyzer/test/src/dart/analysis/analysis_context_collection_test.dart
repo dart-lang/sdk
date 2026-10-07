@@ -4,12 +4,15 @@
 
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/analysis_options/analysis_options.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
+import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
@@ -22,6 +25,7 @@ import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -124,37 +128,6 @@ linter:
     expect(
       analysisOptions.lintRules.map((e) => e.name),
       unorderedEquals(['unnecessary_parenthesis']),
-    );
-  }
-
-  @Deprecated('Tests compatibility for updateAnalysisOptions4.')
-  test_new_analysisOptions_updateAnalysisOptions4() {
-    var rootFolder = newFolder('/home/test');
-    var optionsFile = newAnalysisOptionsYamlFile(rootFolder.path, '');
-
-    var collection = AnalysisContextCollectionImpl(
-      resourceProvider: resourceProvider,
-      includedPaths: [rootFolder.path],
-      sdkPath: sdkRoot.path,
-      updateAnalysisOptions4: ({required analysisOptions}) {
-        analysisOptions.warning = false;
-        analysisOptions.lint = true;
-        analysisOptions.contextFeatures = FeatureSet.latestLanguageVersion(
-          flags: ['variance'],
-        );
-      },
-      withFineDependencies: true,
-    );
-    var analysisContext = collection.contextFor(rootFolder.path);
-    var analysisOptions =
-        analysisContext.getAnalysisOptionsForFile(optionsFile)
-            as AnalysisOptionsImpl;
-
-    expect(analysisOptions.warning, isFalse);
-    expect(analysisOptions.lint, isTrue);
-    expect(
-      analysisOptions.contextFeatures.isEnabled(ExperimentalFeatures.variance),
-      isTrue,
     );
   }
 
@@ -321,6 +294,49 @@ analysisOptions
 workspaces
   workspace_0: BasicWorkspace
     root: /home
+    workspacePackage_0_0
+''');
+  }
+
+  test_basicWorkspace_multipleFiles_nestedOptions() {
+    configuration
+      ..withIncludedPaths = true
+      ..withOptionFilesForContext = true;
+
+    var rootPath = '/home/test';
+    newAnalysisOptionsYamlFile(rootPath, '');
+    newAnalysisOptionsYamlFile('$rootPath/nested', '');
+    var outerFile = newFile('$rootPath/a.dart', '');
+    var nestedFile = newFile('$rootPath/nested/b.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [outerFile.path, nestedFile.path],
+      withFineDependencies: true,
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home/test
+    includedPaths
+      /home/test/a.dart
+      /home/test/nested/b.dart
+    optionsFile: /home/test/analysis_options.yaml
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/nested/b.dart
+        analysisOptions_1
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+  analysisOptions_1: /home/test/nested/analysis_options.yaml
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home/test
     workspacePackage_0_0
 ''');
   }
@@ -2941,6 +2957,322 @@ workspaces
     );
   }
 
+  test_languageVersionOverride_analysisOptions_packageInclude() async {
+    configuration
+      ..withLintRules = true
+      ..withPackageLanguageVersion = true;
+
+    var root = newFolder('/home/test');
+    var optionsRoot = newFolder('/home/options');
+
+    newFile('${optionsRoot.path}/lib/options.yaml', '''
+linter:
+  rules:
+    - empty_statements
+''');
+
+    newPackageConfigJsonFileFromBuilder(
+      root.path,
+      PackageConfigFileBuilder()..add(name: 'options', rootFolder: optionsRoot),
+    );
+
+    newAnalysisOptionsYamlFile(
+      root.path,
+      'include: package:options/options.yaml',
+    );
+
+    // Overriding the language version does not affect package resolution.
+    var file = newFile('${root.path}/test.dart', '');
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [file.path],
+      languageVersionOverride: Version(3, 0, 0),
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+
+    // The included lint rule proves that the package URI was still resolved.
+    _assertCollectionText(collection, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/test.dart
+        packageLanguageVersion: 3.0.0
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+    lintRules
+      empty_statements
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+''');
+  }
+
+  test_languageVersionOverride_blazeWorkspace() async {
+    configuration.withPackageLanguageVersion = true;
+
+    newFile('/home/workspace/${file_paths.blazeWorkspaceMarker}', '');
+    newFile(
+      '/home/workspace/dart/build_defs/bzl/language.bzl',
+      '_version = "3.1"',
+    );
+    newBazelBuildFile('/home/workspace/my/test', '');
+    var file = newFile('/home/workspace/my/test/lib/test.dart', '');
+    var originalCollection = AnalysisContextCollectionImpl(
+      includedPaths: [file.path],
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    _assertCollectionText(originalCollection, r'''
+contexts
+  /home/workspace
+    workspace: workspace_0
+    analyzedFiles
+      /home/workspace/my/test/lib/test.dart
+        uri: package:my.test/test.dart
+        packageLanguageVersion: 3.1.0
+        workspacePackage_0_0
+workspaces
+  workspace_0: BlazeWorkspace
+    root: /home/workspace
+    workspacePackages
+      workspacePackage_0_0: BlazeWorkspacePackage
+        root: /home/workspace/my/test
+''');
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [file.path],
+      languageVersionOverride: Version(3, 0, 0),
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    _assertCollectionText(collection, r'''
+contexts
+  /home/workspace
+    workspace: workspace_0
+    analyzedFiles
+      /home/workspace/my/test/lib/test.dart
+        uri: package:my.test/test.dart
+        packageLanguageVersion: 3.0.0
+        workspacePackage_0_0
+workspaces
+  workspace_0: BlazeWorkspace
+    root: /home/workspace
+    workspacePackages
+      workspacePackage_0_0: BlazeWorkspacePackage
+        root: /home/workspace/my/test
+''');
+  }
+
+  test_languageVersionOverride_cachedDiagnostics_differentLanguageVersions() async {
+    // Extension types require language version 3.3.
+    var file = newFile('/home/test/test.dart', r'''
+extension type E(int it) {}
+''');
+    var byteStore = MemoryByteStore();
+    for (var version in [null, Version(3, 0, 0), null]) {
+      var collection = AnalysisContextCollectionImpl(
+        includedPaths: [file.path],
+        languageVersionOverride: version,
+        resourceProvider: resourceProvider,
+        sdkPath: sdkRoot.path,
+        byteStore: byteStore,
+        withFineDependencies: true,
+      );
+      try {
+        var session = collection.contextFor(file.path).currentSession;
+        var result = await session.getErrors(file.path);
+        result as ErrorsResult;
+        expect(result.diagnostics, version == null ? isEmpty : isNotEmpty);
+      } finally {
+        await collection.dispose();
+      }
+    }
+  }
+
+  test_languageVersionOverride_cachedResults_differentLanguageVersions() async {
+    var file = newFile('/home/test/test.dart', '');
+    var byteStore = MemoryByteStore();
+    for (var (fineDependencies, version) in [
+      (false, null),
+      (false, Version(3, 0, 0)),
+      (false, Version(3, 1, 0)),
+      (false, null),
+      (true, null),
+      (true, Version(3, 0, 0)),
+      (true, Version(3, 1, 0)),
+      (true, null),
+    ]) {
+      var collection = AnalysisContextCollectionImpl(
+        includedPaths: [file.path],
+        languageVersionOverride: version,
+        resourceProvider: resourceProvider,
+        sdkPath: sdkRoot.path,
+        byteStore: byteStore,
+        withFineDependencies: fineDependencies,
+      );
+      try {
+        var session = collection.contextFor(file.path).currentSession;
+        var result = await session.getResolvedUnit(file.path);
+        result as ResolvedUnitResult;
+        expect(result.diagnostics, isEmpty);
+        var expectedVersion = version ?? ExperimentStatus.currentVersion;
+        expect(result.libraryElement.languageVersion.package, expectedVersion);
+        expect(result.unit.languageVersion.package, expectedVersion);
+      } finally {
+        await collection.dispose();
+      }
+    }
+  }
+
+  test_languageVersionOverride_nonPackage() async {
+    configuration.withPackageLanguageVersion = true;
+
+    var file = newFile('/home/test/test.dart', '');
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [file.path],
+      languageVersionOverride: Version(2, 19, 0),
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    _assertCollectionText(collection, r'''
+contexts
+  /
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/test.dart
+        packageLanguageVersion: 2.19.0
+        workspacePackage_0_0
+workspaces
+  workspace_0: BasicWorkspace
+    root: /
+    workspacePackage_0_0
+''');
+  }
+
+  test_languageVersionOverride_noOverride() async {
+    configuration.withPackageLanguageVersion = true;
+
+    var root = newFolder('/home/test');
+    newPackageConfigJsonFileFromBuilder(
+      root.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'test', rootFolder: root, languageVersion: '2.19'),
+    );
+    var file = newFile('${root.path}/lib/test.dart', '');
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [file.path],
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    _assertCollectionText(collection, r'''
+contexts
+  /home/test
+    packagesFile: /home/test/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/test.dart
+        uri: package:test/test.dart
+        packageLanguageVersion: 2.19.0
+        workspacePackage_0_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/test
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/test
+''');
+  }
+
+  test_languageVersionOverride_packages_multipleContexts() async {
+    configuration.withPackageLanguageVersion = true;
+
+    var firstRoot = newFolder('/home/first');
+    newPackageConfigJsonFileFromBuilder(
+      firstRoot.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'first', rootFolder: firstRoot, languageVersion: '2.19'),
+    );
+    var firstFile = newFile('${firstRoot.path}/lib/test.dart', '');
+
+    var secondRoot = newFolder('/home/second');
+    newPackageConfigJsonFileFromBuilder(
+      secondRoot.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'second', rootFolder: secondRoot, languageVersion: '3.1'),
+    );
+    var secondFile = newFile('${secondRoot.path}/lib/test.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [firstFile.path, secondFile.path],
+      languageVersionOverride: Version(3, 0, 0),
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    _assertCollectionText(collection, r'''
+contexts
+  /home/first
+    packagesFile: /home/first/.dart_tool/package_config.json
+    workspace: workspace_0
+    analyzedFiles
+      /home/first/lib/test.dart
+        uri: package:first/test.dart
+        packageLanguageVersion: 3.0.0
+        workspacePackage_0_0
+  /home/second
+    packagesFile: /home/second/.dart_tool/package_config.json
+    workspace: workspace_1
+    analyzedFiles
+      /home/second/lib/test.dart
+        uri: package:second/test.dart
+        packageLanguageVersion: 3.0.0
+        workspacePackage_1_0
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/first
+    pubPackages
+      workspacePackage_0_0: BasicWorkspacePackage
+        root: /home/first
+  workspace_1: PackageConfigWorkspace
+    root: /home/second
+    pubPackages
+      workspacePackage_1_0: BasicWorkspacePackage
+        root: /home/second
+''');
+  }
+
+  test_languageVersionOverride_sdk() async {
+    configuration.withPackageLanguageVersion = true;
+
+    var file = newFile('/home/test/test.dart', '');
+    var coreFile = sdkRoot.getFile('lib/core/core.dart');
+    var collection = AnalysisContextCollectionImpl(
+      includedPaths: [file.path, coreFile.path],
+      languageVersionOverride: Version(2, 19, 0),
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+    );
+    _assertCollectionText(collection, r'''
+contexts
+  /
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/test.dart
+        packageLanguageVersion: 2.19.0
+        workspacePackage_0_0
+      /sdk/lib/core/core.dart
+        uri: dart:core
+        packageLanguageVersion: ExperimentStatus.currentVersion
+        workspacePackage_0_0
+workspaces
+  workspace_0: BasicWorkspace
+    root: /
+    workspacePackage_0_0
+''');
+  }
+
   test_multiplePackageConfigWorkspace_singleAnalysisOptions_exclude() async {
     configuration.withOptionFilesForContext = true;
 
@@ -3637,11 +3969,12 @@ name: test
     var barPath = '$packageRootPath/lib/bar';
     newAnalysisOptionsYamlFile(barPath, '');
     var barC = newFile('$barPath/c.dart', '');
+    var barD = newFile('$barPath/d.dart', '');
 
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
-      includedPaths: [fooA.path, fooB.path, barC.path],
+      includedPaths: [fooA.path, fooB.path, barC.path, barD.path],
       withFineDependencies: true,
     );
 
@@ -3652,6 +3985,7 @@ contexts
       /home/test/lib/foo/a.dart
       /home/test/lib/foo/b.dart
       /home/test/lib/bar/c.dart
+      /home/test/lib/bar/d.dart
     packagesFile: /home/test/.dart_tool/package_config.json
     workspace: workspace_0
     analyzedFiles
@@ -3665,6 +3999,10 @@ contexts
         workspacePackage_0_0
       /home/test/lib/bar/c.dart
         uri: package:test/bar/c.dart
+        analysisOptions_1
+        workspacePackage_0_0
+      /home/test/lib/bar/d.dart
+        uri: package:test/bar/d.dart
         analysisOptions_1
         workspacePackage_0_0
 analysisOptions
@@ -3682,7 +4020,8 @@ workspaces
   test_packageConfigWorkspace_multipleFiles_sameWorkspace_legacyPlugins() async {
     configuration
       ..withIncludedPaths = true
-      ..withOptionFilesForContext = true;
+      ..withOptionFilesForContext = true
+      ..withLegacyPlugins = true;
 
     var packageRootPath = '/home/test';
     newPubspecYamlFile(packageRootPath, r'''
@@ -3697,6 +4036,7 @@ analyzer:
     - foo_plugin
 ''');
     var fooA = newFile('$fooPath/a.dart', '');
+    var fooB = newFile('$fooPath/b.dart', '');
 
     var barPath = '$packageRootPath/lib/bar';
     newAnalysisOptionsYamlFile(barPath, r'''
@@ -3704,12 +4044,13 @@ analyzer:
   plugins:
     - bar_plugin
 ''');
-    var barB = newFile('$barPath/b.dart', '');
+    var barC = newFile('$barPath/c.dart', '');
+    var barD = newFile('$barPath/d.dart', '');
 
     var collection = AnalysisContextCollectionImpl(
       resourceProvider: resourceProvider,
       sdkPath: sdkRoot.path,
-      includedPaths: [fooA.path, barB.path],
+      includedPaths: [fooA.path, fooB.path, barC.path, barD.path],
       withFineDependencies: true,
     );
 
@@ -3718,23 +4059,37 @@ contexts
   /home/test/lib/foo
     includedPaths
       /home/test/lib/foo/a.dart
+      /home/test/lib/foo/b.dart
     packagesFile: /home/test/.dart_tool/package_config.json
     optionsFile: /home/test/lib/foo/analysis_options.yaml
     workspace: workspace_0
+    legacyPlugins
+      foo_plugin
     analyzedFiles
       /home/test/lib/foo/a.dart
         uri: package:test/foo/a.dart
         analysisOptions_0
         workspacePackage_0_0
+      /home/test/lib/foo/b.dart
+        uri: package:test/foo/b.dart
+        analysisOptions_0
+        workspacePackage_0_0
   /home/test/lib/bar
     includedPaths
-      /home/test/lib/bar/b.dart
+      /home/test/lib/bar/c.dart
+      /home/test/lib/bar/d.dart
     packagesFile: /home/test/.dart_tool/package_config.json
     optionsFile: /home/test/lib/bar/analysis_options.yaml
     workspace: workspace_0
+    legacyPlugins
+      bar_plugin
     analyzedFiles
-      /home/test/lib/bar/b.dart
-        uri: package:test/bar/b.dart
+      /home/test/lib/bar/c.dart
+        uri: package:test/bar/c.dart
+        analysisOptions_1
+        workspacePackage_0_0
+      /home/test/lib/bar/d.dart
+        uri: package:test/bar/d.dart
         analysisOptions_1
         workspacePackage_0_0
 analysisOptions
@@ -3746,6 +4101,141 @@ workspaces
     pubPackages
       workspacePackage_0_0: PubPackage
         root: /home/test
+''');
+  }
+
+  test_packageConfigWorkspace_multipleFiles_sharedOptions_differentPackageIncludes() {
+    configuration
+      ..withIncludedPaths = true
+      ..withOptionFilesForContext = true
+      ..withLegacyPlugins = true;
+
+    newAnalysisOptionsYamlFile('/home', '''
+include: package:settings/options.yaml
+''');
+
+    var fooRoot = newFolder('/home/foo');
+    var fooSettings = newFolder('/settings/foo');
+    newPubspecYamlFile(fooRoot.path, 'name: foo');
+    newPackageConfigJsonFileFromBuilder(
+      fooRoot.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'foo', rootFolder: fooRoot)
+        ..add(name: 'settings', rootFolder: fooSettings),
+    );
+    newFile('${fooSettings.path}/lib/options.yaml', '''
+analyzer:
+  plugins:
+    - foo_plugin
+''');
+    var fooA = newFile('${fooRoot.path}/lib/a.dart', '');
+    var fooB = newFile('${fooRoot.path}/test/b.dart', '');
+
+    // These local plugins match the package-specific include from the shared
+    // options file, so this file should reuse the package's existing context.
+    newAnalysisOptionsYamlFile('${fooRoot.path}/nested', '''
+analyzer:
+  plugins:
+    - foo_plugin
+''');
+    var fooC = newFile('${fooRoot.path}/nested/c.dart', '');
+
+    var barRoot = newFolder('/home/bar');
+    var barSettings = newFolder('/settings/bar');
+    newPubspecYamlFile(barRoot.path, 'name: bar');
+    newPackageConfigJsonFileFromBuilder(
+      barRoot.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'bar', rootFolder: barRoot)
+        ..add(name: 'settings', rootFolder: barSettings),
+    );
+    newFile('${barSettings.path}/lib/options.yaml', '''
+analyzer:
+  plugins:
+    - bar_plugin
+''');
+    var barA = newFile('${barRoot.path}/lib/a.dart', '');
+    var barB = newFile('${barRoot.path}/test/b.dart', '');
+    newAnalysisOptionsYamlFile('${barRoot.path}/nested', '''
+analyzer:
+  plugins:
+    - bar_plugin
+''');
+    var barC = newFile('${barRoot.path}/nested/c.dart', '');
+
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [
+        fooA.path,
+        fooB.path,
+        fooC.path,
+        barA.path,
+        barB.path,
+        barC.path,
+      ],
+      withFineDependencies: true,
+    );
+    // A pre-existing bug causes the drivers to report no legacy plugins, so
+    // the expectation below has no `legacyPlugins` sections. We leave this
+    // unfixed because legacy plugin support is scheduled for removal:
+    // https://github.com/dart-lang/sdk/issues/64188
+    _assertCollectionText(collection, r'''
+contexts
+  /home/foo
+    includedPaths
+      /home/foo/lib/a.dart
+      /home/foo/test/b.dart
+      /home/foo/nested/c.dart
+    packagesFile: /home/foo/.dart_tool/package_config.json
+    optionsFile: /home/analysis_options.yaml
+    workspace: workspace_0
+    analyzedFiles
+      /home/foo/lib/a.dart
+        uri: package:foo/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/foo/test/b.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/foo/nested/c.dart
+        analysisOptions_1
+        workspacePackage_0_0
+  /home/bar
+    includedPaths
+      /home/bar/lib/a.dart
+      /home/bar/test/b.dart
+      /home/bar/nested/c.dart
+    packagesFile: /home/bar/.dart_tool/package_config.json
+    optionsFile: /home/analysis_options.yaml
+    workspace: workspace_1
+    analyzedFiles
+      /home/bar/lib/a.dart
+        uri: package:bar/a.dart
+        analysisOptions_2
+        workspacePackage_1_0
+      /home/bar/test/b.dart
+        analysisOptions_2
+        workspacePackage_1_0
+      /home/bar/nested/c.dart
+        analysisOptions_3
+        workspacePackage_1_0
+analysisOptions
+  analysisOptions_0: /home/analysis_options.yaml
+  analysisOptions_1: /home/foo/nested/analysis_options.yaml
+  analysisOptions_2: /home/analysis_options.yaml
+  analysisOptions_3: /home/bar/nested/analysis_options.yaml
+workspaces
+  workspace_0: PackageConfigWorkspace
+    root: /home/foo
+    pubPackages
+      workspacePackage_0_0: PubPackage
+        root: /home/foo
+  workspace_1: PackageConfigWorkspace
+    root: /home/bar
+    pubPackages
+      workspacePackage_1_0: PubPackage
+        root: /home/bar
 ''');
   }
 
@@ -4590,6 +5080,111 @@ workspaces
 ''');
   }
 
+  test_sdk_shared() async {
+    configuration.withSdk = true;
+
+    var a = newFile('/home/a/test.dart', '');
+    var b = newFile('/home/b/test.dart', '');
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [a.parent.path, b.parent.path],
+      withFineDependencies: true,
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home/a
+    workspace: workspace_0
+    sdk: sdk_0
+    analyzedFiles
+      /home/a/test.dart
+        workspacePackage_0_0
+  /home/b
+    workspace: workspace_1
+    sdk: sdk_0
+    analyzedFiles
+      /home/b/test.dart
+        workspacePackage_1_0
+sdks
+  sdk_0
+    dart:core: /sdk/lib/core/core.dart
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home/a
+    workspacePackage_0_0
+  workspace_1: BasicWorkspace
+    root: /home/b
+    workspacePackage_1_0
+''');
+  }
+
+  test_sdk_workspaceEmbedder() async {
+    configuration.withSdk = true;
+
+    var skyEngine = newFolder('/sky_engine');
+    newFile('${skyEngine.path}/lib/core.dart', '');
+    newFile('${skyEngine.path}/lib/_embedder.yaml', r'''
+embedded_libs:
+  "dart:core": "core.dart"
+''');
+
+    var a = newFile('/home/a/test.dart', '');
+    var b = newFile('/home/b/test.dart', '');
+    var c = newFile('/home/c/test.dart', '');
+    newPackageConfigJsonFileFromBuilder(
+      b.parent.path,
+      PackageConfigFileBuilder()
+        ..add(name: 'sky_engine', rootFolder: skyEngine),
+    );
+
+    // The embedded SDK must not affect sharing or URI resolution in the
+    // ordinary contexts created before and after it.
+    var collection = AnalysisContextCollectionImpl(
+      resourceProvider: resourceProvider,
+      sdkPath: sdkRoot.path,
+      includedPaths: [a.parent.path, b.parent.path, c.parent.path],
+      withFineDependencies: true,
+    );
+
+    _assertCollectionText(collection, r'''
+contexts
+  /home/a
+    workspace: workspace_0
+    sdk: sdk_0
+    analyzedFiles
+      /home/a/test.dart
+        workspacePackage_0_0
+  /home/b
+    packagesFile: /home/b/.dart_tool/package_config.json
+    workspace: workspace_1
+    sdk: sdk_1
+    analyzedFiles
+      /home/b/test.dart
+        workspacePackage_1_0
+  /home/c
+    workspace: workspace_2
+    sdk: sdk_0
+    analyzedFiles
+      /home/c/test.dart
+        workspacePackage_2_0
+sdks
+  sdk_0
+    dart:core: /sdk/lib/core/core.dart
+  sdk_1
+    dart:core: /sky_engine/lib/core.dart
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home/a
+    workspacePackage_0_0
+  workspace_1: PackageConfigWorkspace
+    root: /home/b
+  workspace_2: BasicWorkspace
+    root: /home/c
+    workspacePackage_2_0
+''');
+  }
+
   void _assertCollectionText(
     AnalysisContextCollectionImpl collection,
     String expected,
@@ -4724,6 +5319,7 @@ class _AnalysisContextCollectionPrinter {
   final TreeStringSink sink;
 
   final Map<AnalysisOptionsImpl, String> _analysisOptions = Map.identity();
+  final Map<DartSdk, String> _sdks = Map.identity();
   final Map<Workspace, (int, String)> _workspaces = Map.identity();
   final Map<Workspace, Map<WorkspacePackageImpl, String>> _workspacePackages =
       Map.identity();
@@ -4743,6 +5339,8 @@ class _AnalysisContextCollectionPrinter {
 
     _writeAnalysisOptions();
 
+    sink.writeElements('sdks', _sdks.keys.toList(), _writeSdk);
+
     sink.writeElements(
       'workspaces',
       _workspaces.keys.toList(),
@@ -4753,6 +5351,10 @@ class _AnalysisContextCollectionPrinter {
   String _idOfAnalysisOptions(AnalysisOptionsImpl analysisOptions) {
     return _analysisOptions[analysisOptions] ??=
         'analysisOptions_${_analysisOptions.length}';
+  }
+
+  String _idOfSdk(DartSdk sdk) {
+    return _sdks[sdk] ??= 'sdk_${_sdks.length}';
   }
 
   String _idOfWorkspace(Workspace workspace) {
@@ -4823,6 +5425,17 @@ class _AnalysisContextCollectionPrinter {
       sink.writelnWithIndent(
         'workspace: ${_idOfWorkspace(contextRoot.workspace)}',
       );
+      if (configuration.withSdk) {
+        var sdk = analysisContext.driver.sourceFactory.dartSdk!;
+        sink.writelnWithIndent('sdk: ${_idOfSdk(sdk)}');
+      }
+      if (configuration.withLegacyPlugins) {
+        sink.writeElements(
+          'legacyPlugins',
+          analysisContext.driver.enabledLegacyPluginNames.toList()..sort(),
+          sink.writelnWithIndent,
+        );
+      }
       sink.writeElements('analyzedFiles', analyzedFiles, (path) {
         var file = resourceProvider.getFile(path);
         if (_isDartFile(file)) {
@@ -4862,6 +5475,8 @@ class _AnalysisContextCollectionPrinter {
         _writeNamedFile(id, file);
       }
       sink.withIndent(() {
+        // TODO(scheglov): Update these tests to check only relevant features
+        // instead of snapshotting every enabled language feature.
         if (configuration.withEnabledFeatures) {
           var contextFeatures = analysisOptions.contextFeatures;
           var enabledFeatures = ExperimentStatus.knownFeatures.values
@@ -4892,6 +5507,14 @@ class _AnalysisContextCollectionPrinter {
         sink.writelnWithIndent('uri: $uri');
       }
 
+      if (configuration.withPackageLanguageVersion) {
+        var version = fileState.packageLanguageVersion;
+        var versionStr = version == ExperimentStatus.currentVersion
+            ? 'ExperimentStatus.currentVersion'
+            : '$version';
+        sink.writelnWithIndent('packageLanguageVersion: $versionStr');
+      }
+
       var analysisOptions = fileState.analysisOptions;
       if (configuration.withAnalysisOptionsWithoutFiles ||
           analysisOptions.file != null) {
@@ -4916,6 +5539,17 @@ class _AnalysisContextCollectionPrinter {
   void _writeReferencedWorkspacePackages(Workspace workspace) {
     var packages = _workspacePackages[workspace]?.keys.toList() ?? const [];
     sink.writeElements('workspacePackages', packages, _writeWorkspacePackage);
+  }
+
+  void _writeSdk(DartSdk sdk) {
+    sink.writelnWithIndent(_idOfSdk(sdk));
+    sink.withIndent(() {
+      var coreSource = sdk.mapDartUri('dart:core');
+      var corePath = coreSource != null
+          ? resourceProvider.getFile(coreSource.fullName).posixPath
+          : '<unresolved>';
+      sink.writelnWithIndent('dart:core: $corePath');
+    });
   }
 
   void _writeWorkspace(Workspace workspace) {
@@ -5003,7 +5637,10 @@ class _AnalysisContextCollectionPrinterConfiguration {
   bool withEnabledFeatures = false;
   bool withExcludedPaths = false;
   bool withLintRules = false;
+  bool withLegacyPlugins = false;
   bool withIncludedPaths = false;
   bool withOptionFilesForContext = false;
+  bool withPackageLanguageVersion = false;
   bool withExcludedGlobs = false;
+  bool withSdk = false;
 }

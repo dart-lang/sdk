@@ -6,6 +6,8 @@
 //
 // VMOptions=--experimental-shared-data
 
+// ignore: import_internal_library
+import 'dart:_vm' show IsolateExperimental;
 import 'dart:concurrent';
 import 'dart:ffi';
 import 'dart:io';
@@ -25,11 +27,11 @@ final condVar = ConditionVariable();
 final greetingsReceived = Uint8List(1);
 
 int threadMain(Pointer<Void> data) {
-  final new_isolate = Isolate.create(debugName: "helper");
+  final new_isolate = IsolateExperimental.create(debugName: "helper");
   Expect.isNotNull(new_isolate);
   final SendPort sp = new_isolate.runSync(() {
     Expect.isFalse(Isolate.current.isPinnedToCurrentThread);
-    Expect.isTrue(Isolate.pinToCurrentThread());
+    Expect.isTrue(IsolateExperimental.pinToCurrentThread());
     Expect.isTrue(Isolate.current.isPinnedToCurrentThread);
 
     late RawReceivePort rp;

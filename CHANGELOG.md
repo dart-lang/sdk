@@ -12,8 +12,45 @@
 
 [#63811]: https://github.com/dart-lang/sdk/issues/63811
 
+#### `dart:io`
+
+- Process spawning on Mac switched from `fork`-and-`exec` to `posix_spawn`.
+  `PATH` resolution will now happen with the parent's `PATH` instead of the
+  child's `PATH`. Using an absolute path for the `executable` argument to
+  `Process.start` etc is recommended to avoid platform-specific differences.
+
+#### `dart:isolate`
+
+- **Breaking change:** Unshipped the experimental synchronous execution and
+  event loop control APIs (`Isolate.runSync`, `Isolate.create`,
+  `Isolate.shutdownSync`, `Isolate.pinToCurrentThread`,
+  `Isolate.isPinnedToCurrentThread`, `Isolate.runEventLoopSync`,
+  `Isolate.onEvent`, and `Isolate.handleEvent`) that were accidentally exposed
+  in Dart 3.13, and gated `NativeCallable.isolateGroupBound` behind the
+  `--experimental-shared-data` VM flag.
+  For more details, see SDK issue [#64285][].
+
+[#64285]: https://github.com/dart-lang/sdk/issues/64285
+
 #### `dart:typed_data`
 
+- **Breaking change:** `toString()` on the SIMD value types `Float32x4`,
+  `Int32x4` and `Float64x2` now returns `'V128'` instead of a list of the lane
+  values. The old per-lane output was inconsistent across platforms and was
+  never specified. On the VM this also covers `Error.safeToString` and the
+  values shown by the debugger and the VM service.
+  For more details, see SDK issue [#63847][]
+- **Breaking change:** `Float32x4.min`, `Float32x4.max`, `Float64x2.min`, and
+  `Float64x2.max` now follow IEEE 754 semantics across all platforms: if either
+  lane is `NaN`, the result lane is `NaN`, and `-0.0` is ordered below `+0.0`.
+  For more details, see SDK issue [#63962][].
+- Added `rangeEquals` extension methods on all integer typed data lists
+  (`Uint8List`, `Int8List`, `Uint8ClampedList`, `Uint16List`, `Int16List`,
+  `Uint32List`, `Int32List`, `Uint64List`, `Int64List`) and `ByteData` for
+  efficient range equality comparisons.
+  For more details, see SDK issue [#64095][]
+
+[#64095]: https://github.com/dart-lang/sdk/issues/64095
 - Added the bit-wise negation operator `~` to `Int32x4`, which inverts every bit
   of every lane.
 - Added `Int32x4.splat`, which creates an `Int32x4` with the same 32-bit integer
@@ -25,6 +62,27 @@
   in each lane where the operands differ and `0` elsewhere.
 - Added the `Int32x4.allTrue` getter, which is `true` only when every lane is
   non-zero.
+- Added the signed lane-wise ordered comparisons `Int32x4.lessThan`,
+  `Int32x4.lessThanOrEqual`, `Int32x4.greaterThan` and
+  `Int32x4.greaterThanOrEqual`, each returning `-1` in lanes where the signed
+  comparison holds and `0` elsewhere.
+- Added the `Int32x4.zero()` constructor, which creates an `Int32x4` with all
+  four lanes set to zero.
+- Added the unary negation operator `-` to `Int32x4`, which arithmetically
+  negates each lane using two's complement.
+- Added `Int32x4.abs`, which replaces each lane with its absolute value using
+  two's complement, so the absolute value of the minimum 32-bit integer yields
+  itself.
+- Added the lane-wise shift operators `<<` (left), `>>` (arithmetic right) and
+  `>>>` (logical right) to `Int32x4`.
+- Added `Int32x4.andNot`, a lane-wise bit-wise and-not (`this & ~other`).
+- Added `Int32x4.min`, which selects the smaller of each pair of lanes,
+  compared as signed 32-bit integers.
+- Added `Int32x4.max`, which selects the larger of each pair of lanes,
+  compared as signed 32-bit integers.
+
+[#63847]: https://github.com/dart-lang/sdk/issues/63847
+[#63962]: https://github.com/dart-lang/sdk/issues/63962
 
 #### `dart:js_interop`
 
@@ -69,10 +127,81 @@
   more efficient to convert between possibly-synchronous values at the Dart/JS
   boundary.
 
+- Added extension methods `R Function(JSArray<E>).toJSVarArgs` and `R
+  Function(T, JSArray<E>).toJSCaptureThisVarArgs` which capture JS function
+  arguments as an array rather than as separate arguments to the Dart function.
+
+- `Function.toJS` and `Function.toJSCaptureThis` now support functions without
+  optional positional parameters that return `Future<T>` (where `T` is `void` or
+  a subtype of `JSAny?`), automatically converting the returned `Future` to a
+  `JSPromise`.
+  For more details, see SDK issue [#63496][].
+
+- `external` extension members can now be declared on generic type parameters
+  bounded by a JS interop type (for example,
+  `extension <T extends JSObject> on T`).
+  For more details, see SDK issue [#61248][].
+
+#### `dart:mirrors`
+
+- The `dart:mirrors` library is now marked `@deprecated`, and will be removed
+  in a future release. For details, see issue [#44489].
+
+[#44489]: https://github.com/dart-lang/sdk/issues/44489
+[#61248]: https://github.com/dart-lang/sdk/issues/61248
 [#61353]: https://github.com/dart-lang/sdk/issues/61353
 [#62699]: https://github.com/dart-lang/sdk/issues/62699
+[#63496]: https://github.com/dart-lang/sdk/issues/63496
 
 ### Tools
+
+#### Analyzer
+
+- Report an error (`js_interop_extension_constructor_js_annotation_has_no_effect`)
+  when an `@JS` annotation is placed on an `external` constructor or factory of a
+  `dart:js_interop` extension type, matching the CFE. Move the `@JS` annotation to
+  the extension type declaration itself to rename non-object literal constructors.
+  For more details, see SDK issue [#54366][].
+
+[#54366]: https://github.com/dart-lang/sdk/issues/54366
+
+#### Dart CLI
+
+- `dart run <package>:<command>` and `dart test` now cache the precompiled
+  executable in `.dart_tool/dartdev/bin/` instead of `.dart_tool/pub/bin/`, and
+  recompile it when any of its source files change. Previously the snapshot was
+  rebuilt on every run for packages depended on by path, and could be stale for
+  hosted packages with a path `dependency_override`.
+
+- When `dart run <package>:<command>` and `dart test` run a precompiled
+  executable, `Platform.script` now points at the Dart source file instead of
+  the kernel snapshot. Resolving paths relative to `Platform.script` now works
+  as it does when running from source.
+
+- `dart run --enable-experiment=<experiment>` and
+  `dart test --enable-experiment=<experiment>` now run from a snapshot compiled
+  with those experiments, instead of falling back to running from source. The
+  requested experiments still take effect, but startup is no longer slower than
+  without them.
+
+- Added a `dart migrate` command, which updates packages to a newer Dart SDK
+  version. It raises the lower bound of each package's SDK constraint one minor
+  version at a time. For each version, it applies preparatory fixes and raises
+  the constraint. Optional cleanup fixes that adopt new language features only
+  run with `--step=cleanup` or `--step=all`. Migrates the current directory by
+  default, or specific package directories if provided. Packages must already
+  require Dart 3.0 or later.
+  - `--dry-run` previews the proposed changes.
+  - `--apply` applies the changes.
+  - `--target-sdk` migrates across multiple versions in one run.
+  - `--step` runs specific steps: `prepare`, `bump`, `cleanup`, or `all`.
+  - Dependent packages migrate together in lockstep, keeping dependency
+    constraints solvable at every version. A package is skipped if a dependency
+    does not support the new version.
+
+  For more details, see SDK issue [#63240][].
+
+[#63240]: https://github.com/dart-lang/sdk/issues/63240
 
 #### Formatter
 
@@ -87,6 +216,46 @@ formatting Dart 3.13 code:
 
 [dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
 [dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
+
+#### dart2js
+
+- Added the `--[no-]deprecated-js-interop` flag (`dart compile js` and
+  `dart2js`). Passing `--no-deprecated-js-interop` disallows importing the
+  deprecated JS interop libraries (`dart:html`, `dart:html_common`,
+  `dart:indexed_db`, `dart:js`, `dart:js_util`, `dart:svg`, `dart:web_audio`,
+  and `dart:web_gl`) and sets their `dart.library.*` environment conditions to
+  `false` in conditional imports and `bool.fromEnvironment`.
+  For more details, see SDK issue [#63919][].
+
+#### Dart Development Compiler (dartdevc)
+
+- Added the `--[no-]deprecated-js-interop` flag. Passing
+  `--no-deprecated-js-interop` disallows importing the deprecated JS interop
+  libraries (`dart:html`, `dart:html_common`, `dart:indexed_db`, `dart:js`,
+  `dart:js_util`, `dart:svg`, `dart:web_audio`, and `dart:web_gl`) and sets
+  their `dart.library.*` environment conditions to `false` in conditional
+  imports and `bool.fromEnvironment`.
+  For more details, see SDK issue [#63919][].
+
+#### dart2wasm
+
+- `dart2wasm` now emits standardized WebAssembly `try_table` exception handling
+  instructions by default ([#54394][]).
+- `dart2wasm` now requires native `wasm:js-string` built-in support and works
+  around `WebAssembly.compileStreaming` bugs in Safari 26.5 and earlier
+  ([#63543][]).
+- `dart.library.isolate` now evaluates to `false` in conditional imports
+  (`if (dart.library.isolate)`) when compiling with `dart2wasm` ([#64328][]).
+- `dart compile wasm --standalone` no longer supports `dart:js_interop`.
+- `Int32x4`, `Float32x4`, `Float64x2`, and their typed-data list views
+  (`Int32x4List`, `Float32x4List`, `Float64x2List`) now compile to hardware
+  128-bit WebAssembly SIMD (`v128`) instructions ([#64170][]).
+
+[#54394]: https://github.com/dart-lang/sdk/issues/54394
+[#63543]: https://github.com/dart-lang/sdk/issues/63543
+[#63919]: https://github.com/dart-lang/sdk/issues/63919
+[#64170]: https://github.com/dart-lang/sdk/issues/64170
+[#64328]: https://github.com/dart-lang/sdk/issues/64328
 
 ## 3.13.3
 

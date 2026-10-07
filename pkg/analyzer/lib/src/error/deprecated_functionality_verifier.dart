@@ -83,22 +83,6 @@ class DeprecatedFunctionalityVerifier {
     _checkForDeprecatedInstantiate(element: interfaceElement, errorNode: node);
   }
 
-  void dotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    var element = node.element;
-    if (element is! ConstructorElement) return;
-    _checkForDeprecatedOptional(
-      element: element,
-      argumentList: node.argumentList,
-      errorEntity: node.constructorName,
-    );
-    _checkForDeprecatedInstantiate(
-      element: element.enclosingElement,
-      errorNode: node.constructorName,
-    );
-  }
-
   void dotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -115,30 +99,9 @@ class DeprecatedFunctionalityVerifier {
     );
   }
 
-  void dotShorthandInvocation(DotShorthandInvocation node) {
-    var element = node.memberName.element;
-    if (element is! ExecutableElement) return;
-    _checkForDeprecatedOptional(
-      element: element,
-      argumentList: node.argumentList,
-      errorEntity: node.memberName,
-    );
-  }
-
   void enumDeclaration(EnumDeclaration node) {
     _checkForDeprecatedImplement(node.implementsClause?.interfaces);
     _checkForDeprecatedMixin(node.withClause);
-  }
-
-  void methodInvocation(MethodInvocation node) {
-    var method = node.methodName.element;
-    if (method is! ExecutableElement) return;
-    if (method is LocalFunctionElement) return;
-    _checkForDeprecatedOptional(
-      element: method,
-      argumentList: node.argumentList,
-      errorEntity: node.methodName,
-    );
   }
 
   void mixinDeclaration(MixinDeclaration node) {
@@ -270,10 +233,10 @@ class DeprecatedFunctionalityVerifier {
         case var redirectedConstructor?) {
       var SourceRange(offset: errorOffset, length: errorLength) =
           node.errorRange;
-      var positionalArgumentCount = node.parameters.parameters
+      var positionalArgumentCount = node.parameters.allFormalParameters
           .where((p) => p.isPositional)
           .length;
-      var namedArgumentNames = node.parameters.parameters
+      var namedArgumentNames = node.parameters.allFormalParameters
           .where((p) => p.isNamed)
           .map((p) => p.name?.lexeme)
           .nonNulls

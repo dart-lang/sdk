@@ -424,7 +424,16 @@ class Size extends Response {
 
   Size._fromJson(Map<String, dynamic> json) : size = json['size'];
 
+  @override
+  String get type => 'Size';
+
   final int size;
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+        'size': size,
+      };
 }
 
 /// A collection of historical [Event]s from some stream.
@@ -450,6 +459,12 @@ class StreamHistory extends Response {
   /// Historical [Event]s for a stream.
   List<Event> get history => UnmodifiableListView(_history);
   final List<Event> _history;
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+        'history': _history.map((e) => e.json ?? e.toJson()).toList(),
+      };
 }
 
 /// An extension of [CpuSamples] which represents a set of cached samples,
@@ -517,10 +532,16 @@ class AvailableCachedCpuSamples extends Response {
       : cacheNames = List<String>.from(json['cacheNames']);
 
   @override
-  String get type => 'AvailableCachedUserTagCpuSamples';
+  String get type => 'AvailableCachedCpuSamples';
 
   /// A [List] of [UserTag] names associated with CPU sample caches.
   final List<String> cacheNames;
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+        'cacheNames': cacheNames,
+      };
 }
 
 class ResumePermissionsRequired extends Response {

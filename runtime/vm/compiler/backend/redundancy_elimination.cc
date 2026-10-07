@@ -517,6 +517,9 @@ class Place : public ValueObject {
     switch (kind()) {
       case kInstanceField:
         return instance_field().is_immutable();
+      case kIndexed:
+      case kConstantIndexed:
+        return instance()->Type()->ToCid() == kImmutableArrayCid;
       default:
         return false;
     }
@@ -1588,6 +1591,328 @@ void LICM::OptimisticallySpecializeSmiPhis() {
   }
 }
 
+namespace {
+
+bool IsSubclassOf(const Class& child, const Class& base) {
+  Class& cls = Class::Handle(child.ptr());
+  while (!cls.IsNull()) {
+    if (cls.ptr() == base.ptr()) {
+      return true;
+    }
+    cls = cls.SuperClass();
+  }
+  return false;
+}
+
+bool IsGuaranteedToBeSubclassOf(CompileType* type, const Class& cls) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+
+  Class& instance_class = Class::Handle(zone);
+  const auto cid = type->ToCid();
+  if (cid != kDynamicCid) {
+    instance_class = thread->isolate_group()->class_table()->At(cid);
+    return IsSubclassOf(instance_class, cls);
+  }
+
+  if (!CompilerState::Current().is_aot()) {
+    return false;
+  }
+
+  HierarchyInfo* hi = thread->hierarchy_info();
+  if (hi == nullptr) {
+    return false;
+  }
+
+  const AbstractType* abstract_type = type->ToAbstractType();
+  if (!abstract_type->HasTypeClass()) {
+    return false;
+  }
+
+  instance_class = abstract_type->type_class();
+  return CidRangeVectorUtils::ContainsCid(
+      hi->GuaranteedBaseClassesFor(instance_class), cls.id());
+}
+
+bool HasSlotOfUntaggedArray(CompileType* type, const Slot& slot) {
+  return IsGuaranteedToBeSubclassOf(type,
+                                    CompilerState::Current()._ArrayClass());
+}
+
+bool HasSlotOfUntaggedGrowableObjectArray(CompileType* type, const Slot& slot) {
+  return IsGuaranteedToBeSubclassOf(
+      type, Class::Handle(IsolateGroup::Current()
+                              ->object_store()
+                              ->growable_object_array_class()));
+}
+
+bool HasSlotsOfUntaggedTypedDataView(CompileType* type) {
+  return IsGuaranteedToBeSubclassOf(
+             type, CompilerState::Current().TypedListViewClass()) ||
+         IsGuaranteedToBeSubclassOf(
+             type, Class::Handle(IsolateGroup::Current()->class_table()->At(
+                       kByteDataViewCid)));
+}
+
+bool HasSlotOfUntaggedTypedDataBase(CompileType* type, const Slot& slot) {
+  return IsGuaranteedToBeSubclassOf(
+             type, CompilerState::Current().TypedListBaseClass()) ||
+         HasSlotsOfUntaggedTypedDataView(type);
+}
+
+bool HasSlotOfUntaggedTypedDataView(CompileType* type, const Slot& slot) {
+  return HasSlotsOfUntaggedTypedDataView(type);
+}
+
+bool HasSlotOfUntaggedPointerBase(CompileType* type, const Slot& slot) {
+  // UntaggedPointerBase does not have a corresponding Dart class: it's a common
+  // layout portion between _TypedListBase and dart:ffi Pointer.
+  return IsGuaranteedToBeSubclassOf(
+             type, CompilerState::Current().TypedListBaseClass()) ||
+         IsGuaranteedToBeSubclassOf(
+             type,
+             Class::Handle(
+                 IsolateGroup::Current()->object_store()->ffi_pointer_class()));
+}
+
+bool HasSlotOfUntaggedString(CompileType* type, const Slot& slot) {
+  return IsGuaranteedToBeSubclassOf(type,
+                                    CompilerState::Current().StringBaseClass());
+}
+
+bool HasSlotOfUntaggedLinkedHashBase(CompileType* type, const Slot& slot) {
+  return IsGuaranteedToBeSubclassOf(
+      type, CompilerState::Current().LinkedHashBaseClass());
+}
+
+bool HasSlotOfUntaggedFinalizer(CompileType* type, const Slot& slot) {
+  return IsGuaranteedToBeSubclassOf(
+      type, Class::Handle(
+                IsolateGroup::Current()->object_store()->finalizer_class()));
+}
+
+bool HasSlotOfUntaggedFinalizerBase(CompileType* type, const Slot& slot) {
+  return IsGuaranteedToBeSubclassOf(
+      type, CompilerState::Current().FinalizerBaseClass());
+}
+
+bool HasSlotOfUntaggedFinalizerEntry(CompileType* type, const Slot& slot) {
+  return IsGuaranteedToBeSubclassOf(
+      type,
+      Class::Handle(
+          IsolateGroup::Current()->object_store()->finalizer_entry_class()));
+}
+
+bool HasSlotOfUntaggedWeakProperty(CompileType* type, const Slot& slot) {
+  return IsGuaranteedToBeSubclassOf(
+      type,
+      Class::Handle(
+          IsolateGroup::Current()->object_store()->weak_property_class()));
+}
+
+bool HasSlotOfUntaggedWeakReference(CompileType* type, const Slot& slot) {
+  return IsGuaranteedToBeSubclassOf(
+      type,
+      Class::Handle(
+          IsolateGroup::Current()->object_store()->weak_reference_class()));
+}
+
+bool HasSlotOfUntaggedRecord(CompileType* type, const Slot& slot) {
+  return type->ToCid() == kRecordCid;
+}
+
+bool HasSlotOfUntaggedReceivePort(CompileType* type, const Slot& slot) {
+  return type->ToCid() == kReceivePortCid;
+}
+
+bool HasSlotOfUntaggedInstance(CompileType* type, const Slot& slot) {
+  ASSERT(slot.kind() == Slot::Kind::kInstance_native_fields_array);
+  return IsGuaranteedToBeSubclassOf(
+      type, CompilerState::Current().NativeFieldWrapperClass1Class());
+}
+
+// By construction
+
+bool HasSlotOfUntaggedClosure(CompileType* type, const Slot& slot) {
+  return type->ToCid() == kClosureCid;
+}
+
+bool HasSlotOfUntaggedContext(CompileType* type, const Slot& slot) {
+  return true;
+}
+
+bool HasSlotOfUntaggedSuspendState(CompileType* type, const Slot& slot) {
+  return true;
+}
+
+bool HasSlotOfUntaggedClosureData(CompileType* type, const Slot& slot) {
+  return true;
+}
+
+bool HasSlotOfUntaggedUnhandledException(CompileType* type, const Slot& slot) {
+  return true;
+}
+
+bool HasSlotOfUntaggedTypeParameters(CompileType* type, const Slot& slot) {
+  return true;
+}
+
+bool HasSlotOfUntaggedFunction(CompileType* type, const Slot& slot) {
+  return true;
+}
+
+bool HasSlotOfUntaggedFunctionType(CompileType* type, const Slot& slot) {
+  return true;
+}
+
+bool HasSlotOfUntaggedAbstractType(CompileType* type, const Slot& slot) {
+  return true;
+}
+
+bool HasSlotOfUntaggedSubtypeTestCache(CompileType* type, const Slot& slot) {
+  return type->ToCid() == kSubtypeTestCacheCid;
+}
+
+bool HasSlotOfUntaggedTypeArguments(CompileType* type, const Slot& slot) {
+  return type->ToCid() == kTypeArgumentsCid;
+}
+
+bool HasTypeArgumentsSlot(const Class& cls, intptr_t offset_in_bytes) {
+  return compiler::target::Class::HasTypeArgumentsField(cls) &&
+         compiler::target::Class::TypeArgumentsFieldOffset(cls) ==
+             offset_in_bytes;
+}
+
+}  // namespace
+
+bool LoadFieldInstr::IsSafeToHoist() const {
+  // LoadFieldInstr is safe to hoist if compile type of the definition
+  // guarantees the presence of the field being loaded.
+  auto instance_compile_type = instance()->definition()->Type();
+
+  // |null|, smi-s and sentinels don't have any fields you can load.
+  if (instance_compile_type->CanBeSmi() ||
+      instance_compile_type->is_nullable() ||
+      instance_compile_type->can_be_sentinel()) {
+    return false;
+  }
+
+  const auto instance_cid = instance_compile_type->ToCid();
+  const AbstractType& instance_type = *instance_compile_type->ToAbstractType();
+
+  switch (slot().kind()) {
+#define HasSlotOf_(_, __) true
+#define HANDLE_SLOT(Class, RawType, Field, Rep, Mod)                           \
+  case Slot::Kind::k##Class##_##Field:                                         \
+    return HasSlotOf##RawType(instance_compile_type, slot());
+
+    NATIVE_SLOTS_LIST(HANDLE_SLOT)
+#undef HANDLE_SLOT
+#undef HasSlotOf_
+
+    case Slot::Kind::kTypeArguments: {
+      if (instance_cid != kDynamicCid) {
+        const Class& cls = Class::Handle(
+            IsolateGroup::Current()->class_table()->At(instance_cid));
+        return HasTypeArgumentsSlot(cls, slot().offset_in_bytes());
+      } else if (CompilerState::Current().is_aot() &&
+                 instance_type.HasTypeClass()) {
+        if (auto hi = Thread::Current()->hierarchy_info()) {
+          Class& cls = Class::Handle();
+          cls = instance_type.type_class();
+          const auto& superclass_chain = hi->GuaranteedBaseClassesFor(cls);
+          // We can't be sure that the maximal element of superclass_chain is
+          // the most concrete superclass, but it will almost always be.
+          for (intptr_t i = superclass_chain.length() - 1; i >= 0; i--) {
+            cls = IsolateGroup::Current()->class_table()->At(
+                superclass_chain[i].cid_end);
+            if (HasTypeArgumentsSlot(cls, slot().offset_in_bytes())) {
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    case Slot::Kind::kRecordField:
+      if (instance_type.IsRecordType()) {
+        const intptr_t index = compiler::target::Record::field_index_at_offset(
+            slot().offset_in_bytes());
+        return index < RecordType::Cast(instance_type).NumFields();
+      }
+      return false;
+
+    case Slot::Kind::kClosureElement:
+    case Slot::Kind::kCapturedVariable:
+      // Should be valid by construction.
+      return true;
+
+    case Slot::Kind::kDartField:
+      return IsGuaranteedToBeSubclassOf(instance_compile_type,
+                                        Class::Handle(slot().field().Owner()));
+
+    case Slot::Kind::kArrayElement:
+      UNREACHABLE();  // Should not appear during LICM.
+      return false;
+  }
+
+  return false;
+}
+
+bool LoadIndexedInstr::IsSafeToHoist() const {
+  if (IsUntagged()) {
+    // We can't hoist any loads from untagged sources because the underlying
+    // pointer can simply be nullptr.
+    return false;
+  }
+
+  // These are expected to be pinned by bounds checks, not that we keep bounds
+  // checks in the code (possibly as phantoms in functions where bounds checks
+  // were removed by unsafe pragma) until after LICM.
+  return true;
+}
+
+bool LoadClassIdInstr::IsSafeToHoist() const {
+  return input_can_be_smi_ || !object()->definition()->Type()->CanBeSmi();
+}
+
+bool UnboxInstr::IsSafeToHoist() const {
+  return (value_mode() == ValueMode::kCheckType) ||
+         HasMatchingType(value()->definition()->Type());
+}
+
+bool HashIntegerOpInstr::IsSafeToHoist() const {
+  const auto expected_cid = smi_ ? kSmiCid : kMintCid;
+  return value()->definition()->Type()->ToCid() == expected_cid;
+}
+
+bool UnboxLaneInstr::IsSafeToHoist() const {
+  intptr_t box_cid;
+  switch (representation()) {
+    case kUnboxedDouble:
+      box_cid = kFloat64x2Cid;
+      break;
+    case kUnboxedFloat:
+      box_cid = kFloat32x4Cid;
+      break;
+    case kUnboxedInt32:
+      box_cid = kInt32x4Cid;
+      break;
+    default:
+      return false;
+  }
+  return value()->definition()->Type()->ToCid() == box_cid;
+}
+
+bool CheckWritableInstr::IsSafeToHoist() const {
+  return !value()->definition()->Type()->CanBeSmi();
+}
+
+bool StringToCharCodeInstr::IsSafeToHoist() const {
+  return str()->definition()->Type()->ToCid() == cid_;
+}
+
 void LICM::Optimize() {
   if (flow_graph()->function().ProhibitsInstructionHoisting()) {
     // Do not hoist any.
@@ -1656,7 +1981,8 @@ void LICM::Optimize() {
         bool is_loop_invariant = false;
         if (((current->AllowsCSE() ||
               IsLoopInvariantLoad(loop_invariant_loads, i, current)) &&
-             (!seen_visible_effect || !current->MayHaveVisibleEffect())) ||
+             (!seen_visible_effect || !current->MayHaveVisibleEffect()) &&
+             current->IsSafeToHoist()) ||
             IsInitializingStore(current)) {
           is_loop_invariant = true;
           for (intptr_t i = 0; i < current->InputCount(); ++i) {

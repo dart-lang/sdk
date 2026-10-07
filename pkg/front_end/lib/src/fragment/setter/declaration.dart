@@ -63,7 +63,7 @@ abstract class SetterDeclaration {
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   });
@@ -80,12 +80,13 @@ abstract class SetterDeclaration {
 
   int computeSetterDefaultTypes(ComputeDefaultTypeContext context);
 
-  void createSetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  );
+  void createSetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  });
 
   void ensureSetterTypes({
     required SourceLibraryBuilder libraryBuilder,
@@ -93,10 +94,6 @@ abstract class SetterDeclaration {
     required ClassMembersBuilder membersBuilder,
     required Set<ClassMember>? setterOverrideDependencies,
   });
-
-  Iterable<Reference> getExportedSetterReferences(
-    PropertyReferences references,
-  );
 
   List<ClassMember> get localSetters;
 }
@@ -106,9 +103,14 @@ class RegularSetterDeclaration
   final SetterFragment _fragment;
   late final SetterEncoding _encoding;
 
+  late final bool _isImplementation;
+
   new(this._fragment) {
     _fragment.declaration = this;
   }
+
+  @override
+  bool get isImplementation => _isImplementation;
 
   @override
   UriOffsetLength get uriOffset => _fragment.uriOffset;
@@ -190,7 +192,7 @@ class RegularSetterDeclaration
     required SourceLibraryBuilder libraryBuilder,
     required ProblemReporting problemReporting,
     required NameScheme nameScheme,
-    required BuildNodesCallback f,
+    required BuildNodesCallback callback,
     required PropertyReferences? references,
     required List<TypeParameter>? classTypeParameters,
   }) {
@@ -198,7 +200,7 @@ class RegularSetterDeclaration
       libraryBuilder: libraryBuilder,
       problemReporting: problemReporting,
       nameScheme: nameScheme,
-      f: f,
+      callback: callback,
       references: references,
       isAbstractOrExternal:
           _fragment.modifiers.isAbstract || _fragment.modifiers.isExternal,
@@ -246,12 +248,14 @@ class RegularSetterDeclaration
   }
 
   @override
-  void createSetterEncoding(
-    ProblemReporting problemReporting,
-    SourcePropertyBuilder builder,
-    PropertyEncodingStrategy encodingStrategy,
-    TypeParameterFactory typeParameterFactory,
-  ) {
+  void createSetterEncoding({
+    required ProblemReporting problemReporting,
+    required SourcePropertyBuilder builder,
+    required PropertyEncodingStrategy encodingStrategy,
+    required TypeParameterFactory typeParameterFactory,
+    required bool isImplementation,
+  }) {
+    _isImplementation = isImplementation;
     _fragment.builder = builder;
     typeParameterFactory.createNominalParameterBuilders(
       _fragment.declaredTypeParameters,
@@ -294,11 +298,6 @@ class RegularSetterDeclaration
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);
   }
-
-  @override
-  Iterable<Reference> getExportedSetterReferences(
-    PropertyReferences references,
-  ) => [references.setterReference];
 
   @override
   List<ClassMember> get localSetters => [
@@ -358,6 +357,9 @@ class RegularSetterDeclaration
         ? const UnknownType()
         : _encoding.function.returnType;
   }
+
+  @override
+  String toString() => '$runtimeType($_fragment)';
 }
 
 /// Interface for using a [SetterFragment] to create a [BodyBuilderContext].
@@ -369,6 +371,13 @@ abstract class SetterFragmentDeclaration {
   bool get isAbstract;
 
   bool get isExternal;
+
+  /// Whether this declaration hold the implementation for the setter.
+  ///
+  /// For augmentations, only one of the setter declarations is considered
+  /// as the implementation. Other declarations can only provide annotations
+  /// for the generated AST node.
+  bool get isImplementation;
 
   String get name;
 

@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToInBodyConstructorClassTest extends AssistProcessorTest {
+class ConvertToInBodyConstructorClassTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToInBodyConstructor;
 
@@ -571,7 +571,7 @@ class C {
 }
 
 @reflectiveTest
-class ConvertToInBodyConstructorEnumTest extends AssistProcessorTest {
+class ConvertToInBodyConstructorEnumTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToInBodyConstructor;
 
@@ -628,7 +628,8 @@ enum E {
 }
 
 @reflectiveTest
-class ConvertToInBodyConstructorExtensionTypeTest extends AssistProcessorTest {
+class ConvertToInBodyConstructorExtensionTypeTest
+    extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToInBodyConstructor;
 

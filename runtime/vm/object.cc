@@ -823,6 +823,7 @@ void Object::Init(IsolateGroup* isolate_group) {
       Class::New<CompressedStackMaps, RTN::CompressedStackMaps>(isolate_group);
   cls =
       Class::New<LocalVarDescriptors, RTN::LocalVarDescriptors>(isolate_group);
+  cls = Class::New<LocalVarDescriptor, RTN::LocalVarDescriptor>(isolate_group);
   cls = Class::New<ExceptionHandlers, RTN::ExceptionHandlers>(isolate_group);
   cls = Class::New<Context, RTN::Context>(isolate_group);
   cls = Class::New<ContextScope, RTN::ContextScope>(isolate_group);
@@ -1363,6 +1364,7 @@ void Object::FinishInit(IsolateGroup* isolate_group) {
   SET_CLASS_NAME(kPcDescriptorsCid, PcDescriptors);
   SET_CLASS_NAME(kCompressedStackMapsCid, CompressedStackMaps);
   SET_CLASS_NAME(kLocalVarDescriptorsCid, LocalVarDescriptors);
+  SET_CLASS_NAME(kLocalVarDescriptorCid, LocalVarDescriptor);
   SET_CLASS_NAME(kExceptionHandlersCid, ExceptionHandlers);
   SET_CLASS_NAME(kContextCid, Context);
   SET_CLASS_NAME(kContextScopeCid, ContextScope);
@@ -4049,7 +4051,7 @@ bool Library::FindPragma(Thread* T,
     UNREACHABLE();
   }
 
-  if (only_core && !lib.IsAnyCoreLibrary()) {
+  if (only_core && !lib.is_dart_scheme()) {
     return false;
   }
 
@@ -4143,12 +4145,16 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
   // for example, when the only dynamic callers are in interpreted code.
   const bool attach_bytecode = true;
 #else
-  const bool attach_bytecode = is_declared_in_bytecode();
+  const bool attach_bytecode =
+      is_declared_in_bytecode() && !thread->isolate_group()->modular_aot_mode();
 #endif
   if (attach_bytecode) {
     forwarder.AttachBytecode(Object::dynamic_invocation_forwarder_bytecode());
   }
 #endif
+  if (thread->isolate_group()->modular_aot_mode()) {
+    forwarder.SetInstructionsSafe(StubCode::DynamicInvocationForwarder());
+  }
 
   return forwarder.ptr();
 }
@@ -4191,7 +4197,8 @@ FunctionPtr Function::GetDynamicInvocationForwarder(
 }
 
 bool Function::NeedsDynamicInvocationForwarder() const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 
   // Right now closures do not need a dyn:* forwarder.
   // See https://github.com/dart-lang/sdk/issues/40813
@@ -4247,6 +4254,13 @@ bool Function::NeedsDynamicInvocationForwarder() const {
 
   const auto& type_params = TypeParameters::Handle(zone, type_parameters());
   if (!type_params.IsNull()) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    if (thread->isolate_group()->modular_aot_mode()) {
+      // Generic methods need dynamic invocation forwarder in order to
+      // pass default type arguments.
+      return true;
+    }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
     auto& bound = AbstractType::Handle(zone);
     for (intptr_t i = 0, n = type_params.Length(); i < n; ++i) {
       bound = type_params.BoundAt(i);
@@ -8698,6 +8712,27 @@ void Function::set_data(const Object& value) const {
   untag()->set_data<std::memory_order_release>(value.ptr());
 }
 
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+bool Function::IsReloadedImplicitClosure(FunctionPtr ptr) {
+  if (!IsImplicitClosureFunction(ptr)) {
+    return false;
+  }
+  return ClosureData::ReloadedImplicitClosure(
+      ClosureData::RawCast(ptr->untag()->data()));
+}
+
+void Function::SetIsReloadedImplicitClosure(bool value) const {
+  if (IsImplicitClosureFunction()) {
+    const Object& obj = Object::Handle(untag()->data());
+    ASSERT(!obj.IsNull());
+    ClosureData::Cast(obj).set_reloaded_implicit_closure(value);
+    return;
+  }
+  UNREACHABLE();
+}
+#endif
+
 void Function::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
   untag()->set_name(value.ptr());
@@ -9012,7 +9047,7 @@ bool FunctionType::IsRequiredAt(intptr_t index) const {
 }
 
 void FunctionType::SetIsRequiredAt(intptr_t index) const {
-#if defined(DART_PRECOMPILER_RUNTIME)
+#if defined(DART_PRECOMPILER_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   intptr_t flag_mask;
@@ -9027,7 +9062,7 @@ void FunctionType::SetIsRequiredAt(intptr_t index) const {
 }
 
 void FunctionType::FinalizeNameArray() const {
-#if defined(DART_PRECOMPILER_RUNTIME)
+#if defined(DART_PRECOMPILER_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   const intptr_t num_named_parameters = NumOptionalNamedParameters();
@@ -11928,6 +11963,14 @@ void ClosureData::set_default_type_arguments_instantiation_mode(
   untag()->packed_fields_.Update<PackedInstantiationMode>(value);
 }
 
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+void ClosureData::set_reloaded_implicit_closure(bool value) const {
+  untag()->packed_fields_.Update<UntaggedClosureData::ReloadedImplicitClosure>(
+      value);
+}
+#endif
+
 Function::AwaiterLink ClosureData::awaiter_link() const {
   const uint8_t depth =
       untag()
@@ -13526,8 +13569,7 @@ StringPtr Script::Source() const {
 
 bool Script::IsPartOfDartColonLibrary() const {
   const String& script_url = String::Handle(url());
-  return (script_url.StartsWith(Symbols::DartScheme()) ||
-          script_url.StartsWith(Symbols::DartSchemePrivate()));
+  return script_url.StartsWith(Symbols::DartScheme());
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -14084,13 +14126,6 @@ static void ReportTooManyImports(const Library& lib) {
   UNREACHABLE();
 }
 
-bool Library::IsAnyCoreLibrary() const {
-  String& url_str = Thread::Current()->StringHandle();
-  url_str = url();
-  return url_str.StartsWith(Symbols::DartScheme()) ||
-         url_str.StartsWith(Symbols::DartSchemePrivate());
-}
-
 void Library::set_num_imports(intptr_t value) const {
   if (!Utils::IsUint(16, value)) {
     ReportTooManyImports(*this);
@@ -14391,42 +14426,6 @@ void Library::AddObject(const Object& obj, const String& name) const {
   }
 }
 
-// Lookup a name in the library's re-export namespace.
-// This lookup can occur from two different threads: background compiler and
-// mutator thread.
-ObjectPtr Library::LookupReExport(const String& name,
-                                  ZoneGrowableArray<intptr_t>* trail) const {
-  if (!HasExports()) {
-    return Object::null();
-  }
-
-  if (trail == nullptr) {
-    trail = new ZoneGrowableArray<intptr_t>();
-  }
-  Object& obj = Object::Handle();
-
-  const intptr_t lib_id = this->index();
-  ASSERT(lib_id >= 0);  // We use -1 to indicate that a cycle was found.
-  trail->Add(lib_id);
-  const Array& exports = Array::Handle(this->exports());
-  Namespace& ns = Namespace::Handle();
-  for (int i = 0; i < exports.Length(); i++) {
-    ns ^= exports.At(i);
-    obj = ns.Lookup(name, trail);
-    if (!obj.IsNull()) {
-      // The Lookup call above may return a setter x= when we are looking
-      // for the name x. Make sure we only return when a matching name
-      // is found.
-      String& obj_name = String::Handle(obj.DictionaryName());
-      if (Field::IsSetterName(obj_name) == Field::IsSetterName(name)) {
-        break;
-      }
-    }
-  }
-  trail->RemoveLast();
-  return obj.ptr();
-}
-
 ObjectPtr Library::LookupEntry(const String& name, intptr_t* index) const {
   ASSERT(!IsNull());
   Thread* thread = Thread::Current();
@@ -14604,16 +14603,6 @@ ObjectPtr Library::LookupLocalObject(const String& name) const {
   return LookupEntry(name, &index);
 }
 
-ObjectPtr Library::LookupLocalOrReExportObject(const String& name) const {
-  intptr_t index;
-  EnsureTopLevelClassIsFinalized();
-  const Object& result = Object::Handle(LookupEntry(name, &index));
-  if (!result.IsNull() && !result.IsLibraryPrefix()) {
-    return result.ptr();
-  }
-  return LookupReExport(name);
-}
-
 FieldPtr Library::LookupFieldAllowPrivate(const String& name) const {
   EnsureTopLevelClassIsFinalized();
   Object& obj = Object::Handle(LookupLocalObjectAllowPrivate(name));
@@ -14724,12 +14713,6 @@ void Library::AddImport(const Namespace& ns) const {
   intptr_t index = num_imports();
   imports.SetAt(index, ns);
   set_num_imports(index + 1);
-}
-
-// Convenience function to determine whether the export list is
-// non-empty.
-bool Library::HasExports() const {
-  return exports() != Object::empty_array().ptr();
 }
 
 // We add one namespace at a time to the exports array and don't
@@ -14896,7 +14879,8 @@ ObjectPtr Library::InvokeGetter(const String& getter_name,
                                 bool check_is_entrypoint,
                                 bool respect_reflectable,
                                 bool for_invocation) const {
-  Object& obj = Object::Handle(LookupLocalOrReExportObject(getter_name));
+  EnsureTopLevelClassIsFinalized();
+  Object& obj = Object::Handle(LookupLocalObject(getter_name));
   Function& getter = Function::Handle();
   if (obj.IsField()) {
     const Field& field = Field::Cast(obj);
@@ -14916,13 +14900,13 @@ ObjectPtr Library::InvokeGetter(const String& getter_name,
     // No field found. Check for a getter in the lib.
     const String& internal_getter_name =
         String::Handle(Field::GetterName(getter_name));
-    obj = LookupLocalOrReExportObject(internal_getter_name);
+    obj = LookupLocalObject(internal_getter_name);
     if (obj.IsFunction()) {
       getter = Function::Cast(obj).ptr();
     } else if (!for_invocation) {
       // No need to re-lookup the getter name if coming from Invoke(), since
       // it already failed there.
-      obj = LookupLocalOrReExportObject(getter_name);
+      obj = LookupLocalObject(getter_name);
       if (obj.IsFunction()) {
         const auto& function = Function::Cast(obj);
         if (function.SafeToClosurize()) {
@@ -14966,7 +14950,8 @@ ObjectPtr Library::InvokeSetter(const String& setter_name,
                                 const Instance& value,
                                 bool check_is_entrypoint,
                                 bool respect_reflectable) const {
-  Object& obj = Object::Handle(LookupLocalOrReExportObject(setter_name));
+  EnsureTopLevelClassIsFinalized();
+  Object& obj = Object::Handle(LookupLocalObject(setter_name));
   const String& internal_setter_name =
       String::Handle(Field::SetterName(setter_name));
   AbstractType& setter_type = AbstractType::Handle();
@@ -14997,7 +14982,7 @@ ObjectPtr Library::InvokeSetter(const String& setter_name,
   }
 
   Function& setter = Function::Handle();
-  obj = LookupLocalOrReExportObject(internal_setter_name);
+  obj = LookupLocalObject(internal_setter_name);
   if (obj.IsFunction()) {
     setter ^= obj.ptr();
   }
@@ -15031,6 +15016,7 @@ ObjectPtr Library::Invoke(const String& function_name,
                           bool respect_reflectable) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  EnsureTopLevelClassIsFinalized();
 
   // We don't pass any explicit type arguments, which will be understood as
   // using dynamic for any function type arguments by lower layers.
@@ -15041,8 +15027,7 @@ ObjectPtr Library::Invoke(const String& function_name,
   ArgumentsDescriptor args_descriptor(args_descriptor_array);
 
   auto& function = Function::Handle(zone);
-  auto& result =
-      Object::Handle(zone, LookupLocalOrReExportObject(function_name));
+  auto& result = Object::Handle(zone, LookupLocalObject(function_name));
   if (result.IsFunction()) {
     function ^= result.ptr();
   }
@@ -15567,20 +15552,6 @@ ObjectPtr Namespace::Lookup(const String& name,
     }
   }
 
-  // Library prefixes are not exported.
-  if (obj.IsNull() || obj.IsLibraryPrefix()) {
-    // Lookup in the re-exported symbols.
-    obj = lib.LookupReExport(name, trail);
-    if (obj.IsNull() && !Field::IsSetterName(name)) {
-      // LookupReExport() only returns objects that match the given name.
-      // If there is no field/func/getter, try finding a setter.
-      const String& setter_name =
-          String::Handle(zone, Field::LookupSetterSymbol(name));
-      if (!setter_name.IsNull()) {
-        obj = lib.LookupReExport(setter_name, trail);
-      }
-    }
-  }
   if (obj.IsNull() || HidesName(name) || obj.IsLibraryPrefix()) {
     return Object::null();
   }
@@ -16563,18 +16534,55 @@ const char* CompressedStackMaps::ToCString() const {
 
 StringPtr LocalVarDescriptors::GetName(intptr_t var_index) const {
   ASSERT(var_index < Length());
-  ASSERT(Object::Handle(ptr()->untag()->name(var_index)).IsString());
-  return ptr()->untag()->name(var_index);
+  return LocalVarDescriptor::Handle(ptr()->untag()->descriptor(var_index))
+      .name();
+}
+
+const char* LocalVarDescriptor::ToCString() const {
+  return "LocalVarDescriptor";
+}
+
+void LocalVarDescriptor::set_name(const String& value) const {
+  untag()->set_name(value.ptr());
+}
+
+void LocalVarDescriptor::set_static_type(const AbstractType& value) const {
+  untag()->set_static_type(value.ptr());
+}
+
+LocalVarDescriptorPtr LocalVarDescriptor::New(const String& name,
+                                              const AbstractType& static_type,
+                                              Heap::Space space) {
+  ASSERT(IsolateGroup::Current()->class_table()->At(kLocalVarDescriptorCid) !=
+         Class::null());
+  LocalVarDescriptor& result = LocalVarDescriptor::Handle();
+  {
+    ObjectPtr raw = Object::Allocate<LocalVarDescriptor>(space);
+    NoSafepointScope no_safepoint;
+    result ^= raw;
+  }
+  result.set_name(name);
+  result.set_static_type(static_type);
+  return result.ptr();
 }
 
 void LocalVarDescriptors::SetVar(
     intptr_t var_index,
     const String& name,
+    const AbstractType& static_type,
     UntaggedLocalVarDescriptors::VarInfo* info) const {
   ASSERT(var_index < Length());
-  ASSERT(!name.IsNull());
-  ptr()->untag()->set_name(var_index, name.ptr());
+  const LocalVarDescriptor& desc = LocalVarDescriptor::Handle(
+      LocalVarDescriptor::New(name, static_type, Heap::kOld));
+
+  ptr()->untag()->set_descriptor(var_index, desc.ptr());
   ptr()->untag()->data()[var_index] = *info;
+}
+
+AbstractTypePtr LocalVarDescriptors::GetStaticType(intptr_t var_index) const {
+  ASSERT(var_index < Length());
+  return LocalVarDescriptor::Handle(ptr()->untag()->descriptor(var_index))
+      .static_type();
 }
 
 void LocalVarDescriptors::GetInfo(
@@ -18161,6 +18169,10 @@ void Code::set_is_optimized(bool value) const {
 
 void Code::set_is_force_optimized(bool value) const {
   set_state_bits(ForceOptimizedBit::update(value, untag()->state_bits_));
+}
+
+void Code::set_can_be_deoptimized(bool value) const {
+  set_state_bits(CanBeDeoptimizedBit::update(value, untag()->state_bits_));
 }
 
 void Code::set_is_alive(bool value) const {
@@ -26021,12 +26033,7 @@ uint32_t Float32x4::CanonicalizeHash() const {
 }
 
 const char* Float32x4::ToCString() const {
-  float _x = x();
-  float _y = y();
-  float _z = z();
-  float _w = w();
-  return OS::SCreate(Thread::Current()->zone(), "[%f, %f, %f, %f]", _x, _y, _z,
-                     _w);
+  return "V128";
 }
 
 Int32x4Ptr Int32x4::New(int32_t v0,
@@ -26106,12 +26113,7 @@ uint32_t Int32x4::CanonicalizeHash() const {
 }
 
 const char* Int32x4::ToCString() const {
-  int32_t _x = x();
-  int32_t _y = y();
-  int32_t _z = z();
-  int32_t _w = w();
-  return OS::SCreate(Thread::Current()->zone(), "[%08x, %08x, %08x, %08x]", _x,
-                     _y, _z, _w);
+  return "V128";
 }
 
 Float64x2Ptr Float64x2::New(double value0, double value1, Heap::Space space) {
@@ -26167,9 +26169,7 @@ uint32_t Float64x2::CanonicalizeHash() const {
 }
 
 const char* Float64x2::ToCString() const {
-  double _x = x();
-  double _y = y();
-  return OS::SCreate(Thread::Current()->zone(), "[%f, %f]", _x, _y);
+  return "V128";
 }
 
 const intptr_t

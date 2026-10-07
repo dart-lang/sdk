@@ -149,6 +149,7 @@ class SnapshotSerializer {
   );
   final Map<ast.Class, SerializationCluster> _instanceClusters = {};
   final SnapshotStreamWriter out = SnapshotStreamWriter();
+  final List<({StubCode stub, Code code})> _rootStubs = [];
 
   SnapshotSerializer(
     this.targetCPU,
@@ -164,7 +165,9 @@ class SnapshotSerializer {
     addBaseObject(const ast.VoidType());
     addBaseObject(const ast.NullType());
     addBaseObject(const ast.NeverType.nonNullable());
-    addBaseObject(ast.ListConstant(const ast.DynamicType(), const []));
+    addBaseObject(
+      ast.ListConstant(const ast.DynamicType(), ast.ConstantList.empty),
+    );
     addBaseObject(UndefinedConstant());
     addBaseObject(ExceptionHandlers(hasAsyncHandler: false));
     addBaseObject(ExceptionHandlers(hasAsyncHandler: true));
@@ -228,6 +231,7 @@ class SnapshotSerializer {
     for (final cluster in clusters) {
       cluster.writePostLoad(this);
     }
+    writeRoots();
 
     fillHeader(SnapshotKind.module);
   }
@@ -236,6 +240,14 @@ class SnapshotSerializer {
     out.writeUint(Snapshot.moduleSnapshotFormatVersion);
     out.writeUint8List(utf8.encode(targetCPU.name));
     out.writeByte(0);
+  }
+
+  void writeRoots() {
+    writeUint(_rootStubs.length);
+    for (final e in _rootStubs) {
+      writeUint(e.stub.index);
+      writeRefId(e.code);
+    }
   }
 
   void fillHeader(SnapshotKind kind) {
@@ -256,13 +268,18 @@ class SnapshotSerializer {
     }
   }
 
+  void addRootStub(StubCode stub, Code code) {
+    _rootStubs.add((stub: stub, code: code));
+    addRoot(code);
+  }
+
   Object? preprocess(Object? obj) => switch (obj) {
     ast.Name() => Name(obj.text, obj.library),
     ast.PrimitiveConstant() when obj is! ast.DoubleConstant => obj.value,
     ast.TypeLiteralConstant() => preprocess(obj.type),
     ast.SymbolConstant() => ast.InstanceConstant(
       GlobalContext.instance.coreTypes.internalSymbolClass.reference,
-      const [],
+      ast.DartTypeList.empty,
       {
         GlobalContext.instance.coreTypes.index
             .getField('dart:_internal', 'Symbol', '_name')
@@ -275,7 +292,7 @@ class SnapshotSerializer {
     ast.FutureOrType() => ast.InterfaceType(
       GlobalContext.instance.coreTypes.deprecatedFutureOrClass,
       obj.declaredNullability,
-      [obj.typeArgument],
+      ast.DartTypeList(obj.typeArgument),
     ),
     ast.ExtensionType() => preprocess(obj.extensionTypeErasure),
     ast.NeverType() when obj.nullability == .nullable => const ast.NullType(),
@@ -479,7 +496,10 @@ ast.Constant getNameConstant(String name, ast.Library? library) =>
 /// Create a ListConstant from given [elements], wrapping them if needed.
 ast.ListConstant getListConstant(List<Object?> elements) => ast.ListConstant(
   const ast.DynamicType(),
-  [for (final e in elements) e is ast.Constant ? e : WrapperConstant(e)],
+  ast.ConstantList.mapped(
+    elements,
+    (e) => e is ast.Constant ? e : WrapperConstant(e),
+  ),
 );
 
 final class LibraryRefSerializationCluster extends SerializationCluster {
@@ -1094,9 +1114,13 @@ final class MapSerializationCluster extends SerializationCluster {
   @override
   void trace(SnapshotSerializer serializer, Object object) {
     final map = object as ast.MapConstant;
-    final data = ast.ListConstant(const ast.DynamicType(), [
-      for (final entry in map.entries) ...[entry.key, entry.value],
-    ]);
+    final data = ast.ListConstant(
+      const ast.DynamicType(),
+      ast.ConstantList.generate(map.entries.length * 2, (i) {
+        final entry = map.entries[i >> 1];
+        return i.isEven ? entry.key : entry.value;
+      }),
+    );
     _objects.add(map);
     _dataLists.add(data);
     serializer.push(_typeArguments(map));
@@ -1795,6 +1819,7 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
               entry.selector,
             );
             serializer.push(icData);
+            serializer.push(entry.dispatcherCode);
           case SubtypeTestCacheWithName():
             serializer.push(entry.stc);
             serializer.push(entry.name);
@@ -1838,9 +1863,11 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             case InterfaceCallEntry():
               serializer.writeUint(ObjectPoolEntryKind.interfaceCall.index);
               serializer.writeRefId(icDatas[entry]);
+              serializer.writeRefId(entry.dispatcherCode);
             case DynamicCallEntry():
               serializer.writeUint(ObjectPoolEntryKind.dynamicCall.index);
               serializer.writeRefId(icDatas[entry]);
+              serializer.writeRefId(entry.dispatcherCode);
             case SubtypeTestCacheWithName():
               serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
               serializer.writeRefId(entry.stc);

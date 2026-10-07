@@ -50,24 +50,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
 
   @override
   void visitAnnotation(covariant AnnotationImpl node) {
-    if (node.arguments != null) {
-      var identifier = node.name;
-      if (identifier is PrefixedIdentifierImpl) {
-        var prefixNode = identifier.prefix;
-        var prefixElement = nameScope.lookup(prefixNode.name).getter;
-        prefixNode.element = prefixElement;
-
-        if (prefixElement is PrefixElement) {
-          var name = identifier.identifier.name;
-          var element = prefixElement.scope.lookup(name).getter;
-          identifier.identifier.element = element;
-        }
-      } else if (identifier is SimpleIdentifierImpl) {
-        var element = nameScope.lookup(identifier.name).getter;
-        identifier.element = element;
-        return;
-      }
-    }
+    // Annotations are resolved after types, by `MetadataResolver`.
   }
 
   @override

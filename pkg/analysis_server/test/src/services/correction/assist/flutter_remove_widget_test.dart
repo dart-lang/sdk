@@ -20,7 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class FlutterRemoveWidgetTest extends AssistProcessorTest {
+class FlutterRemoveWidgetTest extends BuiltInAssistProcessorTest {
   @override
   bool get addFlutterPackageDep => true;
 

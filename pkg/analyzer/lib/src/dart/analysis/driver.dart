@@ -66,6 +66,7 @@ import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
+import 'package:pub_semver/pub_semver.dart';
 
 /// This function is used to test recording requirements during analysis.
 ///
@@ -112,7 +113,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 700;
+  static const int DATA_VERSION = 739;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -150,6 +151,9 @@ class AnalysisDriver {
 
   /// The [Packages] object with packages and their language versions.
   final Packages _packages;
+
+  /// Replaces the discovered default language version for non-SDK files.
+  final Version? _languageVersionOverride;
 
   /// Whether fine-grained dependencies experiment is enabled.
   final bool withFineDependencies;
@@ -314,6 +318,7 @@ class AnalysisDriver {
     this.shouldReportInconsistentAnalysisException = true,
     SummaryDataStore? externalSummaries,
     DeclaredVariables? declaredVariables,
+    Version? languageVersionOverride,
     bool retainDataForTesting = false,
     this.testView,
     bool enableLintRuleTiming = false,
@@ -325,6 +330,7 @@ class AnalysisDriver {
        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
        _logger = logger,
        _packages = packages,
+       _languageVersionOverride = languageVersionOverride,
        _sourceFactory = sourceFactory,
        _externalSummaries = externalSummaries,
        declaredVariables = declaredVariables ?? DeclaredVariables(),
@@ -1365,19 +1371,11 @@ class AnalysisDriver {
         }
 
         performance.run('libraryContext', (performance) {
-          libraryContext.load(targetLibrary: library, performance: performance);
+          libraryContext.loadForResolution(
+            targetLibrary: library,
+            performance: performance,
+          );
         });
-
-        for (var import in library.docLibraryImports) {
-          if (import is LibraryImportWithFile) {
-            if (import.importedLibrary case var libraryFileKind?) {
-              libraryContext.load(
-                targetLibrary: libraryFileKind,
-                performance: OperationPerformanceImpl('<root>'),
-              );
-            }
-          }
-        }
 
         var analysisOptions = file.analysisOptions;
         var libraryElement = libraryContext.elementFactory.libraryOfUri2(
@@ -1708,6 +1706,7 @@ class AnalysisDriver {
       _saltForElements,
       featureSetProvider,
       analysisOptionsMap,
+      languageVersionOverride: _languageVersionOverride,
       fileContentStrategy: _fileContentStrategy,
       unlinkedUnitStore: _unlinkedUnitStore,
       prefetchFiles: null,
@@ -1798,18 +1797,10 @@ class AnalysisDriver {
 
       // Errors are based on elements, so load them.
       performance.run('libraryContext', (performance) {
-        libraryContext.load(targetLibrary: library, performance: performance);
-
-        for (var import in library.docLibraryImports) {
-          if (import is LibraryImportWithFile) {
-            if (import.importedLibrary case var libraryFileKind?) {
-              libraryContext.load(
-                targetLibrary: libraryFileKind,
-                performance: OperationPerformanceImpl('<root>'),
-              );
-            }
-          }
-        }
+        libraryContext.loadForResolution(
+          targetLibrary: library,
+          performance: performance,
+        );
       });
 
       if (withFineDependencies) {
@@ -2017,6 +2008,7 @@ class AnalysisDriver {
       keyBuilder.addString(file.path);
       keyBuilder.addString(file.uriStr);
       keyBuilder.addString(file.contentHash);
+      keyBuilder.addLanguageVersion(file.packageLanguageVersion);
       file.kind.addDirectivesSignature(keyBuilder);
     }
 
@@ -2061,6 +2053,13 @@ class AnalysisDriver {
     }
     signature.addString(library.file.uriStr);
     signature.addString(library.libraryCycle.apiSignature);
+
+    // Doc imports are not dependencies of the library cycle, but documentation
+    // comments are resolved against the doc-imported libraries.
+    for (var importedLibrary in library.docImportedLibraries) {
+      signature.addString(importedLibrary.libraryCycle.apiSignature);
+    }
+
     signature.addUint32List(library.file.analysisOptions.signature);
     signature.addString(file.uriStr);
     signature.addString(file.contentHash);
@@ -2156,21 +2155,10 @@ class AnalysisDriver {
         workingStatistics?.produceErrorsElementsTimer.start();
         try {
           performance.run('libraryContext', (performance) {
-            libraryContext.load(
+            libraryContext.loadForResolution(
               targetLibrary: library,
               performance: performance,
             );
-
-            for (var import in library.docLibraryImports) {
-              if (import is LibraryImportWithFile) {
-                if (import.importedLibrary case var libraryFileKind?) {
-                  libraryContext.load(
-                    targetLibrary: libraryFileKind,
-                    performance: OperationPerformanceImpl('<root>'),
-                  );
-                }
-              }
-            }
           });
         } finally {
           workingStatistics?.produceErrorsElementsTimer.stop();
@@ -3032,6 +3020,10 @@ class OwnedFiles {
   /// This map does not contain any files that are in [addedFiles].
   final Map<File, AnalysisDriver> knownFiles = {};
 
+  /// Key: the folder from the collection's resource provider.
+  /// Value: the driver discovering this package folder.
+  final Map<Folder, AnalysisDriver> knownFolders = {};
+
   void addAdded(File file, AnalysisDriver analysisDriver) {
     addedFiles[file] ??= analysisDriver;
     knownFiles.remove(file);
@@ -3136,6 +3128,14 @@ class _DiscoverAvailableFilesJob {
   }
 
   void _addFile(File file) {
+    if (filter == null) {
+      if (driver.ownedFiles case var ownedFiles?) {
+        var owner = ownedFiles.ownerOf(file);
+        if (owner != null && !identical(owner, driver)) {
+          return;
+        }
+      }
+    }
     if (_seenFiles.add(file)) {
       _files.addLast(file);
     }
@@ -3203,6 +3203,11 @@ class _DiscoverAvailableFilesJob {
             );
           }
         } else {
+          var owner = driver.ownedFiles?.knownFolders[folder];
+          if (owner != null && !identical(owner, driver)) {
+            continue;
+          }
+          driver.ownedFiles?.knownFolders[folder] ??= driver;
           _addFolder(folder, excludeSrc: false);
         }
       }

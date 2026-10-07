@@ -5,10 +5,12 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(InstanceAccessToStaticMemberTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -27,10 +29,27 @@ f(C c) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a();');
+    var node = result.findNode.receiverMethodInvocation('a();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: c
     element: <testLibrary>::@function::f::@formalParameter::c
     staticType: C
@@ -143,10 +162,27 @@ f(A a) {
 }
 ''');
 
-    var node = result.findNode.methodInvocation('a();');
+    var node = result.findNode.receiverMethodInvocation('a();');
     assertResolvedNodeText(node, r'''
-MethodInvocation
-  target2: SimpleIdentifier
+ReceiverMethodInvocation
+  receiver: UnqualifiedNameExpression
+    name: a
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::a
+      type: A
+    staticType: A
+  operator: .
+  name: a
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@mixin::A::@method::a
+    invokeType: void Function()
+    type: void
+  staticType: void
+V1: MethodInvocation
+  target: SimpleIdentifier
     token: a
     element: <testLibrary>::@function::f::@formalParameter::a
     staticType: A

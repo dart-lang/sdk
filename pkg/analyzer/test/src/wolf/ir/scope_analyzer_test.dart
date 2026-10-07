@@ -108,7 +108,7 @@ class ScopeAnalyzerTest {
         ..release(2)
         ..end(),
     );
-    check(affectedStateVariables(labelToScope['block']!)).isEmpty();
+    check(affectedStateVariables(labelToScope['block']!)).isEmpty;
   }
 
   void test_affectedStateVariables_ignoresVariablesReleasedInsideScope() {
@@ -125,7 +125,7 @@ class ScopeAnalyzerTest {
         ..end()
         ..end(),
     );
-    check(affectedStateVariables(labelToScope['block']!)).isEmpty();
+    check(affectedStateVariables(labelToScope['block']!)).isEmpty;
   }
 
   void test_affectedStateVariables_tracksLocalVariableWrites() {
@@ -216,7 +216,7 @@ class ScopeAnalyzerTest {
         ..end()
         ..end(),
     );
-    check(labelToStateVar['x']!).not((s) => s.equals(labelToStateVar['y']!));
+    check(labelToStateVar['x']!).not(.it()..equals(labelToStateVar['y']!));
   }
 
   void test_allocIndexToStateVar() {
@@ -443,7 +443,7 @@ class ScopeAnalyzerTest {
         ..release(2)
         ..end(),
     );
-    check(labelToStateVar['x']!).not((s) => s.equals(labelToStateVar['y']!));
+    check(labelToStateVar['x']!).not(.it()..equals(labelToStateVar['y']!));
   }
 
   void test_parent() {
@@ -514,7 +514,7 @@ class ScopeAnalyzerTest {
     );
     check(
       affectedStateVariables(labelToScope['block1']!),
-    ).not((s) => s.contains(stateVar));
+    ).not(.it()..contains(stateVar));
     check(affectedStateVariables(labelToScope['block2']!)).contains(stateVar);
   }
 
@@ -543,7 +543,7 @@ class ScopeAnalyzerTest {
     check(
       because: 'make sure all callbacks got invoked',
       _addressToOnAnalyzeCallbacks,
-    ).isEmpty();
+    ).isEmpty;
   }
 }
 

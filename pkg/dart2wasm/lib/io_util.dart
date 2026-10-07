@@ -100,6 +100,11 @@ class CompilerPhaseInputOutputManager {
     writeComponentToText(component, path: path, showMetadata: true);
   }
 
+  Future<void> writeString(String path, String content) {
+    _createDirIfNecessary(path);
+    return File(path).writeAsString(content);
+  }
+
   Future<void> writeWasmModule(Uint8List wasmModule, String moduleName) {
     final wasmFileName = _moduleNameToWasmFile(options.outputFile, moduleName);
     _createDirIfNecessary(wasmFileName);

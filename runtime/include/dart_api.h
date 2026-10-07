@@ -578,7 +578,7 @@ DART_EXPORT const char* Dart_VersionString(void);
  * for each part.
  */
 
-#define DART_FLAGS_CURRENT_VERSION (0x0000000e)
+#define DART_FLAGS_CURRENT_VERSION (0x0000000f)
 
 typedef struct {
   int32_t version;
@@ -587,6 +587,7 @@ typedef struct {
   bool use_osr;
   bool obfuscate;
   bool load_vmservice_library;
+  bool modular_aot_mode;
   bool null_safety;
   bool is_system_isolate;
   bool is_service_isolate;
@@ -2812,7 +2813,7 @@ Dart_AllocateWithNativeFields(Dart_Handle type,
  * 'target' is an object, then this function will invoke an instance
  * method.  If 'target' is a type, then this function will invoke a
  * static method.  If 'target' is a library, then this function will
- * invoke a top-level function from that library.
+ * invoke a top-level function declared in that library (but not re-exported).
  * NOTE: This API call cannot be used to invoke methods of a type object.
  *
  * This function ignores visibility (leading underscores in names).

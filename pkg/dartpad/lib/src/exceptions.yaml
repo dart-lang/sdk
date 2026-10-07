@@ -126,6 +126,9 @@ groups:
     7103:
       name: HotReloadRejected
       description: The hot reload request was rejected by the compiler.
+    7104:
+      name: ModuleLoadingFailed
+      description: A compiled module failed to load in the sandboxed iframe.
     7201:
       name: ExecutionFailed
       description: Error happened when running `main()` from user-code.

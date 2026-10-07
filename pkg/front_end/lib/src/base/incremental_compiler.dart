@@ -48,6 +48,7 @@ import 'package:kernel/kernel.dart'
         Node,
         Nullability,
         PositionalParameter,
+        PositionalParameterList,
         Procedure,
         ProcedureKind,
         Reference,
@@ -56,6 +57,7 @@ import 'package:kernel/kernel.dart'
         Supertype,
         TreeNode,
         TypeParameter,
+        TypeParameterList,
         TypeParameterType,
         Variable,
         Version,
@@ -1522,7 +1524,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Coverage-ignore-block(suite): Not run.
       _previousPackagesUri = c.options.packagesUriRaw;
       bypassCache = true;
-    } else if (this._invalidatedUris.contains(c.options.packagesUri)) {
+    } else if (this._invalidatedUris.contains(c.options.packagesUri) ||
+        this._invalidatedUris.contains(c.options.packagesUriRaw)) {
       bypassCache = true;
     }
     UriTranslator uriTranslator = await c.options.getUriTranslator(
@@ -2265,8 +2268,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         ProcedureKind.Method,
         new FunctionNode(
           new ReturnStatement(compiledExpression),
-          typeParameters: typeDefinitions,
-          positionalParameters: parameters.allPositionalParameters,
+          typeParameters: new TypeParameterList.from(typeDefinitions),
+          positionalParameters: new PositionalParameterList.from(
+            parameters.allPositionalParameters,
+          ),
         ),
         isStatic: isStatic,
         fileUri: debugLibrary.fileUri,
@@ -2687,10 +2692,8 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
     List<Uri> invalidatedImportUris = [];
 
     bool isInvalidated(Uri importUri, Uri? fileUri) {
-      if (invalidatedUris.contains(importUri)) return true;
-      if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
-        return true;
-      }
+      // Check translation of package uris before checking direct invalidation
+      // to ensure proper setting of [invalidatedBecauseOfPackageUpdate].
       if (_hasToCheckPackageUris &&
           // Coverage-ignore(suite): Not run.
           importUri.isScheme("package")) {
@@ -2718,6 +2721,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           }
         }
       }
+
+      if (invalidatedUris.contains(importUri)) return true;
+      if (importUri != fileUri && invalidatedUris.contains(fileUri)) {
+        return true;
+      }
+
       if (builders[importUri]?.isSynthetic ?? false) return true;
       return false;
     }

@@ -11,6 +11,37 @@
 
 namespace dart {
 
+static float IeeeMinF(float a, float b) {
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+  float ab = bit_cast<float>(bit_cast<uint32_t>(a) | bit_cast<uint32_t>(b));
+  if (ab == 0.0f) return ab;
+  return a < b ? a : b;
+}
+static float IeeeMaxF(float a, float b) {
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+  if (a == 0.0f && b == 0.0f) {
+    return bit_cast<float>(bit_cast<uint32_t>(a) & bit_cast<uint32_t>(b));
+  }
+  return a > b ? a : b;
+}
+static double IeeeMinD(double a, double b) {
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+  double ab = bit_cast<double>(bit_cast<uint64_t>(a) | bit_cast<uint64_t>(b));
+  if (ab == 0.0) return ab;
+  return a < b ? a : b;
+}
+static double IeeeMaxD(double a, double b) {
+  if (isnan(a)) return a;
+  if (isnan(b)) return b;
+  if (a == 0.0 && b == 0.0) {
+    return bit_cast<double>(bit_cast<uint64_t>(a) & bit_cast<uint64_t>(b));
+  }
+  return a > b ? a : b;
+}
+
 static void ThrowMaskRangeException(int64_t m) {
   if ((m < 0) || (m > 255)) {
     Exceptions::ThrowRangeError("mask", Integer::Handle(Integer::New(m)), 0,
@@ -282,22 +313,6 @@ DEFINE_NATIVE_ENTRY(Float32x4_getSignMask, 0, 1) {
   return Integer::New(value);
 }
 
-DEFINE_NATIVE_ENTRY(Int32x4_getSignMask, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  uint32_t mx = (self.x() & 0x80000000) >> 31;
-  uint32_t my = (self.y() & 0x80000000) >> 31;
-  uint32_t mz = (self.z() & 0x80000000) >> 31;
-  uint32_t mw = (self.w() & 0x80000000) >> 31;
-  uint32_t value = mx | (my << 1) | (mz << 2) | (mw << 3);
-  return Integer::New(value);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_getAnyTrue, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  bool value = (self.x() | self.y() | self.z() | self.w()) != 0;
-  return Bool::Get(value).ptr();
-}
-
 DEFINE_NATIVE_ENTRY(Float32x4_shuffle, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
@@ -369,20 +384,20 @@ DEFINE_NATIVE_ENTRY(Float32x4_setW, 0, 2) {
 DEFINE_NATIVE_ENTRY(Float32x4_min, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
-  float _x = self.x() < other.x() ? self.x() : other.x();
-  float _y = self.y() < other.y() ? self.y() : other.y();
-  float _z = self.z() < other.z() ? self.z() : other.z();
-  float _w = self.w() < other.w() ? self.w() : other.w();
+  float _x = IeeeMinF(self.x(), other.x());
+  float _y = IeeeMinF(self.y(), other.y());
+  float _z = IeeeMinF(self.z(), other.z());
+  float _w = IeeeMinF(self.w(), other.w());
   return Float32x4::New(_x, _y, _z, _w);
 }
 
 DEFINE_NATIVE_ENTRY(Float32x4_max, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, other, arguments->NativeArgAt(1));
-  float _x = self.x() > other.x() ? self.x() : other.x();
-  float _y = self.y() > other.y() ? self.y() : other.y();
-  float _z = self.z() > other.z() ? self.z() : other.z();
-  float _w = self.w() > other.w() ? self.w() : other.w();
+  float _x = IeeeMaxF(self.x(), other.x());
+  float _y = IeeeMaxF(self.y(), other.y());
+  float _z = IeeeMaxF(self.z(), other.z());
+  float _w = IeeeMaxF(self.w(), other.w());
   return Float32x4::New(_x, _y, _z, _w);
 }
 
@@ -425,100 +440,9 @@ DEFINE_NATIVE_ENTRY(Int32x4_fromInts, 0, 4) {
   return Int32x4::New(_x, _y, _z, _w);
 }
 
-DEFINE_NATIVE_ENTRY(Int32x4_fromBools, 0, 4) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, x, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, y, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, z, arguments->NativeArgAt(2));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, w, arguments->NativeArgAt(3));
-  int32_t _x = x.value() ? 0xFFFFFFFF : 0x0;
-  int32_t _y = y.value() ? 0xFFFFFFFF : 0x0;
-  int32_t _z = z.value() ? 0xFFFFFFFF : 0x0;
-  int32_t _w = w.value() ? 0xFFFFFFFF : 0x0;
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
 DEFINE_NATIVE_ENTRY(Int32x4_fromFloat32x4Bits, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float32x4, v, arguments->NativeArgAt(0));
   return Int32x4::New(v.value());
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_or, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, other, arguments->NativeArgAt(1));
-  int32_t _x = self.x() | other.x();
-  int32_t _y = self.y() | other.y();
-  int32_t _z = self.z() | other.z();
-  int32_t _w = self.w() | other.w();
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_equal, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, other, arguments->NativeArgAt(1));
-  int32_t _x = self.x() == other.x() ? 0xFFFFFFFF : 0;
-  int32_t _y = self.y() == other.y() ? 0xFFFFFFFF : 0;
-  int32_t _z = self.z() == other.z() ? 0xFFFFFFFF : 0;
-  int32_t _w = self.w() == other.w() ? 0xFFFFFFFF : 0;
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_notEqual, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, other, arguments->NativeArgAt(1));
-  int32_t _x = self.x() != other.x() ? 0xFFFFFFFF : 0;
-  int32_t _y = self.y() != other.y() ? 0xFFFFFFFF : 0;
-  int32_t _z = self.z() != other.z() ? 0xFFFFFFFF : 0;
-  int32_t _w = self.w() != other.w() ? 0xFFFFFFFF : 0;
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_and, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, other, arguments->NativeArgAt(1));
-  int32_t _x = self.x() & other.x();
-  int32_t _y = self.y() & other.y();
-  int32_t _z = self.z() & other.z();
-  int32_t _w = self.w() & other.w();
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_not, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  int32_t _x = ~self.x();
-  int32_t _y = ~self.y();
-  int32_t _z = ~self.z();
-  int32_t _w = ~self.w();
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_xor, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, other, arguments->NativeArgAt(1));
-  int32_t _x = self.x() ^ other.x();
-  int32_t _y = self.y() ^ other.y();
-  int32_t _z = self.z() ^ other.z();
-  int32_t _w = self.w() ^ other.w();
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_add, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, other, arguments->NativeArgAt(1));
-  int32_t _x = self.x() + other.x();
-  int32_t _y = self.y() + other.y();
-  int32_t _z = self.z() + other.z();
-  int32_t _w = self.w() + other.w();
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_sub, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, other, arguments->NativeArgAt(1));
-  int32_t _x = self.x() - other.x();
-  int32_t _y = self.y() - other.y();
-  int32_t _z = self.z() - other.z();
-  int32_t _w = self.w() - other.w();
-  return Int32x4::New(_x, _y, _z, _w);
 }
 
 DEFINE_NATIVE_ENTRY(Int32x4_getX, 0, 1) {
@@ -543,142 +467,6 @@ DEFINE_NATIVE_ENTRY(Int32x4_getW, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
   int32_t value = self.w();
   return Integer::New(value);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_shuffle, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(1));
-  int64_t m = mask.Value();
-  ThrowMaskRangeException(m);
-  int32_t data[4] = {self.x(), self.y(), self.z(), self.w()};
-  int32_t _x = data[m & 0x3];
-  int32_t _y = data[(m >> 2) & 0x3];
-  int32_t _z = data[(m >> 4) & 0x3];
-  int32_t _w = data[(m >> 6) & 0x3];
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_shuffleMix, 0, 3) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, zw, arguments->NativeArgAt(1));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, mask, arguments->NativeArgAt(2));
-  int64_t m = mask.Value();
-  ThrowMaskRangeException(m);
-  int32_t data[4] = {self.x(), self.y(), self.z(), self.w()};
-  int32_t zw_data[4] = {zw.x(), zw.y(), zw.z(), zw.w()};
-  int32_t _x = data[m & 0x3];
-  int32_t _y = data[(m >> 2) & 0x3];
-  int32_t _z = zw_data[(m >> 4) & 0x3];
-  int32_t _w = zw_data[(m >> 6) & 0x3];
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_setX, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, x, arguments->NativeArgAt(1));
-  int32_t _x = static_cast<int32_t>(x.Value() & 0xFFFFFFFF);
-  int32_t _y = self.y();
-  int32_t _z = self.z();
-  int32_t _w = self.w();
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_setY, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, y, arguments->NativeArgAt(1));
-  int32_t _x = self.x();
-  int32_t _y = static_cast<int32_t>(y.Value() & 0xFFFFFFFF);
-  int32_t _z = self.z();
-  int32_t _w = self.w();
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_setZ, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, z, arguments->NativeArgAt(1));
-  int32_t _x = self.x();
-  int32_t _y = self.y();
-  int32_t _z = static_cast<int32_t>(z.Value() & 0xFFFFFFFF);
-  int32_t _w = self.w();
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_setW, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Integer, w, arguments->NativeArgAt(1));
-  int32_t _x = self.x();
-  int32_t _y = self.y();
-  int32_t _z = self.z();
-  int32_t _w = static_cast<int32_t>(w.Value() & 0xFFFFFFFF);
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_getFlagX, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  int32_t value = self.x();
-  return Bool::Get(value != 0).ptr();
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_getFlagY, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  int32_t value = self.y();
-  return Bool::Get(value != 0).ptr();
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_getFlagZ, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  int32_t value = self.z();
-  return Bool::Get(value != 0).ptr();
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_getFlagW, 0, 1) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  int32_t value = self.w();
-  return Bool::Get(value != 0).ptr();
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_setFlagX, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, flagX, arguments->NativeArgAt(1));
-  int32_t _x = self.x();
-  int32_t _y = self.y();
-  int32_t _z = self.z();
-  int32_t _w = self.w();
-  _x = flagX.ptr() == Bool::True().ptr() ? 0xFFFFFFFF : 0x0;
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_setFlagY, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, flagY, arguments->NativeArgAt(1));
-  int32_t _x = self.x();
-  int32_t _y = self.y();
-  int32_t _z = self.z();
-  int32_t _w = self.w();
-  _y = flagY.ptr() == Bool::True().ptr() ? 0xFFFFFFFF : 0x0;
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_setFlagZ, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, flagZ, arguments->NativeArgAt(1));
-  int32_t _x = self.x();
-  int32_t _y = self.y();
-  int32_t _z = self.z();
-  int32_t _w = self.w();
-  _z = flagZ.ptr() == Bool::True().ptr() ? 0xFFFFFFFF : 0x0;
-  return Int32x4::New(_x, _y, _z, _w);
-}
-
-DEFINE_NATIVE_ENTRY(Int32x4_setFlagW, 0, 2) {
-  GET_NON_NULL_NATIVE_ARGUMENT(Int32x4, self, arguments->NativeArgAt(0));
-  GET_NON_NULL_NATIVE_ARGUMENT(Bool, flagW, arguments->NativeArgAt(1));
-  int32_t _x = self.x();
-  int32_t _y = self.y();
-  int32_t _z = self.z();
-  int32_t _w = self.w();
-  _w = flagW.ptr() == Bool::True().ptr() ? 0xFFFFFFFF : 0x0;
-  return Int32x4::New(_x, _y, _z, _w);
 }
 
 // Used to convert between int32_t and float32 without breaking strict
@@ -879,16 +667,16 @@ DEFINE_NATIVE_ENTRY(Float64x2_setY, 0, 2) {
 DEFINE_NATIVE_ENTRY(Float64x2_min, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
-  double _x = self.x() < other.x() ? self.x() : other.x();
-  double _y = self.y() < other.y() ? self.y() : other.y();
+  double _x = IeeeMinD(self.x(), other.x());
+  double _y = IeeeMinD(self.y(), other.y());
   return Float64x2::New(_x, _y);
 }
 
 DEFINE_NATIVE_ENTRY(Float64x2_max, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, self, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Float64x2, other, arguments->NativeArgAt(1));
-  double _x = self.x() > other.x() ? self.x() : other.x();
-  double _y = self.y() > other.y() ? self.y() : other.y();
+  double _x = IeeeMaxD(self.x(), other.x());
+  double _y = IeeeMaxD(self.y(), other.y());
   return Float64x2::New(_x, _y);
 }
 

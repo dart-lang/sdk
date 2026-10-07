@@ -427,6 +427,10 @@ intptr_t BaseMarshaller::DefinitionIndex(intptr_t def_index_in_arg,
   }
 }
 
+intptr_t BaseMarshaller::StackTopInBytes() const {
+  return native_calling_convention_.StackTopInBytes();
+}
+
 static Representation SelectRepresentationInIL(Zone* zone,
                                                const NativeLocation& location) {
   if (location.container_type().IsInt() && location.payload_type().IsFloat()) {

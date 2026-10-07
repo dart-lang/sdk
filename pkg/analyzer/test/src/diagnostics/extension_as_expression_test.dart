@@ -33,10 +33,7 @@ ImportPrefixedNameExpression
     element: <testLibraryFragment>::@prefix::p
   name: E
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-      candidate: package:test/a.dart::@extension::E
-    recovery: <null>
+    recoveryElement: package:test/a.dart::@extension::E
   staticType: InvalidType
 V1: PrefixedIdentifier
   prefix: SimpleIdentifier
@@ -65,10 +62,7 @@ var v = E;
 UnqualifiedNameExpression
   name: E
   resolution: InvalidNamedReadResolution
-    type: InvalidType
-    candidates
-      candidate: <testLibrary>::@extension::E
-    recovery: <null>
+    recoveryElement: <testLibrary>::@extension::E
   staticType: InvalidType
 V1: SimpleIdentifier
   token: E

@@ -45,7 +45,7 @@ class _CheckResult {
 /// Implements the `vm:deeply-immutable` semantics.
 class DeeplyImmutableValidator {
   late final InstanceConstant vmDeeplyImmutableConstant =
-      InstanceConstant(coreTypes.pragmaClass.reference, [], {
+      InstanceConstant(coreTypes.pragmaClass.reference, DartTypeList.empty, {
         coreTypes.pragmaName.fieldReference: StringConstant(
           vmDeeplyImmutablePragmaName,
         ),
@@ -239,6 +239,9 @@ class DeeplyImmutableValidator {
         isImmutable: _isDeeplyImmutableClass(classNode),
         requiresRuntimeCheck: false,
       );
+    }
+    if (dartType is ExtensionType) {
+      return _isDeeplyImmutableDartType(dartType.extensionTypeErasure);
     }
     if (dartType is TypeParameterType) {
       return _isDeeplyImmutableDartType(dartType.bound);

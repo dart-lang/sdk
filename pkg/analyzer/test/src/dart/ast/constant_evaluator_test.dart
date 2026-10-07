@@ -5,6 +5,7 @@
 // ignore_for_file: deprecated_member_use_from_same_package
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 import 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -14,6 +15,7 @@ import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
+    // ignore: analyzer_to_be_deprecated_use
     defineReflectiveTests(ConstantEvaluatorTest);
     defineReflectiveTests(ConstantEvaluator2Test);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -32,6 +34,7 @@ class ConstantEvaluator2Test extends _ConstantEvaluatorTestBase {
 }
 
 @reflectiveTest
+@ToBeDeprecated('Use ConstantEvaluator2Test instead.')
 class ConstantEvaluatorTest extends _ConstantEvaluatorTestBase {
   @override
   Object get notAConstant => ConstantEvaluator.NOT_A_CONSTANT;
@@ -317,6 +320,11 @@ abstract class _ConstantEvaluatorTestBase extends ParserDiagnosticsTest {
     expect(value[2], "c");
   }
 
+  void test_literal_list_binaryOperation() {
+    var value = _getConstantValue("[1 + 2]") as List<Object>;
+    expect(value, [3]);
+  }
+
   void test_literal_map() {
     var value =
         _getConstantValue("{'a' : 'm', 'b' : 'n', 'c' : 'o'}")
@@ -325,6 +333,11 @@ abstract class _ConstantEvaluatorTestBase extends ParserDiagnosticsTest {
     expect(value["a"], "m");
     expect(value["b"], "n");
     expect(value["c"], "o");
+  }
+
+  void test_literal_map_binaryOperation() {
+    var value = _getConstantValue("{'a' + 'b' : 1 + 2}") as Map<Object, Object>;
+    expect(value, {'ab': 3});
   }
 
   void test_literal_null() {
@@ -365,6 +378,11 @@ abstract class _ConstantEvaluatorTestBase extends ParserDiagnosticsTest {
   void test_parenthesizedExpression() {
     var value = _getConstantValue("('a')");
     expect(value, "a");
+  }
+
+  void test_parenthesizedExpression_binaryOperation() {
+    var value = _getConstantValue("((1 + 2))");
+    expect(value, 3);
   }
 
   void test_unary_bitNot() {

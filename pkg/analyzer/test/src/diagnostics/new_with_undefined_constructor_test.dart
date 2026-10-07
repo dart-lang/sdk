@@ -43,6 +43,21 @@ f() {
   A.new();
 //  ^^^
 // [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+// [diag.newWithUndefinedConstructor] The class 'A' doesn't have a constructor named 'new'.
+}
+''');
+  }
+
+  test_unnamedViaNew_explicitNew() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named() {}
+}
+f() {
+  new A.new();
+//      ^^^
+// [diag.experimentNotEnabled] This requires the 'constructor-tearoffs' language feature to be enabled.
+// [diag.newWithUndefinedConstructor] The class 'A' doesn't have a constructor named 'new'.
 }
 ''');
   }
@@ -167,6 +182,61 @@ f() {
   new lib1.A.name();
 //           ^^^^
 // [diag.newWithUndefinedConstructor] The class 'lib1.A' doesn't have a constructor named 'name'.
+}
+''');
+  }
+
+  test_named_synthetic() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named();
+}
+f() {
+  new A.();
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_named_synthetic_hasUnnamed() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A();
+}
+f() {
+  new A.();
+//      ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_named_synthetic_noKeyword() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  A.named();
+}
+f() {
+  A.();
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
+}
+''');
+  }
+
+  test_named_synthetic_noKeyword_prefixed() async {
+    newFile('$testPackageLibPath/lib1.dart', '''
+class A {
+  A.named();
+}
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'lib1.dart' as lib1;
+f() {
+  lib1.A.();
+//       ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 ''');
   }

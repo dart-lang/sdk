@@ -23,29 +23,31 @@ class CallbackSpecializer {
     int requiredParameterCount, {
     required bool boxExternRef,
   }) {
-    List<Expression> callbackArguments = [];
-    for (int i = 0; i < requiredParameterCount; i++) {
-      DartType callbackParameterType =
-          instantiatedFunctionType.positionalParameters[i];
-      Expression expression;
-      VariableGet v = VariableGet(positionalParameters[i]);
-      if (_util.isJSValueType(callbackParameterType) && boxExternRef) {
-        expression = _createJSValue(v);
-        final nullability =
-            callbackParameterType.extensionTypeErasure.nullability;
-        // Null-check if we can tell the nullability. If we can't, the cast
-        // closure handles the cast.
-        if (nullability == Nullability.nonNullable) {
-          expression = NullCheck(expression);
+    ExpressionList callbackArguments = ExpressionList.generate(
+      requiredParameterCount,
+      (int i) {
+        DartType callbackParameterType =
+            instantiatedFunctionType.positionalParameters[i];
+        Expression expression;
+        VariableGet v = VariableGet(positionalParameters[i]);
+        if (_util.isJSValueType(callbackParameterType) && boxExternRef) {
+          expression = _createJSValue(v);
+          final nullability =
+              callbackParameterType.extensionTypeErasure.nullability;
+          // Null-check if we can tell the nullability. If we can't, the cast
+          // closure handles the cast.
+          if (nullability == Nullability.nonNullable) {
+            expression = NullCheck(expression);
+          }
+        } else {
+          expression = _util.convertAndCast(
+            callbackParameterType,
+            invokeOneArg(_util.dartifyRawTarget, v),
+          );
         }
-      } else {
-        expression = _util.convertAndCast(
-          callbackParameterType,
-          invokeOneArg(_util.dartifyRawTarget, v),
-        );
-      }
-      callbackArguments.add(expression);
-    }
+        return expression;
+      },
+    );
 
     final callExpr = FunctionInvocation(
       FunctionAccessKind.FunctionType,
@@ -140,7 +142,7 @@ class CallbackSpecializer {
         InstanceAccessKind.Instance,
         VariableGet(argumentsLengthWasmI32),
         Name('toIntSigned'),
-        Arguments([]),
+        Arguments.empty(),
         interfaceTarget: _util.wasmI32ToIntSigned,
         functionType: _util.wasmI32ToIntSigned.computeSignatureOrFunctionType(),
       ),
@@ -157,13 +159,13 @@ class CallbackSpecializer {
       initializer: StaticInvocation(
         _util.unsafeCastOpaqueTarget,
         Arguments(
-          [
+          ExpressionList(
             StaticInvocation(
               _util.wasmInternalizeNonNullable,
-              Arguments([VariableGet(callbackVariable)]),
+              Arguments(ExpressionList(VariableGet(callbackVariable))),
             ),
-          ],
-          types: [instantiatedFunctionType],
+          ),
+          types: DartTypeList(instantiatedFunctionType),
         ),
       ),
       isSynthesized: false,
@@ -187,7 +189,7 @@ class CallbackSpecializer {
             FunctionInvocation(
               FunctionAccessKind.FunctionType,
               VariableGet(castClosure),
-              Arguments(castClosureArguments),
+              Arguments(ExpressionList.from(castClosureArguments)),
               functionType: null,
             ),
           ),
@@ -244,14 +246,16 @@ class CallbackSpecializer {
     body.add(
       ExpressionStatement(
         Throw(
-          StringConcatenation([
-            StringLiteral(
-              'Too few arguments passed. '
-              'Expected ${function.requiredParameterCount} or more, got ',
+          StringConcatenation(
+            ExpressionList(
+              StringLiteral(
+                'Too few arguments passed. '
+                'Expected ${function.requiredParameterCount} or more, got ',
+              ),
+              VariableGet(argumentsLength),
+              StringLiteral(' instead.'),
             ),
-            VariableGet(argumentsLength),
-            StringLiteral(' instead.'),
-          ]),
+          ),
         ),
       ),
     );
@@ -267,12 +271,12 @@ class CallbackSpecializer {
       node.fileUri,
       FunctionNode(
         functionTrampolineBody,
-        positionalParameters: [
+        positionalParameters: PositionalParameterList.from([
           callbackVariable,
           argumentsLengthWasmI32,
           if (castClosureArguments.isNotEmpty) castClosure,
           ...positionalParameters,
-        ],
+        ]),
         returnType: _util.nullableWasmExternRefType,
       )..fileOffset = node.fileOffset,
       isExternal: false,
@@ -323,7 +327,7 @@ class CallbackSpecializer {
       node.fileUri,
       FunctionNode(
         null,
-        positionalParameters: [
+        positionalParameters: PositionalParameterList(
           PositionalParameter(
             parameterName: 'wasmFunction',
             type: _util.nonNullableWasmFuncRefType,
@@ -334,13 +338,14 @@ class CallbackSpecializer {
             type: _util.nonNullableWasmExternRefType,
             isSynthesized: true,
           ),
-          if (needsCastClosure)
-            PositionalParameter(
-              parameterName: 'castClosure',
-              type: _util.nonNullableWasmExternRefType,
-              isSynthesized: true,
-            ),
-        ],
+          needsCastClosure
+              ? PositionalParameter(
+                  parameterName: 'castClosure',
+                  type: _util.nonNullableWasmExternRefType,
+                  isSynthesized: true,
+                )
+              : null,
+        ),
         returnType: _util.nonNullableWasmExternRefType,
       ),
       isExternal: true,
@@ -355,8 +360,10 @@ class CallbackSpecializer {
     return (dartProcedure, functionTrampoline);
   }
 
-  Expression _createJSValue(Expression value) =>
-      StaticInvocation(_util.jsValueBoxTarget, Arguments([value]));
+  Expression _createJSValue(Expression value) => StaticInvocation(
+    _util.jsValueBoxTarget,
+    Arguments(ExpressionList(value)),
+  );
 
   /// Whether a closure is needed to capture [type] so that the arguments to the
   /// callback can be casted to that [type].
@@ -401,7 +408,9 @@ class CallbackSpecializer {
         : FunctionExpression(
             FunctionNode(
               Block(casts),
-              positionalParameters: castClosureParameters,
+              positionalParameters: PositionalParameterList.from(
+                castClosureParameters,
+              ),
               returnType: VoidType(),
             ),
           );
@@ -435,28 +444,33 @@ class CallbackSpecializer {
     return _createJSValue(
       StaticInvocation(
         jsWrapperFunction,
-        Arguments([
-          StaticInvocation(
-            _util.wasmFunctionFromFunction,
-            Arguments(
-              [ConstantExpression(StaticTearOffConstant(exportedFunction))],
-              types: [
-                exportedFunction.function.computeFunctionType(
-                  Nullability.nonNullable,
+        Arguments(
+          ExpressionList(
+            StaticInvocation(
+              _util.wasmFunctionFromFunction,
+              Arguments(
+                ExpressionList(
+                  ConstantExpression(StaticTearOffConstant(exportedFunction)),
                 ),
-              ],
+                types: DartTypeList(
+                  exportedFunction.function.computeFunctionType(
+                    Nullability.nonNullable,
+                  ),
+                ),
+              ),
             ),
-          ),
-          StaticInvocation(
-            _util.jsObjectFromDartObjectTarget,
-            Arguments([argument]),
-          ),
-          if (castClosure != null)
             StaticInvocation(
               _util.jsObjectFromDartObjectTarget,
-              Arguments([castClosure]),
+              Arguments(ExpressionList(argument)),
             ),
-        ]),
+            castClosure != null
+                ? StaticInvocation(
+                    _util.jsObjectFromDartObjectTarget,
+                    Arguments(ExpressionList(castClosure)),
+                  )
+                : null,
+          ),
+        ),
       ),
     );
   }

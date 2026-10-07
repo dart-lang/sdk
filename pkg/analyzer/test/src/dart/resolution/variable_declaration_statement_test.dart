@@ -39,12 +39,16 @@ VariableDeclarationStatement
       VariableDeclaration
         name: a
         equals: =
-        initializer2: SuperExpression
+        initializer2: InvalidSuperExpression
+          superReference: SuperReference
+            superKeyword: super
+          staticType: InvalidType
+        initializer(v1): SuperExpression
           superKeyword: super
           staticType: A
         declaredFragment: isFinal isPublic a@33
           element: hasImplicitType isFinal isPublic
-            type: A
+            type: InvalidType
   semicolon: ;
 ''');
   }

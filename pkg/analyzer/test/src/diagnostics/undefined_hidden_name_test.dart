@@ -35,4 +35,90 @@ import 'lib1.dart' hide a;
 // [diag.undefinedHiddenName] The library 'package:test/lib1.dart' doesn't export a member with the hidden name 'a'.
 ''');
   }
+
+  test_part_export() async {
+    newFile('$testPackageLibPath/lib1.dart', '');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+export 'lib1.dart' hide a;
+//                      ^
+// [diag.undefinedHiddenName] The library 'package:test/lib1.dart' doesn't export a member with the hidden name 'a'.
+''',
+    });
+  }
+
+  test_part_import() async {
+    newFile('$testPackageLibPath/lib1.dart', '');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'lib1.dart' hide a;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'lib1.dart'.
+//                      ^
+// [diag.undefinedHiddenName] The library 'package:test/lib1.dart' doesn't export a member with the hidden name 'a'.
+''',
+    });
+  }
+
+  test_part_nested_export() async {
+    newFile('$testPackageLibPath/lib1.dart', '');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+export 'lib1.dart' hide a;
+//                      ^
+// [diag.undefinedHiddenName] The library 'package:test/lib1.dart' doesn't export a member with the hidden name 'a'.
+''',
+    });
+  }
+
+  test_part_nested_import() async {
+    newFile('$testPackageLibPath/lib1.dart', '');
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+    var c = getFile('$testPackageLibPath/c.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+part 'c.dart';
+''',
+      c: r'''
+part of 'b.dart';
+import 'lib1.dart' hide a;
+//     ^^^^^^^^^^^
+// [diag.unusedImport] Unused import: 'lib1.dart'.
+//                      ^
+// [diag.undefinedHiddenName] The library 'package:test/lib1.dart' doesn't export a member with the hidden name 'a'.
+''',
+    });
+  }
 }

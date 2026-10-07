@@ -113,8 +113,8 @@ class ByteStreamServerChannelTest {
   /// Stream of lines sent back to the client by the channel.
   late Stream<String> outputLineStream;
 
-  /// Stream of requests received from the channel via [listen()].
-  late Stream<RequestOrResponse> requestStream;
+  /// Stream of messages received from the channel via [listen()].
+  late Stream<ClientMessage> requestStream;
 
   /// Stream of errors received from the channel via [listen()].
   late Stream<Object?> errorStream;
@@ -136,15 +136,15 @@ class ByteStreamServerChannelTest {
       InstrumentationService.NULL_SERVICE,
       SessionLogger(),
     );
-    var requestStreamController = StreamController<RequestOrResponse>();
+    var requestStreamController = StreamController<ClientMessage>();
     requestStream = requestStreamController.stream;
     var errorStreamController = StreamController<Object?>();
     errorStream = errorStreamController.stream;
     var doneCompleter = Completer();
     doneFuture = doneCompleter.future;
     channel.requests.listen(
-      (RequestOrResponse requestOrResponse) {
-        requestStreamController.add(requestOrResponse);
+      (ClientMessage message) {
+        requestStreamController.add(message);
       },
       onError: (error) {
         errorStreamController.add(error);
@@ -204,17 +204,31 @@ class ByteStreamServerChannelTest {
         });
   }
 
+  Future<void> test_listen_wellFormedNotification() {
+    inputSink.writeln('{"event":"lsp.notification","params":{"a":"b"}}');
+    return inputSink
+        .flush()
+        .then((_) => requestStream.first.timeout(Duration(seconds: 1)))
+        .then((ClientMessage message) {
+          if (message is! Notification) {
+            fail('Expected a Notification');
+          }
+          expect(message.event, equals('lsp.notification'));
+          expect(message.params, equals({'a': 'b'}));
+        });
+  }
+
   Future<void> test_listen_wellFormedRequest() {
     inputSink.writeln('{"id":"0","method":"server.version"}');
     return inputSink
         .flush()
         .then((_) => requestStream.first.timeout(Duration(seconds: 1)))
-        .then((RequestOrResponse requestOrResponse) {
-          if (requestOrResponse is! Request) {
+        .then((ClientMessage message) {
+          if (message is! Request) {
             fail('Expected a Request');
           }
-          expect(requestOrResponse.id, equals('0'));
-          expect(requestOrResponse.method, equals('server.version'));
+          expect(message.id, equals('0'));
+          expect(message.method, equals('server.version'));
         });
   }
 

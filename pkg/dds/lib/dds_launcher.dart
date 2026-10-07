@@ -127,31 +127,43 @@ class DartDevelopmentServiceLauncher {
       onError: (_) => exitCompleter.complete(),
     );
     final completer = Completer<DartDevelopmentServiceLauncher>();
+    final stderrBuffer = StringBuffer();
     late StreamSubscription<Object?> stderrSub;
     stderrSub = process.stderr
         .transform(utf8.decoder)
-        .transform(json.decoder)
-        .listen((Object? result) {
+        .transform(const LineSplitter())
+        .listen((String line) {
+      if (line.isEmpty) return;
+      stderrBuffer.writeln(line);
+      Object? result;
+      try {
+        result = json.decode(line);
+      } on FormatException {
+        // Not a JSON message (e.g. process error or startup log).
+        return;
+      }
       if (result
           case {
             'state': 'started',
             'ddsUri': final String ddsUriStr,
           }) {
         final ddsUri = Uri.parse(ddsUriStr);
-        final devToolsUriStr = result['devToolsUri'] as String?;
-        final devToolsUri =
-            devToolsUriStr == null ? null : Uri.parse(devToolsUriStr);
-        final dtdUriStr =
-            (result['dtd'] as Map<String, Object?>?)?['uri'] as String?;
-        final dtdUri = dtdUriStr == null ? null : Uri.parse(dtdUriStr);
+        final devToolsUri = switch (result['devToolsUri']) {
+          final String s => Uri.parse(s),
+          _ => null,
+        };
+        final dtdUri = switch (result['dtd']) {
+          {'uri': final String s} => Uri.parse(s),
+          _ => null,
+        };
 
         final launcher = DartDevelopmentServiceLauncher._(
-          process: process,
-          uri: ddsUri,
+          appName: appName,
           devToolsUri: devToolsUri,
           dtdUri: dtdUri,
-          appName: appName,
           exitCompleter: exitCompleter,
+          process: process,
+          uri: ddsUri,
         );
         completer.complete(launcher);
       } else if (result
@@ -159,7 +171,7 @@ class DartDevelopmentServiceLauncher {
             'state': 'error',
             'error': final String error,
           }) {
-        final Map<String, Object?>? exceptionDetails =
+        final exceptionDetails =
             result['ddsExceptionDetails'] as Map<String, Object?>?;
         completer.completeError(
           exceptionDetails != null
@@ -173,12 +185,26 @@ class DartDevelopmentServiceLauncher {
       stderrSub.onData((_) {});
     }, onError: (Object error, StackTrace stackTrace) {
       if (!completer.isCompleted) {
+        final errorDetails = stderrBuffer.toString().trim();
         completer.completeError(
-          DartDevelopmentServiceException.failedToStart(),
+          DartDevelopmentServiceException.failedToStart(
+            errorDetails.isNotEmpty ? errorDetails : error.toString(),
+          ),
           stackTrace,
         );
       }
       stderrSub.cancel();
+    }, onDone: () {
+      if (!completer.isCompleted) {
+        final errorDetails = stderrBuffer.toString().trim();
+        completer.completeError(
+          DartDevelopmentServiceException.failedToStart(
+            errorDetails.isNotEmpty
+                ? 'Process terminated without starting: $errorDetails'
+                : null,
+          ),
+        );
+      }
     });
     return completer.future;
   }
@@ -223,37 +249,30 @@ class DartDevelopmentServiceLauncher {
   /// DDS instance via a [WebSocket].
   Uri get wsUri => _toWebSocket(uri)!;
 
-  List<String> _cleanupPathSegments(Uri uri) {
-    final pathSegments = <String>[];
-    if (uri.pathSegments.isNotEmpty) {
-      pathSegments.addAll(
-        uri.pathSegments.where(
-          // Strip out the empty string that appears at the end of path segments.
-          // Empty string elements will result in an extra '/' being added to the
-          // URI.
-          (s) => s.isNotEmpty,
-        ),
-      );
-    }
-    return pathSegments;
-  }
+  List<String> _cleanupPathSegments(Uri uri) => <String>[
+        for (final s in uri.pathSegments)
+          if (s.isNotEmpty) s,
+      ];
 
   Uri? _toWebSocket(Uri? uri) {
-    if (uri == null) {
-      return null;
-    }
-    final pathSegments = _cleanupPathSegments(uri);
-    pathSegments.add('ws');
-    return uri.replace(scheme: 'ws', pathSegments: pathSegments);
+    if (uri == null) return null;
+    final isSecure = uri.isScheme('https') || uri.isScheme('wss');
+    return uri.replace(
+      scheme: isSecure ? 'wss' : 'ws',
+      pathSegments: <String>[..._cleanupPathSegments(uri), 'ws'],
+    );
   }
 
   Uri? _toSse(Uri? uri) {
-    if (uri == null) {
-      return null;
-    }
-    final pathSegments = _cleanupPathSegments(uri);
-    pathSegments.add(DartDevelopmentServiceImpl.kSseHandlerPath);
-    return uri.replace(scheme: 'sse', pathSegments: pathSegments);
+    if (uri == null) return null;
+    final isSecure = uri.isScheme('https') || uri.isScheme('sses');
+    return uri.replace(
+      scheme: isSecure ? 'sses' : 'sse',
+      pathSegments: <String>[
+        ..._cleanupPathSegments(uri),
+        DartDevelopmentServiceImpl.kSseHandlerPath,
+      ],
+    );
   }
 
   /// Completes when the DDS instance has shutdown.

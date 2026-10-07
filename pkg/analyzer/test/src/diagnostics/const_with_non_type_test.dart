@@ -14,6 +14,25 @@ main() {
 
 @reflectiveTest
 class ConstWithNonTypeTest extends PubPackageResolutionTest {
+  test_annotation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+@Unresolved()
+// [diag.constWithNonType][column 2][length 10] The name 'Unresolved' isn't a class.
+void f() {}
+''');
+  }
+
+  test_annotation_importPrefix() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'dart:math' as p;
+
+@p.A(0)
+// ^
+// [diag.constWithNonType] The name 'A' isn't a class.
+void f() {}
+''');
+  }
+
   test_fromLibrary() async {
     newFile('$testPackageLibPath/lib1.dart', '');
     await resolveTestCodeWithDiagnostics(r'''

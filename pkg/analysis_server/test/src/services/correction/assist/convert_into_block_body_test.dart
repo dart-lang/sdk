@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIntoBlockBodyTest extends AssistProcessorTest {
+class ConvertIntoBlockBodyTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertIntoBlockBody;
 
@@ -71,6 +71,44 @@ void f() {
     assertExitPosition(after: "');");
   }
 
+  Future<void> test_comments() async {
+    await resolveTestCode('''
+Future<int> foo(int i) // c1
+  /* c2 */ /* c3 */ // c4
+  async /* c5 */ =>^
+  // c6
+  await /* c7 */ i /* c8 */ // c9
+  ;
+''');
+    await assertHasAssist('''
+Future<int> foo(int i) // c1
+  /* c2 */ /* c3 */ // c4
+  async /* c5 */ {
+  // c6
+  return await /* c7 */ i;
+  /* c8 */ // c9
+}
+''');
+  }
+
+  Future<void> test_comments_nested() async {
+    await resolveTestCode('''
+class C {
+  int foo() =>^
+    // c1
+    1;
+}
+''');
+    await assertHasAssist('''
+class C {
+  int foo() {
+    // c1
+    return 1;
+  }
+}
+''');
+  }
+
   Future<void> test_container_class() async {
     await resolveTestCode('''
 class C^;
@@ -83,6 +121,13 @@ class C {}
   Future<void> test_container_class_block() async {
     await resolveTestCode('''
 class C ^{}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_container_class_block_onKeyword() async {
+    await resolveTestCode('''
+^class C {}
 ''');
     await assertNoAssist();
   }
@@ -157,6 +202,71 @@ mixin M ^{}
     await assertNoAssist();
   }
 
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+abstract class A {
+  int f()^;
+}
+''');
+    await assertHasAssist('''
+abstract class A {
+  int f() {
+    // TODO: implement f
+    throw UnimplementedError();
+  }
+}
+''');
+  }
+
+  Future<void> test_emptyBody_blockComment() async {
+    await resolveTestCode('''
+abstract class A {
+  void f() /* Comment. */
+  ;^
+}
+''');
+    await assertHasAssist('''
+abstract class A {
+  void f() {
+    // TODO: implement f
+    /* Comment. */
+  }
+}
+''');
+  }
+
+  Future<void> test_emptyBody_inlineComment() async {
+    await resolveTestCode('''
+abstract class A {
+  void f() // Comment.
+  ;^
+}
+''');
+    await assertHasAssist('''
+abstract class A {
+  void f() {
+    // TODO: implement f
+    // Comment.
+  }
+}
+''');
+  }
+
+  Future<void> test_emptyBody_void() async {
+    await resolveTestCode('''
+abstract class A {
+  void f()^;
+}
+''');
+    await assertHasAssist('''
+abstract class A {
+  void f() {
+    // TODO: implement f
+  }
+}
+''');
+  }
+
   Future<void> test_inBodyConstructor() async {
     await resolveTestCode('''
 class C {
@@ -205,6 +315,17 @@ var ^v = 123;
     await assertNoAssist();
   }
 
+  Future<void> test_noSpaceBeforeArrow() async {
+    await resolveTestCode('''
+int foo()^=>1;
+''');
+    await assertHasAssist('''
+int foo() {
+  return 1;
+}
+''');
+  }
+
   Future<void> test_notExpressionBlock() async {
     await resolveTestCode('''
 ^fff() {
@@ -247,7 +368,7 @@ class C() {
     await assertHasAssist('''
 class C() {
   this : x = 2 {
-    // TODO: implement C
+    // TODO: implement C.new
     throw UnimplementedError();
   }
 

@@ -75,7 +75,7 @@ class _AsyncRun {
   }
 }
 
-typedef void _ScheduleImmediateClosure(void callback());
+typedef _ScheduleImmediateClosure = void Function(void Function() callback);
 
 class _ScheduleImmediate {
   static _ScheduleImmediateClosure? _closure;

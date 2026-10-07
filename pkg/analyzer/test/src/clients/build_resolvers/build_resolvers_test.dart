@@ -66,7 +66,7 @@ class A {}
 
     var unitResult = await analysisSession.getResolvedUnit(a.path);
     unitResult as ResolvedUnitResult;
-    expect(unitResult.unit.declarations, hasLength(1));
+    expect(unitResult.unit.declarations2, hasLength(1));
   }
 
   test_sdkLibraryUris() async {

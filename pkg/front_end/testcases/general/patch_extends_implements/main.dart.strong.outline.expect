@@ -10,12 +10,6 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/general/patch_extends_implements/patch_lib.dart:44:23: Error: The constructor function type 'Class5bImpl Function()' isn't a subtype of 'Class5b Function()'.
-//  - 'Class5bImpl' is from 'dart:test'.
-//  - 'Class5b' is from 'dart:test'.
-//   factory Class5b() = Class5bImpl;
-//                       ^
-//
 // pkg/front_end/testcases/general/patch_extends_implements/patch_lib.dart:53:23: Error: The constructor function type 'Class5cImpl Function()' isn't a subtype of 'Class5c Function()'.
 //  - 'Class5cImpl' is from 'dart:test'.
 //  - 'Class5c' is from 'dart:test'.
@@ -66,7 +60,7 @@ class Class2a extends self2::SuperClass {
     ;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
-class Class2b extends core::Object {
+class Class2b extends self2::SuperClass {
   synthetic constructor •() → self2::Class2b
     ;
 }
@@ -76,7 +70,7 @@ class Class3a extends core::Object implements self2::Interface {
     ;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
-class Class3b extends core::Object {
+class Class3b extends core::Object implements self2::Interface {
   synthetic constructor •() → self2::Class3b
     ;
 }
@@ -86,7 +80,7 @@ class Class4a extends self2::_Class4a&Object&Mixin {
     ;
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
-class Class4b extends core::Object {
+class Class4b extends self2::_Class4b&Object&Mixin {
   synthetic constructor •() → self2::Class4b
     ;
 }
@@ -104,15 +98,11 @@ class Class5aImpl extends core::Object implements self2::Class5a {
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
 class Class5b extends core::Object {
   @_in::patch
-  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •() → self2::Class5b
-    return invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/patch_lib.dart:44:23: Error: The constructor function type 'Class5bImpl Function()' isn't a subtype of 'Class5b Function()'.
- - 'Class5bImpl' is from 'dart:test'.
- - 'Class5b' is from 'dart:test'.
-  factory Class5b() = Class5bImpl;
-                      ^";
+  static factory /* from org-dartlang-testcase:///patch_lib.dart */ •() → self2::Class5b /* redirection-target: self2::Class5bImpl::• */
+    return new self2::Class5bImpl::•();
 }
 @/* from org-dartlang-testcase:///patch_lib.dart */ _in::patch
-class Class5bImpl extends core::Object {
+class Class5bImpl extends core::Object implements self2::Class5b {
   synthetic constructor •() → self2::Class5bImpl
     ;
 }
@@ -174,6 +164,11 @@ abstract class _Class4a&Object&Mixin = core::Object with self2::Mixin /*isAnonym
     : super core::Object::•()
     ;
 }
+abstract class _Class4b&Object&Mixin = core::Object with self2::Mixin /*isAnonymousMixin,hasConstConstructor*/  {
+  const synthetic constructor •() → self2::_Class4b&Object&Mixin
+    : super core::Object::•()
+    ;
+}
 
 
 Extra constant evaluation status:
@@ -200,4 +195,4 @@ Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:69:1 -> I
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:71:4 -> InstanceConstant(const _Patch{})
 Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:79:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:81:4 -> InstanceConstant(const _Patch{})
-Extra constant evaluation: evaluated: 26, effectively constant: 23
+Extra constant evaluation: evaluated: 27, effectively constant: 23

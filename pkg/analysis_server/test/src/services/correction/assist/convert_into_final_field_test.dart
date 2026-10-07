@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertIntoFinalFieldTest extends AssistProcessorTest {
+class ConvertIntoFinalFieldTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertIntoFinalField;
 

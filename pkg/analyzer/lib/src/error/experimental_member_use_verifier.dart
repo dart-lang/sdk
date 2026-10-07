@@ -23,7 +23,7 @@ class ExperimentalElementUsageReporter implements ElementUsageReporter<()> {
     String displayName,
     () tagInfo, {
     required bool isInSamePackage,
-    bool isImplicitTypeReference = false,
+    ElementUsageKind usageKind = ElementUsageKind.explicit,
   }) {
     // Use of an experimental API from within the same package is OK
     if (isInSamePackage) return;

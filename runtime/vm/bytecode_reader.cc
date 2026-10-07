@@ -507,6 +507,7 @@ FunctionTypePtr BytecodeReaderHelper::ReadFunctionSignature(
       }
     }
   }
+  signature.FinalizeNameArray();
 
   type ^= ReadObject();
   signature.set_result_type(type);
@@ -1909,7 +1910,7 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
     }
 
     if (is_shared && !FLAG_experimental_shared_data &&
-        !Library::Handle(Z, cls.library()).IsAnyCoreLibrary()) {
+        !Library::Handle(Z, cls.library()).is_dart_scheme()) {
       // Keep synced with error in KernelLoader::ReadVMAnnotations.
       FATAL(
           "Encountered vm:shared when functionality is disabled. "
@@ -2298,6 +2299,7 @@ void BytecodeReaderHelper::ReadFunctionDeclarations(const Class& cls) {
         }
       }
     }
+    signature.FinalizeNameArray();
 
     type ^= ReadObject();
     signature.set_result_type(type);
@@ -3130,7 +3132,9 @@ LocalVarDescriptorsPtr BytecodeReader::ComputeLocalVarDescriptors(
            (function.token_pos() <= var_info.begin_pos &&
             var_info.begin_pos <= function.end_token_pos()))) {
         vars.Add(LocalVarDescriptorsBuilder::VarDesc{
-            &String::Handle(zone, parent_vars.GetName(i)), var_info});
+            &String::Handle(zone, parent_vars.GetName(i)),
+            &AbstractType::Handle(zone, parent_vars.GetStaticType(i)),
+            var_info});
       }
     }
   }

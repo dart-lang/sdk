@@ -50,6 +50,7 @@ enum PragmaEntryPointType {
   CanBeOverridden,
   GetterOnly,
   SetterOnly,
+  InitializerOnly,
   CallOnly,
   CanBeUsedAsType,
   DynamicallyCallable,
@@ -141,12 +142,14 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         type = PragmaEntryPointType.GetterOnly;
       } else if (options.value == "set") {
         type = PragmaEntryPointType.SetterOnly;
+      } else if (options.value == "init") {
+        type = PragmaEntryPointType.InitializerOnly;
       } else if (options.value == "call") {
         type = PragmaEntryPointType.CallOnly;
       } else {
         throw "Error: string directive to "
             "@pragma('$pragmaName', ...) "
-            "must be either 'get' or 'set' for fields "
+            "must be either 'get', 'set' or 'init' for fields "
             "or 'get' or 'call' for procedures.";
       }
     }
@@ -187,6 +190,7 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
 
     switch (pragmaName) {
       case vmEntryPointPragmaName:
+      case wasmEntryPointPragmaName:
         return getEntryPointTypeFromOptions(options, pragmaName);
       case vmExactResultTypePragmaName:
         if (options is TypeLiteralConstant) {
@@ -236,8 +240,6 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return options.value ? const ParsedPlatformConstPragma() : null;
       case vmFfiNative:
         return const ParsedFfiNativePragma();
-      case wasmEntryPointPragmaName:
-        return const ParsedEntryPointPragma(PragmaEntryPointType.Default);
       case wasmExportPragmaName:
         // Exports are treated as entry points.
         return const ParsedEntryPointPragma(PragmaEntryPointType.Default);

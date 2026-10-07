@@ -74,6 +74,32 @@ extension AnnotatedNodeExtension on AnnotatedNode {
 }
 
 extension AstNodeExtension on AstNode {
+  /// The annotation whose name is, or contains, this identifier.
+  ///
+  /// The name of an annotation is its `name` and, if present, its
+  /// `constructorName`, which is the third identifier of `@p.C.name` whether
+  /// or not it names a constructor.
+  ///
+  /// An undefined name in an annotation is reported at the name, with the
+  /// same diagnostic as any other reference to it. But an annotation can
+  /// reference only a constant variable or a constant constructor, so fixes
+  /// use this to skip what the annotation can't use, such as fields, getters,
+  /// or parameters, and to look at the whole annotation, for example whether
+  /// it has arguments.
+  Annotation? get annotationContainingName {
+    var name = switch (this) {
+      SimpleIdentifier(:PrefixedIdentifier parent) => parent,
+      Identifier self => self,
+      _ => null,
+    };
+    if (name?.parent case Annotation annotation
+        when identical(annotation.name, name) ||
+            identical(annotation.constructorName, name)) {
+      return annotation;
+    }
+    return null;
+  }
+
   /// Return the [IfStatement] associated with `this`.
   IfStatement? get enclosingIfStatement {
     for (var node in withAncestors) {

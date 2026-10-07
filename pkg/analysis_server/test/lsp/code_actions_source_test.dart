@@ -285,6 +285,12 @@ class _MyClass {
   /// We should only add dependencies to pubspec to fix diagnostics in the
   /// current file and not other files.
   Future<void> test_pubspec() async {
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - depend_on_referenced_packages
+''');
+
     newPubspecYamlFile(projectFolderPath, '''
 name: x
 ''');
@@ -312,6 +318,42 @@ import 'package:args/args.dart';
 name: x
 dependencies:
   path: any
+''');
+  }
+
+  Future<void> test_pubspec_noLint() async {
+    newFile(analysisOptionsPath, '''
+linter:
+  rules:
+    - prefer_final_locals
+''');
+
+    newPubspecYamlFile(projectFolderPath, '''
+name: x
+''');
+
+    const content = '''
+import 'package:path/path.dart';
+
+void f() {
+  var a = 'test';
+}
+''';
+
+    var action = await expectCodeActionLiteral(
+      filePath: mainFilePath,
+      content,
+      command: Commands.fixAll,
+    );
+
+    // Expect only 'main.dart' edits, no pubspec edit.
+    await verifyCommandEdits(action.command!, '''
+>>>>>>>>>> lib/main.dart
+import 'package:path/path.dart';
+
+void f() {
+  final a = 'test';
+}
 ''');
   }
 

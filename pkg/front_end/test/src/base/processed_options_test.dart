@@ -6,10 +6,12 @@ import 'dart:convert' show jsonEncode;
 
 import 'package:front_end/src/api_prototype/compiler_options.dart';
 import 'package:front_end/src/api_prototype/memory_file_system.dart';
+import 'package:front_end/src/api_prototype/standard_file_system.dart';
 import 'package:front_end/src/base/compiler_context.dart';
 import 'package:front_end/src/base/processed_options.dart';
 import 'package:front_end/src/codes/cfe_codes.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
+import 'package:front_end/src/scheme_based_file_system.dart';
 import 'package:front_end/src/util/bytes_sink.dart' show BytesSink;
 import 'package:kernel/binary/ast_to_binary.dart' show BinaryPrinter;
 import 'package:kernel/kernel.dart'
@@ -420,6 +422,54 @@ class ProcessedOptionsTest {
     var uriTranslator = await processed.getUriTranslator();
     expect(errors, isEmpty);
     expect(uriTranslator.packages.packages, isEmpty);
+  }
+
+  Future<void> test_getUriTranslator_dataSchemeInput_noPackages() async {
+    var memoryFs = new MemoryFileSystem(Uri.base);
+    var fs = new SchemeBasedFileSystem({
+      'file': memoryFs,
+      'data': StandardFileSystem.instance,
+    });
+    var errors = <CfeDiagnosticMessage>[];
+    var raw = new CompilerOptions()
+      ..fileSystem = fs
+      ..onDiagnostic = errors.add;
+    var processed = new ProcessedOptions(
+      options: raw,
+      inputs: [
+        Uri.dataFromString('void main() {}', mimeType: 'application/dart'),
+      ],
+    );
+    var uriTranslator = await processed.getUriTranslator();
+    expect(errors, isEmpty);
+    expect(uriTranslator.packages.packages, isEmpty);
+  }
+
+  Future<void> test_getUriTranslator_dataSchemeInput_withPackages() async {
+    var memoryFs = new MemoryFileSystem(Uri.base);
+    memoryFs
+        .entityForUri(Uri.base.resolve('.dart_tool/package_config.json'))
+        .writeAsStringSync(fooBazDotDotPackageConfig);
+    var fs = new SchemeBasedFileSystem({
+      'file': memoryFs,
+      'data': StandardFileSystem.instance,
+    });
+    var errors = <CfeDiagnosticMessage>[];
+    var raw = new CompilerOptions()
+      ..fileSystem = fs
+      ..onDiagnostic = errors.add;
+    var processed = new ProcessedOptions(
+      options: raw,
+      inputs: [
+        Uri.dataFromString('void main() {}', mimeType: 'application/dart'),
+      ],
+    );
+    var uriTranslator = await processed.getUriTranslator();
+    expect(errors, isEmpty);
+    expect(
+      uriTranslator.packages.resolve(Uri.parse('package:foo/a.dart')),
+      Uri.base.resolve('baz/a.dart'),
+    );
   }
 
   Future<void> test_getUriTranslator_noPackages() async {

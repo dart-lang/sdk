@@ -25,12 +25,24 @@ CUR_DIR="$(cd "${PROG_NAME%/*}" ; pwd -P)"
 
 SDK_DIR="$CUR_DIR/../../.."
 
-# TODO(kustermann): For windows as well as for hosts running on arm, our
-# checked-in dart binaries must be adjusted.
+. "$CUR_DIR/shared_functions.sh"
+
 if [[ `uname` == 'Darwin' ]]; then
-  DART="$SDK_DIR/tools/sdks/dart-sdk/bin/dart"
+  OUT_DIR="$SDK_DIR/xcodebuild"
 else
-  DART="$SDK_DIR/tools/sdks/dart-sdk/bin/dart"
+  OUT_DIR="$SDK_DIR/out"
 fi
 
-exec "$DART" $DART_VM_FLAGS "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart" $@
+HOST_ARCH="$(host_arch)"
+
+export DART_CONFIGURATION=${DART_CONFIGURATION:-Release$HOST_ARCH}
+TARGET_ARCH="$(parse_target_arch "$DART_CONFIGURATION")"
+BUILD_DIR="$OUT_DIR/$DART_CONFIGURATION"
+
+if [ -x "$BUILD_DIR/bootstrap_gen_kernel.exe" ]; then
+  DART_VM_OPTIONS="${DART_VM_OPTIONS:+$DART_VM_OPTIONS }${DART_VM_FLAGS}" \
+    "$BUILD_DIR/bootstrap_gen_kernel.exe" $@
+else
+  DART="${SDK_DIR}/tools/sdks/dart-sdk/bin/dart"
+  "$DART" $DART_VM_FLAGS "${SDK_DIR}/pkg/vm/bin/gen_kernel.dart" $@
+fi

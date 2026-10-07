@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension IntExtension on int {
+  /// Whether this, as an ASCII character, is a carriage return (`\r`).
+  bool get isCarriageReturn => this == 0x0D;
+
   bool get isComma => this == 0x2C;
 
   bool get isDigit => this >= 0x30 && this <= 0x39;
@@ -122,6 +125,10 @@ extension StringExtension on String {
   static final RegExp _escapeForSingleQuotesRegExp = RegExp(
     r"[\x00-\x1F\x7F'$\\]",
   );
+
+  /// Whether this is a name that is private to the library in which it's
+  /// declared.
+  bool get isPrivateName => startsWith('_');
 
   String? get nullIfEmpty {
     return isNotEmpty ? this : null;

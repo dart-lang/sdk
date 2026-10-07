@@ -161,7 +161,7 @@ enum E {
 //      ^^^^^
 // [diag.duplicateConstructorDefault] The unnamed constructor is already defined.
 //        ^^^
-// [diag.unusedElement] The declaration 'E' isn't referenced.
+// [diag.unusedElement] The declaration 'E.new' isn't referenced.
 }
 ''');
   }
@@ -211,7 +211,7 @@ enum E {
 //      ^^^^^
 // [diag.duplicateConstructorDefault] The unnamed constructor is already defined.
 //        ^^^
-// [diag.unusedElement] The declaration 'E' isn't referenced.
+// [diag.unusedElement] The declaration 'E.new' isn't referenced.
 }
 ''');
   }

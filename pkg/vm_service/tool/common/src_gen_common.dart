@@ -45,9 +45,9 @@ String replaceHTMLEntities(String text) {
       // package:markdown dep is bumped to ^7.0.0.
       .replaceAll('&#39;', "'")
       .replaceAll('&quot;', '"')
-      .replaceAll('&amp;', '&')
       .replaceAll('&lt;', '<')
-      .replaceAll('&gt;', '>');
+      .replaceAll('&gt;', '>')
+      .replaceAll('&amp;', '&');
 }
 
 String joinLast(Iterable<String> strs, String join, [String? last]) {

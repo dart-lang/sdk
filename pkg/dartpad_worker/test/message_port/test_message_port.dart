@@ -5,9 +5,9 @@
 @TestOn('browser')
 library;
 
-import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:async/async.dart';
 import 'package:checks/checks.dart';
 import 'package:dartpad_worker/src/util/message_port.dart';
 import 'package:stream_channel/stream_channel.dart';
@@ -44,21 +44,38 @@ void main() {
       final port2 = MessagePortExt.fromMessagePort(channel.port2);
 
       final rpc1 = port1.jsonRpcChannel();
-      final bin2 = port2.asBinaryChannel();
+      final rpc2 = MessagePort.fromBinaryChannel(
+        port2.asBinaryChannel(),
+      ).jsonRpcChannel();
 
       rpc1.sink.add({'ping': 'pong'});
-
-      final receivedBin = await bin2.stream.first;
-
-      // Let's decode the binary manually to verify it produced the
-      // valid encoding
-      final v = ByteData.sublistView(receivedBin);
-      final jsonSize = v.getUint32(0);
-      final jsonBytes = Uint8List.sublistView(receivedBin, 4, jsonSize + 4);
-      final decoded = json.fuse(utf8).decode(jsonBytes);
-      check(decoded).isA<Map>().deepEquals({'ping': 'pong'});
+      final received = await rpc2.stream.first;
+      check(received).isA<Map>().deepEquals({'ping': 'pong'});
 
       await rpc1.sink.close();
+      await rpc2.sink.close();
+    });
+
+    test('vmServiceChannel communicates strings, bytes, and close', () async {
+      final channel = web.MessageChannel();
+      final port1 = MessagePortExt.fromMessagePort(channel.port1);
+      final port2 = MessagePortExt.fromMessagePort(channel.port2);
+
+      final vm1 = port1.vmServiceChannel();
+      final vm2 = MessagePort.fromBinaryChannel(
+        port2.asBinaryChannel(),
+      ).vmServiceChannel();
+
+      vm1.sink.add('{"jsonrpc":"2.0","method":"getVersion","id":"1"}');
+      vm1.sink.add(Uint8List.fromList([10, 20, 30]));
+      await vm1.sink.close();
+
+      final received = await vm2.stream.toList();
+      check(received).length.equals(2);
+      check(received[0]).isA<String>().equals(
+        '{"jsonrpc":"2.0","method":"getVersion","id":"1"}',
+      );
+      check(received[1]).isA<Uint8List>().deepEquals([10, 20, 30]);
     });
   });
 
@@ -104,6 +121,46 @@ void main() {
       rpc1.sink.add({'remote': 'control'});
       final received = await rpc2.stream.first;
       check(received).isA<Map>().deepEquals({'remote': 'control'});
+    });
+
+    test('asTransferableMessagePort bridges vmServiceChannel', () async {
+      final ctrl = StreamChannelController<Uint8List>();
+
+      final port1 = MessagePort.fromBinaryChannel(ctrl.local);
+      final port2 = MessagePort.fromBinaryChannel(ctrl.foreign);
+
+      final vm2 = port2.vmServiceChannel();
+      final webPort = port1.asTransferableMessagePort();
+      final vm1 = MessagePortExt.fromMessagePort(webPort).vmServiceChannel();
+
+      final receivedFuture = vm2.stream.toList();
+      vm1.sink.add('{"jsonrpc":"2.0"}');
+      vm1.sink.add(Uint8List.fromList([4, 5, 6]));
+      await vm1.sink.close();
+
+      final received = await receivedFuture;
+      check(received).length.equals(2);
+      check(received[0]).isA<String>().equals('{"jsonrpc":"2.0"}');
+      check(received[1]).isA<Uint8List>().deepEquals([4, 5, 6]);
+    });
+
+    test('malformed frames emit FormatException', () async {
+      final ctrl = StreamChannelController<Uint8List>();
+      final rpc = MessagePort.fromBinaryChannel(ctrl.local).jsonRpcChannel();
+      final queue = StreamQueue(rpc.stream);
+
+      // Empty frame, truncated objectWithBytes (< 5 bytes and < 5 + jsonSize),
+      // invalid UTF-8, and invalid JSON.
+      for (final badFrame in [
+        Uint8List(0),
+        Uint8List.fromList([1, 0, 0]),
+        Uint8List.fromList([1, 0, 0, 0, 10, 123, 125]),
+        Uint8List.fromList([0, 0xff]),
+        Uint8List.fromList([0, 123]),
+      ]) {
+        ctrl.foreign.sink.add(badFrame);
+        await check(queue.next).throws<FormatException>();
+      }
     });
   });
 }

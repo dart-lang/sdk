@@ -130,11 +130,10 @@ class SetterFragment implements Fragment, FunctionFragment {
   String toString() => '$runtimeType($name,$fileUri,$nameOffset)';
 }
 
-class _SetterFunctionBodyBuildingContext
+class _SetterFunctionBodyBuildingContext(final SetterFragment _fragment)
     implements FunctionBodyBuildingContext {
-  SetterFragment _fragment;
-
-  new(this._fragment);
+  @override
+  bool get isImplementation => _fragment.declaration.isImplementation;
 
   @override
   ExtensionScope get extensionScope {

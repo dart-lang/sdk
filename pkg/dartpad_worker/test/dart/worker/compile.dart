@@ -14,15 +14,19 @@ void main() {
     final iframe = FakeSandboxedIframe();
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    final result = await sandbox.runMain('bin/main.dart');
-    check(result.log).isEmpty();
+    final result = await sandbox.run('bin/main.dart', mode: 'console');
+    check(result.log).isEmpty;
 
     await iframe.checkEvent(
-      (it) => it.isA<LoadModuleEvent>().code
-        ..contains('Hello World')
-        ..contains('main'),
+      .it()..isA<LoadModulesEvent>(
+        .it()
+          ..anyModuleContains('Hello World')
+          ..anyModuleContains('main'),
+      ),
     );
-    await iframe.checkEvent((it) => it.isA<RunMainEvent>());
+    await iframe.checkEvent(
+      .it()..isA<RunEvent>(.it()..mode.equals('console')),
+    );
     await iframe.close();
   });
 
@@ -36,9 +40,9 @@ void main() {
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
     await check(
-      sandbox.runMain('bin/main.dart'),
+      sandbox.run('bin/main.dart', mode: 'console'),
     ).throws<CompilationFailedException>(
-      (it) => it.has((e) => e.message, 'message').contains("Expected ';'"),
+      .it()..has((e) => e.message, 'message').contains("Expected ';'"),
     );
 
     await iframe.close();
@@ -61,15 +65,17 @@ void main() {
     final iframe = FakeSandboxedIframe();
     final sandbox = await ws.connectSandboxedIframe(iframe.port);
 
-    final result = await sandbox.runMain('bin/main.dart');
-    check(result.log).isEmpty();
+    final result = await sandbox.run('bin/main.dart', mode: 'console');
+    check(result.log).isEmpty;
 
     await iframe.checkEvent(
-      (it) => it.isA<LoadModuleEvent>().code
-        ..contains('Hello World')
-        ..contains('main'),
+      .it()..isA<LoadModulesEvent>(
+        .it()
+          ..anyModuleContains('Hello World')
+          ..anyModuleContains('main'),
+      ),
     );
-    await iframe.checkEvent((it) => it.isA<RunMainEvent>());
+    await iframe.checkEvent(.it()..isA<RunEvent>());
     await iframe.close();
   });
 }

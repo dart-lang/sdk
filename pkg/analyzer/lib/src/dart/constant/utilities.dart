@@ -37,17 +37,6 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    DotShorthandConstructorInvocation node,
-  ) {
-    if (node.isConst) {
-      _find(node);
-    } else {
-      super.visitDotShorthandConstructorInvocation(node);
-    }
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     DotShorthandConstructorInvocation2 node,
   ) {
@@ -124,8 +113,12 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
 
 /// A visitor used to traverse the AST structures of all of the compilation
 /// units being resolved and build tables of the constant variables, constant
-/// constructors, constant constructor invocations, and annotations found in
-/// those compilation units.
+/// constructors, and constant constructor invocations found in those
+/// compilation units.
+///
+/// Annotations are not included. An annotation is verified like any other
+/// constant expression, by `ConstantVerifier`, which evaluates it; its value
+/// as an `ElementAnnotation` is computed only when requested.
 class ConstantFinder extends RecursiveAstVisitor2<void> {
   final ConstantEvaluationConfiguration configuration;
 
@@ -138,23 +131,6 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   bool treatFinalInstanceVarAsConst = false;
 
   ConstantFinder({required this.configuration});
-
-  @override
-  void visitAnnotation(covariant AnnotationImpl node) {
-    super.visitAnnotation(node);
-    var elementAnnotation = node.elementAnnotation;
-    if (elementAnnotation == null) {
-      // Analyzer ignores annotations on "part of" directives and on enum
-      // constant declarations.
-      assert(
-        node.parent2 is PartDirective ||
-            node.parent2 is PartOfDirective ||
-            node.parent2 is EnumConstantDeclaration,
-      );
-    } else {
-      constantsToCompute.add(elementAnnotation);
-    }
-  }
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
@@ -272,19 +248,6 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitDotShorthandConstructorInvocation(
-    covariant DotShorthandConstructorInvocationImpl node,
-  ) {
-    if (node.isConst) {
-      var constructor = node.constructorName.element?.baseElement;
-      if (constructor is ConstructorElementImpl && constructor.isConst) {
-        _callback(constructor);
-      }
-    }
-    super.visitDotShorthandConstructorInvocation(node);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation2(
     covariant DotShorthandConstructorInvocation2Impl node,
   ) {
@@ -323,6 +286,12 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitReceiverPropertyExtraction(ReceiverPropertyExtraction node) {
+    _recordNamedReadDependency(node.resolution);
+    node.receiver.accept2(this);
+  }
+
+  @override
   void visitRedirectingConstructorInvocation(
     covariant RedirectingConstructorInvocationImpl node,
   ) {
@@ -330,18 +299,6 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
     var target = node.element?.baseElement;
     if (target != null) {
       _callback(target);
-    }
-  }
-
-  @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    var element = node.element;
-    if (element is GetterElementImpl) {
-      element = element.variable;
-    }
-
-    if (element is VariableElementImpl && element.isConst) {
-      _callback(element);
     }
   }
 
@@ -362,7 +319,7 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   }
 
   void _recordNamedReadDependency(NamedReadResolution? resolution) {
-    var element = resolution.elementOrRecovery;
+    var element = resolution?.elementOrRecovery;
     if (element is GetterElementImpl) {
       element = element.variable;
     }

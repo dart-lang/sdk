@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToDeclaringParameterInClassTest extends AssistProcessorTest {
+class ConvertToDeclaringParameterInClassTest
+    extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToDeclaringParameter;
 
@@ -1058,7 +1059,7 @@ const int a = 0;
 }
 
 @reflectiveTest
-class ConvertToDeclaringParameterInEnumTest extends AssistProcessorTest {
+class ConvertToDeclaringParameterInEnumTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.convertToDeclaringParameter;
 

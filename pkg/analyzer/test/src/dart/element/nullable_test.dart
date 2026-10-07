@@ -89,6 +89,47 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
     isNotNonNullable(parseType('Null'));
   }
 
+  /// A type parameter whose nullability depends on itself is not
+  /// non-nullable: `X extends FutureOr<X>` may be instantiated with `Null`,
+  /// since `Null <: FutureOr<Null>`.
+  test_typeParameter_boundCyclic_futureOr() {
+    withTypeParameterScope('X extends FutureOr<X>', (scope) {
+      isNotNonNullable(scope.parseType('X'));
+      isNotNonNullable(scope.parseType('X?'));
+    });
+  }
+
+  test_typeParameter_boundCyclic_futureOrNested() {
+    withTypeParameterScope('X extends FutureOr<FutureOr<X>>', (scope) {
+      isNotNonNullable(scope.parseType('X'));
+    });
+  }
+
+  test_typeParameter_boundCyclic_futureOrQuestion() {
+    withTypeParameterScope('X extends FutureOr<X?>', (scope) {
+      isNotNonNullable(scope.parseType('X'));
+    });
+  }
+
+  /// Mutually dependent bounds cycle just as self-dependent ones do.
+  test_typeParameter_boundCyclic_mutual() {
+    withTypeParameterScope('X extends FutureOr<Y>, Y extends FutureOr<X>', (
+      scope,
+    ) {
+      isNotNonNullable(scope.parseType('X'));
+      isNotNonNullable(scope.parseType('Y'));
+    });
+  }
+
+  /// An F-bound that does not route through `FutureOr` is not cyclic for the
+  /// purposes of nullability, and remains non-nullable.
+  test_typeParameter_boundFBoundedInterface() {
+    withTypeParameterScope('X extends List<X>', (scope) {
+      isNonNullable(scope.parseType('X'));
+      isNotNonNullable(scope.parseType('X?'));
+    });
+  }
+
   test_typeParameter_boundNone() {
     withTypeParameterScope('T extends int', (scope) {
       isNonNullable(scope.parseType('T'));
@@ -393,6 +434,35 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
 
   test_null() {
     isNotStrictlyNonNullable(parseType('Null'));
+  }
+
+  test_typeParameter_boundCyclic_futureOr() {
+    withTypeParameterScope('X extends FutureOr<X>', (scope) {
+      isNotStrictlyNonNullable(scope.parseType('X'));
+      isNotStrictlyNonNullable(scope.parseType('X?'));
+    });
+  }
+
+  test_typeParameter_boundCyclic_futureOrNested() {
+    withTypeParameterScope('X extends FutureOr<FutureOr<X>>', (scope) {
+      isNotStrictlyNonNullable(scope.parseType('X'));
+    });
+  }
+
+  test_typeParameter_boundCyclic_mutual() {
+    withTypeParameterScope('X extends FutureOr<Y>, Y extends FutureOr<X>', (
+      scope,
+    ) {
+      isNotStrictlyNonNullable(scope.parseType('X'));
+      isNotStrictlyNonNullable(scope.parseType('Y'));
+    });
+  }
+
+  test_typeParameter_boundFBoundedInterface() {
+    withTypeParameterScope('X extends List<X>', (scope) {
+      isStrictlyNonNullable(scope.parseType('X'));
+      isNotStrictlyNonNullable(scope.parseType('X?'));
+    });
   }
 
   test_typeParameter_boundNone() {

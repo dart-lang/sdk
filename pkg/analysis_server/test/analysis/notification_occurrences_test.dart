@@ -783,13 +783,17 @@ class /*[0*/Aaa/*0]*/.named() {
   }
 
   Future<void> test_primaryConstructor_unnamed_constructorInvocation() async {
-    await assertOccurrences(kind: ElementKind.CONSTRUCTOR, '''
+    await assertOccurrences(
+      kind: ElementKind.CONSTRUCTOR,
+      elementName: 'Aaa.new',
+      '''
 class Aaa() {
   this {}
 }
 
 Aaa a = /*[0*/Aaa/*0]*/();
-''');
+''',
+    );
   }
 
   Future<void> test_primaryConstructor_unnamed_typeName() async {
@@ -876,7 +880,10 @@ var c = /*[4*/A/*4]*/.new;
   /// constructor because the protocol currently only supports same-length
   /// occurrences.
   Future<void> test_type_class_constructors_unnamed() async {
-    await assertOccurrences(kind: ElementKind.CONSTRUCTOR, '''
+    await assertOccurrences(
+      kind: ElementKind.CONSTRUCTOR,
+      elementName: 'A.new',
+      '''
 class A {
   /*[0*/A/*0]*/();
   A.named();
@@ -885,7 +892,8 @@ class A {
 A a = /*[1*/A/*1]*/();
 var b = A.new();
 var c = A.new;
-      ''');
+      ''',
+    );
   }
 
   Future<void> test_type_class_definition() async {

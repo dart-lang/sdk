@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class SplitVariableDeclarationTest extends AssistProcessorTest {
+class SplitVariableDeclarationTest extends BuiltInAssistProcessorTest {
   @override
   AssistKind get kind => DartAssistKind.splitVariableDeclaration;
 

@@ -13,6 +13,7 @@ import 'convert_selected_formal_parameters_to_named_test.dart'
 import 'move_selected_formal_parameters_left_test.dart'
     as move_selected_formal_parameters_left;
 import 'move_top_level_to_file_test.dart' as move_top_level_to_file;
+import 'refactoring_producer_test.dart' as refactoring_producer;
 import 'remove_constructor_name_test.dart' as remove_constructor_name;
 import 'remove_import_prefix_test.dart' as remove_import_prefix;
 
@@ -24,6 +25,7 @@ void main() {
     convert_selected_formal_parameters_to_named.main();
     move_selected_formal_parameters_left.main();
     move_top_level_to_file.main();
+    refactoring_producer.main();
     remove_constructor_name.main();
     remove_import_prefix.main();
   }, name: 'refactoring');

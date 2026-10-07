@@ -64,12 +64,8 @@ void printNodeOn(Node? node, StringSink sink) {
 }
 
 // Coverage-ignore(suite): Not run.
-void printInternalNodeOn(InternalNode? node, StringSink sink) {
-  if (node == null) {
-    sink.write("null");
-  } else {
-    sink.write(node.toText(defaultAstTextStrategy));
-  }
+void printInternalNodeOn(InternalNode node, StringSink sink) {
+  sink.write(node.toText(defaultAstTextStrategy));
 }
 
 // Coverage-ignore(suite): Not run.
@@ -216,17 +212,20 @@ Component createExpressionEvaluationComponent(Procedure procedure) {
       typeParams: typeParams,
     );
 
-    for (TypeParameter typeParam in realClass.typeParameters) {
-      fakeClass.typeParameters.add(
-        typeParam.accept<TreeNode>(cloner) as TypeParameter,
-      );
-    }
+    fakeClass.typeParameters = TypeParameterList.mapped(
+      realClass.typeParameters,
+      (TypeParameter typeParam) =>
+          typeParam.accept<TreeNode>(cloner) as TypeParameter,
+    );
 
     if (realClass.supertype != null) {
       // supertype is null for Object.
       fakeClass.supertype = new Supertype.byReference(
         realClass.supertype!.className,
-        realClass.supertype!.typeArguments.map(cloner.visitType).toList(),
+        new DartTypeList.generate(
+          realClass.supertype!.typeArguments.length,
+          (int i) => cloner.visitType(realClass.supertype!.typeArguments[i]),
+        ),
       );
     }
 

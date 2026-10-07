@@ -4,14 +4,11 @@
 
 // VMOptions=--max_deoptimization_counter_threshold=1000 --optimization-counter-threshold=10 --no-background-compilation
 
-// Library tag to be able to run in html test framework.
-library int32x4_list_test;
-
 import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
-testLoadStore(array) {
+testLoadStore(Int32x4List array) {
   Expect.equals(8, array.length);
   Expect.isTrue(array is List<Int32x4>);
   array[0] = Int32x4(1, 2, 3, 4);
@@ -97,7 +94,7 @@ testListZero() {
   Expect.equals(0, list[0].w);
 }
 
-testView(array) {
+testView(Int32x4List array) {
   Expect.equals(8, array.length);
   Expect.isTrue(array is List<Int32x4>);
   Expect.equals(0, array[0].x);
@@ -110,7 +107,7 @@ testView(array) {
   Expect.equals(7, array[1].w);
 }
 
-testSublist(array) {
+testSublist(Int32x4List array) {
   Expect.equals(8, array.length);
   Expect.isTrue(array is Int32x4List);
   var a = array.sublist(0, 1);
@@ -134,7 +131,7 @@ testSublist(array) {
   }
 }
 
-void testSpecialValues(array) {
+void testSpecialValues(Int32x4List array) {
   var tests = [
     [0x8901234567890, 0x34567890],
     [0x89012A4567890, -1537836912],
@@ -143,7 +140,7 @@ void testSpecialValues(array) {
     [0x7fffffff, 2147483647],
     [-0x7fffffff, -2147483647],
   ];
-  var int32x4;
+  Int32x4 int32x4;
 
   for (var test in tests) {
     var input = test[0];
@@ -184,7 +181,7 @@ void testSpecialValues(array) {
 }
 
 main() {
-  var list;
+  Int32x4List list;
 
   list = Int32x4List(8);
   for (int i = 0; i < 20; i++) {

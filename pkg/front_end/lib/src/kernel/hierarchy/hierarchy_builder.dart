@@ -132,7 +132,7 @@ class ClassHierarchyBuilder
   }
 
   @override
-  List<DartType>? getInterfaceTypeArgumentsAsInstanceOfClass(
+  DartTypeList? getInterfaceTypeArgumentsAsInstanceOfClass(
     InterfaceType type,
     Class superclass,
   ) {

@@ -9,6 +9,7 @@ import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_runn
 import 'package:analysis_server/src/lsp/handlers/custom/migration/migration_summary_builder.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/utilities/pubspec.dart';
+import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:linter/src/rules.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -22,6 +23,7 @@ import 'server_abstract.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MigrateDependencyConflictTest);
+    defineReflectiveTests(MigrateLockstepTest);
     defineReflectiveTests(MigrateMultiVersionTest);
     defineReflectiveTests(MigratePackageValidationTest);
     defineReflectiveTests(MigrateProgressTest);
@@ -72,7 +74,7 @@ abstract class AbstractMigrateTest extends AbstractLspAnalysisServerTest {
 
   Future<void> _assertMigrationResult({
     List<Uri>? uris,
-    List<MigrationStep> steps = const [MigrationStep.All],
+    List<MigrationStep>? steps,
     String? targetSdk,
     Object? expectedSummary,
     String? expectedEdit,
@@ -369,6 +371,549 @@ test_project:
 }
 
 @reflectiveTest
+class MigrateLockstepTest extends AbstractMigrateTest {
+  /// Packages joined by a dependency take each version step together.
+  Future<void> test_round_interdependentPackages() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.11.0');
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    var token = clientProvidedTestWorkDoneToken;
+    var messages = _collectStageMessages(token);
+
+    await _assertMigrationResult(
+      uris: [app, core],
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      workDoneToken: token,
+      expectedEdit: '''
+>>>>>>>>>> ../app/pubspec.yaml
+name: app
+environment:
+  sdk: '^3.13.0'
+dependencies:
+  core:
+    path: ../core
+>>>>>>>>>> ../core/pubspec.yaml
+name: core
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+
+    // Both packages take each version step before either starts the next, so
+    // their floors are only ever equal.
+    expect(messages, [
+      'app: 3.11.0 -> 3.12.0 (prepare)',
+      'core: 3.11.0 -> 3.12.0 (prepare)',
+      'app: 3.11.0 -> 3.12.0 (bump)',
+      'core: 3.11.0 -> 3.12.0 (bump)',
+      'app: 3.12.0 (cleanup)',
+      'core: 3.12.0 (cleanup)',
+      'app: 3.12.0 -> 3.13.0 (prepare)',
+      'core: 3.12.0 -> 3.13.0 (prepare)',
+      'app: 3.12.0 -> 3.13.0 (bump)',
+      'core: 3.12.0 -> 3.13.0 (bump)',
+      'app: 3.13.0 (cleanup)',
+      'core: 3.13.0 (cleanup)',
+    ]);
+  }
+
+  /// A package behind the rest takes a round on its own until it catches up,
+  /// after which the two move together.
+  Future<void> test_round_laggingPackage() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.12.0');
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    var token = clientProvidedTestWorkDoneToken;
+    var messages = _collectStageMessages(token);
+
+    await _assertMigrationResult(
+      uris: [app, core],
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      workDoneToken: token,
+      expectedEdit: '''
+>>>>>>>>>> ../app/pubspec.yaml
+name: app
+environment:
+  sdk: '^3.13.0'
+dependencies:
+  core:
+    path: ../core
+>>>>>>>>>> ../core/pubspec.yaml
+name: core
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+
+    // The first round belongs to `app` alone, which is the only package at
+    // 3.11.0; once it has caught up the two move together.
+    expect(messages, [
+      'app: 3.11.0 -> 3.12.0 (prepare)',
+      'app: 3.11.0 -> 3.12.0 (bump)',
+      'app: 3.12.0 (cleanup)',
+      'app: 3.12.0 -> 3.13.0 (prepare)',
+      'core: 3.12.0 -> 3.13.0 (prepare)',
+      'app: 3.12.0 -> 3.13.0 (bump)',
+      'core: 3.12.0 -> 3.13.0 (bump)',
+      'app: 3.13.0 (cleanup)',
+      'core: 3.13.0 (cleanup)',
+    ]);
+  }
+
+  /// A constraint carrying a patch counts as the SDK version it belongs to, so
+  /// it lands in the same round as a package on that version.
+  Future<void> test_round_patchVersionConstraint() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.11.0');
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.2',
+      dependencies: ['core'],
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    var token = clientProvidedTestWorkDoneToken;
+    var messages = _collectStageMessages(token);
+
+    await _assertMigrationResult(
+      uris: [app, core],
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      workDoneToken: token,
+    );
+
+    // Comparing declared versions would put `core` in a round of its own and
+    // raise it to 3.12.0 while `app`, which depends on it, sat at 3.11.2.
+    expect(messages, [
+      'app: 3.11.0 -> 3.12.0 (prepare)',
+      'core: 3.11.0 -> 3.12.0 (prepare)',
+      'app: 3.11.0 -> 3.12.0 (bump)',
+      'core: 3.11.0 -> 3.12.0 (bump)',
+      'app: 3.12.0 (cleanup)',
+      'core: 3.12.0 (cleanup)',
+      'app: 3.12.0 -> 3.13.0 (prepare)',
+      'core: 3.12.0 -> 3.13.0 (prepare)',
+      'app: 3.12.0 -> 3.13.0 (bump)',
+      'core: 3.12.0 -> 3.13.0 (bump)',
+      'app: 3.13.0 (cleanup)',
+      'core: 3.13.0 (cleanup)',
+    ]);
+  }
+
+  /// A dependency cycle terminates the cascade rather than looping, since a
+  /// dev dependency can point back at a package that depends on it.
+  Future<void> test_stop_cyclicDevDependencies() async {
+    // `app` has no package config, so its bump fails and holds back `core`,
+    // whose dev dependency points back at `app`.
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+      writePackageConfig: false,
+    );
+    var core = _createPackageFolder(
+      'core',
+      sdkConstraint: '^3.11.0',
+      devDependencies: ['app'],
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    await _assertMigrationResult(
+      uris: [app, core],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0: Failed
+    Failed to update .dart_tool/package_config.json for "app". Try running "dart pub get" to update the package configuration, then re-run the migration.
+
+core:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.''',
+    );
+  }
+
+  /// A stopped package holds back what it depends on, so that dependency
+  /// can't be left above it. A package with no edge to either is unaffected.
+  Future<void> test_stop_dependencies() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.11.0');
+    // `app` has no package config, so its bump fails partway through the
+    // first round.
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+      writePackageConfig: false,
+    );
+    var unrelated = _createPackageFolder('unrelated', sdkConstraint: '^3.11.0');
+    await initialize(workspaceFolders: [app, core, unrelated]);
+
+    await _assertMigrationResult(
+      uris: [app, core, unrelated],
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0: Failed
+    Failed to update .dart_tool/package_config.json for "app". Try running "dart pub get" to update the package configuration, then re-run the migration.
+
+core:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.
+
+unrelated:
+  3.11.0 -> 3.12.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.11.0 -> ^3.12.0
+
+    Cleanup changes:
+      0 changes made in 0 files.
+
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+    Cleanup changes:
+      0 changes made in 0 files.''',
+      // `core` produces no edit at all, so it keeps the floor `app` is stuck
+      // at, while a package with no edge to either is untouched by the stop.
+      expectedEdit: '''
+>>>>>>>>>> ../unrelated/pubspec.yaml
+name: unrelated
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  /// The same packages as [test_stop_dependencies], with the dependency
+  /// requested before the package that fails.
+  ///
+  /// Held back or not, `core` must produce no edit: the order packages are
+  /// requested in can't be what decides where their SDK floors end up.
+  // TODO(kallentu): Stage edits per package and discard them when the package
+  // stops, so a round produces no edits for a package held back part-way
+  // through it.
+  @FailingTest(
+    reason:
+        'The runner collects edits globally as each package finishes a step, '
+        'so the bump `core` completes before `app` fails is still emitted '
+        'once `core` is held back. Need to discard those edits.',
+  )
+  Future<void> test_stop_dependencies_requestedFirst() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.11.0');
+    // `app` has no package config, so its bump fails partway through the
+    // first round.
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+      writePackageConfig: false,
+    );
+    var unrelated = _createPackageFolder('unrelated', sdkConstraint: '^3.11.0');
+    await initialize(workspaceFolders: [app, core, unrelated]);
+
+    await _assertMigrationResult(
+      uris: [core, app, unrelated],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedEdit: '''
+>>>>>>>>>> ../unrelated/pubspec.yaml
+name: unrelated
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  /// A dependency reached only through a package that isn't being migrated is
+  /// still held back.
+  ///
+  /// The declared dependencies of `app` name `middle`, which isn't a target,
+  /// so following names alone stops the walk before it reaches `leaf`.
+  ///
+  /// A `*` marks a migration target:
+  ///
+  /// ```
+  /// app* ---> middle ---> leaf*
+  ///   |
+  ///   +-----> blocker
+  /// ```
+  Future<void> test_stop_dependencyBehindNonTargetPackage() async {
+    var leaf = _createPackageFolder('leaf', sdkConstraint: '^3.11.0');
+    // `middle` exists only so `app` has a dependency to reach `leaf`.
+    _createPackageFolder(
+      'middle',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['leaf'],
+    );
+    // `blocker` forbids 3.12.0, so `app` stops in the first round.
+    _createPackageFolder('blocker', sdkConstraint: '>=3.11.0 <3.12.0');
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['middle', 'blocker'],
+      resolvedPackages: ['leaf'],
+    );
+    await initialize(workspaceFolders: [app, leaf]);
+
+    await _assertMigrationResult(
+      uris: [app, leaf],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0: Skipped
+    Incompatible dependencies:
+      - blocker
+
+leaf:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.''',
+    );
+  }
+
+  /// A dependency that isn't being migrated is already fixed where it is, so
+  /// a stop has nothing to hold back.
+  Future<void> test_stop_dependencyOutsideMigration() async {
+    var core = _createPackageFolder('core', sdkConstraint: '^3.11.0');
+    // `app` has no package config, so its bump fails.
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+      writePackageConfig: false,
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    // Only `app` migrates, so `core` is never scheduled and never reported.
+    await _assertMigrationResult(
+      uris: [app],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0: Failed
+    Failed to update .dart_tool/package_config.json for "app". Try running "dart pub get" to update the package configuration, then re-run the migration.''',
+    );
+  }
+
+  /// A stopped package leaves its dependents running, since a dependent
+  /// sitting above its dependency is ordinary.
+  Future<void> test_stop_dependents() async {
+    // `core` has no package config, so its bump fails.
+    var core = _createPackageFolder(
+      'core',
+      sdkConstraint: '^3.11.0',
+      writePackageConfig: false,
+    );
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['core'],
+    );
+    await initialize(workspaceFolders: [app, core]);
+
+    // A dependent may sit above its dependency, so `app` carries on to the
+    // target while `core` stays where it failed.
+    await _assertMigrationResult(
+      uris: [app, core],
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.11.0 -> ^3.12.0
+
+    Cleanup changes:
+      0 changes made in 0 files.
+
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+    Cleanup changes:
+      0 changes made in 0 files.
+
+core:
+  3.11.0 -> 3.12.0: Failed
+    Failed to update .dart_tool/package_config.json for "core". Try running "dart pub get" to update the package configuration, then re-run the migration.''',
+      expectedEdit: '''
+>>>>>>>>>> ../app/pubspec.yaml
+name: app
+environment:
+  sdk: '^3.13.0'
+dependencies:
+  core:
+    path: ../core
+''',
+    );
+  }
+
+  /// The stop walk follows every dependency of a package, and carries on to
+  /// their dependencies. A package reachable by two paths is held back once,
+  /// not twice.
+  Future<void> test_stop_diamondDependencies() async {
+    var base = _createPackageFolder('base', sdkConstraint: '^3.11.0');
+    var left = _createPackageFolder(
+      'left',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['base'],
+    );
+    var right = _createPackageFolder(
+      'right',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['base'],
+    );
+    // `app` has no package config, so its bump fails.
+    var app = _createPackageFolder(
+      'app',
+      sdkConstraint: '^3.11.0',
+      dependencies: ['left', 'right'],
+      writePackageConfig: false,
+    );
+    await initialize(workspaceFolders: [app, left, right, base]);
+
+    await _assertMigrationResult(
+      uris: [app, left, right, base],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+app:
+  3.11.0 -> 3.12.0: Failed
+    Failed to update .dart_tool/package_config.json for "app". Try running "dart pub get" to update the package configuration, then re-run the migration.
+
+left:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.
+
+right:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.
+
+base:
+  3.11.0 -> 3.12.0: Skipped
+    Held back by "app", which stopped at 3.11.0.''',
+    );
+  }
+
+  /// Collects the stage messages the server reports against [token] as they
+  /// arrive.
+  ///
+  /// The order of these messages is what shows which packages moved together.
+  List<String> _collectStageMessages(ProgressToken token) {
+    var messages = <String>[];
+    notificationsFromServer
+        .where((n) => n.method == Method.progress)
+        .map((n) => ProgressParams.fromJson(n.params as Map<String, Object?>))
+        .where((params) => params.token == token)
+        .listen((params) {
+          var value = params.value as Map<String, Object?>;
+          if (value['kind'] == 'report') {
+            messages.add(value['message'] as String);
+          }
+        });
+    return messages;
+  }
+
+  /// Writes a package [name] under `/home` that declares [sdkConstraint] and
+  /// path dependencies on [dependencies] and [devDependencies], and returns
+  /// its directory URI for the test to open as an analysis root.
+  ///
+  /// Dependencies must be created first: their folders have to exist for the
+  /// package config to point at them.
+  ///
+  /// [resolvedPackages] are added to `.dart_tool/package_config.json` without
+  /// being declared in `pubspec.yaml`, standing in for the transitive
+  /// dependencies `pub get` resolves.
+  ///
+  /// Pass `writePackageConfig: false` to leave the package without a
+  /// `.dart_tool/package_config.json`, which is what makes its bump step fail.
+  Uri _createPackageFolder(
+    String name, {
+    required String sdkConstraint,
+    List<String> dependencies = const [],
+    List<String> devDependencies = const [],
+    List<String> resolvedPackages = const [],
+    bool writePackageConfig = true,
+  }) {
+    var pubspec = StringBuffer('''
+name: $name
+environment:
+  sdk: '$sdkConstraint'
+''');
+    for (var (section, names) in [
+      ('dependencies', dependencies),
+      ('dev_dependencies', devDependencies),
+    ]) {
+      if (names.isEmpty) continue;
+      pubspec.writeln('$section:');
+      for (var dependency in names) {
+        pubspec.writeln('  $dependency:');
+        pubspec.writeln('    path: ../$dependency');
+      }
+    }
+
+    var packagePath = convertPath('/home/$name');
+    var pubspecPath = join(packagePath, 'pubspec.yaml');
+    if (writePackageConfig) {
+      var config = PackageConfigFileBuilder();
+      for (var dependency in [
+        ...dependencies,
+        ...devDependencies,
+        ...resolvedPackages,
+      ]) {
+        config.add(
+          name: dependency,
+          rootFolder: resourceProvider.getFolder(
+            convertPath('/home/$dependency'),
+          ),
+        );
+      }
+      writePubspecFile(
+        pubspecPath,
+        pubspec.toString(),
+        packageConfigBuilder: config,
+      );
+    } else {
+      newFile(pubspecPath, pubspec.toString());
+    }
+    newFile(join(packagePath, 'lib', '$name.dart'), 'void f() {}\n');
+
+    return toUri(packagePath);
+  }
+}
+
+@reflectiveTest
 class MigrateMultiVersionTest extends AbstractMigrateTest {
   Future<void> test_alreadyAtTargetSdk() async {
     writePubspecFile(pubspecFilePath, '''
@@ -390,7 +935,26 @@ class C {
       apply: true,
       expectedSummary: '''
 test_project:
-  Skipped (Already at target SDK version 3.13.0.)''',
+  Skipped (The package SDK version "3.13.0" is already at or past the target SDK version 3.13.0.)''',
+    );
+  }
+
+  /// A prerelease constraint counts as the version it belongs to.
+  Future<void> test_alreadyAtTargetSdk_prerelease() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.13.0-dev.1'
+''');
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.All],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+test_project:
+  Skipped (The package SDK version "3.13.0-dev.1" is already at or past the target SDK version 3.13.0.)''',
     );
   }
 
@@ -399,7 +963,7 @@ test_project:
     writePubspecFile(join(depPath, 'pubspec.yaml'), '''
 name: dep_package
 environment:
-  sdk: '>=3.0.0 <3.13.0'
+  sdk: '>=3.0.0 <3.9.0'
 ''');
     newFile(join(depPath, 'lib', 'dep.dart'), '');
 
@@ -412,49 +976,103 @@ environment:
     writePubspecFile(pubspecFilePath, '''
 name: test_project
 environment:
-  sdk: '^3.11.0'
+  sdk: '^3.7.0'
 ''', packageConfigBuilder: builder);
     newFile(mainFilePath, '''
-class A {
-  int x;
-  A(int x) : this.x = x;
-}
+List<int> f(int? x) => [if (x != null) x];
 ''');
 
     await initialize();
 
     await _assertMigrationResult(
       steps: [MigrationStep.All],
-      targetSdk: '3.13.0',
+      targetSdk: '3.9.0',
       apply: true,
       expectedSummary: '''
 test_project:
-  3.11.0 -> 3.12.0:
+  3.7.0 -> 3.8.0:
     Preparatory changes:
       0 changes made in 0 files.
 
     SDK constraint:
-      Bumped ^3.11.0 -> ^3.12.0
+      Bumped ^3.7.0 -> ^3.8.0
 
     Cleanup changes:
       1 change made in 1 file.
 
       my_project/lib/main.dart
-        prefer_initializing_formals • 1 change
+        use_null_aware_elements • 1 change
 
-  3.12.0 -> 3.13.0: Skipped
+  3.8.0 -> 3.9.0: Skipped
     Incompatible dependencies:
       - dep_package''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class A {
-  int x;
-  A(this.x);
-}
+List<int> f(int? x) => [?x];
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
-  sdk: '^3.12.0'
+  sdk: '^3.8.0'
+''',
+    );
+  }
+
+  /// A package that stops after its SDK constraint was raised is offered the
+  /// clean up fixes for the version it reached.
+  Future<void> test_dependencyConflictIntermediateStep_prepareAndBump() async {
+    var depPath = convertPath('/dep_package');
+    writePubspecFile(join(depPath, 'pubspec.yaml'), '''
+name: dep_package
+environment:
+  sdk: '>=3.0.0 <3.9.0'
+''');
+    newFile(join(depPath, 'lib', 'dep.dart'), '');
+
+    var builder = PackageConfigFileBuilder();
+    builder.add(
+      name: 'dep_package',
+      rootFolder: resourceProvider.getFolder(depPath),
+    );
+
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.7.0'
+''', packageConfigBuilder: builder);
+    newFile(mainFilePath, '''
+List<int> f(int? x) => [if (x != null) x];
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Prepare, MigrationStep.Bump],
+      targetSdk: '3.9.0',
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.7.0 -> 3.8.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.7.0 -> ^3.8.0
+
+  3.8.0 -> 3.9.0: Skipped
+    Incompatible dependencies:
+      - dep_package
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    use_null_aware_elements • 1 change
+
+To preview them, run 'dart pub get' and then 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+      expectedEdit: '''
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.8.0'
 ''',
     );
   }
@@ -479,7 +1097,7 @@ class C {
       apply: true,
       expectedSummary: '''
 test_project:
-  Skipped (Already at target SDK version 3.13.0.)''',
+  Skipped (The package SDK version "3.14.0" is already at or past the target SDK version 3.13.0.)''',
     );
   }
 
@@ -494,10 +1112,7 @@ environment:
   sdk: '^3.11.0'
 ''');
     newFile(mainFilePath, '''
-class A {
-  int x;
-  A(int x) : this.x = x;
-}
+class A {}
 ''');
 
     writePubspecFile(otherPubspecPath, '''
@@ -530,10 +1145,7 @@ test_project:
       Bumped ^3.11.0 -> ^3.12.0
 
     Cleanup changes:
-      1 change made in 1 file.
-
-      my_project/lib/main.dart
-        prefer_initializing_formals • 1 change
+      0 changes made in 0 files.
 
   3.12.0 -> 3.13.0:
     Preparatory changes:
@@ -546,7 +1158,7 @@ test_project:
       1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 1 change
+        empty_container_bodies • 1 change
 
 other_package:
   3.12.0 -> 3.13.0:
@@ -560,24 +1172,18 @@ other_package:
       Bumped ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      1 change made in 1 file.
-
-      other_package/lib/other.dart
-        unnecessary_type_name_in_constructor • 1 change''',
+      0 changes made in 0 files.''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
 class D {
-  new(int y);
+  D(int y);
 }
 >>>>>>>>>> ../other_package/pubspec.yaml
 name: other_package
 environment:
   sdk: '^3.13.0'
 >>>>>>>>>> lib/main.dart
-class A {
-  int x;
-  new(this.x);
-}
+class A;
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -597,10 +1203,7 @@ environment:
   sdk: '^3.11.0'
 ''');
     newFile(mainFilePath, '''
-class A {
-  int x;
-  A(int x) : this.x = x;
-}
+class A {}
 ''');
 
     writePubspecFile(otherPubspecPath, '''
@@ -609,9 +1212,7 @@ environment:
   sdk: '^3.13.0'
 ''');
     newFile(otherFilePath, '''
-class D {
-  new(int y);
-}
+class D;
 ''');
 
     await initialize(
@@ -633,10 +1234,7 @@ test_project:
       Bumped ^3.11.0 -> ^3.12.0
 
     Cleanup changes:
-      1 change made in 1 file.
-
-      my_project/lib/main.dart
-        prefer_initializing_formals • 1 change
+      0 changes made in 0 files.
 
   3.12.0 -> 3.13.0:
     Preparatory changes:
@@ -649,16 +1247,13 @@ test_project:
       1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 1 change
+        empty_container_bodies • 1 change
 
 other_package:
-  Skipped (Already at target SDK version 3.13.0.)''',
+  Skipped (The package SDK version "3.13.0" is already at or past the target SDK version 3.13.0.)''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class A {
-  int x;
-  new(this.x);
-}
+class A;
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -674,10 +1269,7 @@ environment:
   sdk: '^3.11.0'
 ''');
     newFile(mainFilePath, '''
-class A {
-  int x;
-  A(int x) : this.x = x;
-}
+class A {}
 
 class C {
   C(final int x);
@@ -701,10 +1293,7 @@ test_project:
       Bumped ^3.11.0 -> ^3.12.0
 
     Cleanup changes:
-      1 change made in 1 file.
-
-      my_project/lib/main.dart
-        prefer_initializing_formals • 1 change
+      0 changes made in 0 files.
 
   3.12.0 -> 3.13.0:
     Preparatory changes:
@@ -717,20 +1306,17 @@ test_project:
       Bumped ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      3 changes made in 1 file.
+      1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 3 changes''',
+        empty_container_bodies • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class A {
-  int x;
-  new(this.x);
-}
+class A;
 
 class C {
-  new(int x);
-  new name(String s);
+  C(int x);
+  C.name(String s);
 }
 >>>>>>>>>> pubspec.yaml
 name: test_project
@@ -747,10 +1333,7 @@ environment:
   sdk: '^3.11.0'
 ''');
     newFile(mainFilePath, '''
-class A {
-  int x;
-  A(int x) : this.x = x;
-}
+class A {}
 
 class C {
   C(final int x);
@@ -773,10 +1356,7 @@ test_project:
       Would bump ^3.11.0 -> ^3.12.0
 
     Cleanup changes:
-      1 change would be made in 1 file.
-
-      my_project/lib/main.dart
-        prefer_initializing_formals • 1 change
+      0 changes would be made in 0 files.
 
   3.12.0 -> 3.13.0:
     Preparatory changes:
@@ -789,10 +1369,72 @@ test_project:
       Would bump ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      3 changes would be made in 1 file.
+      1 change would be made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 3 changes''',
+        empty_container_bodies • 1 change''',
+    );
+  }
+
+  Future<void> test_singlePackage_prepareAndBump() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.11.0'
+''');
+    newFile(mainFilePath, '''
+class A {}
+
+class C {
+  C(final int x);
+  C.name(final String s);
+}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Prepare, MigrationStep.Bump],
+      targetSdk: '3.13.0',
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.11.0 -> 3.12.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.11.0 -> ^3.12.0
+
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      2 changes made in 1 file.
+
+      my_project/lib/main.dart
+        avoid_final_parameters • 2 changes
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    empty_container_bodies • 1 change
+
+To preview them, run 'dart pub get' and then 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class C {
+  C(int x);
+  C.name(String s);
+}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
     );
   }
 
@@ -833,6 +1475,29 @@ class MigratePackageValidationTest extends AbstractMigrateTest {
         message: contains(
           "The directory '$projectFolderPath' doesn't contain a 'pubspec.yaml' "
           'file.',
+        ),
+      ),
+    );
+  }
+
+  Future<void> test_error_emptyPubspec() async {
+    await initialize();
+
+    writePubspecFile(pubspecFilePath, '');
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(uris: [projectFolderUri], apply: true),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message: contains(
+          "The 'pubspec.yaml' file in '$projectFolderPath' doesn't contain a "
+          'map of values.',
         ),
       ),
     );
@@ -921,6 +1586,39 @@ class MigratePackageValidationTest extends AbstractMigrateTest {
       isResponseError(
         ErrorCodes.InvalidParams,
         message: contains("doesn't exist"),
+      ),
+    );
+  }
+
+  /// A pubspec that isn't a map rejects the whole request, rather than being
+  /// left out while the other targets migrate.
+  Future<void> test_error_nonMapPubspec_multipleWithOneInvalid() async {
+    var otherPackagePath = convertPath('/home/other_package');
+    writePubspecFile(join(otherPackagePath, 'pubspec.yaml'), '''
+name: other_package
+environment:
+  sdk: '^3.12.0'
+''');
+    writePubspecFile(pubspecFilePath, '- test_project\n');
+    await initialize();
+
+    var request = makeRequest(
+      CustomMethods.migrate,
+      DartMigrateParams(
+        uris: [toUri(otherPackagePath), projectFolderUri],
+        apply: true,
+      ),
+    );
+    var response = await sendRequestToServer(request);
+
+    expect(
+      response.error,
+      isResponseError(
+        ErrorCodes.InvalidParams,
+        message: contains(
+          "The 'pubspec.yaml' file in '$projectFolderPath' doesn't contain a "
+          'map of values.',
+        ),
       ),
     );
   }
@@ -1123,7 +1821,8 @@ environment:
       isResponseError(
         ErrorCodes.InvalidParams,
         message:
-            'Multi-version migration requires running all steps (--step=all).',
+            "Multi-version migration requires running both the 'prepare' and "
+            "'bump' steps.",
       ),
     );
   }
@@ -1180,8 +1879,7 @@ resolution: workspace
     );
   }
 
-  Future<void> test_internalError_unableToCalculateNextSdkVersion() async {
-    failTestOnAnyErrorNotification = false;
+  Future<void> test_targetSdkAboveKnownRange() async {
     writePubspecFile(pubspecFilePath, '''
 name: test_project
 environment:
@@ -1191,7 +1889,11 @@ environment:
 
     var pubspecFile = resourceProvider.getFile(pubspecFilePath);
     var pubspecYaml = loadYaml(pubspecFile.readAsStringSync()) as YamlMap;
-    var pubspecTarget = PubspecTarget(file: pubspecFile, pubspec: pubspecYaml);
+    var pubspecTarget = PubspecTarget(
+      file: pubspecFile,
+      pubspec: pubspecYaml,
+      resolvedPackages: Packages.empty,
+    );
 
     var summaryBuilder = MigrationSummaryBuilder(
       apply: true,
@@ -1199,9 +1901,6 @@ environment:
       steps: [MigrationStep.All],
     );
 
-    // Target a version higher than knownSdkVersions.last directly in
-    // MigrationRunner to simulate an internal error where nextSdkVersion
-    // returns null.
     var targetSdk = Version(
       knownSdkVersions.last.major,
       knownSdkVersions.last.minor + 1,
@@ -1219,7 +1918,9 @@ environment:
     expect(
       summaryBuilder.generate(),
       contains(
-        'Skipped (Internal error: Unable to calculate next SDK version.)',
+        'Skipped (The target SDK version "$targetSdk" is not supported for '
+        'migration. It must be between ${knownSdkVersions.first} and '
+        '${knownSdkVersions.last}.)',
       ),
     );
   }
@@ -1276,6 +1977,7 @@ class Foo {
         .listen(progressNotifications.add);
 
     await _assertMigrationResult(
+      steps: [MigrationStep.All],
       targetSdk: '3.13.0',
       apply: true,
       workDoneToken: token,
@@ -1324,10 +2026,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C(final int x);
-  C.name(final String s);
-}
+class C {}
+
+void f(final int x, final String s) {}
 ''');
 
     await initialize();
@@ -1348,16 +2049,15 @@ test_project:
       Bumped ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      2 changes made in 1 file.
+      1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class C {
-  new(int x);
-  new name(String s);
-}
+class C;
+
+void f(int x, String s) {}
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -1377,9 +2077,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C(var x);
-}
+class C {}
+
+void f(var x) {}
 ''');
 
     writePubspecFile(otherPubspecPath, '''
@@ -1388,9 +2088,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(otherFilePath, '''
-class D {
-  D(final int y);
-}
+class D {}
+
+void g(final int y) {}
 ''');
 
     await initialize(
@@ -1417,7 +2117,7 @@ test_project:
       1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 1 change
+        empty_container_bodies • 1 change
 
 other_package:
   3.12.0 -> 3.13.0:
@@ -1434,20 +2134,20 @@ other_package:
       1 change made in 1 file.
 
       other_package/lib/other.dart
-        unnecessary_type_name_in_constructor • 1 change''',
+        empty_container_bodies • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
-class D {
-  new(int y);
-}
+class D;
+
+void g(int y) {}
 >>>>>>>>>> ../other_package/pubspec.yaml
 name: other_package
 environment:
   sdk: '^3.13.0'
 >>>>>>>>>> lib/main.dart
-class C {
-  new(x);
-}
+class C;
+
+void f(x) {}
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -1500,15 +2200,6 @@ test_project:
   3.12.0 -> 3.13.0:
     SDK constraint:
       Would bump ^3.12.0 -> ^3.13.0''',
-    );
-  }
-
-  Future<void> test_bump_emptyPubspec() async {
-    await _setupProject(pubspecContent: '');
-    await _assertMigrationResult(
-      apply: true,
-      steps: [MigrationStep.Bump],
-      expectedSummary: '',
     );
   }
 
@@ -1597,6 +2288,24 @@ environment:
     );
   }
 
+  Future<void> test_bump_exactVersion() async {
+    await _setupProject(
+      pubspecContent: '''
+name: test_project
+environment:
+  sdk: '3.2.0'
+''',
+    );
+    await _assertMigrationResult(
+      steps: [MigrationStep.Bump],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.2.0 -> 3.3.0: Skipped
+    The SDK constraint in 'pubspec.yaml' isn't in a format the migration tool can raise. Change it to '^3.2.0' to continue.''',
+    );
+  }
+
   Future<void> test_bump_multiplePackages() async {
     var project1Path = pathContext.join(projectFolderPath, 'project1');
     var project2Path = pathContext.join(projectFolderPath, 'project2');
@@ -1653,7 +2362,7 @@ name: test_project
       apply: true,
       expectedSummary: '''
 test_project:
-  Skipped (Unknown SDK version.)''',
+  Skipped (The pubspec doesn't declare a minimum SDK version. Add one to its 'environment' section, run "dart pub get", then re-run the migration tool.)''',
     );
   }
 
@@ -1708,10 +2417,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C();
-  C.name();
-}
+class C {}
+
+class D {}
 ''');
 
     await initialize();
@@ -1729,13 +2437,12 @@ test_project:
       2 changes made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class C {
-  new();
-  new name();
-}
+class C;
+
+class D;
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -1763,10 +2470,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(otherFilePath, '''
-class C {
-  C();
-  C.name();
-}
+class C {}
+
+class D {}
 ''');
 
     await initialize(
@@ -1791,13 +2497,12 @@ other_package:
       2 changes made in 1 file.
 
       other_package/lib/other.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> ../other_package/lib/other.dart
-class C {
-  new();
-  new name();
-}
+class C;
+
+class D;
 >>>>>>>>>> ../other_package/pubspec.yaml
 name: other_package
 environment:
@@ -1813,10 +2518,9 @@ environment:
   sdk: '^3.13.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C();
-  C.name();
-}
+class C {}
+
+class D {}
 ''');
 
     await initialize();
@@ -1831,14 +2535,37 @@ test_project:
       2 changes made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 2 changes''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class C {
-  new();
-  new name();
-}
+class C;
+
+class D;
 ''',
+    );
+  }
+
+  /// Cleanup does not advance the SDK version, so a package that is already at
+  /// the latest known version is still eligible for it.
+  Future<void> test_cleanup_atLatestKnownSdkVersion() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^${knownSdkVersions.last}'
+''');
+    newFile(mainFilePath, 'void m(int x) {}\n');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      steps: [MigrationStep.Cleanup],
+      apply: true,
+      expectedSummary:
+          '''
+test_project:
+  ${knownSdkVersions.last}:
+    Cleanup changes:
+      0 changes made in 0 files.''',
     );
   }
 
@@ -1849,10 +2576,9 @@ environment:
   sdk: '^3.13.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C();
-  C.name();
-}
+class C {}
+
+class D {}
 ''');
 
     await initialize();
@@ -1866,7 +2592,7 @@ test_project:
       2 changes would be made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 2 changes''',
     );
   }
 
@@ -1877,7 +2603,7 @@ test_project:
       apply: true,
       expectedSummary: '''
 test_project:
-  Skipped (Unknown SDK version.)''',
+  Skipped (The pubspec doesn't declare a minimum SDK version. Add one to its 'environment' section, run "dart pub get", then re-run the migration tool.)''',
     );
   }
 
@@ -1892,10 +2618,9 @@ environment:
   sdk: '^3.13.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C();
-  C.name();
-}
+class C {}
+
+class D {}
 ''');
 
     writePubspecFile(otherPubspecPath, '''
@@ -1920,7 +2645,7 @@ test_project:
       2 changes made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes
+        empty_container_bodies • 2 changes
 
 other_package:
   3.12.0:
@@ -1928,10 +2653,9 @@ other_package:
       0 changes made in 0 files.''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class C {
-  new();
-  new name();
-}
+class C;
+
+class D;
 ''',
     );
   }
@@ -1957,6 +2681,201 @@ test_project:
     );
   }
 
+  Future<void> test_default() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+void m(final int x) {}
+
+class C {}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      1 change made in 1 file.
+
+      my_project/lib/main.dart
+        avoid_final_parameters • 1 change
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    empty_container_bodies • 1 change
+
+To preview them, run 'dart pub get' and then 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+      expectedEdit: '''
+>>>>>>>>>> lib/main.dart
+void m(int x) {}
+
+class C {}
+>>>>>>>>>> pubspec.yaml
+name: test_project
+environment:
+  sdk: '^3.13.0'
+''',
+    );
+  }
+
+  Future<void> test_default_dryRun() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes would be made in 0 files.
+
+    SDK constraint:
+      Would bump ^3.12.0 -> ^3.13.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    empty_container_bodies • 1 change
+
+To preview them, apply this migration, run 'dart pub get', and then run 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+    );
+  }
+
+  /// A package whose bump failed isn't offered clean up fixes.
+  Future<void> test_default_error_missingPackageConfig() async {
+    newFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0: Failed
+    Failed to update .dart_tool/package_config.json for "test_project". Try running "dart pub get" to update the package configuration, then re-run the migration.''',
+    );
+  }
+
+  Future<void> test_default_multipleFiles() async {
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {}
+''');
+    newFile(join(projectFolderPath, 'lib', 'other.dart'), '''
+class D {}
+''');
+
+    await initialize();
+
+    await _assertMigrationResult(
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 2 changes in 2 files
+    empty_container_bodies • 2 changes
+
+To preview them, run 'dart pub get' and then 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+    );
+  }
+
+  /// The hint lists each package's clean up fixes separately, in the order the
+  /// packages were requested.
+  Future<void> test_default_multiplePackages() async {
+    var otherPackagePath = convertPath('/home/other_package');
+    writePubspecFile(pubspecFilePath, '''
+name: test_project
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(mainFilePath, '''
+class C {}
+''');
+
+    writePubspecFile(join(otherPackagePath, 'pubspec.yaml'), '''
+name: other_package
+environment:
+  sdk: '^3.12.0'
+''');
+    newFile(join(otherPackagePath, 'lib', 'other.dart'), '''
+class D {}
+
+class E {}
+''');
+
+    await initialize(
+      workspaceFolders: [projectFolderUri, toUri(otherPackagePath)],
+    );
+
+    await _assertMigrationResult(
+      uris: [projectFolderUri, toUri(otherPackagePath)],
+      apply: true,
+      expectedSummary: '''
+test_project:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+other_package:
+  3.12.0 -> 3.13.0:
+    Preparatory changes:
+      0 changes made in 0 files.
+
+    SDK constraint:
+      Bumped ^3.12.0 -> ^3.13.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    empty_container_bodies • 1 change
+
+  other_package: 2 changes in 1 file
+    empty_container_bodies • 2 changes
+
+To preview them, run 'dart pub get' and then 'dart migrate --dry-run --step=cleanup' on the same packages.''',
+    );
+  }
+
   Future<void> test_dryRun() async {
     writePubspecFile(pubspecFilePath, '''
 name: test_project
@@ -1964,15 +2883,15 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C(var x);
-  C.name(final String s);
-}
+class C {}
+
+void f(var x, final String s) {}
 ''');
 
     await initialize();
 
     await _assertMigrationResult(
+      steps: [MigrationStep.All],
       expectedSummary: '''
 test_project:
   3.12.0 -> 3.13.0:
@@ -1987,10 +2906,10 @@ test_project:
       Would bump ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      2 changes would be made in 1 file.
+      1 change would be made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 1 change''',
     );
   }
 
@@ -2112,10 +3031,7 @@ environment:
     newFile(mainFilePath, '''
 void m(final int x) {}
 
-class C {
-  C();
-  C.name();
-}
+class C {}
 ''');
 
     await initialize();
@@ -2133,15 +3049,19 @@ test_project:
         avoid_final_parameters • 1 change
 
     SDK constraint:
-      Bumped ^3.12.0 -> ^3.13.0''',
+      Bumped ^3.12.0 -> ^3.13.0
+
+Optional cleanup fixes can modernize your code further:
+
+  test_project: 1 change in 1 file
+    empty_container_bodies • 1 change
+
+To preview them, run 'dart pub get' and then 'dart migrate --dry-run --step=cleanup' on the same packages.''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
 void m(int x) {}
 
-class C {
-  C();
-  C.name();
-}
+class C {}
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:
@@ -2465,10 +3385,9 @@ environment:
   sdk: '^3.12.0'
 ''');
     newFile(mainFilePath, '''
-class C {
-  C(final int x);
-  C.name(final String s);
-}
+class C {}
+
+void f(final int x, final String s) {}
 ''');
 
     await initialize();
@@ -2489,16 +3408,15 @@ test_project:
       Bumped ^3.12.0 -> ^3.13.0
 
     Cleanup changes:
-      2 changes made in 1 file.
+      1 change made in 1 file.
 
       my_project/lib/main.dart
-        unnecessary_type_name_in_constructor • 2 changes''',
+        empty_container_bodies • 1 change''',
       expectedEdit: '''
 >>>>>>>>>> lib/main.dart
-class C {
-  new(int x);
-  new name(String s);
-}
+class C;
+
+void f(int x, String s) {}
 >>>>>>>>>> pubspec.yaml
 name: test_project
 environment:

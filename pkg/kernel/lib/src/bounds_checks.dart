@@ -210,11 +210,11 @@ DartType instantiateToBounds(DartType type, Class objectClass) {
 /// See the [description]
 /// (https://github.com/dart-lang/sdk/blob/master/docs/language/informal/instantiate-to-bound.md)
 /// of the algorithm for details.
-List<DartType> calculateBounds(
+DartTypeList calculateBounds(
   List<TypeParameter> typeParameters,
   Class objectClass,
 ) {
-  List<DartType> bounds = new List<DartType>.filled(
+  DartTypeList bounds = DartTypeList.filled(
     typeParameters.length,
     dummyDartType,
   );
@@ -712,7 +712,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
   DartType? visitTypedefType(TypedefType node, Variance variance) {
     isOutermost = false;
     Nullability? newNullability = visitNullability(node);
-    List<DartType>? newTypeArguments = null;
+    DartTypeList? newTypeArguments = null;
     for (int i = 0; i < node.typeArguments.length; i++) {
       // The implementation of instantiate-to-bound in legacy mode ignored the
       // variance of type parameters of the typedef.  This behavior is preserved
@@ -723,7 +723,7 @@ class _SuperBoundedTypeInverter extends ReplacementVisitor {
         variance.combine(node.typedefNode.typeParameters[i].variance),
       );
       if (newTypeArgument != null) {
-        newTypeArguments ??= new List<DartType>.of(node.typeArguments);
+        newTypeArguments ??= DartTypeList.from(node.typeArguments);
         newTypeArguments[i] = newTypeArgument;
       }
     }

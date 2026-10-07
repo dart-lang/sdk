@@ -979,6 +979,10 @@ suggestions
     kind: class
     isNotImported: true
     libraryUri: package:aaa/f.dart
+  A02
+    kind: class
+    isNotImported: true
+    libraryUri: package:bbb/f.dart
 ''');
   }
 

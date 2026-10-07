@@ -163,6 +163,12 @@ DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateLocal, 1, 3) {
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_createNativeCallableIsolateGroupBound, 1, 2) {
+  if (!FLAG_experimental_shared_data) {
+    FATAL(
+        "Encountered shared data api when functionality is disabled. "
+        "Pass --experimental-shared-data");
+  }
+
   const auto& trampoline =
       Function::CheckedHandle(zone, arguments->NativeArg0());
   const auto& target = Closure::CheckedHandle(zone, arguments->NativeArgAt(1));

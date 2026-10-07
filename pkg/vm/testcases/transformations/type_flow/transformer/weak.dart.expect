@@ -46,7 +46,7 @@ static method used2() → core::String
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method register([@vm.inferred-arg-type.metadata=dart.core::_Closure?] () →? core::String getAccessor) → void {
   if(!(getAccessor == null)) {
-    core::print([@vm.inferred-type.metadata=! (receiver not int)] getAccessor{() → core::String}(){() → core::String});
+    core::print([@vm.inferred-type.metadata=dart.core::_StringBase (inexact) (receiver not int)] getAccessor{() → core::String}(){() → core::String});
   }
 }
 

@@ -1973,6 +1973,9 @@ class Class : public Object {
   void PatchFieldsAndFunctions() const;
   void MigrateImplicitStaticClosures(ProgramReloadContext* context,
                                      const Class& new_cls) const;
+#if defined(DART_DYNAMIC_MODULES)
+  void MarkReloadedImplicitClosureFunctions() const;
+#endif
   void CopyCanonicalConstants(const Class& old_cls) const;
   void CopyDeclarationType(const Class& old_cls) const;
   void CheckReload(const Class& replacement,
@@ -4106,6 +4109,15 @@ class Function : public Object {
                                BitVector* is_generic_covariant_impl) const;
 #endif
 
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  static bool IsReloadedImplicitClosure(FunctionPtr ptr);
+  bool IsReloadedImplicitClosure() const {
+    return IsReloadedImplicitClosure(ptr());
+  }
+  void SetIsReloadedImplicitClosure(bool value) const;
+#endif
+
   // Slow function, use in asserts to track changes in important library
   // functions.
   int32_t SourceFingerprint() const;
@@ -4425,6 +4437,15 @@ class ClosureData : public Object {
   }
   void set_default_type_arguments_instantiation_mode(
       InstantiationMode value) const;
+
+#if defined(DART_DYNAMIC_MODULES) && !defined(PRODUCT) &&                      \
+    !defined(DART_PRECOMPILED_RUNTIME)
+  static bool ReloadedImplicitClosure(ClosureDataPtr ptr) {
+    return ptr->untag()
+        ->packed_fields_.Read<UntaggedClosureData::ReloadedImplicitClosure>();
+  }
+  void set_reloaded_implicit_closure(bool value) const;
+#endif
 
   static ClosureDataPtr New();
 
@@ -5280,10 +5301,6 @@ class Library : public Object {
   // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
-  ObjectPtr LookupReExport(
-      const String& name,
-      ZoneGrowableArray<intptr_t>* visited = nullptr) const;
-  ObjectPtr LookupLocalOrReExportObject(const String& name) const;
   LibraryPrefixPtr LookupLocalLibraryPrefix(const String& name) const;
 
   // These lookups are local within the library.
@@ -5412,9 +5429,6 @@ class Library : public Object {
     set_flags(UntaggedLibrary::DartSchemeBit::update(value, untag()->flags_));
   }
 
-  // Includes 'dart:async', 'dart:typed_data', etc.
-  bool IsAnyCoreLibrary() const;
-
   inline intptr_t UrlHash() const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -5526,7 +5540,6 @@ class Library : public Object {
 
   void set_num_imports(intptr_t value) const;
   void set_flags(uint8_t flags) const;
-  bool HasExports() const;
   ArrayPtr loaded_scripts() const { return untag()->loaded_scripts(); }
   ArrayPtr metadata() const {
     DEBUG_ASSERT(
@@ -6193,14 +6206,37 @@ class InstructionsTable : public Object {
   friend class Deserializer;
 };
 
+class LocalVarDescriptor : public Object {
+ public:
+  StringPtr name() const { return untag()->name(); }
+  AbstractTypePtr static_type() const { return untag()->static_type(); }
+
+  void set_name(const String& value) const;
+  void set_static_type(const AbstractType& value) const;
+
+  static LocalVarDescriptorPtr New(const String& name,
+                                   const AbstractType& static_type,
+                                   Heap::Space space = Heap::kNew);
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(UntaggedLocalVarDescriptor));
+  }
+
+ private:
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(LocalVarDescriptor, Object);
+  friend class Class;
+  friend class Object;
+};
+
 class LocalVarDescriptors : public Object {
  public:
   intptr_t Length() const;
 
   StringPtr GetName(intptr_t var_index) const;
+  AbstractTypePtr GetStaticType(intptr_t var_index) const;
 
   void SetVar(intptr_t var_index,
               const String& name,
+              const AbstractType& static_type,
               UntaggedLocalVarDescriptors::VarInfo* info) const;
 
   void GetInfo(intptr_t var_index,
@@ -6208,7 +6244,7 @@ class LocalVarDescriptors : public Object {
 
   static constexpr intptr_t kBytesPerElement =
       sizeof(UntaggedLocalVarDescriptors::VarInfo) +
-      sizeof(CompressedStringPtr);
+      sizeof(CompressedLocalVarDescriptorPtr);
   static constexpr intptr_t kMaxElements =
       UntaggedLocalVarDescriptors::VarInfo::kMaxIndex;
 
@@ -6221,7 +6257,7 @@ class LocalVarDescriptors : public Object {
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedLocalVarDescriptors) ==
-           OFFSET_OF_RETURNED_VALUE(UntaggedLocalVarDescriptors, names));
+           OFFSET_OF_RETURNED_VALUE(UntaggedLocalVarDescriptors, descriptors));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
@@ -6992,6 +7028,11 @@ class Code : public Object {
   }
   void set_is_force_optimized(bool value) const;
 
+  bool can_be_deoptimized() const {
+    return CanBeDeoptimizedBit::decode(untag()->state_bits_);
+  }
+  void set_can_be_deoptimized(bool value) const;
+
   bool is_alive() const { return AliveBit::decode(untag()->state_bits_); }
   void set_is_alive(bool value) const;
 
@@ -7477,9 +7518,13 @@ class Code : public Object {
                                      bool,
                                      OptimizedBit::kNextBit>;
 
+  using CanBeDeoptimizedBit = BitField<decltype(UntaggedCode::state_bits_),
+                                       bool,
+                                       ForceOptimizedBit::kNextBit>;
+
   using AliveBit = BitField<decltype(UntaggedCode::state_bits_),
                             bool,
-                            ForceOptimizedBit::kNextBit>;
+                            CanBeDeoptimizedBit::kNextBit>;
 
   // Set by precompiler if this Code object doesn't contain
   // useful information besides instructions and compressed stack map.

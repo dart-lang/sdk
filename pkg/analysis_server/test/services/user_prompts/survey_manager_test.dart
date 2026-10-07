@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/services/user_prompts/survey_manager.dart';
+import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
@@ -20,6 +21,7 @@ void main() {
 @reflectiveTest
 class SurveyManagerTest with ResourceProviderMixin {
   final instrumentationService = NoopInstrumentationService();
+  final sessionLogger = SessionLogger();
   final analytics = TestAnalytics();
   late final TestServer server;
   late final TestSurveyManager manager;
@@ -132,6 +134,7 @@ class SurveyManagerTest with ResourceProviderMixin {
     manager = TestSurveyManager(
       server,
       instrumentationService,
+      sessionLogger,
       analytics,
       initialDelay: initialDelay,
       checkFrequency: checkFrequency,
@@ -230,6 +233,7 @@ class TestSurveyManager extends SurveyManager {
   new(
     super.server,
     super.instrumentationService,
+    super._sessionLogger,
     super.analytics, {
     super.initialDelay,
     super.checkFrequency,

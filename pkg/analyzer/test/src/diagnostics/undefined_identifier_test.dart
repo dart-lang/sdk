@@ -16,6 +16,42 @@ main() {
 
 @reflectiveTest
 class UndefinedIdentifierTest extends PubPackageResolutionTest {
+  test_annotation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+@unresolved
+// [diag.undefinedIdentifier][column 2][length 10] Undefined name 'unresolved'.
+void f() {}
+''');
+  }
+
+  test_annotation_importPrefix() async {
+    await resolveTestCodeWithDiagnostics(r'''
+@p.A(0)
+// [diag.undefinedIdentifier][column 2][length 3] Undefined name 'p'.
+void f() {}
+''');
+  }
+
+  test_annotation_libraryScope() async {
+    await resolveTestCodeWithDiagnostics(r'''
+@foo
+// [diag.undefinedIdentifier][column 2][length 3] Undefined name 'foo'.
+class A {
+  static const foo = null;
+}
+''');
+  }
+
+  test_annotation_localVariable_const() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  const a = 0;
+  g(@a x) {}
+  g(0);
+}
+''');
+  }
+
   test_annotation_references_static_method_in_class() async {
     await resolveTestCodeWithDiagnostics('''
 @Annotation(foo)
@@ -106,6 +142,16 @@ mixin M<@Annotation(foo) T> {
 class Annotation {
   const Annotation(dynamic d);
 }
+''');
+  }
+
+  test_annotation_typeArguments() async {
+    await resolveTestCodeWithDiagnostics(r'''
+@unresolved<int>
+// [diag.undefinedIdentifier][column 2][length 10] Undefined name 'unresolved'.
+//             ^
+// [diag.annotationWithTypeArgumentsUninstantiated] An annotation with type arguments must be followed by an argument list.
+void f() {}
 ''');
   }
 
@@ -421,7 +467,6 @@ void f(int p) {
   p.();
 //  ^
 // [diag.missingIdentifier] Expected an identifier.
-// [diag.undefinedGetter] The getter '(' isn't defined for the type 'int'.
 }
 ''');
   }

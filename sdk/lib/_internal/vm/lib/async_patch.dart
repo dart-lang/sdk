@@ -44,6 +44,10 @@ class _AsyncStarStreamController<T> {
   StreamController<T> controller;
   @pragma("vm:entry-point")
   void Function(Object?)? asyncStarBody;
+
+  /// Zone that async* function body runs in.
+  /// Used to schedule runs of body code.
+  Zone zone = Zone.current; // Set to actual value in onListen.
   bool isAdding = false;
   bool onListenReceived = false;
   bool isScheduled = false;
@@ -69,7 +73,7 @@ class _AsyncStarStreamController<T> {
       return;
     }
     isScheduled = true;
-    scheduleMicrotask(runBody);
+    zone.scheduleMicrotask(runBody);
   }
 
   // Adds element to stream.
@@ -129,35 +133,36 @@ class _AsyncStarStreamController<T> {
     // of the generator and do not need to run the generator again.
   }
 
-  close() {
+  void close() {
     final future = cancellationFuture;
     if ((future != null) && future._mayComplete) {
-      // If the stream has been cancelled, complete the cancellation future
-      // with the error.
+      // If the stream has been cancelled, complete the cancellation future.
       future._completeWithValue(null);
     }
     controller.close();
   }
 
   _AsyncStarStreamController() : controller = StreamController(sync: true) {
-    controller.onListen = this.onListen;
-    controller.onResume = this.onResume;
-    controller.onCancel = this.onCancel;
+    controller
+      ..onListen = this.onListen
+      ..onResume = this.onResume
+      ..onCancel = this.onCancel;
   }
 
-  onListen() {
+  void onListen() {
     assert(!onListenReceived);
     onListenReceived = true;
+    zone = Zone.current;
     scheduleGenerator();
   }
 
-  onResume() {
+  void onResume() {
     if (isSuspendedAtYield) {
       scheduleGenerator();
     }
   }
 
-  onCancel() {
+  Future<void>? onCancel() {
     if (controller.isClosed) {
       return null;
     }

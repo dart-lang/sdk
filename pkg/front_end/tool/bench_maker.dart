@@ -191,7 +191,7 @@ class BenchMaker
   }
 
   void writeDeclaration(
-    TreeNode? declaration,
+    TreeNode declaration,
     Set<TreeNode> writtenDeclarations,
   ) {
     if (declaration is Class) {
@@ -271,8 +271,8 @@ class BenchMaker
     declarations.add("$sb");
   }
 
-  void writeTypedef(Typedef? typedefNode, Set<TreeNode> writtenDeclarations) {
-    if (typedefNode == null || !writtenDeclarations.add(typedefNode)) {
+  void writeTypedef(Typedef typedefNode, Set<TreeNode> writtenDeclarations) {
+    if (!writtenDeclarations.add(typedefNode)) {
       return;
     }
     DartType? rhsType = typedefNode.type;
@@ -291,11 +291,10 @@ class BenchMaker
   }
 
   void writeExtensionTypeDeclaration(
-    ExtensionTypeDeclaration? extensionTypeDeclaration,
+    ExtensionTypeDeclaration extensionTypeDeclaration,
     Set<TreeNode> writtenDeclarations,
   ) {
-    if (extensionTypeDeclaration == null ||
-        !writtenDeclarations.add(extensionTypeDeclaration)) {
+    if (!writtenDeclarations.add(extensionTypeDeclaration)) {
       return;
     }
     writeDeclarationForType(

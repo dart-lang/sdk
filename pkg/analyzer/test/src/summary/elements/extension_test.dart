@@ -470,6 +470,13 @@ library
               metadata
                 Annotation
                   atSign: @ @33
+                  expression: UnqualifiedNameExpression
+                    name: foo @34
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @34
                     element: <testLibrary>::@getter::foo
@@ -493,6 +500,13 @@ library
               metadata
                 Annotation
                   atSign: @ @76
+                  expression: UnqualifiedNameExpression
+                    name: foo @77
+                    resolution: GetterInvocationResolution
+                      element: <testLibrary>::@extension::E::@getter::foo
+                      invokeType: int Function()
+                      type: int
+                    staticType: int
                   name: SimpleIdentifier
                     token: foo @77
                     element: <testLibrary>::@extension::E::@getter::foo
@@ -520,6 +534,13 @@ library
           metadata
             Annotation
               atSign: @ @33
+              expression: UnqualifiedNameExpression
+                name: foo @34
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @34
                 element: <testLibrary>::@getter::foo
@@ -549,6 +570,13 @@ library
           metadata
             Annotation
               atSign: @ @76
+              expression: UnqualifiedNameExpression
+                name: foo @77
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@extension::E::@getter::foo
+                  invokeType: int Function()
+                  type: int
+                staticType: int
               name: SimpleIdentifier
                 token: foo @77
                 element: <testLibrary>::@extension::E::@getter::foo
@@ -808,6 +836,7 @@ library
               element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
+              primaryHeaderCodeRange: 16 + 12
               formalParameters
                 #F6 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:25) (firstTokenOffset:17) (offset:25)
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it

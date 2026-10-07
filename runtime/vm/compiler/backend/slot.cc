@@ -281,25 +281,15 @@ const Slot& Slot::GetTypeArgumentsSlotFor(Thread* thread, const Class& cls) {
 const Slot& Slot::GetContextVariableSlotFor(Thread* thread,
                                             const LocalVariable& variable) {
   ASSERT(variable.is_captured());
+  ASSERT(!variable.is_effectively_final() || !variable.is_late());
+  const bool is_immutable = variable.is_effectively_final() ||
+                            (!variable.is_late() && variable.is_final());
   return GetCanonicalSlot(
       thread, Kind::kCapturedVariable,
-      IsImmutableBit::encode(variable.is_final() && !variable.is_late()) |
+      IsImmutableBit::encode(is_immutable) |
           IsCompressedBit::encode(Context::ContainsCompressedPointers()),
       compiler::target::Context::variable_offset(variable.index().value()),
       &variable.name(), *(variable.inferred_type()), kTagged);
-}
-
-const Slot& Slot::GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index) {
-  const intptr_t offset =
-      compiler::target::TypeArguments::type_at_offset(index);
-  return GetCanonicalSlot(
-      thread, Kind::kTypeArgumentsIndex,
-      IsImmutableBit::encode(true) |
-          IsCompressedBit::encode(TypeArguments::ContainsCompressedPointers()),
-      offset, ":argument",
-      CompileType(CompileType::kCannotBeNull, CompileType::kCannotBeSentinel,
-                  kDynamicCid, nullptr),
-      kTagged);
 }
 
 const Slot& Slot::GetArrayElementSlot(Thread* thread,
@@ -515,7 +505,6 @@ bool Slot::Equals(const Slot& other) const {
     NATIVE_SLOTS_LIST(NATIVE_SLOT_CASE)
 #undef NATIVE_SLOT_CASE
     case Kind::kTypeArguments:
-    case Kind::kTypeArgumentsIndex:
     case Kind::kArrayElement:
     case Kind::kRecordField:
     case Kind::kClosureElement:

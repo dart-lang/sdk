@@ -637,8 +637,10 @@ final class TestStruct6 extends Struct {
   /**/ @Void()
   //   ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MISMATCHED_ANNOTATION_ON_STRUCT_FIELD
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_ANNOTATION_CONSTRUCTOR
-  //    ^
+  //    ^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_ABSTRACT_CLASS
+  //    ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
   // [cfe] The class 'Void' is abstract and can't be instantiated.
   external double z;
   //              ^
@@ -946,9 +948,10 @@ final class TestStruct1001 extends Struct {
 
 final class TestStruct1002 extends Struct {
   /**/ @Handle()
-  //   ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.NON_CONSTANT_ANNOTATION_CONSTRUCTOR
-  //    ^
+  //    ^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.INSTANTIATE_ABSTRACT_CLASS
+  //    ^^^^^^^^
+  // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONST
   // [cfe] The class 'Handle' is abstract and can't be instantiated.
   external Object handle;
   //       ^^^^^^

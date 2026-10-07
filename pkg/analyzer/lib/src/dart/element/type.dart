@@ -1573,11 +1573,13 @@ abstract class TypeImpl implements DartType, SharedType {
     @Deprecated('Only non-nullable by default mode is supported')
     bool withNullability = true,
     bool preferTypeAlias = false,
+    bool includePositionalParameterNames = false,
   }) {
     var builder = ElementDisplayStringBuilder(
       // ignore:deprecated_member_use_from_same_package
       withNullability: withNullability,
       preferTypeAlias: preferTypeAlias,
+      includePositionalParameterNames: includePositionalParameterNames,
     );
     appendTo(builder);
     return builder.toString();
