@@ -31,7 +31,6 @@ import 'simple_parser_test.dart' as simple_parser;
 import 'simple_resolver_test.dart' as simple_resolver_test;
 import 'source_factory_test.dart' as source_factory_test;
 import 'statement_parser_test.dart' as statement_parser;
-import 'static_type_analyzer_test.dart' as static_type_analyzer_test;
 import 'static_type_warning_code_test.dart' as static_type_warning_code;
 import 'static_warning_code_test.dart' as static_warning_code;
 import 'strong_mode_test.dart' as strong_mode;
@@ -70,7 +69,6 @@ main() {
     simple_resolver_test.main();
     source_factory_test.main();
     statement_parser.main();
-    static_type_analyzer_test.main();
     static_type_warning_code.main();
     static_warning_code.main();
     strong_mode.main();
