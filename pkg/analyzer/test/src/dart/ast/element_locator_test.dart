@@ -1393,20 +1393,20 @@ extension type A(int it) {}
 ''');
   }
 
-  test_locate_ForEachPartsWithIdentifier() async {
+  test_locate_ForEachPartsWithIdentifier_target() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f(int x) {
   for (x in <int>[]) {}
 }
 ''');
-    var node = result.findNode.singleForEachPartsWithIdentifier;
+    var node = result.findNode.singleForEachPartsWithIdentifier.target;
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f::@formalParameter::x
 ''');
   }
 
-  test_locate_ForEachPartsWithIdentifier_invalidWrite() async {
+  test_locate_ForEachPartsWithIdentifier_target_invalidWrite() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 int get foo => 0;
 
@@ -1416,10 +1416,8 @@ void f() {
 // [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
 }
 ''');
-    var node = result.findNode.singleForEachPartsWithIdentifier;
-    _assertElement(ElementLocatorV2.locate(node), r'''
-<testLibrary>::@getter::foo
-''');
+    var node = result.findNode.singleForEachPartsWithIdentifier.target;
+    expect(ElementLocatorV2.locate(node), isNull);
   }
 
   test_locate_FunctionDeclaration_local() async {

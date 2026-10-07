@@ -160,7 +160,6 @@ void ParsedFunction::SetRegExpCompileData(
 }
 
 void ParsedFunction::AllocateVariables() {
-  ASSERT(!function().IsIrregexpFunction());
   LocalScope* scope = this->scope();
   const intptr_t num_fixed_params = function().num_fixed_parameters();
   const intptr_t num_opt_params = function().NumOptionalParameters();

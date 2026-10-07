@@ -49,7 +49,7 @@ void StubCodeCompiler::EnsureIsNewOrRemembered() {
   // Page's TLAB use is always ascending.
   Label done;
   __ AndImmediate(TMP, RAX, target::Page::kPageMask);
-  __ LoadFromOffset(TMP, TMP, target::Page::original_top_offset());
+  __ LoadFromOffset(TMP, TMP, target::Page::survivor_end_offset());
   __ CompareRegisters(RAX, TMP);
   __ BranchIf(UNSIGNED_GREATER_EQUAL, &done);
 

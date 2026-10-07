@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport 'package:analyzer/src/generated/resolver.dart';
+/// @docImport 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 library;
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_log.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    show TypeAnalyzerOptions;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -230,7 +231,7 @@ class FlowAnalysisHelper {
     }
   }
 
-  /// This method is called whenever the [ResolverVisitor] enters a *flow
+  /// This method is called whenever the [TypeAnalyzer] enters a *flow
   /// analysis root* (see [FlowAnalysisRootImpl]).
   ///
   /// It causes flow analysis to be initialized.
@@ -281,7 +282,7 @@ class FlowAnalysisHelper {
           ..checkOffset(offset);
   }
 
-  /// This method is called whenever the [ResolverVisitor] leaves a *flow
+  /// This method is called whenever the [TypeAnalyzer] leaves a *flow
   /// analysis root* (see [FlowAnalysisRootImpl]).
   ///
   /// The [FlowAnalysisLog] that was collected by flow analysis during
@@ -1390,9 +1391,9 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
       if (forLoopParts is ForEachPartsWithIdentifierImpl) {
         // Assigned-variable collection runs before expression resolution fills
-        // in the write resolution. [ResolutionVisitor] has already recorded
+        // in the write resolution. [ScopeAnalyzer] has already recorded
         // the scope lookup used by this prepass.
-        var element = forLoopParts.scopeLookupResult?.getter;
+        var element = forLoopParts.target.scopeLookupResult?.getter;
         if (element is PromotableElementImpl) {
           assignedVariables.write(element);
         }
@@ -1417,7 +1418,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   void _readAssignmentTarget(AssignmentTarget target) {
     if (target is UnqualifiedNameAssignmentTargetImpl) {
       // Assigned-variable collection runs before expression resolution fills
-      // in the target's read resolution. [ResolutionVisitor] has already
+      // in the target's read resolution. [ScopeAnalyzer] has already
       // recorded the scope lookup used by this prepass.
       var element = target.scopeLookupResult?.getter;
       if (element is PromotableElementImpl) {
@@ -1451,7 +1452,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   void _writeAssignmentTarget(AssignmentTarget target) {
     if (target is UnqualifiedNameAssignmentTargetImpl) {
       // Assigned-variable collection runs before expression resolution fills
-      // in the target's write resolution. [ResolutionVisitor] has already
+      // in the target's write resolution. [ScopeAnalyzer] has already
       // recorded the scope lookup used by this prepass.
       var element = target.scopeLookupResult?.getter;
       if (element is PromotableElementImpl) {

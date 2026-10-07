@@ -44,6 +44,10 @@ An indirect pointer to a Dart object.
 
 A contiguous area owned by one thread for allocation, allowing it to bump allocate without locking.
 
+## [Write barrier elimination, WBE](gc.md#write-barrier-elimination)
+
+An optimization to omit a write barrier because the compiler knows either the write will never be interesting to the GC or the runtime will compensate to ensure the object is (re-)examined later.
+
 ## [Stack map](../vm/object.h#:~:text=class%20CompressedStackMaps)
 
 Identifies which slots in a stack frame contain objects (to be visited by the GC) and which contain raw bits (to be ignored by the GC) for each return address.

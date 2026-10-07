@@ -1422,8 +1422,6 @@ class UntaggedFunction : public UntaggedObject {
   V(NoSuchMethodDispatcher)                                                    \
   /* invokes a field as a closure (i.e., call-through-getter) */               \
   V(InvokeFieldDispatcher)                                                     \
-  /* a generated irregexp matcher function. */                                 \
-  V(IrregexpFunction)                                                          \
   /* a forwarder which performs type checks for arguments of a dynamic call */ \
   /* (i.e., those checks omitted by the caller for interface calls). */        \
   V(DynamicInvocationForwarder)                                                \

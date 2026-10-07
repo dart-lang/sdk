@@ -6929,6 +6929,31 @@ main() {
 ''');
   }
 
+  test_searchReferences_FunctionElement_local_invalidWrite() async {
+    makeFilePriority(testFile);
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  void foo() {}
+  foo = 0;
+//^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+  for (foo in [0]) {}
+//     ^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
+}
+''');
+    var element = result.findElement.localFunction('foo');
+    await assertElementReferencesText(element, r'''
+void f() {
+  void foo() {}
+  foo = 0;
+  ^^^ REFERENCE
+  for (foo in [0]) {}
+       ^^^ REFERENCE
+}
+''');
+  }
+
   test_searchReferences_GetterElement_ofClass_instance_invalidWrite() async {
     var result = await resolveTestCode('''
 class A {
@@ -9616,6 +9641,9 @@ void f() {
   foo = 0;
 //^^^
 // [diag.assignmentToFunction] Functions can't be assigned a value.
+  for (foo in [0]) {}
+//     ^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
 }
 ''');
     var element = result.findElement.topFunction('foo');
@@ -9625,6 +9653,8 @@ void foo() {}
 void f() {
   foo = 0;
   ^^^ REFERENCE
+  for (foo in [0]) {}
+       ^^^ REFERENCE
 }
 ''');
   }

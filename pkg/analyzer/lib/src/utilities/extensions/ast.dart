@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -135,6 +136,33 @@ extension AstNodeExtension on AstNode {
 
   InterfaceElement? get enclosingInterfaceElement2 =>
       enclosingInstanceElement2.tryCast();
+
+  /// The name scope of this node, or of the closest ancestor that has one.
+  ///
+  /// Name scopes are recorded during resolution, so this is `null` for
+  /// unresolved nodes.
+  @ToBeDeprecated('Use enclosingNameScope2 instead.')
+  Scope? get enclosingNameScope {
+    for (var node in withAncestors) {
+      if (node is AstNodeWithNameScopeMixin && node.nameScope != null) {
+        return node.nameScope;
+      }
+    }
+    return null;
+  }
+
+  /// The name scope of this node, or of the closest ancestor that has one.
+  ///
+  /// Name scopes are recorded during resolution, so this is `null` for
+  /// unresolved nodes.
+  Scope? get enclosingNameScope2 {
+    for (var node in withAncestors2) {
+      if (node is AstNodeWithNameScopeMixin && node.nameScope != null) {
+        return node.nameScope;
+      }
+    }
+    return null;
+  }
 
   @ToBeDeprecated('Use enclosingUnitChild2 instead.')
   AstNode? get enclosingUnitChild {

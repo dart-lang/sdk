@@ -175,7 +175,10 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    computeForNode(node, computeDefaultNodeId(node));
+    // A for-in loop has no enclosing expression to attribute the write of its
+    // variable to, so flow analysis attributes it to the target.
+    var target = node.target;
+    computeForNode(target, computeDefaultNodeId(target));
     super.visitForEachPartsWithIdentifier(node);
   }
 

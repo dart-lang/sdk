@@ -11,14 +11,14 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/generated/error_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
 
 class FunctionExpressionResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
-  FunctionExpressionResolver({required ResolverVisitor resolver})
+  FunctionExpressionResolver({required TypeAnalyzer resolver})
     : _resolver = resolver;
 
   TypeSystemImpl get _typeSystem => _resolver.typeSystem;

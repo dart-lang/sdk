@@ -124,11 +124,12 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier2: v
-    identifier(v1): SimpleIdentifier
-      token: v
-      element: <testLibrary>::@function::f::@formalParameter::v
-      staticType: dynamic
+    target: UnqualifiedNameAssignmentTarget
+      name: v
+      read: <null>
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::f::@formalParameter::v
+        acceptedType: dynamic
     inKeyword: in
     iterable2: UnqualifiedNameExpression
       name: values
@@ -140,9 +141,10 @@ ForElement
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: Stream<int>
-    write: VariableWriteResolution
+    identifier: SimpleIdentifier
+      token: v
       element: <testLibrary>::@function::f::@formalParameter::v
-      acceptedType: dynamic
+      staticType: dynamic
   rightParenthesis: )
   body2: UnqualifiedNameExpression
     name: v
@@ -176,11 +178,12 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier2: x
-    identifier(v1): SimpleIdentifier
-      token: x
-      element: <testLibrary>::@class::C::@setter::x
-      staticType: int
+    target: UnqualifiedNameAssignmentTarget
+      name: x
+      read: <null>
+      write: SetterInvocationResolution
+        element: <testLibrary>::@class::C::@setter::x
+        acceptedType: int
     inKeyword: in
     iterable2: UnqualifiedFunctionInvocation
       name: g
@@ -206,9 +209,10 @@ ForElement
       staticType: Iterable<int>
       typeArgumentTypes
         Iterable<int>
-    write: SetterInvocationResolution
+    identifier: SimpleIdentifier
+      token: x
       element: <testLibrary>::@class::C::@setter::x
-      acceptedType: int
+      staticType: int
   rightParenthesis: )
   body2: IntegerLiteral
     literal: 0
@@ -233,11 +237,12 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier2: x
-    identifier(v1): SimpleIdentifier
-      token: x
-      element: <testLibrary>::@setter::x
-      staticType: int
+    target: UnqualifiedNameAssignmentTarget
+      name: x
+      read: <null>
+      write: SetterInvocationResolution
+        element: <testLibrary>::@setter::x
+        acceptedType: int
     inKeyword: in
     iterable2: UnqualifiedFunctionInvocation
       name: g
@@ -263,9 +268,10 @@ ForElement
       staticType: Iterable<int>
       typeArgumentTypes
         Iterable<int>
-    write: SetterInvocationResolution
+    identifier: SimpleIdentifier
+      token: x
       element: <testLibrary>::@setter::x
-      acceptedType: int
+      staticType: int
   rightParenthesis: )
   body2: IntegerLiteral
     literal: 0
@@ -285,11 +291,12 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier2: v
-    identifier(v1): SimpleIdentifier
-      token: v
-      element: <testLibrary>::@function::f::@formalParameter::v
-      staticType: dynamic
+    target: UnqualifiedNameAssignmentTarget
+      name: v
+      read: <null>
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::f::@formalParameter::v
+        acceptedType: dynamic
     inKeyword: in
     iterable2: UnqualifiedNameExpression
       name: values
@@ -301,9 +308,10 @@ ForElement
       token: values
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
-    write: VariableWriteResolution
+    identifier: SimpleIdentifier
+      token: v
       element: <testLibrary>::@function::f::@formalParameter::v
-      acceptedType: dynamic
+      staticType: dynamic
   rightParenthesis: )
   body2: UnqualifiedNameExpression
     name: v
@@ -334,11 +342,12 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier2: v
-    identifier(v1): SimpleIdentifier
-      token: v
-      element: <testLibrary>::@class::A::@method::f::@formalParameter::v
-      staticType: dynamic
+    target: UnqualifiedNameAssignmentTarget
+      name: v
+      read: <null>
+      write: VariableWriteResolution
+        element: <testLibrary>::@class::A::@method::f::@formalParameter::v
+        acceptedType: dynamic
     inKeyword: in
     iterable2: InvalidSuperExpression
       superReference: SuperReference
@@ -347,9 +356,10 @@ ForElement
     iterable(v1): SuperExpression
       superKeyword: super
       staticType: A
-    write: VariableWriteResolution
+    identifier: SimpleIdentifier
+      token: v
       element: <testLibrary>::@class::A::@method::f::@formalParameter::v
-      acceptedType: dynamic
+      staticType: dynamic
   rightParenthesis: )
   body2: IntegerLiteral
     literal: 0
@@ -371,11 +381,12 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier2: v
-    identifier(v1): SimpleIdentifier
-      token: v
-      element: <testLibrary>::@setter::v
-      staticType: int
+    target: UnqualifiedNameAssignmentTarget
+      name: v
+      read: <null>
+      write: SetterInvocationResolution
+        element: <testLibrary>::@setter::v
+        acceptedType: int
     inKeyword: in
     iterable2: ListLiteral
       leftBracket: [
@@ -391,9 +402,10 @@ ForElement
           staticType: int
       rightBracket: ]
       staticType: List<int>
-    write: SetterInvocationResolution
+    identifier: SimpleIdentifier
+      token: v
       element: <testLibrary>::@setter::v
-      acceptedType: int
+      staticType: int
   rightParenthesis: )
   body2: UnqualifiedNameExpression
     name: v
@@ -422,11 +434,12 @@ ForElement
   forKeyword: for
   leftParenthesis: (
   forLoopParts: ForEachPartsWithIdentifier
-    identifier2: v
-    identifier(v1): SimpleIdentifier
-      token: v
-      element: <testLibrary>::@function::f::@formalParameter::v
-      staticType: dynamic
+    target: UnqualifiedNameAssignmentTarget
+      name: v
+      read: <null>
+      write: VariableWriteResolution
+        element: <testLibrary>::@function::f::@formalParameter::v
+        acceptedType: dynamic
     inKeyword: in
     iterable2: UnqualifiedNameExpression
       name: v
@@ -438,9 +451,10 @@ ForElement
       token: v
       element: <testLibrary>::@function::f::@formalParameter::v
       staticType: dynamic
-    write: VariableWriteResolution
+    identifier: SimpleIdentifier
+      token: v
       element: <testLibrary>::@function::f::@formalParameter::v
-      acceptedType: dynamic
+      staticType: dynamic
   rightParenthesis: )
   body2: IntegerLiteral
     literal: 0

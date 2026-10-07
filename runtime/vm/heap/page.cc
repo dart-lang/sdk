@@ -122,6 +122,8 @@ Page* Page::Allocate(Cage* cage, intptr_t size, uword flags) {
     result->end_ = end;
     result->survivor_end_ = top;
     result->resolved_top_ = top;
+  } else {
+    result->survivor_end_ = memory->end();
   }
 
   LSAN_REGISTER_ROOT_REGION(result, sizeof(*result));

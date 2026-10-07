@@ -318,8 +318,8 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    node.visitChildren2(this);
-    if (node.write?.elementOrRecovery case var element?) {
+    node.iterable2.accept2(this);
+    if (node.target.write?.elementOrRecovery case var element?) {
       _addElement(element);
     }
   }

@@ -37,7 +37,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
       return cache.resolver;
     }
 
-    var resolver = AstResolver(
+    var resolver = AstResolver.forLinking(
       inheritance: _linker.inheritance,
       libraryFragment: _libraryFragment,
       nameScope: _scope,

@@ -792,14 +792,15 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier2: element
-        identifier(v1): SimpleIdentifier
-          token: element
+        target: UnqualifiedNameAssignmentTarget
+          name: element
         inKeyword: in
         iterable2: ParsedUnqualifiedName
           name: list
         iterable(v1): SimpleIdentifier
           token: list
+        identifier: SimpleIdentifier
+          token: element
       rightParenthesis: )
       body: Block
         leftBracket: {
@@ -991,14 +992,15 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier2: element
-        identifier(v1): SimpleIdentifier
-          token: element
+        target: UnqualifiedNameAssignmentTarget
+          name: element
         inKeyword: in
         iterable2: ParsedUnqualifiedName
           name: list
         iterable(v1): SimpleIdentifier
           token: list
+        identifier: SimpleIdentifier
+          token: element
       rightParenthesis: )
       body: Block
         leftBracket: {
@@ -1022,14 +1024,15 @@ Block
       forKeyword: for
       leftParenthesis: (
       forLoopParts: ForEachPartsWithIdentifier
-        identifier2: element
-        identifier(v1): SimpleIdentifier
-          token: element
+        target: UnqualifiedNameAssignmentTarget
+          name: element
         inKeyword: in
         iterable2: ParsedUnqualifiedName
           name: list
         iterable(v1): SimpleIdentifier
           token: list
+        identifier: SimpleIdentifier
+          token: element
       rightParenthesis: )
       body: Block
         leftBracket: {

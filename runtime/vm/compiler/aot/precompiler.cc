@@ -3591,7 +3591,6 @@ bool PrecompileParsedFunctionHelper::Compile() {
 
   FlowGraph* flow_graph = nullptr;
   const Function& function = parsed_function()->function();
-  ASSERT(!function.IsIrregexpFunction());
   ASSERT(function.IsOptimizable());
 
   CompilerState compiler_state(thread(), /*is_aot=*/true,

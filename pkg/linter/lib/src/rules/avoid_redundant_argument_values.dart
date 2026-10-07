@@ -63,17 +63,14 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
 
   void checkArgument(Expression arg, FormalParameterElement? param) {
     if (param == null ||
+        param.baseElement.enclosingElement is! ExecutableElement ||
         param.isRequired ||
         param.metadata.hasRequired ||
         !param.isOptional) {
       return;
     }
 
-    var value = param.computeConstantValue();
-    // TODO(pq): reenable and do ecosystem cleanup (https://github.com/dart-lang/linter/issues/4368)
-    // if (value == null && arg is NullLiteral) {
-    //   rule.reportLint(arg);
-    // } else ...
+    var value = param.baseElement.computeConstantValue();
     if (value != null && value.hasKnownValue) {
       var expressionValue = arg.computeConstantValue()?.value;
       if ((expressionValue?.hasKnownValue ?? false) &&

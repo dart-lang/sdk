@@ -141,6 +141,22 @@ void g([int? a, int? b = 1]) {}
 ''');
   }
 
+  Future<void> test_functionType_optionalNamed_nullable_null() async {
+    await assertNoDiagnostics(r'''
+void f(void Function({int? p}) g) {
+  g(p: null);
+}
+''');
+  }
+
+  Future<void> test_functionType_optionalPositional_nullable_null() async {
+    await assertNoDiagnostics(r'''
+void f(void Function([int? p]) g) {
+  g(null);
+}
+''');
+  }
+
   Future<void> test_localFunction_optionalNamed_different() async {
     await assertNoDiagnostics(r'''
 void f() {
@@ -155,6 +171,28 @@ void f() {
 void f() {
   void g({bool p = true}) {}
   g(p: [!true!]);
+}
+''');
+  }
+
+  Future<void> test_method_generic_nonNullDefault_null() async {
+    await assertNoDiagnostics(r'''
+void f(A<String> a) {
+  a.g('x', null);
+}
+class A<T> {
+  void g(T a, [int? p = 1]) {}
+}
+''');
+  }
+
+  Future<void> test_method_generic_optionalPositional_nullable_null() async {
+    await assertDiagnosticsFromMarkup(r'''
+void f(A<int> a) {
+  a.g([!null!]);
+}
+class A<T> {
+  void g([T? p]) {}
 }
 ''');
   }
@@ -192,6 +230,32 @@ class A {
 ''');
   }
 
+  Future<void> test_named_nullable_null() async {
+    await assertDiagnostics(
+      r'''
+void g({int? p}) {}
+
+void f() {
+  g(p: null);
+}
+''',
+      [lint(39, 4)],
+    );
+  }
+
+  Future<void> test_named_nullable_null_default() async {
+    await assertDiagnostics(
+      r'''
+void g({int? p = null}) {}
+
+void f() {
+  g(p: null);
+}
+''',
+      [lint(46, 4)],
+    );
+  }
+
   Future<void> test_namedArgumentBeforePositional() async {
     await assertDiagnosticsFromMarkup(r'''
 void foo(int a, int b, {bool c = true}) {}
@@ -200,6 +264,19 @@ void f() {
   foo(0, c: [!true!], 1);
 }
 ''');
+  }
+
+  Future<void> test_optional_positional_nullable_null() async {
+    await assertDiagnostics(
+      r'''
+void g([int? p]) {}
+
+void f() {
+  g(null);
+}
+''',
+      [lint(36, 4)],
+    );
   }
 
   Future<void> test_redirectingFactoryConstructor() async {
@@ -423,11 +500,10 @@ void main() {
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4967')
   Future<void> test_toListOptionalGrowable() async {
     await assertDiagnosticsFromMarkup(r'''
 void main() {
-  [].toList([!growable!]: true);
+  [].toList(growable: [!true!]);
 }
 ''');
   }

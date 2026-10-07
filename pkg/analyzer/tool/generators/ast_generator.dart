@@ -1018,14 +1018,14 @@ if ($propertyName.replaceChild(oldNode, newNode)) {
       buffer.write('''
 \n@generated
 @override
-void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
   throw StateError('${implClass.interfaceName} is a V1 projection.');
 }''');
     } else {
       buffer.write('''
 \n@generated
 @override
-void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
+void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
   resolver.visit${implClass.interfaceName}(this, contextType: contextType);
 }''');
     }

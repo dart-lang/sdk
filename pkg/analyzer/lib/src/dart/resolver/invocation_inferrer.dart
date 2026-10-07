@@ -21,11 +21,11 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 Set<Object> _computeExplicitlyTypedParameterSet(
   FunctionExpression functionExpression,
@@ -261,7 +261,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       } else {
         typeArgumentTypes = typeArgumentList.arguments
             .map((typeArgument) => typeArgument.typeOrThrow)
-            .toList(growable: true);
+            .toList();
         if (rawType != null && _needsTypeArgumentBoundsCheck) {
           var typeParameters = rawType.typeParameters;
           var substitution = Substitution.fromPairs2(
@@ -381,7 +381,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     var parameters = _storeResult(typeArgumentTypes, invokeType);
     if (parameters != null) {
       argumentList.correspondingStaticParameters =
-          ResolverVisitor.resolveArgumentsToParameters(
+          TypeAnalyzer.resolveArgumentsToParameters(
             argumentList: argumentList,
             formalParameters: parameters,
             diagnosticReporter: resolver.diagnosticReporter,
@@ -475,7 +475,7 @@ abstract class InvocationExpressionInferrer<
 /// This class may be used directly for inference of [ExtensionOverride2],
 /// [RedirectingConstructorInvocation], or [SuperConstructorInvocation].
 class InvocationInferrer<Node extends AstNodeImpl> {
-  final ResolverVisitor resolver;
+  final TypeAnalyzer resolver;
   final Node node;
   final ArgumentListImpl argumentList;
   final TypeImpl contextType;

@@ -138,7 +138,7 @@ class Monitor {
   /// call this method multiple times, but the [signal] will complete only once.
   void notify() {
     if (!_completer.isCompleted) {
-      _completer.complete(null);
+      _completer.complete();
     }
   }
 }

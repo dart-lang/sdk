@@ -4,11 +4,11 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 /// Helper for resolving [LogicalNot]s.
 class LogicalNotResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
   LogicalNotResolver(this._resolver);
 

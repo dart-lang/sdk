@@ -5,9 +5,9 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Resolves an annotation, and checks that it denotes a valid annotation.
 ///
@@ -19,7 +19,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// invocations are verified by constant verification, like other constant
 /// constructor invocations.
 class AnnotationResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
   AnnotationResolver(this._resolver);
 

@@ -8,14 +8,14 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// A resolver for [ConstructorTearOff] nodes.
 class ConstructorTearOffResolver {
   /// The resolver driving this participant.
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
   ConstructorTearOffResolver(this._resolver);
 

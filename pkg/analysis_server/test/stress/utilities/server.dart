@@ -678,7 +678,7 @@ class Server {
     switch (notification.event) {
       case 'server.connected':
         //        new ServerConnectedParams.fromNotification(notification, clientUriConverter: null);
-        _serverConnectedCompleter!.complete(null);
+        _serverConnectedCompleter!.complete();
       case 'server.error':
         //        new ServerErrorParams.fromNotification(notification, clientUriConverter: null);
         throw StateError('Server error: ${notification.toJson()}');
@@ -690,7 +690,7 @@ class Server {
           );
           var analysis = params.analysis;
           if (analysis != null && !analysis.isAnalyzing) {
-            _analysisFinishedCompleter!.complete(null);
+            _analysisFinishedCompleter!.complete();
           }
         }
       case 'analysis.analyzedFiles':

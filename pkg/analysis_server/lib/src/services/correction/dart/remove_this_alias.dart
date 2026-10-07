@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
-import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -160,13 +160,7 @@ class RemoveThisAlias extends ResolvedCorrectionProducer {
     required bool shouldResolveSetter,
     required LocalVariableElement aliasElement,
   }) {
-    Scope? scope;
-    for (AstNode? context = node; context != null; context = context.parent) {
-      scope = ScopeResolverVisitor.getNodeNameScope(context);
-      if (scope != null) {
-        break;
-      }
-    }
+    var scope = node.enclosingNameScope;
 
     // Iterate over the name scoped, moving from the innermost to the outermost
     // scope, looking to see whether the [id] is defined in the innermost scope.

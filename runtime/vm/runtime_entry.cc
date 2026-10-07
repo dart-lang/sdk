@@ -56,11 +56,6 @@ DEFINE_FLAG(
     max_subtype_cache_entries,
     kDefaultMaxSubtypeCacheEntries,
     "Maximum number of subtype cache entries (number of checks cached).");
-DEFINE_FLAG(
-    int,
-    regexp_optimization_counter_threshold,
-    1000,
-    "RegExp's usage-counter value before it is optimized, -1 means never");
 DEFINE_FLAG(int,
             reoptimization_counter_threshold,
             4000,

@@ -189,6 +189,23 @@ void main() {
 ''');
   }
 
+  Future<void> test_named_null() async {
+    await resolveTestCode('''
+void f({int? x}) {}
+
+void g() {
+  f(x: null);
+}
+''');
+    await assertHasFix('''
+void f({int? x}) {}
+
+void g() {
+  f();
+}
+''');
+  }
+
   Future<void> test_optional_positional() async {
     await resolveTestCode('''
 void g(int x, [int y = 0]) {}

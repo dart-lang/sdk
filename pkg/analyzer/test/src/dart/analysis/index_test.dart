@@ -7438,6 +7438,9 @@ void f() {
   foo = 0;
 //^^^
 // [diag.assignmentToFunction] Functions can't be assigned a value.
+  for (foo in [0]) {}
+//     ^^^
+// [diag.assignmentToFunction] Functions can't be assigned a value.
 }
 ''');
 
@@ -7449,6 +7452,8 @@ void foo() {}
 void f() {
   foo = 0;
   ^^^ IS_REFERENCED_BY
+  for (foo in [0]) {}
+       ^^^ IS_REFERENCED_BY
 }
 ''');
   }
@@ -7545,6 +7550,9 @@ void f() {
   foo = 1;
 //^^^
 // [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+  for (foo in [1]) {}
+//     ^^^
+// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
 }
 ''');
 
@@ -7556,6 +7564,8 @@ int get foo => 0;
 void f() {
   foo = 1;
   ^^^ IS_REFERENCED_BY
+  for (foo in [1]) {}
+       ^^^ IS_REFERENCED_BY
 }
 ''');
   }
@@ -7692,6 +7702,7 @@ set foo(int _) {}
 void f() {
   foo = 0;
   p.foo = 0;
+  for (foo in [0]) {}
 }
 ''');
 
@@ -7710,6 +7721,8 @@ void f() {
   ^^^ setter IS_INVOKED_BY
   p.foo = 0;
     ^^^ setter IS_INVOKED_BY qualified
+  for (foo in [0]) {}
+       ^^^ setter IS_INVOKED_BY
 }
 ''',
     );
@@ -8103,6 +8116,7 @@ class C {
     x = 1;
     x += 2;
     x();
+    for (x in [3]) {}
   }
 }
 ''');
@@ -8125,6 +8139,8 @@ class C {
     ^ setter IS_INVOKED_BY
     x();
     ^ getter IS_INVOKED_BY
+    for (x in [3]) {}
+         ^ setter IS_INVOKED_BY
   }
 }
 ''',
@@ -8146,6 +8162,9 @@ void f() {
   x();
 //^
 // [diag.undefinedFunction] The function 'x' isn't defined.
+  for (x in [3]) {}
+//     ^
+// [diag.undefinedIdentifier] Undefined name 'x'.
 }
 ''');
     assertNamesIndexText(
@@ -8161,6 +8180,8 @@ void f() {
   ^ x IS_READ_WRITTEN_BY
   x();
   ^ x IS_INVOKED_BY
+  for (x in [3]) {}
+       ^ x IS_WRITTEN_BY
 }
 ''',
     );

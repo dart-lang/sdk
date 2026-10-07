@@ -1055,6 +1055,76 @@ class B extends A {
 ''');
   }
 
+  test_forEachPartsWithIdentifier_deprecatedGetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+@deprecated
+int get x => 0;
+
+set x(int _) {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  for (x in [0]) {}
+}
+''');
+  }
+
+  test_forEachPartsWithIdentifier_deprecatedGetter_noSetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+@deprecated
+int get x => 0;
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  for (x in [0]) {}
+//     ^
+// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+}
+''');
+  }
+
+  test_forEachPartsWithIdentifier_deprecatedGetterSetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+@deprecated
+int x = 1;
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  for (x in [0]) {}
+//     ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
+}
+''');
+  }
+
+  test_forEachPartsWithIdentifier_deprecatedSetter() async {
+    newFile('$aaaPackageRootPath/lib/a.dart', r'''
+int get x => 0;
+
+@deprecated
+set x(int _) {}
+''');
+
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  for (x in [0]) {}
+//     ^
+// [diag.deprecatedMemberUse] 'x' is deprecated and shouldn't be used.
+}
+''');
+  }
+
   test_hideCombinator() async {
     newFile('$aaaPackageRootPath/lib/a.dart', r'''
 @deprecated

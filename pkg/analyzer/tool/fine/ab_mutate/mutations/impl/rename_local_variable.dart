@@ -144,12 +144,6 @@ class _UnqualifiedReferences extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    _add(node.identifier2, node);
-    super.visitForEachPartsWithIdentifier(node);
-  }
-
-  @override
   void visitUnqualifiedFunctionInvocation(UnqualifiedFunctionInvocation node) {
     _add(node.name, node);
     super.visitUnqualifiedFunctionInvocation(node);

@@ -1945,19 +1945,6 @@ class _LocalReferencesVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    var element = node.write?.elementOrRecovery;
-    if (elements.contains(element)) {
-      _addResultImpl(
-        node.identifier2,
-        SearchResultKind.WRITE,
-        isQualified: false,
-      );
-    }
-    node.iterable2.accept2(this);
-  }
-
-  @override
   void visitImportPrefixedAssignmentTarget(
     ImportPrefixedAssignmentTarget node,
   ) {

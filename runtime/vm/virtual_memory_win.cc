@@ -21,14 +21,6 @@ DECLARE_FLAG(bool, write_protect_code);
 uword VirtualMemory::page_size_ = 0;
 
 static intptr_t allocation_granule = 0;
-typedef PVOID(__stdcall* VirtualAlloc2_t)(HANDLE,
-                                          PVOID,
-                                          SIZE_T,
-                                          ULONG,
-                                          ULONG,
-                                          MEM_EXTENDED_PARAMETER*,
-                                          ULONG);
-static VirtualAlloc2_t DynamicVirtualAlloc2 = nullptr;
 
 intptr_t VirtualMemory::CalculatePageSize() {
   SYSTEM_INFO info;
@@ -45,36 +37,18 @@ static void* AllocateAlignedImpl(intptr_t size,
                                  DWORD prot,
                                  void** out_reserved_address,
                                  intptr_t* out_reserved_size) {
-  if (DynamicVirtualAlloc2 != nullptr) {
-    MEM_ADDRESS_REQUIREMENTS requirements = {};
-    requirements.Alignment = Utils::Maximum(alignment, allocation_granule);
-    MEM_EXTENDED_PARAMETER param = {};
-    param.Type = MemExtendedParameterAddressRequirements;
-    param.Pointer = &requirements;
-    void* address =
-        DynamicVirtualAlloc2(nullptr, nullptr, size, type, prot, &param, 1);
-    if (address == nullptr) {
-      return nullptr;
-    }
-    *out_reserved_address = address;
-    *out_reserved_size = size;
-    return address;
-  }
-  intptr_t reserved_size = size + alignment - VirtualMemory::PageSize();
-  void* reserved_address =
-      VirtualAlloc(nullptr, reserved_size, MEM_RESERVE, prot);
-  if (reserved_address == nullptr) {
+  MEM_ADDRESS_REQUIREMENTS requirements = {};
+  requirements.Alignment = Utils::Maximum(alignment, allocation_granule);
+  MEM_EXTENDED_PARAMETER param = {};
+  param.Type = MemExtendedParameterAddressRequirements;
+  param.Pointer = &requirements;
+  void* address = VirtualAlloc2(nullptr, nullptr, size, type, prot, &param, 1);
+  if (address == nullptr) {
     return nullptr;
   }
-  void* aligned_address = reinterpret_cast<void*>(
-      Utils::RoundUp(reinterpret_cast<uword>(reserved_address), alignment));
-  if (VirtualAlloc(aligned_address, size, type, prot) != aligned_address) {
-    VirtualFree(reserved_address, reserved_size, MEM_RELEASE);
-    return nullptr;
-  }
-  *out_reserved_address = reserved_address;
-  *out_reserved_size = reserved_size;
-  return aligned_address;
+  *out_reserved_address = address;
+  *out_reserved_size = size;
+  return address;
 }
 
 void VirtualMemory::Init() {
@@ -98,8 +72,6 @@ void VirtualMemory::Init() {
   SYSTEM_INFO info;
   GetSystemInfo(&info);
   allocation_granule = info.dwAllocationGranularity;
-  DynamicVirtualAlloc2 = reinterpret_cast<VirtualAlloc2_t>(
-      GetProcAddress(GetModuleHandle(L"kernelbase.dll"), "VirtualAlloc2"));
 }
 
 void VirtualMemory::Cleanup() {

@@ -40,13 +40,13 @@ class MarkingVisitor : public ObjectPointerVisitor {
                  PageSpace* page_space,
                  MarkingStack* old_marking_stack,
                  MarkingStack* new_marking_stack,
-                 MarkingStack* tlab_deferred_marking_stack,
+                 MarkingStack* wbe_deferred_marking_stack,
                  MarkingStack* deferred_marking_stack)
       : ObjectPointerVisitor(isolate_group),
         page_space_(page_space),
         old_work_list_(old_marking_stack),
         new_work_list_(new_marking_stack),
-        tlab_deferred_work_list_(tlab_deferred_marking_stack),
+        wbe_deferred_work_list_(wbe_deferred_marking_stack),
         deferred_work_list_(deferred_marking_stack),
         marked_bytes_(0),
         marked_micros_(0),
@@ -115,7 +115,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
   void YieldConcurrentMarking() {
     old_work_list_.Flush();
     new_work_list_.Flush();
-    tlab_deferred_work_list_.Flush();
+    wbe_deferred_work_list_.Flush();
     deferred_work_list_.Flush();
     Thread* thread = Thread::Current();
     thread->StoreBufferReleaseGC();
@@ -123,15 +123,10 @@ class MarkingVisitor : public ObjectPointerVisitor {
     thread->StoreBufferAcquireGC();
   }
 
-  static bool InTLAB(ObjectPtr obj) {
+  // Can this object have future writes without a write barrier?
+  static bool HasWBE(ObjectPtr obj) {
     ASSERT(obj->IsNewObject());
-    Page* page = Page::Of(obj);
-    // This load-acquire pairs with the store-release in Page::Release. If we
-    // see an object below Page::top_, we'll see at least its initializing
-    // stores. Page::top_ is rarely updated when a thread starts or finishes
-    // using a TLAB. Importantly, here we are not reading Thread::top_, that is
-    // updated frequently as a store-relaxed as part of bump-pointer allocation.
-    return page->original_top() <= static_cast<uword>(obj);
+    return static_cast<uword>(obj) >= Page::Of(obj)->survivor_end();
   }
 
   void DrainMarkingStackWithPauseChecks() {
@@ -143,10 +138,10 @@ class MarkingVisitor : public ObjectPointerVisitor {
         ASSERT(!has_evacuation_candidate_);
 
         if (obj->IsNewObject()) {
-          if (InTLAB(obj)) {
+          if (HasWBE(obj)) {
             // New-space objects still in a TLAB are deferred. This allows the
             // compiler to remove write barriers for freshly allocated objects.
-            tlab_deferred_work_list_.Push(obj);
+            wbe_deferred_work_list_.Push(obj);
             if (page_space_->pause_concurrent_marking()) [[unlikely]] {
               YieldConcurrentMarking();
             }
@@ -199,7 +194,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
     ASSERT(old_work_list_.IsLocalEmpty());
     // In case of scavenge before final marking.
     new_work_list_.Flush();
-    tlab_deferred_work_list_.Flush();
+    wbe_deferred_work_list_.Flush();
     deferred_work_list_.Flush();
   }
 
@@ -519,7 +514,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
   void FinalizeMarking() {
     old_work_list_.Finalize();
     new_work_list_.Finalize();
-    tlab_deferred_work_list_.Finalize();
+    wbe_deferred_work_list_.Finalize();
     deferred_work_list_.Finalize();
     MournFinalizerEntries();
     // MournFinalizerEntries inserts newly discovered dead entries into the
@@ -608,7 +603,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
   void Flush(GCLinkedLists* global_list) {
     old_work_list_.Flush();
     new_work_list_.Flush();
-    tlab_deferred_work_list_.Flush();
+    wbe_deferred_work_list_.Flush();
     deferred_work_list_.Flush();
     delayed_.FlushInto(global_list);
   }
@@ -621,7 +616,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
   void AbandonWork() {
     old_work_list_.AbandonWork();
     new_work_list_.AbandonWork();
-    tlab_deferred_work_list_.AbandonWork();
+    wbe_deferred_work_list_.AbandonWork();
     deferred_work_list_.AbandonWork();
     delayed_.Release();
   }
@@ -631,8 +626,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
     old_work_list_.Finalize();
     new_work_list_.Flush();
     new_work_list_.Finalize();
-    tlab_deferred_work_list_.Flush();
-    tlab_deferred_work_list_.Finalize();
+    wbe_deferred_work_list_.Flush();
+    wbe_deferred_work_list_.Finalize();
     deferred_work_list_.Flush();
     deferred_work_list_.Finalize();
     delayed_.FlushInto(global_list);
@@ -654,7 +649,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
         new_work_list_.Push(obj);
       }
 #else
-      if (concurrent_ && InTLAB(obj)) {
+      if (concurrent_ && HasWBE(obj)) {
         // New-space objects still in a TLAB might race with the header's
         // initializing store.
         deferred_work_list_.Push(obj);
@@ -701,7 +696,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
   PageSpace* page_space_;
   MarkerWorkList old_work_list_;
   MarkerWorkList new_work_list_;
-  MarkerWorkList tlab_deferred_work_list_;
+  MarkerWorkList wbe_deferred_work_list_;
   MarkerWorkList deferred_work_list_;
   GCLinkedLists delayed_;
   uintptr_t marked_bytes_;
@@ -741,7 +736,7 @@ class MarkingWeakVisitor : public HandleVisitor {
 
 void GCMarker::Prologue() {
   isolate_group_->ReleaseStoreBuffers();
-  new_marking_stack_.PushAll(tlab_deferred_marking_stack_.PopAll());
+  new_marking_stack_.PushAll(wbe_deferred_marking_stack_.PopAll());
 
 #if defined(DART_DYNAMIC_MODULES)
   isolate_group_->ForEachIsolate(
@@ -1093,7 +1088,7 @@ GCMarker::GCMarker(IsolateGroup* isolate_group, Heap* heap)
       heap_(heap),
       old_marking_stack_(),
       new_marking_stack_(),
-      tlab_deferred_marking_stack_(),
+      wbe_deferred_marking_stack_(),
       deferred_marking_stack_(),
       global_list_(),
       visitors_(),
@@ -1143,7 +1138,7 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
     ASSERT(visitors_[i] == nullptr);
     MarkingVisitor* visitor = new MarkingVisitor(
         isolate_group_, page_space, &old_marking_stack_, &new_marking_stack_,
-        &tlab_deferred_marking_stack_, &deferred_marking_stack_);
+        &wbe_deferred_marking_stack_, &deferred_marking_stack_);
     visitors_[i] = visitor;
 
     if (i < (num_tasks - 1)) {
@@ -1184,7 +1179,7 @@ void GCMarker::IncrementalMarkWithUnlimitedBudget(PageSpace* page_space) {
                                 "IncrementalMarkWithUnlimitedBudget");
 
   MarkingVisitor visitor(isolate_group_, page_space, &old_marking_stack_,
-                         &new_marking_stack_, &tlab_deferred_marking_stack_,
+                         &new_marking_stack_, &wbe_deferred_marking_stack_,
                          &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
   visitor.ProcessOldMarkingStack(kIntptrMax);
@@ -1209,7 +1204,7 @@ void GCMarker::IncrementalMarkWithSizeBudget(PageSpace* page_space,
                                 "IncrementalMarkWithSizeBudget");
 
   MarkingVisitor visitor(isolate_group_, page_space, &old_marking_stack_,
-                         &new_marking_stack_, &tlab_deferred_marking_stack_,
+                         &new_marking_stack_, &wbe_deferred_marking_stack_,
                          &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
   visitor.ProcessOldMarkingStack(size);
@@ -1229,7 +1224,7 @@ void GCMarker::IncrementalMarkWithTimeBudget(PageSpace* page_space,
                                 "IncrementalMarkWithTimeBudget");
 
   MarkingVisitor visitor(isolate_group_, page_space, &old_marking_stack_,
-                         &new_marking_stack_, &tlab_deferred_marking_stack_,
+                         &new_marking_stack_, &wbe_deferred_marking_stack_,
                          &deferred_marking_stack_);
   int64_t start = OS::GetCurrentMonotonicMicros();
   visitor.ProcessOldMarkingStackUntil(deadline);
@@ -1313,7 +1308,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
     if (visitor == nullptr) {
       visitor = new MarkingVisitor(
           isolate_group_, page_space, &old_marking_stack_, &new_marking_stack_,
-          &tlab_deferred_marking_stack_, &deferred_marking_stack_);
+          &wbe_deferred_marking_stack_, &deferred_marking_stack_);
       visitors_[i] = visitor;
     }
 

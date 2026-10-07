@@ -8,15 +8,15 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/body_inference_context.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [YieldStatement]s.
 class YieldStatementResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
-  YieldStatementResolver({required ResolverVisitor resolver})
+  YieldStatementResolver({required TypeAnalyzer resolver})
     : _resolver = resolver;
 
   DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;

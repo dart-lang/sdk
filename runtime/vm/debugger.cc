@@ -411,7 +411,6 @@ static bool IsImplicitFunction(const Function& func) {
     case UntaggedFunction::kMethodExtractor:
     case UntaggedFunction::kNoSuchMethodDispatcher:
     case UntaggedFunction::kInvokeFieldDispatcher:
-    case UntaggedFunction::kIrregexpFunction:
     case UntaggedFunction::kRecordFieldGetter:
       return true;
     default:

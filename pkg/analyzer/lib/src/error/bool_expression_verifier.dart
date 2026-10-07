@@ -7,22 +7,22 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for verifying expression that should be of type bool.
 class BoolExpressionVerifier {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
   final DiagnosticReporter _diagnosticReporter;
   final NullableDereferenceVerifier _nullableDereferenceVerifier;
 
   final InterfaceTypeImpl _boolType;
 
   BoolExpressionVerifier({
-    required ResolverVisitor resolver,
+    required TypeAnalyzer resolver,
     required DiagnosticReporter diagnosticReporter,
     required NullableDereferenceVerifier nullableDereferenceVerifier,
   }) : _resolver = resolver,

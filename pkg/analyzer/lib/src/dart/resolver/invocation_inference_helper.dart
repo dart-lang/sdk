@@ -14,7 +14,7 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 /// Information about a constructor element to instantiate.
 ///
@@ -56,14 +56,14 @@ class ConstructorElementToInfer {
 }
 
 class InvocationInferenceHelper {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
   final DiagnosticReporter _diagnosticReporter;
   final TypeSystemImpl _typeSystem;
   final bool _genericMetadataIsEnabled;
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
   InvocationInferenceHelper({
-    required ResolverVisitor resolver,
+    required TypeAnalyzer resolver,
     required DiagnosticReporter diagnosticReporter,
     required TypeSystemImpl typeSystem,
     required this.dataForTesting,

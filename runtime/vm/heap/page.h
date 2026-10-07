@@ -161,14 +161,12 @@ class Page {
     return Utils::RoundUp(sizeof(Page), kObjectAlignment,
                           kNewObjectAlignmentOffset);
   }
-  // These are "original" in the sense that they reflect TLAB boundaries when
-  // the TLAB was acquired, not the current boundaries. An object between
-  // original_top and top may still be in use by Dart code that has eliminated
-  // write barriers.
-  uword original_top() const { return top_.load(std::memory_order_acquire); }
-  uword original_end() const { return end_.load(std::memory_order_relaxed); }
-  static intptr_t original_top_offset() { return OFFSET_OF(Page, top_); }
-  static intptr_t original_end_offset() { return OFFSET_OF(Page, end_); }
+  // An object at or after survivor_end may still be in use by Dart code that
+  // has eliminated write barriers.
+  uword survivor_end() const { return survivor_end_; }
+  static intptr_t survivor_end_offset() {
+    return OFFSET_OF(Page, survivor_end_);
+  }
 
   // Warning: This does not work for objects on image pages because image pages
   // are not aligned. However, it works for objects on large pages, because

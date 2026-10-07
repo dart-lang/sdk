@@ -24,7 +24,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/src/utilities/extensions/resolved_unit_result.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -542,7 +541,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
               ),
             )
         when body is BlockFunctionBody) {
-      scope = ScopeResolverVisitor.getNodeNameScope(body.block);
+      scope = body.block.enclosingNameScope;
     }
     // Remember parameters and variables occurrences.
     _methodUnit.accept(

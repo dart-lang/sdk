@@ -897,36 +897,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
       case ImportPrefixedAssignmentTargetImpl():
         break;
       case UnqualifiedNameAssignmentTargetImpl target:
-        switch (target.write) {
-          case VariableWriteResolutionImpl(:var element):
-            recordRelation(
-              element,
-              IndexRelationKind.IS_WRITTEN_BY,
-              target,
-              false,
-            );
-          case SetterInvocationResolutionImpl(:var element):
-            recordRelation(
-              element,
-              IndexRelationKind.IS_INVOKED_BY,
-              target,
-              false,
-            );
-          case InvalidNamedWriteResolutionImpl(recoveryElement: var element?):
-            recordRelation(
-              element,
-              IndexRelationKind.IS_REFERENCED_BY,
-              target,
-              false,
-            );
-          default:
-            assembler.addNameRelation(
-              target.name.lexeme,
-              IndexRelationKind.IS_WRITTEN_BY,
-              target.offset,
-              false,
-            );
-        }
+        _recordUnqualifiedNameWriteTarget(target);
     }
     super.visitDirectAssignment(node);
   }
@@ -1046,30 +1017,10 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   }
 
   @override
-  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    switch (node.write) {
-      case VariableWriteResolutionImpl(:var element):
-        recordRelation(
-          element,
-          IndexRelationKind.IS_WRITTEN_BY,
-          node.identifier2,
-          false,
-        );
-      case SetterInvocationResolutionImpl(:var element):
-        recordRelation(
-          element,
-          IndexRelationKind.IS_INVOKED_BY,
-          node.identifier2,
-          false,
-        );
-      default:
-        assembler.addNameRelation(
-          node.identifier2.lexeme,
-          IndexRelationKind.IS_WRITTEN_BY,
-          node.identifier2.offset,
-          false,
-        );
-    }
+  void visitForEachPartsWithIdentifier(
+    covariant ForEachPartsWithIdentifierImpl node,
+  ) {
+    _recordUnqualifiedNameWriteTarget(node.target);
     node.iterable2.accept2(this);
   }
 
@@ -1666,6 +1617,31 @@ class _IndexContributor extends UnifyingAstVisitor2 {
         target.offset,
         false,
       );
+    }
+  }
+
+  void _recordUnqualifiedNameWriteTarget(
+    UnqualifiedNameAssignmentTargetImpl target,
+  ) {
+    switch (target.write) {
+      case VariableWriteResolutionImpl(:var element):
+        recordRelation(element, IndexRelationKind.IS_WRITTEN_BY, target, false);
+      case SetterInvocationResolutionImpl(:var element):
+        recordRelation(element, IndexRelationKind.IS_INVOKED_BY, target, false);
+      case InvalidNamedWriteResolutionImpl(recoveryElement: var element?):
+        recordRelation(
+          element,
+          IndexRelationKind.IS_REFERENCED_BY,
+          target,
+          false,
+        );
+      default:
+        assembler.addNameRelation(
+          target.name.lexeme,
+          IndexRelationKind.IS_WRITTEN_BY,
+          target.offset,
+          false,
+        );
     }
   }
 

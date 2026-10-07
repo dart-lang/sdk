@@ -472,7 +472,7 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
       scope_->InsertParameterAt(0, parsed_function_->receiver_var());
       break;
     }
-    case UntaggedFunction::kIrregexpFunction:
+    default:
       UNREACHABLE();
   }
   if (needs_expr_temp_) {

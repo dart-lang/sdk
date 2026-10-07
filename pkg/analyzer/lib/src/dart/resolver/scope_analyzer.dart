@@ -31,7 +31,11 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
-class ResolutionVisitor extends RecursiveAstVisitor2<void> {
+/// Builds scopes, and resolves everything found by scope lookup: local and
+/// top-level names, import prefixes, type annotations, labels, and pattern
+/// variables. Also rewrites parsed nodes whose meaning follows from what their
+/// names resolve to.
+class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   final LibraryElementImpl _libraryElement;
   final TypeProviderImpl _typeProvider;
   final LibraryFragmentImpl _libraryFragment;
@@ -65,7 +69,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
 
   int _libraryDirectiveIndex = 0;
 
-  factory ResolutionVisitor({
+  factory ScopeAnalyzer({
     required LibraryFragmentImpl libraryFragment,
     required DiagnosticListener diagnosticListener,
     required Scope nameScope,
@@ -106,7 +110,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       libraryElement: libraryElement,
     );
 
-    return ResolutionVisitor._(
+    return ScopeAnalyzer._(
       libraryElement,
       typeProvider,
       libraryFragment,
@@ -120,7 +124,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     );
   }
 
-  ResolutionVisitor._(
+  ScopeAnalyzer._(
     this._libraryElement,
     this._typeProvider,
     this._libraryFragment,
@@ -1357,9 +1361,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
         node.loopVariable.accept2(this);
       case ForEachPartsWithIdentifierImpl():
         node.iterable2.accept2(this);
-        var scopeLookupResult = nameScope.lookup(node.identifier2.lexeme);
-        node.scopeLookupResult = scopeLookupResult;
-        _recordUnqualifiedWrite(scopeLookupResult, node.identifier2);
+        node.target.accept2(this);
       case ForEachPartsWithPatternImpl():
         node.iterable2.accept2(this);
         var variables = _computeDeclaredPatternVariables(node.pattern);
@@ -1642,7 +1644,7 @@ class _VariableBinder
 class _VariableBinderErrors
     implements
         VariableBinderErrors<DartPatternImpl, PatternVariableElementImpl> {
-  final ResolutionVisitor visitor;
+  final ScopeAnalyzer visitor;
 
   _VariableBinderErrors(this.visitor);
 

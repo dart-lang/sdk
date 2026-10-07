@@ -7,92 +7,196 @@ import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/src/dart/analysis/testing_data.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/scope_analyzer.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
-/// Resolves AST subtrees in the enclosing context given to the constructor:
-/// variable initializers, default values, annotations, and constructor
-/// initializers.
+/// Resolves AST in the enclosing context given to the constructor: units
+/// during library analysis, and variable initializers, default values,
+/// annotations, and constructor initializers during summary linking.
+///
+/// Resolution runs two walks. Scope analysis ([ScopeAnalyzer]) builds scopes
+/// and resolves everything found by scope lookup, and type analysis
+/// ([TypeAnalyzer]) computes static types, performs flow analysis, and
+/// resolves everything that depends on types: members, operators, and
+/// invocations.
 class AstResolver {
-  final InheritanceManager3 _inheritance;
   final LibraryFragmentImpl _libraryFragment;
-  final Scope _nameScope;
-  final FeatureSet _featureSet;
-  final DiagnosticListener _diagnosticListener =
-      DiagnosticListener.nullListener;
-  final AnalysisOptions analysisOptions;
-  final InterfaceElementImpl? enclosingClassElement;
-  final ExecutableElementImpl? enclosingExecutableElement;
-  late final _resolutionVisitor = ResolutionVisitor(
-    libraryFragment: _libraryFragment,
-    nameScope: _nameScope,
-    docImportScope: null,
-    diagnosticListener: _diagnosticListener,
-    strictInference: analysisOptions.strictInference,
-    strictCasts: analysisOptions.strictCasts,
-    dataForTesting: null,
-  );
-  late final _typeAnalyzerOptions = computeTypeAnalyzerOptions(_featureSet);
-  late final _flowAnalysis = FlowAnalysisHelper(
-    false,
-    typeSystemOperations: TypeSystemOperations(
-      _libraryFragment.library.typeSystem,
-      strictCasts: analysisOptions.strictCasts,
-    ),
-    typeAnalyzerOptions: _typeAnalyzerOptions,
-    enableLog: false,
-  );
-  late final _resolverVisitor = ResolverVisitor(
-    _inheritance,
-    _libraryFragment.library,
-    LibraryResolutionContext(),
-    _libraryFragment.source,
-    _libraryFragment.library.typeProvider,
-    _diagnosticListener,
-    featureSet: _featureSet,
-    analysisOptions: analysisOptions,
-    flowAnalysisHelper: _flowAnalysis,
-    libraryFragment: _libraryFragment,
-    typeAnalyzerOptions: _typeAnalyzerOptions,
-  );
+  final InterfaceElementImpl? _enclosingClassElement;
+  final ExecutableElementImpl? _enclosingExecutableElement;
+  final TestingData? _testingData;
+  final ScopeAnalyzer _scopeAnalyzer;
+  final FlowAnalysisHelper _flowAnalysis;
+  final TypeAnalyzer _typeAnalyzer;
 
-  AstResolver({
+  /// Creates a resolver for a unit of a library being analyzed.
+  factory AstResolver.forLibraryAnalysis({
+    required InheritanceManager3 inheritance,
+    required LibraryFragmentImpl libraryFragment,
+    required AnalysisOptions analysisOptions,
+    required FeatureSet featureSet,
+    required DiagnosticListener diagnosticListener,
+    required DocImportScope? docImportScope,
+    required LibraryResolutionContext libraryResolutionContext,
+    required TypeSystemOperations typeSystemOperations,
+    required TestingData? testingData,
+  }) {
+    return AstResolver._create(
+      inheritance: inheritance,
+      libraryFragment: libraryFragment,
+      nameScope: libraryFragment.scope,
+      analysisOptions: analysisOptions,
+      featureSet: featureSet,
+      diagnosticListener: diagnosticListener,
+      docImportScope: docImportScope,
+      libraryResolutionContext: libraryResolutionContext,
+      typeSystemOperations: typeSystemOperations,
+      testingData: testingData,
+      enableFlowAnalysisLog: true,
+      enclosingClassElement: null,
+      enclosingExecutableElement: null,
+    );
+  }
+
+  /// Creates a resolver for AST nodes that the summary linker resolves.
+  ///
+  /// Diagnostics are not reported.
+  factory AstResolver.forLinking({
     required InheritanceManager3 inheritance,
     required LibraryFragmentImpl libraryFragment,
     required Scope nameScope,
-    required this.analysisOptions,
-    required this.enclosingClassElement,
-    required this.enclosingExecutableElement,
-  }) : _inheritance = inheritance,
-       _libraryFragment = libraryFragment,
-       _nameScope = nameScope,
-       _featureSet = libraryFragment.library.featureSet;
+    required AnalysisOptions analysisOptions,
+    required InterfaceElementImpl? enclosingClassElement,
+    required ExecutableElementImpl? enclosingExecutableElement,
+  }) {
+    return AstResolver._create(
+      inheritance: inheritance,
+      libraryFragment: libraryFragment,
+      nameScope: nameScope,
+      analysisOptions: analysisOptions,
+      featureSet: libraryFragment.library.featureSet,
+      diagnosticListener: DiagnosticListener.nullListener,
+      docImportScope: null,
+      libraryResolutionContext: LibraryResolutionContext(),
+      typeSystemOperations: TypeSystemOperations(
+        libraryFragment.library.typeSystem,
+        strictCasts: analysisOptions.strictCasts,
+      ),
+      testingData: null,
+      enableFlowAnalysisLog: false,
+      enclosingClassElement: enclosingClassElement,
+      enclosingExecutableElement: enclosingExecutableElement,
+    );
+  }
+
+  AstResolver._({
+    required LibraryFragmentImpl libraryFragment,
+    required InterfaceElementImpl? enclosingClassElement,
+    required ExecutableElementImpl? enclosingExecutableElement,
+    required TestingData? testingData,
+    required ScopeAnalyzer scopeAnalyzer,
+    required FlowAnalysisHelper flowAnalysis,
+    required TypeAnalyzer typeAnalyzer,
+  }) : _libraryFragment = libraryFragment,
+       _enclosingClassElement = enclosingClassElement,
+       _enclosingExecutableElement = enclosingExecutableElement,
+       _testingData = testingData,
+       _scopeAnalyzer = scopeAnalyzer,
+       _flowAnalysis = flowAnalysis,
+       _typeAnalyzer = typeAnalyzer;
+
+  factory AstResolver._create({
+    required InheritanceManager3 inheritance,
+    required LibraryFragmentImpl libraryFragment,
+    required Scope nameScope,
+    required AnalysisOptions analysisOptions,
+    required FeatureSet featureSet,
+    required DiagnosticListener diagnosticListener,
+    required DocImportScope? docImportScope,
+    required LibraryResolutionContext libraryResolutionContext,
+    required TypeSystemOperations typeSystemOperations,
+    required TestingData? testingData,
+    required bool enableFlowAnalysisLog,
+    required InterfaceElementImpl? enclosingClassElement,
+    required ExecutableElementImpl? enclosingExecutableElement,
+  }) {
+    var scopeAnalyzer = ScopeAnalyzer(
+      libraryFragment: libraryFragment,
+      nameScope: nameScope,
+      docImportScope: docImportScope,
+      diagnosticListener: diagnosticListener,
+      strictInference: analysisOptions.strictInference,
+      strictCasts: analysisOptions.strictCasts,
+      dataForTesting: testingData != null
+          ? TypeConstraintGenerationDataForTesting()
+          : null,
+    );
+
+    var typeAnalyzerOptions = computeTypeAnalyzerOptions(featureSet);
+    var flowAnalysis = FlowAnalysisHelper(
+      testingData != null,
+      typeSystemOperations: typeSystemOperations,
+      typeAnalyzerOptions: typeAnalyzerOptions,
+      enableLog: enableFlowAnalysisLog,
+    );
+
+    var typeAnalyzer = TypeAnalyzer(
+      inheritanceManager: inheritance,
+      libraryFragment: libraryFragment,
+      libraryResolutionContext: libraryResolutionContext,
+      diagnosticListener: diagnosticListener,
+      featureSet: featureSet,
+      analysisOptions: analysisOptions,
+      flowAnalysisHelper: flowAnalysis,
+      typeAnalyzerOptions: typeAnalyzerOptions,
+    );
+
+    return AstResolver._(
+      libraryFragment: libraryFragment,
+      enclosingClassElement: enclosingClassElement,
+      enclosingExecutableElement: enclosingExecutableElement,
+      testingData: testingData,
+      scopeAnalyzer: scopeAnalyzer,
+      flowAnalysis: flowAnalysis,
+      typeAnalyzer: typeAnalyzer,
+    );
+  }
 
   void resolveAnnotation(AnnotationImpl node) {
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
-    node.accept2(_resolutionVisitor);
     _prepareEnclosingDeclarations();
+    node.accept2(_scopeAnalyzer);
     _flowAnalysis.flowAnalysisRoot_enter(
       node,
       null,
       // Offsets are ignored when doing summary linking.
       offset: 0,
     );
-    node.accept2(_resolverVisitor);
-    _resolverVisitor.checkIdle();
+    node.accept2(_typeAnalyzer);
+    _typeAnalyzer.checkIdle();
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
   void resolveConstructorDeclaration(ConstructorDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    var bindingVisitor = ElementBindingVisitor(_libraryFragment);
+    for (var initializer in node.initializers) {
+      bindingVisitor.bindSubtree(fragment, initializer);
+    }
+    if (node.factoryRedirectionTarget case var factoryRedirectionTarget?) {
+      bindingVisitor.bindSubtree(fragment, factoryRedirectionTarget);
+    }
 
     // We don't want to visit the whole node because that will try to create an
     // element for it; we just want to process its children so that we can
@@ -103,7 +207,7 @@ class AstResolver {
     }
 
     _prepareEnclosingDeclarations();
-    accept(_resolutionVisitor);
+    accept(_scopeAnalyzer);
 
     _flowAnalysis.flowAnalysisRoot_enter(
       node,
@@ -112,49 +216,45 @@ class AstResolver {
       // Offsets are ignored when doing summary linking.
       offset: 0,
     );
-    accept(_resolverVisitor);
-    _resolverVisitor.checkIdle();
+    accept(_typeAnalyzer);
+    _typeAnalyzer.checkIdle();
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
-  /// If resolving the initializer of a non-late instance field, there
-  /// might be [inScopePrimaryConstructorParameters].
-  void resolveExpression(
-    ExpressionImpl Function() getNode, {
-    TypeImpl contextType = UnknownInferredType.instance,
-    List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters,
-    required bool isThisAccessible,
+  /// Resolves the default value of a formal parameter, and returns it.
+  ///
+  /// The returned expression might be not the original `node.value2`,
+  /// because resolution can replace it.
+  ExpressionImpl resolveDefaultValue(
+    FormalParameterDefaultClauseImpl node, {
+    required TypeImpl contextType,
   }) {
-    ExpressionImpl node = getNode();
-    ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
-    node.accept2(_resolutionVisitor);
-    // Node may have been rewritten so get it again.
-    node = getNode();
-    _prepareEnclosingDeclarations();
-    _flowAnalysis.flowAnalysisRoot_enter(
-      node.parent2 as FlowAnalysisRootImpl,
-      inScopePrimaryConstructorParameters,
-      // Offsets are ignored when doing summary linking.
-      offset: 0,
+    return _resolveExpression(
+      root: node,
+      readExpression: () => node.value2,
+      contextType: contextType,
+      inScopePrimaryConstructorParameters: null,
+      isThisAccessible: false,
     );
-    if (isThisAccessible) {
-      _resolverVisitor.flow.thisBinding_begin(
-        null,
-        thisType: SharedTypeView(
-          _resolverVisitor.thisType ?? InvalidTypeImpl.instance,
-        ),
-      );
+  }
+
+  /// Resolves [node] of [unit] for completion, and returns whether it did.
+  ///
+  /// Scope analysis covers the whole [unit], but type analysis covers only
+  /// [node]. Returns `false`, without type analysis, if [node] cannot be
+  /// resolved separately from its enclosing declarations.
+  bool resolveNodeForCompletion(CompilationUnitImpl unit, AstNode node) {
+    // TODO(scheglov): We don't need to do this for the whole unit.
+    _runScopeAnalysis(unit);
+
+    if (!_typeAnalyzer.prepareForResolving(node)) {
+      return false;
     }
-    _resolverVisitor.withThisAccessibility(
-      isThisAccessible,
-      () => _resolverVisitor.analyzeExpression(
-        node,
-        SharedTypeSchemaView(contextType),
-      ),
-    );
-    _resolverVisitor.popRewrite();
-    _resolverVisitor.checkIdle();
-    _flowAnalysis.flowAnalysisRoot_exit();
+
+    node.accept2(_typeAnalyzer);
+    _typeAnalyzer.checkIdle();
+    _recordTypeAnalysisTestingData();
+    return true;
   }
 
   void resolvePrimaryConstructor(
@@ -173,7 +273,7 @@ class AstResolver {
     }
 
     _prepareEnclosingDeclarations();
-    accept(_resolutionVisitor);
+    accept(_scopeAnalyzer);
 
     _flowAnalysis.flowAnalysisRoot_enter(
       body,
@@ -182,19 +282,137 @@ class AstResolver {
       // Offsets are ignored when doing summary linking.
       offset: 0,
     );
-    accept(_resolverVisitor);
-    _resolverVisitor.checkIdle();
+    accept(_typeAnalyzer);
+    _typeAnalyzer.checkIdle();
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
+  /// Resolves [unit], the unit of the library fragment.
+  ///
+  /// Unlike resolving subtrees, this does not enter a flow analysis root,
+  /// because type analysis enters roots itself while walking the unit.
+  void resolveUnit(CompilationUnitImpl unit) {
+    _runScopeAnalysis(unit);
+    unit.accept2(_typeAnalyzer);
+    _recordTypeAnalysisTestingData();
+  }
+
+  /// Resolves the initializer of [node], and returns it.
+  ///
+  /// The returned expression might be not the original `node.initializer2`,
+  /// because resolution can replace it.
+  ///
+  /// If resolving the initializer of a non-late instance field, there
+  /// might be [inScopePrimaryConstructorParameters].
+  ExpressionImpl resolveVariableInitializer(
+    VariableDeclarationImpl node, {
+    required TypeImpl contextType,
+    required List<FormalParameterElementImpl>?
+    inScopePrimaryConstructorParameters,
+    required bool isThisAccessible,
+  }) {
+    return _resolveExpression(
+      root: node,
+      readExpression: () => node.initializer2!,
+      contextType: contextType,
+      inScopePrimaryConstructorParameters: inScopePrimaryConstructorParameters,
+      isThisAccessible: isThisAccessible,
+    );
+  }
+
   void _prepareEnclosingDeclarations() {
-    _resolutionVisitor.prepareEnclosingDeclarations(
-      enclosingClassElement: enclosingClassElement,
+    _scopeAnalyzer.prepareEnclosingDeclarations(
+      enclosingClassElement: _enclosingClassElement,
     );
 
-    _resolverVisitor.prepareEnclosingDeclarations(
-      enclosingInstanceElement: enclosingClassElement,
-      enclosingExecutableElement: enclosingExecutableElement,
+    _typeAnalyzer.prepareEnclosingDeclarations(
+      enclosingInstanceElement: _enclosingClassElement,
+      enclosingExecutableElement: _enclosingExecutableElement,
     );
+  }
+
+  /// Records the testing data of type analysis, after it finished.
+  ///
+  /// Type constraints are merged into the data already recorded for scope
+  /// analysis by copying, so recording them earlier would lose them.
+  void _recordTypeAnalysisTestingData() {
+    if (_testingData case var testingData?) {
+      var uri = _libraryFragment.source.uri;
+      testingData.recordFlowAnalysisDataForTesting(
+        uri,
+        _flowAnalysis.dataForTesting!,
+      );
+      testingData.recordTypeConstraintGenerationDataForTesting(
+        uri,
+        _typeAnalyzer.inferenceHelper.dataForTesting!,
+      );
+    }
+  }
+
+  /// Resolves the expression that [readExpression] reads from [root].
+  ///
+  /// Both scope analysis and type analysis can replace the expression in its
+  /// parent, so it is read again after scope analysis, and the final
+  /// expression is returned.
+  ExpressionImpl _resolveExpression({
+    required FlowAnalysisRootImpl root,
+    required ExpressionImpl Function() readExpression,
+    required TypeImpl contextType,
+    required List<FormalParameterElementImpl>?
+    inScopePrimaryConstructorParameters,
+    required bool isThisAccessible,
+  }) {
+    var expression = readExpression();
+    var bindingVisitor = ElementBindingVisitor(_libraryFragment);
+    bindingVisitor.bindSubtree(_libraryFragment, expression);
+    _prepareEnclosingDeclarations();
+    expression.accept2(_scopeAnalyzer);
+
+    // Scope analysis can replace the expression.
+    expression = readExpression();
+
+    _flowAnalysis.flowAnalysisRoot_enter(
+      root,
+      inScopePrimaryConstructorParameters,
+      // Offsets are ignored when doing summary linking.
+      offset: 0,
+    );
+    if (isThisAccessible) {
+      _typeAnalyzer.flow.thisBinding_begin(
+        null,
+        thisType: SharedTypeView(
+          _typeAnalyzer.thisType ?? InvalidTypeImpl.instance,
+        ),
+      );
+    }
+
+    _typeAnalyzer.withThisAccessibility(
+      isThisAccessible,
+      () => _typeAnalyzer.analyzeExpression(
+        expression,
+        SharedTypeSchemaView(contextType),
+      ),
+    );
+
+    // Type analysis can replace it too, and keeps the slot in sync.
+    var result = _typeAnalyzer.popRewrite()!;
+    assert(identical(result, readExpression()));
+
+    _typeAnalyzer.checkIdle();
+    _flowAnalysis.flowAnalysisRoot_exit();
+    return result;
+  }
+
+  /// Binds elements in [unit], and runs scope analysis over it.
+  void _runScopeAnalysis(CompilationUnitImpl unit) {
+    unit.accept2(ElementBindingVisitor(_libraryFragment));
+    _prepareEnclosingDeclarations();
+    unit.accept2(_scopeAnalyzer);
+    if (_testingData case var testingData?) {
+      testingData.recordTypeConstraintGenerationDataForTesting(
+        _libraryFragment.source.uri,
+        _scopeAnalyzer.dataForTesting!,
+      );
+    }
   }
 }

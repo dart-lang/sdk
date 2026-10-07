@@ -178,8 +178,7 @@ base class VMOffsets {
   int get GrowableObjectArray_length_offset => throw 'Unknown';
   int get GrowableObjectArray_type_arguments_offset => throw 'Unknown';
   int get Page_card_table_offset => throw 'Unknown';
-  int get Page_original_top_offset => throw 'Unknown';
-  int get Page_original_end_offset => throw 'Unknown';
+  int get Page_survivor_end_offset => throw 'Unknown';
   int get CallSiteData_arguments_descriptor_offset => throw 'Unknown';
   int get ICData_NumArgsTestedMask => throw 'Unknown';
   int get ICData_NumArgsTestedShift => throw 'Unknown';
@@ -688,39 +687,39 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Function_kKindBitsPos => 0x0;
   @override
-  int get Function_kKindBitsSize => 0x5;
+  int get Function_kKindBitsSize => 0x4;
   @override
-  int get Function_kRecognizedBitsPos => 0x5;
+  int get Function_kRecognizedBitsPos => 0x4;
   @override
   int get Function_kRecognizedBitsSize => 0x9;
   @override
-  int get Function_kModifierBitsPos => 0xe;
+  int get Function_kModifierBitsPos => 0xd;
   @override
   int get Function_kModifierBitsSize => 0x2;
   @override
-  int get Function_kStaticBitPos => 0x10;
+  int get Function_kStaticBitPos => 0xf;
   @override
-  int get Function_kConstBitPos => 0x11;
+  int get Function_kConstBitPos => 0x10;
   @override
-  int get Function_kAbstractBitPos => 0x12;
+  int get Function_kAbstractBitPos => 0x11;
   @override
-  int get Function_kReflectableBitPos => 0x13;
+  int get Function_kReflectableBitPos => 0x12;
   @override
-  int get Function_kVisibleBitPos => 0x14;
+  int get Function_kVisibleBitPos => 0x13;
   @override
-  int get Function_kDebuggableBitPos => 0x15;
+  int get Function_kDebuggableBitPos => 0x14;
   @override
-  int get Function_kNativeBitPos => 0x17;
+  int get Function_kNativeBitPos => 0x16;
   @override
-  int get Function_kExternalBitPos => 0x18;
+  int get Function_kExternalBitPos => 0x17;
   @override
-  int get Function_kHasPragmaBitPos => 0x1a;
+  int get Function_kHasPragmaBitPos => 0x19;
   @override
-  int get Function_kIsSyntheticBitPos => 0x1b;
+  int get Function_kIsSyntheticBitPos => 0x1a;
   @override
-  int get Function_kIsExtensionMemberBitPos => 0x1c;
+  int get Function_kIsExtensionMemberBitPos => 0x1b;
   @override
-  int get Function_kIsExtensionTypeMemberBitPos => 0x1d;
+  int get Function_kIsExtensionTypeMemberBitPos => 0x1c;
   @override
   int get Heap_kNewAllocatableSize => 0x40000;
   @override
@@ -988,9 +987,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Page_card_table_offset => 0x20;
   @override
-  int get Page_original_top_offset => 0x38;
-  @override
-  int get Page_original_end_offset => 0x40;
+  int get Page_survivor_end_offset => 0x48;
   @override
   int get CallSiteData_arguments_descriptor_offset => 0x10;
   @override
@@ -1767,39 +1764,39 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Function_kKindBitsPos => 0x0;
   @override
-  int get Function_kKindBitsSize => 0x5;
+  int get Function_kKindBitsSize => 0x4;
   @override
-  int get Function_kRecognizedBitsPos => 0x5;
+  int get Function_kRecognizedBitsPos => 0x4;
   @override
   int get Function_kRecognizedBitsSize => 0x9;
   @override
-  int get Function_kModifierBitsPos => 0xe;
+  int get Function_kModifierBitsPos => 0xd;
   @override
   int get Function_kModifierBitsSize => 0x2;
   @override
-  int get Function_kStaticBitPos => 0x10;
+  int get Function_kStaticBitPos => 0xf;
   @override
-  int get Function_kConstBitPos => 0x11;
+  int get Function_kConstBitPos => 0x10;
   @override
-  int get Function_kAbstractBitPos => 0x12;
+  int get Function_kAbstractBitPos => 0x11;
   @override
-  int get Function_kReflectableBitPos => 0x13;
+  int get Function_kReflectableBitPos => 0x12;
   @override
-  int get Function_kVisibleBitPos => 0x14;
+  int get Function_kVisibleBitPos => 0x13;
   @override
-  int get Function_kDebuggableBitPos => 0x15;
+  int get Function_kDebuggableBitPos => 0x14;
   @override
-  int get Function_kNativeBitPos => 0x17;
+  int get Function_kNativeBitPos => 0x16;
   @override
-  int get Function_kExternalBitPos => 0x18;
+  int get Function_kExternalBitPos => 0x17;
   @override
-  int get Function_kHasPragmaBitPos => 0x1a;
+  int get Function_kHasPragmaBitPos => 0x19;
   @override
-  int get Function_kIsSyntheticBitPos => 0x1b;
+  int get Function_kIsSyntheticBitPos => 0x1a;
   @override
-  int get Function_kIsExtensionMemberBitPos => 0x1c;
+  int get Function_kIsExtensionMemberBitPos => 0x1b;
   @override
-  int get Function_kIsExtensionTypeMemberBitPos => 0x1d;
+  int get Function_kIsExtensionTypeMemberBitPos => 0x1c;
   @override
   int get Heap_kNewAllocatableSize => 0x40000;
   @override
@@ -2065,9 +2062,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Page_card_table_offset => 0x20;
   @override
-  int get Page_original_top_offset => 0x38;
-  @override
-  int get Page_original_end_offset => 0x40;
+  int get Page_survivor_end_offset => 0x48;
   @override
   int get CallSiteData_arguments_descriptor_offset => 0x10;
   @override
@@ -2952,7 +2947,6 @@ enum FunctionKind {
   MethodExtractor,
   NoSuchMethodDispatcher,
   InvokeFieldDispatcher,
-  IrregexpFunction,
   DynamicInvocationForwarder,
   FfiTrampoline,
   RecordFieldGetter,

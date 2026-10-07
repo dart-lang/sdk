@@ -1339,9 +1339,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    var element = node.write?.elementOrRecovery;
+    var element = node.target.write?.elementOrRecovery;
     if (_checkForEachParts(element, node)) {
-      _checkForAssignmentToFinal2(node.identifier2, element);
+      _checkForAssignmentToFinal2(node.target, element);
     }
     super.visitForEachPartsWithIdentifier(node);
   }

@@ -15,13 +15,13 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
 class TypePropertyResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
   final LibraryElementImpl _definingLibrary;
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;

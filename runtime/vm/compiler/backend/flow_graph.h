@@ -192,8 +192,6 @@ class FlowGraph : public ZoneObject {
     return parsed_function_.num_stack_locals();
   }
 
-  bool IsIrregexpFunction() const { return function().IsIrregexpFunction(); }
-
   LocalVariable* SuspendStateVar() const {
     return parsed_function().suspend_state_var();
   }

@@ -131,24 +131,24 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "core_rev": "08e4022160c465780690c43ffdbce60812975d2c",
-  "dartdoc_rev": "2a040a8fcf79b0844f7bc83254d69701122dd4f9",
+  "core_rev": "4d80610a878cdb3f9f10e6a16a2af6631251a3c6",
+  "dartdoc_rev": "5eb0f2c74eb0e9b8dba3169899aec020a2ad8cb2",
   "ecosystem_rev": "16dca7ae5d3ff896a4db47e1ed6cd50f7ebbf115",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "d8e8e9cd1ae6ed0f0339cfa0f47f92e837a786f5",
+  "http_rev": "585d433ba315702b63904fddba4459db5fec2d87",
   "i18n_rev": "1f5ea2fb2381bdf7bab054a43c0d69771f104561",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
-  "native_rev": "27f767827be80615378e3c0b2d936ac8b4cefaa8",
+  "native_rev": "a2a617910fe3b2433eaa94bfb491bb3475a71870",
   "protobuf_rev": "a73edc98c98fb25152aa3f12c1b9db91594c1369",
   "pub_rev": "eca8f8ada939be70f0be3189db31e421dd0be7fd", # rolled manually
-  "shelf_rev": "e5c8dc663bf1325ad8f997c4a2387923d37a90d9",
+  "shelf_rev": "b2cb503d3ba2f0ce6320b820f2b3b0c2b1777485",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "4f92d530daf7e1c9e8a9acf518304a41408dbdc4",
-  "tools_rev": "d87eaf7946e7939592c876ea6fb2fa1d72929efe",
+  "test_rev": "d749b104edf2cb1428b08782830fc6bd2883e3dc",
+  "tools_rev": "a66d517d18c24faba0ae1b3ae160d47672beb1bb",
   "vector_math_rev": "cf3b5db7340d317dd3489e5a35434b408020a852",
-  "web_rev": "ec71a4c303acb4dc15f2cf4ec2579802395653d7",
+  "web_rev": "63e6662dc7022a54439d4da6016685c49a0d6018",
   "webdriver_rev": "8e5c611ea242efdc9f597a8a37c38a9c586120ee",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 

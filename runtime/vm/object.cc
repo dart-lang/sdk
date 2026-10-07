@@ -8698,8 +8698,6 @@ void Function::SetForwardingTarget(const Function& target) const {
 //   noSuchMethod dispatcher: Array arguments descriptor
 //   invoke-field dispatcher: Array arguments descriptor
 //   closure function:        ClosureData
-//   irregexp function:       Array[0] = RegExp
-//                            Array[1] = Smi string specialization cid
 //   native function:         Array[0] = String native name
 //                            Array[1] = Function implicit closure function
 //   regular function:        Function for implicit closure function
@@ -8741,44 +8739,6 @@ void Function::set_name(const String& value) const {
 void Function::set_owner(const Object& value) const {
   ASSERT(!value.IsNull());
   untag()->set_owner(value.ptr());
-}
-
-RegExpPtr Function::regexp() const {
-  ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(data()));
-  return RegExp::RawCast(pair.At(0));
-}
-
-using StickySpecialization = BitField<intptr_t, bool>;
-using StringSpecializationCid = BitField<intptr_t,
-                                         intptr_t,
-                                         StickySpecialization::kNextBit,
-                                         UntaggedObject::ClassIdTag::bitsize()>;
-
-intptr_t Function::string_specialization_cid() const {
-  ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(data()));
-  return StringSpecializationCid::decode(Smi::Value(Smi::RawCast(pair.At(1))));
-}
-
-bool Function::is_sticky_specialization() const {
-  ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  const Array& pair = Array::Cast(Object::Handle(data()));
-  return StickySpecialization::decode(Smi::Value(Smi::RawCast(pair.At(1))));
-}
-
-void Function::SetRegExpData(const RegExp& regexp,
-                             intptr_t string_specialization_cid,
-                             bool sticky) const {
-  ASSERT(kind() == UntaggedFunction::kIrregexpFunction);
-  ASSERT(IsStringClassId(string_specialization_cid));
-  ASSERT(data() == Object::null());
-  const Array& pair = Array::Handle(Array::New(2, Heap::kOld));
-  pair.SetAt(0, regexp);
-  pair.SetAt(1, Smi::Handle(Smi::New(StickySpecialization::encode(sticky) |
-                                     StringSpecializationCid::encode(
-                                         string_specialization_cid))));
-  set_data(pair);
 }
 
 StringPtr Function::native_name() const {
@@ -11916,9 +11876,6 @@ const char* Function::ToCString() const {
       break;
     case UntaggedFunction::kInvokeFieldDispatcher:
       buffer.AddString(" invoke-field-dispatcher");
-      break;
-    case UntaggedFunction::kIrregexpFunction:
-      buffer.AddString(" irregexp-function");
       break;
     case UntaggedFunction::kFfiTrampoline:
       buffer.AddString(" ffi-trampoline-function");
@@ -18142,8 +18099,6 @@ LocalVarDescriptorsPtr Code::GetLocalVarDescriptors() const {
   const LocalVarDescriptors& v = LocalVarDescriptors::Handle(var_descriptors());
   if (v.IsNull()) {
     ASSERT(!is_optimized());
-    const Function& f = Function::Handle(function());
-    ASSERT(!f.IsIrregexpFunction());  // Not yet implemented.
     Compiler::ComputeLocalVarDescriptors(*this);
   }
   return var_descriptors();
@@ -27852,7 +27807,6 @@ intptr_t Function::MaxNumberOfParametersInRegisters(Zone* zone) const {
     case UntaggedFunction::kMethodExtractor:
     case UntaggedFunction::kFfiTrampoline:
     case UntaggedFunction::kFieldInitializer:
-    case UntaggedFunction::kIrregexpFunction:
       return 0;
 
     default:

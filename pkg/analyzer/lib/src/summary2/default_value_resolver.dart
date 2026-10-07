@@ -89,7 +89,7 @@ class DefaultValueResolver {
     var contextType = _typeSystem.eliminateTypeVariables(formalParameter.type);
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
-    var astResolver = AstResolver(
+    var astResolver = AstResolver.forLinking(
       inheritance: _linker.inheritance,
       libraryFragment: firstFragment.libraryFragment as LibraryFragmentImpl,
       nameScope: firstNode.scope!,
@@ -97,12 +97,10 @@ class DefaultValueResolver {
       enclosingClassElement: enclosingInterfaceElement,
       enclosingExecutableElement: enclosingExecutableElement,
     );
-    astResolver.resolveExpression(
-      () => firstNode.defaultClause!.value2,
+    firstFragment.constantInitializer2 = astResolver.resolveDefaultValue(
+      firstNode.defaultClause!,
       contextType: contextType,
-      isThisAccessible: false,
     );
-    firstFragment.constantInitializer2 = firstNode.defaultClause!.value2;
     formalParameter.resetConstantInitializer();
   }
 }
