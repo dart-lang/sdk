@@ -8,19 +8,19 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Helper for resolving [VariableDeclaration]s.
 class VariableDeclarationResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
   final bool _strictInference;
 
   VariableDeclarationResolver({
-    required ResolverVisitor resolver,
+    required TypeAnalyzer resolver,
     required bool strictInference,
   }) : _resolver = resolver,
        _strictInference = strictInference;

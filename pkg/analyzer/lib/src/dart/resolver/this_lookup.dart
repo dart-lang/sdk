@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 /// Class containing static methods for resolving identifiers as implicit
 /// property gets/sets on the type of `this`.
@@ -16,7 +16,7 @@ class ThisLookup {
 
   /// Attempts to resolve [name] as a getter on an implicit `this` receiver.
   static LexicalLookupResult? lookupGetter2(
-    ResolverVisitor resolver, {
+    TypeAnalyzer resolver, {
     required AstNode node,
     required String name,
   }) {
@@ -55,7 +55,7 @@ class ThisLookup {
 
   /// Attempts to resolve [name] as a setter on an implicit `this` receiver.
   static LexicalLookupResult? lookupSetter2(
-    ResolverVisitor resolver, {
+    TypeAnalyzer resolver, {
     required AstNode node,
     required String name,
   }) {

@@ -14,10 +14,10 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /// Context for inferring the types of elements of a collection literal.
@@ -45,7 +45,7 @@ class CollectionLiteralContext {
 
 /// Helper for resolving [ListLiteral]s and [SetOrMapLiteral]s.
 class TypedLiteralResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
   final DiagnosticReporter _diagnosticReporter;
@@ -725,7 +725,7 @@ class TypedLiteralResolver {
 
     // If we have type arguments, use them.
     // TODO(paulberry): this logic seems redundant with
-    //  ResolverVisitor._fromTypeArguments
+    //  TypeAnalyzer._fromTypeArguments
     if (typeArguments != null) {
       if (typeArguments.length == 1) {
         inferenceLogWriter?.assertGenericInferenceState(inProgress: false);

@@ -31,6 +31,10 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
+/// Builds scopes, and resolves everything found by scope lookup: local and
+/// top-level names, import prefixes, type annotations, labels, and pattern
+/// variables. Also rewrites parsed nodes whose meaning follows from what their
+/// names resolve to.
 class NameResolutionVisitor extends RecursiveAstVisitor2<void> {
   final LibraryElementImpl _libraryElement;
   final TypeProviderImpl _typeProvider;

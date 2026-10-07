@@ -25,7 +25,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Methods useful in detecting errors.  This mixin exists to allow code to be
 /// more easily shared between the two visitors that do the majority of error
-/// reporting (ResolverVisitor and ErrorVerifier).
+/// reporting (TypeAnalyzer and ErrorVerifier).
 mixin ErrorDetectionHelpers {
   DiagnosticReporter get diagnosticReporter;
 

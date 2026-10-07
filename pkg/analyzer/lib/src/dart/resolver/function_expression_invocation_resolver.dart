@@ -11,19 +11,19 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [CallInvocation]s.
 class CallInvocationResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
   final TypePropertyResolver _typePropertyResolver;
 
-  CallInvocationResolver({required ResolverVisitor resolver})
+  CallInvocationResolver({required TypeAnalyzer resolver})
     : _resolver = resolver,
       _typePropertyResolver = resolver.typePropertyResolver;
 

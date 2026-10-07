@@ -2,14 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// @docImport 'package:analyzer/src/generated/resolver.dart';
+/// @docImport 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 library;
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_log.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
+    show TypeAnalyzerOptions;
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
@@ -230,7 +231,7 @@ class FlowAnalysisHelper {
     }
   }
 
-  /// This method is called whenever the [ResolverVisitor] enters a *flow
+  /// This method is called whenever the [TypeAnalyzer] enters a *flow
   /// analysis root* (see [FlowAnalysisRootImpl]).
   ///
   /// It causes flow analysis to be initialized.
@@ -281,7 +282,7 @@ class FlowAnalysisHelper {
           ..checkOffset(offset);
   }
 
-  /// This method is called whenever the [ResolverVisitor] leaves a *flow
+  /// This method is called whenever the [TypeAnalyzer] leaves a *flow
   /// analysis root* (see [FlowAnalysisRootImpl]).
   ///
   /// The [FlowAnalysisLog] that was collected by flow analysis during

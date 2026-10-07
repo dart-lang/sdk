@@ -9,13 +9,13 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/comment_reference_resolver.dart';
 import 'package:analyzer/src/dart/resolver/method_invocation_resolver.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
-/// An object used by instances of [ResolverVisitor] to resolve references
+/// An object used by instances of [TypeAnalyzer] to resolve references
 /// within the AST structure to the elements being referenced. The requirements
 /// for the element resolver are:
 ///
@@ -73,7 +73,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 /// error).
 class ElementResolver {
   /// The resolver driving this participant.
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl _definingLibrary;
@@ -398,7 +398,7 @@ class ElementResolver {
     if (executableElement == null) {
       return null;
     }
-    return ResolverVisitor.resolveArgumentsToParameters(
+    return TypeAnalyzer.resolveArgumentsToParameters(
       argumentList: argumentList,
       formalParameters: executableElement.formalParameters,
       diagnosticReporter: _diagnosticReporter,

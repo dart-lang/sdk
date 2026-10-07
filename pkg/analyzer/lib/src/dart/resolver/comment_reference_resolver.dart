@@ -6,10 +6,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 class CommentReferenceResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
   CommentReferenceResolver(this._resolver);
 

@@ -16,18 +16,18 @@ import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/super_context.dart';
 
 /// Helper for resolving binary expressions.
 class BinaryExpressionResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
   final TypePropertyResolver _typePropertyResolver;
 
-  BinaryExpressionResolver({required ResolverVisitor resolver})
+  BinaryExpressionResolver({required TypeAnalyzer resolver})
     : _resolver = resolver,
       _typePropertyResolver = resolver.typePropertyResolver;
 

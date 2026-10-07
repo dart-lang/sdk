@@ -17,16 +17,18 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/name_resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Resolves AST in the enclosing context given to the constructor: units
 /// during library analysis, and variable initializers, default values,
 /// annotations, and constructor initializers during summary linking.
 ///
 /// Resolution runs two walks. Name resolution ([NameResolutionVisitor]) builds
-/// scopes and binds names, and type analysis ([ResolverVisitor]) performs flow
-/// analysis, type inference, and member lookup.
+/// scopes and resolves everything found by scope lookup, and type analysis
+/// ([TypeAnalyzer]) computes static types, performs flow analysis, and
+/// resolves everything that depends on types: members, operators, and
+/// invocations.
 class AstResolver {
   final LibraryFragmentImpl _libraryFragment;
   final InterfaceElementImpl? _enclosingClassElement;
@@ -34,7 +36,7 @@ class AstResolver {
   final TestingData? _testingData;
   final NameResolutionVisitor _nameResolutionVisitor;
   final FlowAnalysisHelper _flowAnalysis;
-  final ResolverVisitor _resolverVisitor;
+  final TypeAnalyzer _typeAnalyzer;
 
   /// Creates a resolver for a unit of a library being analyzed.
   factory AstResolver.forLibraryAnalysis({
@@ -103,14 +105,14 @@ class AstResolver {
     required TestingData? testingData,
     required NameResolutionVisitor nameResolutionVisitor,
     required FlowAnalysisHelper flowAnalysis,
-    required ResolverVisitor resolverVisitor,
+    required TypeAnalyzer typeAnalyzer,
   }) : _libraryFragment = libraryFragment,
        _enclosingClassElement = enclosingClassElement,
        _enclosingExecutableElement = enclosingExecutableElement,
        _testingData = testingData,
        _nameResolutionVisitor = nameResolutionVisitor,
        _flowAnalysis = flowAnalysis,
-       _resolverVisitor = resolverVisitor;
+       _typeAnalyzer = typeAnalyzer;
 
   factory AstResolver._create({
     required InheritanceManager3 inheritance,
@@ -147,7 +149,7 @@ class AstResolver {
       enableLog: enableFlowAnalysisLog,
     );
 
-    var resolverVisitor = ResolverVisitor(
+    var typeAnalyzer = TypeAnalyzer(
       inheritance,
       libraryFragment.library,
       libraryResolutionContext,
@@ -168,7 +170,7 @@ class AstResolver {
       testingData: testingData,
       nameResolutionVisitor: nameResolutionVisitor,
       flowAnalysis: flowAnalysis,
-      resolverVisitor: resolverVisitor,
+      typeAnalyzer: typeAnalyzer,
     );
   }
 
@@ -182,8 +184,8 @@ class AstResolver {
       // Offsets are ignored when doing summary linking.
       offset: 0,
     );
-    node.accept2(_resolverVisitor);
-    _resolverVisitor.checkIdle();
+    node.accept2(_typeAnalyzer);
+    _typeAnalyzer.checkIdle();
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
@@ -217,8 +219,8 @@ class AstResolver {
       // Offsets are ignored when doing summary linking.
       offset: 0,
     );
-    accept(_resolverVisitor);
-    _resolverVisitor.checkIdle();
+    accept(_typeAnalyzer);
+    _typeAnalyzer.checkIdle();
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
@@ -248,12 +250,12 @@ class AstResolver {
     // TODO(scheglov): We don't need to do this for the whole unit.
     _resolveNames(unit);
 
-    if (!_resolverVisitor.prepareForResolving(node)) {
+    if (!_typeAnalyzer.prepareForResolving(node)) {
       return false;
     }
 
-    node.accept2(_resolverVisitor);
-    _resolverVisitor.checkIdle();
+    node.accept2(_typeAnalyzer);
+    _typeAnalyzer.checkIdle();
     _recordTypeAnalysisTestingData();
     return true;
   }
@@ -283,8 +285,8 @@ class AstResolver {
       // Offsets are ignored when doing summary linking.
       offset: 0,
     );
-    accept(_resolverVisitor);
-    _resolverVisitor.checkIdle();
+    accept(_typeAnalyzer);
+    _typeAnalyzer.checkIdle();
     _flowAnalysis.flowAnalysisRoot_exit();
   }
 
@@ -294,7 +296,7 @@ class AstResolver {
   /// because type analysis enters roots itself while walking the unit.
   void resolveUnit(CompilationUnitImpl unit) {
     _resolveNames(unit);
-    unit.accept2(_resolverVisitor);
+    unit.accept2(_typeAnalyzer);
     _recordTypeAnalysisTestingData();
   }
 
@@ -326,7 +328,7 @@ class AstResolver {
       enclosingClassElement: _enclosingClassElement,
     );
 
-    _resolverVisitor.prepareEnclosingDeclarations(
+    _typeAnalyzer.prepareEnclosingDeclarations(
       enclosingInstanceElement: _enclosingClassElement,
       enclosingExecutableElement: _enclosingExecutableElement,
     );
@@ -345,7 +347,7 @@ class AstResolver {
       );
       testingData.recordTypeConstraintGenerationDataForTesting(
         uri,
-        _resolverVisitor.inferenceHelper.dataForTesting!,
+        _typeAnalyzer.inferenceHelper.dataForTesting!,
       );
     }
   }
@@ -379,27 +381,27 @@ class AstResolver {
       offset: 0,
     );
     if (isThisAccessible) {
-      _resolverVisitor.flow.thisBinding_begin(
+      _typeAnalyzer.flow.thisBinding_begin(
         null,
         thisType: SharedTypeView(
-          _resolverVisitor.thisType ?? InvalidTypeImpl.instance,
+          _typeAnalyzer.thisType ?? InvalidTypeImpl.instance,
         ),
       );
     }
 
-    _resolverVisitor.withThisAccessibility(
+    _typeAnalyzer.withThisAccessibility(
       isThisAccessible,
-      () => _resolverVisitor.analyzeExpression(
+      () => _typeAnalyzer.analyzeExpression(
         expression,
         SharedTypeSchemaView(contextType),
       ),
     );
 
     // Type analysis can replace it too, and keeps the slot in sync.
-    var result = _resolverVisitor.popRewrite()!;
+    var result = _typeAnalyzer.popRewrite()!;
     assert(identical(result, readExpression()));
 
-    _resolverVisitor.checkIdle();
+    _typeAnalyzer.checkIdle();
     _flowAnalysis.flowAnalysisRoot_exit();
     return result;
   }

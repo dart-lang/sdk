@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 
 /// Instances of the class `StaticTypeAnalyzer` perform two type-related tasks. First, they
 /// compute the static type of every expression. Second, they look for any static type errors or
@@ -21,7 +21,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// </ol>
 class StaticTypeAnalyzer {
   /// The resolver driving the resolution and type analysis.
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
   /// The object providing access to the types defined by the language.
   late TypeProviderImpl _typeProvider;

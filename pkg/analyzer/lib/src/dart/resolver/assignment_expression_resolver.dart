@@ -13,18 +13,18 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving V2 assignment expressions and their targets.
 class AssignmentExpressionResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionShared _assignmentShared;
 
-  AssignmentExpressionResolver({required ResolverVisitor resolver})
+  AssignmentExpressionResolver({required TypeAnalyzer resolver})
     : _resolver = resolver,
       _typePropertyResolver = resolver.typePropertyResolver,
       _assignmentShared = AssignmentExpressionShared(resolver: resolver);
@@ -1028,9 +1028,9 @@ class AssignmentExpressionResolver {
 }
 
 class AssignmentExpressionShared {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
-  AssignmentExpressionShared({required ResolverVisitor resolver})
+  AssignmentExpressionShared({required TypeAnalyzer resolver})
     : _resolver = resolver;
 
   DiagnosticReporter get _errorReporter => _resolver.diagnosticReporter;

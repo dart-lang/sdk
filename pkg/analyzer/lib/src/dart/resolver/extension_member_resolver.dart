@@ -17,10 +17,10 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/resolution_result.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// The result of a failed attempt to resolve an identifier to the single
@@ -36,7 +36,7 @@ class AmbiguousStaticExtensionResolutionError
 }
 
 class ExtensionMemberResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
   ExtensionMemberResolver(this._resolver);
 

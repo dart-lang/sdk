@@ -9,15 +9,15 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Resolves explicit type applications to function values.
 class FunctionReferenceResolver {
   /// The resolver driving this participant.
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;

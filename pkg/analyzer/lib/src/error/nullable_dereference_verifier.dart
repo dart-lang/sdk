@@ -8,10 +8,10 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for checking potentially nullable dereferences.
 class NullableDereferenceVerifier {
@@ -19,12 +19,12 @@ class NullableDereferenceVerifier {
   final DiagnosticReporter _diagnosticReporter;
 
   /// The resolver driving this participant.
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
   NullableDereferenceVerifier({
     required TypeSystemImpl typeSystem,
     required DiagnosticReporter diagnosticReporter,
-    required ResolverVisitor resolver,
+    required TypeAnalyzer resolver,
   }) : _typeSystem = typeSystem,
        _diagnosticReporter = diagnosticReporter,
        _resolver = resolver;

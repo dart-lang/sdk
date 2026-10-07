@@ -7,13 +7,13 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [NullAssertionExpression]s.
 class NullAssertionExpressionResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
 
   NullAssertionExpressionResolver(this._resolver);
 

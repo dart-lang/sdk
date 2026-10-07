@@ -6,14 +6,14 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving [UnaryOperatorInvocation]s.
 class UnaryOperatorInvocationResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
   final TypePropertyResolver _typePropertyResolver;
 
   UnaryOperatorInvocationResolver(this._resolver)

@@ -13,20 +13,20 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
-import 'package:analyzer/src/generated/resolver.dart';
 
 /// Helper for resolving prefix and postfix increment and decrement expressions.
 class IncrementOrDecrementResolver {
-  final ResolverVisitor _resolver;
+  final TypeAnalyzer _resolver;
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionShared _assignmentShared;
   final AssignmentExpressionResolver _assignmentResolver;
 
-  IncrementOrDecrementResolver({required ResolverVisitor resolver})
+  IncrementOrDecrementResolver({required TypeAnalyzer resolver})
     : _resolver = resolver,
       _typePropertyResolver = resolver.typePropertyResolver,
       _assignmentShared = AssignmentExpressionShared(resolver: resolver),

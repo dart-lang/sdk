@@ -11,7 +11,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
-import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer_operations.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
@@ -115,12 +114,103 @@ final class LibraryResolutionContext {
       Map.identity();
 }
 
-/// Instances of the class `ResolverVisitor` are used to resolve the nodes
-/// within a single compilation unit.
-class ResolverVisitor extends ThrowingAstVisitor2<void>
+/// Tracker for whether a `switch` statement has `default` or is on an
+/// enumeration, and all the enum constants are covered.
+class SwitchExhaustiveness {
+  /// If the switch is on an enumeration, the set of enum constants to cover.
+  /// Otherwise `null`.
+  final Set<FieldElement>? _enumConstants;
+
+  /// If the switch is on an enumeration, is `true` if the null value is
+  /// covered, because the switch expression type is non-nullable, or `null`
+  /// was covered explicitly.
+  bool _isNullEnumValueCovered = false;
+
+  bool isExhaustive = false;
+
+  factory SwitchExhaustiveness(TypeImpl expressionType) {
+    if (expressionType is InterfaceType) {
+      var enum_ = expressionType.element;
+      if (enum_ is EnumElementImpl) {
+        return SwitchExhaustiveness._(
+          enum_.constants.toSet(),
+          expressionType.nullabilitySuffix == NullabilitySuffix.none,
+        );
+      }
+    }
+    return SwitchExhaustiveness._(null, false);
+  }
+
+  SwitchExhaustiveness._(this._enumConstants, this._isNullEnumValueCovered);
+
+  void visitSwitchExpressionCase(SwitchExpressionCaseImpl node) {
+    if (_enumConstants != null) {
+      ExpressionImpl? caseConstant;
+      var guardedPattern = node.guardedPattern;
+      if (guardedPattern.whenClause == null) {
+        var pattern = guardedPattern.pattern.unParenthesized;
+        if (pattern is ConstantPatternImpl) {
+          caseConstant = pattern.expression2;
+        }
+      }
+      _handleCaseConstant(caseConstant);
+    }
+  }
+
+  void visitSwitchMember(SwitchStatementCaseGroup group) {
+    for (var node in group.members) {
+      if (_enumConstants != null) {
+        ExpressionImpl? caseConstant;
+        if (node is SwitchCaseImpl) {
+          caseConstant = node.expression2;
+        } else if (node is SwitchPatternCaseImpl) {
+          var guardedPattern = node.guardedPattern;
+          if (guardedPattern.whenClause == null) {
+            var pattern = guardedPattern.pattern.unParenthesized;
+            if (pattern is ConstantPatternImpl) {
+              caseConstant = pattern.expression2;
+            }
+          }
+        }
+        _handleCaseConstant(caseConstant);
+      } else if (node is SwitchDefault) {
+        isExhaustive = true;
+      }
+    }
+  }
+
+  void _handleCaseConstant(ExpressionImpl? caseConstant) {
+    if (caseConstant != null) {
+      var element = _referencedElement(caseConstant);
+      if (element is PropertyAccessorElement) {
+        _enumConstants!.remove(element.variable);
+      }
+      if (caseConstant is NullLiteral) {
+        _isNullEnumValueCovered = true;
+      }
+      if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
+        isExhaustive = true;
+      }
+    }
+  }
+
+  static Element? _referencedElement(Expression expression) {
+    if (expression is ParenthesizedExpression) {
+      return _referencedElement(expression.expression2);
+    } else if (expression is NameExpression) {
+      return expression.resolution?.elementOrRecovery;
+    }
+    return null;
+  }
+}
+
+/// Computes static types, performs flow analysis and type inference, and
+/// resolves everything that depends on types: members, operators, and
+/// invocations.
+class TypeAnalyzer extends ThrowingAstVisitor2<void>
     with
         ErrorDetectionHelpers,
-        TypeAnalyzer<
+        shared.TypeAnalyzer<
           AstNodeImpl,
           StatementImpl,
           ExpressionImpl,
@@ -150,7 +240,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   SwitchExhaustiveness? legacySwitchExhaustiveness;
 
   @override
-  final TypeAnalyzerOptions typeAnalyzerOptions;
+  final shared.TypeAnalyzerOptions typeAnalyzerOptions;
 
   @override
   late final SharedTypeAnalyzerErrors errors = SharedTypeAnalyzerErrors(
@@ -313,7 +403,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   /// used to access the types from the core library. The [diagnosticListener]
   /// is the diagnostic listener that will be informed of any diagnostics that
   /// are found during resolution.
-  ResolverVisitor(
+  TypeAnalyzer(
     InheritanceManager3 inheritanceManager,
     LibraryElementImpl definingLibrary,
     LibraryResolutionContext libraryResolutionContext,
@@ -324,7 +414,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     required FeatureSet featureSet,
     required AnalysisOptions analysisOptions,
     required FlowAnalysisHelper flowAnalysisHelper,
-    required TypeAnalyzerOptions typeAnalyzerOptions,
+    required shared.TypeAnalyzerOptions typeAnalyzerOptions,
   }) : this._(
          inheritanceManager,
          definingLibrary,
@@ -340,7 +430,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
          typeAnalyzerOptions: typeAnalyzerOptions,
        );
 
-  ResolverVisitor._(
+  TypeAnalyzer._(
     this.inheritance,
     this.definingLibrary,
     this.libraryResolutionContext,
@@ -922,7 +1012,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   @override
   void finishJoinedPatternVariable(
     covariant JoinPatternVariableElementImpl variable, {
-    required JoinedPatternVariableLocation location,
+    required shared.JoinedPatternVariableLocation location,
     required shared.JoinedPatternVariableInconsistency inconsistency,
     required bool isFinal,
     required SharedTypeView type,
@@ -931,7 +1021,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     variable.isFinal = isFinal;
     variable.type = type.unwrapTypeView();
 
-    if (location == JoinedPatternVariableLocation.sharedCaseScope) {
+    if (location == shared.JoinedPatternVariableLocation.sharedCaseScope) {
       for (var reference in variable.references) {
         if (variable.inconsistency ==
             shared.JoinedPatternVariableInconsistency.sharedCaseAbsent) {
@@ -995,15 +1085,19 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  SwitchExpressionMemberInfo<AstNodeImpl, ExpressionImpl, PromotableElementImpl>
+  shared.SwitchExpressionMemberInfo<
+    AstNodeImpl,
+    ExpressionImpl,
+    PromotableElementImpl
+  >
   getSwitchExpressionMemberInfo(
     covariant SwitchExpressionImpl node,
     int index,
   ) {
     var case_ = node.cases[index];
     var guardedPattern = case_.guardedPattern;
-    return SwitchExpressionMemberInfo(
-      head: CaseHeadInfo(
+    return shared.SwitchExpressionMemberInfo(
+      head: shared.CaseHeadInfo(
         pattern: guardedPattern.pattern,
         guard: guardedPattern.whenClause?.expression2,
         variables: guardedPattern.variables,
@@ -1018,18 +1112,22 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  SwitchStatementMemberInfo<
+  shared.SwitchStatementMemberInfo<
     AstNodeImpl,
     StatementImpl,
     ExpressionImpl,
     PromotableElementImpl
   >
   getSwitchStatementMemberInfo(covariant SwitchStatementImpl node, int index) {
-    CaseHeadOrDefaultInfo<AstNodeImpl, ExpressionImpl, PromotableElementImpl>
+    shared.CaseHeadOrDefaultInfo<
+      AstNodeImpl,
+      ExpressionImpl,
+      PromotableElementImpl
+    >
     ofMember(SwitchMemberImpl member) {
       switch (member) {
         case SwitchCaseImpl(:var expression2, :var keyword, :var colon):
-          return CaseHeadInfo(
+          return shared.CaseHeadInfo(
             pattern: expression2,
             variables: {},
             beginAlternativeOffset: keyword.offset,
@@ -1041,7 +1139,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
           :var keyword,
           :var colon,
         ):
-          return CaseHeadInfo(
+          return shared.CaseHeadInfo(
             pattern: guardedPattern.pattern,
             variables: guardedPattern.variables,
             guard: guardedPattern.whenClause?.expression2,
@@ -1050,7 +1148,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
             endAlternativeOffset: colon.offset,
           );
         case SwitchDefaultImpl(:var keyword, :var colon):
-          return CaseDefaultInfo(
+          return shared.CaseDefaultInfo(
             beginAlternativeOffset: keyword.offset,
             endAlternativeOffset: colon.offset,
           );
@@ -1058,7 +1156,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
 
     var group = node.memberGroups[index];
-    return SwitchStatementMemberInfo(
+    return shared.SwitchStatementMemberInfo(
       heads: group.members.map(ofMember).toList(),
       body: group.statements,
       variables: group.variables,
@@ -1366,7 +1464,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
 
   /// We are going to resolve [node], without visiting its parent.
   /// Do necessary preparations - set enclosing elements, scopes, etc.
-  /// This [ResolverVisitor] instance is fresh, just created.
+  /// This [TypeAnalyzer] instance is fresh, just created.
   ///
   /// Return `true` if we were able to do this, or `false` if it is not
   /// possible to resolve only [node].
@@ -1656,21 +1754,21 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
   }
 
   @override
-  RelationalOperatorResolution? resolveRelationalPatternOperator(
+  shared.RelationalOperatorResolution? resolveRelationalPatternOperator(
     covariant RelationalPatternImpl node,
     SharedTypeView matchedType,
   ) {
     var operatorLexeme = node.operator.lexeme;
-    RelationalOperatorKind kind;
+    shared.RelationalOperatorKind kind;
     String methodName;
     if (operatorLexeme == '==') {
-      kind = RelationalOperatorKind.equals;
+      kind = shared.RelationalOperatorKind.equals;
       methodName = '==';
     } else if (operatorLexeme == '!=') {
-      kind = RelationalOperatorKind.notEquals;
+      kind = shared.RelationalOperatorKind.notEquals;
       methodName = '==';
     } else {
-      kind = RelationalOperatorKind.other;
+      kind = shared.RelationalOperatorKind.other;
       methodName = operatorLexeme;
     }
 
@@ -1707,7 +1805,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
       return null;
     }
 
-    return RelationalOperatorResolution(
+    return shared.RelationalOperatorResolution(
       kind: kind,
       parameterType: SharedTypeView(parameterType),
       returnType: SharedTypeView(element.returnType),
@@ -2869,7 +2967,7 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
         if (arguments != null) {
           var argumentList = arguments.argumentList;
           argumentList.correspondingStaticParameters =
-              ResolverVisitor.resolveArgumentsToParameters(
+              TypeAnalyzer.resolveArgumentsToParameters(
                 argumentList: argumentList,
                 formalParameters: constructorElement.formalParameters,
                 diagnosticReporter: diagnosticReporter,
@@ -5815,96 +5913,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
             );
     }
     diagnosticReporter.report(locatableDiagnostic.at(token));
-  }
-}
-
-/// Tracker for whether a `switch` statement has `default` or is on an
-/// enumeration, and all the enum constants are covered.
-class SwitchExhaustiveness {
-  /// If the switch is on an enumeration, the set of enum constants to cover.
-  /// Otherwise `null`.
-  final Set<FieldElement>? _enumConstants;
-
-  /// If the switch is on an enumeration, is `true` if the null value is
-  /// covered, because the switch expression type is non-nullable, or `null`
-  /// was covered explicitly.
-  bool _isNullEnumValueCovered = false;
-
-  bool isExhaustive = false;
-
-  factory SwitchExhaustiveness(TypeImpl expressionType) {
-    if (expressionType is InterfaceType) {
-      var enum_ = expressionType.element;
-      if (enum_ is EnumElementImpl) {
-        return SwitchExhaustiveness._(
-          enum_.constants.toSet(),
-          expressionType.nullabilitySuffix == NullabilitySuffix.none,
-        );
-      }
-    }
-    return SwitchExhaustiveness._(null, false);
-  }
-
-  SwitchExhaustiveness._(this._enumConstants, this._isNullEnumValueCovered);
-
-  void visitSwitchExpressionCase(SwitchExpressionCaseImpl node) {
-    if (_enumConstants != null) {
-      ExpressionImpl? caseConstant;
-      var guardedPattern = node.guardedPattern;
-      if (guardedPattern.whenClause == null) {
-        var pattern = guardedPattern.pattern.unParenthesized;
-        if (pattern is ConstantPatternImpl) {
-          caseConstant = pattern.expression2;
-        }
-      }
-      _handleCaseConstant(caseConstant);
-    }
-  }
-
-  void visitSwitchMember(SwitchStatementCaseGroup group) {
-    for (var node in group.members) {
-      if (_enumConstants != null) {
-        ExpressionImpl? caseConstant;
-        if (node is SwitchCaseImpl) {
-          caseConstant = node.expression2;
-        } else if (node is SwitchPatternCaseImpl) {
-          var guardedPattern = node.guardedPattern;
-          if (guardedPattern.whenClause == null) {
-            var pattern = guardedPattern.pattern.unParenthesized;
-            if (pattern is ConstantPatternImpl) {
-              caseConstant = pattern.expression2;
-            }
-          }
-        }
-        _handleCaseConstant(caseConstant);
-      } else if (node is SwitchDefault) {
-        isExhaustive = true;
-      }
-    }
-  }
-
-  void _handleCaseConstant(ExpressionImpl? caseConstant) {
-    if (caseConstant != null) {
-      var element = _referencedElement(caseConstant);
-      if (element is PropertyAccessorElement) {
-        _enumConstants!.remove(element.variable);
-      }
-      if (caseConstant is NullLiteral) {
-        _isNullEnumValueCovered = true;
-      }
-      if (_enumConstants!.isEmpty && _isNullEnumValueCovered) {
-        isExhaustive = true;
-      }
-    }
-  }
-
-  static Element? _referencedElement(Expression expression) {
-    if (expression is ParenthesizedExpression) {
-      return _referencedElement(expression.expression2);
-    } else if (expression is NameExpression) {
-      return expression.resolution?.elementOrRecovery;
-    }
-    return null;
   }
 }
 
