@@ -1390,7 +1390,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
       if (forLoopParts is ForEachPartsWithIdentifierImpl) {
         // Assigned-variable collection runs before expression resolution fills
-        // in the write resolution. [ResolutionVisitor] has already recorded
+        // in the write resolution. [NameResolutionVisitor] has already recorded
         // the scope lookup used by this prepass.
         var element = forLoopParts.scopeLookupResult?.getter;
         if (element is PromotableElementImpl) {
@@ -1417,7 +1417,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   void _readAssignmentTarget(AssignmentTarget target) {
     if (target is UnqualifiedNameAssignmentTargetImpl) {
       // Assigned-variable collection runs before expression resolution fills
-      // in the target's read resolution. [ResolutionVisitor] has already
+      // in the target's read resolution. [NameResolutionVisitor] has already
       // recorded the scope lookup used by this prepass.
       var element = target.scopeLookupResult?.getter;
       if (element is PromotableElementImpl) {
@@ -1451,7 +1451,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   void _writeAssignmentTarget(AssignmentTarget target) {
     if (target is UnqualifiedNameAssignmentTargetImpl) {
       // Assigned-variable collection runs before expression resolution fills
-      // in the target's write resolution. [ResolutionVisitor] has already
+      // in the target's write resolution. [NameResolutionVisitor] has already
       // recorded the scope lookup used by this prepass.
       var element = target.scopeLookupResult?.getter;
       if (element is PromotableElementImpl) {

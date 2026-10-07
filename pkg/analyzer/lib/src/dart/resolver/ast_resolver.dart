@@ -16,7 +16,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/name_resolution_visitor.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
@@ -24,7 +24,7 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// during library analysis, and variable initializers, default values,
 /// annotations, and constructor initializers during summary linking.
 ///
-/// Resolution runs two walks. Name resolution ([ResolutionVisitor]) builds
+/// Resolution runs two walks. Name resolution ([NameResolutionVisitor]) builds
 /// scopes and binds names, and type analysis ([ResolverVisitor]) performs flow
 /// analysis, type inference, and member lookup.
 class AstResolver {
@@ -32,7 +32,7 @@ class AstResolver {
   final InterfaceElementImpl? _enclosingClassElement;
   final ExecutableElementImpl? _enclosingExecutableElement;
   final TestingData? _testingData;
-  final ResolutionVisitor _resolutionVisitor;
+  final NameResolutionVisitor _nameResolutionVisitor;
   final FlowAnalysisHelper _flowAnalysis;
   final ResolverVisitor _resolverVisitor;
 
@@ -101,14 +101,14 @@ class AstResolver {
     required InterfaceElementImpl? enclosingClassElement,
     required ExecutableElementImpl? enclosingExecutableElement,
     required TestingData? testingData,
-    required ResolutionVisitor resolutionVisitor,
+    required NameResolutionVisitor nameResolutionVisitor,
     required FlowAnalysisHelper flowAnalysis,
     required ResolverVisitor resolverVisitor,
   }) : _libraryFragment = libraryFragment,
        _enclosingClassElement = enclosingClassElement,
        _enclosingExecutableElement = enclosingExecutableElement,
        _testingData = testingData,
-       _resolutionVisitor = resolutionVisitor,
+       _nameResolutionVisitor = nameResolutionVisitor,
        _flowAnalysis = flowAnalysis,
        _resolverVisitor = resolverVisitor;
 
@@ -127,7 +127,7 @@ class AstResolver {
     required InterfaceElementImpl? enclosingClassElement,
     required ExecutableElementImpl? enclosingExecutableElement,
   }) {
-    var resolutionVisitor = ResolutionVisitor(
+    var nameResolutionVisitor = NameResolutionVisitor(
       libraryFragment: libraryFragment,
       nameScope: nameScope,
       docImportScope: docImportScope,
@@ -166,7 +166,7 @@ class AstResolver {
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
       testingData: testingData,
-      resolutionVisitor: resolutionVisitor,
+      nameResolutionVisitor: nameResolutionVisitor,
       flowAnalysis: flowAnalysis,
       resolverVisitor: resolverVisitor,
     );
@@ -175,7 +175,7 @@ class AstResolver {
   void resolveAnnotation(AnnotationImpl node) {
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
     _prepareEnclosingDeclarations();
-    node.accept2(_resolutionVisitor);
+    node.accept2(_nameResolutionVisitor);
     _flowAnalysis.flowAnalysisRoot_enter(
       node,
       null,
@@ -208,7 +208,7 @@ class AstResolver {
     }
 
     _prepareEnclosingDeclarations();
-    accept(_resolutionVisitor);
+    accept(_nameResolutionVisitor);
 
     _flowAnalysis.flowAnalysisRoot_enter(
       node,
@@ -274,7 +274,7 @@ class AstResolver {
     }
 
     _prepareEnclosingDeclarations();
-    accept(_resolutionVisitor);
+    accept(_nameResolutionVisitor);
 
     _flowAnalysis.flowAnalysisRoot_enter(
       body,
@@ -322,7 +322,7 @@ class AstResolver {
   }
 
   void _prepareEnclosingDeclarations() {
-    _resolutionVisitor.prepareEnclosingDeclarations(
+    _nameResolutionVisitor.prepareEnclosingDeclarations(
       enclosingClassElement: _enclosingClassElement,
     );
 
@@ -367,7 +367,7 @@ class AstResolver {
     var bindingVisitor = ElementBindingVisitor(_libraryFragment);
     bindingVisitor.bindSubtree(_libraryFragment, expression);
     _prepareEnclosingDeclarations();
-    expression.accept2(_resolutionVisitor);
+    expression.accept2(_nameResolutionVisitor);
 
     // Name resolution can replace the expression.
     expression = readExpression();
@@ -408,11 +408,11 @@ class AstResolver {
   void _resolveNames(CompilationUnitImpl unit) {
     unit.accept2(ElementBindingVisitor(_libraryFragment));
     _prepareEnclosingDeclarations();
-    unit.accept2(_resolutionVisitor);
+    unit.accept2(_nameResolutionVisitor);
     if (_testingData case var testingData?) {
       testingData.recordTypeConstraintGenerationDataForTesting(
         _libraryFragment.source.uri,
-        _resolutionVisitor.dataForTesting!,
+        _nameResolutionVisitor.dataForTesting!,
       );
     }
   }

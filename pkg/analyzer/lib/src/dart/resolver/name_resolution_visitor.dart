@@ -31,7 +31,7 @@ import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
-class ResolutionVisitor extends RecursiveAstVisitor2<void> {
+class NameResolutionVisitor extends RecursiveAstVisitor2<void> {
   final LibraryElementImpl _libraryElement;
   final TypeProviderImpl _typeProvider;
   final LibraryFragmentImpl _libraryFragment;
@@ -65,7 +65,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
 
   int _libraryDirectiveIndex = 0;
 
-  factory ResolutionVisitor({
+  factory NameResolutionVisitor({
     required LibraryFragmentImpl libraryFragment,
     required DiagnosticListener diagnosticListener,
     required Scope nameScope,
@@ -106,7 +106,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
       libraryElement: libraryElement,
     );
 
-    return ResolutionVisitor._(
+    return NameResolutionVisitor._(
       libraryElement,
       typeProvider,
       libraryFragment,
@@ -120,7 +120,7 @@ class ResolutionVisitor extends RecursiveAstVisitor2<void> {
     );
   }
 
-  ResolutionVisitor._(
+  NameResolutionVisitor._(
     this._libraryElement,
     this._typeProvider,
     this._libraryFragment,
@@ -1642,7 +1642,7 @@ class _VariableBinder
 class _VariableBinderErrors
     implements
         VariableBinderErrors<DartPatternImpl, PatternVariableElementImpl> {
-  final ResolutionVisitor visitor;
+  final NameResolutionVisitor visitor;
 
   _VariableBinderErrors(this.visitor);
 
