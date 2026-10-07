@@ -228,7 +228,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// The [length] must be non-negative.
   external factory List.generate(
     int length,
-    E generator(int index), {
+    E Function(int index) generator, {
     bool growable = true,
   });
 
@@ -508,7 +508,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// numbers.sort((a, b) => a.length.compareTo(b.length));
   /// print(numbers); // [one, two, four, three] OR [two, one, four, three]
   /// ```
-  void sort([int compare(E a, E b)?]);
+  void sort([int Function(E a, E b)? compare]);
 
   /// Shuffles the elements of this list randomly.
   /// ```dart
@@ -553,7 +553,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// final notes = <String>['do', 're', 'mi', 're'];
   /// final index = notes.indexWhere((note) => note.startsWith('k')); // -1
   /// ```
-  int indexWhere(bool test(E element), [int start = 0]);
+  int indexWhere(bool Function(E element) test, [int start = 0]);
 
   /// The last index in the list that satisfies the provided [test].
   ///
@@ -575,7 +575,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// final index = notes.lastIndexWhere((note) => note.startsWith('k'));
   /// print(index); // -1
   /// ```
-  int lastIndexWhere(bool test(E element), [int? start]);
+  int lastIndexWhere(bool Function(E element) test, [int? start]);
 
   /// The last index of [element] in this list.
   ///
@@ -718,7 +718,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// print(numbers); // [three, four]
   /// ```
   /// The list must be growable.
-  void removeWhere(bool test(E element));
+  void removeWhere(bool Function(E element) test);
 
   /// Removes all objects from this list that fail to satisfy [test].
   ///
@@ -729,7 +729,7 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// print(numbers); // [one, two]
   /// ```
   /// The list must be growable.
-  void retainWhere(bool test(E element));
+  void retainWhere(bool Function(E element) test);
 
   /// Returns the concatenation of this list and [other].
   ///

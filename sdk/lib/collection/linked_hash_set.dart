@@ -195,7 +195,7 @@ abstract final class LinkedHashSet<E> implements Set<E> {
   /// Executes a function on each element of the set.
   ///
   /// The elements are iterated in insertion order.
-  void forEach(void action(E element));
+  void forEach(void Function(E element) action);
 
   /// Provides an iterator that iterates over the elements in insertion order.
   Iterator<E> get iterator;

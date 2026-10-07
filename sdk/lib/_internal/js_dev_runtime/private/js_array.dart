@@ -238,7 +238,7 @@ class JSArray<E> extends JavaScriptObject
     return SubListIterable<E>(this, 0, checkNotNullable(n, "count"));
   }
 
-  Iterable<E> takeWhile(bool test(E value)) {
+  Iterable<E> takeWhile(bool Function(E value) test) {
     return TakeWhileIterable<E>(this, test);
   }
 
@@ -250,7 +250,7 @@ class JSArray<E> extends JavaScriptObject
     return SkipWhileIterable<E>(this, test);
   }
 
-  E reduce(E combine(E previousValue, E element)) {
+  E reduce(E Function(E previousValue, E element) combine) {
     int length = this.length;
     if (length == 0) throw IterableElementError.noElement();
     E value = this[0];

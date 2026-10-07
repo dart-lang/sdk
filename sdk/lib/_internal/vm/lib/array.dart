@@ -35,7 +35,7 @@ abstract class _Array<E> extends FixedLengthListBase<E> {
   // Iterable interface.
 
   @pragma("vm:prefer-inline")
-  void forEach(f(E element)) {
+  void forEach(Function(E element) f) {
     final length = this.length;
     for (int i = 0; i < length; i++) {
       f(this[i]);
@@ -113,7 +113,7 @@ class _List<E> extends _Array<E> {
   // Used by pkg/vm/lib/transformations/list_factory_specializer.dart.
   @pragma("vm:prefer-inline")
   @pragma('dyn-module:language-impl:callable')
-  factory _List.generate(int length, E generator(int index)) {
+  factory _List.generate(int length, E Function(int index) generator) {
     final result = _List<E>(length);
     for (int i = 0; i < result.length; ++i) {
       result[i] = generator(i);

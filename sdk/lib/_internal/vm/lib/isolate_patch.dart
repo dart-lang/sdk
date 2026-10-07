@@ -82,9 +82,9 @@ final class _ReceivePortImpl extends Stream implements ReceivePort {
   }
 
   StreamSubscription listen(
-    void onData(message)?, {
+    void Function(dynamic message)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _controller.stream.listen(
@@ -111,7 +111,7 @@ _ImmediateCallback? _pendingImmediateCallback;
 
 /// The closure that should be used as scheduleImmediateClosure, when the VM
 /// is responsible for the event loop.
-void _isolateScheduleImmediate(void callback()) {
+void _isolateScheduleImmediate(void Function() callback) {
   assert(
     (_pendingImmediateCallback == null) ||
         (_pendingImmediateCallback == callback),
@@ -364,7 +364,7 @@ final class Isolate {
 
   @patch
   static Future<Isolate> spawn<T>(
-    void entryPoint(T message),
+    void Function(T message) entryPoint,
     T message, {
     bool paused = false,
     bool errorsAreFatal = true,

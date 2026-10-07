@@ -392,7 +392,7 @@ class _Future<T> implements Future<T> {
     _resultOrListeners = source;
   }
 
-  Future<R> then<R>(FutureOr<R> f(T value), {Function? onError}) {
+  Future<R> then<R>(FutureOr<R> Function(T value) f, {Function? onError}) {
     Zone currentZone = Zone.current;
     if (identical(currentZone, _rootZone)) {
       if (onError != null &&
@@ -423,7 +423,7 @@ class _Future<T> implements Future<T> {
   ///
   /// Used by the implementation of `await` to listen to a future.
   /// The system created listeners are not registered in the zone.
-  Future<E> _thenAwait<E>(FutureOr<E> f(T value), Function onError) {
+  Future<E> _thenAwait<E>(FutureOr<E> Function(T value) f, Function onError) {
     _Future<E> result = _Future<E>();
     _addListener(_FutureListener<T, E>.thenAwait(result, f, onError));
     return result;
@@ -444,7 +444,7 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  Future<T> catchError(Function onError, {bool test(Object error)?}) {
+  Future<T> catchError(Function onError, {bool Function(Object error)? test}) {
     _Future<T> result = _Future<T>();
     var resultZone = result._zone;
     if (!identical(resultZone, _rootZone)) {
@@ -475,7 +475,7 @@ class _Future<T> implements Future<T> {
     return result;
   }
 
-  Future<T> whenComplete(dynamic action()) {
+  Future<T> whenComplete(dynamic Function() action) {
     _Future<T> result = _Future<T>();
     var resultZone = result._zone;
     if (!identical(resultZone, _rootZone)) {
@@ -1042,7 +1042,7 @@ class _Future<T> implements Future<T> {
       _Future<T>.zone(zone ?? _zone);
 
   @pragma("vm:entry-point")
-  Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) {
+  Future<T> timeout(Duration timeLimit, {FutureOr<T> Function()? onTimeout}) {
     if (_isComplete) return _Future.immediate(this);
     @pragma('vm:awaiter-link')
     _Future<T> _future = _Future<T>();

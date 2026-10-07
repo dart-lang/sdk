@@ -84,7 +84,7 @@ final class JSString extends Interceptor
 
   String replaceFirstMapped(
     Pattern from,
-    String replace(Match match), [
+    String Function(Match match) replace, [
     int startIndex = 0,
   ]) {
     checkNull(replace);

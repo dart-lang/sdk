@@ -41,12 +41,12 @@ mixin FixedLengthListMixin<E> {
   }
 
   /** This operation is not supported by a fixed length list. */
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
   /** This operation is not supported by a fixed length list. */
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     throw UnsupportedError("Cannot remove from a fixed-length list");
   }
 
@@ -133,12 +133,12 @@ mixin UnmodifiableListMixin<E> implements List<E> {
   }
 
   /** This operation is not supported by an unmodifiable list. */
-  void removeWhere(bool test(E element)) {
+  void removeWhere(bool Function(E element) test) {
     throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
   /** This operation is not supported by an unmodifiable list. */
-  void retainWhere(bool test(E element)) {
+  void retainWhere(bool Function(E element) test) {
     throw UnsupportedError("Cannot remove from an unmodifiable list");
   }
 
@@ -234,7 +234,7 @@ class ListMapView<E> extends UnmodifiableMapBase<int, E> {
   bool containsValue(Object? value) => _values.contains(value);
   bool containsKey(Object? key) => key is int && key >= 0 && key < length;
 
-  void forEach(void f(int key, E value)) {
+  void forEach(void Function(int key, E value) f) {
     int length = _values.length;
     for (int i = 0; i < length; i++) {
       f(i, _values[i]);

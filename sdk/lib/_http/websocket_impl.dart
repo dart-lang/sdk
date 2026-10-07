@@ -1638,7 +1638,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   }
 
   StreamSubscription listen(
-    void onData(message)?, {
+    void Function(dynamic message)? onData, {
     Function? onError,
     void Function()? onDone,
     bool? cancelOnError,

@@ -88,9 +88,9 @@ class SecureServerSocket extends Stream<SecureSocket>
   }
 
   StreamSubscription<SecureSocket> listen(
-    void onData(SecureSocket socket)?, {
+    void Function(SecureSocket socket)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _socket
@@ -227,9 +227,9 @@ class RawSecureServerSocket extends Stream<RawSecureSocket> {
   }
 
   StreamSubscription<RawSecureSocket> listen(
-    void onData(RawSecureSocket s)?, {
+    void Function(RawSecureSocket s)? onData, {
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool? cancelOnError,
   }) {
     return _controller.stream.listen(

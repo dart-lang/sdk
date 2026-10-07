@@ -109,10 +109,10 @@ abstract interface class StreamController<T> implements StreamSink<T> {
   /// If the stream is canceled before the controller needs data the
   /// [onResume] call might not be executed.
   factory StreamController({
-    void onListen()?,
-    void onPause()?,
-    void onResume()?,
-    FutureOr<void> onCancel()?,
+    void Function()? onListen,
+    void Function()? onPause,
+    void Function()? onResume,
+    FutureOr<void> Function()? onCancel,
     bool sync = false,
   }) {
     return sync
@@ -170,8 +170,8 @@ abstract interface class StreamController<T> implements StreamSink<T> {
   /// If a listener is added again later, after the [onCancel] was called,
   /// the [onListen] will be called again.
   factory StreamController.broadcast({
-    void onListen()?,
-    void onCancel()?,
+    void Function()? onListen,
+    void Function()? onCancel,
     bool sync = false,
   }) {
     return sync
@@ -404,9 +404,9 @@ abstract interface class SynchronousStreamController<T>
 
 abstract class _StreamControllerLifecycle<T> {
   StreamSubscription<T> _subscribe(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   );
   void _recordPause(StreamSubscription<T> subscription) {}
@@ -686,9 +686,9 @@ abstract class _StreamController<T> implements _StreamControllerBase<T> {
   // _StreamControllerLifeCycle interface
 
   StreamSubscription<T> _subscribe(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) {
     if (!_isInitialState) {
@@ -847,9 +847,9 @@ class _ControllerStream<T> extends _StreamImpl<T> {
   _ControllerStream(this._controller);
 
   StreamSubscription<T> _createSubscription(
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) => _controller._subscribe(onData, onError, onDone, cancelOnError);
 
@@ -871,9 +871,9 @@ class _ControllerSubscription<T> extends _BufferingStreamSubscription<T> {
 
   _ControllerSubscription(
     this._controller,
-    void onData(T data)?,
+    void Function(T data)? onData,
     Function? onError,
-    void onDone()?,
+    void Function()? onDone,
     bool cancelOnError,
   ) : super(onData, onError, onDone, cancelOnError);
 

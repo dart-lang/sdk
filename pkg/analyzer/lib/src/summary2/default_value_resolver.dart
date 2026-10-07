@@ -5,7 +5,7 @@
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/summary2/ast_resolver.dart';
+import 'package:analyzer/src/dart/resolver/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -90,10 +90,10 @@ class DefaultValueResolver {
 
     var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
     var astResolver = AstResolver(
-      _linker,
-      firstFragment.libraryFragment as LibraryFragmentImpl,
-      firstNode.scope!,
-      analysisOptions,
+      inheritance: _linker.inheritance,
+      libraryFragment: firstFragment.libraryFragment as LibraryFragmentImpl,
+      nameScope: firstNode.scope!,
+      analysisOptions: analysisOptions,
       enclosingClassElement: enclosingInterfaceElement,
       enclosingExecutableElement: enclosingExecutableElement,
     );

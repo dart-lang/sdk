@@ -96,7 +96,7 @@ final class JSString extends Interceptor
   @notNull
   String replaceFirstMapped(
     Pattern from,
-    @nullCheck String replace(Match match), [
+    @nullCheck String Function(Match match) replace, [
     @nullCheck int startIndex = 0,
   ]) {
     RangeError.checkValueInInterval(startIndex, 0, this.length, "startIndex");

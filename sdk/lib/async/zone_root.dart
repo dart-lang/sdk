@@ -38,7 +38,7 @@ Timer _rootCreateTimer(Zone zone, Duration duration, void Function() callback) {
 Timer _rootCreatePeriodicTimer(
   Zone zone,
   Duration duration,
-  void callback(Timer timer),
+  void Function(Timer timer) callback,
 ) {
   if (!identical(_rootZone, zone)) {
     callback = zone.bindUnaryCallback<void, Timer>(

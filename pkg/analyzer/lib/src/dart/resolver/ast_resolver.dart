@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
@@ -16,11 +17,12 @@ import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/summary2/link.dart';
 
-/// Used to resolve some AST nodes - variable initializers, and annotations.
+/// Resolves AST subtrees in the enclosing context given to the constructor:
+/// variable initializers, default values, annotations, and constructor
+/// initializers.
 class AstResolver {
-  final Linker _linker;
+  final InheritanceManager3 _inheritance;
   final LibraryFragmentImpl _libraryFragment;
   final Scope _nameScope;
   final FeatureSet _featureSet;
@@ -49,7 +51,7 @@ class AstResolver {
     enableLog: false,
   );
   late final _resolverVisitor = ResolverVisitor(
-    _linker.inheritance,
+    _inheritance,
     _libraryFragment.library,
     LibraryResolutionContext(),
     _libraryFragment.source,
@@ -62,14 +64,17 @@ class AstResolver {
     typeAnalyzerOptions: _typeAnalyzerOptions,
   );
 
-  AstResolver(
-    this._linker,
-    this._libraryFragment,
-    this._nameScope,
-    this.analysisOptions, {
-    this.enclosingClassElement,
-    this.enclosingExecutableElement,
-  }) : _featureSet = _libraryFragment.library.featureSet;
+  AstResolver({
+    required InheritanceManager3 inheritance,
+    required LibraryFragmentImpl libraryFragment,
+    required Scope nameScope,
+    required this.analysisOptions,
+    required this.enclosingClassElement,
+    required this.enclosingExecutableElement,
+  }) : _inheritance = inheritance,
+       _libraryFragment = libraryFragment,
+       _nameScope = nameScope,
+       _featureSet = libraryFragment.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);

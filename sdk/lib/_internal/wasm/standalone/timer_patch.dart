@@ -9,14 +9,14 @@ import 'dart:_wasm';
 @patch
 class Timer {
   @patch
-  static Timer _createTimer(Duration duration, void callback()) {
+  static Timer _createTimer(Duration duration, void Function() callback) {
     return _OneShotTimer(duration, callback);
   }
 
   @patch
   static Timer _createPeriodicTimer(
     Duration duration,
-    void callback(Timer timer),
+    void Function(Timer timer) callback,
   ) {
     return _PeriodicTimer(duration, callback);
   }
@@ -111,7 +111,7 @@ class _PeriodicTimer extends _Timer {
 @patch
 class _AsyncRun {
   @patch
-  static void _scheduleImmediate(void callback()) {
+  static void _scheduleImmediate(void Function() callback) {
     embedder.queueMicrotask(
       WasmFunction.fromFunction(_runtimeCallback),
       WasmAnyRef.fromObject(callback),

@@ -529,7 +529,7 @@ abstract final class String implements Comparable<String>, Pattern {
   /// The [startIndex] must be non-negative and no greater than [length].
   String replaceFirstMapped(
     Pattern from,
-    String replace(Match match), [
+    String Function(Match match) replace, [
     int startIndex = 0,
   ]);
 

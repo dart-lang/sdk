@@ -168,7 +168,7 @@ base class LinkedList<E extends LinkedListEntry<E>> extends Iterable<E> {
   /// Call [action] with each entry in this linked list.
   ///
   /// It's an error if [action] modifies the linked list.
-  void forEach(void action(E entry)) {
+  void forEach(void Function(E entry) action) {
     int modificationCount = _modificationCount;
     if (isEmpty) return;
 

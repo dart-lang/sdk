@@ -275,7 +275,7 @@ final class EmbedderStringImpl
   @override
   String replaceFirstMapped(
     Pattern from,
-    String replace(Match match), [
+    String Function(Match match) replace, [
     int startIndex = 0,
   ]) {
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(startIndex, length);

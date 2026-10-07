@@ -537,7 +537,7 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
     _addNewRoot(_SplayTreeMapNode(key, value), comparison);
   }
 
-  V putIfAbsent(K key, V ifAbsent()) {
+  V putIfAbsent(K key, V Function() ifAbsent) {
     int comparison = _splay(key);
     if (comparison == 0) {
       return _root!.value;
@@ -559,7 +559,7 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
     return value;
   }
 
-  V update(K key, V update(V value), {V Function()? ifAbsent}) {
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent}) {
     var comparison = _splay(key);
     if (comparison == 0) {
       final originalModificationCount = _modificationCount;
@@ -598,7 +598,7 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
     throw ArgumentError.value(key, "key", "Key not in map.");
   }
 
-  void updateAll(V update(K key, V value)) {
+  void updateAll(V Function(K key, V value) update) {
     var root = _root;
     if (root == null) return;
     var iterator = _SplayTreeMapEntryIterator(this);
@@ -621,7 +621,7 @@ final class SplayTreeMap<K, V> extends _SplayTree<K, _SplayTreeMapNode<K, V>>
 
   bool get isNotEmpty => !isEmpty;
 
-  void forEach(void f(K key, V value)) {
+  void forEach(void Function(K key, V value) f) {
     Iterator<MapEntry<K, V>> nodes = _SplayTreeMapEntryIterator<K, V>(this);
     while (nodes.moveNext()) {
       MapEntry<K, V> node = nodes.current;

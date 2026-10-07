@@ -418,7 +418,7 @@ class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
   }
 
   @patch
-  void sort([int compare(E a, E b)?]) {
+  void sort([int Function(E a, E b)? compare]) {
     // Note: arr.sort(null) is a type error in FF
     callMethod('sort', compare == null ? [] : [compare]);
   }
@@ -509,7 +509,7 @@ Object? _convertToJS(Object? o) {
   );
 }
 
-Object? _getJsProxy(o, String propertyName, createProxy(o)) {
+Object? _getJsProxy(o, String propertyName, Function(dynamic o) createProxy) {
   var jsProxy = _getOwnProperty(o, propertyName);
   if (jsProxy == null) {
     jsProxy = createProxy(o);
@@ -562,7 +562,11 @@ Object _wrapToDart(o) {
   );
 }
 
-Object _getDartProxy(o, String propertyName, JsObject createProxy(o)) {
+Object _getDartProxy(
+  o,
+  String propertyName,
+  JsObject Function(dynamic o) createProxy,
+) {
   var dartProxy = _getOwnProperty(o, propertyName);
   // Temporary fix for dartbug.com/15193
   // In some cases it's possible to see a JavaScript object that

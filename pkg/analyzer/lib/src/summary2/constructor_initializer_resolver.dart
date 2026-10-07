@@ -4,8 +4,8 @@
 
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/resolver/ast_resolver.dart';
 import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
-import 'package:analyzer/src/summary2/ast_resolver.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
 
@@ -62,10 +62,10 @@ class ConstructorInitializerResolver {
           }
 
           var astResolver = AstResolver(
-            _linker,
-            fragment.libraryFragment,
-            initializerScope,
-            analysisOptions,
+            inheritance: _linker.inheritance,
+            libraryFragment: fragment.libraryFragment,
+            nameScope: initializerScope,
+            analysisOptions: analysisOptions,
             enclosingClassElement: interfaceElement,
             enclosingExecutableElement: element,
           );
@@ -90,10 +90,10 @@ class ConstructorInitializerResolver {
             var initializerScope = body.formalParameterInitializerScope!;
             var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
             var astResolver = AstResolver(
-              _linker,
-              fragment.libraryFragment,
-              initializerScope,
-              analysisOptions,
+              inheritance: _linker.inheritance,
+              libraryFragment: fragment.libraryFragment,
+              nameScope: initializerScope,
+              analysisOptions: analysisOptions,
               enclosingClassElement: interfaceElement,
               enclosingExecutableElement: element,
             );

@@ -85,7 +85,10 @@ abstract interface class Timer {
   /// // 3
   /// // "Cancel timer"
   /// ```
-  factory Timer.periodic(Duration duration, void callback(Timer timer)) {
+  factory Timer.periodic(
+    Duration duration,
+    void Function(Timer timer) callback,
+  ) {
     if (Zone.current == Zone.root) {
       // No need to bind the callback. We know that the root's timer will
       // be invoked in the root zone.
@@ -168,6 +171,6 @@ abstract interface class Timer {
   );
   external static Timer _createPeriodicTimer(
     Duration duration,
-    void callback(Timer timer),
+    void Function(Timer timer) callback,
   );
 }

@@ -166,8 +166,8 @@ abstract interface class Map<K, V> {
   /// It iterates in key insertion order.
   factory Map.fromIterable(
     Iterable iterable, {
-    K key(dynamic element)?,
-    V value(dynamic element)?,
+    K Function(dynamic element)? key,
+    V Function(dynamic element)? value,
   }) = LinkedHashMap<K, V>.fromIterable;
 
   /// Creates a map associating the given [keys] to the given [values].
@@ -298,7 +298,7 @@ abstract interface class Map<K, V> {
 
   /// Returns a new map where all entries of this map are transformed by
   /// the given [convert] function.
-  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> convert(K key, V value));
+  Map<K2, V2> map<K2, V2>(MapEntry<K2, V2> Function(K key, V value) convert);
 
   /// Adds all key/value pairs of [newEntries] to this map.
   ///
@@ -344,7 +344,7 @@ abstract interface class Map<K, V> {
   /// largestPlanets.update(8, (value) => 'New', ifAbsent: () => 'Mercury');
   /// print(largestPlanets); // {1: Jupiter, 2: Saturn, 3: Neptune, 8: Mercury}
   /// ```
-  V update(K key, V update(V value), {V ifAbsent()?});
+  V update(K key, V Function(V value) update, {V Function()? ifAbsent});
 
   /// Updates all values.
   ///
@@ -355,7 +355,7 @@ abstract interface class Map<K, V> {
   /// terrestrial.updateAll((key, value) => value.toUpperCase());
   /// print(terrestrial); // {1: MERCURY, 2: VENUS, 3: EARTH}
   /// ```
-  void updateAll(V update(K key, V value));
+  void updateAll(V Function(K key, V value) update);
 
   /// Removes all entries of this map that satisfy the given [test].
   /// ```dart
@@ -363,7 +363,7 @@ abstract interface class Map<K, V> {
   /// terrestrial.removeWhere((key, value) => value.startsWith('E'));
   /// print(terrestrial); // {1: Mercury, 2: Venus}
   /// ```
-  void removeWhere(bool test(K key, V value));
+  void removeWhere(bool Function(K key, V value) test);
 
   /// Look up the value of [key], or add a new entry if it isn't there.
   ///
@@ -394,7 +394,7 @@ abstract interface class Map<K, V> {
   /// ```
   /// The [ifAbsent] function is allowed to modify the map,
   /// and if so, it behaves the same as the equivalent `map[key] = ifAbsent()`.
-  V putIfAbsent(K key, V ifAbsent());
+  V putIfAbsent(K key, V Function() ifAbsent);
 
   /// Adds all key/value pairs of [other] to this map.
   ///
@@ -448,7 +448,7 @@ abstract interface class Map<K, V> {
   ///   // 17.15: Neptune
   /// });
   /// ```
-  void forEach(void action(K key, V value));
+  void forEach(void Function(K key, V value) action);
 
   /// The keys of this [Map].
   ///
