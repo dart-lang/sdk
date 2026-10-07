@@ -2004,7 +2004,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
               isFinal: false,
               isLate: false,
               isImplicitlyTyped: parameter.type == null,
-              inheritPromotableProperties: false,
               offset: afterExpressionOffset,
             );
           } else {

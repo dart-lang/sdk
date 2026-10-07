@@ -261,7 +261,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
       } else {
         typeArgumentTypes = typeArgumentList.arguments
             .map((typeArgument) => typeArgument.typeOrThrow)
-            .toList(growable: true);
+            .toList();
         if (rawType != null && _needsTypeArgumentBoundsCheck) {
           var typeParameters = rawType.typeParameters;
           var substitution = Substitution.fromPairs2(
