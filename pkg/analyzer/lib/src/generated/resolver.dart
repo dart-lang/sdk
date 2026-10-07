@@ -21,7 +21,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
@@ -5817,12 +5816,6 @@ class ResolverVisitor extends ThrowingAstVisitor2<void>
     }
     diagnosticReporter.report(locatableDiagnostic.at(token));
   }
-}
-
-// TODO(scheglov): move this static method somewhere?
-abstract class ScopeResolverVisitor {
-  static Scope? getNodeNameScope(AstNode node) =>
-      node is AstNodeWithNameScopeMixin ? node.nameScope : null;
 }
 
 /// Tracker for whether a `switch` statement has `default` or is on an

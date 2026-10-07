@@ -7,21 +7,14 @@ import 'package:analyzer/dart/element/scope.dart';
 // ignore: implementation_imports
 import 'package:analyzer/src/dart/ast/ast.dart';
 // ignore: implementation_imports
-import 'package:analyzer/src/generated/resolver.dart' show ScopeResolverVisitor;
+import 'package:analyzer/src/utilities/extensions/ast.dart';
 
 LinterNameInScopeResolutionResult resolveNameInScope(
   String id,
   AstNode node, {
   required bool shouldResolveSetter,
 }) {
-  Scope? scope;
-  for (AstNode? context = node; context != null; context = context.parent) {
-    scope = ScopeResolverVisitor.getNodeNameScope(context);
-    if (scope != null) {
-      break;
-    }
-  }
-
+  var scope = node.enclosingNameScope;
   if (scope != null) {
     var ScopeLookupResult(:setter, :getter) = scope.lookup(id);
     var requestedElement = shouldResolveSetter ? setter : getter;
