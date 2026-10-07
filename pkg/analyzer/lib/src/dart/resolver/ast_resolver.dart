@@ -16,7 +16,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/name_resolution_visitor.dart';
+import 'package:analyzer/src/dart/resolver/scope_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 
@@ -24,8 +24,8 @@ import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 /// during library analysis, and variable initializers, default values,
 /// annotations, and constructor initializers during summary linking.
 ///
-/// Resolution runs two walks. Name resolution ([NameResolutionVisitor]) builds
-/// scopes and resolves everything found by scope lookup, and type analysis
+/// Resolution runs two walks. Scope analysis ([ScopeAnalyzer]) builds scopes
+/// and resolves everything found by scope lookup, and type analysis
 /// ([TypeAnalyzer]) computes static types, performs flow analysis, and
 /// resolves everything that depends on types: members, operators, and
 /// invocations.
@@ -34,7 +34,7 @@ class AstResolver {
   final InterfaceElementImpl? _enclosingClassElement;
   final ExecutableElementImpl? _enclosingExecutableElement;
   final TestingData? _testingData;
-  final NameResolutionVisitor _nameResolutionVisitor;
+  final ScopeAnalyzer _scopeAnalyzer;
   final FlowAnalysisHelper _flowAnalysis;
   final TypeAnalyzer _typeAnalyzer;
 
@@ -103,14 +103,14 @@ class AstResolver {
     required InterfaceElementImpl? enclosingClassElement,
     required ExecutableElementImpl? enclosingExecutableElement,
     required TestingData? testingData,
-    required NameResolutionVisitor nameResolutionVisitor,
+    required ScopeAnalyzer scopeAnalyzer,
     required FlowAnalysisHelper flowAnalysis,
     required TypeAnalyzer typeAnalyzer,
   }) : _libraryFragment = libraryFragment,
        _enclosingClassElement = enclosingClassElement,
        _enclosingExecutableElement = enclosingExecutableElement,
        _testingData = testingData,
-       _nameResolutionVisitor = nameResolutionVisitor,
+       _scopeAnalyzer = scopeAnalyzer,
        _flowAnalysis = flowAnalysis,
        _typeAnalyzer = typeAnalyzer;
 
@@ -129,7 +129,7 @@ class AstResolver {
     required InterfaceElementImpl? enclosingClassElement,
     required ExecutableElementImpl? enclosingExecutableElement,
   }) {
-    var nameResolutionVisitor = NameResolutionVisitor(
+    var scopeAnalyzer = ScopeAnalyzer(
       libraryFragment: libraryFragment,
       nameScope: nameScope,
       docImportScope: docImportScope,
@@ -168,7 +168,7 @@ class AstResolver {
       enclosingClassElement: enclosingClassElement,
       enclosingExecutableElement: enclosingExecutableElement,
       testingData: testingData,
-      nameResolutionVisitor: nameResolutionVisitor,
+      scopeAnalyzer: scopeAnalyzer,
       flowAnalysis: flowAnalysis,
       typeAnalyzer: typeAnalyzer,
     );
@@ -177,7 +177,7 @@ class AstResolver {
   void resolveAnnotation(AnnotationImpl node) {
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
     _prepareEnclosingDeclarations();
-    node.accept2(_nameResolutionVisitor);
+    node.accept2(_scopeAnalyzer);
     _flowAnalysis.flowAnalysisRoot_enter(
       node,
       null,
@@ -210,7 +210,7 @@ class AstResolver {
     }
 
     _prepareEnclosingDeclarations();
-    accept(_nameResolutionVisitor);
+    accept(_scopeAnalyzer);
 
     _flowAnalysis.flowAnalysisRoot_enter(
       node,
@@ -243,12 +243,12 @@ class AstResolver {
 
   /// Resolves [node] of [unit] for completion, and returns whether it did.
   ///
-  /// Name resolution covers the whole [unit], but type analysis covers only
+  /// Scope analysis covers the whole [unit], but type analysis covers only
   /// [node]. Returns `false`, without type analysis, if [node] cannot be
   /// resolved separately from its enclosing declarations.
   bool resolveNodeForCompletion(CompilationUnitImpl unit, AstNode node) {
     // TODO(scheglov): We don't need to do this for the whole unit.
-    _resolveNames(unit);
+    _runScopeAnalysis(unit);
 
     if (!_typeAnalyzer.prepareForResolving(node)) {
       return false;
@@ -276,7 +276,7 @@ class AstResolver {
     }
 
     _prepareEnclosingDeclarations();
-    accept(_nameResolutionVisitor);
+    accept(_scopeAnalyzer);
 
     _flowAnalysis.flowAnalysisRoot_enter(
       body,
@@ -295,7 +295,7 @@ class AstResolver {
   /// Unlike resolving subtrees, this does not enter a flow analysis root,
   /// because type analysis enters roots itself while walking the unit.
   void resolveUnit(CompilationUnitImpl unit) {
-    _resolveNames(unit);
+    _runScopeAnalysis(unit);
     unit.accept2(_typeAnalyzer);
     _recordTypeAnalysisTestingData();
   }
@@ -324,7 +324,7 @@ class AstResolver {
   }
 
   void _prepareEnclosingDeclarations() {
-    _nameResolutionVisitor.prepareEnclosingDeclarations(
+    _scopeAnalyzer.prepareEnclosingDeclarations(
       enclosingClassElement: _enclosingClassElement,
     );
 
@@ -336,8 +336,8 @@ class AstResolver {
 
   /// Records the testing data of type analysis, after it finished.
   ///
-  /// Type constraints are merged into the data already recorded for name
-  /// resolution by copying, so recording them earlier would lose them.
+  /// Type constraints are merged into the data already recorded for scope
+  /// analysis by copying, so recording them earlier would lose them.
   void _recordTypeAnalysisTestingData() {
     if (_testingData case var testingData?) {
       var uri = _libraryFragment.source.uri;
@@ -354,8 +354,8 @@ class AstResolver {
 
   /// Resolves the expression that [readExpression] reads from [root].
   ///
-  /// Both name resolution and type analysis can replace the expression in its
-  /// parent, so it is read again after name resolution, and the final
+  /// Both scope analysis and type analysis can replace the expression in its
+  /// parent, so it is read again after scope analysis, and the final
   /// expression is returned.
   ExpressionImpl _resolveExpression({
     required FlowAnalysisRootImpl root,
@@ -369,9 +369,9 @@ class AstResolver {
     var bindingVisitor = ElementBindingVisitor(_libraryFragment);
     bindingVisitor.bindSubtree(_libraryFragment, expression);
     _prepareEnclosingDeclarations();
-    expression.accept2(_nameResolutionVisitor);
+    expression.accept2(_scopeAnalyzer);
 
-    // Name resolution can replace the expression.
+    // Scope analysis can replace the expression.
     expression = readExpression();
 
     _flowAnalysis.flowAnalysisRoot_enter(
@@ -406,15 +406,15 @@ class AstResolver {
     return result;
   }
 
-  /// Binds elements in [unit], and runs name resolution over it.
-  void _resolveNames(CompilationUnitImpl unit) {
+  /// Binds elements in [unit], and runs scope analysis over it.
+  void _runScopeAnalysis(CompilationUnitImpl unit) {
     unit.accept2(ElementBindingVisitor(_libraryFragment));
     _prepareEnclosingDeclarations();
-    unit.accept2(_nameResolutionVisitor);
+    unit.accept2(_scopeAnalyzer);
     if (_testingData case var testingData?) {
       testingData.recordTypeConstraintGenerationDataForTesting(
         _libraryFragment.source.uri,
-        _nameResolutionVisitor.dataForTesting!,
+        _scopeAnalyzer.dataForTesting!,
       );
     }
   }

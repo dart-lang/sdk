@@ -35,7 +35,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 /// top-level names, import prefixes, type annotations, labels, and pattern
 /// variables. Also rewrites parsed nodes whose meaning follows from what their
 /// names resolve to.
-class NameResolutionVisitor extends RecursiveAstVisitor2<void> {
+class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   final LibraryElementImpl _libraryElement;
   final TypeProviderImpl _typeProvider;
   final LibraryFragmentImpl _libraryFragment;
@@ -69,7 +69,7 @@ class NameResolutionVisitor extends RecursiveAstVisitor2<void> {
 
   int _libraryDirectiveIndex = 0;
 
-  factory NameResolutionVisitor({
+  factory ScopeAnalyzer({
     required LibraryFragmentImpl libraryFragment,
     required DiagnosticListener diagnosticListener,
     required Scope nameScope,
@@ -110,7 +110,7 @@ class NameResolutionVisitor extends RecursiveAstVisitor2<void> {
       libraryElement: libraryElement,
     );
 
-    return NameResolutionVisitor._(
+    return ScopeAnalyzer._(
       libraryElement,
       typeProvider,
       libraryFragment,
@@ -124,7 +124,7 @@ class NameResolutionVisitor extends RecursiveAstVisitor2<void> {
     );
   }
 
-  NameResolutionVisitor._(
+  ScopeAnalyzer._(
     this._libraryElement,
     this._typeProvider,
     this._libraryFragment,
@@ -1646,7 +1646,7 @@ class _VariableBinder
 class _VariableBinderErrors
     implements
         VariableBinderErrors<DartPatternImpl, PatternVariableElementImpl> {
-  final NameResolutionVisitor visitor;
+  final ScopeAnalyzer visitor;
 
   _VariableBinderErrors(this.visitor);
 

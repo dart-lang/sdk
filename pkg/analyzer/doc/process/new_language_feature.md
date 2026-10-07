@@ -39,8 +39,7 @@ The features are listed roughly in dependency order.
 - [ ] Type system updates
 - [ ] Summary support
 - [ ] Resolution
-  - [ ] `NameResolutionVisitor` (build scopes, bind names, resolve type
-    annotations)
+  - [ ] `ScopeAnalyzer` (build scopes, resolve names and type annotations)
   - [ ] `TypeAnalyzer` (flow analysis, type inference, member lookup)
 - [ ] Constant evaluation
 - [ ] Index and search
