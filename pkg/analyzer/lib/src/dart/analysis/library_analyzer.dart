@@ -23,14 +23,10 @@ import 'package:analyzer/src/dart/constant/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
-import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/ast_resolver.dart';
-import 'package:analyzer/src/dart/resolver/element_binding_visitor.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
-import 'package:analyzer/src/dart/resolver/resolution_visitor.dart';
-import 'package:analyzer/src/dart/resolver/type_analyzer_options.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/best_practices_verifier.dart';
 import 'package:analyzer/src/error/codes.dart';
@@ -169,68 +165,21 @@ class LibraryAnalyzer {
           e.parent2 is ExtensionDeclaration ||
           e.parent2 is MixinDeclaration;
     });
-    var diagnosticListener = RecordingDiagnosticListener();
 
     return performance.run('resolve', (performance) {
-      TypeConstraintGenerationDataForTesting? inferenceDataForTesting =
-          _testingData != null
-          ? TypeConstraintGenerationDataForTesting()
-          : null;
-
-      // TODO(scheglov): We don't need to do this for the whole unit.
-      parsedUnit.accept2(ElementBindingVisitor(libraryFragment));
-      parsedUnit.accept2(
-        ResolutionVisitor(
-          libraryFragment: libraryFragment,
-          diagnosticListener: diagnosticListener,
-          nameScope: libraryFragment.scope,
-          docImportScope: null,
-          strictInference: _analysisOptions.strictInference,
-          strictCasts: _analysisOptions.strictCasts,
-          dataForTesting: inferenceDataForTesting,
-        ),
-      );
-      _testingData?.recordTypeConstraintGenerationDataForTesting(
-        file.uri,
-        inferenceDataForTesting!,
-      );
-
-      var featureSet = _libraryElement.featureSet;
-      var typeAnalyzerOptions = computeTypeAnalyzerOptions(featureSet);
-      FlowAnalysisHelper flowAnalysisHelper = FlowAnalysisHelper(
-        _testingData != null,
-        typeSystemOperations: _typeSystemOperations,
-        typeAnalyzerOptions: typeAnalyzerOptions,
-        enableLog: true,
-      );
-      _testingData?.recordFlowAnalysisDataForTesting(
-        file.uri,
-        flowAnalysisHelper.dataForTesting!,
-      );
-
-      var resolverVisitor = ResolverVisitor(
-        _inheritance,
-        _libraryElement,
-        libraryResolutionContext,
-        file.source,
-        _typeProvider,
-        diagnosticListener,
-        featureSet: _libraryElement.featureSet,
-        analysisOptions: _analysisOptions,
-        flowAnalysisHelper: flowAnalysisHelper,
-        libraryFragment: libraryFragment,
-        typeAnalyzerOptions: typeAnalyzerOptions,
-      );
-      _testingData?.recordTypeConstraintGenerationDataForTesting(
-        file.uri,
-        resolverVisitor.inferenceHelper.dataForTesting!,
-      );
-
       if (nodeToResolve != null && nodeToResolve is! Directive) {
-        var canResolveNode = resolverVisitor.prepareForResolving(nodeToResolve);
-        if (canResolveNode) {
-          nodeToResolve.accept2(resolverVisitor);
-          resolverVisitor.checkIdle();
+        var astResolver = AstResolver.forLibraryAnalysis(
+          inheritance: _inheritance,
+          libraryFragment: libraryFragment,
+          analysisOptions: _analysisOptions,
+          featureSet: parsedUnit.featureSet,
+          diagnosticListener: DiagnosticListener.nullListener,
+          docImportScope: null,
+          libraryResolutionContext: libraryResolutionContext,
+          typeSystemOperations: _typeSystemOperations,
+          testingData: _testingData,
+        );
+        if (astResolver.resolveNodeForCompletion(parsedUnit, nodeToResolve)) {
           return AnalysisForCompletionResult(
             fileState: file,
             parsedUnit: parsedUnit,

@@ -23,6 +23,10 @@ import 'package:analyzer/src/generated/resolver.dart';
 /// Resolves AST in the enclosing context given to the constructor: units
 /// during library analysis, and variable initializers, default values,
 /// annotations, and constructor initializers during summary linking.
+///
+/// Resolution runs two walks. Name resolution ([ResolutionVisitor]) builds
+/// scopes and binds names, and type analysis ([ResolverVisitor]) performs flow
+/// analysis, type inference, and member lookup.
 class AstResolver {
   final LibraryFragmentImpl _libraryFragment;
   final InterfaceElementImpl? _enclosingClassElement;
@@ -235,6 +239,25 @@ class AstResolver {
     );
   }
 
+  /// Resolves [node] of [unit] for completion, and returns whether it did.
+  ///
+  /// Name resolution covers the whole [unit], but type analysis covers only
+  /// [node]. Returns `false`, without type analysis, if [node] cannot be
+  /// resolved separately from its enclosing declarations.
+  bool resolveNodeForCompletion(CompilationUnitImpl unit, AstNode node) {
+    // TODO(scheglov): We don't need to do this for the whole unit.
+    _resolveNames(unit);
+
+    if (!_resolverVisitor.prepareForResolving(node)) {
+      return false;
+    }
+
+    node.accept2(_resolverVisitor);
+    _resolverVisitor.checkIdle();
+    _recordTypeAnalysisTestingData();
+    return true;
+  }
+
   void resolvePrimaryConstructor(
     PrimaryConstructorDeclarationImpl node,
     PrimaryConstructorBodyImpl body,
@@ -268,24 +291,11 @@ class AstResolver {
   /// Resolves [unit], the unit of the library fragment.
   ///
   /// Unlike resolving subtrees, this does not enter a flow analysis root,
-  /// because the typed walk enters roots itself while walking the unit.
+  /// because type analysis enters roots itself while walking the unit.
   void resolveUnit(CompilationUnitImpl unit) {
-    var uri = _libraryFragment.source.uri;
-
-    unit.accept2(ElementBindingVisitor(_libraryFragment));
-    _prepareEnclosingDeclarations();
-    unit.accept2(_resolutionVisitor);
-    if (_resolutionVisitor.dataForTesting case var data?) {
-      _testingData!.recordTypeConstraintGenerationDataForTesting(uri, data);
-    }
-
-    if (_flowAnalysis.dataForTesting case var data?) {
-      _testingData!.recordFlowAnalysisDataForTesting(uri, data);
-    }
+    _resolveNames(unit);
     unit.accept2(_resolverVisitor);
-    if (_resolverVisitor.inferenceHelper.dataForTesting case var data?) {
-      _testingData!.recordTypeConstraintGenerationDataForTesting(uri, data);
-    }
+    _recordTypeAnalysisTestingData();
   }
 
   /// Resolves the initializer of [node], and returns it.
@@ -322,10 +332,28 @@ class AstResolver {
     );
   }
 
+  /// Records the testing data of type analysis, after it finished.
+  ///
+  /// Type constraints are merged into the data already recorded for name
+  /// resolution by copying, so recording them earlier would lose them.
+  void _recordTypeAnalysisTestingData() {
+    if (_testingData case var testingData?) {
+      var uri = _libraryFragment.source.uri;
+      testingData.recordFlowAnalysisDataForTesting(
+        uri,
+        _flowAnalysis.dataForTesting!,
+      );
+      testingData.recordTypeConstraintGenerationDataForTesting(
+        uri,
+        _resolverVisitor.inferenceHelper.dataForTesting!,
+      );
+    }
+  }
+
   /// Resolves the expression that [readExpression] reads from [root].
   ///
-  /// Both the lexical and the typed walks can replace the expression in its
-  /// parent, so it is read again after the lexical walk, and the final
+  /// Both name resolution and type analysis can replace the expression in its
+  /// parent, so it is read again after name resolution, and the final
   /// expression is returned.
   ExpressionImpl _resolveExpression({
     required FlowAnalysisRootImpl root,
@@ -341,7 +369,7 @@ class AstResolver {
     _prepareEnclosingDeclarations();
     expression.accept2(_resolutionVisitor);
 
-    // The lexical walk can replace the expression.
+    // Name resolution can replace the expression.
     expression = readExpression();
 
     _flowAnalysis.flowAnalysisRoot_enter(
@@ -367,12 +395,25 @@ class AstResolver {
       ),
     );
 
-    // The typed walk can replace it too, and keeps the slot in sync.
+    // Type analysis can replace it too, and keeps the slot in sync.
     var result = _resolverVisitor.popRewrite()!;
     assert(identical(result, readExpression()));
 
     _resolverVisitor.checkIdle();
     _flowAnalysis.flowAnalysisRoot_exit();
     return result;
+  }
+
+  /// Binds elements in [unit], and runs name resolution over it.
+  void _resolveNames(CompilationUnitImpl unit) {
+    unit.accept2(ElementBindingVisitor(_libraryFragment));
+    _prepareEnclosingDeclarations();
+    unit.accept2(_resolutionVisitor);
+    if (_testingData case var testingData?) {
+      testingData.recordTypeConstraintGenerationDataForTesting(
+        _libraryFragment.source.uri,
+        _resolutionVisitor.dataForTesting!,
+      );
+    }
   }
 }
