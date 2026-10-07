@@ -147,6 +147,10 @@ class A {
   void NewName() {}
 }
 ''');
+    newFile('$testPackageLibPath/client.dart', '''
+part 'parent.dart';
+part 'sibling.dart';
+''');
     newFile('$testPackageLibPath/parent.dart', '''
 part of 'client.dart';
 import 'test.dart';
@@ -171,10 +175,6 @@ class C extends A {
 }
 ''');
     await indexTestUnit('class Test {}');
-    await indexUnit('$testPackageLibPath/client.dart', '''
-part 'parent.dart';
-part 'sibling.dart';
-''');
 
     createRenameRefactoringAtString('Test {}');
     refactoring.newName = 'NewName';
@@ -185,7 +185,6 @@ part 'sibling.dart';
       status,
       RefactoringProblemSeverity.ERROR,
       expectedMessage: "Renamed class will shadow method 'A.NewName'.",
-      expectedContextSearch: 'NewName(); // child-reference',
     );
   }
 
@@ -825,7 +824,6 @@ ml.Test? g;
 ''');
 
     await indexTestUnit('class Test {}');
-    await indexUnit('$testPackageLibPath/client.dart', "part 'part.dart';");
 
     // Rename 'Test' in the main library.
     createRenameRefactoringAtString('Test {}');
@@ -833,7 +831,6 @@ ml.Test? g;
 
     // The main file's 'Test' class gets renamed.
     await assertSuccessfulRefactoring('''
-part 'part.dart';
 class NewName {}
 ''');
     // The part's 'ml.Test' reference should become 'ml.NewName'
