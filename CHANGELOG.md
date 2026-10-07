@@ -19,6 +19,19 @@
   child's `PATH`. Using an absolute path for the `executable` argument to
   `Process.start` etc is recommended to avoid platform-specific differences.
 
+#### `dart:isolate`
+
+- **Breaking change:** Unshipped the experimental synchronous execution and
+  event loop control APIs (`Isolate.runSync`, `Isolate.create`,
+  `Isolate.shutdownSync`, `Isolate.pinToCurrentThread`,
+  `Isolate.isPinnedToCurrentThread`, `Isolate.runEventLoopSync`,
+  `Isolate.onEvent`, and `Isolate.handleEvent`) that were accidentally exposed
+  in Dart 3.13, and gated `NativeCallable.isolateGroupBound` behind the
+  `--experimental-shared-data` VM flag.
+  For more details, see SDK issue [#64285][].
+
+[#64285]: https://github.com/dart-lang/sdk/issues/64285
+
 #### `dart:typed_data`
 
 - **Breaking change:** `toString()` on the SIMD value types `Float32x4`,
