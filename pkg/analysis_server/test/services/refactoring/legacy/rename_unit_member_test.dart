@@ -142,7 +142,6 @@ class B extends A {
   /// A subpart sees imports from its parent, but not from a sibling.
   Future<void> test_checkFinalConditions_partImportsNewName_conflict() async {
     newFile('$testPackageLibPath/other.dart', '''
-class NewName {}
 class A {
   void NewName() {}
 }
@@ -174,7 +173,9 @@ class C extends A {
   }
 }
 ''');
-    await indexTestUnit('class Test {}');
+    await indexTestUnit('''
+class Test {}
+''');
 
     createRenameRefactoringAtString('Test {}');
     refactoring.newName = 'NewName';
@@ -823,7 +824,9 @@ import 'test.dart' as ml;
 ml.Test? g;
 ''');
 
-    await indexTestUnit('class Test {}');
+    await indexTestUnit('''
+class Test {}
+''');
 
     // Rename 'Test' in the main library.
     createRenameRefactoringAtString('Test {}');
