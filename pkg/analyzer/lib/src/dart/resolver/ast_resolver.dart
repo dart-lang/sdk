@@ -77,8 +77,8 @@ class AstResolver {
 
   void resolveAnnotation(AnnotationImpl node) {
     ElementBindingVisitor(_libraryFragment).bindSubtree(_libraryFragment, node);
-    node.accept2(_resolutionVisitor);
     _prepareEnclosingDeclarations();
+    node.accept2(_resolutionVisitor);
     _flowAnalysis.flowAnalysisRoot_enter(
       node,
       null,
@@ -222,12 +222,12 @@ class AstResolver {
     var expression = readExpression();
     var bindingVisitor = ElementBindingVisitor(_libraryFragment);
     bindingVisitor.bindSubtree(_libraryFragment, expression);
+    _prepareEnclosingDeclarations();
     expression.accept2(_resolutionVisitor);
 
     // The lexical walk can replace the expression.
     expression = readExpression();
 
-    _prepareEnclosingDeclarations();
     _flowAnalysis.flowAnalysisRoot_enter(
       root,
       inScopePrimaryConstructorParameters,
