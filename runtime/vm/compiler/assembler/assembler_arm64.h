@@ -1568,6 +1568,15 @@ class Assembler : public AssemblerBase {
                              (static_cast<int32_t>(vd) << kVdShift);
     Emit(encoding);
   }
+  // TBL Vd.16B, {Vn.16B}, Vm.16B: byte i of Vd is byte Vm[i] of Vn, or zero
+  // when Vm[i] is 16 or more.
+  void vtbl1(VRegister vd, VRegister vn, VRegister vm) {
+    const int32_t encoding = 0x4E000000 |
+                             (static_cast<int32_t>(vm) << kVmShift) |
+                             (static_cast<int32_t>(vn) << kVnShift) |
+                             (static_cast<int32_t>(vd) << kVdShift);
+    Emit(encoding);
+  }
   // UMINV Sd, Vn.4S: unsigned minimum across the four word lanes of Vn into the
   // 32-bit scalar in the low bits of Vd.
   void vuminv_4s(VRegister vd, VRegister vn) {

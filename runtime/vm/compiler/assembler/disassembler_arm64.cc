@@ -185,7 +185,9 @@ void ARM64Decoder::PrintMemOperand(Instr* instr) {
   const Register rn = instr->RnField();
   if (instr->Bit(24) == 1) {
     // rn + scaled unsigned 12-bit immediate offset.
-    const uint32_t scale = instr->SzField();
+    const bool is_simd128 = (instr->Bit(26) == 1) && (instr->SzField() == 0) &&
+                            (instr->Bit(23) == 1);
+    const uint32_t scale = is_simd128 ? 4 : instr->SzField();
     const uint32_t imm12 = instr->Imm12Field();
     const uint32_t off = imm12 << scale;
     Print("[");
@@ -1594,6 +1596,11 @@ void ARM64Decoder::DecodeDPSimd1(Instr* instr) {
   // UMINV Sd, Vn.4S (Q=1, U=1, size=10, across-lanes MINV form).
   if ((instr->InstructionBits() & 0xFFFFFC00) == 0x6EB1A800) {
     Format(instr, "vuminv 'vd, 'vn");
+    return;
+  }
+  // TBL Vd.16B, {Vn.16B}, Vm.16B (Q=1, len=0, op=0 table lookup form).
+  if ((instr->InstructionBits() & 0xFFE0FC00) == 0x4E000000) {
+    Format(instr, "vtbl1 'vd, 'vn, 'vm");
     return;
   }
   if (instr->IsSIMDCopyOp()) {
