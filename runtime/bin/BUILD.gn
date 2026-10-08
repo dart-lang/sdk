@@ -1203,10 +1203,10 @@ source_set("run_vm_tests_set") {
     configs += [ "..:dart_precompiler_config" ]
   }
 
-  deps = [
-    "//third_party/boringssl",  # for secure_socket_utils_test
-    "//third_party/perfetto:libprotozero",  # for timeline_test
-  ]
+  deps = [ "//third_party/boringssl" ]  # for secure_socket_utils_test
+  if (dart_support_perfetto) {
+    deps += [ "//third_party/perfetto:libprotozero" ]  # for timeline_test
+  }
 
   if (is_fuchsia) {
     deps += [
@@ -1268,9 +1268,11 @@ executable("run_vm_tests") {
     ":run_vm_tests_set",
     "..:libdart_precompiler_testing",
     "//third_party/boringssl",  # for secure_socket_utils_test
-    "//third_party/perfetto:libprotozero",  # for timeline_test
     "//third_party/zlib",
   ]
+  if (dart_support_perfetto) {
+    deps += [ "//third_party/perfetto:libprotozero" ]  # for timeline_test
+  }
 
   if (is_win) {
     libs = [
