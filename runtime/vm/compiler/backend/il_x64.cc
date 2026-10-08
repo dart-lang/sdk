@@ -4677,6 +4677,9 @@ DEFINE_EMIT(Int32x4Shift,
     case SimdOpInstr::kInt32x4ShrS:
       __ psrad(value, count_xmm);
       break;
+    case SimdOpInstr::kInt32x4ShrU:
+      __ psrld(value, count_xmm);
+      break;
     default:
       UNREACHABLE();
   }
@@ -4691,6 +4694,7 @@ DEFINE_EMIT(Int32x4Shift,
 #define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
   CASE(Int32x4Shl)                                                             \
   CASE(Int32x4ShrS)                                                            \
+  CASE(Int32x4ShrU)                                                            \
   ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
   CASE(Int32x4AndNot)                                                          \
