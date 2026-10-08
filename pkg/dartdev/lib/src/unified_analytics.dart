@@ -83,6 +83,45 @@ Analytics createUnifiedAnalytics({bool disableAnalytics = false}) {
   );
 }
 
+/// Returns whether dartdev should print the analytics consent message for this
+/// run.
+///
+/// [consentPending] must be read from [Analytics.shouldShowMessage] *before*
+/// [Analytics.clientShowedMessage] is called, since that call clears it.
+///
+/// [botSuppressed] is true when running on a bot and analytics aren't being
+/// explicitly tested.
+bool shouldPrintConsentMessage({
+  required bool consentPending,
+  required bool hasTerminal,
+  required bool botSuppressed,
+}) => consentPending && hasTerminal && !botSuppressed;
+
+/// Returns whether sub-tools should be suppressed (via
+/// `DASH__SUPPRESS_ANALYTICS`).
+///
+/// Sub-tools that inherit dartdev's environment (for example, programs
+/// started with `dart run`) report under the label in `DASH__TOOL`, which
+/// defaults to `dart-tool`. When dartdev shows the consent message, it
+/// records consent for `dart-tool` in the config file right away, but it does
+/// not send anything itself for the rest of the run. Without suppression, a
+/// sub-tool reporting under `dart-tool` that starts during that same run would
+/// read the freshly recorded consent and start sending. So when
+/// [showsConsentMessage] is true, sub-tools are suppressed for this run as
+/// well. (If `DASH__TOOL` was inherited with a different label, this
+/// over-suppresses for one run, which is harmless.)
+///
+/// When consent is pending but the message is *not* shown (for example, when
+/// stdout has no terminal), nothing is recorded, so sub-tools reporting under
+/// `dart-tool` still see consent as pending and won't send. They are
+/// deliberately not suppressed in that case, so that a sub-tool which shows
+/// its own consent prompt (such as the analysis server's LSP prompt for IDE
+/// users) can still do so.
+bool shouldSuppressSubtools({
+  required bool suppressAnalytics,
+  required bool showsConsentMessage,
+}) => suppressAnalytics || showsConsentMessage;
+
 String userHomeDir() {
   var envKey = Platform.operatingSystem == 'windows' ? 'APPDATA' : 'HOME';
   var value = Platform.environment[envKey];

@@ -16,18 +16,19 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
 
 class FunctionExpressionResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
 
-  FunctionExpressionResolver({required TypeAnalyzer resolver})
-    : _resolver = resolver;
+  FunctionExpressionResolver({required TypeAnalyzer typeAnalyzer})
+    : _typeAnalyzer = typeAnalyzer;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void resolve(FunctionExpressionImpl node, {required DartType contextType}) {
     var parent = node.parent2;
     var isFunctionDeclaration = parent is FunctionDeclarationImpl;
     var body = node.body;
-    var isClosure = _resolver.flowAnalysis.isActive && !isFunctionDeclaration;
+    var isClosure =
+        _typeAnalyzer.flowAnalysis.isActive && !isFunctionDeclaration;
 
     if (isClosure) {
       // Use typeParameters or parameters for the offset if available, because
@@ -35,7 +36,7 @@ class FunctionExpressionResolver {
       var enterOffset =
           (node.typeParameters ?? node.parameters ?? node.body).offset;
       var element = node.declaredFragment!.element;
-      _resolver.flowAnalysis.executableDeclaration_enter(
+      _typeAnalyzer.flowAnalysis.executableDeclaration_enter(
         node,
         element.formalParameters,
         isClosure: true,
@@ -60,22 +61,25 @@ class FunctionExpressionResolver {
       }
     }
 
-    node.typeParameters?.accept2(_resolver);
-    node.parameters?.accept2(_resolver);
-    imposedType = node.body.resolve(_resolver, imposedType);
+    node.typeParameters?.accept2(_typeAnalyzer);
+    node.parameters?.accept2(_typeAnalyzer);
+    imposedType = node.body.resolve(_typeAnalyzer, imposedType);
     if (isFunctionDeclaration) {
       // A side effect of visiting the children is that the parameters are now
       // in scope, so we can visit the documentation comment now.
-      parent.documentationComment?.accept2(_resolver);
+      parent.documentationComment?.accept2(_typeAnalyzer);
     }
     _resolve2(node, imposedType);
 
     if (isClosure) {
-      _resolver.checkForBodyMayCompleteNormally(body: body, errorNode: body);
-      _resolver.flowAnalysis.flow?.functionExpression_end(
+      _typeAnalyzer.checkForBodyMayCompleteNormally(
+        body: body,
+        errorNode: body,
+      );
+      _typeAnalyzer.flowAnalysis.flow?.functionExpression_end(
         offset: node.body.flowEndOffset,
       );
-      _resolver.nullSafetyDeadCodeVerifier.flowEnd(node);
+      _typeAnalyzer.nullSafetyDeadCodeVerifier.flowEnd(node);
     }
 
     var typeParameterList = node.typeParameters;
@@ -85,7 +89,7 @@ class FunctionExpressionResolver {
       //
       // This is only needed for local functions because top-level and
       checkForTypeParameterBoundRecursion(
-        _resolver.diagnosticReporter,
+        _typeAnalyzer.diagnosticReporter,
         typeParameterList.typeParameters,
       );
       var map = <Fragment, TypeParameter>{};
@@ -115,7 +119,7 @@ class FunctionExpressionResolver {
         // corresponding parameter in the context type schema with type
         // schema `K`, the parameter is given an inferred type `T` where `T`
         // is derived from `K` as follows.
-        inferredType = _resolver.operations
+        inferredType = _typeAnalyzer.operations
             .greatestClosureOfSchema(SharedTypeSchemaView(inferredType))
             .unwrapTypeView<TypeImpl>();
 
@@ -201,7 +205,7 @@ class FunctionExpressionResolver {
       functionElement.returnType = imposedType ?? DynamicTypeImpl.instance;
     }
 
-    node.recordStaticType(functionElement.type, resolver: _resolver);
+    node.recordStaticType(functionElement.type, typeAnalyzer: _typeAnalyzer);
   }
 
   static bool _shouldUpdateReturnType(FunctionExpression node) {

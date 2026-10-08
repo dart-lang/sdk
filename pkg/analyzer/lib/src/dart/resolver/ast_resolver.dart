@@ -4,7 +4,6 @@
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/analysis_options.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/analysis/testing_data.dart';
@@ -43,7 +42,6 @@ class AstResolver {
     required InheritanceManager3 inheritance,
     required LibraryFragmentImpl libraryFragment,
     required AnalysisOptions analysisOptions,
-    required FeatureSet featureSet,
     required DiagnosticListener diagnosticListener,
     required DocImportScope? docImportScope,
     required LibraryResolutionContext libraryResolutionContext,
@@ -55,7 +53,6 @@ class AstResolver {
       libraryFragment: libraryFragment,
       nameScope: libraryFragment.scope,
       analysisOptions: analysisOptions,
-      featureSet: featureSet,
       diagnosticListener: diagnosticListener,
       docImportScope: docImportScope,
       libraryResolutionContext: libraryResolutionContext,
@@ -83,7 +80,6 @@ class AstResolver {
       libraryFragment: libraryFragment,
       nameScope: nameScope,
       analysisOptions: analysisOptions,
-      featureSet: libraryFragment.library.featureSet,
       diagnosticListener: DiagnosticListener.nullListener,
       docImportScope: null,
       libraryResolutionContext: LibraryResolutionContext(),
@@ -119,7 +115,6 @@ class AstResolver {
     required LibraryFragmentImpl libraryFragment,
     required Scope nameScope,
     required AnalysisOptions analysisOptions,
-    required FeatureSet featureSet,
     required DiagnosticListener diagnosticListener,
     required DocImportScope? docImportScope,
     required LibraryResolutionContext libraryResolutionContext,
@@ -141,7 +136,9 @@ class AstResolver {
           : null,
     );
 
-    var typeAnalyzerOptions = computeTypeAnalyzerOptions(featureSet);
+    var typeAnalyzerOptions = computeTypeAnalyzerOptions(
+      libraryFragment.library.featureSet,
+    );
     var flowAnalysis = FlowAnalysisHelper(
       testingData != null,
       typeSystemOperations: typeSystemOperations,
@@ -154,7 +151,6 @@ class AstResolver {
       libraryFragment: libraryFragment,
       libraryResolutionContext: libraryResolutionContext,
       diagnosticListener: diagnosticListener,
-      featureSet: featureSet,
       analysisOptions: analysisOptions,
       flowAnalysisHelper: flowAnalysis,
       typeAnalyzerOptions: typeAnalyzerOptions,

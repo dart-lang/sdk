@@ -21,7 +21,7 @@ import 'package:analyzer/src/error/codes.dart';
 
 /// Helper for resolving properties (getters, setters, or methods).
 class TypePropertyResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final LibraryElementImpl _definingLibrary;
   final TypeSystemImpl _typeSystem;
   final TypeProviderImpl _typeProvider;
@@ -43,11 +43,11 @@ class TypePropertyResolver {
   InternalExecutableElement? _setterRequested;
   InternalExecutableElement? _setterRecovery;
 
-  TypePropertyResolver(this._resolver)
-    : _definingLibrary = _resolver.definingLibrary,
-      _typeSystem = _resolver.typeSystem,
-      _typeProvider = _resolver.typeProvider,
-      _extensionResolver = _resolver.extensionResolver;
+  TypePropertyResolver(this._typeAnalyzer)
+    : _definingLibrary = _typeAnalyzer.definingLibrary,
+      _typeSystem = _typeAnalyzer.typeSystem,
+      _typeProvider = _typeAnalyzer.typeProvider,
+      _extensionResolver = _typeAnalyzer.extensionResolver;
 
   bool get _hasGetterOrSetter {
     return _getterRequested != null || _setterRequested != null;
@@ -154,26 +154,26 @@ class TypePropertyResolver {
       }
 
       List<DiagnosticMessage> messages = [];
-      var flow = _resolver.flowAnalysis.flow;
+      var flow = _typeAnalyzer.flowAnalysis.flow;
       if (flow != null) {
         if (receiver is ExpressionImpl) {
-          messages = _resolver.computeWhyNotPromotedMessages(
+          messages = _typeAnalyzer.computeWhyNotPromotedMessages(
             nameErrorEntity,
             flow.whyNotPromoted(
-              _resolver.flowAnalysis.getExpressionInfo(receiver),
+              _typeAnalyzer.flowAnalysis.getExpressionInfo(receiver),
             )(),
           );
         } else {
-          var thisType = _resolver.unpromotedThisType;
+          var thisType = _typeAnalyzer.unpromotedThisType;
           if (thisType != null) {
-            messages = _resolver.computeWhyNotPromotedMessages(
+            messages = _typeAnalyzer.computeWhyNotPromotedMessages(
               nameErrorEntity,
               flow.whyNotPromotedImplicitThis()(),
             );
           }
         }
       }
-      _resolver.nullableDereferenceVerifier.report(
+      _typeAnalyzer.nullableDereferenceVerifier.report(
         locatableDiagnostic,
         propertyErrorEntity,
         receiverType,
@@ -311,7 +311,7 @@ class TypePropertyResolver {
 
     if (_hasRead) {
       var getterName = Name(_definingLibrary.uri, _name);
-      _getterRequested = _resolver.inheritance.getMember3(
+      _getterRequested = _typeAnalyzer.inheritance.getMember3(
         type,
         getterName,
         forSuper: isSuper,
@@ -329,7 +329,7 @@ class TypePropertyResolver {
 
     if (_hasWrite) {
       var setterName = Name(_definingLibrary.uri, '$_name=');
-      _setterRequested = _resolver.inheritance.getMember3(
+      _setterRequested = _typeAnalyzer.inheritance.getMember3(
         type,
         setterName,
         forSuper: isSuper,
@@ -351,7 +351,7 @@ class TypePropertyResolver {
     // should not check extensions.
     if (_hasRead && _getterRequested == null) {
       var setterName = Name(_definingLibrary.uri, '$_name=');
-      _setterRequested = _resolver.inheritance.getMember3(
+      _setterRequested = _typeAnalyzer.inheritance.getMember3(
         type,
         setterName,
         forSuper: isSuper,
@@ -360,7 +360,7 @@ class TypePropertyResolver {
 
     if (_hasWrite && _setterRequested == null) {
       var getterName = Name(_definingLibrary.uri, _name);
-      _getterRequested = _resolver.inheritance.getMember3(
+      _getterRequested = _typeAnalyzer.inheritance.getMember3(
         type,
         getterName,
         forSuper: isSuper,

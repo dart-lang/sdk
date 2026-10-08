@@ -232,7 +232,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   /// The context shared between different units of the same library.
   final LibraryResolutionContext libraryResolutionContext;
 
-  /// If the resolver visitor is visiting a switch statement and patterns
+  /// If the type analyzer is visiting a switch statement and patterns
   /// support is disabled, the tracker that determines whether the switch is
   /// exhaustive.
   SwitchExhaustiveness? legacySwitchExhaustiveness;
@@ -254,7 +254,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   @override
   final DiagnosticReporter diagnosticReporter;
 
-  /// The analysis options used by this resolver.
+  /// The analysis options used by this type analyzer.
   final AnalysisOptions analysisOptions;
 
   /// The instance element containing the AST nodes being visited, or `null`
@@ -269,9 +269,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   @override
   final InheritanceManager3 inheritance;
 
-  /// The feature set that is enabled for the current unit.
-  final FeatureSet _featureSet;
-
   /// Helper for checking that subtypes of a base or final type must be base,
   /// final, or sealed.
   late final BaseOrFinalTypeVerifier baseOrFinalTypeVerifier;
@@ -279,7 +276,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   /// Helper for checking expression that should have the `bool` type.
   late final BoolExpressionVerifier boolExpressionVerifier =
       BoolExpressionVerifier(
-        resolver: this,
+        typeAnalyzer: this,
         diagnosticReporter: diagnosticReporter,
         nullableDereferenceVerifier: nullableDereferenceVerifier,
       );
@@ -289,7 +286,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       NullableDereferenceVerifier(
         typeSystem: typeSystem,
         diagnosticReporter: diagnosticReporter,
-        resolver: this,
+        typeAnalyzer: this,
       );
 
   /// Helper for extension method resolution.
@@ -310,7 +307,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   );
 
   late final AssignmentExpressionResolver _assignmentExpressionResolver =
-      AssignmentExpressionResolver(resolver: this);
+      AssignmentExpressionResolver(typeAnalyzer: this);
 
   late final BinaryExpressionResolver _binaryExpressionResolver;
   late final ConstructorTearOffResolver _constructorTearOffResolver =
@@ -362,7 +359,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       PropertyElementResolver(this);
 
   late final RecordLiteralResolver _recordLiteralResolver =
-      RecordLiteralResolver(resolver: this);
+      RecordLiteralResolver(typeAnalyzer: this);
 
   late final AnnotationResolver _annotationResolver = AnnotationResolver(this);
 
@@ -395,7 +392,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     required LibraryFragmentImpl libraryFragment,
     required LibraryResolutionContext libraryResolutionContext,
     required DiagnosticListener diagnosticListener,
-    required FeatureSet featureSet,
     required AnalysisOptions analysisOptions,
     required FlowAnalysisHelper flowAnalysisHelper,
     required shared.TypeAnalyzerOptions typeAnalyzerOptions,
@@ -407,7 +403,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
          libraryFragment.library.typeSystem,
          libraryFragment.library.typeProvider,
          DiagnosticReporter(diagnosticListener, libraryFragment.source),
-         featureSet,
          analysisOptions,
          flowAnalysisHelper,
          libraryFragment: libraryFragment,
@@ -422,13 +417,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     this.typeSystem,
     this.typeProvider,
     this.diagnosticReporter,
-    FeatureSet featureSet,
     this.analysisOptions,
     this.flowAnalysis, {
     required this.libraryFragment,
     required this.typeAnalyzerOptions,
-  }) : _featureSet = featureSet,
-       genericMetadataIsEnabled = definingLibrary.featureSet.isEnabled(
+  }) : genericMetadataIsEnabled = definingLibrary.featureSet.isEnabled(
          Feature.generic_metadata,
        ),
        inferenceUsingBoundsIsEnabled = definingLibrary.featureSet.isEnabled(
@@ -440,28 +433,30 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
          diagnosticSource: source,
        ) {
     inferenceHelper = InvocationInferenceHelper(
-      resolver: this,
+      typeAnalyzer: this,
       diagnosticReporter: diagnosticReporter,
       typeSystem: typeSystem,
       dataForTesting: flowAnalysis.dataForTesting != null
           ? TypeConstraintGenerationDataForTesting()
           : null,
     );
-    _binaryExpressionResolver = BinaryExpressionResolver(resolver: this);
-    callInvocationResolver = CallInvocationResolver(resolver: this);
-    _functionExpressionResolver = FunctionExpressionResolver(resolver: this);
-    _forResolver = ForResolver(resolver: this);
+    _binaryExpressionResolver = BinaryExpressionResolver(typeAnalyzer: this);
+    callInvocationResolver = CallInvocationResolver(typeAnalyzer: this);
+    _functionExpressionResolver = FunctionExpressionResolver(
+      typeAnalyzer: this,
+    );
+    _forResolver = ForResolver(typeAnalyzer: this);
     _incrementOrDecrementResolver = IncrementOrDecrementResolver(
-      resolver: this,
+      typeAnalyzer: this,
     );
     _logicalNotResolver = LogicalNotResolver(this);
     _nullAssertionExpressionResolver = NullAssertionExpressionResolver(this);
     _unaryOperatorInvocationResolver = UnaryOperatorInvocationResolver(this);
     _variableDeclarationResolver = VariableDeclarationResolver(
-      resolver: this,
+      typeAnalyzer: this,
       strictInference: analysisOptions.strictInference,
     );
-    _yieldStatementResolver = YieldStatementResolver(resolver: this);
+    _yieldStatementResolver = YieldStatementResolver(typeAnalyzer: this);
     nullSafetyDeadCodeVerifier = NullSafetyDeadCodeVerifier(
       typeSystem,
       diagnosticReporter,
@@ -484,10 +479,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   get flow => flowAnalysis.flow!;
 
   bool get isConstructorTearoffsEnabled =>
-      _featureSet.isEnabled(Feature.constructor_tearoffs);
+      definingLibrary.featureSet.isEnabled(Feature.constructor_tearoffs);
 
   bool get isInferenceUpdate1Enabled =>
-      _featureSet.isEnabled(Feature.inference_update_1);
+      definingLibrary.featureSet.isEnabled(Feature.inference_update_1);
 
   /// Whether the code currently being resolved can access `this` without a
   /// compile-time error.
@@ -711,9 +706,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     }
   }
 
-  /// The client of the resolver should call this method after asking the
-  /// resolver to visit an AST node.  This performs assertions to make sure that
-  /// temporary resolver state has been properly cleaned up.
+  /// The client of the type analyzer should call this method after asking the
+  /// type analyzer to visit an AST node.  This performs assertions to make sure
+  /// that temporary type analyzer state has been properly cleaned up.
   void checkIdle() {
     assert(_rewriteStack.isEmpty);
     inferenceLogWriter?.assertIdle();
@@ -1877,7 +1872,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       analyzeExpression(string, operations.unknownType);
       popRewrite();
     }
-    node.recordStaticType(typeProvider.stringType, resolver: this);
+    node.recordStaticType(typeProvider.stringType, typeAnalyzer: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -2053,7 +2048,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       returnedType = node.body.resolve(this, contextType);
     }
 
-    node.recordStaticType(returnedType, resolver: this);
+    node.recordStaticType(returnedType, typeAnalyzer: this);
 
     if (parameters != null) {
       var parameter = parameters.allFormalParameters.firstOrNull;
@@ -2097,7 +2092,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     // null.
     node.recordStaticType(
       node.type.type ?? typeProvider.dynamicType,
-      resolver: this,
+      typeAnalyzer: this,
     );
     flowAnalysis.asExpression(node);
     _insertImplicitCallTearOff(
@@ -2202,7 +2197,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     node.expression2 = popRewrite()!;
     node.recordStaticType(
       analysisResult.type.unwrapTypeView<TypeImpl>(),
-      resolver: this,
+      typeAnalyzer: this,
     );
     _insertImplicitCallTearOff(
       insertGenericFunctionInstantiation(node, contextType: contextType),
@@ -2280,7 +2275,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     );
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    node.recordStaticType(typeProvider.boolType, resolver: this);
+    node.recordStaticType(typeProvider.boolType, typeAnalyzer: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -2356,7 +2351,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       _activeCascadeExpression = previousCascade;
     }
 
-    node.recordStaticType(node.target2.typeOrThrow, resolver: this);
+    node.recordStaticType(node.target2.typeOrThrow, typeAnalyzer: this);
 
     if (node.isNullAware) {
       flowAnalysis.flow!.nullAwareAccess_end(offset: node.end);
@@ -2402,7 +2397,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
     node.recordStaticType(
       resolution?.type ?? NeverTypeImpl.instance,
-      resolver: this,
+      typeAnalyzer: this,
     );
     var replacement = insertGenericFunctionInstantiation(
       node,
@@ -2438,7 +2433,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     node.resolution = resolution;
     node.recordStaticType(
       resolution?.type ?? NeverTypeImpl.instance,
-      resolver: this,
+      typeAnalyzer: this,
     );
     if (result?.readExpressionInfo case var expressionInfo?) {
       flowAnalysis.storeExpressionInfo(node, expressionInfo);
@@ -2872,16 +2867,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitDoubleLiteral(
-    DoubleLiteral node, {
+    covariant DoubleLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    (node as DoubleLiteralImpl).recordStaticType(
-      typeProvider.doubleType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.doubleType, typeAnalyzer: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3128,7 +3120,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       );
     }
     InvocationInferrer<ExtensionOverride2Impl>(
-      resolver: this,
+      typeAnalyzer: this,
       node: node,
       argumentList: node.argumentList,
       contextType: UnknownInferredType.instance,
@@ -3161,8 +3153,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitFieldFormalParameter(FieldFormalParameter node) {
-    _visitFormalParameter(node as FormalParameterImpl);
+  void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
+    _visitFormalParameter(node);
     elementResolver.visitFieldFormalParameter(node);
   }
 
@@ -3193,10 +3185,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitForStatement(ForStatement node) {
+  void visitForStatement(covariant ForStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
-    _forResolver.resolveStatement(node as ForStatementImpl);
+    _forResolver.resolveStatement(node);
     nullSafetyDeadCodeVerifier.flowEnd(node.body);
     _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
@@ -3469,10 +3461,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitImportDirective(ImportDirective node) {
+  void visitImportDirective(covariant ImportDirectiveImpl node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitImportDirective(node as ImportDirectiveImpl);
+    elementResolver.visitImportDirective(node);
   }
 
   @override
@@ -3504,7 +3496,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     var resolution = _propertyElementResolver
         .resolveImportPrefixedNameExpression(node);
     node.resolution = resolution;
-    node.recordStaticType(resolution.type, resolver: this);
+    node.recordStaticType(resolution.type, typeAnalyzer: this);
     var replacement = insertGenericFunctionInstantiation(
       node,
       contextType: contextType,
@@ -3532,16 +3524,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitIntegerLiteral(
-    IntegerLiteral node, {
+    covariant IntegerLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    _recordIntegerLiteralType(
-      node as IntegerLiteralImpl,
-      contextType: contextType,
-    );
+    _recordIntegerLiteralType(node, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3568,7 +3557,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     visitExtensionOverride2(node.extensionOverride);
-    node.recordStaticType(InvalidTypeImpl.instance, resolver: this);
+    node.recordStaticType(InvalidTypeImpl.instance, typeAnalyzer: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3580,7 +3569,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.superReference.accept2(this);
-    node.recordStaticType(InvalidTypeImpl.instance, resolver: this);
+    node.recordStaticType(InvalidTypeImpl.instance, typeAnalyzer: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -3601,7 +3590,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node.type);
     node.type.accept2(this);
 
-    node.recordStaticType(typeProvider.boolType, resolver: this);
+    node.recordStaticType(typeProvider.boolType, typeAnalyzer: this);
     flowAnalysis.isExpression(node);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -3917,15 +3906,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitNullLiteral(
-    NullLiteral node, {
+    covariant NullLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     node.visitChildren2(this);
-    (node as NullLiteralImpl).recordStaticType(
-      typeProvider.nullType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.nullType, typeAnalyzer: this);
     flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.flow?.nullLiteral(SharedTypeView(node.typeOrThrow)),
@@ -3943,7 +3929,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     analyzeExpression(node.expression2, SharedTypeSchemaView(contextType));
     popRewrite();
-    node.recordStaticType(node.expression2.typeOrThrow, resolver: this);
+    node.recordStaticType(node.expression2.typeOrThrow, typeAnalyzer: this);
     flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.flow?.parenthesizedExpression(
@@ -3966,7 +3952,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       continueNullShorting: true,
     );
     var expression = popRewrite()!;
-    node.recordStaticType(expression.typeOrThrow, resolver: this);
+    node.recordStaticType(expression.typeOrThrow, typeAnalyzer: this);
     flowAnalysis.storeExpressionInfo(
       node,
       flowAnalysis.getExpressionInfo(node.expression),
@@ -4083,7 +4069,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       // TODO(paulberry): make this type argument unnecessary by changing the
       // parameter of `ExpressionImpl.recordStaticType` to `TypeImpl`.
       analysisResult.type.unwrapTypeView<TypeImpl>(),
-      resolver: this,
+      typeAnalyzer: this,
     );
     popRewrite(); // expression
     inferenceLogWriter?.exitExpression(node);
@@ -4240,7 +4226,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
     node.recordStaticType(
       resolution?.type ?? NeverTypeImpl.instance,
-      resolver: this,
+      typeAnalyzer: this,
     );
     var replacement = insertGenericFunctionInstantiation(
       node,
@@ -4308,7 +4294,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     var (:expressionInfo, :resolution, :type) = _propertyElementResolver
         .resolveReceiverPropertyExtraction(node);
     node.resolution = resolution;
-    node.recordStaticType(type, resolver: this);
+    node.recordStaticType(type, typeAnalyzer: this);
     flowAnalysis.storeExpressionInfo(node, expressionInfo);
 
     var replacement = insertGenericFunctionInstantiation(
@@ -4373,7 +4359,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitRedirectingConstructorInvocation(
-    RedirectingConstructorInvocation node,
+    covariant RedirectingConstructorInvocationImpl node,
   ) {
     //
     // We visit the argument list, but do not visit the optional identifier
@@ -4382,12 +4368,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     //
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    elementResolver.visitRedirectingConstructorInvocation(
-      node as RedirectingConstructorInvocationImpl,
-    );
+    elementResolver.visitRedirectingConstructorInvocation(node);
     var element = node.element;
     InvocationInferrer<RedirectingConstructorInvocationImpl>(
-      resolver: this,
+      typeAnalyzer: this,
       node: node,
       argumentList: node.argumentList,
       contextType: UnknownInferredType.instance,
@@ -4404,23 +4388,20 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   @override
-  void visitRegularFormalParameter(RegularFormalParameter node) {
-    _visitFormalParameter(node as FormalParameterImpl);
+  void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
+    _visitFormalParameter(node);
     elementResolver.visitRegularFormalParameter(node);
   }
 
   @override
   void visitRethrowExpression(
-    RethrowExpression node, {
+    covariant RethrowExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    (node as RethrowExpressionImpl).recordStaticType(
-      typeProvider.bottomType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.bottomType, typeAnalyzer: this);
     flowAnalysis.flow?.handleExit(offset: node.end);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -4466,16 +4447,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitSimpleStringLiteral(
-    SimpleStringLiteral node, {
+    covariant SimpleStringLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    (node as SimpleStringLiteralImpl).recordStaticType(
-      typeProvider.stringType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.stringType, typeAnalyzer: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4508,21 +4486,20 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitStringInterpolation(
-    StringInterpolation node, {
+    covariant StringInterpolationImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    (node as StringInterpolationImpl).recordStaticType(
-      typeProvider.stringType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.stringType, typeAnalyzer: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
   @override
-  void visitSuperConstructorInvocation(SuperConstructorInvocation node) {
+  void visitSuperConstructorInvocation(
+    covariant SuperConstructorInvocationImpl node,
+  ) {
     //
     // We visit the argument list, but do not visit the optional identifier
     // because it needs to be visited in the context of the constructor
@@ -4530,12 +4507,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     //
     var whyNotPromotedArguments =
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
-    elementResolver.visitSuperConstructorInvocation(
-      node as SuperConstructorInvocationImpl,
-    );
+    elementResolver.visitSuperConstructorInvocation(node);
     var element = node.element;
     InvocationInferrer<SuperConstructorInvocationImpl>(
-      resolver: this,
+      typeAnalyzer: this,
       node: node,
       argumentList: node.argumentList,
       contextType: UnknownInferredType.instance,
@@ -4551,8 +4526,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitSuperFormalParameter(SuperFormalParameter node) {
-    _visitFormalParameter(node as FormalParameterImpl);
+  void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
+    _visitFormalParameter(node);
   }
 
   @override
@@ -4582,7 +4557,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       SharedTypeSchemaView(contextType),
       scrutineeEndOffset: node.rightParenthesis.offset,
     ).type.unwrapTypeView<TypeImpl>();
-    node.recordStaticType(staticType, resolver: this);
+    node.recordStaticType(staticType, typeAnalyzer: this);
     popRewrite();
     legacySwitchExhaustiveness = previousExhaustiveness;
     inferenceLogWriter?.exitExpression(node);
@@ -4611,16 +4586,13 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitSymbolLiteral(
-    SymbolLiteral node, {
+    covariant SymbolLiteralImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    (node as SymbolLiteralImpl).recordStaticType(
-      typeProvider.symbolType,
-      resolver: this,
-    );
+    node.recordStaticType(typeProvider.symbolType, typeAnalyzer: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4644,7 +4616,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
             ? promotedType?.unwrapTypeView<TypeImpl>() ?? unpromotedThisType
             : null) ??
         InvalidTypeImpl.instance;
-    node.recordStaticType(staticType, resolver: this);
+    node.recordStaticType(staticType, typeAnalyzer: this);
     _insertImplicitCallTearOff(node, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
   }
@@ -4661,7 +4633,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       SharedTypeSchemaView(typeProvider.objectType),
     );
     popRewrite();
-    node.recordStaticType(typeProvider.bottomType, resolver: this);
+    node.recordStaticType(typeProvider.bottomType, typeAnalyzer: this);
     // Note: it's not necessary to call `FlowAnalysis.handleExit`, because
     // `TypeAnalyzer.analyzeExpression` calls it when the static type of the
     // expression is `Never`.
@@ -4789,7 +4761,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    node.recordStaticType(typeProvider.typeType, resolver: this);
+    node.recordStaticType(typeProvider.typeType, typeAnalyzer: this);
     inferenceLogWriter?.exitExpression(node);
   }
 
@@ -4844,7 +4816,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     if (result.expressionInfo case var expressionInfo?) {
       flowAnalysis.storeExpressionInfo(node, expressionInfo);
     }
-    node.recordStaticType(resolution.type, resolver: this);
+    node.recordStaticType(resolution.type, typeAnalyzer: this);
     var replacement = insertGenericFunctionInstantiation(
       node,
       contextType: contextType,
@@ -5239,7 +5211,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       staticType = t;
     }
 
-    node.recordStaticType(staticType, resolver: this);
+    node.recordStaticType(staticType, typeAnalyzer: this);
   }
 
   /// Records the static type of an integer literal: `int`, unless the context
@@ -5259,9 +5231,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           contextType,
           strictCasts: strictCasts,
         )) {
-      node.recordStaticType(typeProvider.intType, resolver: this);
+      node.recordStaticType(typeProvider.intType, typeAnalyzer: this);
     } else {
-      node.recordStaticType(typeProvider.doubleType, resolver: this);
+      node.recordStaticType(typeProvider.doubleType, typeAnalyzer: this);
     }
   }
 
@@ -5317,7 +5289,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       shorthandContext: shorthandContext,
     );
     node.resolution = resolution;
-    node.recordStaticType(resolution.type, resolver: this);
+    node.recordStaticType(resolution.type, typeAnalyzer: this);
 
     var replacement = insertGenericFunctionInstantiation(
       node,
@@ -5366,7 +5338,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         <Map<SharedTypeView, NonPromotionReason> Function()>[];
     var inferredType =
         NamedFunctionInvocationInferrer(
-              resolver: this,
+              typeAnalyzer: this,
               node: node,
               argumentList: node.argumentList,
               whyNotPromotedArguments: whyNotPromotedArguments,
@@ -5394,7 +5366,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     }
     node.recordStaticType(
       node.resolution?.type ?? node.typeOrThrow,
-      resolver: this,
+      typeAnalyzer: this,
     );
 
     var replacement = insertGenericFunctionInstantiation(
@@ -5480,7 +5452,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
               type: element.returnType,
             );
       inferenceLogWriter?.enterFunctionExpressionInvocationTarget(read);
-      read.recordStaticType(element.returnType, resolver: this);
+      read.recordStaticType(element.returnType, typeAnalyzer: this);
       if (element.returnType.isBottom) {
         flowAnalysis.flow?.handleExit(offset: head.name.end);
       }

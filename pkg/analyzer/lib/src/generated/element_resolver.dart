@@ -72,23 +72,26 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 /// combinators that are not defined in the imported library (which is not an
 /// error).
 class ElementResolver {
-  /// The resolver driving this participant.
-  final TypeAnalyzer _resolver;
+  /// The type analyzer driving this participant.
+  final TypeAnalyzer _typeAnalyzer;
 
   /// The element for the library containing the compilation unit being visited.
   final LibraryElementImpl _definingLibrary;
 
   final MethodInvocationResolver _methodInvocationResolver;
 
-  late final _commentReferenceResolver = CommentReferenceResolver(_resolver);
+  late final _commentReferenceResolver = CommentReferenceResolver(
+    _typeAnalyzer,
+  );
 
-  /// Initialize a newly created visitor to work for the given [_resolver] to
-  /// resolve the nodes in a compilation unit.
-  ElementResolver(this._resolver)
-    : _definingLibrary = _resolver.definingLibrary,
-      _methodInvocationResolver = MethodInvocationResolver(_resolver);
+  /// Initialize a newly created visitor to work for the given [_typeAnalyzer]
+  /// to resolve the nodes in a compilation unit.
+  ElementResolver(this._typeAnalyzer)
+    : _definingLibrary = _typeAnalyzer.definingLibrary,
+      _methodInvocationResolver = MethodInvocationResolver(_typeAnalyzer);
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
   void resolveCascadeInvocation(
     ParsedValueArgumentsImpl node,
@@ -252,7 +255,7 @@ class ElementResolver {
   void visitRedirectingConstructorInvocation(
     covariant RedirectingConstructorInvocationImpl node,
   ) {
-    var enclosingInterface = _resolver.enclosingInstanceElement;
+    var enclosingInterface = _typeAnalyzer.enclosingInstanceElement;
     if (enclosingInterface is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
@@ -284,7 +287,7 @@ class ElementResolver {
   void visitSuperConstructorInvocation(
     covariant SuperConstructorInvocationImpl node,
   ) {
-    var enclosingInterface = _resolver.enclosingInstanceElement;
+    var enclosingInterface = _typeAnalyzer.enclosingInstanceElement;
     if (enclosingInterface is! InterfaceElementImpl) {
       // TODO(brianwilkerson): Report this error.
       return;
@@ -332,7 +335,7 @@ class ElementResolver {
     var declaration = node.thisOrAncestorOfType2<ClassDeclaration>();
     var extendedNamedType = declaration?.extendsClause?.superclass;
     if (extendedNamedType != null &&
-        _resolver.libraryFragment.shouldIgnoreUndefinedNamedType(
+        _typeAnalyzer.libraryFragment.shouldIgnoreUndefinedNamedType(
           extendedNamedType,
         )) {
       return;

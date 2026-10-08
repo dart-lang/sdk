@@ -16,16 +16,16 @@ class ThisLookup {
 
   /// Attempts to resolve [name] as a getter on an implicit `this` receiver.
   static LexicalLookupResult? lookupGetter2(
-    TypeAnalyzer resolver, {
+    TypeAnalyzer typeAnalyzer, {
     required AstNode node,
     required String name,
   }) {
-    var thisType = resolver.thisType;
+    var thisType = typeAnalyzer.thisType;
     if (thisType == null) {
       return null;
     }
 
-    var propertyResult = resolver.typePropertyResolver.resolve(
+    var propertyResult = typeAnalyzer.typePropertyResolver.resolve(
       receiver: null,
       receiverType: thisType,
       name: name,
@@ -55,16 +55,16 @@ class ThisLookup {
 
   /// Attempts to resolve [name] as a setter on an implicit `this` receiver.
   static LexicalLookupResult? lookupSetter2(
-    TypeAnalyzer resolver, {
+    TypeAnalyzer typeAnalyzer, {
     required AstNode node,
     required String name,
   }) {
-    var thisType = resolver.thisType;
+    var thisType = typeAnalyzer.thisType;
     if (thisType == null) {
       return null;
     }
 
-    var propertyResult = resolver.typePropertyResolver.resolve(
+    var propertyResult = typeAnalyzer.typePropertyResolver.resolve(
       receiver: null,
       receiverType: thisType,
       name: name,

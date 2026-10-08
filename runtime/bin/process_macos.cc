@@ -517,7 +517,7 @@ bool Process::Wait(intptr_t pid,
   union {
     uint8_t bytes[8];
     int32_t ints[2];
-  } exit_code_data;
+  } exit_code_data = {};
 
   struct pollfd fds[3];
   fds[0].fd = out;
@@ -537,11 +537,11 @@ bool Process::Wait(intptr_t pid,
 
     // Process incoming data.
     for (int i = 0; i < alive; i++) {
-      intptr_t avail;
+      intptr_t avail = 0;
       if ((fds[i].revents & (POLLNVAL | POLLERR)) != 0) {
         return CloseProcessBuffers(fds, alive);
       }
-      if ((fds[i].revents & POLLIN) != 0) {
+      if ((fds[i].revents & (POLLIN | POLLHUP)) != 0) {
         avail = FDUtils::AvailableBytes(fds[i].fd);
         // On Mac OS POLLIN can be set with zero available
         // bytes. POLLHUP is most likely also set in this case.

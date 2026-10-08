@@ -15,20 +15,20 @@ import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 
 /// Helper for verifying expression that should be of type bool.
 class BoolExpressionVerifier {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final DiagnosticReporter _diagnosticReporter;
   final NullableDereferenceVerifier _nullableDereferenceVerifier;
 
   final InterfaceTypeImpl _boolType;
 
   BoolExpressionVerifier({
-    required TypeAnalyzer resolver,
+    required TypeAnalyzer typeAnalyzer,
     required DiagnosticReporter diagnosticReporter,
     required NullableDereferenceVerifier nullableDereferenceVerifier,
-  }) : _resolver = resolver,
+  }) : _typeAnalyzer = typeAnalyzer,
        _diagnosticReporter = diagnosticReporter,
        _nullableDereferenceVerifier = nullableDereferenceVerifier,
-       _boolType = resolver.typeSystem.typeProvider.boolType;
+       _boolType = typeAnalyzer.typeSystem.typeProvider.boolType;
 
   /// Check to ensure that the [condition] is of type bool, are. Otherwise an
   /// error is reported on the expression.
@@ -55,17 +55,17 @@ class BoolExpressionVerifier {
   }) {
     var type = expression.typeOrThrow;
     if (!_checkForUseOfVoidResult(expression) &&
-        !_resolver.typeSystem.isAssignableTo(
+        !_typeAnalyzer.typeSystem.isAssignableTo(
           type,
           _boolType,
-          strictCasts: _resolver.analysisOptions.strictCasts,
+          strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
         )) {
       if (type.isDartCoreBool) {
         _nullableDereferenceVerifier.report(
           diag.uncheckedUseOfNullableValueAsCondition,
           expression,
           type,
-          messages: _resolver.computeWhyNotPromotedMessages(
+          messages: _typeAnalyzer.computeWhyNotPromotedMessages(
             expression,
             whyNotPromoted?.call(),
           ),

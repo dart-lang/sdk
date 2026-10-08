@@ -1644,9 +1644,9 @@ class _VariableBinder
 class _VariableBinderErrors
     implements
         VariableBinderErrors<DartPatternImpl, PatternVariableElementImpl> {
-  final ScopeAnalyzer visitor;
+  final ScopeAnalyzer scopeAnalyzer;
 
-  _VariableBinderErrors(this.visitor);
+  _VariableBinderErrors(this.scopeAnalyzer);
 
   @override
   void assertInErrorRecovery() {
@@ -1660,9 +1660,9 @@ class _VariableBinderErrors
     required covariant BindPatternVariableElementImpl original,
     required covariant BindPatternVariableElementImpl duplicate,
   }) {
-    visitor._diagnosticReporter.report(
+    scopeAnalyzer._diagnosticReporter.report(
       DiagnosticFactory().duplicateDefinitionForNodes(
-        visitor._diagnosticReporter.source,
+        scopeAnalyzer._diagnosticReporter.source,
         diag.duplicateVariablePattern.withArguments(name: name),
         duplicate.node.name,
         original.node.name,
@@ -1678,7 +1678,7 @@ class _VariableBinderErrors
     required String name,
     required PromotableElementImpl variable,
   }) {
-    visitor._diagnosticReporter.report(
+    scopeAnalyzer._diagnosticReporter.report(
       diag.missingVariablePattern
           .withArguments(name: name)
           .at(hasInLeft ? node.rightOperand : node.leftOperand),

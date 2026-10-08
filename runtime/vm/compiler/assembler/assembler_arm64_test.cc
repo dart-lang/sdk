@@ -2407,6 +2407,51 @@ ASSEMBLER_TEST_RUN(Uminv4S, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Tbl1, assembler) {
+  __ fldrq(V1, Address(R0, 0));
+  __ fldrq(V2, Address(R0, 16));
+  __ vtbl1(V0, V1, V2);
+  __ fstrq(V0, Address(R0, 32));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Tbl1, test) {
+  struct {
+    uint8_t table[16];
+    uint8_t indices[16];
+    uint8_t result[16];
+  } buffer = {{0x85, 0x98, 0xAB, 0xBE, 0xD1, 0xE4, 0xF7, 0x8A, 0x9D, 0xB0, 0xC3,
+               0xD6, 0xE9, 0xFC, 0x8F, 0xA2},
+              {0x0F, 0x00, 0x07, 0x08, 0x10, 0x03, 0xFF, 0x0C, 0x01, 0x0E, 0x80,
+               0x05, 0x0A, 0x1F, 0x06, 0x0B},
+              {0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A, 0x5A,
+               0x5A, 0x5A, 0x5A, 0x5A, 0x5A}};
+  typedef void (*Tbl1Code)(void* buffer) DART_UNUSED;
+  reinterpret_cast<Tbl1Code>(test->entry())(&buffer);
+  EXPECT_EQ(0xA2, buffer.result[0]);
+  EXPECT_EQ(0x85, buffer.result[1]);
+  EXPECT_EQ(0x8A, buffer.result[2]);
+  EXPECT_EQ(0x9D, buffer.result[3]);
+  EXPECT_EQ(0x00, buffer.result[4]);
+  EXPECT_EQ(0xBE, buffer.result[5]);
+  EXPECT_EQ(0x00, buffer.result[6]);
+  EXPECT_EQ(0xE9, buffer.result[7]);
+  EXPECT_EQ(0x98, buffer.result[8]);
+  EXPECT_EQ(0x8F, buffer.result[9]);
+  EXPECT_EQ(0x00, buffer.result[10]);
+  EXPECT_EQ(0xE4, buffer.result[11]);
+  EXPECT_EQ(0xC3, buffer.result[12]);
+  EXPECT_EQ(0x00, buffer.result[13]);
+  EXPECT_EQ(0xF7, buffer.result[14]);
+  EXPECT_EQ(0xD6, buffer.result[15]);
+  EXPECT_DISASSEMBLY(
+      "fldrq v1, [r0]\n"
+      "fldrq v2, [r0, #16]\n"
+      "vtbl1 v0, v1, v2\n"
+      "fstrq v0, [r0, #32]\n"
+      "ret\n");
+}
+
 // Comparisons, branching.
 ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
   Label l;

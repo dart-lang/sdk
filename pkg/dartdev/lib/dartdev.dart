@@ -103,11 +103,22 @@ class DartdevRunner extends CommandRunner<int> {
   Analytics? _unifiedAnalytics;
   final bool _isAnalyticsTest;
 
+  /// Overrides `io.stdout.hasTerminal`, for testing.
+  final bool? _stdoutHasTerminal;
+
+  /// Overrides `io.Platform.environment` when reading the inherited
+  /// `DASH__SUPPRESS_ANALYTICS` and `DASH__TOOL` values, for testing.
+  ///
+  /// This does not affect `isBot()`.
+  final Map<String, String>? _environment;
+
   DartdevRunner(
     List<String> args, {
     Analytics? analyticsOverride,
     this._isAnalyticsTest = false,
     List<String> vmArgs = const [],
+    @visibleForTesting this._stdoutHasTerminal,
+    @visibleForTesting this._environment,
   }) : verbose = args.contains('-v') || args.contains('--verbose'),
        argParser = globalDartdevOptionsParser(
          verbose: args.contains('-v') || args.contains('--verbose'),
@@ -205,9 +216,10 @@ class DartdevRunner extends CommandRunner<int> {
     // We don't want to run analytics when we're running in a CI environment
     // unless we're explicitly testing analytics for dartdev.
     final implicitlySuppressAnalytics = isBot() && !_isAnalyticsTest;
+    final environment = _environment ?? io.Platform.environment;
     final envSuppressAnalytics =
-        io.Platform.environment[DashEnvVar.suppressAnalytics.name] == 'true';
-    bool suppressAnalytics =
+        environment[DashEnvVar.suppressAnalytics.name] == 'true';
+    final suppressAnalytics =
         !topLevelResults.flag('analytics') ||
         topLevelResults.flag('suppress-analytics') ||
         implicitlySuppressAnalytics ||
@@ -235,7 +247,32 @@ class DartdevRunner extends CommandRunner<int> {
       return 254;
     }
 
-    // Propagate analytics environment variables to subtools.
+    // The Analytics instance used to report information back to Google
+    // Analytics; see lib/src/unified_analytics.dart.
+    //
+    // This must be created before analytics environment variables are
+    // propagated to sub-tools, since the propagated value depends on whether
+    // the consent message is shown on this run.
+    _unifiedAnalytics ??= createUnifiedAnalytics(
+      disableAnalytics: suppressAnalytics,
+    );
+
+    // If we have not printed the analytics notification to stdout, the user is
+    // on a terminal, and analytics aren't suppressed because we're on a bot,
+    // then the disclosure is printed below.
+    //
+    // NOTE: `shouldShowMessage` must be read here, before
+    // `clientShowedMessage()` is called below, since that call clears it.
+    final showConsentMessage = shouldPrintConsentMessage(
+      consentPending: unifiedAnalytics.shouldShowMessage,
+      hasTerminal: _stdoutHasTerminal ?? io.stdout.hasTerminal,
+      botSuppressed: implicitlySuppressAnalytics,
+    );
+
+    // Propagate analytics environment variables to sub-tools.
+    //
+    // On the run where the consent message is shown, sub-tools are suppressed
+    // too; see `shouldSuppressSubtools`.
 
     // Since VmInteropHandler.setEnvironmentVariable is non-overwriting by design
     // in C++, we unset the variable first to ensure the explicitly resolved
@@ -247,9 +284,12 @@ class DartdevRunner extends CommandRunner<int> {
 
     await VmInteropHandler.setEnvironmentVariable(
       DashEnvVar.suppressAnalytics.name,
-      suppressAnalytics.toString(),
+      shouldSuppressSubtools(
+        suppressAnalytics: suppressAnalytics,
+        showsConsentMessage: showConsentMessage,
+      ).toString(),
     );
-    final envTool = io.Platform.environment[DashEnvVar.tool.name];
+    final envTool = environment[DashEnvVar.tool.name];
     if (envTool == null) {
       await VmInteropHandler.setEnvironmentVariable(
         DashEnvVar.tool.name,
@@ -257,21 +297,9 @@ class DartdevRunner extends CommandRunner<int> {
       );
     }
 
-    // The Analytics instance used to report information back to Google Analytics;
-    // see lib/src/unified_analytics.dart.
-    _unifiedAnalytics ??= createUnifiedAnalytics(
-      disableAnalytics: suppressAnalytics,
-    );
-
-    // If we have not printed the analytics notification to stdout, the user is
-    // on a terminal, and the machine is not a bot, then print the disclosure.
-    bool analyticsMessagePrinted = false;
-    if (unifiedAnalytics.shouldShowMessage &&
-        io.stdout.hasTerminal &&
-        !isBot()) {
+    if (showConsentMessage) {
       log.stdout(unifiedAnalytics.getConsentMessage);
       unifiedAnalytics.clientShowedMessage();
-      analyticsMessagePrinted = true;
     }
 
     // When `--disable-analytics` or `--enable-analytics` are called we perform
@@ -298,7 +326,7 @@ class DartdevRunner extends CommandRunner<int> {
       } on TimeoutException catch (_) {}
 
       // Alert the user again that data will be collected.
-      if (!analyticsMessagePrinted) {
+      if (!showConsentMessage) {
         log.stdout(unifiedAnalytics.getConsentMessage);
       }
       return 0;

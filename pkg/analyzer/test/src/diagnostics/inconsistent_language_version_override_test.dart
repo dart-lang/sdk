@@ -196,4 +196,118 @@ part of 'a.dart';
 ''',
     });
   }
+
+  test_partUsesLibraryLanguageVersion_partNewer() async {
+    var part = getFile('$testPackageLibPath/part.dart');
+    var results = await resolveFilesWithDiagnostics({
+      testFile: r'''
+// %before-language-feature: inference-update-2
+part 'part.dart';
+//   ^^^^^^^^^^^
+// [diag.inconsistentLanguageVersionOverride] Parts must have exactly the same language version override as the library.
+''',
+      part: r'''
+part of 'test.dart';
+
+class C {
+  final int? _foo;
+  C(this._foo);
+}
+
+void f(C c) {
+  if (c._foo != null) {
+    c._foo;
+  }
+}
+''',
+    });
+    var result = results[part]!;
+
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int?
+  staticType: int?
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: _foo
+    element: <testLibrary>::@class::C::@getter::_foo
+    staticType: int?
+  element: <testLibrary>::@class::C::@getter::_foo
+  staticType: int?
+''');
+  }
+
+  test_partUsesLibraryLanguageVersion_partOlder() async {
+    var part = getFile('$testPackageLibPath/part.dart');
+    var results = await resolveFilesWithDiagnostics({
+      testFile: r'''
+part 'part.dart';
+//   ^^^^^^^^^^^
+// [diag.inconsistentLanguageVersionOverride] Parts must have exactly the same language version override as the library.
+''',
+      part: r'''
+// %before-language-feature: inference-update-2
+part of 'test.dart';
+
+class C {
+  final int? _foo;
+  C(this._foo);
+}
+
+void f(C c) {
+  if (c._foo != null) {
+    c._foo;
+  }
+}
+''',
+    });
+    var result = results[part]!;
+
+    var node = result.findNode.receiverPropertyExtraction('c._foo;');
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: C
+    staticType: C
+  operator: .
+  name: _foo
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::_foo
+    invokeType: int? Function()
+    type: int
+  staticType: int
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: _foo
+    element: <testLibrary>::@class::C::@getter::_foo
+    staticType: int
+  element: <testLibrary>::@class::C::@getter::_foo
+  staticType: int
+''');
+  }
 }

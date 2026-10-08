@@ -3762,6 +3762,25 @@ void Simulator::DecodeDPSimd1(Instr* instr) {
     return;
   }
 
+  // TBL Vd.16B, {Vn.16B}, Vm.16B: byte-wise table lookup.
+  if ((instr->InstructionBits() & 0xFFE0FC00) == 0x4E000000) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    const VRegister vm = instr->VmField();
+    int64_t table_bits[2] = {get_vregisterd(vn, 0), get_vregisterd(vn, 1)};
+    int64_t index_bits[2] = {get_vregisterd(vm, 0), get_vregisterd(vm, 1)};
+    const uint8_t* table = reinterpret_cast<const uint8_t*>(&table_bits[0]);
+    const uint8_t* index = reinterpret_cast<const uint8_t*>(&index_bits[0]);
+    int64_t result_bits[2];
+    uint8_t* result = reinterpret_cast<uint8_t*>(&result_bits[0]);
+    for (int i = 0; i < 16; i++) {
+      result[i] = index[i] < 16 ? table[index[i]] : 0;
+    }
+    set_vregisterd(vd, 0, result_bits[0]);
+    set_vregisterd(vd, 1, result_bits[1]);
+    return;
+  }
+
   // UMINV Sd, Vn.4S — unsigned minimum across the four word lanes.
   if ((instr->InstructionBits() & 0xFFFFFC00) == 0x6EB1A800) {
     const VRegister vd = instr->VdField();

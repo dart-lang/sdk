@@ -14,10 +14,10 @@ import 'package:analyzer/src/error/listener.dart';
 /// A resolver for [ConstructorInvocation] and
 /// [DotShorthandConstructorInvocation2] nodes.
 class ConstructorInvocationResolver {
-  /// The resolver driving this participant.
-  final TypeAnalyzer _resolver;
+  /// The type analyzer driving this participant.
+  final TypeAnalyzer _typeAnalyzer;
 
-  ConstructorInvocationResolver(this._resolver);
+  ConstructorInvocationResolver(this._typeAnalyzer);
 
   void resolve(
     ConstructorInvocationImpl node, {
@@ -46,10 +46,10 @@ class ConstructorInvocationResolver {
       if (node.element == null) {
         if (contextElement.getNamedConstructor(node.name.lexeme)
             case ConstructorElementImpl element?
-            when element.isAccessibleIn(_resolver.definingLibrary)) {
+            when element.isAccessibleIn(_typeAnalyzer.definingLibrary)) {
           node.element = element;
         } else {
-          _resolver.diagnosticReporter.report(
+          _typeAnalyzer.diagnosticReporter.report(
             diag.constWithUndefinedConstructor
                 .withArguments(
                   className: contextElement.displayName,
@@ -66,11 +66,11 @@ class ConstructorInvocationResolver {
           contextElement.isAbstract &&
           constructorElement != null &&
           !constructorElement.isFactory) {
-        _resolver.diagnosticReporter.report(
+        _typeAnalyzer.diagnosticReporter.report(
           diag.instantiateAbstractClass.at(node),
         );
       } else if (typeArguments != null) {
-        _resolver.diagnosticReporter.report(
+        _typeAnalyzer.diagnosticReporter.report(
           diag.wrongNumberOfTypeArgumentsDotShorthandConstructor
               .withArguments(
                 className: contextElement.displayName,
@@ -80,7 +80,7 @@ class ConstructorInvocationResolver {
         );
       }
     } else {
-      _resolver.diagnosticReporter.report(
+      _typeAnalyzer.diagnosticReporter.report(
         diag.dotShorthandMissingContext.at(node),
       );
     }
@@ -105,7 +105,7 @@ class ConstructorInvocationResolver {
         var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
         _ => typeReference.name.lexeme,
       };
-      _resolver.diagnosticReporter.report(
+      _typeAnalyzer.diagnosticReporter.report(
         diag.undefinedMethodOnFunctionType
             .withArguments(
               methodName: selector.name2.lexeme,
@@ -114,13 +114,14 @@ class ConstructorInvocationResolver {
             .at(selector.name2),
       );
     }
-    var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: constructorReference.typeReference.element,
-      constructorName: constructorReference.selector?.name2,
-      definingLibrary: _resolver.definingLibrary,
-    );
+    var elementToInfer = _typeAnalyzer.inferenceHelper
+        .constructorElementToInfer(
+          typeElement: constructorReference.typeReference.element,
+          constructorName: constructorReference.selector?.name2,
+          definingLibrary: _typeAnalyzer.definingLibrary,
+        );
     constructorReference.element = elementToInfer?.element;
-    _resolver.elementResolver.visitConstructorInvocation(node);
+    _typeAnalyzer.elementResolver.visitConstructorInvocation(node);
     var target = elementToInfer == null
         ? null
         : InvocationTargetConstructorElement(
@@ -130,7 +131,7 @@ class ConstructorInvocationResolver {
             elementToInfer.asType as FunctionTypeImpl,
           );
     ConstructorInvocationInferrer(
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
       node: node,
       argumentList: node.argumentList,
       contextType: contextType,
@@ -141,9 +142,9 @@ class ConstructorInvocationResolver {
       typeReference.type is FunctionTypeImpl
           ? InvalidTypeImpl.instance
           : typeReference.type!,
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
     );
-    _resolver.checkForArgumentTypesNotAssignableInList(
+    _typeAnalyzer.checkForArgumentTypesNotAssignableInList(
       node.argumentList,
       whyNotPromotedArguments,
     );
@@ -155,12 +156,13 @@ class ConstructorInvocationResolver {
     required TypeImpl dotShorthandContextType,
   }) {
     var whyNotPromotedArguments = <WhyNotPromotedGetter>[];
-    _resolver.elementResolver.visitDotShorthandConstructorInvocation2(node);
-    var elementToInfer = _resolver.inferenceHelper.constructorElementToInfer(
-      typeElement: dotShorthandContextType.element,
-      constructorName: node.name,
-      definingLibrary: _resolver.definingLibrary,
-    );
+    _typeAnalyzer.elementResolver.visitDotShorthandConstructorInvocation2(node);
+    var elementToInfer = _typeAnalyzer.inferenceHelper
+        .constructorElementToInfer(
+          typeElement: dotShorthandContextType.element,
+          constructorName: node.name,
+          definingLibrary: _typeAnalyzer.definingLibrary,
+        );
     var target = elementToInfer == null
         ? null
         : InvocationTargetConstructorElement(
@@ -170,15 +172,15 @@ class ConstructorInvocationResolver {
             elementToInfer.asType as FunctionTypeImpl,
           );
     var returnType = DotShorthandConstructorInvocationInferrer(
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
       node: node,
       argumentList: node.argumentList,
       contextType: contextType,
       whyNotPromotedArguments: whyNotPromotedArguments,
       target: target,
     ).resolveInvocation();
-    node.recordStaticType(returnType, resolver: _resolver);
-    _resolver.checkForArgumentTypesNotAssignableInList(
+    node.recordStaticType(returnType, typeAnalyzer: _typeAnalyzer);
+    _typeAnalyzer.checkForArgumentTypesNotAssignableInList(
       node.argumentList,
       whyNotPromotedArguments,
     );

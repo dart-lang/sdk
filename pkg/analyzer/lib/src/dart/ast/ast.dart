@@ -155,8 +155,8 @@ final class AdjacentStringsImpl extends StringLiteralImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitAdjacentStrings(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitAdjacentStrings(this, contextType: contextType);
   }
 
   @generated
@@ -707,8 +707,8 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @override
-  TypeImpl resolve(TypeAnalyzer resolver, TypeImpl? imposedType) =>
-      resolver.visitAnonymousBlockBody(this, imposedType: imposedType);
+  TypeImpl resolve(TypeAnalyzer typeAnalyzer, TypeImpl? imposedType) =>
+      typeAnalyzer.visitAnonymousBlockBody(this, imposedType: imposedType);
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -881,8 +881,8 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   }
 
   @override
-  TypeImpl resolve(TypeAnalyzer resolver, TypeImpl? imposedType) =>
-      resolver.visitAnonymousExpressionBody(this, imposedType: imposedType);
+  TypeImpl resolve(TypeAnalyzer typeAnalyzer, TypeImpl? imposedType) =>
+      typeAnalyzer.visitAnonymousExpressionBody(this, imposedType: imposedType);
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -947,7 +947,7 @@ abstract final class AnonymousMethodBody implements AstNode {}
 @experimental
 sealed class AnonymousMethodBodyImpl extends AstNodeImpl
     implements AnonymousMethodBody {
-  TypeImpl resolve(TypeAnalyzer resolver, TypeImpl? imposedType);
+  TypeImpl resolve(TypeAnalyzer typeAnalyzer, TypeImpl? imposedType);
 }
 
 /// The invocation of an anonymous block method of an object.
@@ -1230,8 +1230,8 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitAnonymousMethodInvocation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitAnonymousMethodInvocation(this, contextType: contextType);
   }
 
   @generated
@@ -1736,8 +1736,8 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitAsExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitAsExpression(this, contextType: contextType);
   }
 
   @generated
@@ -2395,22 +2395,22 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
       visitor.visitAssignedVariablePattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
     var element = this.element;
     if (element is PromotableElementImpl) {
-      return resolverVisitor
+      return typeAnalyzer
           .analyzeAssignedVariablePatternSchema(element)
           .unwrapTypeSchemaView();
     }
-    return resolverVisitor.operations.unknownType.unwrapTypeSchemaView();
+    return typeAnalyzer.operations.unknownType.unwrapTypeSchemaView();
   }
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.resolveAssignedVariablePattern(
+    return typeAnalyzer.resolveAssignedVariablePattern(
       node: this,
       context: context,
     );
@@ -2748,7 +2748,7 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('AssignmentExpression is a V1 projection.');
   }
 
@@ -3613,8 +3613,8 @@ final class AwaitExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitAwaitExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitAwaitExpression(this, contextType: contextType);
   }
 
   @generated
@@ -3856,7 +3856,7 @@ final class BinaryExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('BinaryExpression is a V1 projection.');
   }
 
@@ -4115,8 +4115,8 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitBinaryOperatorInvocation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitBinaryOperatorInvocation(this, contextType: contextType);
   }
 
   @generated
@@ -4658,8 +4658,8 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @override
-  TypeImpl resolve(TypeAnalyzer resolver, TypeImpl? imposedType) =>
-      resolver.visitBlockFunctionBody(this, imposedType: imposedType);
+  TypeImpl resolve(TypeAnalyzer typeAnalyzer, TypeImpl? imposedType) =>
+      typeAnalyzer.visitBlockFunctionBody(this, imposedType: imposedType);
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -4924,8 +4924,8 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitBooleanLiteral(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitBooleanLiteral(this, contextType: contextType);
   }
 
   @generated
@@ -5258,8 +5258,8 @@ final class CallInvocationImpl extends FunctionInvocationImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitCallInvocation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitCallInvocation(this, contextType: contextType);
   }
 
   @generated
@@ -5500,8 +5500,8 @@ final class CascadeExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitCascadeExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitCascadeExpression(this, contextType: contextType);
   }
 
   @DoNotGenerate(reason: 'Preserves the flat V1 cascade-section topology')
@@ -5792,8 +5792,8 @@ final class CascadeIndexExpressionImpl extends IndexExpression2Impl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitCascadeIndexExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitCascadeIndexExpression(this, contextType: contextType);
   }
 
   @generated
@@ -5951,8 +5951,8 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitCascadeMethodInvocation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitCascadeMethodInvocation(this, contextType: contextType);
   }
 
   @generated
@@ -6196,8 +6196,8 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitCascadePropertyExtraction(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitCascadePropertyExtraction(this, contextType: contextType);
   }
 
   @generated
@@ -6665,8 +6665,8 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitCastPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor.analyzeCastPatternSchema().unwrapTypeSchemaView();
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer.analyzeCastPatternSchema().unwrapTypeSchemaView();
   }
 
   @generated
@@ -6697,21 +6697,21 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    type.accept2(resolverVisitor);
+    type.accept2(typeAnalyzer);
     var requiredType = type.typeOrThrow;
 
-    var analysisResult = resolverVisitor.analyzeCastPattern(
+    var analysisResult = typeAnalyzer.analyzeCastPattern(
       context: context,
       pattern: this,
       innerPattern: pattern,
       requiredType: SharedTypeView(requiredType),
     );
 
-    resolverVisitor.checkPatternNeverMatchesValueType(
+    typeAnalyzer.checkPatternNeverMatchesValueType(
       context: context,
       pattern: this,
       requiredType: requiredType,
@@ -8310,9 +8310,12 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 sealed class CollectionElement implements AstNode {}
 
 base mixin CollectionElementImpl on AstNodeImpl implements CollectionElement {
-  /// Dispatches this collection element to the [resolver], with the given
+  /// Dispatches this collection element to the [typeAnalyzer], with the given
   /// [context] information.
-  void resolveElement(TypeAnalyzer resolver, CollectionLiteralContext? context);
+  void resolveElement(
+    TypeAnalyzer typeAnalyzer,
+    CollectionLiteralContext? context,
+  );
 }
 
 /// A combinator associated with an import or export directive.
@@ -9675,10 +9678,12 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitCompoundAssignment(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitCompoundAssignment(this, contextType: contextType);
   }
 
   @generated
@@ -9961,8 +9966,8 @@ final class ConditionalExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitConditionalExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitConditionalExpression(this, contextType: contextType);
   }
 
   @generated
@@ -10468,10 +10473,8 @@ final class ConstantPatternImpl extends DartPatternImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitConstantPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
-        .analyzeConstantPatternSchema()
-        .unwrapTypeSchemaView();
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer.analyzeConstantPatternSchema().unwrapTypeSchemaView();
   }
 
   @generated
@@ -10495,16 +10498,16 @@ final class ConstantPatternImpl extends DartPatternImpl
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult = resolverVisitor.analyzeConstantPattern(
+    var analysisResult = typeAnalyzer.analyzeConstantPattern(
       context,
       this,
       expression2,
     );
-    expression2 = resolverVisitor.popRewrite()!;
+    expression2 = typeAnalyzer.popRewrite()!;
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
@@ -11572,10 +11575,12 @@ final class ConstructorInvocationImpl extends ExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitConstructorInvocation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitConstructorInvocation(this, contextType: contextType);
   }
 
   @generated
@@ -12205,7 +12210,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projections are never resolved')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('ConstructorReference is a V1 projection.');
   }
 
@@ -12563,10 +12568,12 @@ final class ConstructorTearOffImpl extends ExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitConstructorTearOff(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitConstructorTearOff(this, contextType: contextType);
   }
 
   @generated
@@ -13128,16 +13135,16 @@ sealed class DartPatternImpl extends AstNodeImpl
   /// The variable pattern, itself, or wrapped in a unary pattern.
   VariablePatternImpl? get variablePattern => null;
 
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor);
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer);
 
-  /// Dispatches this pattern to the [resolverVisitor], with the given [context]
+  /// Dispatches this pattern to the [typeAnalyzer], with the given [context]
   /// information.
   ///
   /// Note: most code shouldn't call this method directly, but should instead
   /// call [TypeAnalyzer.dispatchPattern], which has some special logic
   /// for handling dynamic contexts.
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   );
 }
@@ -13497,8 +13504,8 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
       visitor.visitDeclaredVariablePattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer
         .analyzeDeclaredVariablePatternSchema(
           type?.typeOrThrow.wrapSharedTypeView(),
         )
@@ -13527,12 +13534,12 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
     var declaredElement = declaredFragment!.element;
-    var result = resolverVisitor.analyzeDeclaredVariablePattern(
+    var result = typeAnalyzer.analyzeDeclaredVariablePattern(
       context,
       this,
       declaredElement,
@@ -13541,7 +13548,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     );
     declaredElement.type = result.staticType.unwrapTypeView();
 
-    resolverVisitor.checkPatternNeverMatchesValueType(
+    typeAnalyzer.checkPatternNeverMatchesValueType(
       context: context,
       pattern: this,
       requiredType: result.staticType.unwrapTypeView(),
@@ -13902,10 +13909,12 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitDirectAssignment(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitDirectAssignment(this, contextType: contextType);
   }
 
   @generated
@@ -14490,8 +14499,8 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitDotShorthandConstructorInvocation2(
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitDotShorthandConstructorInvocation2(
       this,
       contextType: contextType,
     );
@@ -14740,7 +14749,7 @@ final class DotShorthandConstructorInvocationImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('DotShorthandConstructorInvocation is a V1 projection.');
   }
 
@@ -15049,7 +15058,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('DotShorthandInvocation is a V1 projection.');
   }
 
@@ -15223,8 +15232,11 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitDotShorthandMethodInvocation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitDotShorthandMethodInvocation(
+      this,
+      contextType: contextType,
+    );
   }
 
   @generated
@@ -15386,8 +15398,11 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitDotShorthandNameExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitDotShorthandNameExpression(
+      this,
+      contextType: contextType,
+    );
   }
 
   @generated
@@ -15578,7 +15593,7 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('DotShorthandPropertyAccess is a V1 projection.');
   }
 
@@ -15772,8 +15787,8 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitDoubleLiteral(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitDoubleLiteral(this, contextType: contextType);
   }
 
   @generated
@@ -16110,8 +16125,8 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitEmptyFunctionBody(this);
 
   @override
-  TypeImpl resolve(TypeAnalyzer resolver, TypeImpl? imposedType) =>
-      resolver.visitEmptyFunctionBody(this, imposedType: imposedType);
+  TypeImpl resolve(TypeAnalyzer typeAnalyzer, TypeImpl? imposedType) =>
+      typeAnalyzer.visitEmptyFunctionBody(this, imposedType: imposedType);
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -17573,8 +17588,8 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @override
-  TypeImpl resolve(TypeAnalyzer resolver, TypeImpl? imposedType) =>
-      resolver.visitExpressionFunctionBody(this, imposedType: imposedType);
+  TypeImpl resolve(TypeAnalyzer typeAnalyzer, TypeImpl? imposedType) =>
+      typeAnalyzer.visitExpressionFunctionBody(this, imposedType: imposedType);
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -17985,7 +18000,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
   ///
   /// @param expression the node whose type is to be recorded
   /// @param type the static type of the node
-  void recordStaticType(DartType type, {required TypeAnalyzer resolver}) {
+  void recordStaticType(DartType type, {required TypeAnalyzer typeAnalyzer}) {
     // TODO(paulberry): remove this cast by changing the type of the parameter
     // `type`.
     _staticType = type as TypeImpl;
@@ -17994,7 +18009,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
 
   @override
   void resolveElement(
-    TypeAnalyzer resolver,
+    TypeAnalyzer typeAnalyzer,
     CollectionLiteralContext? context,
   ) {
     var contextType = context?.elementType;
@@ -18003,16 +18018,16 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
     contextType ??= context?.keyType;
 
     contextType ??= UnknownInferredType.instance;
-    resolver.analyzeExpression(this, SharedTypeSchemaView(contextType));
+    typeAnalyzer.analyzeExpression(this, SharedTypeSchemaView(contextType));
   }
 
-  /// Dispatches this expression to the [resolver], with the given [contextType]
-  /// information.
+  /// Dispatches this expression to the [typeAnalyzer], with the given
+  /// [contextType] information.
   ///
   /// Note: most code shouldn't call this method directly, but should instead
   /// call [TypeAnalyzer.dispatchExpression], which has some special
   /// logic for handling dynamic contexts.
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType);
 
   /// Records that the static type of `this` is [type], without triggering any
   /// [TypeAnalyzer] behaviors.
@@ -19274,7 +19289,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projections are never resolved')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('ExtensionOverride is a V1 projection.');
   }
 
@@ -21092,11 +21107,11 @@ final class ForElementImpl extends AstNodeImpl
 
   @override
   void resolveElement(
-    TypeAnalyzer resolver,
+    TypeAnalyzer typeAnalyzer,
     CollectionLiteralContext? context,
   ) {
-    resolver.visitForElement(this, context: context);
-    resolver.pushRewrite(null);
+    typeAnalyzer.visitForElement(this, context: context);
+    typeAnalyzer.pushRewrite(null);
   }
 
   @generated
@@ -23216,11 +23231,11 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
     return localVariableInfo!.potentiallyMutatedInScope.contains(variable);
   }
 
-  /// Dispatch this function body to the resolver, imposing [imposedType] as the
-  /// return type context for `return` statements.
+  /// Dispatch this function body to the type analyzer, imposing [imposedType]
+  /// as the return type context for `return` statements.
   ///
   /// Returns value is the actual return type of the method.
-  TypeImpl resolve(TypeAnalyzer resolver, TypeImpl? imposedType);
+  TypeImpl resolve(TypeAnalyzer typeAnalyzer, TypeImpl? imposedType);
 }
 
 /// A direct invocation of the language-defined `call` method of a function
@@ -24074,11 +24089,11 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projection objects cannot be resolved')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     if (_v1ProjectionOrigin != null) {
       throw StateError('FunctionExpression is a V1 projection.');
     }
-    resolver.visitFunctionExpression(this, contextType: contextType);
+    typeAnalyzer.visitFunctionExpression(this, contextType: contextType);
   }
 
   @override
@@ -24359,7 +24374,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('FunctionExpressionInvocation is a V1 projection.');
   }
 
@@ -24561,8 +24576,8 @@ final class FunctionInstantiationImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitFunctionInstantiation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitFunctionInstantiation(this, contextType: contextType);
   }
 
   @generated
@@ -24946,7 +24961,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('FunctionReference is a V1 projection.');
   }
 
@@ -27116,11 +27131,11 @@ final class IfElementImpl extends AstNodeImpl
 
   @override
   void resolveElement(
-    TypeAnalyzer resolver,
+    TypeAnalyzer typeAnalyzer,
     CollectionLiteralContext? context,
   ) {
-    resolver.visitIfElement(this, context: context);
-    resolver.pushRewrite(null);
+    typeAnalyzer.visitIfElement(this, context: context);
+    typeAnalyzer.pushRewrite(null);
   }
 
   @generated
@@ -27370,10 +27385,12 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitIfNullAssignment(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitIfNullAssignment(this, contextType: contextType);
   }
 
   @generated
@@ -27562,10 +27579,12 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitIfNull(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitIfNull(this, contextType: contextType);
   }
 
   @generated
@@ -28305,7 +28324,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('ImplicitCallReference is a V1 projection.');
   }
 
@@ -28477,8 +28496,8 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitImplicitCallTearOff(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitImplicitCallTearOff(this, contextType: contextType);
   }
 
   @generated
@@ -28661,8 +28680,11 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitImplicitFunctionInstantiation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitImplicitFunctionInstantiation(
+      this,
+      contextType: contextType,
+    );
   }
 
   @generated
@@ -29448,8 +29470,8 @@ final class ImportPrefixedFunctionInvocationImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitImportPrefixedFunctionInvocation(
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitImportPrefixedFunctionInvocation(
       this,
       contextType: contextType,
     );
@@ -29675,8 +29697,11 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitImportPrefixedNameExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitImportPrefixedNameExpression(
+      this,
+      contextType: contextType,
+    );
   }
 
   @generated
@@ -30075,10 +30100,12 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitIncrementOrDecrementExpression(
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitIncrementOrDecrementExpression(
       this,
       contextType: contextType,
     );
@@ -30705,7 +30732,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('IndexExpression is a V1 projection.');
   }
 
@@ -30974,7 +31001,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projections are never resolved')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('InstanceCreationExpression is a V1 projection.');
   }
 
@@ -31198,8 +31225,8 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitIntegerLiteral(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitIntegerLiteral(this, contextType: contextType);
   }
 
   @generated
@@ -32054,8 +32081,8 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitInvalidExtensionOverrideExpression(
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitInvalidExtensionOverrideExpression(
       this,
       contextType: contextType,
     );
@@ -32508,8 +32535,8 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitInvalidSuperExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitInvalidSuperExpression(this, contextType: contextType);
   }
 
   @generated
@@ -32840,8 +32867,8 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitIsExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitIsExpression(this, contextType: contextType);
   }
 
   @generated
@@ -33619,8 +33646,8 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitListLiteral(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitListLiteral(this, contextType: contextType);
   }
 
   @generated
@@ -33821,9 +33848,9 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitListPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
     var elementType = typeArguments?.arguments.elementAtOrNull(0)?.typeOrThrow;
-    return resolverVisitor
+    return typeAnalyzer
         .analyzeListPatternSchema(
           elementType: elementType?.wrapSharedTypeView(),
           elements: elements,
@@ -33861,11 +33888,11 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult = resolverVisitor.listPatternResolver.resolve(
+    var analysisResult = typeAnalyzer.listPatternResolver.resolve(
       node: this,
       context: context,
     );
@@ -34124,10 +34151,12 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitLogicalAnd(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitLogicalAnd(this, contextType: contextType);
   }
 
   @generated
@@ -34294,8 +34323,8 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalAndPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer
         .analyzeLogicalAndPatternSchema(leftOperand, rightOperand)
         .unwrapTypeSchemaView();
   }
@@ -34328,11 +34357,11 @@ final class LogicalAndPatternImpl extends DartPatternImpl
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult = resolverVisitor.analyzeLogicalAndPattern(
+    var analysisResult = typeAnalyzer.analyzeLogicalAndPattern(
       context,
       this,
       leftOperand,
@@ -34523,10 +34552,12 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitLogicalNot(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitLogicalNot(this, contextType: contextType);
   }
 
   @generated
@@ -34722,10 +34753,12 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitLogicalOr(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitLogicalOr(this, contextType: contextType);
   }
 
   @generated
@@ -34892,8 +34925,8 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitLogicalOrPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer
         .analyzeLogicalOrPatternSchema(leftOperand, rightOperand)
         .unwrapTypeSchemaView();
   }
@@ -34926,18 +34959,18 @@ final class LogicalOrPatternImpl extends DartPatternImpl
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult = resolverVisitor.analyzeLogicalOrPattern(
+    var analysisResult = typeAnalyzer.analyzeLogicalOrPattern(
       context,
       this,
       leftOperand,
       rightOperand,
       afterLhsOffset: operator.offset,
     );
-    resolverVisitor.nullSafetyDeadCodeVerifier.flowEnd(rightOperand);
+    typeAnalyzer.nullSafetyDeadCodeVerifier.flowEnd(rightOperand);
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
@@ -35196,11 +35229,11 @@ final class MapLiteralEntryImpl extends AstNodeImpl
 
   @override
   void resolveElement(
-    TypeAnalyzer resolver,
+    TypeAnalyzer typeAnalyzer,
     CollectionLiteralContext? context,
   ) {
-    resolver.visitMapLiteralEntry(this, context: context);
-    resolver.pushRewrite(null);
+    typeAnalyzer.visitMapLiteralEntry(this, context: context);
+    typeAnalyzer.pushRewrite(null);
   }
 
   @generated
@@ -35600,7 +35633,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitMapPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
     var typeArgumentNodes = this.typeArguments?.arguments;
     ({SharedTypeView keyType, SharedTypeView valueType})? typeArguments;
     if (typeArgumentNodes != null && typeArgumentNodes.length == 2) {
@@ -35609,7 +35642,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
         valueType: SharedTypeView(typeArgumentNodes[1].typeOrThrow),
       );
     }
-    return resolverVisitor
+    return typeAnalyzer
         .analyzeMapPatternSchema(
           typeArguments: typeArguments,
           elements: elements,
@@ -35647,10 +35680,10 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
-    return resolverVisitor.resolveMapPattern(node: this, context: context);
+    return typeAnalyzer.resolveMapPattern(node: this, context: context);
   }
 
   @generated
@@ -36981,7 +37014,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('MethodInvocation is a V1 projection.');
   }
 
@@ -38775,8 +38808,8 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   }
 
   @override
-  TypeImpl resolve(TypeAnalyzer resolver, TypeImpl? imposedType) =>
-      resolver.visitNativeFunctionBody(this, imposedType: imposedType);
+  TypeImpl resolve(TypeAnalyzer typeAnalyzer, TypeImpl? imposedType) =>
+      typeAnalyzer.visitNativeFunctionBody(this, imposedType: imposedType);
 
   @generated
   @ToBeDeprecated('Use visitChildren2 instead.')
@@ -39200,10 +39233,12 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitNullAssertionExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitNullAssertionExpression(this, contextType: contextType);
   }
 
   @generated
@@ -39342,8 +39377,8 @@ final class NullAssertPatternImpl extends DartPatternImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNullAssertPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer
         .analyzeNullCheckOrAssertPatternSchema(pattern, isAssert: true)
         .unwrapTypeSchemaView();
   }
@@ -39369,11 +39404,11 @@ final class NullAssertPatternImpl extends DartPatternImpl
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult = resolverVisitor.analyzeNullCheckOrAssertPattern(
+    var analysisResult = typeAnalyzer.analyzeNullCheckOrAssertPattern(
       context,
       this,
       pattern,
@@ -39550,11 +39585,11 @@ final class NullAwareElementImpl extends AstNodeImpl
 
   @override
   void resolveElement(
-    TypeAnalyzer resolver,
+    TypeAnalyzer typeAnalyzer,
     CollectionLiteralContext? context,
   ) {
-    resolver.visitNullAwareElement(this, context: context);
-    resolver.pushRewrite(null);
+    typeAnalyzer.visitNullAwareElement(this, context: context);
+    typeAnalyzer.pushRewrite(null);
   }
 
   @generated
@@ -39696,8 +39731,8 @@ final class NullCheckPatternImpl extends DartPatternImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitNullCheckPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer
         .analyzeNullCheckOrAssertPatternSchema(pattern, isAssert: false)
         .unwrapTypeSchemaView();
   }
@@ -39723,11 +39758,11 @@ final class NullCheckPatternImpl extends DartPatternImpl
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult = resolverVisitor.analyzeNullCheckOrAssertPattern(
+    var analysisResult = typeAnalyzer.analyzeNullCheckOrAssertPattern(
       context,
       this,
       pattern,
@@ -39843,8 +39878,8 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitNullLiteral(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitNullLiteral(this, contextType: contextType);
   }
 
   @generated
@@ -39982,8 +40017,8 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitObjectPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer
         .analyzeObjectPatternSchema(SharedTypeView(type.typeOrThrow))
         .unwrapTypeSchemaView();
   }
@@ -40017,21 +40052,18 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var result = resolverVisitor.analyzeObjectPattern(
+    var result = typeAnalyzer.analyzeObjectPattern(
       context,
       this,
-      fields: resolverVisitor.buildSharedPatternFields(
-        fields,
-        mustBeNamed: true,
-      ),
+      fields: typeAnalyzer.buildSharedPatternFields(fields, mustBeNamed: true),
       promoteForPatternOffset: leftParenthesis.offset,
     );
 
-    resolverVisitor.checkPatternNeverMatchesValueType(
+    typeAnalyzer.checkPatternNeverMatchesValueType(
       context: context,
       pattern: this,
       requiredType: result.requiredType.unwrapTypeView(),
@@ -40564,8 +40596,8 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitParenthesizedExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitParenthesizedExpression(this, contextType: contextType);
   }
 
   @generated
@@ -40729,10 +40761,8 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
       visitor.visitParenthesizedPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
-        .dispatchPatternSchema(pattern)
-        .unwrapTypeSchemaView();
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer.dispatchPatternSchema(pattern).unwrapTypeSchemaView();
   }
 
   @generated
@@ -40756,11 +40786,11 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult = resolverVisitor.dispatchPattern(context, pattern);
+    var analysisResult = typeAnalyzer.dispatchPattern(context, pattern);
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
@@ -40915,7 +40945,7 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
 
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('Parsed expressions must be lowered before resolution.');
   }
 
@@ -41052,8 +41082,11 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitParsedDotShorthandExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitParsedDotShorthandExpression(
+      this,
+      contextType: contextType,
+    );
   }
 
   @generated
@@ -41181,7 +41214,7 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
 
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('Parsed expressions must be lowered before resolution.');
   }
 
@@ -41558,7 +41591,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
 
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('Parsed expressions must be lowered before resolution.');
   }
 
@@ -41730,7 +41763,7 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
 
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('Parsed expressions must be lowered before resolution.');
   }
 
@@ -41967,7 +42000,7 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
 
   @DoNotGenerate(reason: 'Parser-only nodes are lowered before type inference')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('Parsed expressions must be lowered before resolution.');
   }
 
@@ -42158,8 +42191,8 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitParsedValueArguments(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitParsedValueArguments(this, contextType: contextType);
   }
 
   @generated
@@ -42782,8 +42815,8 @@ final class PatternAssignmentImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitPatternAssignment(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitPatternAssignment(this, contextType: contextType);
   }
 
   @generated
@@ -43748,7 +43781,7 @@ final class PostfixExpressionImpl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('PostfixExpression is a V1 projection.');
   }
 
@@ -43995,7 +44028,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('PrefixedIdentifier is a V1 projection.');
   }
 
@@ -44224,7 +44257,7 @@ final class PrefixExpressionImpl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'A V1 projection cannot be resolved')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('PrefixExpression is a V1 projection.');
   }
 
@@ -45281,7 +45314,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('PropertyAccess is a V1 projection.');
   }
 
@@ -45749,8 +45782,8 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitReceiverIndexExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitReceiverIndexExpression(this, contextType: contextType);
   }
 
   @generated
@@ -45952,8 +45985,8 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitReceiverMethodInvocation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitReceiverMethodInvocation(this, contextType: contextType);
   }
 
   @generated
@@ -46388,8 +46421,11 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitReceiverPropertyExtraction(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitReceiverPropertyExtraction(
+      this,
+      contextType: contextType,
+    );
   }
 
   @generated
@@ -46619,8 +46655,8 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitRecordLiteral(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitRecordLiteral(this, contextType: contextType);
   }
 
   @generated
@@ -46948,10 +46984,10 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitRecordPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer
         .analyzeRecordPatternSchema(
-          fields: resolverVisitor.buildSharedPatternFields(
+          fields: typeAnalyzer.buildSharedPatternFields(
             fields,
             mustBeNamed: false,
           ),
@@ -46981,21 +47017,18 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var result = resolverVisitor.analyzeRecordPattern(
+    var result = typeAnalyzer.analyzeRecordPattern(
       context,
       this,
-      fields: resolverVisitor.buildSharedPatternFields(
-        fields,
-        mustBeNamed: false,
-      ),
+      fields: typeAnalyzer.buildSharedPatternFields(fields, mustBeNamed: false),
     );
 
     if (!hasDuplicateNamedField) {
-      resolverVisitor.checkPatternNeverMatchesValueType(
+      typeAnalyzer.checkPatternNeverMatchesValueType(
         context: context,
         pattern: this,
         requiredType: result.requiredType.unwrapTypeView(),
@@ -48488,10 +48521,8 @@ final class RelationalPatternImpl extends DartPatternImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitRelationalPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
-        .analyzeRelationalPatternSchema()
-        .unwrapTypeSchemaView();
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer.analyzeRelationalPatternSchema().unwrapTypeSchemaView();
   }
 
   @generated
@@ -48515,16 +48546,16 @@ final class RelationalPatternImpl extends DartPatternImpl
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     inferenceLogWriter?.enterPattern(this);
-    var analysisResult = resolverVisitor.analyzeRelationalPattern(
+    var analysisResult = typeAnalyzer.analyzeRelationalPattern(
       context,
       this,
       operand2,
     );
-    resolverVisitor.popRewrite();
+    typeAnalyzer.popRewrite();
     inferenceLogWriter?.exitPattern(this);
     return analysisResult;
   }
@@ -48804,8 +48835,8 @@ final class RethrowExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitRethrowExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitRethrowExpression(this, contextType: contextType);
   }
 
   @generated
@@ -49327,8 +49358,8 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitSetOrMapLiteral(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitSetOrMapLiteral(this, contextType: contextType);
   }
 
   @generated
@@ -50163,7 +50194,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('SimpleIdentifier is a V1 projection.');
   }
 
@@ -50302,8 +50333,8 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitSimpleStringLiteral(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitSimpleStringLiteral(this, contextType: contextType);
   }
 
   @generated
@@ -50496,11 +50527,11 @@ final class SpreadElementImpl extends AstNodeImpl
 
   @override
   void resolveElement(
-    TypeAnalyzer resolver,
+    TypeAnalyzer typeAnalyzer,
     CollectionLiteralContext? context,
   ) {
-    resolver.visitSpreadElement(this, context: context);
-    resolver.pushRewrite(null);
+    typeAnalyzer.visitSpreadElement(this, context: context);
+    typeAnalyzer.pushRewrite(null);
   }
 
   @generated
@@ -50952,8 +50983,8 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitStringInterpolation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitStringInterpolation(this, contextType: contextType);
   }
 
   @generated
@@ -51465,7 +51496,7 @@ final class SuperExpressionImpl extends ExpressionImpl
 
   @DoNotGenerate(reason: 'V1 projections are never resolved')
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
     throw StateError('SuperExpression is a V1 projection.');
   }
 
@@ -52687,8 +52718,8 @@ final class SwitchExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitSwitchExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitSwitchExpression(this, contextType: contextType);
   }
 
   @generated
@@ -53398,8 +53429,8 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitSymbolLiteral(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitSymbolLiteral(this, contextType: contextType);
   }
 
   @generated
@@ -53489,8 +53520,8 @@ final class ThisExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitThisExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitThisExpression(this, contextType: contextType);
   }
 
   @generated
@@ -53642,8 +53673,8 @@ final class ThrowExpressionImpl extends ExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitThrowExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitThrowExpression(this, contextType: contextType);
   }
 
   @generated
@@ -54975,8 +55006,8 @@ final class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitTypeLiteral(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitTypeLiteral(this, contextType: contextType);
   }
 
   @generated
@@ -55547,10 +55578,12 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
     super.replaceChild(oldNode, newNode);
   }
 
-  @DoNotGenerate(reason: 'Dispatches the canonical V2 node to the resolver')
+  @DoNotGenerate(
+    reason: 'Dispatches the canonical V2 node to the type analyzer',
+  )
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitUnaryOperatorInvocation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitUnaryOperatorInvocation(this, contextType: contextType);
   }
 
   @generated
@@ -55712,8 +55745,11 @@ final class UnqualifiedFunctionInvocationImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitUnqualifiedFunctionInvocation(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitUnqualifiedFunctionInvocation(
+      this,
+      contextType: contextType,
+    );
   }
 
   @generated
@@ -56011,8 +56047,8 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
 
   @generated
   @override
-  void resolveExpression(TypeAnalyzer resolver, TypeImpl contextType) {
-    resolver.visitUnqualifiedNameExpression(this, contextType: contextType);
+  void resolveExpression(TypeAnalyzer typeAnalyzer, TypeImpl contextType) {
+    typeAnalyzer.visitUnqualifiedNameExpression(this, contextType: contextType);
   }
 
   @generated
@@ -57855,8 +57891,8 @@ final class WildcardPatternImpl extends DartPatternImpl
   E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitWildcardPattern(this);
 
   @override
-  TypeImpl computePatternSchema(TypeAnalyzer resolverVisitor) {
-    return resolverVisitor
+  TypeImpl computePatternSchema(TypeAnalyzer typeAnalyzer) {
+    return typeAnalyzer
         .analyzeDeclaredVariablePatternSchema(
           type?.typeOrThrow.wrapSharedTypeView(),
         )
@@ -57885,18 +57921,18 @@ final class WildcardPatternImpl extends DartPatternImpl
 
   @override
   PatternResult resolvePattern(
-    TypeAnalyzer resolverVisitor,
+    TypeAnalyzer typeAnalyzer,
     SharedMatchContext context,
   ) {
     var declaredType = type?.typeOrThrow;
-    var analysisResult = resolverVisitor.analyzeWildcardPattern(
+    var analysisResult = typeAnalyzer.analyzeWildcardPattern(
       context: context,
       node: this,
       declaredType: declaredType?.wrapSharedTypeView(),
     );
 
     if (declaredType != null) {
-      resolverVisitor.checkPatternNeverMatchesValueType(
+      typeAnalyzer.checkPatternNeverMatchesValueType(
         context: context,
         pattern: this,
         requiredType: declaredType,

@@ -21,22 +21,27 @@ import 'package:analyzer/src/generated/error_detection_helpers.dart';
 
 /// Helper for resolving prefix and postfix increment and decrement expressions.
 class IncrementOrDecrementResolver {
-  final TypeAnalyzer _resolver;
+  final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionShared _assignmentShared;
   final AssignmentExpressionResolver _assignmentResolver;
 
-  IncrementOrDecrementResolver({required TypeAnalyzer resolver})
-    : _resolver = resolver,
-      _typePropertyResolver = resolver.typePropertyResolver,
-      _assignmentShared = AssignmentExpressionShared(resolver: resolver),
-      _assignmentResolver = AssignmentExpressionResolver(resolver: resolver);
+  IncrementOrDecrementResolver({required TypeAnalyzer typeAnalyzer})
+    : _typeAnalyzer = typeAnalyzer,
+      _typePropertyResolver = typeAnalyzer.typePropertyResolver,
+      _assignmentShared = AssignmentExpressionShared(
+        typeAnalyzer: typeAnalyzer,
+      ),
+      _assignmentResolver = AssignmentExpressionResolver(
+        typeAnalyzer: typeAnalyzer,
+      );
 
-  DiagnosticReporter get _diagnosticReporter => _resolver.diagnosticReporter;
+  DiagnosticReporter get _diagnosticReporter =>
+      _typeAnalyzer.diagnosticReporter;
 
-  TypeProviderImpl get _typeProvider => _resolver.typeProvider;
+  TypeProviderImpl get _typeProvider => _typeAnalyzer.typeProvider;
 
-  TypeSystemImpl get _typeSystem => _resolver.typeSystem;
+  TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
   void resolve(IncrementOrDecrementExpressionImpl node) {
     var isPrefix = node.position == IncrementOrDecrementPosition.prefix;
@@ -55,23 +60,28 @@ class IncrementOrDecrementResolver {
         var result = _assignmentResolver.resolveIndexReadWriteTarget(target);
         if (result == null) {
           node.operatorResultType = NeverTypeImpl.instance;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         readType = result.read.type;
         writeAcceptedType = result.write.acceptedType;
       case ImportPrefixedAssignmentTargetImpl():
-        _resolver.resolveImportPrefixedAssignmentTarget(target);
+        _typeAnalyzer.resolveImportPrefixedAssignmentTarget(target);
         readType = target.read!.type;
         writeAcceptedType = target.write!.acceptedType;
       case ReceiverPropertyAssignmentTargetImpl():
         _assignmentResolver.analyzePropertyTargetReceiver(node, target);
-        var result = _resolver.resolveReceiverPropertyReadWriteAssignmentTarget(
-          target,
-        );
+        var result = _typeAnalyzer
+            .resolveReceiverPropertyReadWriteAssignmentTarget(target);
         if (result == null) {
           node.operatorResultType = NeverTypeImpl.instance;
-          node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+          node.recordStaticType(
+            NeverTypeImpl.instance,
+            typeAnalyzer: _typeAnalyzer,
+          );
           return;
         }
         target.read = result.read;
@@ -86,9 +96,8 @@ class IncrementOrDecrementResolver {
           readType = InvalidTypeImpl.instance;
         }
       case UnqualifiedNameAssignmentTargetImpl():
-        var result = _resolver.resolveUnqualifiedNameReadWriteAssignmentTarget(
-          target,
-        );
+        var result = _typeAnalyzer
+            .resolveUnqualifiedNameReadWriteAssignmentTarget(target);
         target.read = result.read;
         target.write = result.write;
         readType = result.read.type;
@@ -100,31 +109,40 @@ class IncrementOrDecrementResolver {
       case ParsedAssignmentTargetImpl():
         throw StateError('Parsed assignment target was not lowered');
       case InvalidSuperAssignmentTargetImpl():
-        _resolver.visitSuperReference(target.superReference);
+        _typeAnalyzer.visitSuperReference(target.superReference);
         target.read = const InvalidReadResolutionImpl();
         target.write = const InvalidWriteResolutionImpl();
         node.operatorResultType = InvalidTypeImpl.instance;
-        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        node.recordStaticType(
+          InvalidTypeImpl.instance,
+          typeAnalyzer: _typeAnalyzer,
+        );
         return;
       case InvalidExtensionOverrideAssignmentTargetImpl():
-        _resolver.visitExtensionOverride2(target.extensionOverride);
+        _typeAnalyzer.visitExtensionOverride2(target.extensionOverride);
         target.read = const InvalidReadResolutionImpl();
         target.write = const InvalidWriteResolutionImpl();
         node.operatorResultType = InvalidTypeImpl.instance;
-        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        node.recordStaticType(
+          InvalidTypeImpl.instance,
+          typeAnalyzer: _typeAnalyzer,
+        );
         return;
       case InvalidExpressionAssignmentTargetImpl():
-        _resolver.analyzeExpression(
+        _typeAnalyzer.analyzeExpression(
           target.expression,
           SharedTypeSchemaView(UnknownInferredType.instance),
         );
-        target.expression = _resolver.popRewrite()!;
+        target.expression = _typeAnalyzer.popRewrite()!;
         target.read = const InvalidReadResolutionImpl();
         target.write = const InvalidWriteResolutionImpl();
         // Keep the child's resolution, but don't expose a partially resolved
         // read-modify-write operation for a target that cannot be written.
         node.operatorResultType = InvalidTypeImpl.instance;
-        node.recordStaticType(InvalidTypeImpl.instance, resolver: _resolver);
+        node.recordStaticType(
+          InvalidTypeImpl.instance,
+          typeAnalyzer: _typeAnalyzer,
+        );
         return;
     }
 
@@ -154,9 +172,9 @@ class IncrementOrDecrementResolver {
     if (!_typeSystem.isAssignableTo(
       type,
       operandWriteType,
-      strictCasts: _resolver.analysisOptions.strictCasts,
+      strictCasts: _typeAnalyzer.analysisOptions.strictCasts,
     )) {
-      _resolver.diagnosticReporter.report(
+      _typeAnalyzer.diagnosticReporter.report(
         diag.invalidAssignment
             .withArguments(
               actualStaticType: type,
@@ -175,7 +193,7 @@ class IncrementOrDecrementResolver {
     }
 
     var expectedType = element.formalParameters.single.type;
-    var strictCasts = _resolver.analysisOptions.strictCasts;
+    var strictCasts = _typeAnalyzer.analysisOptions.strictCasts;
     var intType = _typeProvider.intType;
     var doubleType = _typeProvider.doubleType;
     // The implicit argument is the integer literal `1`. Like an explicit
@@ -251,7 +269,7 @@ class IncrementOrDecrementResolver {
       return;
     }
     if (identical(readType, NeverTypeImpl.instance)) {
-      _resolver.diagnosticReporter.report(
+      _typeAnalyzer.diagnosticReporter.report(
         diag.receiverOfTypeNever.at(errorEntity),
       );
       return;
@@ -286,7 +304,10 @@ class IncrementOrDecrementResolver {
   }) {
     if (identical(readType, NeverTypeImpl.instance)) {
       node.operatorResultType = NeverTypeImpl.instance;
-      node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
+      node.recordStaticType(
+        NeverTypeImpl.instance,
+        typeAnalyzer: _typeAnalyzer,
+      );
       return;
     }
 
@@ -313,9 +334,9 @@ class IncrementOrDecrementResolver {
     );
     if (variableElement is PromotableElementImpl) {
       if (isPrefix) {
-        _resolver.flowAnalysis.storeExpressionInfo(
+        _typeAnalyzer.flowAnalysis.storeExpressionInfo(
           node,
-          _resolver.flowAnalysis.flow?.write(
+          _typeAnalyzer.flowAnalysis.flow?.write(
             node,
             variableElement,
             SharedTypeView(operatorResultType),
@@ -324,7 +345,7 @@ class IncrementOrDecrementResolver {
           ),
         );
       } else {
-        _resolver.flowAnalysis.flow?.postIncDec(
+        _typeAnalyzer.flowAnalysis.flow?.postIncDec(
           node,
           variableElement,
           SharedTypeView(operatorResultType),
@@ -336,7 +357,7 @@ class IncrementOrDecrementResolver {
     node.operatorResultType = operatorResultType;
     node.recordStaticType(
       isPrefix ? operatorResultType : readType,
-      resolver: _resolver,
+      typeAnalyzer: _typeAnalyzer,
     );
   }
 }
