@@ -1655,6 +1655,14 @@ enum MessageType {
   final legacy.MessageType forLegacy;
 
   new(this.forLsp, this.forLegacy);
+
+  static MessageType fromLegacy(legacy.MessageType type) {
+    return MessageType.values.singleWhere((t) => t.forLegacy == type);
+  }
+
+  static MessageType fromLsp(lsp.MessageType type) {
+    return MessageType.values.singleWhere((t) => t.forLsp == type);
+  }
 }
 
 class ServerRecentPerformance {

@@ -202,39 +202,6 @@ abstract class RefactorCodeActionsTest extends AbstractLspAnalysisServerTest
         CodeActionsTestMixin,
         SharedRefactorCodeActionsTests {
   @override
-  Future<T> handleRefactorAnywayPrompt<T>(
-    Future<T> Function() f, {
-    required String expectedMessage,
-    required List<String> expectedActions,
-    String? selectAction,
-  }) async {
-    return await handleExpectedRequest(
-      Method.window_showMessageRequest,
-      ShowMessageRequestParams.fromJson,
-      f,
-      handler: (ShowMessageRequestParams params) async {
-        // Ensure the warning prompt is as expected.
-        expect(params.type, equals(MessageType.Warning));
-        expect(params.message, equals(expectedMessage));
-        expect(params.actions, hasLength(2));
-        expect(
-          params.actions![0],
-          equals(MessageActionItem(title: UserPromptActions.refactorAnyway)),
-        );
-        expect(
-          params.actions![1],
-          equals(MessageActionItem(title: UserPromptActions.cancel)),
-        );
-
-        // Respond to the request with the required action.
-        return selectAction != null
-            ? MessageActionItem(title: selectAction)
-            : null;
-      },
-    );
-  }
-
-  @override
   void setUp() {
     super.setUp();
 

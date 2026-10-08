@@ -9,10 +9,14 @@ import 'package:test/test.dart';
 
 import '../../../lsp/code_actions_mixin.dart';
 import '../../../lsp/server_abstract.dart';
+import '../../../shared/shared_code_actions_refactor_tests.dart';
 import '../../../utils/test_code_extensions.dart';
 
 abstract class RefactoringTest extends AbstractLspAnalysisServerTest
-    with LspSharedTestMixin, CodeActionsTestMixin {
+    with
+        LspSharedTestMixin,
+        CodeActionsTestMixin,
+        SharedRefactorCodeActionsTests {
   /// Position of the marker where the refactor will be invoked.
   Position? _position;
 

@@ -5,12 +5,13 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/protocol/protocol_constants.dart';
+import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
-import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/protocol_server.dart' hide MessageType;
 import 'package:analyzer_plugin/src/utilities/client_uri_converter.dart';
 import 'package:path/path.dart' as path;
 
@@ -156,6 +157,44 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   Future<Response> handleRequest(Request request) {
     lastSentLegacyRequestId = request.id;
     return super.handleRequest(request);
+  }
+
+  /// Invokes [f] and response to a legacy user prompt
+  /// (`server.showMessageRequest`) from the server.
+  ///
+  /// [respond] is invoked with the prompt details and should return the label
+  /// of the action choose, or `null` to dismiss/cancel the prompt without
+  /// providing an answer.
+  Future<T> handleUserPrompt<T>(
+    Future<T> Function() f,
+    String? Function({
+      required MessageType type,
+      required String message,
+      required List<String> actions,
+    })
+    respond,
+  ) async {
+    var subscription = serverChannel.serverToClientRequests
+        .where((request) => request.method == serverRequestShowMessageRequest)
+        .listen((request) {
+          var params = ServerShowMessageRequestParams.fromRequest(
+            request,
+            clientUriConverter: uriConverter,
+          );
+          var action = respond(
+            type: MessageType.fromLegacy(params.type),
+            message: params.message,
+            actions: [for (var action in params.actions) action.label],
+          );
+          server.handleResponse(
+            Response(request.id, result: {'action': action}),
+          );
+        });
+    try {
+      return await f();
+    } finally {
+      await subscription.cancel();
+    }
   }
 
   Future<void> initializeServer() async {

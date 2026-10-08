@@ -442,6 +442,52 @@ void f() {
     );
   }
 
+  Future<void> test_interactiveForm_hasConflict_promptsToProceed() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+    setSupportsWindowShowMessageRequest();
+
+    var originalSource = '''
+class C {
+  new^();
+  new existingName();
+}
+
+void f() {
+  C();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new existingName();
+  new existingName();
+}
+
+void f() {
+  C.existingName();
+}
+''';
+
+    addTestSource(originalSource);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var completedCommand = await completeInteractiveForm(action.command!, {
+      'name': 'existingName',
+    });
+
+    await handleRefactorAnywayPrompt(
+      expectedMessage:
+          "Class 'C' already declares constructor with name 'existingName'.",
+      expectedActions: [
+        UserPromptActions.refactorAnyway,
+        UserPromptActions.cancel,
+      ],
+      selectAction: UserPromptActions.refactorAnyway,
+      () => verifyCommandEdits(completedCommand, expected),
+    );
+  }
+
   Future<void> test_primary() async {
     var originalSource = '''
 class C^() {}

@@ -32,6 +32,21 @@ class ComputeStatusFailure extends ComputeStatus {
 /// The result that signals the success.
 class ComputeStatusSuccess extends ComputeStatus {}
 
+/// The result that signals the refactor can proceed but has errors/warnings.
+///
+/// Usually this will result in a "Refactor anyway?" prompt for the user to
+/// continue/abort.
+///
+/// It is important that when a refactoring produces this result, it still
+/// proceeds with computing the edits and does not exit out early (like
+/// [ComputeStatusFailure]), otherwise the continue action will not apply edits.
+class ComputeStatusWarning extends ComputeStatus {
+  final String message;
+
+  new(String? message)
+    : message = message ?? 'The refactor introduces new issues.';
+}
+
 /// A version of [RefactoringProducer] that has parameters, allowing the user
 /// to provide additional values (such as a name or target file) when executed.
 abstract class ParameterizedRefactoringProducer extends RefactoringProducer {
