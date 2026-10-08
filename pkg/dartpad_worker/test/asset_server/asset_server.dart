@@ -66,8 +66,16 @@ final class AssetServer {
               }
               return _notFound;
             })
-            .add(_handleArchive)
-            .add(_handleVersionListing)
+            .add(
+              const shelf.Pipeline()
+                  .addMiddleware(_rejectPreflightHeaders)
+                  .addHandler(
+                    shelf.Cascade()
+                        .add(_handleArchive)
+                        .add(_handleVersionListing)
+                        .handler,
+                  ),
+            )
             .handler,
       );
 
@@ -108,13 +116,62 @@ final class AssetServer {
     };
   }
 
+  /// Returns `true` if [name] and [value] are standard browser or `dart:io`
+  /// headers that do not trigger a CORS preflight request in Chrome, Firefox,
+  /// or Safari.
+  static bool _isAllowedHeader(String name, String value) {
+    return switch (name.toLowerCase()) {
+      'host' ||
+      'connection' ||
+      'accept-encoding' ||
+      'accept-language' ||
+      'origin' ||
+      'referer' => true,
+      'content-length' => value == '0',
+      // Safari triggers a CORS preflight for non-standard Accept headers such
+      // as `application/vnd.pub.v2+json`.
+      'accept' => value == '*/*',
+      // Firefox and Safari trigger a CORS preflight when User-Agent is
+      // explicitly overridden on a fetch request (e.g. `Dart pub ...`).
+      'user-agent' => value.contains('Mozilla') || value.contains('dart:io'),
+      // Browser-injected Fetch Metadata / Client Hints headers (e.g. sec-fetch-mode).
+      final h when h.startsWith('sec-') => true,
+      _ => false,
+    };
+  }
+
+  /// Rejects requests that would require a CORS preflight request.
+  shelf.Handler _rejectPreflightHeaders(shelf.Handler handler) {
+    return (request) async {
+      if (request.method != 'GET' && request.method != 'HEAD') {
+        final msg =
+            'Disallowed CORS method ${request.method} on ${request.url} '
+            '(would require or is a CORS preflight request)';
+        await _printOnFailure(msg);
+        return shelf.Response.badRequest(body: msg);
+      }
+      final disallowedHeaders = [
+        for (final MapEntry(:key, :value) in request.headers.entries)
+          if (!_isAllowedHeader(key, value)) '$key: $value',
+      ];
+      if (disallowedHeaders.isNotEmpty) {
+        final msg =
+            'Request to ${request.url} contains headers that would trigger a '
+            'CORS preflight check: ${disallowedHeaders.join(', ')}';
+        await _printOnFailure(msg);
+        return shelf.Response.badRequest(body: msg);
+      }
+      return await handler(request);
+    };
+  }
+
   shelf.Handler _addCorsHeaders(shelf.Handler handler) {
     return (request) async {
       final response = await handler(request);
       return response.change(
         headers: {
           'access-control-allow-origin': '*',
-          'access-control-expose-headers': 'ETag,x-goog-hash,Accept,User-Agent',
+          'access-control-expose-headers': 'ETag,x-goog-hash',
         },
       );
     };
