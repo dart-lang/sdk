@@ -2,6 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//build/config/clang/clang.gni")
 import("//build/config/sysroot.gni")
 import("//build/toolchain/ccache.gni")
 import("//build/toolchain/gcc_toolchain.gni")
@@ -47,6 +48,11 @@ if (use_rbe) {
 # Google's clang does not work for alpine, use alpine's system clang
 if (dart_sysroot == "alpine") {
   rebased_clang_dir = "/usr/bin"
+} else if (clang_prefix != default_clang_prefix) {
+  # Honour an explicitly configured clang_prefix, so a build can use a clang
+  # from elsewhere (a distribution's own, e.g. /usr/lib/llvm-N/bin) rather than
+  # the one in buildtools.
+  rebased_clang_dir = clang_prefix
 } else if (host_cpu == "arm64") {
   rebased_clang_dir =
       rebase_path("//buildtools/linux-arm64/clang/bin", root_build_dir)
