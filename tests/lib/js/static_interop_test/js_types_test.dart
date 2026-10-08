@@ -191,9 +191,6 @@ external JSAny? definedNonNullAny;
 @JS()
 external JSIterator<JSAny> getGenerator();
 
-@JS()
-external JSAny? catchAndReturn(JSFunction f);
-
 class CustomList<E> extends ListBase<E> {
   final List<E> _inner;
 
@@ -244,14 +241,6 @@ void syncTests() {
     globalThis.nullAny = null;
     globalThis.undefinedAny = undefined;
     globalThis.definedNonNullAny = {};
-
-    globalThis.catchAndReturn = function(f) {
-      try {
-        f();
-      } catch (error) {
-        return error;
-      }
-    }
   ''');
 
   // [JSObject]
@@ -1028,15 +1017,6 @@ void syncTests() {
   final errorWithStack = JSError('foo');
   JSError.captureStackTrace(errorWithStack);
   Expect.notEquals('', errorWithStack.stack);
-
-  Expect.equals(
-    'foo'.toJS,
-    catchAndReturn((() => JSError.throwLikeJS('foo'.toJS)).toJS),
-  );
-  final caughtError = JSError.asError(
-    catchAndReturn((() => JSError.throwLikeJS(JSError('foo'))).toJS),
-  );
-  Expect.equals('foo', caughtError?.message);
 
   Expect.isTrue(JSError('foo').toDart is Error);
   Expect.equals('foo', JSError('foo').toDart.toString());

@@ -616,10 +616,6 @@ class NullRejectionException implements Exception {
   }
 }
 
-// TODO(srujzs): Move this a member of `JSError` once we can patch extension
-// type members.
-external Never _throwLikeJS(JSAny error);
-
 /// The JavaScript `Error` type.
 @JS('Error')
 extension type JSError._(JSObject _) implements JSObject {
@@ -652,14 +648,6 @@ extension type JSError._(JSObject _) implements JSObject {
 
   @JS('isError')
   external static JSFunction? _isErrorOrNull;
-
-  /// Throws [error] in the same manner as JS, without any of Dart's additional
-  /// exception wrapping.
-  ///
-  /// This is useful when the error is expected to be caught by or displayed to
-  /// JS users rather than Dart code. Dart's additional wrappers and properties
-  /// can obscure JS error information in those contexts.
-  static Never throwLikeJS(JSAny error) => _throwLikeJS(error);
 
   /// See [`new Error()`].
   ///
