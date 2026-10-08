@@ -1394,6 +1394,8 @@ int DisassemblerX64::TwoByteOpcodeInstruction(uint8_t* data) {
           mnemonic = "pslld";
         } else if (opcode == 0xE2) {
           mnemonic = "psrad";
+        } else if (opcode == 0xD2) {
+          mnemonic = "psrld";
         } else {
           UnimplementedInstruction(*data);
           return 1;
