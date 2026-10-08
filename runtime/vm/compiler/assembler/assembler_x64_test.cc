@@ -4353,6 +4353,33 @@ ASSEMBLER_TEST_RUN(PackedShiftRightArithmetic, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(PackedShiftRightLogical, assembler) {
+  __ movq(RAX, CallingConventions::kArg1Reg);
+  __ movups(XMM0, Address(RAX, 0));
+  __ movd(XMM1, CallingConventions::kArg2Reg);
+  __ psrld(XMM0, XMM1);
+  __ movups(Address(RAX, 0), XMM0);
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(PackedShiftRightLogical, test) {
+  typedef void (*PackedShiftRightLogicalCode)(uint32_t* data, intptr_t count);
+  auto check = [&](intptr_t count, const uint32_t (&expected)[4]) {
+    uint32_t data[4] = {0xFFFFFFF8, 8, 0x80000000, 0x7FFFFFFF};
+    reinterpret_cast<PackedShiftRightLogicalCode>(test->entry())(data, count);
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], data[i]);
+    }
+  };
+  check(1, {0x7FFFFFFC, 4, 0x40000000, 0x3FFFFFFF});
+  // A count of 32 or more shifts every bit out.
+  check(32, {0, 0, 0, 0});
+  EXPECT_DISASSEMBLY_ENDS_WITH(
+      "psrld xmm0,xmm1\n"
+      "movups [rax],xmm0\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(PackedLogicalNot, assembler) {
   static const struct ALIGN16 {
     uint32_t a;

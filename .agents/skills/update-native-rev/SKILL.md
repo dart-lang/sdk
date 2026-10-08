@@ -25,17 +25,25 @@ git checkout main && git pull && gclient sync -D -f
 > **CRITICAL RULE**: NEVER EVER pick a local commit or a commit from a custom branch/PR branch. You MUST only pick remote commits that have already landed on the remote `main` branch.
 
 To select the correct commit SHA:
-1. **Ask the user** if the newest hash/commit should be taken directly from **GitHub** (e.g., if the googlesource mirror is lagging behind or the desired change is only on GitHub main).
-   * **If the user says YES**:
-     1. First, temporarily change the repository URL and host permissions in the `DEPS` file by following the instructions in the **[Troubleshooting Sync Failures](#troubleshooting-sync-failures)** section (changing `third_party/pkg/native` under `deps` to use `"https://github.com/dart-lang/native.git"` and adding `'github.com'` to `allowed_hosts` in `DEPS`).
-     2. Run `gclient sync` from the SDK root to update the checkout mapping to GitHub.
-     3. Navigate to the `native` package subdirectory: `third_party/pkg/native`.
-     4. Run `git fetch origin` to fetch the latest commits from the GitHub remote (origin will now point to GitHub).
-     5. After checking commits, **immediately set the repository URL and host permissions in `DEPS` back to googlesource** (reverting the changes made in sub-step 1), so that subsequent steps and the final commit only roll the commit hash without permanently keeping GitHub host settings.
-   * **If the user says NO / default**:
-     1. Proceed with the default mirrored googlesource setup.
-     2. Navigate to the `native` package subdirectory: `third_party/pkg/native`.
-     3. Run `git fetch origin` to fetch the latest commits from the mirror.
+1. If the `dart.googlesource.com/native.git` mirror is lagging behind GitHub:
+   * **For Googlers**: Trigger an immediate mirror sync instead of modifying `DEPS`:
+     ```bash
+     gob-ctl repos update-mirror-config github/dart-lang/native \
+       --fetch_frequency 5m \
+       --uri https://github.com/dart-lang/native.git
+     ```
+     Wait ~10 seconds, verify with `git ls-remote https://dart.googlesource.com/native.git refs/heads/main`, and proceed with the default mirrored googlesource setup below.
+   * **Otherwise, ask the user** if the newest hash/commit should be taken directly from **GitHub**:
+     * **If the user says YES**:
+       1. First, temporarily change the repository URL and host permissions in the `DEPS` file by following the instructions in the **[Troubleshooting Sync Failures](#troubleshooting-sync-failures)** section (changing `third_party/pkg/native` under `deps` to use `"https://github.com/dart-lang/native.git"` and adding `'github.com'` to `allowed_hosts` in `DEPS`).
+       2. Run `gclient sync` from the SDK root to update the checkout mapping to GitHub.
+       3. Navigate to the `native` package subdirectory: `third_party/pkg/native`.
+       4. Run `git fetch origin` to fetch the latest commits from the GitHub remote (origin will now point to GitHub).
+       5. After checking commits, **immediately set the repository URL and host permissions in `DEPS` back to googlesource** (reverting the changes made in sub-step 1), so that subsequent steps and the final commit only roll the commit hash without permanently keeping GitHub host settings.
+     * **If the user says NO / default**:
+       1. Proceed with the default mirrored googlesource setup.
+       2. Navigate to the `native` package subdirectory: `third_party/pkg/native`.
+       3. Run `git fetch origin` to fetch the latest commits from the mirror.
 2. Inspect the commits on remote `origin/main` of the `native` repository:
    ```bash
    git log origin/main -n 10 --oneline

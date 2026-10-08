@@ -1512,6 +1512,9 @@ class Assembler : public AssemblerBase {
   void vsshlx(VRegister vd, VRegister vn, VRegister vm) {
     EmitSIMDThreeSameOp(VSSHLX, vd, vn, vm);
   }
+  void vushlw(VRegister vd, VRegister vn, VRegister vm) {
+    EmitSIMDThreeSameOp(VUSHLW, vd, vn, vm);
+  }
   void vnot(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VNOT, vd, vn); }
   void vabss(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VABSS, vd, vn); }
   void vabsd(VRegister vd, VRegister vn) { EmitSIMDTwoRegOp(VABSD, vd, vn); }

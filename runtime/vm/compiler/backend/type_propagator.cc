@@ -576,31 +576,65 @@ void CompileType::Union(CompileType* other) {
     return;
   }
 
-  const AbstractType* abstract_type = ToAbstractType();
+  const AbstractType* this_type = ToAbstractType();
   if (cid_ != other->cid_) {
     cid_ = kDynamicCid;
   }
 
-  const AbstractType* other_abstract_type = other->ToAbstractType();
-  if (abstract_type->IsSubtypeOf(*other_abstract_type, Heap::kOld)) {
-    type_ = other_abstract_type;
+  const AbstractType* other_type = other->ToAbstractType();
+  if (this_type->IsSubtypeOf(*other_type, Heap::kOld)) {
+    type_ = other_type;
     return;
-  } else if (other_abstract_type->IsSubtypeOf(*abstract_type, Heap::kOld)) {
+  } else if (other_type->IsSubtypeOf(*this_type, Heap::kOld)) {
     return;  // Nothing to do.
   }
 
   // Climb up the hierarchy to find a suitable supertype. Note that interface
   // types are not considered, making the union potentially non-commutative
-  if (abstract_type->IsInstantiated() && !abstract_type->IsDynamicType() &&
-      !abstract_type->IsFunctionType() && !abstract_type->IsRecordType()) {
-    Class& cls = Class::Handle(abstract_type->type_class());
-    for (; !cls.IsNull() && !cls.IsGeneric(); cls = cls.SuperClass()) {
-      type_ = &AbstractType::ZoneHandle(cls.RareType());
-      if (other_abstract_type->IsSubtypeOf(*type_, Heap::kOld)) {
-        // Found suitable supertype: keep type_ only.
-        cid_ = kDynamicCid;
-        return;
+  if (this_type->IsInstantiated() && this_type->IsType() &&
+      !this_type->IsTopType() && other_type->IsType()) {
+    auto* const thread = Thread::Current();
+    auto* const zone = thread->zone();
+    const auto& this_cls = Class::Handle(zone, this_type->type_class());
+    const auto& other_cls = Class::Handle(zone, other_type->type_class());
+
+    // Find the lowest superclass of `this_cls` that `other_cls` is also a
+    // subtype of.
+    auto& base_cls = Class::Handle(zone, this_cls.ptr());
+    for (; !base_cls.IsNull(); base_cls = base_cls.SuperClass()) {
+      if (base_cls.IsObjectClass() ||
+          other_cls.FindInstantiationOf(zone, base_cls)) {
+        break;
       }
+    }
+
+    if (!base_cls.IsNull()) {
+      if (base_cls.IsGeneric()) {
+        const bool base_tav_equals_this_flattened_tav =
+            this_cls.NumTypeArguments() == base_cls.NumTypeParameters(thread);
+        if (base_tav_equals_this_flattened_tav) {
+          const auto& this_flattened_tav = TypeArguments::Handle(
+              zone,
+              Type::Cast(*this_type)
+                  .GetInstanceTypeArguments(thread, /*canonicalize=*/false));
+          auto& base_type = Type::Handle(
+              zone, Type::New(base_cls, this_flattened_tav,
+                              other_type->nullability(), Heap::kOld));
+          base_type.SetIsFinalized();
+          if (other_type->IsSubtypeOf(base_type, Heap::kOld)) {
+            // Nullability is tracked on this [CompileType] already.
+            base_type =
+                base_type.ToNullability(Nullability::kNonNullable, Heap::kOld);
+            base_type ^= base_type.Canonicalize(thread);
+            type_ = &AbstractType::ZoneHandle(zone, base_type.ptr());
+            return;
+          }
+        }
+      }
+
+      // Fallback to the rare type.
+      type_ = &AbstractType::ZoneHandle(zone, base_cls.RareType());
+      return;
     }
   }
 

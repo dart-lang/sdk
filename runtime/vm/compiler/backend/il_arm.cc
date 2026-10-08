@@ -5277,13 +5277,17 @@ DEFINE_EMIT(Int32x4Shift,
              Register shift,
              Temp<QRegister> shift_vector)) {
   __ and_(TMP, shift, compiler::Operand(31));
-  if (instr->kind() == SimdOpInstr::kInt32x4ShrS) {
-    // vshlqi shifts right when the per-lane count is negative.
+  if (instr->kind() != SimdOpInstr::kInt32x4Shl) {
+    // vshlqi and vshlqu shift right when the per-lane count is negative.
     __ rsb(TMP, TMP, compiler::Operand(0));
   }
   __ vmovdr(DTMP, 0, TMP);
   __ vdup(compiler::kFourBytes, shift_vector, DTMP, 0);
-  __ vshlqi(compiler::kFourBytes, result, value, shift_vector);
+  if (instr->kind() == SimdOpInstr::kInt32x4ShrU) {
+    __ vshlqu(compiler::kFourBytes, result, value, shift_vector);
+  } else {
+    __ vshlqi(compiler::kFourBytes, result, value, shift_vector);
+  }
 }
 
 // Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
@@ -5295,6 +5299,7 @@ DEFINE_EMIT(Int32x4Shift,
 #define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
   CASE(Int32x4Shl)                                                             \
   CASE(Int32x4ShrS)                                                            \
+  CASE(Int32x4ShrU)                                                            \
   ____(Int32x4Shift)                                                           \
   CASE(Float32x4Add)                                                           \
   CASE(Float32x4Sub)                                                           \

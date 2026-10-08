@@ -2271,6 +2271,7 @@ final class _Int32x4 implements Int32x4 {
     return Int32x4(x >> n, y >> n, z >> n, w >> n);
   }
 
+  @pragma("vm:recognized", "other")
   Int32x4 operator >>>(int shiftAmount) {
     final int n = shiftAmount & 31;
     return Int32x4(

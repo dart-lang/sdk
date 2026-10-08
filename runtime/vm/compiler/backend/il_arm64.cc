@@ -3975,6 +3975,15 @@ Condition DoubleTestOpInstr::EmitConditionCode(FlowGraphCompiler* compiler,
   V(Float32x4GreaterThan, vcgts)                                               \
   V(Float32x4GreaterThanOrEqual, vcges)
 
+static simd128_value_t ShuffleTableIndices(intptr_t mask) {
+  simd128_value_t indices;
+  for (intptr_t i = 0; i < 4; i++) {
+    const int32_t lane = (mask >> (2 * i)) & 0x3;
+    indices.int_storage[i] = 0x03020100 + 0x04040404 * lane;
+  }
+  return indices;
+}
+
 DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
   switch (instr->kind()) {
 #define EMIT(Name, op)                                                         \
@@ -3985,11 +3994,10 @@ DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
 #undef EMIT
     case SimdOpInstr::kFloat32x4ShuffleMix:
     case SimdOpInstr::kInt32x4ShuffleMix: {
-      const intptr_t mask = instr->mask();
-      __ vinss(result, 0, left, (mask >> 0) & 0x3);
-      __ vinss(result, 1, left, (mask >> 2) & 0x3);
-      __ vinss(result, 2, right, (mask >> 4) & 0x3);
-      __ vinss(result, 3, right, (mask >> 6) & 0x3);
+      __ LoadQImmediate(VTMP, ShuffleTableIndices(instr->mask()));
+      __ vtbl1(result, left, VTMP);
+      __ vtbl1(VTMP, right, VTMP);
+      __ vinsd(result, 1, VTMP, 1);
       break;
     }
     case SimdOpInstr::kFloat32x4NotEqual:
@@ -4065,9 +4073,8 @@ DEFINE_EMIT(SimdUnaryOp, (VRegister result, VRegister value)) {
       } else if (mask == 0xFF) {
         __ vdups(result, value, 3);
       } else {
-        for (intptr_t i = 0; i < 4; i++) {
-          __ vinss(result, i, value, (mask >> (2 * i)) & 0x3);
-        }
+        __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
+        __ vtbl1(result, value, VTMP);
       }
       break;
     }
@@ -4373,12 +4380,16 @@ DEFINE_EMIT(Int32x4Shift,
              Temp<Register> count,
              Temp<VRegister> shift_vector)) {
   __ AndImmediate(count, shift, 31);
-  if (instr->kind() == SimdOpInstr::kInt32x4ShrS) {
-    // SSHL shifts right when the per-lane count is negative.
+  if (instr->kind() != SimdOpInstr::kInt32x4Shl) {
+    // SSHL and USHL shift right when the per-lane count is negative.
     __ neg(count, count);
   }
   __ vdupw(shift_vector, count);
-  __ vsshlw(result, value, shift_vector);
+  if (instr->kind() == SimdOpInstr::kInt32x4ShrU) {
+    __ vushlw(result, value, shift_vector);
+  } else {
+    __ vsshlw(result, value, shift_vector);
+  }
 }
 
 // Map SimdOpInstr::Kind-s to corresponding emit functions. Uses the following
@@ -4390,6 +4401,7 @@ DEFINE_EMIT(Int32x4Shift,
 #define SIMD_OP_VARIANTS(CASE, ____, SIMPLE)                                   \
   CASE(Int32x4Shl)                                                             \
   CASE(Int32x4ShrS)                                                            \
+  CASE(Int32x4ShrU)                                                            \
   ____(Int32x4Shift)                                                           \
   SIMD_OP_SIMPLE_BINARY(CASE)                                                  \
   CASE(Float32x4ShuffleMix)                                                    \

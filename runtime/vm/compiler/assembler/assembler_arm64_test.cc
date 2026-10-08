@@ -7174,6 +7174,52 @@ ASSEMBLER_TEST_RUN(VsshlxLargeNegativeCount, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Vushlw, assembler) {
+  __ fldrq(V0, Address(R0, 0));
+  __ fldrq(V1, Address(R0, 16));
+  __ vushlw(V2, V0, V1);
+  __ fstrq(V2, Address(R0, 32));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Vushlw, test) {
+  typedef void (*VushlwCode)(intptr_t) DART_UNUSED;
+  struct {
+    uint32_t values[4];
+    int32_t shifts[4];
+    uint32_t result[4];
+  } buffer;
+  auto check = [&](const uint32_t (&values)[4], const int32_t (&shifts)[4],
+                   const uint32_t (&expected)[4]) {
+    for (intptr_t i = 0; i < 4; i++) {
+      buffer.values[i] = values[i];
+      buffer.shifts[i] = shifts[i];
+      buffer.result[i] = 0xAAAAAAAA;
+    }
+    EXECUTE_TEST_CODE_INTPTR_INTPTR(VushlwCode, test->entry(),
+                                    reinterpret_cast<intptr_t>(&buffer));
+    for (intptr_t i = 0; i < 4; i++) {
+      EXPECT_EQ(expected[i], buffer.result[i]);
+    }
+  };
+  const uint32_t values[4] = {0xFFFFFFF8, 8, 0x80000000, 0x7FFFFFFF};
+  // A positive count shifts left.
+  check(values, {2, 2, 2, 2}, {0xFFFFFFE0, 32, 0, 0xFFFFFFFC});
+  // A negative count shifts right, filling with zeros.
+  check(values, {-1, -1, -1, -1}, {0x7FFFFFFC, 4, 0x40000000, 0x3FFFFFFF});
+  // A shift of 32 or more in either direction shifts every bit out.
+  check(values, {32, 32, 32, 32}, {0, 0, 0, 0});
+  check(values, {-32, -32, -32, -32}, {0, 0, 0, 0});
+  // Each lane uses its own count.
+  check(values, {2, -1, 32, -32}, {0xFFFFFFE0, 4, 0, 0});
+  EXPECT_DISASSEMBLY(
+      "fldrq v0, [r0]\n"
+      "fldrq v1, [r0, #16]\n"
+      "vushlw v2, v0, v1\n"
+      "fstrq v2, [r0, #32]\n"
+      "ret\n");
+}
+
 ASSEMBLER_TEST_GENERATE(Vsubw, assembler) {
   __ LoadImmediate(R4, 31);
   __ LoadImmediate(R5, 10);
