@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
@@ -16,6 +16,7 @@ import 'package:analysis_server/src/services/refactoring/framework/refactoring_c
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_processor.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analyzer/dart/analysis/results.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// A command handler that executes commands used to implement refactorings
@@ -41,6 +42,7 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
     LspClientCapabilities clientCapabilities,
     RefactoringContext context,
     List<Object?> arguments,
+    CancellationToken cancellationToken,
   ) async {
     try {
       // ignore: unawaited_futures
@@ -51,6 +53,7 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
         clientCapabilities,
         context,
         arguments,
+        cancellationToken,
       );
     } finally {
       // ignore: unawaited_futures
@@ -66,6 +69,7 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
     LspClientCapabilities clientCapabilities,
     RefactoringContext context,
     List<Object?> arguments,
+    CancellationToken cancellationToken,
   ) async {
     var producer = generator(context);
     var builder = ChangeBuilder(
@@ -82,6 +86,34 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
           message: reason,
         ),
       );
+    }
+
+    // If the refactor has issues and the client supports prompts, we should
+    // ask whether to proceed.
+    if (status is ComputeStatusWarning) {
+      var prompt = server.userPromptSender;
+
+      if (prompt == null) {
+        // The client doesn't support prompts, so just reject the refactor with
+        // the message like we did before.
+        return ErrorOr.error(
+          ResponseError(
+            code: ServerErrorCodes.refactoringComputeStatusFailure,
+            message: status.message,
+          ),
+        );
+      }
+
+      // Ask the user whether to proceed with the refactor.
+      var userChoice = await prompt(MessageType.warning, status.message, [
+        UserPromptActions.refactorAnyway,
+        UserPromptActions.cancel,
+      ], cancellationToken);
+
+      // Unless they choose to refactor anyway, abort.
+      if (userChoice != UserPromptActions.refactorAnyway) {
+        return success(null);
+      }
     }
 
     var edits = builder.sourceChange.edits;

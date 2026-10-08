@@ -4,7 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
+import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
@@ -197,6 +198,39 @@ abstract class AbstractLspAnalysisServerTest
     } catch (_) {
       return null;
     }
+  }
+
+  /// Invokes [f] and response to an LSP user prompt
+  /// (`window/showMessageRequest`) from the server.
+  ///
+  /// [respond] is invoked with the prompt details and should return the label
+  /// of the action choose, or `null` to dismiss/cancel the prompt without
+  /// providing an answer.
+  Future<T> handleUserPrompt<T>(
+    Future<T> Function() f,
+    String? Function({
+      required MessageType type,
+      required String message,
+      required List<String> actions,
+    })
+    respond,
+  ) {
+    return handleExpectedRequest(
+      Method.window_showMessageRequest,
+      ShowMessageRequestParams.fromJson,
+      f,
+      handler: (ShowMessageRequestParams params) async {
+        var action = respond(
+          type: MessageType.fromLsp(params.type),
+          message: params.message,
+          actions: [
+            for (var action in params.actions ?? const <MessageActionItem>[])
+              action.title,
+          ],
+        );
+        return action == null ? null : MessageActionItem(title: action);
+      },
+    );
   }
 
   @override

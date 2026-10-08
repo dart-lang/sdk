@@ -318,10 +318,14 @@ final class DevToolsServer implements drs.DevToolsServer {
       requestNotificationPermissions: enableNotifications,
     );
 
-    dtdInfo ??= await drs.startDtd(
-      machineMode: machineMode,
-      printDtdUri: printDtdUri,
-    );
+    drs.HostedDtdInfo? hostedDtdInfo;
+    if (dtdInfo == null) {
+      hostedDtdInfo = await drs.startDtd(
+        machineMode: machineMode,
+        printDtdUri: printDtdUri,
+      );
+      dtdInfo = hostedDtdInfo;
+    }
 
     final buildDir = customDevToolsPath ?? _getDevToolsAssetPath().toFilePath();
 
@@ -350,6 +354,7 @@ final class DevToolsServer implements drs.DevToolsServer {
 
     // Re-throw the last exception if we failed to bind.
     if (server == null && ex != null) {
+      await hostedDtdInfo?.shutdown();
       throw ex;
     }
 
@@ -388,7 +393,17 @@ final class DevToolsServer implements drs.DevToolsServer {
     // Serve requests in an error zone to prevent failures
     // when running from another error zone.
     runZonedGuarded(
-      () => shelf.serveRequests(server!, handler!),
+      () => shelf.serveRequests(
+        server!.transform(
+          StreamTransformer<HttpRequest, HttpRequest>.fromHandlers(
+            handleDone: (sink) {
+              unawaited(hostedDtdInfo?.shutdown());
+              sink.close();
+            },
+          ),
+        ),
+        handler!,
+      ),
       (e, _) => print('Error serving requests: $e'),
     );
 

@@ -26,6 +26,7 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
     LspClientCapabilities clientCapabilities,
     RefactoringContext context,
     List<Object?> arguments,
+    CancellationToken cancellationToken,
   );
 
   Future<ErrorOr<T>> handle(
@@ -92,6 +93,7 @@ mixin RefactorCommandHandlerMixin<T> on HandlerHelperMixin, Handler<T> {
         clientCapabilities,
         context,
         arguments,
+        cancellationToken,
       );
     });
   }

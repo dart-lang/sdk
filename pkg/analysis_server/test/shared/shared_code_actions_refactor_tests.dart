@@ -4,7 +4,8 @@
 
 import 'dart:async';
 
-import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/lsp_protocol/protocol.dart' hide MessageType;
+import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
@@ -1023,15 +1024,43 @@ void foo2() {
 
 mixin SharedRefactorCodeActionsTests {
   /// Invokes [f] and handles responding to a "Refactor anyway?" prompt.
-  ///
-  /// This is implemented by each servers own test base class because when
-  /// using LSP-over-Legacy, we will get the native legacy showMessageRequest
-  /// and not a wrapped LSP one, since the server always sends its native
-  /// version of this.
   Future<T> handleRefactorAnywayPrompt<T>(
     Future<T> Function() f, {
     required String expectedMessage,
     required List<String> expectedActions,
     String? selectAction,
-  });
+  }) {
+    return handleUserPrompt(f, ({
+      required type,
+      required message,
+      required actions,
+    }) {
+      // We always expect "Refactor Anyway?" prompts to be warnings, even if
+      // they produce an error, because showing an error notification makes
+      // it seem like the refactor has failed, but we're warning the user about
+      // an issue and asking if they want to proceed.
+      expect(type, MessageType.warning);
+      expect(message, expectedMessage);
+      expect(actions, expectedActions);
+      return selectAction;
+    });
+  }
+
+  /// Invokes [f] and answers one user prompt from the server.
+  ///
+  /// This is implemented by each servers own test base class because when
+  /// using LSP-over-Legacy, we will get the native legacy showMessageRequest
+  /// and not a wrapped LSP one, since the server always sends its native
+  /// version of this.
+  ///
+  /// [respond] returns the label to select, or `null` to dismiss the prompt.
+  Future<T> handleUserPrompt<T>(
+    Future<T> Function() f,
+    String? Function({
+      required MessageType type,
+      required String message,
+      required List<String> actions,
+    })
+    respond,
+  );
 }

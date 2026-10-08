@@ -156,6 +156,36 @@ void f() {
     await _assertNoRefactoring(originalSource: originalSource);
   }
 
+  Future<void> test_inBody_simple_hasConflict_promptsToProceed() async {
+    setSupportsWindowShowMessageRequest();
+
+    var originalSource = '''
+class C {
+  C.na^me();
+  C();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  C();
+  C();
+}
+''';
+    await handleRefactorAnywayPrompt(
+      expectedMessage: "There's already an unnamed constructor.",
+      expectedActions: [
+        UserPromptActions.refactorAnyway,
+        UserPromptActions.cancel,
+      ],
+      selectAction: UserPromptActions.refactorAnyway,
+      () => _assertRefactoring(
+        originalSource: originalSource,
+        expected: expected,
+      ),
+    );
+  }
+
   Future<void> test_inBody_simple_hasConflict_withInBody() async {
     var originalSource = '''
 class C {

@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/refactoring/add_constructor_name.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../support/interactive_forms.dart';
+import '../../../tool/lsp_spec/matchers.dart';
 import '../../../utils/lsp_protocol_extensions.dart';
 import 'refactoring_test_support.dart';
 
@@ -404,6 +406,85 @@ void f() {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> test_interactiveForm_hasConflict() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    var originalSource = '''
+class C {
+  new^();
+  new existingName();
+}
+
+void f() {
+  C();
+}
+''';
+
+    addTestSource(originalSource);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var completedCommand = await completeInteractiveForm(action.command!, {
+      'name': 'existingName',
+    });
+
+    await expectLater(
+      executeCommand(completedCommand),
+      throwsA(
+        isResponseError(
+          ServerErrorCodes.refactoringComputeStatusFailure,
+          message: "Class 'C' already declares constructor with name 'existingName'.",
+        ),
+      ),
+    );
+  }
+
+  Future<void> test_interactiveForm_hasConflict_promptsToProceed() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+    setSupportsWindowShowMessageRequest();
+
+    var originalSource = '''
+class C {
+  new^();
+  new existingName();
+}
+
+void f() {
+  C();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C {
+  new existingName();
+  new existingName();
+}
+
+void f() {
+  C.existingName();
+}
+''';
+
+    addTestSource(originalSource);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+    var completedCommand = await completeInteractiveForm(action.command!, {
+      'name': 'existingName',
+    });
+
+    await handleRefactorAnywayPrompt(
+      expectedMessage:
+          "Class 'C' already declares constructor with name 'existingName'.",
+      expectedActions: [
+        UserPromptActions.refactorAnyway,
+        UserPromptActions.cancel,
+      ],
+      selectAction: UserPromptActions.refactorAnyway,
+      () => verifyCommandEdits(completedCommand, expected),
     );
   }
 

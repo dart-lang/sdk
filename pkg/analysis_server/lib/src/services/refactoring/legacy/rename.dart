@@ -264,6 +264,21 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   Element get element => _element;
 
   @override
+  Future<RefactoringStatus> checkAllConditions() async {
+    var result = RefactoringStatus();
+    result.addStatus(await checkInitialConditions());
+    if (result.hasFatalError) {
+      return result;
+    }
+    result.addStatus(checkNewName());
+    if (result.hasFatalError) {
+      return result;
+    }
+    result.addStatus(await checkFinalConditions());
+    return result;
+  }
+
+  @override
   Future<RefactoringStatus> checkInitialConditions() {
     var result = RefactoringStatus();
     if (element.library?.isInSdk == true) {
