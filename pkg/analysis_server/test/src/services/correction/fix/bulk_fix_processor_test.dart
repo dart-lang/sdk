@@ -206,6 +206,28 @@ var a = new A();
 
 @reflectiveTest
 class HasFixesTest extends BulkFixProcessorTest {
+  Future<void> test_duplicateReturnType_differentLints() async {
+    createAnalysisOptionsFile(
+      experimentalFeatures: experimentalFeatures,
+      lints: [
+        LintNames.always_declare_return_types,
+        LintNames.strict_top_level_inference,
+      ],
+    );
+
+    await resolveTestCode('''
+class Foo {
+  get bar => 1;
+}
+''');
+
+    await assertHasFix('''
+class Foo {
+  int get bar => 1;
+}
+''');
+  }
+
   Future<void> test_hasFixes() async {
     createAnalysisOptionsFile(
       experimentalFeatures: experimentalFeatures,
