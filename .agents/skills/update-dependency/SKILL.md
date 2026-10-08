@@ -61,8 +61,23 @@ dart tools/manage_deps.dart bump third_party/pkg/tools
 
 ## Troubleshooting
 
-- **"Already at <target> - nothing to do"**: The dependency is already at the
-  latest version or the specified target.
+- **"Already at <target> - nothing to do" (or missing recent GitHub commit)**:
+  The dependency is already at the latest version on the mirror, or the
+  `dart.googlesource.com` mirror has not yet synced a recently merged GitHub
+  commit.
+  - **For Googlers**: If a commit recently landed on GitHub (check with
+    `git ls-remote https://github.com/<org>/<repo>.git refs/heads/main`, where
+    `<org>` is typically `dart-lang`) but is not yet on
+    `https://dart.googlesource.com/<repo>.git`, trigger an immediate mirror
+    fetch:
+    ```bash
+    gob-ctl repos update-mirror-config github/<org>/<repo> \
+      --fetch_frequency 5m \
+      --uri https://github.com/<org>/<repo>.git
+    ```
+    Wait ~10 seconds, verify with
+    `git ls-remote https://dart.googlesource.com/<repo>.git refs/heads/main`,
+    and rerun `tools/manage_deps.dart`.
 - **Branch already exists**: If the tool says a branch with the target name
   already exists, you will be prompted to delete it. Usually, it is safe to say
   "y" if you want a fresh bump.
