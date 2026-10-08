@@ -26,7 +26,6 @@ import 'dart:typed_data' show Uint8List;
 import 'package:args/args.dart';
 import 'package:front_end/src/api_unstable/vm.dart';
 import 'package:kernel/binary/tag.dart' show expectedSdkHash;
-import 'package:kernel/kernel.dart' show Component, loadComponentFromBytes;
 import 'package:path/path.dart' as path;
 
 import '../frontend_server.dart';
@@ -56,22 +55,6 @@ extension on DateTime {
           millisecondsSinceEpoch % stateGranularity.inMilliseconds,
     );
   }
-}
-
-/// Safely converts [maybeUri] to a local file path.
-///
-/// Returns [maybeUri] as-is if it is already a raw path (e.g. `C:\foo.dart`
-/// or `/foo.dart`) or a non-file URI. This avoids crashes on Windows where
-/// drive letters (like `C:`) are incorrectly interpreted as URI schemes by
-/// [Uri.parse].
-String _maybeUriToFilename(String maybeUri) {
-  final Uri? uri = Uri.tryParse(maybeUri);
-  if (uri != null && (uri.scheme == 'file' || uri.scheme == '')) {
-    try {
-      return uri.toFilePath();
-    } catch (_) {}
-  }
-  return maybeUri;
 }
 
 enum _ResidentState { waitingForFirstCompile, compiling, waitingForRecompile }
@@ -217,59 +200,6 @@ class ResidentCompiler {
     );
   }
 
-  /// WARNING: [compile] must be called on this compiler to populate the
-  /// required context in it before [compileExpression] can be called on it.
-  Future<String> compileExpression(
-    String expression,
-    List<String> definitions,
-    List<String> definitionTypes,
-    List<String> typeDefinitions,
-    List<String> typeBounds,
-    List<String> typeDefaults,
-    String libraryUri,
-    String? klass,
-    String? method,
-    int offset,
-    String? scriptUri,
-    bool isStatic,
-  ) async {
-    await _compiler.compileExpression(
-      expression,
-      definitions,
-      definitionTypes,
-      typeDefinitions,
-      typeBounds,
-      typeDefaults,
-      libraryUri,
-      klass,
-      method,
-      offset,
-      scriptUri,
-      isStatic,
-    );
-
-    _compilerOutput.clear();
-    // [incrementalMode] can only ever be [false] if `--aot` was passed in the
-    // 'compileExpression' request received by the [ResidentFrontendServer],
-    //  which should be impossible.
-    assert(incrementalMode);
-    // Force the compiler to produce complete kernel files on each request, even
-    // when incrementally compiled.
-    _compiler
-      ..acceptLastDelta()
-      ..resetIncrementalCompiler();
-    resetStateToWaitingForFirstCompile();
-
-    final List<String> errors = _compiler.errors;
-    final int errorCount = errors.length;
-    return jsonEncode({
-      'success': errorCount == 0,
-      'errorCount': errorCount,
-      if (errorCount > 0) 'compilerOutputLines': errors,
-      'kernelBytes': base64Encode(_outputDill.readAsBytesSync()),
-    });
-  }
-
   /// Reads the compiler's [outputLines] to keep track of which files
   /// need to be tracked. Adds correctly ANSI formatted output to
   /// the [_formattedOutput] list.
@@ -359,30 +289,11 @@ class ResidentCompiler {
 /// residentListenAndCompile method.
 class ResidentFrontendServer {
   static const String _commandString = 'command';
-  static const String _replaceCachedDillString = 'replaceCachedDill';
-  static const String _replacementDillPathString = 'replacementDillPath';
   static const String _compileString = 'compile';
   static const String _executableString = 'executable';
   static const String _packageString = 'packages';
   static const String _successString = 'success';
   static const String _outputString = 'output-dill';
-  static const String _useCachedCompilerOptionsAsBaseString =
-      'useCachedCompilerOptionsAsBase';
-  static const String _compileExpressionString = 'compileExpression';
-  static const String _libraryUriString = 'libraryUri';
-  static const String _rootLibraryUriString = 'rootLibraryUri';
-  static const String _dillExtensionString = '.dill';
-  static const String _expressionString = 'expression';
-  static const String _definitionsString = 'definitions';
-  static const String _definitionTypesString = 'definitionTypes';
-  static const String _typeDefinitionsString = 'typeDefinitions';
-  static const String _typeBoundsString = 'typeBounds';
-  static const String _typeDefaultsString = 'typeDefaults';
-  static const String _classString = 'class';
-  static const String _methodString = 'method';
-  static const String _offsetString = 'offset';
-  static const String _scriptUriString = 'scriptUri';
-  static const String _isStaticString = 'isStatic';
   static const String _shutdownString = 'shutdown';
   static const String _recordUsesString = 'record-uses';
   static const int _compilerLimit = 3;
@@ -489,53 +400,6 @@ class ResidentFrontendServer {
     }
   }
 
-  static Future<String> _handleReplaceCachedDillRequest(
-    Map<String, dynamic> request,
-  ) async {
-    if (request[_replacementDillPathString] == null) {
-      return _encodeErrorMessage(
-        "'$_replaceCachedDillString' requests must include a "
-        "'$_replacementDillPathString' property.",
-        restartMightHelp: false,
-      );
-    }
-
-    final File replacementDillFile = new File(
-      request[_replacementDillPathString],
-    );
-
-    final String canonicalizedLibraryPath;
-    try {
-      final Component component = loadComponentFromBytes(
-        replacementDillFile.readAsBytesSync(),
-      );
-      canonicalizedLibraryPath = path.canonicalize(
-        component.mainMethod!.enclosingLibrary.fileUri.toFilePath(),
-      );
-
-      final String cachedDillPath;
-      try {
-        cachedDillPath = computeCachedDillAndCompilerOptionsPaths(
-          canonicalizedLibraryPath,
-        ).cachedDillPath;
-      } on Exception catch (e) {
-        return _encodeErrorMessage(e.toString(), restartMightHelp: true);
-      }
-      replacementDillFile.copySync(cachedDillPath);
-    } catch (e) {
-      return _encodeErrorMessage(
-        'Failed to replace cached dill',
-        restartMightHelp: true,
-      );
-    }
-
-    if (compilers[canonicalizedLibraryPath] != null) {
-      compilers[canonicalizedLibraryPath]!.resetStateToWaitingForFirstCompile();
-    }
-
-    return jsonEncode({_successString: true});
-  }
-
   static Future<String> _handleCompileRequest(
     Map<String, dynamic> request,
   ) async {
@@ -605,109 +469,6 @@ class ResidentFrontendServer {
     return jsonEncode({...response, _outputString: outputDillPath});
   }
 
-  static Future<String> _handleCompileExpressionRequest(
-    Map<String, dynamic> request,
-  ) async {
-    final String canonicalizedLibraryPath;
-    try {
-      if ((request[_libraryUriString] as String).startsWith('dart:')) {
-        // An argument to the [entrypoint] parameter of
-        // [FrontendCompiler.compile] is mandatory, and
-        // [canonicalizedLibraryPath] is what we will use as that argument, so
-        // if the library URI provided in the request begins with 'dart:', then
-        // we use the URI of the root library of the isolate group in which the
-        // evaluation is taking place to compute [canonicalizedLibraryPath]
-        // instead.
-        canonicalizedLibraryPath = path.canonicalize(
-          _maybeUriToFilename(request[_rootLibraryUriString]),
-        );
-      } else {
-        canonicalizedLibraryPath = path.canonicalize(
-          _maybeUriToFilename(request[_libraryUriString]),
-        );
-      }
-    } catch (e, st) {
-      // TODO(jensj): What can throw here?
-      return _encodeErrorMessage(
-        "Request contains invalid '$_libraryUriString' property: $e\n$st",
-        restartMightHelp: true,
-      );
-    }
-
-    final String cachedDillPath;
-    final File cachedCompilerOptions;
-    try {
-      final CachedDillAndCompilerOptionsPaths computationResult =
-          computeCachedDillAndCompilerOptionsPaths(canonicalizedLibraryPath);
-      cachedDillPath = computationResult.cachedDillPath;
-      cachedCompilerOptions = new File(
-        computationResult.cachedCompilerOptionsPath,
-      );
-    } on Exception catch (e) {
-      return _encodeErrorMessage(e.toString(), restartMightHelp: true);
-    }
-    // Make the [ResidentCompiler] output the compiled expression to
-    // [compiledExpressionDillPath] to prevent it from overwriting the
-    // cached program dill.
-    assert(cachedDillPath.endsWith(_dillExtensionString));
-    final String compiledExpressionDillPath = cachedDillPath.replaceRange(
-      cachedDillPath.length - _dillExtensionString.length,
-      null,
-      '.expr.dill',
-    );
-
-    final ArgResults options = _generateCompilerOptions(
-      request: request,
-      cachedCompilerOptions: cachedCompilerOptions,
-      outputDillOverride: compiledExpressionDillPath,
-      initializeFromDillPath: cachedDillPath,
-    );
-
-    final ResidentCompiler residentCompiler = _getResidentCompilerForEntrypoint(
-      canonicalizedLibraryPath: canonicalizedLibraryPath,
-      compileOptions: options,
-      cachedCompilerOptions: cachedCompilerOptions,
-      cachedDill: new File(cachedDillPath),
-    );
-
-    final String expression = request[_expressionString];
-    final List<String> definitions =
-        (request[_definitionsString] as List<dynamic>).cast<String>();
-    final List<String> definitionTypes =
-        (request[_definitionTypesString] as List<dynamic>).cast<String>();
-    final List<String> typeDefinitions =
-        (request[_typeDefinitionsString] as List<dynamic>).cast<String>();
-    final List<String> typeBounds =
-        (request[_typeBoundsString] as List<dynamic>).cast<String>();
-    final List<String> typeDefaults =
-        (request[_typeDefaultsString] as List<dynamic>).cast<String>();
-    final String libraryUri = request[_libraryUriString];
-    final String? klass = request[_classString];
-    final String? method = request[_methodString];
-    final int offset = request[_offsetString];
-    final String? scriptUri = request[_scriptUriString];
-    final bool isStatic = request[_isStaticString];
-
-    // [residentCompiler.compile] must be called before
-    // [residentCompiler.compileExpression] can be called. See the
-    // documentation of [ResidentCompiler.compile] for more information.
-    await residentCompiler.compile();
-    return await residentCompiler.compileExpression(
-      expression,
-      definitions,
-      definitionTypes,
-      typeDefinitions,
-      typeBounds,
-      typeDefaults,
-      libraryUri,
-      klass,
-      method,
-      offset,
-      scriptUri,
-      isStatic,
-    );
-  }
-
   /// Takes in JSON [input] from the socket and compiles the request,
   /// using incremental compilation if possible. Returns a JSON string to be
   /// sent back to the client socket containing either an error message or the
@@ -729,12 +490,8 @@ class ResidentFrontendServer {
 
     try {
       switch (request[_commandString]) {
-        case _replaceCachedDillString:
-          return await _handleReplaceCachedDillRequest(request);
         case _compileString:
           return await _handleCompileRequest(request);
-        case _compileExpressionString:
-          return await _handleCompileExpressionRequest(request);
         case _shutdownString:
           return _shutdownJsonResponse;
         default:
@@ -763,39 +520,12 @@ class ResidentFrontendServer {
     required String initializeFromDillPath,
   }) {
     final Map<String, dynamic> options = {};
-    if (request[_useCachedCompilerOptionsAsBaseString] == true &&
-        cachedCompilerOptions.existsSync()) {
-      // If [request[_useCachedCompilerOptionsAsBaseString]] is true, then we
-      // start with the cached options and apply any options specified in
-      // [request] as overrides.
-      final String cachedCompilerOptionsContents = cachedCompilerOptions
-          .readAsStringSync();
-      final List<String> cachedCompilerOptionsAsList = (jsonDecode(
-        cachedCompilerOptionsContents,
-      ) as List<dynamic>).cast<String>();
-      final ArgResults cachedOptions = argParser.parse(
-        cachedCompilerOptionsAsList,
-      );
-      for (final String option in cachedOptions.options) {
-        options[option] = cachedOptions[option];
-      }
-    }
-
     final ArgResults overrides = argParser.parse(<String>[
       '--sdk-root=${_sdkUri.toFilePath()}',
       if (!(request['aot'] ?? false)) '--incremental',
       '--platform=${_platformKernelUri.path}',
       '--output-dill=$outputDillOverride',
       '--initialize-from-dill=$initializeFromDillPath',
-      // We can assume that the cached dill is up-to-date when handling
-      // 'compileExpression' requests because if dartdev was given a source file
-      // to run, then it must have compiled it with the resident frontend
-      // compiler, guaranteeing that the cached dill is up-to-date, and if
-      // dartdev was given a dill file to run, then it must have used the
-      // resident frontend compiler's 'replaceCachedDill' endpoint to update the
-      // dill cache.
-      if (request[_commandString] == _compileExpressionString)
-        '--assume-initialize-from-dill-up-to-date',
       '--target=vm',
       '--filesystem-scheme',
       'org-dartlang-root',

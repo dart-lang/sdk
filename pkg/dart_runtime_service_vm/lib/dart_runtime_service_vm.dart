@@ -36,7 +36,6 @@ class DartRuntimeServiceVMBackend
     required super.frontend,
     required this.signalWatch,
     required Stream<VmRunningIsolate> runningIsolatesStream,
-    required this.residentCompilerInfoFile,
     required this._ddsManager,
     this.serviceInfoFilename,
   }) : isolateManager = VmIsolateManager(
@@ -86,8 +85,6 @@ class DartRuntimeServiceVMBackend
   late final VmExpressionEvaluator expressionEvaluator;
 
   late final _vmServiceRpcs = DartRuntimeServiceVmRpcs(backend: this);
-
-  final File? residentCompilerInfoFile;
 
   /// Adds support for launching and accepting connections from the
   /// Dart Development Service.

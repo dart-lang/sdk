@@ -5,8 +5,6 @@
 import 'dart:async';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
-import 'package:frontend_server/resident_frontend_server_utils.dart'
-    as frontend_server;
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import '../dart_runtime_service_vm.dart';
@@ -138,17 +136,9 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
 
     RpcResponse result;
     try {
-      if (backend.residentCompilerInfoFile?.existsSync() ?? false) {
-        logger.info('Using resident frontend server for compilation.');
-        result = await _compileExpressionWithResidentFrontendServer(
-          commonParams: commonParams,
-          scope: scope,
-        );
-      } else {
-        result = await backend.sendToRuntime(
-          json_rpc.Parameters(kInternalCompileExpressionRpc, compileParams),
-        );
-      }
+      result = await backend.sendToRuntime(
+        json_rpc.Parameters(kInternalCompileExpressionRpc, compileParams),
+      );
       if (result case {
         ExpressionEvaluator.kKernelBytes: final String kernelBytes,
       }) {
@@ -158,51 +148,6 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
     } on json_rpc.RpcException catch (e) {
       logger.warning('Failed to compile expression: $e (${e.data}).');
       RpcException.expressionCompilationError.throwException(data: e.data);
-    }
-  }
-
-  Future<RpcResponse> _compileExpressionWithResidentFrontendServer({
-    required Map<String, Object?> commonParams,
-    required Map<String, Object?> scope,
-  }) async {
-    final {
-      ExpressionEvaluator.kExpression: expression as String,
-      ExpressionEvaluator.kDefinitions: definitions as List<Object?>,
-      ExpressionEvaluator.kDefinitionTypes: definitionTypes as List<Object?>,
-      ExpressionEvaluator.kTypeDefinitions: typeDefinitions as List<Object?>,
-      ExpressionEvaluator.kTypeBounds: typeBounds as List<Object?>,
-      ExpressionEvaluator.kTypeDefaults: typeDefaults as List<Object?>,
-      ExpressionEvaluator.kLibraryUri: libraryUri as String,
-      ExpressionEvaluator.kIsStatic: isStatic as bool,
-    } = commonParams;
-
-    final method = commonParams[ExpressionEvaluator.kMethod] as String?;
-    final scriptUri = commonParams[ExpressionEvaluator.kScriptUri] as String?;
-
-    try {
-      final result = await frontend_server.invokeCompileExpression(
-        expression: expression,
-        definitions: definitions.cast<String>(),
-        definitionTypes: definitionTypes.cast<String>(),
-        typeDefinitions: typeDefinitions.cast<String>(),
-        typeBounds: typeBounds.cast<String>(),
-        typeDefaults: typeDefaults.cast<String>(),
-        libraryUri: libraryUri,
-        klass: scope[ExpressionEvaluator.kKlass] as String?,
-        method: method,
-        offset: scope[ExpressionEvaluator.kTokenPos] as int,
-        scriptUri: scriptUri,
-        isStatic: isStatic,
-        rootLibraryUri: scope[ExpressionEvaluator.kRootLibraryUri] as String?,
-        serverInfoFile: backend.residentCompilerInfoFile!,
-      );
-      return <String, Object?>{
-        ExpressionEvaluator.kKernelBytes: result.kernelBytes,
-      };
-    } on frontend_server.CompileException catch (e) {
-      RpcException.expressionCompilationError.throwExceptionWithDetails(
-        details: e.message,
-      );
     }
   }
 }
