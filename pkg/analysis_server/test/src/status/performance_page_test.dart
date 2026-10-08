@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:convert';
+
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart' as pages;
+import 'package:analysis_server/src/status/pages/exceptions_page.dart';
 import 'package:analysis_server/src/status/pages/performance_page.dart';
 import 'package:analyzer/src/file_system/timing_resource_provider.dart';
 import 'package:test/test.dart';
@@ -49,6 +52,7 @@ class PerformancePageTest extends PubPackageAnalysisServerTest {
     var countsBefore = callCounts();
     expect(page.navDetail, '1');
     await _generate();
+    await _generateNavDetail();
     expect(callCounts(), countsBefore);
   }
 
@@ -92,7 +96,6 @@ class PerformancePageTest extends PubPackageAnalysisServerTest {
     expect(page.navDetailClass, 'counter-red');
 
     var html = await _generate();
-    expect(html, contains('<span class="counter counter-red">1</span>'));
     expect(html, contains('Potential Problems'));
     expect(html, contains('Detected <strong>1</strong> large library cycle'));
     expect(html, contains('22 libraries</strong>'));
@@ -117,7 +120,6 @@ class PerformancePageTest extends PubPackageAnalysisServerTest {
     expect(page.navDetailClass, 'counter-red');
 
     var html = await _generate();
-    expect(html, contains('<span class="counter counter-red">1</span>'));
     expect(html, contains('Potential Problems'));
     expect(html, contains('There are <strong>11</strong> analysis contexts'));
     expect(html, contains('pub workspaces'));
@@ -147,9 +149,12 @@ class PerformancePageTest extends PubPackageAnalysisServerTest {
     expect(server.driverMap.length, greaterThan(10));
     expect(page.navDetail, '2');
     expect(page.navDetailClass, 'counter-red');
+    expect(await _generateNavDetail(), {
+      'detail': '2',
+      'detailClass': 'counter-red',
+    });
 
     var html = await _generate();
-    expect(html, contains('<span class="counter counter-red">2</span>'));
     expect(html, contains('Potential Problems'));
     expect(html, contains('There are <strong>11</strong> analysis contexts'));
     expect(html, contains('Detected <strong>1</strong> large library cycle'));
@@ -174,13 +179,97 @@ class PerformancePageTest extends PubPackageAnalysisServerTest {
     expect(page.navDetailClass, 'counter-red');
 
     var html = await _generate();
-    expect(html, contains('<span class="counter counter-red">1</span>'));
     expect(html, contains('Potential Problems'));
     expect(html, contains('Detected <strong>22</strong> large library cycles'));
     expect(
       html,
       contains('plus 2 more potentially problematic library cycles.'),
     );
+  }
+
+  Future<void> test_navDetail_json() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageRootPath/node_modules/pkg/index.js', 'console.log();');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    var params = {DiagnosticPageWithNav.navDetailParameter: ''};
+    expect(page.contentType(params).mimeType, 'application/json');
+    expect(page.contentType({}).mimeType, 'text/html');
+    expect(await _generateNavDetail(), {
+      'detail': '1',
+      'detailClass': 'counter-red',
+    });
+  }
+
+  Future<void> test_navDetail_json_noProblems() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+
+    expect(await _generateNavDetail(), {
+      'detail': null,
+      'detailClass': 'counter-red',
+    });
+  }
+
+  Future<void> test_navDetail_otherPage() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageRootPath/node_modules/pkg/index.js', 'console.log();');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+    var performancePage = _useCountingPerformancePage();
+
+    // The navigation of another page links to the Performance page without
+    // computing its detail, so that rendering the page does not wait for it...
+    var html = await ExceptionsPage(site).generate({});
+    expect(performancePage.navDetailCount, 0);
+    expect(
+      html,
+      contains(
+        '<a class="menu-item" href="performance" '
+        'data-nav-detail-url="performance?navDetail">Performance</a>',
+      ),
+    );
+    expect(
+      html,
+      contains("document.querySelectorAll('a[data-nav-detail-url]')"),
+    );
+    expect(html, isNot(contains('<span class="counter counter-red">')));
+
+    // ...whereas the detail of a page which is cheap to compute is rendered
+    // directly.
+    expect(
+      html,
+      contains('href="exceptions">Exceptions<span class="counter">0</span>'),
+    );
+  }
+
+  Future<void> test_navDetail_performancePage() async {
+    newFile('$testPackageLibPath/a.dart', 'class A {}');
+    newFile('$testPackageRootPath/node_modules/pkg/index.js', 'console.log();');
+    await setRoots(included: [testPackageRootPath], excluded: []);
+    await waitForTasksFinished();
+    var performancePage = _useCountingPerformancePage();
+
+    // The Performance page does not include its own detail in its navigation
+    // either. The browser loads it.
+    expect(performancePage.loadsNavDetailAsynchronously, isTrue);
+    var html = await performancePage.generate({});
+    expect(performancePage.navDetailCount, 0);
+    expect(
+      html,
+      contains(
+        '<a class="menu-item selected" href="performance" '
+        'data-nav-detail-url="performance?navDetail">Performance</a>',
+      ),
+    );
+    expect(
+      html,
+      contains("document.querySelectorAll('a[data-nav-detail-url]')"),
+    );
+    expect(html, isNot(contains('<span class="counter counter-red">')));
+    expect(html, contains('Potential Problems'));
   }
 
   Future<void> test_nodeModules_excluded() async {
@@ -233,7 +322,6 @@ analyzer:
     expect(page.navDetailClass, 'counter-red');
 
     var html = await _generate();
-    expect(html, contains('<span class="counter counter-red">1</span>'));
     expect(html, contains('Potential Problems'));
     expect(html, contains('node_modules Directories'));
     expect(
@@ -246,7 +334,39 @@ analyzer:
     expect(html, contains('**/node_modules/**'));
   }
 
-  Future<String> _generate() async {
-    return await page.generate({});
+  Future<String> _generate([Map<String, String> params = const {}]) async {
+    return await page.generate(params);
+  }
+
+  /// Requests the navigation detail of [page], like the browser does, and
+  /// returns the decoded JSON response.
+  Future<Object?> _generateNavDetail() async {
+    var response = await _generate({
+      DiagnosticPageWithNav.navDetailParameter: '',
+    });
+    return jsonDecode(response);
+  }
+
+  /// Replaces the Performance page of [site], which is what other pages link to
+  /// in their navigation, with one that counts how often its navigation detail
+  /// is computed.
+  _CountingPerformancePage _useCountingPerformancePage() {
+    var countingPage = _CountingPerformancePage(site);
+    var index = site.pages.indexWhere((page) => page is PerformancePage);
+    site.pages[index] = countingPage;
+    return countingPage;
+  }
+}
+
+/// A [PerformancePage] that counts how often its [navDetail] is computed.
+class _CountingPerformancePage extends PerformancePage {
+  int navDetailCount = 0;
+
+  new(super.site);
+
+  @override
+  String? get navDetail {
+    navDetailCount++;
+    return super.navDetail;
   }
 }

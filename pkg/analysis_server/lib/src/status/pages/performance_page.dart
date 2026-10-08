@@ -28,6 +28,11 @@ class PerformancePage extends DiagnosticPageWithNav {
             'analysis server.',
       );
 
+  // Computing the detail checks all of the components, which can involve
+  // walking the file system; see [DiagnosticPageWithNav.navDetailParameter].
+  @override
+  bool get loadsNavDetailAsynchronously => true;
+
   @override
   String? get navDetail {
     var problemCount = _collectComponents()
