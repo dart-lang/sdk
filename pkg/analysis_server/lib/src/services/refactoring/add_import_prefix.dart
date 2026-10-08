@@ -100,7 +100,7 @@ class AddImportPrefix extends ParameterizedRefactoringProducer {
     refactoring.newName = prefixName;
     var status = await refactoring.checkAllConditions();
     if (status.hasError) {
-      return ComputeStatusFailure();
+      return ComputeStatusFailure(reason: status.message);
     }
     await refactoring.createChange(builder: builder);
     return ComputeStatusSuccess();
