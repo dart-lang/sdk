@@ -14,6 +14,7 @@ import '../resource_provider/resource_provider_file.dart';
 import '../resource_provider/resource_provider_wrap_cwd.dart';
 import '../shared.dart';
 import '../util/stdout_recorder.dart';
+import 'pub_http_client.dart' if (dart.library.io) 'pub_http_client_io.dart';
 
 const supportedPubCommands = [
   'get',
@@ -61,7 +62,7 @@ Future<({String log})> pub({
       if (config.pubHostedUrl?.isNotEmpty == true)
         'PUB_HOSTED_URL': ?config.pubHostedUrl,
     },
-    httpClient: http.Client(),
+    httpClient: createPubHttpClient(),
   ).run(['pub', command, ...args]);
 
   if (exitCode != 0) {
