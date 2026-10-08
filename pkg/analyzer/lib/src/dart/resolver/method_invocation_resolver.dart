@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 import 'package:analyzer/src/generated/inference_log.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
@@ -37,9 +38,6 @@ class MethodInvocationResolver with ScopeHelpers {
   /// The URI of [_definingLibrary].
   final Uri _definingLibraryUri;
 
-  /// The library fragment of the compilation unit being visited.
-  final LibraryFragmentImpl _libraryFragment;
-
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
@@ -47,11 +45,13 @@ class MethodInvocationResolver with ScopeHelpers {
     : _inheritance = _typeAnalyzer.inheritance,
       _definingLibrary = _typeAnalyzer.definingLibrary,
       _definingLibraryUri = _typeAnalyzer.definingLibrary.uri,
-      _libraryFragment = _typeAnalyzer.libraryFragment,
       _extensionResolver = _typeAnalyzer.extensionResolver;
 
   @override
   DiagnosticReporter get diagnosticReporter => _typeAnalyzer.diagnosticReporter;
+
+  LookupFailureReporter get _lookupFailureReporter =>
+      _typeAnalyzer.lookupFailureReporter;
 
   TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
@@ -148,14 +148,12 @@ class MethodInvocationResolver with ScopeHelpers {
         // The parser has already reported the missing name. But the prefix
         // is still used, so its imports must not be reported as unused.
         prefix.scope.notifyPrefixUsedWithoutName();
-      } else if (!_libraryFragment.shouldIgnoreUndefined(
-        prefix: prefix.name,
-        name: name.lexeme,
-      )) {
-        diagnosticReporter.report(
-          diag.undefinedFunction.withArguments(name: name.lexeme).at(name),
-        );
       }
+      _lookupFailureReporter.reportReadFailure(
+        domain: PrefixedLookupDomain(prefix),
+        name: name,
+        syntax: ReadSyntax.invocation,
+      );
     }
     _resolveNamedInvocation(
       node,
@@ -224,14 +222,11 @@ class MethodInvocationResolver with ScopeHelpers {
     if (element == null) {
       var receiverType = _typeAnalyzer.thisType;
       if (receiverType == null) {
-        if (!_libraryFragment.shouldIgnoreUndefined(
-          prefix: null,
-          name: name.lexeme,
-        )) {
-          diagnosticReporter.report(
-            diag.undefinedFunction.withArguments(name: name.lexeme).at(name),
-          );
-        }
+        _lookupFailureReporter.reportReadFailure(
+          domain: UnqualifiedLookupDomain(thisType: null),
+          name: name,
+          syntax: ReadSyntax.invocation,
+        );
       } else {
         var setter = lookup.setter;
         // An instance setter can hide an inherited getter. A top-level,
@@ -272,12 +267,11 @@ class MethodInvocationResolver with ScopeHelpers {
             !isFunctionInterfaceCall &&
             needsError &&
             !(receiverType is InterfaceTypeImpl &&
-                receiverType.element.name == null) &&
-            !name.isSynthetic) {
-          diagnosticReporter.report(
-            diag.undefinedMethod
-                .withArguments(methodName: name.lexeme, type: receiverType)
-                .at(name),
+                receiverType.element.name == null)) {
+          _lookupFailureReporter.reportReadFailure(
+            domain: UnqualifiedLookupDomain(thisType: receiverType),
+            name: name,
+            syntax: ReadSyntax.invocation,
           );
         }
       }
@@ -584,13 +578,10 @@ class MethodInvocationResolver with ScopeHelpers {
           .getOverrideMember(receiver, name.lexeme)
           .getter2;
       if (member == null) {
-        diagnosticReporter.report(
-          diag.undefinedExtensionMethod
-              .withArguments(
-                methodName: name.lexeme,
-                extensionName: receiver.element.name!,
-              )
-              .at(name),
+        _lookupFailureReporter.reportReadFailure(
+          domain: ExtensionOverrideLookupDomain(receiver.element),
+          name: name,
+          syntax: ReadSyntax.invocation,
         );
       } else if (member.isStatic) {
         diagnosticReporter.report(
@@ -729,12 +720,11 @@ class MethodInvocationResolver with ScopeHelpers {
         !isFunctionInterfaceCall &&
         result.needsGetterError &&
         !(receiverType is InterfaceTypeImpl &&
-            receiverType.element.name == null) &&
-        !name.isSynthetic) {
-      diagnosticReporter.report(
-        diag.undefinedMethod
-            .withArguments(methodName: name.lexeme, type: receiverType)
-            .at(name),
+            receiverType.element.name == null)) {
+      _lookupFailureReporter.reportReadFailure(
+        domain: InstanceLookupDomain(receiverType),
+        name: name,
+        syntax: ReadSyntax.invocation,
       );
     }
     var invocation = _createNamedInvocation(node, receiver);
@@ -838,8 +828,9 @@ class MethodInvocationResolver with ScopeHelpers {
     var name = node.namedInvocationParts!.selector.name;
     var namespace = receiver.element;
     var interface = switch (namespace) {
-      InterfaceElement element => element,
-      TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
+      InterfaceElementImpl element => element,
+      TypeAliasElementImpl(aliasedType: InterfaceTypeImpl(:var element)) =>
+        element,
       _ => null,
     };
     InternalExecutableElement? element;
@@ -891,31 +882,21 @@ class MethodInvocationResolver with ScopeHelpers {
       );
       return;
     }
-    // For a synthetic name, the parser has already reported that it is missing.
-    if (element == null && !name.isSynthetic) {
-      if (namespace is ExtensionElement) {
-        diagnosticReporter.report(
-          diag.undefinedExtensionMethod
-              .withArguments(
-                methodName: name.lexeme,
-                extensionName: namespace.name!,
-              )
-              .at(name),
-        );
-      } else if (interface != null) {
-        diagnosticReporter.report(
-          diag.undefinedMethodOnTypeLiteral
-              .withArguments(
-                methodName: name.lexeme,
-                typeName: interface.displayName,
-              )
-              .at(name),
-        );
-      } else {
-        // Function-type aliases are converted to expression receivers before
-        // qualified invocation resolution.
+    if (element == null) {
+      // Function-type aliases are converted to expression receivers before
+      // qualified invocation resolution.
+      var declaration = switch (namespace) {
+        ExtensionElementImpl() => namespace,
+        _ => interface,
+      };
+      if (declaration == null) {
         throw StateError('Unexpected static invocation qualifier: $namespace');
       }
+      _lookupFailureReporter.reportReadFailure(
+        domain: StaticLookupDomain(declaration),
+        name: name,
+        syntax: ReadSyntax.invocation,
+      );
     }
     _resolveNamedInvocation(
       _createNamedInvocation(node, receiver),
@@ -1006,13 +987,10 @@ class MethodInvocationResolver with ScopeHelpers {
               .at(name),
         );
       } else {
-        diagnosticReporter.report(
-          diag.undefinedSuperMethod
-              .withArguments(
-                methodName: name.lexeme,
-                typeName: enclosingInterface.firstFragment.displayName,
-              )
-              .at(name),
+        _lookupFailureReporter.reportReadFailure(
+          domain: SuperLookupDomain(enclosingInterface.thisType),
+          name: name,
+          syntax: ReadSyntax.invocation,
         );
       }
     }

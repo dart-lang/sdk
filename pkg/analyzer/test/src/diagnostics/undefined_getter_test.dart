@@ -168,6 +168,21 @@ f(C c) {
 ''');
   }
 
+  test_functionAlias_notInstantiated_getter_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef Fn<T> = void Function(T);
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as a;
+
+void f() {
+  a.Fn.foo;
+//     ^^^
+// [diag.undefinedGetterOnFunctionType] The getter 'foo' isn't defined for the 'a.Fn' function type.
+}
+''');
+  }
+
   test_functionAlias_typeInstantiated_getter() async {
     await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);

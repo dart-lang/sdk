@@ -16,6 +16,21 @@ main() {
 
 @reflectiveTest
 class UndefinedSetterTest extends PubPackageResolutionTest {
+  test_functionAlias_notInstantiated_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+typedef Fn<T> = void Function(T);
+''');
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart' as a;
+
+void f() {
+  a.Fn.foo = 0;
+//     ^^^
+// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'a.Fn' function type.
+}
+''');
+  }
+
   test_functionAlias_typeInstantiated() async {
     await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);

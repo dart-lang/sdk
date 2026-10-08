@@ -29,6 +29,7 @@ import 'package:analyzer/src/dart/resolver/scope_context.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// Builds scopes, and resolves everything found by scope lookup: local and
@@ -190,8 +191,15 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
         }
       }
 
-      _diagnosticReporter.report(
-        diag.undefinedIdentifier.withArguments(name: name).at(node.name),
+      LookupFailureReporter(
+        _diagnosticReporter,
+        _libraryFragment,
+      ).reportWriteFailure(
+        // Only messages for failed reads name the type of `this`, so this
+        // write doesn't need it, and the scope analysis doesn't know it.
+        domain: UnqualifiedLookupDomain(thisType: null),
+        name: node.name,
+        foundInstead: null,
       );
     } else if (!(element is LocalVariableElement ||
         element is FormalParameterElement)) {

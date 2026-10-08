@@ -134,7 +134,6 @@ Map<E, String> a = {.};
 // [diag.expressionInMap] Expressions can't be used in a map literal.
 //                   ^
 // [diag.missingIdentifier] Expected an identifier.
-// [diag.dotShorthandUndefinedGetter][column 22][length 0] The static getter '' isn't defined for the context type 'E'.
 ''');
 
     var node = result.findNode.singleSetOrMapLiteral;

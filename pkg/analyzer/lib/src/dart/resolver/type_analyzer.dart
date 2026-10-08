@@ -73,6 +73,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/dead_code_verifier.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 import 'package:analyzer/src/error/nullable_dereference_verifier.dart';
 import 'package:analyzer/src/error/super_formal_parameters_verifier.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
@@ -292,6 +293,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   /// Helper for extension method resolution.
   late final ExtensionMemberResolver extensionResolver =
       ExtensionMemberResolver(this);
+
+  /// Reports names and members that failed to resolve.
+  late final LookupFailureReporter lookupFailureReporter =
+      LookupFailureReporter(diagnosticReporter, libraryFragment);
 
   /// Helper for resolving properties on types.
   late final TypePropertyResolver typePropertyResolver = TypePropertyResolver(
@@ -1684,13 +1689,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     );
 
     if (result.needsGetterError) {
-      diagnosticReporter.report(
-        diag.undefinedGetter
-            .withArguments(
-              memberName: nameToken.lexeme,
-              type: receiverType.unwrapTypeView<TypeImpl>(),
-            )
-            .at(nameToken),
+      lookupFailureReporter.reportReadFailure(
+        domain: InstanceLookupDomain(receiverType.unwrapTypeView()),
+        name: nameToken,
+        syntax: ReadSyntax.reference,
       );
     }
 
@@ -5504,21 +5506,21 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         inferenceLogWriter?.exitExpression(node);
         return;
       }
-      if (shorthandContext case InvalidDotShorthandContextResolutionImpl(
-        contextType: null,
-      )) {
-        diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
-      } else {
-        diagnosticReporter.report(
-          diag.dotShorthandUndefinedInvocation
-              .withArguments(
-                name: head.name.lexeme,
-                contextType:
-                    interfaceElement?.displayName ??
-                    contextType.getDisplayString(),
-              )
-              .at(head.name),
-        );
+      switch (shorthandContext) {
+        case ValidDotShorthandContextResolutionImpl():
+          lookupFailureReporter.reportReadFailure(
+            domain: DotShorthandLookupDomain.declaration(shorthandContext),
+            name: head.name,
+            syntax: ReadSyntax.invocation,
+          );
+        case InvalidDotShorthandContextResolutionImpl(:var contextType?):
+          lookupFailureReporter.reportReadFailure(
+            domain: DotShorthandLookupDomain.type(contextType),
+            name: head.name,
+            syntax: ReadSyntax.invocation,
+          );
+        case InvalidDotShorthandContextResolutionImpl():
+          diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
       }
       element = null;
     }

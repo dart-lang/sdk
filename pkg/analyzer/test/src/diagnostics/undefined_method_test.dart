@@ -203,6 +203,36 @@ main() {
 ''');
   }
 
+  test_ignore_libraryImport_show_it_implicitThis() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart' show foo;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
+
+class A {
+  void f() {
+    foo();
+  }
+}
+''');
+  }
+
+  test_ignore_libraryImport_show_other_implicitThis() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart' show bar;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
+
+class A {
+  void f() {
+    foo();
+//  ^^^
+// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'A'.
+  }
+}
+''');
+  }
+
   test_ignoreTypePropagation() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {}

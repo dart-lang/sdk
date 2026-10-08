@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 
 /// A resolver for [ConstructorTearOff] nodes.
 class ConstructorTearOffResolver {
@@ -59,26 +60,25 @@ class ConstructorTearOffResolver {
         var aliasedType = enclosingElement.aliasedType;
         if (aliasedType is FunctionType) {
           var typeReference = node.typeReference;
-          var aliasName = switch (typeReference.importPrefix) {
-            var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
-            _ => typeReference.name.lexeme,
-          };
-          var isWriteOnly = switch (node.parent2) {
-            AssignmentTarget(hasRead: false) => true,
-            _ => false,
-          };
-          _typeAnalyzer.diagnosticReporter.report(
-            (isWriteOnly
-                    ? diag.undefinedSetterOnFunctionType.withArguments(
-                        setterName: name.lexeme,
-                        functionTypeAliasName: aliasName,
-                      )
-                    : diag.undefinedGetterOnFunctionType.withArguments(
-                        getterName: name.lexeme,
-                        functionTypeAliasName: aliasName,
-                      ))
-                .at(name),
-          );
+          if (node.parent2 case AssignmentTarget(hasRead: false)) {
+            _typeAnalyzer.lookupFailureReporter.reportWriteFailure(
+              domain: FunctionTypeAliasLookupDomain(
+                importPrefix: typeReference.importPrefix,
+                name: typeReference.name,
+              ),
+              name: name,
+              foundInstead: null,
+            );
+          } else {
+            _typeAnalyzer.lookupFailureReporter.reportReadFailure(
+              domain: FunctionTypeAliasLookupDomain(
+                importPrefix: typeReference.importPrefix,
+                name: typeReference.name,
+              ),
+              name: name,
+              syntax: ReadSyntax.reference,
+            );
+          }
         }
         enclosingElement = aliasedType is InterfaceType
             ? aliasedType.element
