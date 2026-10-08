@@ -480,13 +480,9 @@ InterfaceType interfaceTypeWithDefaultBounds(
   Class cls,
   Nullability nullability,
 ) {
-  final typeParameters = cls.typeParameters;
   return InterfaceType(
     cls,
     nullability,
-    DartTypeList.generate(
-      typeParameters.length,
-      (i) => typeParameters[i].defaultType,
-    ),
+    DartTypeList.mapped(cls.typeParameters, (p) => p.defaultType),
   );
 }

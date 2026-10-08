@@ -2966,20 +2966,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       classTypeParametersCopy,
       targetType.typeArguments,
     );
-    DartTypeList positional = new DartTypeList.generate(
-      function.positionalParameters.length,
-      (i) => substitution.substituteType(function.positionalParameters[i].type),
+    DartTypeList positional = DartTypeList.mapped(
+      function.positionalParameters,
+      (p) => substitution.substituteType(p.type),
     );
-    NamedDartTypeList named = new NamedDartTypeList.generate(
-      function.namedParameters.length,
-      (i) {
-        NamedParameter decl = function.namedParameters[i];
-        return new NamedType(
-          decl.parameterName,
-          substitution.substituteType(decl.type),
-          isRequired: decl.isRequired,
-        );
-      },
+    NamedDartTypeList named = NamedDartTypeList.mapped(
+      function.namedParameters,
+      (NamedParameter decl) => new NamedType(
+        decl.parameterName,
+        substitution.substituteType(decl.type),
+        isRequired: decl.isRequired,
+      ),
     )..sort();
     return new FunctionType(
       positional,
@@ -3103,21 +3100,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       classTypeParametersCopy,
       targetType.typeArguments,
     );
-    DartTypeList positional = new DartTypeList.generate(
-      function.positionalParameters.length,
-      (i) => substitution.substituteType(function.positionalParameters[i].type),
+    DartTypeList positional = DartTypeList.mapped(
+      function.positionalParameters,
+      (p) => substitution.substituteType(p.type),
     );
-    NamedDartTypeList named = new NamedDartTypeList.generate(
-      function.namedParameters.length,
+    NamedDartTypeList named = NamedDartTypeList.mapped(
+      function.namedParameters,
       // Coverage-ignore(suite): Not run.
-      (i) {
-        NamedParameter decl = function.namedParameters[i];
-        return new NamedType(
-          decl.parameterName,
-          substitution.substituteType(decl.type),
-          isRequired: decl.isRequired,
-        );
-      },
+      (NamedParameter decl) => new NamedType(
+        decl.parameterName,
+        substitution.substituteType(decl.type),
+        isRequired: decl.isRequired,
+      ),
     )..sort();
     return new FunctionType(
       positional,
@@ -11250,12 +11244,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             positionalIndex--;
         }
       }
-      namedTypes = new NamedDartTypeList.generate(sortedNames.length, (
-        int index,
-      ) {
-        String name = sortedNames[index];
-        return new NamedType(name, namedResults[name]!.type);
-      });
+      namedTypes = NamedDartTypeList.mapped(
+        sortedNames,
+        (String name) => new NamedType(name, namedResults[name]!.type),
+      );
       named = NamedExpressionList.mapped(
         sortedNames,
         (String name) => namedResults[name]!.expression,

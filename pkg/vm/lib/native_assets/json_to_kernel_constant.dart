@@ -29,18 +29,19 @@ Constant jsonToKernelConstant(Object jsonObject) {
   }
 
   if (jsonObject is Map) {
-    final iterator = jsonObject.entries.iterator;
     return MapConstant(
       DynamicType(),
       DynamicType(),
-      ConstantMapEntryList.generate(jsonObject.length, (_) {
-        iterator.moveNext();
-        final entry = iterator.current;
-        return ConstantMapEntry(
-          jsonToKernelConstant(entry.key as Object),
-          jsonToKernelConstant(entry.value as Object),
-        );
-      }),
+      jsonObject.isEmpty
+          ? ConstantMapEntryList.empty
+          : ConstantMapEntryList.of(
+              jsonObject.entries.map(
+                (entry) => ConstantMapEntry(
+                  jsonToKernelConstant(entry.key as Object),
+                  jsonToKernelConstant(entry.value as Object),
+                ),
+              ),
+            ),
     );
   }
 

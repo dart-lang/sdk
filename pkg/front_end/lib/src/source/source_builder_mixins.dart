@@ -114,13 +114,14 @@ mixin SourceDeclarationBuilderBaseMixin
     }
 
     if (arguments == null && typeParameters != null) {
-      return new DartTypeList.generate(typeParameters!.length, (int i) {
-        return typeParameters![i].defaultType!.buildAliased(
+      return DartTypeList.mapped(
+        typeParameters!,
+        (t) => t.defaultType!.buildAliased(
           library,
           TypeUse.defaultTypeAsTypeArgument,
           hierarchy,
-        );
-      });
+        ),
+      );
     }
 
     if (arguments != null && arguments.length != typeParametersCount) {
@@ -143,10 +144,9 @@ mixin SourceDeclarationBuilderBaseMixin
     }
 
     assert(arguments!.length == typeParametersCount);
-    return new DartTypeList.generate(
-      arguments!.length,
-      (int i) =>
-          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+    return DartTypeList.mapped(
+      arguments!,
+      (a) => a.buildAliased(library, TypeUse.typeArgument, hierarchy),
     );
   }
 }

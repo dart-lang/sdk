@@ -171,12 +171,9 @@ class FactoryEncoding implements InferredTypeListener {
 
     if (_redirectionTarget != null) {
       if (_redirectionTarget.typeArguments != null) {
-        redirectionTypeArguments = new DartTypeList.generate(
-          _redirectionTarget.typeArguments!.length,
-          (int i) => _redirectionTarget.typeArguments![i].build(
-            libraryBuilder,
-            TypeUse.redirectionTypeArgument,
-          ),
+        redirectionTypeArguments = DartTypeList.mapped(
+          _redirectionTarget.typeArguments!,
+          (a) => a.build(libraryBuilder, TypeUse.redirectionTypeArgument),
         );
       }
       if (_tearOff != null) {
