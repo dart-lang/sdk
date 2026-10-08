@@ -1151,7 +1151,8 @@ bool jsIdentical(Object? a, Object? b) {
 }
 
 @patch
-Never jsThrow(JSAny error) => js_helper.JS<Never>('(e) => { throw e; }', error);
+Never jsThrow(JSAny error) =>
+    js_helper.JS('(e) => { throw e; }', error.toExternRef) as Never;
 
 @JS('Array')
 @staticInterop
