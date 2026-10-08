@@ -632,9 +632,9 @@ extension type JSError._(JSObject _) implements JSObject {
   /// [`new Error()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Error
   factory JSError(String message, {JSAny? cause}) => cause == null
       ? JSError.__(message)
-      : JSError.__(message, _NewErrorOptions(cause: cause));
+      : JSError.__(message, JSObject()..['cause'] = cause);
 
-  external JSError.__(String message, [_NewErrorOptions options]);
+  external JSError.__(String message, [JSObject options]);
 
   /// See [`Error.cause`].
   ///
@@ -655,12 +655,6 @@ extension type JSError._(JSObject _) implements JSObject {
   ///
   /// [`Error.stack`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/stack
   external String stack;
-}
-
-extension type _NewErrorOptions._(JSObject _) implements JSObject {
-  external _NewErrorOptions({JSAny? cause});
-
-  external JSAny? cause;
 }
 
 /// A Dart object that is wrapped with a JavaScript object so that it can be
@@ -2507,7 +2501,7 @@ extension JSErrorToError on JSError {
   /// catch (that is, those that represent programming errors). Other exceptions
   /// should be rethrown as dedicated Dart types that extend [Exception] so the
   /// user can catch them based on type.
-  WrappedJSError get toDart => new WrappedJSError(this);
+  WrappedJSError get toDart => new WrappedJSError._(this);
 
   /// Throws the result of [toDart] with a Dart stack trace that matches the JS
   /// stack trace.
@@ -2526,7 +2520,7 @@ final class WrappedJSError implements Error {
   @override
   StackTrace get stackTrace => StackTrace.fromString(jsError.stack);
 
-  _WrappedJSError(this.jsError);
+  WrappedJSError._(this.jsError);
 
   String toString() => jsError.message;
 }

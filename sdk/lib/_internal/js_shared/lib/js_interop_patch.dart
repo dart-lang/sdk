@@ -212,7 +212,10 @@ bool _isJSError(Object? any) {
   return _isJSAny(any) &&
       foreign_helper.JS(
         'bool',
-        'Error.isError ? Error.isError(#) : # instanceof Error',
+        // We have to fall back on `instanceof` even if `Error.isError` exists
+        // because Safari's implementation is incorrect for `DOMException` (see
+        // https://bugs.webkit.org/show_bug.cgi?id=292727).
+        '(Error.isError && Error.isError(#)) || # instanceof Error',
         any,
         any,
       );

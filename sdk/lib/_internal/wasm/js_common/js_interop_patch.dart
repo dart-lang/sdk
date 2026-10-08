@@ -361,7 +361,11 @@ bool _isJSError(Object? any) {
   return _isJSAny(any) &&
       js_helper
           .JS<WasmI32>(
-            '(o) => Error.isError ? Error.isError(o) : o instanceof Error',
+            // We have to fall back on `instanceof` even if `Error.isError`
+            // exists because Safari's implementation is incorrect for
+            // `DOMException` (see
+            // https://bugs.webkit.org/show_bug.cgi?id=292727).
+            '(o) => (Error.isError && Error.isError(o)) || o instanceof Error',
             unsafeCast<JSAny>(any).toExternRef,
           )
           .toBool();
