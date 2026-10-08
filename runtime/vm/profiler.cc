@@ -2093,8 +2093,6 @@ void SampleBlockProcessor::Shutdown() {
 }
 #endif  // defined(SUPPORT_TIMELINE) && defined(SUPPORT_PERFETTO)
 
-// Isolate.cc calls these whenever the profiler is included, which does not
-// require Perfetto support.
 void Profiler::IsolateShutdown(Isolate* isolate) {
   FlushSampleBlocks(isolate);
   NOT_IN_PRECOMPILED(Timeline::DrainCompletedSampleBlocksIntoRecorder(isolate));
