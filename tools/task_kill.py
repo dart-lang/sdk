@@ -214,7 +214,8 @@ def PrintPidInfo(pid, dump_stacks):
     lines = output.splitlines()
 
     # Pop the header
-    lines.pop(0)
+    if lines:
+        lines.pop(0)
 
     print("Hanging process info:")
     print("  PID: %s" % pid)

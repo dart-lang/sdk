@@ -33,6 +33,9 @@ void main() {
       try {
         Directory.current = tempDir;
         final dtdInfo = await startDtd(machineMode: false, printDtdUri: false);
+        addTearDown(() async {
+          await dtdInfo?.shutdown();
+        });
         expect(dtdInfo, isNotNull);
         expect(dtdInfo!.localUri.scheme, 'ws');
         expect(dtdInfo.secret, isNotNull);

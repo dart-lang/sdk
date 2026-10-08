@@ -62,7 +62,7 @@ class DartRuntimeServiceDdsBackend
   /// The application name to register with DTD.
   final String? appName;
 
-  DtdInfo? _hostedDartToolingDaemon;
+  HostedDtdInfo? _hostedDartToolingDaemon;
   DtdInfo? get hostedDartToolingDaemon => _hostedDartToolingDaemon;
 
   Uri? _externalDevtoolsUri;
@@ -197,67 +197,73 @@ class DartRuntimeServiceDdsBackend
       );
     }
 
-    // 4. Connect to the target VM Service WebSocket and initialize isolate
-    // state.
-    final wsUri = _convertToWebSocketUri(remoteVmServiceUri);
-    _webSocketChannel = WebSocketChannel.connect(wsUri);
+    try {
+      // 4. Connect to the target VM Service WebSocket and initialize isolate
+      // state.
+      final wsUri = _convertToWebSocketUri(remoteVmServiceUri);
+      _webSocketChannel = WebSocketChannel.connect(wsUri);
 
-    final stringStreamController = StreamController<String>();
-    _webSocketChannel.stream.listen(
-      (Object? data) {
-        switch (data) {
-          case final String text:
-            stringStreamController.add(text);
-          case final Uint8List binaryData:
-            try {
-              final binaryEvent = BinaryStreamEvent.fromData(binaryData);
-              frontend.eventStreams.streamNotify(
-                data: binaryEvent,
-                streamId: binaryEvent.streamId,
-              );
-            } catch (e, st) {
-              _logger.warning(
-                'Failed to handle binary event from target VM',
-                e,
-                st,
-              );
-            }
-        }
-      },
-      onError: stringStreamController.addError,
-      onDone: stringStreamController.close,
-    );
+      final stringStreamController = StreamController<String>();
+      _webSocketChannel.stream.listen(
+        (Object? data) {
+          switch (data) {
+            case final String text:
+              stringStreamController.add(text);
+            case final Uint8List binaryData:
+              try {
+                final binaryEvent = BinaryStreamEvent.fromData(binaryData);
+                frontend.eventStreams.streamNotify(
+                  data: binaryEvent,
+                  streamId: binaryEvent.streamId,
+                );
+              } catch (e, st) {
+                _logger.warning(
+                  'Failed to handle binary event from target VM',
+                  e,
+                  st,
+                );
+              }
+          }
+        },
+        onError: stringStreamController.addError,
+        onDone: stringStreamController.close,
+      );
 
-    _vmServiceClient = vm.VmService(
-      stringStreamController.stream,
-      (String message) => _webSocketChannel.sink.add(message),
-      disposeHandler: () async {
-        await _webSocketChannel.sink.close();
-      },
-    );
+      _vmServiceClient = vm.VmService(
+        stringStreamController.stream,
+        (String message) => _webSocketChannel.sink.add(message),
+        disposeHandler: () async {
+          await _webSocketChannel.sink.close();
+        },
+      );
 
-    unawaited(
-      _vmServiceClient.onDone.then(
-        (_) => frontend.shutdown(),
-        onError: (e, st) => frontend.shutdown(),
-      ),
-    );
+      unawaited(
+        _vmServiceClient.onDone.then(
+          (_) => frontend.shutdown(),
+          onError: (e, st) => frontend.shutdown(),
+        ),
+      );
 
-    _isolateManager = DdsIsolateManager(vmServiceClient: _vmServiceClient);
+      _isolateManager = DdsIsolateManager(vmServiceClient: _vmServiceClient);
 
-    _streamManager = DdsStreamManager(backend: this);
+      _streamManager = DdsStreamManager(backend: this);
 
-    _expressionEvaluator = DdsExpressionEvaluator(
-      backend: this,
-      clients: frontend.clients,
-    );
+      _expressionEvaluator = DdsExpressionEvaluator(
+        backend: this,
+        clients: frontend.clients,
+      );
 
-    _rpcHandlers = DdsRpcHandlers(this);
+      _rpcHandlers = DdsRpcHandlers(this);
 
-    // 5. Initialize DDS core streams and logging repositories.
-    await _streamManager.initialize();
+      // 5. Initialize DDS core streams and logging repositories.
+      await _streamManager.initialize();
 
-    await _isolateManager.initializeIsolates();
+      await _isolateManager.initializeIsolates();
+    } catch (_) {
+      await _hostedDartToolingDaemon?.shutdown();
+      _hostedDartToolingDaemon = null;
+      rethrow;
+    }
   }
 
   @override
@@ -265,6 +271,8 @@ class DartRuntimeServiceDdsBackend
 
   @override
   Future<void> shutdown() async {
+    await _hostedDartToolingDaemon?.shutdown();
+    _hostedDartToolingDaemon = null;
     await _streamManager.shutdown();
     await _vmServiceClient.dispose();
     await _webSocketChannel.sink.close();
@@ -282,6 +290,8 @@ class DartRuntimeServiceDdsBackend
       await _vmServiceClient.yieldControlToDds(uri: httpUri);
     } on vm.RPCError catch (e, st) {
       _logger.severe('Failed to yield control to DDS', e, st);
+      await _hostedDartToolingDaemon?.shutdown();
+      _hostedDartToolingDaemon = null;
       rethrow;
     }
 

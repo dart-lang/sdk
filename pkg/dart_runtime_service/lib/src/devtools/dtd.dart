@@ -22,6 +22,28 @@ const _kDtdDdsStartedEvent = 'server.dtdStarted';
 
 final _logger = Logger('DTD');
 
+/// Information about a Dart Tooling Daemon instance hosted by the current
+/// process, including a [shutdown] method to terminate the underlying
+/// [Isolate] or child [Process].
+class HostedDtdInfo extends DtdInfo {
+  HostedDtdInfo(
+    super.localUri, {
+    super.exposedUri,
+    this._isolate,
+    this._process,
+    super.secret,
+  });
+
+  final Isolate? _isolate;
+  final Process? _process;
+
+  /// Terminates the hosted DTD isolate or process.
+  Future<void> shutdown() async {
+    _isolate?.kill(priority: Isolate.immediate);
+    _process?.kill();
+  }
+}
+
 List<String> _findDtdSnapshots(
   String snapshotDir, {
   required bool runFromBuildRoot,
@@ -141,7 +163,7 @@ DtdInfo? _parseDtdDetails(
 /// * [machineMode]: Whether the output should be machine-readable (JSON).
 /// * [printDtdUri]: Whether to print the DTD serving URI to stdout.
 /// * [snapshotPath]: The file path to the DTD AOT snapshot.
-Future<DtdInfo?> _startDtdProcess({
+Future<HostedDtdInfo?> _startDtdProcess({
   required bool machineMode,
   required bool printDtdUri,
   required String snapshotPath,
@@ -224,8 +246,14 @@ Future<DtdInfo?> _startDtdProcess({
 
     if (result == null) {
       process.kill();
+      return null;
     }
-    return result;
+    return HostedDtdInfo(
+      result.localUri,
+      exposedUri: result.exposedUri,
+      process: process,
+      secret: result.secret,
+    );
   } catch (e, st) {
     _logger.warning('Failed to start DTD process from $snapshotPath', e, st);
     return null;
@@ -236,7 +264,7 @@ Future<DtdInfo?> _startDtdProcess({
 }
 
 /// Starts a Dart Tooling Daemon instance as a separate isolate or process.
-Future<DtdInfo?> startDtd({
+Future<HostedDtdInfo?> startDtd({
   required bool machineMode,
   required bool printDtdUri,
 }) async {
@@ -297,7 +325,12 @@ Future<DtdInfo?> startDtd({
         },
       );
       if (result != null) {
-        return result;
+        return HostedDtdInfo(
+          result.localUri,
+          exposedUri: result.exposedUri,
+          isolate: isolate,
+          secret: result.secret,
+        );
       }
       isolate.kill(priority: Isolate.immediate);
     } catch (e, st) {
