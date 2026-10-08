@@ -182,7 +182,7 @@ class WorkspacePackageProducer extends Producer {
             if (name.startsWith('.')) continue;
             if (!visitedFolders.add(child.path)) continue;
 
-            var pubspec = child.getChildAssumingFile(file_paths.pubspecYaml);
+            var pubspec = child.getFile(file_paths.pubspecYaml);
             if (pubspec.exists) {
               var relativePath = pathContext.relative(
                 child.path,
