@@ -3351,6 +3351,17 @@ void Simulator::DecodeSIMDThreeSame(Instr* instr) {
           // a copy of the sign bit in every position.
           res = vn_val >> (-shift >= 32 ? 31 : -shift);
         }
+      } else if ((U == 1) && (opcode == 0x8)) {
+        // Format(instr, "vushl'vsz 'vd, 'vn, 'vm");
+        const int8_t shift = static_cast<int8_t>(vm_val & 0xff);
+        const uint32_t vn_bits = static_cast<uint32_t>(vn_val);
+        // A shift of the element width or more, in either direction, shifts
+        // every bit out.
+        if (shift >= 0) {
+          res = shift >= 32 ? 0 : static_cast<int32_t>(vn_bits << shift);
+        } else {
+          res = -shift >= 32 ? 0 : static_cast<int32_t>(vn_bits >> -shift);
+        }
       } else if ((U == 0) && (opcode == 0x10)) {
         // Format(instr, "vadd'vsz 'vd, 'vn, 'vm");
         res = vn_val + vm_val;
