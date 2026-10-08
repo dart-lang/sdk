@@ -13,6 +13,10 @@ class A {
 @pragma('vm:testing:print-flow-graph')
 bool testField(A a) => a.list.isEmpty;
 
+@pragma('vm:never-inline')
+@pragma('vm:testing:print-flow-graph')
+bool testParam(List<int> list) => list.isEmpty;
+
 void matchIL$testField(FlowGraph graph) {
   graph.match([
     match.block('Graph'),
@@ -22,6 +26,22 @@ void matchIL$testField(FlowGraph graph) {
           match.LoadField(
             'a',
             slot: 'list',
+            T: match.CompileType(type: '_Array<int>', canBeNull: false),
+          ),
+      'len' << match.LoadField('list', slot: 'Array.length'),
+      'res' << match.StrictCompare('len', match.any, kind: '==='),
+      match.DartReturn('res'),
+    ]),
+  ]);
+}
+
+void matchIL$testParam(FlowGraph graph) {
+  graph.match([
+    match.block('Graph'),
+    match.block('Function', [
+      'list' <<
+          match.Parameter(
+            index: 0,
             T: match.CompileType(type: '_Array<int>', canBeNull: false),
           ),
       'len' << match.LoadField('list', slot: 'Array.length'),
@@ -41,4 +61,7 @@ void main(List<String> args) {
 
   print(testField(A(list1)));
   print(testField(A(list2)));
+
+  print(testParam(list1));
+  print(testParam(list2));
 }

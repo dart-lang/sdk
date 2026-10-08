@@ -1264,25 +1264,15 @@ CompileType ParameterInstr::ComputeType() const {
                                      : pf.RawParameterVariable(param_index);
     ASSERT(param != nullptr);
 
-    CompileType* inferred_type = nullptr;
-    intptr_t inferred_cid = kDynamicCid;
-    bool inferred_nullable = true;
-    if (!block_->IsCatchBlockEntry()) {
-      inferred_type = param->inferred_arg_type();
-
-      if (inferred_type != nullptr) {
-        // Use inferred type if it is an int.
-        if (inferred_type->IsNullableInt()) {
-          TraceStrongModeType(this, inferred_type);
-          return *inferred_type;
-        }
-        // Otherwise use inferred cid and nullability.
-        inferred_cid = inferred_type->ToNullableCid();
-        inferred_nullable = inferred_type->is_nullable();
-      }
+    CompileType* const inferred_type =
+        !block_->IsCatchBlockEntry() ? param->inferred_arg_type() : nullptr;
+    if (inferred_type != nullptr && inferred_type->IsNullableInt()) {
+      TraceStrongModeType(this, inferred_type);
+      return *inferred_type;
     }
-    // If parameter type was checked by caller, then use Dart type annotation,
-    // plus non-nullability from inferred type if known.
+    // If parameter type was checked by caller, then use Dart type annotation
+    // combined with inferred type (cid, nullability, and more specific Dart
+    // type) if known.
     // Do not trust static parameter type of 'operator ==' as it is a
     // non-nullable Object but VM handles comparison with null in
     // the callee, so 'operator ==' can take null as an argument.
@@ -1291,11 +1281,26 @@ CompileType ParameterInstr::ComputeType() const {
          (is_unchecked_entry_param &&
           !param->is_explicit_covariant_parameter()))) {
       const AbstractType& static_type = param->static_type();
-      CompileType result(
-          inferred_nullable && !static_type.IsStrictlyNonNullable(),
-          block_->IsCatchBlockEntry() && param->is_late(),
-          inferred_cid == kDynamicCid ? kIllegalCid : inferred_cid,
-          &static_type);
+      intptr_t cid = kIllegalCid;
+      bool is_nullable = !static_type.IsStrictlyNonNullable();
+      const AbstractType* abstract_type = &static_type;
+      bool is_exact_type = false;
+      if (inferred_type != nullptr) {
+        is_nullable = is_nullable && inferred_type->is_nullable();
+        const intptr_t inferred_cid = inferred_type->ToNullableCid();
+        if (inferred_cid != kDynamicCid) {
+          cid = inferred_cid;
+        }
+        if (inferred_type->is_exact_type() ||
+            (inferred_cid == kDynamicCid &&
+             !inferred_type->ToAbstractType()->IsDynamicType())) {
+          abstract_type = inferred_type->ToAbstractType();
+          is_exact_type = inferred_type->is_exact_type();
+        }
+      }
+      CompileType result(is_nullable,
+                         block_->IsCatchBlockEntry() && param->is_late(), cid,
+                         abstract_type, is_exact_type);
       TraceStrongModeType(this, &result);
       return result;
     }
