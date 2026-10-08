@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 
 /// A resolver for [ConstructorInvocation] and
 /// [DotShorthandConstructorInvocation2] nodes.
@@ -101,17 +102,13 @@ class ConstructorInvocationResolver {
     var typeReference = constructorReference.typeReference;
     if (constructorReference.selector case var selector?
         when typeReference.type is FunctionTypeImpl) {
-      var aliasName = switch (typeReference.importPrefix) {
-        var prefix? => '${prefix.name.lexeme}.${typeReference.name.lexeme}',
-        _ => typeReference.name.lexeme,
-      };
-      _typeAnalyzer.diagnosticReporter.report(
-        diag.undefinedMethodOnFunctionType
-            .withArguments(
-              methodName: selector.name2.lexeme,
-              functionTypeAliasName: aliasName,
-            )
-            .at(selector.name2),
+      _typeAnalyzer.lookupFailureReporter.reportReadFailure(
+        domain: FunctionTypeAliasLookupDomain(
+          importPrefix: typeReference.importPrefix,
+          name: typeReference.name,
+        ),
+        name: selector.name2,
+        syntax: ReadSyntax.invocation,
       );
     }
     var elementToInfer = _typeAnalyzer.inferenceHelper

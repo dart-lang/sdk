@@ -335,6 +335,68 @@ int f() => x;
 ''');
   }
 
+  test_ignore_libraryImport_show_it_assignedPatternVariable() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart' show x;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
+
+void f() {
+  (x) = 0;
+}
+''');
+  }
+
+  test_ignore_libraryImport_show_it_compoundAssignment() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart' show x;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
+
+void f() {
+  x += 0;
+}
+''');
+  }
+
+  test_ignore_libraryImport_show_it_read() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart' show x;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
+
+void f() {
+  x;
+}
+''');
+  }
+
+  test_ignore_libraryImport_show_it_write() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart' show x;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
+
+void f() {
+  x = 0;
+}
+''');
+  }
+
+  test_ignore_libraryImport_show_other_write() async {
+    await resolveTestCodeWithDiagnostics('''
+import 'a.dart' show y;
+//     ^^^^^^^^
+// [diag.uriDoesNotExist] Target of URI doesn't exist: 'a.dart'.
+
+void f() {
+  x = 0;
+//^
+// [diag.undefinedIdentifier] Undefined name 'x'.
+}
+''');
+  }
+
   test_importCore_withShow() async {
     await resolveTestCodeWithDiagnostics('''
 import 'dart:core' show List;

@@ -22,11 +22,13 @@ import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/error/assignment_verifier.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/listener.dart';
+import 'package:analyzer/src/error/lookup_failure_reporter.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 import 'package:analyzer/src/generated/super_context.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class PropertyElementResolver with ScopeHelpers {
   final TypeAnalyzer _typeAnalyzer;
@@ -40,6 +42,9 @@ class PropertyElementResolver with ScopeHelpers {
 
   ExtensionMemberResolver get _extensionResolver =>
       _typeAnalyzer.extensionResolver;
+
+  LookupFailureReporter get _lookupFailureReporter =>
+      _typeAnalyzer.lookupFailureReporter;
 
   TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 
@@ -333,7 +338,7 @@ class PropertyElementResolver with ScopeHelpers {
         propertyName: node.name,
         hasRead: true,
         hasWrite: false,
-        resolvingDotShorthand: true,
+        dotShorthandContext: shorthandContext,
       );
       return _dotShorthandReadResolution(result);
     }
@@ -772,11 +777,10 @@ class PropertyElementResolver with ScopeHelpers {
             parentNode: node.parent2,
           );
           writeRecovery = readResult.getter2;
-          AssignmentVerifier(diagnosticReporter).verify(
+          _lookupFailureReporter.reportWriteFailure(
+            domain: InstanceLookupDomain(receiverType),
             name: node.name,
-            requested: null,
-            recovery: writeRecovery,
-            receiverType: receiverType,
+            foundInstead: writeRecovery,
           );
         }
 
@@ -930,10 +934,10 @@ class PropertyElementResolver with ScopeHelpers {
         _checkForStaticMember(receiver, node.name, readElement);
 
         if (result.needsGetterError) {
-          diagnosticReporter.report(
-            diag.undefinedGetter
-                .withArguments(memberName: node.name.lexeme, type: receiverType)
-                .at(node.name),
+          _lookupFailureReporter.reportReadFailure(
+            domain: InstanceLookupDomain(receiverType),
+            name: node.name,
+            syntax: ReadSyntax.reference,
           );
         }
 
@@ -1031,7 +1035,7 @@ class PropertyElementResolver with ScopeHelpers {
 
       case ExpressionImpl():
         if (receiver case TypeLiteralImpl(
-          type: NamedTypeImpl(element: InterfaceElement typeReference),
+          type: NamedTypeImpl(element: InterfaceElementImpl typeReference),
         )) {
           var result = _resolveTargetInterfaceElement(
             typeReference: typeReference,
@@ -1039,6 +1043,7 @@ class PropertyElementResolver with ScopeHelpers {
             propertyName: node.name,
             hasRead: true,
             hasWrite: true,
+            dotShorthandContext: null,
           );
           return _propertyReadWriteTargetResult(result);
         }
@@ -1109,18 +1114,17 @@ class PropertyElementResolver with ScopeHelpers {
         _checkForStaticMember(receiver, node.name, writeElement);
 
         if (result.needsGetterError) {
-          diagnosticReporter.report(
-            diag.undefinedGetter
-                .withArguments(memberName: node.name.lexeme, type: receiverType)
-                .at(node.name),
+          _lookupFailureReporter.reportReadFailure(
+            domain: InstanceLookupDomain(receiverType),
+            name: node.name,
+            syntax: ReadSyntax.reference,
           );
         }
         if (result.needsSetterError) {
-          AssignmentVerifier(diagnosticReporter).verify(
+          _lookupFailureReporter.reportWriteFailure(
+            domain: InstanceLookupDomain(receiverType),
             name: node.name,
-            requested: null,
-            recovery: readElement,
-            receiverType: receiverType,
+            foundInstead: readElement,
           );
         }
 
@@ -1551,22 +1555,22 @@ class PropertyElementResolver with ScopeHelpers {
       // type literal (which can only be a type instantiation of a type alias
       // of a function type).
       if (hasRead) {
-        diagnosticReporter.report(
-          diag.undefinedGetterOnFunctionType
-              .withArguments(
-                getterName: propertyName.lexeme,
-                functionTypeAliasName: target.type.qualifiedName,
-              )
-              .at(propertyName),
+        _lookupFailureReporter.reportReadFailure(
+          domain: FunctionTypeAliasLookupDomain(
+            importPrefix: target.type.importPrefix,
+            name: target.type.name,
+          ),
+          name: propertyName,
+          syntax: ReadSyntax.reference,
         );
       } else {
-        diagnosticReporter.report(
-          diag.undefinedSetterOnFunctionType
-              .withArguments(
-                setterName: propertyName.lexeme,
-                functionTypeAliasName: target.type.qualifiedName,
-              )
-              .at(propertyName),
+        _lookupFailureReporter.reportWriteFailure(
+          domain: FunctionTypeAliasLookupDomain(
+            importPrefix: target.type.importPrefix,
+            name: target.type.name,
+          ),
+          name: propertyName,
+          foundInstead: null,
         );
       }
       return PropertyElementResolverResult();
@@ -1609,10 +1613,10 @@ class PropertyElementResolver with ScopeHelpers {
 
       _checkForStaticMember(target, propertyName, result.getter2);
       if (result.needsGetterError) {
-        diagnosticReporter.report(
-          diag.undefinedGetter
-              .withArguments(memberName: propertyName.lexeme, type: targetType)
-              .at(propertyName),
+        _lookupFailureReporter.reportReadFailure(
+          domain: InstanceLookupDomain(targetType),
+          name: propertyName,
+          syntax: ReadSyntax.reference,
         );
       }
     }
@@ -1630,11 +1634,10 @@ class PropertyElementResolver with ScopeHelpers {
           nameErrorEntity: propertyName,
         );
 
-        AssignmentVerifier(diagnosticReporter).verify(
+        _lookupFailureReporter.reportWriteFailure(
+          domain: InstanceLookupDomain(targetType),
           name: propertyName,
-          requested: null,
-          recovery: readResult.getter2,
-          receiverType: targetType,
+          foundInstead: readResult.getter2,
         );
       }
     }
@@ -1664,8 +1667,9 @@ class PropertyElementResolver with ScopeHelpers {
     }
     var element = receiver.element;
     var interfaceElement = switch (element) {
-      InterfaceElement element => element,
-      TypeAliasElement(aliasedType: InterfaceType(:var element)) => element,
+      InterfaceElementImpl element => element,
+      TypeAliasElementImpl(aliasedType: InterfaceTypeImpl(:var element)) =>
+        element,
       _ => null,
     };
     if (interfaceElement != null) {
@@ -1675,8 +1679,9 @@ class PropertyElementResolver with ScopeHelpers {
         propertyName: name,
         hasRead: hasRead,
         hasWrite: hasWrite,
+        dotShorthandContext: null,
       );
-    } else if (element is ExtensionElement) {
+    } else if (element is ExtensionElementImpl) {
       return _resolveTargetExtensionElement(
         extension: element,
         propertyName: name,
@@ -1685,22 +1690,22 @@ class PropertyElementResolver with ScopeHelpers {
       );
     } else if (element case TypeAliasElement(aliasedType: FunctionType())) {
       if (hasRead) {
-        diagnosticReporter.report(
-          diag.undefinedGetterOnFunctionType
-              .withArguments(
-                getterName: name.lexeme,
-                functionTypeAliasName: receiver.name.lexeme,
-              )
-              .at(name),
+        _lookupFailureReporter.reportReadFailure(
+          domain: FunctionTypeAliasLookupDomain(
+            importPrefix: receiver.importPrefix,
+            name: receiver.name,
+          ),
+          name: name,
+          syntax: ReadSyntax.reference,
         );
       } else if (hasWrite) {
-        diagnosticReporter.report(
-          diag.undefinedSetterOnFunctionType
-              .withArguments(
-                setterName: name.lexeme,
-                functionTypeAliasName: receiver.name.lexeme,
-              )
-              .at(name),
+        _lookupFailureReporter.reportWriteFailure(
+          domain: FunctionTypeAliasLookupDomain(
+            importPrefix: receiver.importPrefix,
+            name: receiver.name,
+          ),
+          name: name,
+          foundInstead: null,
         );
       }
       return PropertyElementResolverResult();
@@ -1709,7 +1714,7 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult _resolveTargetExtensionElement({
-    required ExtensionElement extension,
+    required ExtensionElementImpl extension,
     required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
@@ -1724,16 +1729,10 @@ class PropertyElementResolver with ScopeHelpers {
       readElement ??= extension.getMethod(memberName);
 
       if (readElement == null) {
-        // This method is only called for extension overrides, and extension
-        // overrides can only refer to named extensions.  So it is safe to
-        // assume that `extension.name` is non-`null`.
-        diagnosticReporter.report(
-          diag.undefinedExtensionGetter
-              .withArguments(
-                getterName: memberName,
-                extensionName: extension.name!,
-              )
-              .at(propertyName),
+        _lookupFailureReporter.reportReadFailure(
+          domain: StaticLookupDomain(extension),
+          name: propertyName,
+          syntax: ReadSyntax.reference,
         );
       } else {
         getType = readElement.returnType;
@@ -1750,13 +1749,10 @@ class PropertyElementResolver with ScopeHelpers {
       writeElement = extension.getSetter(memberName);
 
       if (writeElement == null) {
-        diagnosticReporter.report(
-          diag.undefinedExtensionSetter
-              .withArguments(
-                setterName: memberName,
-                extensionName: extension.name!,
-              )
-              .at(propertyName),
+        _lookupFailureReporter.reportWriteFailure(
+          domain: StaticLookupDomain(extension),
+          name: propertyName,
+          foundInstead: null,
         );
       } else {
         if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
@@ -1791,7 +1787,6 @@ class PropertyElementResolver with ScopeHelpers {
       );
     }
 
-    var element = target.element;
     var memberName = propertyName.lexeme;
 
     var result = _extensionResolver.getOverrideMember(target, memberName);
@@ -1801,16 +1796,10 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasRead) {
       readElement = result.getter2;
       if (readElement == null) {
-        // This method is only called for extension overrides, and extension
-        // overrides can only refer to named extensions.  So it is safe to
-        // assume that `element.name` is non-`null`.
-        diagnosticReporter.report(
-          diag.undefinedExtensionGetter
-              .withArguments(
-                getterName: memberName,
-                extensionName: element.name!,
-              )
-              .at(propertyName),
+        _lookupFailureReporter.reportReadFailure(
+          domain: ExtensionOverrideLookupDomain(target.element),
+          name: propertyName,
+          syntax: ReadSyntax.reference,
         );
       } else {
         getType = readElement.returnType;
@@ -1822,21 +1811,14 @@ class PropertyElementResolver with ScopeHelpers {
     if (hasWrite) {
       writeElement = result.setter2;
       if (writeElement == null) {
-        if (assignmentToMethodOnMissingWrite && readElement is MethodElement) {
-          diagnosticReporter.report(diag.assignmentToMethod.at(propertyName));
-        } else {
-          // This method is only called for extension overrides, and extension
-          // overrides can only refer to named extensions.  So it is safe to
-          // assume that `element.name` is non-`null`.
-          diagnosticReporter.report(
-            diag.undefinedExtensionSetter
-                .withArguments(
-                  setterName: memberName,
-                  extensionName: element.name!,
-                )
-                .at(propertyName),
-          );
-        }
+        _lookupFailureReporter.reportWriteFailure(
+          domain: ExtensionOverrideLookupDomain(target.element),
+          name: propertyName,
+          foundInstead:
+              assignmentToMethodOnMissingWrite && readElement is MethodElement
+              ? readElement
+              : null,
+        );
       }
       _checkForStaticMember(target, propertyName, writeElement);
     }
@@ -1849,12 +1831,12 @@ class PropertyElementResolver with ScopeHelpers {
   }
 
   PropertyElementResolverResult _resolveTargetInterfaceElement({
-    required InterfaceElement typeReference,
+    required InterfaceElementImpl typeReference,
     required bool isCascaded,
     required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
-    bool resolvingDotShorthand = false,
+    required ValidDotShorthandContextResolutionImpl? dotShorthandContext,
   }) {
     if (isCascaded) {
       typeReference = _typeAnalyzer.typeProvider.typeType.element;
@@ -1901,30 +1883,13 @@ class PropertyElementResolver with ScopeHelpers {
           readElement = null;
         }
       } else {
-        if (resolvingDotShorthand) {
-          // We didn't resolve to any static getter or static field using the
-          // context type.
-          diagnosticReporter.report(
-            diag.dotShorthandUndefinedGetter
-                .withArguments(
-                  getterName: propertyName.lexeme,
-                  typeName: typeReference.name!,
-                )
-                .at(propertyName),
-          );
-        } else {
-          var code = typeReference is EnumElement
-              ? diag.undefinedEnumConstant
-              : diag.undefinedGetter;
-          diagnosticReporter.report(
-            code
-                .withArguments(
-                  memberName: propertyName.lexeme,
-                  type: typeReference.thisType,
-                )
-                .at(propertyName),
-          );
-        }
+        _lookupFailureReporter.reportReadFailure(
+          domain: dotShorthandContext != null
+              ? DotShorthandLookupDomain.declaration(dotShorthandContext)
+              : StaticLookupDomain(typeReference),
+          name: propertyName,
+          syntax: ReadSyntax.reference,
+        );
       }
     }
 
@@ -1962,21 +1927,19 @@ class PropertyElementResolver with ScopeHelpers {
         } else {
           // Recovery, try to use getter.
           writeElementRecovery = typeReference.getGetter(propertyName.lexeme);
-          AssignmentVerifier(diagnosticReporter).verify(
+          _lookupFailureReporter.reportWriteFailure(
+            domain: StaticLookupDomain(typeReference),
             name: propertyName,
-            requested: null,
-            recovery: writeElementRecovery,
-            receiverType: typeReference.thisType,
+            foundInstead: writeElementRecovery,
           );
         }
       } else {
         // Recovery, try to use getter.
         writeElementRecovery = typeReference.getGetter(propertyName.lexeme);
-        AssignmentVerifier(diagnosticReporter).verify(
+        _lookupFailureReporter.reportWriteFailure(
+          domain: StaticLookupDomain(typeReference),
           name: propertyName,
-          requested: null,
-          recovery: writeElementRecovery,
-          receiverType: typeReference.thisType,
+          foundInstead: writeElementRecovery,
         );
       }
     }
@@ -2012,19 +1975,24 @@ class PropertyElementResolver with ScopeHelpers {
       getType = readElement.returnType;
     }
 
-    if (hasRead && readElement == null || hasWrite && writeElement == null) {
+    var isReadFailure = hasRead && readElement == null;
+    if (isReadFailure || hasWrite && writeElement == null) {
       if (nameToken.isSynthetic) {
         // The parser has already reported the missing name. But the prefix
         // is still used, so its imports must not be reported as unused.
         target.scope.notifyPrefixUsedWithoutName();
-      } else if (!_typeAnalyzer.libraryFragment.shouldIgnoreUndefined(
-        prefix: target.name,
-        name: name,
-      )) {
-        diagnosticReporter.report(
-          diag.undefinedPrefixedName
-              .withArguments(referenceName: name, prefixName: target.name!)
-              .at(nameToken),
+      }
+      if (isReadFailure) {
+        _lookupFailureReporter.reportReadFailure(
+          domain: PrefixedLookupDomain(target),
+          name: nameToken,
+          syntax: ReadSyntax.reference,
+        );
+      } else {
+        _lookupFailureReporter.reportWriteFailure(
+          domain: PrefixedLookupDomain(target),
+          name: nameToken,
+          foundInstead: null,
         );
       }
     }
@@ -2082,13 +2050,10 @@ class PropertyElementResolver with ScopeHelpers {
                   .at(propertyName),
             );
           } else {
-            diagnosticReporter.report(
-              diag.undefinedSuperGetter
-                  .withArguments(
-                    getterName: propertyName.lexeme,
-                    type: targetType,
-                  )
-                  .at(propertyName),
+            _lookupFailureReporter.reportReadFailure(
+              domain: SuperLookupDomain(targetType),
+              name: propertyName,
+              syntax: ReadSyntax.reference,
             );
           }
         }
@@ -2143,13 +2108,10 @@ class PropertyElementResolver with ScopeHelpers {
                   .at(propertyName),
             );
           } else {
-            diagnosticReporter.report(
-              diag.undefinedSuperSetter
-                  .withArguments(
-                    setterName: propertyName.lexeme,
-                    type: targetType,
-                  )
-                  .at(propertyName),
+            _lookupFailureReporter.reportWriteFailure(
+              domain: SuperLookupDomain(targetType),
+              name: propertyName,
+              foundInstead: null,
             );
           }
         }
@@ -2178,27 +2140,17 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (readElementRequested == null &&
         readLookup?.callFunctionType == null &&
-        readLookup?.recordField == null &&
-        !name.isSynthetic) {
+        readLookup?.recordField == null) {
       if (name.lexeme == 'await' &&
           _typeAnalyzer.enclosingExecutableElement != null) {
         diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
-      } else if (!_typeAnalyzer.libraryFragment.shouldIgnoreUndefined(
-        prefix: null,
-        name: name.lexeme,
-      )) {
-        diagnosticReporter.report(
-          node.parent2 is FunctionInstantiationImpl &&
-                  _typeAnalyzer.thisType != null
-              ? diag.undefinedMethod
-                    .withArguments(
-                      methodName: name.lexeme,
-                      type: _typeAnalyzer.thisType!,
-                    )
-                    .at(node)
-              : diag.undefinedIdentifier
-                    .withArguments(name: name.lexeme)
-                    .at(node),
+      } else {
+        _lookupFailureReporter.reportReadFailure(
+          domain: UnqualifiedLookupDomain(thisType: _typeAnalyzer.thisType),
+          name: name,
+          syntax: node.parent2 is FunctionInstantiationImpl
+              ? ReadSyntax.typeInstantiation
+              : ReadSyntax.reference,
         );
       }
     }
@@ -2268,12 +2220,25 @@ class PropertyElementResolver with ScopeHelpers {
     var writeElementRequested = writeLookup?.requested;
     var writeElementRecovery = writeLookup?.recovery;
 
-    AssignmentVerifier(diagnosticReporter).verifyUnqualifiedName(
-      node: node,
-      name: name,
-      requested: writeElementRequested,
-      recovery: writeElementRecovery,
-    );
+    var ambiguousElement =
+        writeElementRequested.tryCast<MultiplyDefinedElementImpl>() ??
+        writeElementRecovery.tryCast<MultiplyDefinedElementImpl>();
+    if (ambiguousElement != null) {
+      diagnosticReporter.report(
+        DiagnosticFactory().ambiguousImport(
+          name: name,
+          element: ambiguousElement,
+        ),
+      );
+    } else if (writeElementRequested == null ||
+        writeElementRequested is VariableElement &&
+            writeElementRequested.isConst) {
+      _lookupFailureReporter.reportWriteFailure(
+        domain: UnqualifiedLookupDomain(thisType: _typeAnalyzer.thisType),
+        name: name,
+        foundInstead: writeElementRequested ?? writeElementRecovery,
+      );
+    }
 
     var requestedResolution = _createNamedWriteResolutionWithElement(
       writeElementRequested,

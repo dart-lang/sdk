@@ -1339,10 +1339,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
-    var element = node.target.write?.elementOrRecovery;
-    if (_checkForEachParts(element, node)) {
-      _checkForAssignmentToFinal2(node.target, element);
-    }
+    // Writes of names that can't be assigned are reported by the resolver.
+    _checkForEachParts(node.target.write?.elementOrRecovery, node);
     super.visitForEachPartsWithIdentifier(node);
   }
 
@@ -3062,47 +3060,6 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       diagnosticReporter.report(
         _diagnosticFactory.ambiguousImport(name: name, element: element),
       );
-    }
-  }
-
-  void _checkForAssignmentToFinal2(
-    SyntacticEntity highlightedNode,
-    Element? element,
-  ) {
-    // check if element is assignable
-    if (element is VariableElement) {
-      if (element.isConst) {
-        diagnosticReporter.report(diag.assignmentToConst.at(highlightedNode));
-      }
-    } else if (element is GetterElement) {
-      var variable = element.variable;
-      if (variable.isConst) {
-        diagnosticReporter.report(diag.assignmentToConst.at(highlightedNode));
-      } else if (variable is FieldElement && variable.isOriginGetterSetter) {
-        diagnosticReporter.report(
-          diag.assignmentToFinalNoSetter
-              .withArguments(
-                variableName: variable.name!,
-                className: variable.enclosingElement.displayName,
-              )
-              .at(highlightedNode),
-        );
-      } else {
-        diagnosticReporter.report(
-          diag.assignmentToFinal
-              .withArguments(variableName: variable.name!)
-              .at(highlightedNode),
-        );
-      }
-    } else if (element is LocalFunctionElement ||
-        element is TopLevelFunctionElement) {
-      diagnosticReporter.report(diag.assignmentToFunction.at(highlightedNode));
-    } else if (element is MethodElement) {
-      diagnosticReporter.report(diag.assignmentToMethod.at(highlightedNode));
-    } else if (element is InterfaceElement ||
-        element is DynamicElementImpl ||
-        element is TypeParameterElement) {
-      diagnosticReporter.report(diag.assignmentToType.at(highlightedNode));
     }
   }
 
