@@ -357,6 +357,18 @@ bool _isJSTypedArray(Object? any) {
 bool _isNullableJSTypedArray(Object? any) =>
     any == null || _isJSTypedArray(any);
 
+bool _isJSError(Object? any) {
+  return _isJSAny(any) &&
+      js_helper
+          .JS<WasmI32>(
+            '(o) => Error.isError ? Error.isError(o) : o instanceof Error',
+            unsafeCast<JSAny>(any).toExternRef,
+          )
+          .toBool();
+}
+
+bool _isNullableJSError(Object? any) => any == null || _isJSError(any);
+
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
 @patch

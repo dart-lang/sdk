@@ -207,6 +207,20 @@ bool _isJSTypedArray(Object? any) {
 bool _isNullableJSTypedArray(Object? any) =>
     any == null || _isJSTypedArray(any);
 
+@pragma('dart2js:prefer-inline')
+bool _isJSError(Object? any) {
+  return _isJSAny(any) &&
+      foreign_helper.JS(
+        'bool',
+        'Error.isError ? Error.isError(#) : # instanceof Error',
+        any,
+        any,
+      );
+}
+
+@pragma('dart2js:prefer-inline')
+bool _isNullableJSError(Object? any) => any == null || _isJSError(any);
+
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
 @patch

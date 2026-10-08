@@ -627,28 +627,6 @@ extension type JSError._(JSObject _) implements JSObject {
     JSFunction constructor,
   ]);
 
-  /// See [`Error.isError()`].
-  ///
-  /// Because `isError` isn't universally supported yet, this is polyfilled on
-  /// platforms that don't yet support it to do an instanceof check on the
-  /// `Error` class.
-  ///
-  /// [`Error.isError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/isError
-  static bool isError(JSAny? value) =>
-      _isErrorOrNull == null ? value.isA<JSError>() : _isError(value);
-
-  /// If [value] is a [JSError] according to [isError], returns it.
-  ///
-  /// Otherwise, returns null.
-  static Error? asError(JSAny? value) =>
-      isError(value) ? value as JSError : null;
-
-  @JS('isError')
-  external static bool _isError(JSAny? value);
-
-  @JS('isError')
-  external static JSFunction? _isErrorOrNull;
-
   /// See [`new Error()`].
   ///
   /// [`new Error()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Error
