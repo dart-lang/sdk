@@ -52,6 +52,23 @@ import 'package:test/foo.dart';
 ''');
   }
 
+  Future<void> test_fileName_onImport_inPart() async {
+    newFile('$testPackageLibPath/foo.dart', '');
+    newFile('$testPackageLibPath/a.dart', '''
+part 'test.dart';
+''');
+    await resolveTestCode('''
+part of 'a.dart';
+
+^import 'foo.dart';
+''');
+    await assertHasAssist('''
+part of 'a.dart';
+
+import 'package:test/foo.dart';
+''');
+  }
+
   Future<void> test_fileName_onUri() async {
     newFile('$testPackageLibPath/foo.dart', '');
 
