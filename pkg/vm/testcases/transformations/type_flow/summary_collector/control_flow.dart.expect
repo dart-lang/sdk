@@ -240,6 +240,42 @@ x_0 = _Join [dynamic] (t0, x_1)
 t8* = _Call direct [#lib::foo] (x_0)
 t9 = _TypeCheck (t8 against dart.core::bool) (for #lib::foo(x) as dart.core::bool)
 RESULT: x_0
+------------ loop7 ------------
+t0 = IsNull (_T ANY?)
+t1* = _Call direct [#lib::C1.] (_T (#lib::C1)) {t0}
+x_0 = _Join [dynamic] (_T {}?, t1)
+t3* = _Call direct [#lib::foo] (x_0)
+t4 = _TypeCheck (t3 against dart.core::bool) (for #lib::foo(x) as dart.core::bool)
+t5 = _Call direct [dart.core::Object.==] (x_0, _T {}?)
+t6 = _Narrow (x_0 to _T ANY)
+t7 = Not (t0)
+t8 = Move (t6) {t7}
+t9 = _Join [dynamic] (t1, t8)
+t10 = _Call direct [#lib::bar] (t9)
+RESULT: x_0
+------------ loop8 ------------
+%cond1 = _Parameter #0 [_T (dart.core::bool)+]
+%cond2 = _Parameter #1 [_T (dart.core::bool)+]
+t2* = _Call direct [#lib::C1.] (_T (#lib::C1))
+t3 = IsNull (_T ANY?)
+t4 = Move (_T {}?) {t3}
+t5 = Not (t3)
+t6* = _Call direct [#lib::C2.] (_T (#lib::C2)) {%cond1}
+x_1 = _Join [dynamic] (t6, _T ANY) {t5}
+x_2 = _Join [dynamic] (t4, x_1)
+t9 = _TypeCheck (x_2 against #lib::C3) (for x is #lib::C3)
+t10 = IsEmpty (t9)
+t11 = Not (t10)
+t12* = _Call direct [#lib::C1.] (_T (#lib::C1)) {%cond2}
+t13 = _Narrow (t6 to _T (#lib::C3)+)
+t14 = _Join [dynamic] (t12, t13) {t11}
+t15 = _Join [dynamic] (t14, t6)
+x_0 = _Join [dynamic] (t2, t15)
+t17* = _Call direct [#lib::foo] (x_0)
+t18 = _TypeCheck (t17 against dart.core::bool) (for #lib::foo(x) as dart.core::bool)
+t19 = _Call direct [dart.core::Object.==] (x_0, _T {}?)
+t20 = _Call direct [#lib::bar] (t4) {t3}
+RESULT: x_0
 ------------ try1 ------------
 t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
 t1* = _Call direct [#lib::C2.] (_T (#lib::C2))
@@ -286,11 +322,11 @@ t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
 write x = t0
 t2 = read x
 t3 = _Call direct [#lib::foo] (t2)
-t4 = _Call direct [#lib::foo] (_T (dart.core::_Closure, <anonymous closure at control_flow.dart:268>))
+t4 = _Call direct [#lib::foo] (_T (dart.core::_Closure, <anonymous closure at control_flow.dart:293>))
 t5* = _Call direct [#lib::C2.] (_T (#lib::C2))
 write x = t5
 RESULT: _T {}?
------------- <anonymous closure at control_flow.dart:268> ------------
+------------ <anonymous closure at control_flow.dart:293> ------------
 %#closure = _Parameter #0 [_T ANY?]
 t1 = read x
 t2 = _Call direct [#lib::bar] (t1)
@@ -300,9 +336,9 @@ t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
 write x = t0
 t2 = read x
 t3 = _Call direct [#lib::foo] (t2)
-t4 = _Call direct [#lib::foo] (_T (dart.core::_Closure, <anonymous closure at control_flow.dart:277>))
+t4 = _Call direct [#lib::foo] (_T (dart.core::_Closure, <anonymous closure at control_flow.dart:302>))
 RESULT: t2
------------- <anonymous closure at control_flow.dart:277> ------------
+------------ <anonymous closure at control_flow.dart:302> ------------
 %#closure = _Parameter #0 [_T ANY?]
 t1* = _Call direct [#lib::C2.] (_T (#lib::C2))
 write x = t1

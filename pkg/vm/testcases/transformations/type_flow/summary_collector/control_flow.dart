@@ -188,6 +188,31 @@ loop6() {
   return x;
 }
 
+loop7() {
+  dynamic x;
+  while (foo(x)) {
+    bar(x ??= C1());
+  }
+  return x;
+}
+
+loop8(bool cond1, bool cond2) {
+  dynamic x = C1();
+  while (foo(x)) {
+    if (x == null) {
+      bar(x);
+    } else if (cond1) {
+      x = C2();
+    }
+    if (x is C3) {
+      if (cond2) {
+        x = C1();
+      }
+    }
+  }
+  return x;
+}
+
 try1() {
   dynamic x = C1();
   try {

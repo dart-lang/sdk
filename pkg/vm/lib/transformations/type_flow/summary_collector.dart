@@ -47,6 +47,18 @@ class _SummaryNormalizer implements StatementVisitor {
 
   void normalize() {
     final List<Statement> statements = _summary.statements;
+
+    // Simplify [Join]s by removing direct and indirect self-references (as the
+    // union of a join with a subset of the join is unnecessary).
+    //
+    // By traversing the [statements] backwards we simplify inner joins before
+    // outer joins.
+    for (int i = statements.length - 1; i >= 0; i--) {
+      final st = statements[i];
+      if (st is Join) {
+        _excludeRedundantJoinPaths(st);
+      }
+    }
     _summary.reset();
 
     for (int i = 0; i < _summary.positionalParameterCount; i++) {
@@ -87,6 +99,104 @@ class _SummaryNormalizer implements StatementVisitor {
     }
 
     _summary.result = _normalizeExpr(_summary.result, true);
+  }
+
+  /// Simplifies [join]'s values by pruning paths that only narrow/move [join]
+  /// itself (as the union of [join] with a subset of [join] is just [join]).
+  void _excludeRedundantJoinPaths(Join join) {
+    final values = join.values;
+    final cache = <Statement, TypeExpr>{};
+    for (int i = 0; i < values.length; ++i) {
+      values[i] = _excludeRedundantJoinPathsInternal(values[i], join, cache);
+    }
+  }
+
+  TypeExpr _excludeRedundantJoinPathsInternal(
+    TypeExpr expr,
+    Join join,
+    Map<Statement, TypeExpr> cache,
+  ) {
+    if (expr is EmptyType || identical(expr, join)) {
+      return emptyType;
+    }
+    // Statements created before [join] cannot depend on [join].
+    if (expr is! Statement || expr.index < join.index) return expr;
+
+    TypeExpr cached(TypeExpr Function() simplify) {
+      if (cache[expr] case final result?) return result;
+      // Memoizes shared DAG nodes and breaks cycles in joins (e.g. from inner
+      // loops/switches or `try` blocks).
+      cache[expr] = emptyType;
+      return cache[expr] = simplify();
+    }
+
+    // The new statements are not added to the summary, the normalization
+    // step clears them anyway and discovers any reachable ones from the
+    // roots (e.g. calls and `_summary.result`).
+    //
+    // Though we make the new statements inherit `expr.index` so enclosing outer
+    // joins with `join.index < expr.index` still traverse into them.
+    TypeExpr simplifyUnaryStatement(
+      TypeExpr origArg,
+      Statement Function(TypeExpr) create,
+    ) => cached(() {
+      final arg = _excludeRedundantJoinPathsInternal(origArg, join, cache);
+      if (arg is EmptyType) return emptyType;
+      if (identical(arg, origArg)) return expr;
+      return create(arg)..index = expr.index;
+    });
+
+    if (expr is UnaryOperation && expr.op == UnaryOp.Move) {
+      final cond = expr.condition;
+      // `x == null` sets `x` to `Move(_nullType) {IsNull(x)}` on the true
+      // branch, which narrows `x` to `Null`.
+      if (expr.arg == nullableEmptyType &&
+          cond is UnaryOperation &&
+          cond.op == UnaryOp.IsNull) {
+        return simplifyUnaryStatement(
+          cond.arg,
+          (condArg) =>
+              Narrow(condArg, nullableEmptyType)..condition = cond.condition,
+        );
+      }
+      return simplifyUnaryStatement(
+        expr.arg,
+        (arg) => UnaryOperation(UnaryOp.Move, arg)..condition = expr.condition,
+      );
+    }
+    if (expr is Narrow) {
+      return simplifyUnaryStatement(
+        expr.arg,
+        (arg) => Narrow(arg, expr.type)..condition = expr.condition,
+      );
+    }
+    if (expr is TypeCheck) {
+      return simplifyUnaryStatement(
+        expr.arg,
+        (arg) => Narrow(arg, expr.staticType)..condition = expr.condition,
+      );
+    }
+    if (expr is Join) {
+      return cached(() {
+        bool changed = false;
+        final newValues = <TypeExpr>[];
+        for (final v in expr.values) {
+          final newV = _excludeRedundantJoinPathsInternal(v, join, cache);
+          changed |= !identical(newV, v);
+          if (newV is! EmptyType && !newValues.contains(newV)) {
+            newValues.add(newV);
+          }
+        }
+        if (!changed) return expr;
+        if (newValues.isEmpty) return emptyType;
+        if (newValues.length == 1) return newValues.single;
+        return Join(null, expr.staticType)
+          ..condition = expr.condition
+          ..values.addAll(newValues)
+          ..index = expr.index;
+      });
+    }
+    return expr;
   }
 
   TypeExpr _normalizeExpr(TypeExpr st, bool isResultUsed) {
