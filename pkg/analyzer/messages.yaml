@@ -18708,29 +18708,10 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when an extension override is used to
-      invoke a getter, but the getter isn't defined by the specified extension.
-      The analyzer also produces this diagnostic when a static getter is
-      referenced but isn't defined by the specified extension.
+      The analyzer produces this diagnostic when a static getter is
+      referenced, but isn't defined by the specified extension.
 
-      #### Examples
-
-      The following code produces this diagnostic because the extension `E`
-      doesn't declare an instance getter named `b`:
-
-      ```dart
-      extension E on String {
-        String get a => 'a';
-      }
-
-      extension F on String {
-        String get b => 'b';
-      }
-
-      void f() {
-        E('c').[!b!];
-      }
-      ```
+      #### Example
 
       The following code produces this diagnostic because the extension `E`
       doesn't declare a static getter named `a`:
@@ -18744,15 +18725,77 @@ CompileTimeErrorCode:
       #### Common fixes
 
       If the name of the getter is incorrect, then change it to the name of an
-      existing getter:
+      existing static getter:
+
+      ```dart
+      extension E on String {
+        static String get b => 'b';
+      }
+
+      var x = E.b;
+      ```
+
+      If the getter isn't defined, then define it:
+
+      ```dart
+      extension E on String {
+        static String get a => 'a';
+      }
+
+      var x = E.a;
+      ```
+  undefinedExtensionMemberReadNotFound:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      String extensionName: the name of the extension
+    sharedName: undefinedExtensionMemberRead
+    problemMessage: "The extension '#extensionName' doesn't have an instance member named '#name'."
+    correctionMessage: "Try correcting the name to the name of an existing member, or defining a method or getter named '#name' in the extension."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an extension override is used
+      to read, invoke, or tear off a member, but the extension doesn't declare
+      an instance method or getter with that name.
+
+      #### Examples
+
+      The following code produces this diagnostic because the extension `E`
+      doesn't declare a member named `b`:
 
       ```dart
       extension E on String {
         String get a => 'a';
       }
 
-      extension F on String {
-        String get b => 'b';
+      void f() {
+        E('c').[!b!]();
+      }
+      ```
+
+      The following code produces this diagnostic because the extension `E`
+      declares only a setter named `b`, which can't be read:
+
+      ```dart
+      extension E on String {
+        set b(String _) {}
+      }
+
+      void f() {
+        E('c').[!b!];
+      }
+      ```
+
+      #### Common fixes
+
+      If you intended to use a different member of the extension, then use
+      its name:
+
+      ```dart
+      extension E on String {
+        String get a => 'a';
       }
 
       void f() {
@@ -18760,40 +18803,115 @@ CompileTimeErrorCode:
       }
       ```
 
-      If the name of the getter is correct but the name of the extension is
-      wrong, then change the name of the extension to the correct name:
+      If the member isn't declared, then declare it in the extension, or
+      remove the reference.
+  undefinedExtensionMemberReadPrivate:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      Uri libraryUri: the URI of the library that declares the private member
+    sharedName: undefinedExtensionMemberRead
+    problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
+    correctionMessage: "Try making the member public."
+    hasPublishedDocs: false
+  undefinedExtensionMemberReadSetterOnly:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+      String extensionName: the name of the extension
+    sharedName: undefinedExtensionMemberRead
+    problemMessage: "There's a setter '#name' in the extension '#extensionName', but no getter."
+    correctionMessage: "Try defining a getter named '#name' in the extension."
+    hasPublishedDocs: false
+  undefinedExtensionMemberWriteGetterOnly:
+    type: compileTimeError
+    parameters:
+      String name: the name of the getter
+      String extensionName: the name of the extension
+    sharedName: undefinedExtensionMemberWrite
+    problemMessage: "There's a getter '#name' in the extension '#extensionName', but no setter."
+    correctionMessage: "Try defining a setter named '#name' in the extension."
+    hasPublishedDocs: false
+  undefinedExtensionMemberWriteNotFound:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+      String extensionName: the name of the extension
+    sharedName: undefinedExtensionMemberWrite
+    problemMessage: "The extension '#extensionName' doesn't have an instance setter named '#name'."
+    correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter named '#name' in the extension."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an extension override is used
+      to assign to a member, but the extension doesn't declare an instance
+      setter with that name.
+
+      #### Examples
+
+      The following code produces this diagnostic because the extension `E`
+      doesn't declare a setter named `b`:
+
+      ```dart
+      extension E on String {
+        set a(String _) {}
+      }
+
+      void f() {
+        E('c').[!b!] = 'd';
+      }
+      ```
+
+      The following code produces this diagnostic because the extension `E`
+      declares only a getter named `a`:
 
       ```dart
       extension E on String {
         String get a => 'a';
       }
 
-      extension F on String {
-        String get b => 'b';
-      }
-
       void f() {
-        F('c').b;
+        E('c').[!a!] = 'd';
       }
       ```
 
-      If the name of the getter and extension are both correct, but the getter
-      isn't defined, then define the getter:
+      #### Common fixes
+
+      If you intended to use a different setter of the extension, then use its
+      name:
 
       ```dart
       extension E on String {
-        String get a => 'a';
-        String get b => 'z';
-      }
-
-      extension F on String {
-        String get b => 'b';
+        set a(String _) {}
       }
 
       void f() {
-        E('c').b;
+        E('c').a = 'd';
       }
       ```
+
+      If the setter isn't declared, then declare it in the extension, or
+      remove the assignment.
+  undefinedExtensionMemberWritePrivate:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      Uri libraryUri: the URI of the library that declares the private member
+    sharedName: undefinedExtensionMemberWrite
+    problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
+    correctionMessage: "Try making the member public."
+    hasPublishedDocs: false
+  undefinedExtensionMemberWriteWrongKind:
+    type: compileTimeError
+    parameters:
+      String kind: the kind of the declaration that was found, such as 'method'
+      String name: the name of the declaration
+      String extensionName: the name of the extension
+    sharedName: undefinedExtensionMemberWrite
+    problemMessage: "The #kind '#name' in the extension '#extensionName' can't be assigned to."
+    correctionMessage: "Try assigning to a setter instead."
+    hasPublishedDocs: false
   undefinedExtensionMethod:
     type: compileTimeError
     parameters:
@@ -18805,29 +18923,10 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when an extension override is used to
-      invoke a method, but the method isn't defined by the specified extension.
-      The analyzer also produces this diagnostic when a static method is
-      referenced but isn't defined by the specified extension.
+      The analyzer produces this diagnostic when a static method is
+      referenced, but isn't defined by the specified extension.
 
-      #### Examples
-
-      The following code produces this diagnostic because the extension `E`
-      doesn't declare an instance method named `b`:
-
-      ```dart
-      extension E on String {
-        String a() => 'a';
-      }
-
-      extension F on String {
-        String b() => 'b';
-      }
-
-      void f() {
-        E('c').[!b!]();
-      }
-      ```
+      #### Example
 
       The following code produces this diagnostic because the extension `E`
       doesn't declare a static method named `a`:
@@ -18841,55 +18940,24 @@ CompileTimeErrorCode:
       #### Common fixes
 
       If the name of the method is incorrect, then change it to the name of an
-      existing method:
+      existing static method:
 
       ```dart
       extension E on String {
-        String a() => 'a';
+        static String b() => 'b';
       }
 
-      extension F on String {
-        String b() => 'b';
-      }
-
-      void f() {
-        E('c').a();
-      }
+      var x = E.b();
       ```
 
-      If the name of the method is correct, but the name of the extension is
-      wrong, then change the name of the extension to the correct name:
+      If the method isn't defined, then define it:
 
       ```dart
       extension E on String {
-        String a() => 'a';
+        static String a() => 'a';
       }
 
-      extension F on String {
-        String b() => 'b';
-      }
-
-      void f() {
-        F('c').b();
-      }
-      ```
-
-      If the name of the method and extension are both correct, but the method
-      isn't defined, then define the method:
-
-      ```dart
-      extension E on String {
-        String a() => 'a';
-        String b() => 'z';
-      }
-
-      extension F on String {
-        String b() => 'b';
-      }
-
-      void f() {
-        E('c').b();
-      }
+      var x = E.a();
       ```
   undefinedExtensionOperator:
     type: compileTimeError
@@ -18951,29 +19019,10 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when an extension override is used to
-      invoke a setter, but the setter isn't defined by the specified extension.
-      The analyzer also produces this diagnostic when a static setter is
-      referenced but isn't defined by the specified extension.
+      The analyzer produces this diagnostic when a static setter is
+      referenced, but isn't defined by the specified extension.
 
-      #### Examples
-
-      The following code produces this diagnostic because the extension `E`
-      doesn't declare an instance setter named `b`:
-
-      ```dart
-      extension E on String {
-        set a(String v) {}
-      }
-
-      extension F on String {
-        set b(String v) {}
-      }
-
-      void f() {
-        E('c').[!b!] = 'd';
-      }
-      ```
+      #### Example
 
       The following code produces this diagnostic because the extension `E`
       doesn't declare a static setter named `a`:
@@ -18989,54 +19038,27 @@ CompileTimeErrorCode:
       #### Common fixes
 
       If the name of the setter is incorrect, then change it to the name of an
-      existing setter:
+      existing static setter:
 
       ```dart
       extension E on String {
-        set a(String v) {}
-      }
-
-      extension F on String {
-        set b(String v) {}
+        static set b(int _) {}
       }
 
       void f() {
-        E('c').a = 'd';
+        E.b = 3;
       }
       ```
 
-      If the name of the setter is correct, but the name of the extension is
-      wrong, then change the name of the extension to the correct name:
+      If the setter isn't defined, then define it:
 
       ```dart
       extension E on String {
-        set a(String v) {}
-      }
-
-      extension F on String {
-        set b(String v) {}
+        static set a(int _) {}
       }
 
       void f() {
-        F('c').b = 'd';
-      }
-      ```
-
-      If the name of the setter and extension are both correct, but the setter
-      isn't defined, then define the setter:
-
-      ```dart
-      extension E on String {
-        set a(String v) {}
-        set b(String v) {}
-      }
-
-      extension F on String {
-        set b(String v) {}
-      }
-
-      void f() {
-        E('c').b = 'd';
+        E.a = 3;
       }
       ```
   undefinedFunction:

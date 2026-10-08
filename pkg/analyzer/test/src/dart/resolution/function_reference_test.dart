@@ -1432,7 +1432,7 @@ extension E on A {}
 bar(A a) {
   E(a).foo<int>;
 //     ^^^
-// [diag.undefinedExtensionGetter] The getter 'foo' isn't defined for the extension 'E'.
+// [diag.undefinedExtensionMemberReadNotFound] The extension 'E' doesn't have an instance member named 'foo'.
 }
 ''');
 

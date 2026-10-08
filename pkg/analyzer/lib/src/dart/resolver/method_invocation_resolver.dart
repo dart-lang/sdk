@@ -585,7 +585,10 @@ class MethodInvocationResolver with ScopeHelpers {
           domain: ExtensionOverrideLookupDomain(receiver.element),
           name: name,
           syntax: ReadSyntax.invocation,
-          foundInstead: null,
+          foundInstead: _extensionResolver.getOverrideMemberForFailedLookup(
+            receiver,
+            Name(_definingLibraryUri, name.lexeme),
+          ),
         );
       } else if (member.isStatic) {
         diagnosticReporter.report(

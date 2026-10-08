@@ -364,6 +364,7 @@ class InheritanceManager3 {
       return AbstractMemberSuperLookupRecovery(member);
     }
 
+    // A getter or method instead of a setter, or a setter instead of a getter.
     var otherName = name.isSetter ? name.forGetter : name.forSetter;
     if (getSuperMember(otherName) case var member?) {
       return MissingMemberSuperLookupRecovery(member);

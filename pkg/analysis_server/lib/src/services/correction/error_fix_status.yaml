@@ -1711,6 +1711,28 @@ undefined_enum_constructor_unnamed:
   since: 2.17
 undefined_extension_getter:
   status: hasFix
+undefined_extension_member_read_not_found:
+  status: hasFix
+undefined_extension_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_extension_member_read_setter_only:
+  status: hasFix
+undefined_extension_member_write_getter_only:
+  status: hasFix
+undefined_extension_member_write_not_found:
+  status: hasFix
+undefined_extension_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_extension_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
 undefined_extension_method:
   status: hasFix
 undefined_extension_operator:

@@ -110,6 +110,7 @@ class BulkFixProcessor {
     diag.notEnoughPositionalArgumentsSingular: [DataDriven.new],
     diag.undefinedClass: [DataDriven.new],
     diag.undefinedExtensionGetter: [DataDriven.new],
+    diag.undefinedExtensionMemberReadNotFound: [DataDriven.new],
     diag.undefinedFunction: [DataDriven.new],
     diag.undefinedGetter: [DataDriven.new],
     diag.undefinedIdentifier: [DataDriven.new],

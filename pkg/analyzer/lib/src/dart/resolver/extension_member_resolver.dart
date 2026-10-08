@@ -199,6 +199,7 @@ class ExtensionMemberResolver {
     String name,
   ) {
     var element = node.element;
+    var library = _typeAnalyzer.definingLibrary;
 
     ExecutableElementImpl? getter;
     ExecutableElementImpl? setter;
@@ -208,6 +209,12 @@ class ExtensionMemberResolver {
     } else {
       getter = element.getGetter(name) ?? element.getMethod(name);
       setter = element.getSetter(name);
+      if (getter != null && !getter.isAccessibleIn(library)) {
+        getter = null;
+      }
+      if (setter != null && !setter.isAccessibleIn(library)) {
+        setter = null;
+      }
     }
 
     if (getter == null && setter == null) {
@@ -223,6 +230,34 @@ class ExtensionMemberResolver {
       getter2: getter?.substitute(substitution),
       setter2: setter?.substitute(substitution),
     );
+  }
+
+  /// Returns what the extension of [node] declares instead of [name], for a
+  /// lookup of [name] that failed, or `null` if it declares nothing.
+  ///
+  /// If [name] is public, or the extension is declared in the library of
+  /// [name], this is a getter or method when [name] is a setter, or a setter
+  /// when it is a getter. Otherwise this is a private getter, setter, or
+  /// method spelled like [name] that the extension declares in another
+  /// library.
+  ExecutableElementImpl? getOverrideMemberForFailedLookup(
+    ExtensionOverride2Impl node,
+    Name name,
+  ) {
+    var element = node.element;
+    var getterName = name.forGetter.name;
+
+    if (name.isPublic || element.library == _typeAnalyzer.definingLibrary) {
+      if (name.isSetter) {
+        return element.getGetter(getterName) ?? element.getMethod(getterName);
+      } else {
+        return element.getSetter(getterName);
+      }
+    } else {
+      return element.getGetter(getterName) ??
+          element.getMethod(getterName) ??
+          element.getSetter(getterName);
+    }
   }
 
   /// Perform upward inference for the override.

@@ -16797,6 +16797,151 @@ undefinedExtensionGetter = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the member
+/// String extensionName: the name of the extension
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String extensionName,
+  })
+>
+undefinedExtensionMemberReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_extension_member_read',
+  problemMessage:
+      "The extension '{1}' doesn't have an instance member named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing member, or "
+      "defining a method or getter named '{0}' in the extension.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_read_not_found',
+  withArguments: _withArgumentsUndefinedExtensionMemberReadNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedExtensionMemberReadPrivate = DiagnosticWithArguments(
+  name: 'undefined_extension_member_read',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_read_private',
+  withArguments: _withArgumentsUndefinedExtensionMemberReadPrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String extensionName: the name of the extension
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String extensionName,
+  })
+>
+undefinedExtensionMemberReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_extension_member_read',
+  problemMessage:
+      "There's a setter '{0}' in the extension '{1}', but no getter.",
+  correctionMessage: "Try defining a getter named '{0}' in the extension.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_read_setter_only',
+  withArguments: _withArgumentsUndefinedExtensionMemberReadSetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+/// String extensionName: the name of the extension
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String extensionName,
+  })
+>
+undefinedExtensionMemberWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_extension_member_write',
+  problemMessage:
+      "There's a getter '{0}' in the extension '{1}', but no setter.",
+  correctionMessage: "Try defining a setter named '{0}' in the extension.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_write_getter_only',
+  withArguments: _withArgumentsUndefinedExtensionMemberWriteGetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String extensionName: the name of the extension
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String extensionName,
+  })
+>
+undefinedExtensionMemberWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_extension_member_write',
+  problemMessage:
+      "The extension '{1}' doesn't have an instance setter named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing setter, or "
+      "defining a setter named '{0}' in the extension.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_write_not_found',
+  withArguments: _withArgumentsUndefinedExtensionMemberWriteNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedExtensionMemberWritePrivate = DiagnosticWithArguments(
+  name: 'undefined_extension_member_write',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_write_private',
+  withArguments: _withArgumentsUndefinedExtensionMemberWritePrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as 'method'
+/// String name: the name of the declaration
+/// String extensionName: the name of the extension
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String kind,
+    required String name,
+    required String extensionName,
+  })
+>
+undefinedExtensionMemberWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_extension_member_write',
+  problemMessage: "The {0} '{1}' in the extension '{2}' can't be assigned to.",
+  correctionMessage: "Try assigning to a setter instead.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_extension_member_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedExtensionMemberWriteWrongKind,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
 /// String methodName: the name of the method that is undefined
 /// String extensionName: the name of the extension that was explicitly
 ///                       specified
@@ -22555,6 +22700,78 @@ LocatableDiagnostic _withArgumentsUndefinedExtensionGetter({
 }) {
   return LocatableDiagnosticImpl(diag.undefinedExtensionGetter, [
     getterName,
+    extensionName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberReadNotFound({
+  required String name,
+  required String extensionName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberReadNotFound, [
+    name,
+    extensionName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberReadPrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberReadPrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberReadSetterOnly({
+  required String name,
+  required String extensionName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberReadSetterOnly, [
+    name,
+    extensionName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberWriteGetterOnly({
+  required String name,
+  required String extensionName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberWriteGetterOnly, [
+    name,
+    extensionName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberWriteNotFound({
+  required String name,
+  required String extensionName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberWriteNotFound, [
+    name,
+    extensionName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberWritePrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberWritePrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedExtensionMemberWriteWrongKind({
+  required String kind,
+  required String name,
+  required String extensionName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedExtensionMemberWriteWrongKind, [
+    kind,
+    name,
     extensionName,
   ]);
 }

@@ -876,6 +876,10 @@ import 'undefined_enum_constructor_named_test.dart'
 import 'undefined_enum_constructor_unnamed_test.dart'
     as undefined_enum_constructor_unnamed;
 import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
+import 'undefined_extension_member_read_test.dart'
+    as undefined_extension_member_read;
+import 'undefined_extension_member_write_test.dart'
+    as undefined_extension_member_write;
 import 'undefined_extension_method_test.dart' as undefined_extension_method;
 import 'undefined_extension_operator_test.dart' as undefined_extension_operator;
 import 'undefined_extension_setter_test.dart' as undefined_extension_setter;
@@ -1517,6 +1521,8 @@ main() {
     undefined_enum_constructor_named.main();
     undefined_enum_constructor_unnamed.main();
     undefined_extension_getter.main();
+    undefined_extension_member_read.main();
+    undefined_extension_member_write.main();
     undefined_extension_method.main();
     undefined_extension_operator.main();
     undefined_extension_setter.main();

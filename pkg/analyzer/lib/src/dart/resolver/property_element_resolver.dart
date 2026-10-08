@@ -62,6 +62,7 @@ class PropertyElementResolver with ScopeHelpers {
       var readElement = result.getter2;
       var writeElement = result.setter2;
       if (result != ExtensionResolutionError.ambiguous) {
+        // `[]` is evaluated first, so a missing `[]` takes precedence.
         if (hasRead && readElement == null) {
           _reportUnresolvedIndex(
             node,
@@ -70,8 +71,7 @@ class PropertyElementResolver with ScopeHelpers {
               extensionName: receiver.element.name!,
             ),
           );
-        }
-        if (hasWrite && writeElement == null) {
+        } else if (hasWrite && writeElement == null) {
           _reportUnresolvedIndex(
             node,
             diag.undefinedExtensionOperator.withArguments(
@@ -496,6 +496,7 @@ class PropertyElementResolver with ScopeHelpers {
       var isReadInvalid = readElement == null;
       var isWriteInvalid = writeElement == null;
       if (result != ExtensionResolutionError.ambiguous) {
+        // `[]` is evaluated first, so a missing `[]` takes precedence.
         if (isReadInvalid) {
           _reportUnresolvedIndex(
             node,
@@ -504,8 +505,7 @@ class PropertyElementResolver with ScopeHelpers {
               extensionName: receiver.element.name!,
             ),
           );
-        }
-        if (isWriteInvalid) {
+        } else if (isWriteInvalid) {
           _reportUnresolvedIndex(
             node,
             diag.undefinedExtensionOperator.withArguments(
@@ -1041,8 +1041,6 @@ class PropertyElementResolver with ScopeHelpers {
           propertyName: node.name,
           hasRead: true,
           hasWrite: true,
-          assignmentToMethodOnMissingWrite:
-              node.parent2 is IncrementOrDecrementExpression,
         );
         return _propertyReadWriteTargetResult(result);
 
@@ -1794,7 +1792,6 @@ class PropertyElementResolver with ScopeHelpers {
     required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
-    bool assignmentToMethodOnMissingWrite = false,
   }) {
     if (target.parent2 case InvalidExtensionOverrideExpression(
       parent2: CascadeExpression(),
@@ -1811,14 +1808,19 @@ class PropertyElementResolver with ScopeHelpers {
 
     ExecutableElement? readElement;
     DartType? getType;
+    var isReadFailure = false;
     if (hasRead) {
       readElement = result.getter2;
       if (readElement == null) {
+        isReadFailure = true;
         _lookupFailureReporter.reportReadFailure(
           domain: ExtensionOverrideLookupDomain(target.element),
           name: propertyName,
           syntax: ReadSyntax.reference,
-          foundInstead: null,
+          foundInstead: _extensionResolver.getOverrideMemberForFailedLookup(
+            target,
+            Name(_definingLibrary.uri, memberName),
+          ),
         );
       } else {
         getType = readElement.returnType;
@@ -1829,14 +1831,15 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? writeElement;
     if (hasWrite) {
       writeElement = result.setter2;
-      if (writeElement == null) {
+      // The read is evaluated first, so a failed read takes precedence.
+      if (writeElement == null && !isReadFailure) {
         _lookupFailureReporter.reportWriteFailure(
           domain: ExtensionOverrideLookupDomain(target.element),
           name: propertyName,
-          foundInstead:
-              assignmentToMethodOnMissingWrite && readElement is MethodElement
-              ? readElement
-              : null,
+          foundInstead: _extensionResolver.getOverrideMemberForFailedLookup(
+            target,
+            Name(_definingLibrary.uri, memberName).forSetter,
+          ),
         );
       }
       _checkForStaticMember(target, propertyName, writeElement);

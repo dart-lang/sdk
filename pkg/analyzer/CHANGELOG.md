@@ -20,6 +20,23 @@
   considered to be in a superclass. For example, `super.foo()` in
   `mixin M implements A` now reports `undefined_super_member_read` instead of
   `abstract_super_member_reference`, when only `A` has `foo`.
+* Extension overrides, such as `E(x).foo`, report two new diagnostics
+  instead of `undefined_extension_getter`, `undefined_extension_method`, and
+  `undefined_extension_setter`, which are still reported for static members,
+  such as `E.foo`:
+  * `undefined_extension_member_read`, for `E(x).foo` and `E(x).foo()`, when
+    the extension doesn't declare a method or getter. The message says when
+    the extension declares only a setter.
+  * `undefined_extension_member_write`, for `E(x).foo = v`, when the
+    extension doesn't declare a setter. The message says when the extension
+    declares only a getter, or a method.
+
+  A private member of an extension declared in another library is no longer
+  found through an extension override, such as `E(x)._foo`, and the message
+  says that it is private.
+
+  Use the new names in `// ignore:` comments and in `analysis_options.yaml`
+  for extension overrides.
 
 ## 14.5.0
 

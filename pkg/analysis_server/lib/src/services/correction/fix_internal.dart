@@ -862,6 +862,20 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateExtensionGetter.new,
     CreateExtensionMethod.new,
   ],
+  diag.undefinedExtensionMemberReadNotFound: [
+    ChangeTo.getterOrSetter,
+    ChangeTo.method,
+    CreateExtensionGetter.new,
+    CreateExtensionMethod.new,
+    CreateMethod.method,
+  ],
+  diag.undefinedExtensionMemberReadSetterOnly: [CreateExtensionGetter.new],
+  diag.undefinedExtensionMemberWriteGetterOnly: [CreateExtensionSetter.new],
+  diag.undefinedExtensionMemberWriteNotFound: [
+    ChangeTo.getterOrSetter,
+    CreateSetter.new,
+    CreateExtensionSetter.new,
+  ],
   diag.undefinedExtensionMethod: [
     ChangeTo.method,
     CreateExtensionMethod.new,
@@ -1235,6 +1249,7 @@ final _builtInNonLintMultiGenerators = {
     AddSuperConstructorInvocation.new,
   ],
   diag.undefinedExtensionGetter: [DataDriven.new],
+  diag.undefinedExtensionMemberReadNotFound: [DataDriven.new],
   diag.undefinedFunction: [
     CreateClass.new,
     DataDriven.new,
