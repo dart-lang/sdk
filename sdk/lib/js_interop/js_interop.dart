@@ -665,8 +665,8 @@ extension type JSError._(JSObject _) implements JSObject {
   ///
   /// [`new Error()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Error
   factory JSError(String message, {JSAny? cause}) => cause == null
-      ? new JSError.__(message)
-      : new JSError.__(message, _NewErrorOptions(cause: cause));
+      ? JSError.__(message)
+      : JSError.__(message, _NewErrorOptions(cause: cause));
 
   external JSError.__(String message, [_NewErrorOptions options]);
 
@@ -695,109 +695,6 @@ extension type _NewErrorOptions._(JSObject _) implements JSObject {
   external _NewErrorOptions({JSAny? cause});
 
   external JSAny? cause;
-}
-
-/// The JavaScript `EvalError` type.
-@JS('EvalError')
-extension type JSEvalError._(JSError _) implements JSError {
-  /// See [`new EvalError()`].
-  ///
-  /// [`new EvalError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/EvalError/EvalError
-  factory JSEvalError(String message, {JSAny? cause}) => cause == null
-      ? new JSEvalError.__(message)
-      : new JSEvalError.__(message, _NewErrorOptions(cause: cause));
-
-  external JSEvalError.__(String message, [_NewErrorOptions options]);
-}
-
-/// The JavaScript `RangeError` type.
-@JS('RangeError')
-extension type JSRangeError._(JSError _) implements JSError {
-  /// See [`new RangeError()`].
-  ///
-  /// [`new RangeError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RangeError/RangeError
-  factory JSRangeError(String message, {JSAny? cause}) => cause == null
-      ? new JSRangeError.__(message)
-      : new JSRangeError.__(message, _NewErrorOptions(cause: cause));
-
-  external JSRangeError.__(String message, [_NewErrorOptions options]);
-}
-
-/// The JavaScript `ReferenceError` type.
-@JS('ReferenceError')
-extension type JSReferenceError._(JSError _) implements JSError {
-  /// See [`new ReferenceError()`].
-  ///
-  /// [`new ReferenceError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ReferenceError/ReferenceError
-  factory JSReferenceError(String message, {JSAny? cause}) => cause == null
-      ? new JSReferenceError.__(message)
-      : new JSReferenceError.__(message, _NewErrorOptions(cause: cause));
-
-  external JSReferenceError.__(String message, [_NewErrorOptions options]);
-}
-
-/// The JavaScript `SyntaxError` type.
-@JS('SyntaxError')
-extension type JSSyntaxError._(JSError _) implements JSError {
-  /// See [`new SyntaxError()`].
-  ///
-  /// [`new SyntaxError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/SyntaxError/SyntaxError
-  factory JSSyntaxError(String message, {JSAny? cause}) => cause == null
-      ? new JSSyntaxError.__(message)
-      : new JSSyntaxError.__(message, _NewErrorOptions(cause: cause));
-
-  external JSSyntaxError.__(String message, [_NewErrorOptions options]);
-}
-
-/// The JavaScript `TypeError` type.
-@JS('TypeError')
-extension type JSTypeError._(JSError _) implements JSError {
-  /// See [`new TypeError()`].
-  ///
-  /// [`new TypeError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypeError/TypeError
-  factory JSTypeError(String message, {JSAny? cause}) => cause == null
-      ? new JSTypeError.__(message)
-      : new JSTypeError.__(message, _NewErrorOptions(cause: cause));
-
-  external JSTypeError.__(String message, [_NewErrorOptions options]);
-}
-
-/// The JavaScript `URIError` type.
-@JS('URIError')
-extension type JSURIError._(JSError _) implements JSError {
-  /// See [`new URIError()`].
-  ///
-  /// [`new URIError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/URIError/URIError
-  factory JSURIError(String message, {JSAny? cause}) => cause == null
-      ? new JSURIError.__(message)
-      : new JSURIError.__(message, _NewErrorOptions(cause: cause));
-
-  external JSURIError.__(String message, [_NewErrorOptions options]);
-}
-
-/// The JavaScript `AggregateError` type.
-@JS('AggregateError')
-extension type JSAggregateError._(JSError _) implements JSError {
-  /// See [`new AggregateError()`].
-  ///
-  /// [`new AggregateError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError/AggregateError
-  factory JSAggregateError(JSArray<JSAny> errors, {String? message}) =>
-      JSAggregateError.fromIterable(errors.toJSIterable, message: message);
-
-  /// See [`new AggregateError()`].
-  ///
-  /// [`new AggregateError()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/AggregateError/AggregateError
-  factory JSAggregateError.fromIterable(
-    JSIterableProtocol<JSAny> errors, {
-    String? message,
-  }) => message == null
-      ? new JSAggregateError.__(errors)
-      : new JSAggregateError.__(errors, message);
-
-  external JSAggregateError.__(
-    JSIterableProtocol<JSAny> errors, [
-    String message,
-  ]);
 }
 
 /// A Dart object that is wrapped with a JavaScript object so that it can be
