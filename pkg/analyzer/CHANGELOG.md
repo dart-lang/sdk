@@ -1,6 +1,25 @@
 ## 14.6.0-dev
 
-* Internal changes only
+* Replaced the `undefined_super_member` diagnostic, which was reported for
+  getters, methods, setters, and operators, with three diagnostics, as
+  proposed in https://github.com/dart-lang/sdk/issues/64411:
+  * `undefined_super_member_read`, for `super.foo` and `super.foo()`, when no
+    superclass has a method, getter, or field that can be read. The message
+    says when a superclass has only a setter, or a private member of another
+    library.
+  * `undefined_super_member_write`, for `super.foo = v`, when no superclass
+    has a setter. The message says when a superclass has only a getter, a
+    final field, a method, or a private member of another library.
+  * `undefined_super_operator`, for `super + v`, `-super`, `super[i]`, and
+    `super[i] = v`.
+
+  Replace `undefined_super_member` with the new names in `// ignore:`
+  comments and in `analysis_options.yaml`, where the old name is still
+  accepted, but has no effect.
+* Members of the interfaces that a class or mixin implements are no longer
+  considered to be in a superclass. For example, `super.foo()` in
+  `mixin M implements A` now reports `undefined_super_member_read` instead of
+  `abstract_super_member_reference`, when only `A` has `foo`.
 
 ## 14.5.0
 

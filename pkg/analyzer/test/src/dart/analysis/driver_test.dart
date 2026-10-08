@@ -10404,6 +10404,227 @@ class A {
     );
   }
 
+  test_dependency_class_instanceMethod_add_invoked_super() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+''',
+      testCode: r'''
+import 'a.dart';
+abstract class B extends A {
+  void f() {
+    super.foo();
+  }
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        interface: #M1
+    exportMapId: #M2
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      B: #M3
+        declaredMethods
+          f: #M4
+        interface: #M5
+          map
+            f: #M4
+          implemented
+            f: #M4
+    exportMapId: #M6
+    exportMap
+      B: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M2
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M1
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M7
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      69 +3 UNDEFINED_SUPER_MEMBER_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M8
+        exportMapId: #M2
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        instances
+          A
+            requestedDeclaredMethods
+              f: <null>
+        interfaces
+          A
+            allDeclaredConstructors: #M7
+            allInheritedConstructors: []
+            requestedConstructors
+              new: #M7
+            methods
+              f: <null>
+              foo: <null>
+              foo=: <null>
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      69 +3 UNDEFINED_SUPER_MEMBER_READ
+''',
+      updatedA: r'''
+class A {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M9
+        interface: #M10
+          map
+            foo: #M9
+          implemented
+            foo: #M9
+    exportMapId: #M2
+    exportMap
+      A: #M0
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedId: #M1
+    actualId: #M10
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredClasses
+      B: #M3
+        declaredMethods
+          f: #M4
+        interface: #M11
+          map
+            f: #M4
+            foo: #M9
+          implemented
+            f: #M4
+            foo: #M9
+          superImplemented
+            [0]
+              foo: #M9
+          inherited
+            foo: #M9
+    exportMapId: #M6
+    exportMap
+      B: #M3
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M2
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M10
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M7
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: <null>
+    actualId: #M9
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M8
+        exportMapId: #M2
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        instances
+          A
+            requestedDeclaredMethods
+              f: <null>
+        interfaces
+          A
+            allDeclaredConstructors: #M7
+            allInheritedConstructors: []
+            requestedConstructors
+              new: #M7
+            methods
+              f: <null>
+[status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
   test_dependency_class_instanceMethod_change_classExtends() async {
     configuration.withStreamResolvedUnitResults = false;
     await _runChangeScenarioTA(
@@ -12136,6 +12357,640 @@ void f(B b) {
     errors
       66 +4 UNDEFINED_METHOD
       35 +4 UNUSED_ELEMENT
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_invoked_super_makeConcrete() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+abstract class A {
+  void foo();
+}
+''',
+      testCode: r'''
+import 'a.dart';
+abstract class B extends A {
+  void f() {
+    super.foo();
+  }
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+    exportMapId: #M3
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      B: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            f: #M5
+            foo: #M1
+          implemented
+            f: #M5
+          inherited
+            foo: #M1
+    exportMapId: #M7
+    exportMap
+      B: #M4
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M2
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      69 +3 ABSTRACT_SUPER_MEMBER_REFERENCE
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M9
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        instances
+          A
+            requestedDeclaredMethods
+              f: <null>
+        interfaces
+          A
+            allDeclaredConstructors: #M8
+            allInheritedConstructors: []
+            requestedConstructors
+              new: #M8
+            methods
+              f: <null>
+              foo: #M1
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      69 +3 ABSTRACT_SUPER_MEMBER_REFERENCE
+''',
+      updatedA: r'''
+abstract class A {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M0
+        declaredMethods
+          foo: #M10
+        interface: #M11
+          map
+            foo: #M10
+          implemented
+            foo: #M10
+    exportMapId: #M3
+    exportMap
+      A: #M0
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedId: #M2
+    actualId: #M11
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredClasses
+      B: #M4
+        declaredMethods
+          f: #M5
+        interface: #M12
+          map
+            f: #M5
+            foo: #M10
+          implemented
+            f: #M5
+            foo: #M10
+          superImplemented
+            [0]
+              foo: #M10
+          inherited
+            foo: #M10
+    exportMapId: #M7
+    exportMap
+      B: #M4
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M11
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M8
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: foo
+    expectedId: #M1
+    actualId: #M10
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M9
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        instances
+          A
+            requestedDeclaredMethods
+              f: <null>
+        interfaces
+          A
+            allDeclaredConstructors: #M8
+            allInheritedConstructors: []
+            requestedConstructors
+              new: #M8
+            methods
+              f: <null>
+[status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_invoked_super_other() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+abstract class B extends A {
+  void f() {
+    super.foo();
+  }
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M1
+        interface: #M2
+          map
+            bar: #M1
+          implemented
+            bar: #M1
+    exportMapId: #M3
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      B: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            bar: #M1
+            f: #M5
+          implemented
+            bar: #M1
+            f: #M5
+          superImplemented
+            [0]
+              bar: #M1
+          inherited
+            bar: #M1
+    exportMapId: #M7
+    exportMap
+      B: #M4
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M2
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      69 +3 UNDEFINED_SUPER_MEMBER_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M9
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        instances
+          A
+            requestedDeclaredMethods
+              f: <null>
+        interfaces
+          A
+            allDeclaredConstructors: #M8
+            allInheritedConstructors: []
+            requestedConstructors
+              new: #M8
+            methods
+              f: <null>
+              foo: <null>
+              foo=: <null>
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      69 +3 UNDEFINED_SUPER_MEMBER_READ
+''',
+      updatedA: r'''
+class A {
+  void bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M0
+        declaredMethods
+          bar: #M10
+        interface: #M11
+          map
+            bar: #M10
+          implemented
+            bar: #M10
+    exportMapId: #M3
+    exportMap
+      A: #M0
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedId: #M2
+    actualId: #M11
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredClasses
+      B: #M4
+        declaredMethods
+          f: #M5
+        interface: #M12
+          map
+            bar: #M10
+            f: #M5
+          implemented
+            bar: #M10
+            f: #M5
+          superImplemented
+            [0]
+              bar: #M10
+          inherited
+            bar: #M10
+    exportMapId: #M7
+    exportMap
+      B: #M4
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M11
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M8
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      69 +3 UNDEFINED_SUPER_MEMBER_READ
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_change_invoked_super_private() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void _foo() {}
+  void bar() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+abstract class B extends A {
+  void f() {
+    super._foo();
+  }
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredMethods
+          _foo: #M1
+          bar: #M2
+        interface: #M3
+          map
+            bar: #M2
+          implemented
+            bar: #M2
+    exportMapId: #M4
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      B: #M5
+        declaredMethods
+          f: #M6
+        interface: #M7
+          map
+            bar: #M2
+            f: #M6
+          implemented
+            bar: #M2
+            f: #M6
+          superImplemented
+            [0]
+              bar: #M2
+          inherited
+            bar: #M2
+    exportMapId: #M8
+    exportMap
+      B: #M5
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M4
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M3
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M9
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      69 +4 UNDEFINED_SUPER_MEMBER_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M10
+        exportMapId: #M4
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        instances
+          A
+            requestedDeclaredGetters
+              _foo: <null>
+            requestedDeclaredMethods
+              _foo: #M1
+              f: <null>
+        interfaces
+          A
+            allDeclaredConstructors: #M9
+            allInheritedConstructors: []
+            requestedConstructors
+              new: #M9
+            methods
+              f: <null>
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      69 +4 UNDEFINED_SUPER_MEMBER_READ
+''',
+      updatedA: r'''
+class A {
+  void _foo() {}
+  void bar(int _) {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M0
+        declaredMethods
+          _foo: #M1
+          bar: #M11
+        interface: #M12
+          map
+            bar: #M11
+          implemented
+            bar: #M11
+    exportMapId: #M4
+    exportMap
+      A: #M0
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    expectedId: #M3
+    actualId: #M12
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredClasses
+      B: #M5
+        declaredMethods
+          f: #M6
+        interface: #M13
+          map
+            bar: #M11
+            f: #M6
+          implemented
+            bar: #M11
+            f: #M6
+          superImplemented
+            [0]
+              bar: #M11
+          inherited
+            bar: #M11
+    exportMapId: #M8
+    exportMap
+      B: #M5
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M4
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M12
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M9
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+[future] getErrors T2
+  ErrorsResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      69 +4 UNDEFINED_SUPER_MEMBER_READ
 ''',
     );
   }
@@ -14254,6 +15109,196 @@ class A {}
     flags: isLibrary
     errors
       35 +3 UNDEFINED_METHOD
+''',
+    );
+  }
+
+  test_dependency_class_instanceMethod_remove_invoked_super_private() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {
+  void _foo() {}
+}
+''',
+      testCode: r'''
+import 'a.dart';
+abstract class B extends A {
+  void f() {
+    super._foo();
+  }
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredMethods
+          _foo: #M1
+        interface: #M2
+    exportMapId: #M3
+    exportMap
+      A: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      B: #M4
+        declaredMethods
+          f: #M5
+        interface: #M6
+          map
+            f: #M5
+          implemented
+            f: #M5
+    exportMapId: #M7
+    exportMap
+      B: #M4
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        interfaces
+          A
+            interfaceId: #M2
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M8
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      69 +4 UNDEFINED_SUPER_MEMBER_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M9
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        instances
+          A
+            requestedDeclaredGetters
+              _foo: <null>
+            requestedDeclaredMethods
+              _foo: #M1
+              f: <null>
+        interfaces
+          A
+            allDeclaredConstructors: #M8
+            allInheritedConstructors: []
+            requestedConstructors
+              new: #M8
+            methods
+              f: <null>
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      69 +4 UNDEFINED_SUPER_MEMBER_READ
+''',
+      updatedA: r'''
+class A {
+  void _bar() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M0
+        declaredMethods
+          _bar: #M10
+        interface: #M2
+    exportMapId: #M3
+    exportMap
+      A: #M0
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceMethodIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: A
+    methodName: _foo
+    expectedId: #M1
+    actualId: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      69 +4 UNDEFINED_SUPER_MEMBER_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M9
+        exportMapId: #M3
+        exportMap
+          A: #M0
+          A=: <null>
+        reExportDeprecatedOnly
+          A: false
+        instances
+          A
+            requestedDeclaredGetters
+              _foo: <null>
+            requestedDeclaredSetters
+              _foo=: <null>
+            requestedDeclaredMethods
+              _foo: <null>
+              f: <null>
+        interfaces
+          A
+            interfaceId: #M2
+            allDeclaredConstructors: #M8
+            allInheritedConstructors: []
+            requestedConstructors
+              new: #M8
+            methods
+              f: <null>
+[status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      69 +4 UNDEFINED_SUPER_MEMBER_READ
 ''',
     );
   }
@@ -39582,6 +40627,276 @@ mixin A {
 [status] idle
 [future] getErrors T2
   ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
+  test_dependency_mixin_instanceMethod_add_invoked_super() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+class A {}
+mixin M {}
+''',
+      testCode: r'''
+import 'a.dart';
+abstract class B extends A with M {
+  void f() {
+    super.foo();
+  }
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        interface: #M1
+    declaredMixins
+      M: #M2
+        interface: #M3
+    exportMapId: #M4
+    exportMap
+      A: #M0
+      M: #M2
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      B: #M5
+        declaredMethods
+          f: #M6
+        interface: #M7
+          map
+            f: #M6
+          implemented
+            f: #M6
+    exportMapId: #M8
+    exportMap
+      B: #M5
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M4
+        exportMap
+          A: #M0
+          A=: <null>
+          M: #M2
+          M=: <null>
+        reExportDeprecatedOnly
+          A: false
+          M: false
+        interfaces
+          A
+            interfaceId: #M1
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M9
+          M
+            interfaceId: #M3
+            hasNonFinalField: false
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      76 +3 UNDEFINED_SUPER_MEMBER_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M10
+        exportMapId: #M4
+        exportMap
+          A: #M0
+          A=: <null>
+          M: #M2
+          M=: <null>
+        reExportDeprecatedOnly
+          A: false
+          M: false
+        instances
+          A
+            requestedDeclaredMethods
+              f: <null>
+          M
+            requestedDeclaredMethods
+              f: <null>
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: []
+        interfaces
+          A
+            allDeclaredConstructors: #M9
+            allInheritedConstructors: []
+            requestedConstructors
+              new: #M9
+            methods
+              f: <null>
+              foo: <null>
+              foo=: <null>
+          M
+            methods
+              f: <null>
+              foo: <null>
+              foo=: <null>
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      76 +3 UNDEFINED_SUPER_MEMBER_READ
+''',
+      updatedA: r'''
+class A {}
+mixin M {
+  void foo() {}
+}
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredClasses
+      A: #M0
+        interface: #M1
+    declaredMixins
+      M: #M2
+        declaredMethods
+          foo: #M11
+        interface: #M12
+          map
+            foo: #M11
+          implemented
+            foo: #M11
+    exportMapId: #M4
+    exportMap
+      A: #M0
+      M: #M2
+  requirements
+[operation] checkLinkedBundleRequirements
+  package:test/test.dart
+  interfaceIdMismatch
+    libraryUri: package:test/a.dart
+    interfaceName: M
+    expectedId: #M3
+    actualId: #M12
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredClasses
+      B: #M5
+        declaredMethods
+          f: #M6
+        interface: #M13
+          map
+            f: #M6
+            foo: #M11
+          implemented
+            f: #M6
+            foo: #M11
+          superImplemented
+            [1]
+              foo: #M11
+          inherited
+            foo: #M11
+    exportMapId: #M8
+    exportMap
+      B: #M5
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M4
+        exportMap
+          A: #M0
+          A=: <null>
+          M: #M2
+          M=: <null>
+        reExportDeprecatedOnly
+          A: false
+          M: false
+        interfaces
+          A
+            interfaceId: #M1
+            hasNonFinalField: false
+            requestedConstructors
+              new: #M9
+          M
+            interfaceId: #M12
+            hasNonFinalField: false
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  instanceChildrenIdsMismatch
+    libraryUri: package:test/a.dart
+    instanceName: M
+    childrenPropertyName: methods
+    expectedIds: []
+    actualIds: #M11
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        featureSet: <not-null>
+        libraryMetadataId: #M10
+        exportMapId: #M4
+        exportMap
+          A: #M0
+          A=: <null>
+          M: #M2
+          M=: <null>
+        reExportDeprecatedOnly
+          A: false
+          M: false
+        instances
+          A
+            requestedDeclaredMethods
+              f: <null>
+          M
+            requestedDeclaredMethods
+              f: <null>
+            allDeclaredGetters: []
+            allDeclaredSetters: []
+            allDeclaredMethods: #M11
+        interfaces
+          A
+            allDeclaredConstructors: #M9
+            allInheritedConstructors: []
+            requestedConstructors
+              new: #M9
+            methods
+              f: <null>
+              foo: <null>
+          M
+            methods
+              f: <null>
+[status] idle
+[future] getErrors T2
+  ErrorsResult #3
     path: /home/test/lib/test.dart
     uri: package:test/test.dart
     flags: isLibrary

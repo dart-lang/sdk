@@ -3783,7 +3783,7 @@ class A {
   bar() {
     super.foo<int>;
 //        ^^^
-// [diag.undefinedSuperGetter] The getter 'foo' isn't defined in a superclass of 'A'.
+// [diag.undefinedSuperMemberReadNotFound] The member 'foo' isn't defined in a superclass of 'A'.
   }
 }
 ''');

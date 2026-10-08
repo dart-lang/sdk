@@ -17208,48 +17208,151 @@ undefinedShownName = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String getterName: the name of the getter
-/// Type type: the enclosing type where the getter is being looked for
+/// String name: the name of the member
+/// Type type: the type of `this` in the enclosing declaration
 const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String getterName,
-    required DartType type,
-  })
+  LocatableDiagnostic Function({required String name, required DartType type})
 >
-undefinedSuperGetter = DiagnosticWithArguments(
-  name: 'undefined_super_member',
-  problemMessage: "The getter '{0}' isn't defined in a superclass of '{1}'.",
+undefinedSuperMemberReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_super_member_read',
+  problemMessage: "The member '{0}' isn't defined in a superclass of '{1}'.",
   correctionMessage:
-      "Try correcting the name to the name of an existing getter, or "
-      "defining a getter or field named '{0}' in a superclass.",
-  hasPublishedDocs: true,
+      "Try correcting the name to the name of an existing member, or "
+      "defining a method, getter, or field named '{0}' in a superclass.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_super_getter',
-  withArguments: _withArgumentsUndefinedSuperGetter,
+  uniqueName: 'undefined_super_member_read_not_found',
+  withArguments: _withArgumentsUndefinedSuperMemberReadNotFound,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
-/// String methodName: the name of the method that is undefined
-/// String typeName: the resolved type name that the method lookup is
-///                  happening on
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedSuperMemberReadPrivate = DiagnosticWithArguments(
+  name: 'undefined_super_member_read',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_read_private',
+  withArguments: _withArgumentsUndefinedSuperMemberReadPrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// Type type: the type of `this` in the enclosing declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedSuperMemberReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_super_member_read',
+  problemMessage:
+      "There's a setter '{0}' in a superclass of '{1}', but no getter.",
+  correctionMessage:
+      "Try defining a getter or field named '{0}' in a superclass.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_read_setter_only',
+  withArguments: _withArgumentsUndefinedSuperMemberReadSetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the field
+/// Type type: the type of `this` in the enclosing declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedSuperMemberWriteFinal = DiagnosticWithArguments(
+  name: 'undefined_super_member_write',
+  problemMessage:
+      "The field '{0}' in a superclass of '{1}' is final, so it can't be "
+      "assigned to.",
+  correctionMessage:
+      "Try making the field non-final, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_write_final',
+  withArguments: _withArgumentsUndefinedSuperMemberWriteFinal,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+/// Type type: the type of `this` in the enclosing declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedSuperMemberWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_super_member_write',
+  problemMessage:
+      "There's a getter '{0}' in a superclass of '{1}', but no setter.",
+  correctionMessage: "Try defining a setter named '{0}' in a superclass.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_write_getter_only',
+  withArguments: _withArgumentsUndefinedSuperMemberWriteGetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// Type type: the type of `this` in the enclosing declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedSuperMemberWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_super_member_write',
+  problemMessage: "The setter '{0}' isn't defined in a superclass of '{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing setter, or "
+      "defining a setter or field named '{0}' in a superclass.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_write_not_found',
+  withArguments: _withArgumentsUndefinedSuperMemberWriteNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedSuperMemberWritePrivate = DiagnosticWithArguments(
+  name: 'undefined_super_member_write',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_super_member_write_private',
+  withArguments: _withArgumentsUndefinedSuperMemberWritePrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as 'method'
+/// String name: the name of the declaration
+/// Type type: the type of `this` in the enclosing declaration
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String methodName,
-    required String typeName,
+    required String kind,
+    required String name,
+    required DartType type,
   })
 >
-undefinedSuperMethod = DiagnosticWithArguments(
-  name: 'undefined_super_member',
-  problemMessage: "The method '{0}' isn't defined in a superclass of '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing method, or "
-      "defining a method named '{0}' in a superclass.",
-  hasPublishedDocs: true,
+undefinedSuperMemberWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_super_member_write',
+  problemMessage:
+      "The {0} '{1}' in a superclass of '{2}' can't be assigned to.",
+  correctionMessage: "Try assigning to a setter or a non-final field instead.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_super_method',
-  withArguments: _withArgumentsUndefinedSuperMethod,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  uniqueName: 'undefined_super_member_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedSuperMemberWriteWrongKind,
+  expectedTypes: [ExpectedType.string, ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
@@ -17262,35 +17365,12 @@ const DiagnosticWithArguments<
   })
 >
 undefinedSuperOperator = DiagnosticWithArguments(
-  name: 'undefined_super_member',
+  name: 'undefined_super_operator',
   problemMessage: "The operator '{0}' isn't defined in a superclass of '{1}'.",
   correctionMessage: "Try defining the operator '{0}' in a superclass.",
-  hasPublishedDocs: true,
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_super_operator',
   withArguments: _withArgumentsUndefinedSuperOperator,
-  expectedTypes: [ExpectedType.string, ExpectedType.type],
-);
-
-/// Parameters:
-/// String setterName: the name of the setter
-/// Type type: the enclosing type where the setter is being looked for
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String setterName,
-    required DartType type,
-  })
->
-undefinedSuperSetter = DiagnosticWithArguments(
-  name: 'undefined_super_member',
-  problemMessage: "The setter '{0}' isn't defined in a superclass of '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing setter, or "
-      "defining a setter or field named '{0}' in a superclass.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_super_setter',
-  withArguments: _withArgumentsUndefinedSuperSetter,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
@@ -22629,20 +22709,85 @@ LocatableDiagnostic _withArgumentsUndefinedShownName({
   return LocatableDiagnosticImpl(diag.undefinedShownName, [library, name]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedSuperGetter({
-  required String getterName,
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberReadNotFound({
+  required String name,
   required DartType type,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSuperGetter, [getterName, type]);
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberReadNotFound, [
+    name,
+    type,
+  ]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedSuperMethod({
-  required String methodName,
-  required String typeName,
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberReadPrivate({
+  required String name,
+  required Uri libraryUri,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedSuperMethod, [
-    methodName,
-    typeName,
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberReadPrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberReadSetterOnly({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberReadSetterOnly, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberWriteFinal({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberWriteFinal, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberWriteGetterOnly({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberWriteGetterOnly, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberWriteNotFound({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberWriteNotFound, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberWritePrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberWritePrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedSuperMemberWriteWrongKind({
+  required String kind,
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedSuperMemberWriteWrongKind, [
+    kind,
+    name,
+    type,
   ]);
 }
 
@@ -22651,13 +22796,6 @@ LocatableDiagnostic _withArgumentsUndefinedSuperOperator({
   required DartType type,
 }) {
   return LocatableDiagnosticImpl(diag.undefinedSuperOperator, [operator, type]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedSuperSetter({
-  required String setterName,
-  required DartType type,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedSuperSetter, [setterName, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndone({required String message}) {

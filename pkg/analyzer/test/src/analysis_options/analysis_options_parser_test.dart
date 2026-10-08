@@ -661,6 +661,20 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_undefinedSuperMember() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_super_member: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_super_member: ignore
+''');
+  }
+
   test_analyzer_errors_severityValues() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:

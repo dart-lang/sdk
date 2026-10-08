@@ -8909,7 +8909,7 @@ augment class B {
   void bar() {
     super.foo(0);
 //        ^^^
-// [diag.undefinedSuperMethod] The method 'foo' isn't defined in a superclass of 'B'.
+// [diag.undefinedSuperMemberReadNotFound] The member 'foo' isn't defined in a superclass of 'B'.
   }
 }
 ''',
@@ -13947,7 +13947,7 @@ class B extends A {
   void foo(int _) {
     super.foo(0);
 //        ^^^
-// [diag.undefinedSuperMethod] The method 'foo' isn't defined in a superclass of 'B'.
+// [diag.undefinedSuperMemberReadNotFound] The member 'foo' isn't defined in a superclass of 'B'.
   }
 }
 ''');
@@ -14000,7 +14000,7 @@ enum E {
   void f() {
     super.foo(0);
 //        ^^^
-// [diag.undefinedSuperMethod] The method 'foo' isn't defined in a superclass of 'E'.
+// [diag.undefinedSuperMemberReadNotFound] The member 'foo' isn't defined in a superclass of 'E'.
   }
 }
 ''');
@@ -14054,7 +14054,7 @@ mixin M on A {
   void bar() {
     super.foo(0);
 //        ^^^
-// [diag.undefinedSuperMethod] The method 'foo' isn't defined in a superclass of 'M'.
+// [diag.undefinedSuperMemberReadNotFound] The member 'foo' isn't defined in a superclass of 'M'.
   }
 }
 ''');

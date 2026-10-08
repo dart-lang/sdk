@@ -77,6 +77,9 @@ abstract final class _DiagnosticOptions {
     // Annotations report undefined names like other expressions, as
     // `UNDEFINED_IDENTIFIER` or `UNDEFINED_PREFIXED_NAME`.
     'UNDEFINED_ANNOTATION',
+    // Split into `UNDEFINED_SUPER_MEMBER_READ`, `UNDEFINED_SUPER_MEMBER_WRITE`,
+    // and `UNDEFINED_SUPER_OPERATOR`.
+    'UNDEFINED_SUPER_MEMBER',
   };
 
   static Set<String> currentLintCodeNames() {

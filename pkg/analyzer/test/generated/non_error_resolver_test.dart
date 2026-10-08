@@ -3239,32 +3239,6 @@ main() {
 ''');
   }
 
-  test_undefinedSuperMethod_field() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  var m;
-}
-class B extends A {
-  f() {
-    super.m();
-  }
-}
-''');
-  }
-
-  test_undefinedSuperMethod_method() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  m() {}
-}
-class B extends A {
-  f() {
-    super.m();
-  }
-}
-''');
-  }
-
   Future test_useDynamicWithPrefix() async {
     await resolveTestCodeWithDiagnostics('''
 import 'dart:core' as core;

@@ -77,6 +77,7 @@ class ConstructorTearOffResolver {
               ),
               name: name,
               syntax: ReadSyntax.reference,
+              foundInstead: null,
             );
           }
         }

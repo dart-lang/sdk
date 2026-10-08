@@ -891,9 +891,9 @@ import 'undefined_referenced_parameter_test.dart'
     as undefined_referenced_parameter;
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
-import 'undefined_super_getter_test.dart' as undefined_super_getter;
+import 'undefined_super_member_read_test.dart' as undefined_super_member_read;
+import 'undefined_super_member_write_test.dart' as undefined_super_member_write;
 import 'undefined_super_operator_test.dart' as undefined_super_operator;
-import 'undefined_super_setter_test.dart' as undefined_super_setter;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_pattern_test.dart' as unnecessary_cast_pattern;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
@@ -1531,9 +1531,9 @@ main() {
     undefined_referenced_parameter.main();
     undefined_setter.main();
     undefined_shown_name.main();
-    undefined_super_getter.main();
+    undefined_super_member_read.main();
+    undefined_super_member_write.main();
     undefined_super_operator.main();
-    undefined_super_setter.main();
     unignorable_ignore.main();
     unnecessary_import.main();
     unnecessary_cast_pattern.main();

@@ -1693,6 +1693,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         domain: InstanceLookupDomain(receiverType.unwrapTypeView()),
         name: nameToken,
         syntax: ReadSyntax.reference,
+        foundInstead: null,
       );
     }
 
@@ -5512,12 +5513,14 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
             domain: DotShorthandLookupDomain.declaration(shorthandContext),
             name: head.name,
             syntax: ReadSyntax.invocation,
+            foundInstead: null,
           );
         case InvalidDotShorthandContextResolutionImpl(:var contextType?):
           lookupFailureReporter.reportReadFailure(
             domain: DotShorthandLookupDomain.type(contextType),
             name: head.name,
             syntax: ReadSyntax.invocation,
+            foundInstead: null,
           );
         case InvalidDotShorthandContextResolutionImpl():
           diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
