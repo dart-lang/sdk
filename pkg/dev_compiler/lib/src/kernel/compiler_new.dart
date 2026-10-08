@@ -2402,12 +2402,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         ),
         f.returnType,
         Nullability.nonNullable,
-        namedParameters: NamedDartTypeList.generate(
-          f.namedParameters.length,
-          (index) => reifyNamedParameter(
-            f.namedParameters[index],
-            fComputedNamedByName[f.namedParameters[index].parameterName]!,
-          ),
+        namedParameters: NamedDartTypeList.mapped(
+          f.namedParameters,
+          (p) => reifyNamedParameter(p, fComputedNamedByName[p.parameterName]!),
         )..sort(),
         typeParameters: fComputed.typeParameters,
         requiredParameterCount: f.requiredParameterCount,

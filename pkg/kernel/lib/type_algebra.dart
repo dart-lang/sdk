@@ -179,15 +179,12 @@ FreshStructuralParametersFromTypeParameters
 getFreshStructuralParametersFromTypeParameters(
   List<TypeParameter> typeParameters,
 ) {
-  StructuralParameterList freshParameters = StructuralParameterList.generate(
-    typeParameters.length,
-    (i) {
-      TypeParameter typeParameter = typeParameters[i];
-      return new StructuralParameter(typeParameter.name)
-        ..flags = typeParameter.flags
-        ..uri = typeParameter.location?.file
-        ..fileOffset = typeParameter.fileOffset;
-    },
+  StructuralParameterList freshParameters = StructuralParameterList.mapped(
+    typeParameters,
+    (TypeParameter typeParameter) => new StructuralParameter(typeParameter.name)
+      ..flags = typeParameter.flags
+      ..uri = typeParameter.location?.file
+      ..fileOffset = typeParameter.fileOffset,
   );
   DartTypeList freshTypeArguments = DartTypeList.generate(
     freshParameters.length,
@@ -316,13 +313,11 @@ FreshStructuralParameters? getFreshStructuralParametersSubstitutingBounds(
   FunctionTypeInstantiator? outerInstantiator,
 ]) {
   assert(typeParameters.isNotEmpty);
-  StructuralParameterList freshParameters = StructuralParameterList.generate(
-    typeParameters.length,
-    (i) {
-      StructuralParameter typeParameter = typeParameters[i];
-      return new StructuralParameter(typeParameter.name)
-        ..flags = typeParameter.flags;
-    },
+  StructuralParameterList freshParameters = StructuralParameterList.mapped(
+    typeParameters,
+    (StructuralParameter typeParameter) =>
+        new StructuralParameter(typeParameter.name)
+          ..flags = typeParameter.flags,
   );
   DartTypeList freshTypeArguments = DartTypeList.generate(
     freshParameters.length,
@@ -413,20 +408,18 @@ FreshStructuralParameters getFreshStructuralParametersReusingBounds(
   List<StructuralParameter> typeParameters,
 ) {
   assert(typeParameters.isNotEmpty);
-  StructuralParameterList freshParameters = StructuralParameterList.generate(
-    typeParameters.length,
-    (i) {
-      StructuralParameter typeParameter = typeParameters[i];
-      return new StructuralParameter(
-          typeParameter.name,
-          typeParameter.bound,
-          typeParameter.defaultType,
-        )
-        ..flags = typeParameter.flags
-        ..variance = typeParameter.isLegacyCovariant
-            ? null
-            : typeParameter.variance;
-    },
+  StructuralParameterList freshParameters = StructuralParameterList.mapped(
+    typeParameters,
+    (StructuralParameter typeParameter) =>
+        new StructuralParameter(
+            typeParameter.name,
+            typeParameter.bound,
+            typeParameter.defaultType,
+          )
+          ..flags = typeParameter.flags
+          ..variance = typeParameter.isLegacyCovariant
+              ? null
+              : typeParameter.variance,
   );
   DartTypeList freshTypeArguments = DartTypeList.generate(
     freshParameters.length,

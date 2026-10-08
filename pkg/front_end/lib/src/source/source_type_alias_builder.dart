@@ -364,10 +364,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
 
     if (arguments == null && typeParameters != null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      return new DartTypeList.generate(
-        typeParameters!.length,
-        (int i) =>
-            typeParameters![i].defaultType!
+      return DartTypeList.mapped(
+        typeParameters!,
+        (t) =>
+            t.defaultType!
             // TODO(johnniwinther): Using [libraryBuilder] here instead of
             // [library] preserves the nullability of the original
             // declaration. We legacy erase it later, but should we legacy
@@ -400,10 +400,9 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     }
 
     // arguments.length == typeParameters.length
-    return new DartTypeList.generate(
-      arguments!.length,
-      (int i) =>
-          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+    return DartTypeList.mapped(
+      arguments!,
+      (a) => a.buildAliased(library, TypeUse.typeArgument, hierarchy),
     );
   }
 

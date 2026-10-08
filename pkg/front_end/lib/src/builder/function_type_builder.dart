@@ -210,14 +210,12 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     }
     StructuralParameterList? newTypeParameters;
     if (typeParameters != null) {
-      newTypeParameters = new StructuralParameterList.generate(
-        typeParameters!.length,
-        (int i) {
-          StructuralParameterBuilder t = typeParameters![i];
-          t.bound?.build(library, TypeUse.typeParameterBound);
-          return t.parameter;
-        },
-      );
+      newTypeParameters = StructuralParameterList.mapped(typeParameters!, (
+        StructuralParameterBuilder t,
+      ) {
+        t.bound?.build(library, TypeUse.typeParameterBound);
+        return t.parameter;
+      });
     }
     return new FunctionType(
       positionalParameters,

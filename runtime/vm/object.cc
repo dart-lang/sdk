@@ -12336,11 +12336,11 @@ void Field::SetFieldType(const AbstractType& value) const {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void Field::set_exact_type(const AbstractType& value) const {
+void Field::set_inferred_type(const AbstractType& value) const {
   DEBUG_ASSERT(
       IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(IsOriginal());
-  untag()->set_exact_type(value.ptr());
+  untag()->set_inferred_type(value.ptr());
 }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
@@ -12381,6 +12381,7 @@ void Field::InitializeNew(const Field& result,
   result.set_is_unboxed_unsafe(false);
   result.set_initializer_changed_after_initialization(false);
   NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
+  NOT_IN_PRECOMPILED(result.set_is_inferred_type_exact(false));
   result.set_has_pragma(false);
   result.set_static_type_exactness_state_unsafe(
       StaticTypeExactnessState::NotTracking());

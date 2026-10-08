@@ -297,12 +297,9 @@ sealed class InvocationTargetNonFunctionType extends InvocationTargetType {
       this.returnType,
       Nullability.nonNullable,
       namedParameters: arguments.namedCount > 0
-          ? new NamedDartTypeList.wrap(
-              new List<NamedType>.of(
-                arguments.argumentList.whereType<NamedArgument>().map(
-                  (a) => new NamedType(a.name, const DynamicType()),
-                ),
-                growable: false,
+          ? new NamedDartTypeList.of(
+              arguments.argumentList.whereType<NamedArgument>().map(
+                (a) => new NamedType(a.name, const DynamicType()),
               ),
             )
           : NamedDartTypeList.empty,

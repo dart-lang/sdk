@@ -29,29 +29,40 @@ extension type const DartTypeList._(List<DartType> _list)
 
   /// Creates a fixed-length list of 1–4 elements without allocating a
   /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
   factory(DartType t1, [DartType? t2, DartType? t3, DartType? t4]) {
     if (t2 == null) {
       assert(t3 == null && t4 == null);
-      return DartTypeList._(List<DartType>.filled(1, t1));
+      return DartTypeList._1(t1);
     }
     if (t3 == null) {
       assert(t4 == null);
-      final List<DartType> list = List<DartType>.filled(2, t1);
-      list[1] = t2;
-      return DartTypeList._(list);
+      return DartTypeList._2(t1, t2);
     }
     if (t4 == null) {
-      final List<DartType> list = List<DartType>.filled(3, t1);
-      list[1] = t2;
-      list[2] = t3;
-      return DartTypeList._(list);
+      return DartTypeList._3(t1, t2, t3);
     }
-    final List<DartType> list = List<DartType>.filled(4, t1);
-    list[1] = t2;
-    list[2] = t3;
-    list[3] = t4;
-    return DartTypeList._(list);
+    return DartTypeList._4(t1, t2, t3, t4);
   }
+
+  factory _1(DartType t1) => DartTypeList._(List<DartType>.filled(1, t1));
+
+  factory _2(DartType t1, DartType t2) =>
+      DartTypeList._(List<DartType>.filled(2, t1)..[1] = t2);
+
+  factory _3(DartType t1, DartType t2, DartType t3) => DartTypeList._(
+    List<DartType>.filled(3, t1)
+      ..[1] = t2
+      ..[2] = t3,
+  );
+
+  factory _4(DartType t1, DartType t2, DartType t3, DartType t4) =>
+      DartTypeList._(
+        List<DartType>.filled(4, t1)
+          ..[1] = t2
+          ..[2] = t3
+          ..[3] = t4,
+      );
 
   factory filledWithDynamic(int length) => switch (length) {
     0 => empty,
@@ -70,6 +81,15 @@ extension type const DartTypeList._(List<DartType> _list)
     if (length == 0) return empty;
     return DartTypeList._(
       List<DartType>.generate(length, generator, growable: false),
+    );
+  }
+
+  @pragma('vm:prefer-inline')
+  static DartTypeList mapped<T>(List<T> list, DartType Function(T) func) {
+    final int length = list.length;
+    if (length == 0) return empty;
+    return DartTypeList._(
+      List<DartType>.generate(length, (i) => func(list[i]), growable: false),
     );
   }
 
@@ -96,35 +116,43 @@ extension type const NamedDartTypeList._(List<NamedType> _list)
     const <NamedType>[],
   );
 
-  /// Creates a constant list (must be invoked with `const` so [_list] is an
-  /// immutable list).
-  const new constant(this._list);
-
   /// Creates a fixed-length list of 1–4 elements without allocating a
   /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
   factory(NamedType t1, [NamedType? t2, NamedType? t3, NamedType? t4]) {
     if (t2 == null) {
       assert(t3 == null && t4 == null);
-      return NamedDartTypeList._(List<NamedType>.filled(1, t1));
+      return NamedDartTypeList._1(t1);
     }
     if (t3 == null) {
       assert(t4 == null);
-      final List<NamedType> list = List<NamedType>.filled(2, t1);
-      list[1] = t2;
-      return NamedDartTypeList._(list);
+      return NamedDartTypeList._2(t1, t2);
     }
     if (t4 == null) {
-      final List<NamedType> list = List<NamedType>.filled(3, t1);
-      list[1] = t2;
-      list[2] = t3;
-      return NamedDartTypeList._(list);
+      return NamedDartTypeList._3(t1, t2, t3);
     }
-    final List<NamedType> list = List<NamedType>.filled(4, t1);
-    list[1] = t2;
-    list[2] = t3;
-    list[3] = t4;
-    return NamedDartTypeList._(list);
+    return NamedDartTypeList._4(t1, t2, t3, t4);
   }
+
+  factory _1(NamedType t1) =>
+      NamedDartTypeList._(List<NamedType>.filled(1, t1));
+
+  factory _2(NamedType t1, NamedType t2) =>
+      NamedDartTypeList._(List<NamedType>.filled(2, t1)..[1] = t2);
+
+  factory _3(NamedType t1, NamedType t2, NamedType t3) => NamedDartTypeList._(
+    List<NamedType>.filled(3, t1)
+      ..[1] = t2
+      ..[2] = t3,
+  );
+
+  factory _4(NamedType t1, NamedType t2, NamedType t3, NamedType t4) =>
+      NamedDartTypeList._(
+        List<NamedType>.filled(4, t1)
+          ..[1] = t2
+          ..[2] = t3
+          ..[3] = t4,
+      );
 
   factory filled(int length, NamedType fill) {
     if (length == 0) return empty;
@@ -139,23 +167,27 @@ extension type const NamedDartTypeList._(List<NamedType> _list)
     );
   }
 
+  @pragma('vm:prefer-inline')
+  static NamedDartTypeList mapped<T>(List<T> list, NamedType Function(T) func) {
+    final int length = list.length;
+    if (length == 0) return empty;
+    return NamedDartTypeList._(
+      List<NamedType>.generate(length, (i) => func(list[i]), growable: false),
+    );
+  }
+
   /// Copies [types] into a new fixed-length list.
   factory from(List<NamedType> types) {
     if (types.isEmpty) return empty;
-    final List<NamedType> fixedList = List<NamedType>.filled(
-      types.length,
-      types[0],
+    return NamedDartTypeList._(
+      List<NamedType>.generate(types.length, (i) => types[i], growable: false),
     );
-    for (int i = 1; i < types.length; ++i) {
-      fixedList[i] = types[i];
-    }
-    return NamedDartTypeList._(fixedList);
   }
 
-  /// Wraps [fixedList] without copying; [fixedList] must already be a
-  /// fixed-length list.
-  factory wrap(List<NamedType> fixedList) {
-    return NamedDartTypeList._(fixedList);
+  /// Copies [types] into a new fixed-length list.
+  factory of(Iterable<NamedType> types) {
+    final List<NamedType> list = List<NamedType>.of(types, growable: false);
+    return list.isEmpty ? empty : NamedDartTypeList._(list);
   }
 
   /// Sorts non-empty lists in place.
@@ -185,12 +217,9 @@ extension type const StructuralParameterList._(List<StructuralParameter> _list)
     const <StructuralParameter>[],
   );
 
-  /// Creates a constant list (must be invoked with `const` so [_list] is an
-  /// immutable list).
-  const new constant(this._list);
-
-  /// Creates a fixed-length list of 1–4 elements without allocating a list
-  /// literal.
+  /// Creates a fixed-length list of 1–4 elements without allocating a
+  /// temporary growable list from a literal.
+  @pragma('vm:prefer-inline')
   factory(
     StructuralParameter t1, [
     StructuralParameter? t2,
@@ -199,35 +228,47 @@ extension type const StructuralParameterList._(List<StructuralParameter> _list)
   ]) {
     if (t2 == null) {
       assert(t3 == null && t4 == null);
-      return StructuralParameterList._(List<StructuralParameter>.filled(1, t1));
+      return StructuralParameterList._1(t1);
     }
     if (t3 == null) {
       assert(t4 == null);
-      final List<StructuralParameter> list = List<StructuralParameter>.filled(
-        2,
-        t1,
-      );
-      list[1] = t2;
-      return StructuralParameterList._(list);
+      return StructuralParameterList._2(t1, t2);
     }
     if (t4 == null) {
-      final List<StructuralParameter> list = List<StructuralParameter>.filled(
-        3,
-        t1,
-      );
-      list[1] = t2;
-      list[2] = t3;
-      return StructuralParameterList._(list);
+      return StructuralParameterList._3(t1, t2, t3);
     }
-    final List<StructuralParameter> list = List<StructuralParameter>.filled(
-      4,
-      t1,
-    );
-    list[1] = t2;
-    list[2] = t3;
-    list[3] = t4;
-    return StructuralParameterList._(list);
+    return StructuralParameterList._4(t1, t2, t3, t4);
   }
+
+  factory _1(StructuralParameter t1) =>
+      StructuralParameterList._(List<StructuralParameter>.filled(1, t1));
+
+  factory _2(StructuralParameter t1, StructuralParameter t2) =>
+      StructuralParameterList._(
+        List<StructuralParameter>.filled(2, t1)..[1] = t2,
+      );
+
+  factory _3(
+    StructuralParameter t1,
+    StructuralParameter t2,
+    StructuralParameter t3,
+  ) => StructuralParameterList._(
+    List<StructuralParameter>.filled(3, t1)
+      ..[1] = t2
+      ..[2] = t3,
+  );
+
+  factory _4(
+    StructuralParameter t1,
+    StructuralParameter t2,
+    StructuralParameter t3,
+    StructuralParameter t4,
+  ) => StructuralParameterList._(
+    List<StructuralParameter>.filled(4, t1)
+      ..[1] = t2
+      ..[2] = t3
+      ..[3] = t4,
+  );
 
   factory filled(int length, StructuralParameter fill) {
     if (length == 0) return empty;
@@ -247,21 +288,32 @@ extension type const StructuralParameterList._(List<StructuralParameter> _list)
     );
   }
 
+  @pragma('vm:prefer-inline')
+  static StructuralParameterList mapped<T>(
+    List<T> list,
+    StructuralParameter Function(T) func,
+  ) {
+    final int length = list.length;
+    if (length == 0) return empty;
+    return StructuralParameterList._(
+      List<StructuralParameter>.generate(
+        length,
+        (i) => func(list[i]),
+        growable: false,
+      ),
+    );
+  }
+
   /// Copies [types] into a new fixed-length list.
   factory from(List<StructuralParameter> types) {
     if (types.isEmpty) return empty;
-    final List<StructuralParameter> fixedList =
-        List<StructuralParameter>.filled(types.length, types[0]);
-    for (int i = 1; i < types.length; ++i) {
-      fixedList[i] = types[i];
-    }
-    return StructuralParameterList._(fixedList);
-  }
-
-  /// Wraps [fixedList] without copying; [fixedList] must already be a
-  /// fixed-length list.
-  factory wrap(List<StructuralParameter> fixedList) {
-    return StructuralParameterList._(fixedList);
+    return StructuralParameterList._(
+      List<StructuralParameter>.generate(
+        types.length,
+        (i) => types[i],
+        growable: false,
+      ),
+    );
   }
 
   StructuralParameterList skip(int count) {

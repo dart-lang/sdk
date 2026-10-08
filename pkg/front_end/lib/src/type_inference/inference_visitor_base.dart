@@ -2994,14 +2994,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       type,
       Nullability.nonNullable,
       namedParameters: arguments.namedCount > 0
-          ? (new NamedDartTypeList.wrap(
-              new List<NamedType>.of(
-                arguments.argumentList.whereType<NamedArgument>().map(
-                  (a) => new NamedType(a.name, type),
-                ),
-                growable: false,
-              )..sort(),
-            ))
+          ? (new NamedDartTypeList.of(
+              arguments.argumentList.whereType<NamedArgument>().map(
+                (a) => new NamedType(a.name, type),
+              ),
+            )..sort())
           : NamedDartTypeList.empty,
     );
   }

@@ -333,17 +333,13 @@ class DillClassBuilder extends ClassBuilderImpl {
     // [cls.typeParameters].
     if (arguments == null) {
       // TODO(johnniwinther): Use i2b here when needed.
-      return new DartTypeList.generate(
-        cls.typeParameters.length,
-        (int i) => cls.typeParameters[i].defaultType,
-      );
+      return DartTypeList.mapped(cls.typeParameters, (t) => t.defaultType);
     }
 
     // [arguments] != null
-    return new DartTypeList.generate(
-      arguments.length,
-      (int i) =>
-          arguments[i].buildAliased(library, TypeUse.typeArgument, hierarchy),
+    return DartTypeList.mapped(
+      arguments,
+      (a) => a.buildAliased(library, TypeUse.typeArgument, hierarchy),
     );
   }
 

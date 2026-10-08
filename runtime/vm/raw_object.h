@@ -1736,7 +1736,7 @@ class UntaggedField : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(SmiPtr, host_offset_or_field_id)
   COMPRESSED_POINTER_FIELD(SmiPtr, guarded_list_length)
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  COMPRESSED_POINTER_FIELD(AbstractTypePtr, exact_type)
+  COMPRESSED_POINTER_FIELD(AbstractTypePtr, inferred_type)
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   COMPRESSED_POINTER_FIELD(WeakArrayPtr, dependent_code)
   VISIT_TO(dependent_code);
