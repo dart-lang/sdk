@@ -4396,10 +4396,6 @@ DEFINE_EMIT(SimdUnaryOp, (SameAsFirstInput, XmmRegister value)) {
       __ shufps(value, value, compiler::Immediate(0xFF));
       __ cvtss2sd(value, value);
       break;
-    case SimdOpInstr::kFloat32x4Shuffle:
-    case SimdOpInstr::kInt32x4Shuffle:
-      __ shufps(value, value, compiler::Immediate(instr->mask()));
-      break;
     case SimdOpInstr::kFloat32x4Splat:
       // Convert to Float32.
       __ cvtsd2ss(value, value);
@@ -4654,6 +4650,10 @@ DEFINE_EMIT(Int32x4Select,
   __ orps(mask, temp);
 }
 
+DEFINE_EMIT(Simd32x4Shuffle, (XmmRegister result, XmmRegister value)) {
+  __ pshufd(result, value, compiler::Immediate(instr->mask()));
+}
+
 DEFINE_EMIT(Int32x4NotEqual,
             (SameAsFirstInput, XmmRegister left, XmmRegister right)) {
   // Compare-equal, then invert to get not-equal.
@@ -4711,13 +4711,14 @@ DEFINE_EMIT(Int32x4Shift,
   SIMPLE(Float64x2Min)                                                         \
   SIMPLE(Float64x2Max)                                                         \
   SIMPLE(Int32x4NotEqual)                                                      \
+  CASE(Float32x4Shuffle)                                                       \
+  CASE(Int32x4Shuffle)                                                         \
+  ____(Simd32x4Shuffle)                                                        \
   SIMD_OP_SIMPLE_UNARY(CASE)                                                   \
   CASE(Float32x4GetX)                                                          \
   CASE(Float32x4GetY)                                                          \
   CASE(Float32x4GetZ)                                                          \
   CASE(Float32x4GetW)                                                          \
-  CASE(Float32x4Shuffle)                                                       \
-  CASE(Int32x4Shuffle)                                                         \
   CASE(Float32x4Splat)                                                         \
   CASE(Float32x4ToFloat64x2)                                                   \
   CASE(Float64x2ToFloat32x4)                                                   \
