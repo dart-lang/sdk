@@ -851,19 +851,24 @@ void AotCallSpecializer::VisitInstanceCall(InstanceCallInstr* instr) {
   const Function& function = flow_graph()->function();
   Class& receiver_class = Class::Handle(Z);
 
+  // Check if we have a non-nullable compile type for the receiver.
+  CompileType* type = instr->ArgumentValueAt(receiver_idx)->Type();
+  if (type->ToAbstractType()->IsType() &&
+      !type->ToAbstractType()->IsDynamicType() && !type->is_nullable()) {
+    receiver_class = type->ToAbstractType()->type_class();
+    if (receiver_class.is_implemented()) {
+      receiver_class = Class::null();
+    }
+  }
   if (function.IsDynamicFunction() &&
       flow_graph()->IsReceiver(callee_receiver)) {
     // Call receiver is method receiver.
-    receiver_class = function.Owner();
-  } else {
-    // Check if we have an non-nullable compile type for the receiver.
-    CompileType* type = instr->ArgumentAt(receiver_idx)->Type();
-    if (type->ToAbstractType()->IsType() &&
-        !type->ToAbstractType()->IsDynamicType() && !type->is_nullable()) {
-      receiver_class = type->ToAbstractType()->type_class();
-      if (receiver_class.is_implemented()) {
-        receiver_class = Class::null();
-      }
+    const Class& owner = Class::Handle(Z, function.Owner());
+    if (receiver_class.IsNull() ||
+        !AbstractType::Handle(Z, receiver_class.RareType())
+             .IsSubtypeOf(AbstractType::Handle(Z, owner.RareType()),
+                          Heap::kOld)) {
+      receiver_class = owner.ptr();
     }
   }
   if (!receiver_class.IsNull()) {

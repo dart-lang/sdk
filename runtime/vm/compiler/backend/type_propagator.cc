@@ -664,7 +664,8 @@ CompileType* CompileType::ComputeRefinedType(CompileType* old_type,
   if ((preferred_type->is_nullable() && !can_be_null) ||
       (preferred_type->can_be_sentinel() && !can_be_sentinel)) {
     return new CompileType(can_be_null, can_be_sentinel, preferred_type->cid_,
-                           preferred_type->type_);
+                           preferred_type->type_,
+                           preferred_type->is_exact_type());
   } else {
     ASSERT(preferred_type->is_nullable() == can_be_null);
     ASSERT(preferred_type->can_be_sentinel() == can_be_sentinel);
@@ -1597,11 +1598,12 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   bool is_nullable = true;
   intptr_t cid = kIllegalCid;  // Abstract type is known, calculate cid lazily.
 
-  AbstractType* abstract_type = &AbstractType::ZoneHandle(field.exact_type());
-  bool is_exact_type = true;
+  AbstractType* abstract_type =
+      &AbstractType::ZoneHandle(field.inferred_type());
+  bool is_exact_type = field.is_inferred_type_exact();
   if (abstract_type->IsNull()) {
     *abstract_type = field.type();
-    is_exact_type = false;
+    ASSERT(!is_exact_type);
   }
   TraceStrongModeType(this, *abstract_type);
   if (abstract_type->IsStrictlyNonNullable()) {

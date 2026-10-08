@@ -4648,8 +4648,14 @@ class Field : public Object {
   void SetFieldTypeSafe(const AbstractType& value) const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  AbstractTypePtr exact_type() const { return untag()->exact_type(); }
-  void set_exact_type(const AbstractType& value) const;
+  AbstractTypePtr inferred_type() const { return untag()->inferred_type(); }
+  void set_inferred_type(const AbstractType& value) const;
+  bool is_inferred_type_exact() const {
+    return untag()->kind_bits_.Read<IsInferredTypeExactBit>();
+  }
+  void set_is_inferred_type_exact(bool value) const {
+    untag()->kind_bits_.UpdateBool<IsInferredTypeExactBit>(value);
+  }
 #endif
 
   DART_WARN_UNUSED_RESULT
@@ -4994,6 +5000,9 @@ class Field : public Object {
       BitField<decltype(UntaggedField::kind_bits_),
                bool,
                HasDeeplyImmutableTypeBit::kNextBit>;
+  using IsInferredTypeExactBit = BitField<decltype(UntaggedField::kind_bits_),
+                                          bool,
+                                          IsDynamicallyCallableBit::kNextBit>;
 
   // Force this field's guard to be dynamic and deoptimize dependent code.
   void ForceDynamicGuardedCidAndLength() const;
