@@ -109,6 +109,7 @@ class ConstructorInvocationResolver {
         ),
         name: selector.name2,
         syntax: ReadSyntax.invocation,
+        foundInstead: null,
       );
     }
     var elementToInfer = _typeAnalyzer.inferenceHelper

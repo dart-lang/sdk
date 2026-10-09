@@ -28,7 +28,7 @@ void test0() {
   E0(c0).m1 = 0;
   E0(c0).m1;
   //     ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_EXTENSION_MEMBER_READ
   // [cfe] Getter not found: 'm1'.
 
   c0.m1 += 0;

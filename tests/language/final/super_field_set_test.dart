@@ -11,7 +11,7 @@ class Class extends SuperClass {
   m() {
     super.field = 87;
     //    ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER_WRITE
     // [cfe] Superclass has no setter named 'field'.
   }
 }

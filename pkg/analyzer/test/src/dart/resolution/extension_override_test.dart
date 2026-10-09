@@ -1643,10 +1643,10 @@ extension E on int {
 f(){
   E(0).v++;
 //     ^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedExtensionMemberWriteWrongKind] The method 'v' in the extension 'E' can't be assigned to.
   ++E(0).v;
 //       ^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedExtensionMemberWriteWrongKind] The method 'v' in the extension 'E' can't be assigned to.
 }
 ''');
 

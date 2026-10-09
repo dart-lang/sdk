@@ -445,6 +445,19 @@ void f(String s) {
 ''');
   }
 
+  Future<void> test_override_invocation() async {
+    await resolveTestCode('''
+extension E on String {}
+
+extension F on String {
+  void f() {
+    E(this).test();
+  }
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_parameterType() async {
     await resolveTestCode('''
 void f<T>(T t) {

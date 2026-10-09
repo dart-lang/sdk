@@ -8,7 +8,7 @@ class C extends A {
   foo() {
     super.foo = 3;
     //    ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER_WRITE
     // [cfe] Superclass has no setter named 'foo'.
   }
 }

@@ -11,22 +11,22 @@ mixin P0 {
     super.toString();
     super.foo();
     //    ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER_READ
     // [cfe] Superclass has no method named 'foo'.
     super.bar = 100;
     //    ^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER_WRITE
     // [cfe] Superclass has no setter named 'bar'.
 
     void inner() {
       super.toString();
       super.foo();
       //    ^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER_READ
       // [cfe] Superclass has no method named 'foo'.
       super.bar = 100;
       //    ^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER_WRITE
       // [cfe] Superclass has no setter named 'bar'.
     }
 
@@ -36,11 +36,11 @@ mixin P0 {
       super.toString();
       super.foo();
       //    ^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER_READ
       // [cfe] Superclass has no method named 'foo'.
       super.bar = 100;
       //    ^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SUPER_MEMBER_WRITE
       // [cfe] Superclass has no setter named 'bar'.
     })();
 

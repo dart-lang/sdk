@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
@@ -61,6 +62,7 @@ class PropertyElementResolver with ScopeHelpers {
       var readElement = result.getter2;
       var writeElement = result.setter2;
       if (result != ExtensionResolutionError.ambiguous) {
+        // `[]` is evaluated first, so a missing `[]` takes precedence.
         if (hasRead && readElement == null) {
           _reportUnresolvedIndex(
             node,
@@ -69,8 +71,7 @@ class PropertyElementResolver with ScopeHelpers {
               extensionName: receiver.element.name!,
             ),
           );
-        }
-        if (hasWrite && writeElement == null) {
+        } else if (hasWrite && writeElement == null) {
           _reportUnresolvedIndex(
             node,
             diag.undefinedExtensionOperator.withArguments(
@@ -495,6 +496,7 @@ class PropertyElementResolver with ScopeHelpers {
       var isReadInvalid = readElement == null;
       var isWriteInvalid = writeElement == null;
       if (result != ExtensionResolutionError.ambiguous) {
+        // `[]` is evaluated first, so a missing `[]` takes precedence.
         if (isReadInvalid) {
           _reportUnresolvedIndex(
             node,
@@ -503,8 +505,7 @@ class PropertyElementResolver with ScopeHelpers {
               extensionName: receiver.element.name!,
             ),
           );
-        }
-        if (isWriteInvalid) {
+        } else if (isWriteInvalid) {
           _reportUnresolvedIndex(
             node,
             diag.undefinedExtensionOperator.withArguments(
@@ -575,13 +576,24 @@ class PropertyElementResolver with ScopeHelpers {
             .withArguments(operator: '[]', type: receiverType),
       );
     }
-    if (result.needsSetterError) {
+    if (receiver is SuperReference) {
+      // `[]` is evaluated first, so a missing `[]` takes precedence.
+      if (result.needsSetterError && !result.needsGetterError) {
+        _reportUnresolvedIndex(
+          node,
+          diag.undefinedSuperOperator.withArguments(
+            operator: '[]=',
+            type: receiverType,
+          ),
+        );
+      }
+    } else if (result.needsSetterError) {
       _reportUnresolvedIndex(
         node,
-        (receiver is SuperReference
-                ? diag.undefinedSuperOperator
-                : diag.undefinedOperator)
-            .withArguments(operator: '[]=', type: receiverType),
+        diag.undefinedOperator.withArguments(
+          operator: '[]=',
+          type: receiverType,
+        ),
       );
     }
     var isReceiverInvalid = receiverType is InvalidType;
@@ -938,6 +950,7 @@ class PropertyElementResolver with ScopeHelpers {
             domain: InstanceLookupDomain(receiverType),
             name: node.name,
             syntax: ReadSyntax.reference,
+            foundInstead: null,
           );
         }
 
@@ -1028,8 +1041,6 @@ class PropertyElementResolver with ScopeHelpers {
           propertyName: node.name,
           hasRead: true,
           hasWrite: true,
-          assignmentToMethodOnMissingWrite:
-              node.parent2 is IncrementOrDecrementExpression,
         );
         return _propertyReadWriteTargetResult(result);
 
@@ -1118,6 +1129,7 @@ class PropertyElementResolver with ScopeHelpers {
             domain: InstanceLookupDomain(receiverType),
             name: node.name,
             syntax: ReadSyntax.reference,
+            foundInstead: null,
           );
         }
         if (result.needsSetterError) {
@@ -1562,6 +1574,7 @@ class PropertyElementResolver with ScopeHelpers {
           ),
           name: propertyName,
           syntax: ReadSyntax.reference,
+          foundInstead: null,
         );
       } else {
         _lookupFailureReporter.reportWriteFailure(
@@ -1617,6 +1630,7 @@ class PropertyElementResolver with ScopeHelpers {
           domain: InstanceLookupDomain(targetType),
           name: propertyName,
           syntax: ReadSyntax.reference,
+          foundInstead: null,
         );
       }
     }
@@ -1697,6 +1711,7 @@ class PropertyElementResolver with ScopeHelpers {
           ),
           name: name,
           syntax: ReadSyntax.reference,
+          foundInstead: null,
         );
       } else if (hasWrite) {
         _lookupFailureReporter.reportWriteFailure(
@@ -1733,6 +1748,7 @@ class PropertyElementResolver with ScopeHelpers {
           domain: StaticLookupDomain(extension),
           name: propertyName,
           syntax: ReadSyntax.reference,
+          foundInstead: null,
         );
       } else {
         getType = readElement.returnType;
@@ -1776,7 +1792,6 @@ class PropertyElementResolver with ScopeHelpers {
     required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
-    bool assignmentToMethodOnMissingWrite = false,
   }) {
     if (target.parent2 case InvalidExtensionOverrideExpression(
       parent2: CascadeExpression(),
@@ -1793,13 +1808,19 @@ class PropertyElementResolver with ScopeHelpers {
 
     ExecutableElement? readElement;
     DartType? getType;
+    var isReadFailure = false;
     if (hasRead) {
       readElement = result.getter2;
       if (readElement == null) {
+        isReadFailure = true;
         _lookupFailureReporter.reportReadFailure(
           domain: ExtensionOverrideLookupDomain(target.element),
           name: propertyName,
           syntax: ReadSyntax.reference,
+          foundInstead: _extensionResolver.getOverrideMemberForFailedLookup(
+            target,
+            Name(_definingLibrary.uri, memberName),
+          ),
         );
       } else {
         getType = readElement.returnType;
@@ -1810,14 +1831,15 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? writeElement;
     if (hasWrite) {
       writeElement = result.setter2;
-      if (writeElement == null) {
+      // The read is evaluated first, so a failed read takes precedence.
+      if (writeElement == null && !isReadFailure) {
         _lookupFailureReporter.reportWriteFailure(
           domain: ExtensionOverrideLookupDomain(target.element),
           name: propertyName,
-          foundInstead:
-              assignmentToMethodOnMissingWrite && readElement is MethodElement
-              ? readElement
-              : null,
+          foundInstead: _extensionResolver.getOverrideMemberForFailedLookup(
+            target,
+            Name(_definingLibrary.uri, memberName).forSetter,
+          ),
         );
       }
       _checkForStaticMember(target, propertyName, writeElement);
@@ -1889,6 +1911,7 @@ class PropertyElementResolver with ScopeHelpers {
               : StaticLookupDomain(typeReference),
           name: propertyName,
           syntax: ReadSyntax.reference,
+          foundInstead: null,
         );
       }
     }
@@ -1987,6 +2010,7 @@ class PropertyElementResolver with ScopeHelpers {
           domain: PrefixedLookupDomain(target),
           name: nameToken,
           syntax: ReadSyntax.reference,
+          foundInstead: null,
         );
       } else {
         _lookupFailureReporter.reportWriteFailure(
@@ -2020,10 +2044,11 @@ class PropertyElementResolver with ScopeHelpers {
     InternalExecutableElement? writeElement;
     TypeImpl? getType;
     ExpressionInfo? readExpressionInfo;
+    var isReadFailure = false;
 
     if (targetType is InterfaceTypeImpl) {
+      var name = Name(_definingLibrary.uri, propertyName.lexeme);
       if (hasRead) {
-        var name = Name(_definingLibrary.uri, propertyName.lexeme);
         readElement = _typeAnalyzer.inheritance.getMember(
           targetType.element,
           name,
@@ -2033,28 +2058,29 @@ class PropertyElementResolver with ScopeHelpers {
         if (readElement != null) {
           _checkForStaticMember(target, propertyName, readElement);
         } else {
-          // We were not able to find the concrete dispatch target.
-          // But we would like to give the user at least some resolution.
-          // So, we retry simply looking for an inherited member.
-          readElement = _typeAnalyzer.inheritance.getInherited(
+          switch (_typeAnalyzer.inheritance.recoverFailedSuperLookup(
             targetType.element,
             name,
-          );
-          if (readElement != null) {
-            diagnosticReporter.report(
-              diag.abstractSuperMemberReference
-                  .withArguments(
-                    memberKind: readElement.kind.displayName,
-                    name: propertyName.lexeme,
-                  )
-                  .at(propertyName),
-            );
-          } else {
-            _lookupFailureReporter.reportReadFailure(
-              domain: SuperLookupDomain(targetType),
-              name: propertyName,
-              syntax: ReadSyntax.reference,
-            );
+          )) {
+            case AbstractMemberSuperLookupRecovery(:var member):
+              // Give the user at least some resolution.
+              readElement = member;
+              diagnosticReporter.report(
+                diag.abstractSuperMemberReference
+                    .withArguments(
+                      memberKind: member.kind.displayName,
+                      name: propertyName.lexeme,
+                    )
+                    .at(propertyName),
+              );
+            case MissingMemberSuperLookupRecovery(:var foundInstead):
+              isReadFailure = true;
+              _lookupFailureReporter.reportReadFailure(
+                domain: SuperLookupDomain(targetType),
+                name: propertyName,
+                syntax: ReadSyntax.reference,
+                foundInstead: foundInstead,
+              );
           }
         }
         var unpromotedType =
@@ -2080,39 +2106,40 @@ class PropertyElementResolver with ScopeHelpers {
       }
 
       if (hasWrite) {
-        writeElement = targetType.lookUpSetter(
-          propertyName.lexeme,
-          _definingLibrary,
-          concrete: true,
-          inherited: true,
+        writeElement = _typeAnalyzer.inheritance.getMember3(
+          targetType,
+          name.forSetter,
+          forSuper: true,
         );
 
         if (writeElement != null) {
           _checkForStaticMember(target, propertyName, writeElement);
         } else {
-          // We were not able to find the concrete dispatch target.
-          // But we would like to give the user at least some resolution.
-          // So, we retry without the "concrete" requirement.
-          writeElement = targetType.lookUpSetter(
-            propertyName.lexeme,
-            _definingLibrary,
-            inherited: true,
-          );
-          if (writeElement != null) {
-            diagnosticReporter.report(
-              diag.abstractSuperMemberReference
-                  .withArguments(
-                    memberKind: writeElement.kind.displayName,
-                    name: propertyName.lexeme,
-                  )
-                  .at(propertyName),
-            );
-          } else {
-            _lookupFailureReporter.reportWriteFailure(
-              domain: SuperLookupDomain(targetType),
-              name: propertyName,
-              foundInstead: null,
-            );
+          switch (_typeAnalyzer.inheritance.recoverFailedSuperLookup(
+            targetType.element,
+            name.forSetter,
+          )) {
+            case AbstractMemberSuperLookupRecovery(:var member):
+              // Give the user at least some resolution.
+              writeElement = member;
+              diagnosticReporter.report(
+                diag.abstractSuperMemberReference
+                    .withArguments(
+                      memberKind: member.kind.displayName,
+                      name: propertyName.lexeme,
+                    )
+                    .at(propertyName),
+              );
+            case MissingMemberSuperLookupRecovery(:var foundInstead):
+              // The read is evaluated first, so a failed read takes
+              // precedence.
+              if (!isReadFailure) {
+                _lookupFailureReporter.reportWriteFailure(
+                  domain: SuperLookupDomain(targetType),
+                  name: propertyName,
+                  foundInstead: foundInstead,
+                );
+              }
           }
         }
       }
@@ -2151,6 +2178,7 @@ class PropertyElementResolver with ScopeHelpers {
           syntax: node.parent2 is FunctionInstantiationImpl
               ? ReadSyntax.typeInstantiation
               : ReadSyntax.reference,
+          foundInstead: null,
         );
       }
     }

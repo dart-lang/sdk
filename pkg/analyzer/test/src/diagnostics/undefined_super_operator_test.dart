@@ -37,9 +37,76 @@ class B extends A {
     return super[index]++;
 //              ^^^^^^^
 // [diag.undefinedSuperOperator] The operator '[]' isn't defined in a superclass of 'B'.
+  }
+}
+''');
+  }
+
+  test_class_indexBoth_getterDefined() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+}
+class B extends A {
+  void f() {
+    super[0] += 1;
+//       ^^^
 // [diag.undefinedSuperOperator] The operator '[]=' isn't defined in a superclass of 'B'.
   }
 }
+''');
+
+    var node = result.findNode.singleCompoundAssignment;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    read: MethodIndexReadResolution
+      element: <testLibrary>::@class::A::@method::[]
+      invokeType: int Function(int)
+      type: int
+    write: InvalidIndexWriteResolution
+      recoveryElement: <null>
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <testLibrary>::@class::A::@method::[]::@formalParameter::index
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  readElement: <testLibrary>::@class::A::@method::[]
+  readType: int
+  writeElement: <null>
+  writeType: InvalidType
+  element: dart:core::@class::num::@method::+
+  staticType: int
 ''');
   }
 
@@ -66,6 +133,68 @@ class B extends A {
 // [diag.undefinedSuperOperator] The operator '[]=' isn't defined in a superclass of 'B'.
   }
 }
+''');
+  }
+
+  test_class_indexSetter_getterDefined() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+}
+class B extends A {
+  void f() {
+    super[0] = 1;
+//       ^^^
+// [diag.undefinedSuperOperator] The operator '[]=' isn't defined in a superclass of 'B'.
+  }
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverIndexAssignmentTarget
+    receiver: SuperReference
+      superKeyword: super
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    read: <null>
+    write: InvalidIndexWriteResolution
+      recoveryElement: <null>
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: IndexExpression
+    target: SuperExpression
+      superKeyword: super
+      staticType: B
+    leftBracket: [
+    index: IntegerLiteral
+      literal: 0
+      correspondingParameter: <null>
+      staticType: int
+    rightBracket: ]
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <null>
+  writeType: InvalidType
+  element: <null>
+  staticType: int
 ''');
   }
 
@@ -105,7 +234,6 @@ enum E {
     super[0]++;
 //       ^^^
 // [diag.undefinedSuperOperator] The operator '[]' isn't defined in a superclass of 'E'.
-// [diag.undefinedSuperOperator] The operator '[]=' isn't defined in a superclass of 'E'.
   }
 }
 ''');

@@ -17,7 +17,8 @@ import 'package:analyzer/src/error/listener.dart';
 ///
 /// A dot shorthand without a context type is reported as missing a context
 /// instead, so this domain always has a context type.
-final class DotShorthandLookupDomain extends LookupDomain {
+final class DotShorthandLookupDomain extends LookupDomain
+    with _LegacyWriteFailure {
   /// The context type of the dot shorthand.
   final TypeImpl contextType;
 
@@ -44,7 +45,11 @@ final class DotShorthandLookupDomain extends LookupDomain {
   }
 
   @override
-  LocatableDiagnostic _readFailure(String name, ReadSyntax syntax) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    ReadSyntax syntax,
+    _FoundInstead foundInstead,
+  ) {
     switch (syntax) {
       case ReadSyntax.invocation:
         return diag.dotShorthandUndefinedInvocation.withArguments(
@@ -75,34 +80,73 @@ final class ExtensionOverrideLookupDomain extends LookupDomain {
 
   ExtensionOverrideLookupDomain(this.extension);
 
-  @override
-  LocatableDiagnostic _readFailure(String name, ReadSyntax syntax) {
+  String get _extensionName {
     // An extension override can only name a named extension.
     // TODO(scheglov): Prove this with types, instead of a null check.
-    var extensionName = extension.name!;
-    switch (syntax) {
-      case ReadSyntax.invocation:
-        return diag.undefinedExtensionMethod.withArguments(
-          methodName: name,
-          extensionName: extensionName,
+    return extension.name!;
+  }
+
+  @override
+  LocatableDiagnostic _readFailure(
+    String name,
+    ReadSyntax syntax,
+    _FoundInstead foundInstead,
+  ) {
+    switch (foundInstead) {
+      case _FoundNothing():
+        return diag.undefinedExtensionMemberReadNotFound.withArguments(
+          name: name,
+          extensionName: _extensionName,
         );
-      case ReadSyntax.reference:
-      case ReadSyntax.typeInstantiation:
-        return diag.undefinedExtensionGetter.withArguments(
-          getterName: name,
-          extensionName: extensionName,
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedExtensionMemberReadPrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration(element: ExecutableElement(isStatic: true)):
+        return diag.extensionOverrideAccessToStaticMember;
+      case _FoundDeclaration():
+        // Only a setter has the name.
+        return diag.undefinedExtensionMemberReadSetterOnly.withArguments(
+          name: name,
+          extensionName: _extensionName,
         );
     }
   }
 
   @override
-  LocatableDiagnostic _writeNotFound(String name) {
-    // An extension override can only name a named extension.
-    // TODO(scheglov): Prove this with types, instead of a null check.
-    return diag.undefinedExtensionSetter.withArguments(
-      setterName: name,
-      extensionName: extension.name!,
-    );
+  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead) {
+    switch (foundInstead) {
+      case _FoundNothing():
+        return diag.undefinedExtensionMemberWriteNotFound.withArguments(
+          name: name,
+          extensionName: _extensionName,
+        );
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedExtensionMemberWritePrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration(element: ExecutableElement(isStatic: true)):
+        return diag.extensionOverrideAccessToStaticMember;
+      case _FoundDeclaration(element: GetterElement(:var variable)):
+        if (variable.isOriginGetterSetter) {
+          return diag.undefinedExtensionMemberWriteGetterOnly.withArguments(
+            name: name,
+            extensionName: _extensionName,
+          );
+        } else {
+          // An extension can't declare an instance field, and the field
+          // declaration already reports that.
+          return null;
+        }
+      case _FoundDeclaration(:var element):
+        return diag.undefinedExtensionMemberWriteWrongKind.withArguments(
+          kind: element.kind.displayName,
+          name: name,
+          extensionName: _extensionName,
+        );
+    }
   }
 }
 
@@ -110,7 +154,8 @@ final class ExtensionOverrideLookupDomain extends LookupDomain {
 ///
 /// For example, `F.foo` and `F.foo = 0`. A function-type alias has no static
 /// members, so every lookup in it fails.
-final class FunctionTypeAliasLookupDomain extends LookupDomain {
+final class FunctionTypeAliasLookupDomain extends LookupDomain
+    with _LegacyWriteFailure {
   /// The name of the alias, with its import prefix if one is written.
   final String aliasName;
 
@@ -122,7 +167,11 @@ final class FunctionTypeAliasLookupDomain extends LookupDomain {
            : name.lexeme;
 
   @override
-  LocatableDiagnostic _readFailure(String name, ReadSyntax syntax) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    ReadSyntax syntax,
+    _FoundInstead foundInstead,
+  ) {
     switch (syntax) {
       case ReadSyntax.invocation:
         return diag.undefinedMethodOnFunctionType.withArguments(
@@ -151,14 +200,18 @@ final class FunctionTypeAliasLookupDomain extends LookupDomain {
 ///
 /// For example, `x.foo` and `x.foo = 0`. The members of applicable extensions
 /// are included.
-final class InstanceLookupDomain extends LookupDomain {
+final class InstanceLookupDomain extends LookupDomain with _LegacyWriteFailure {
   /// The static type of the receiver.
   final TypeImpl receiverType;
 
   InstanceLookupDomain(this.receiverType);
 
   @override
-  LocatableDiagnostic _readFailure(String name, ReadSyntax syntax) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    ReadSyntax syntax,
+    _FoundInstead foundInstead,
+  ) {
     switch (syntax) {
       case ReadSyntax.invocation:
         return diag.undefinedMethod.withArguments(
@@ -197,12 +250,16 @@ sealed class LookupDomain {
   }
 
   /// The diagnostic for a lookup of [name] that found nothing that can be
-  /// read, used in [syntax].
-  LocatableDiagnostic _readFailure(String name, ReadSyntax syntax);
+  /// read, used in [syntax], but [foundInstead].
+  LocatableDiagnostic _readFailure(
+    String name,
+    ReadSyntax syntax,
+    _FoundInstead foundInstead,
+  );
 
-  /// The diagnostic for a lookup of [name] that found no setter, and nothing
-  /// else instead.
-  LocatableDiagnostic _writeNotFound(String name);
+  /// The diagnostic for a lookup of [name] that found no setter, but
+  /// [foundInstead], or `null` if nothing is reported.
+  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead);
 }
 
 /// A reporter of names that a lookup failed to resolve for the required
@@ -225,62 +282,43 @@ class LookupFailureReporter {
 
   /// Reports that the lookup of [name] in [domain] found nothing that can be
   /// read, invoked, or torn off.
+  ///
+  /// The [foundInstead] is the declaration that has the name, but can't be
+  /// read, such as a setter, or a private declaration of another library. It
+  /// is `null` if nothing has the name, or if the caller reports every failed
+  /// read in [domain] as not found.
   void reportReadFailure({
     required LookupDomain domain,
     required Token name,
     required ReadSyntax syntax,
+    required Element? foundInstead,
   }) {
     if (_isIgnored(domain, name)) {
       return;
     }
+    var found = _FoundInstead.of(foundInstead, _libraryFragment.element);
     _diagnosticReporter.report(
-      domain._readFailure(name.lexeme, syntax).at(name),
+      domain._readFailure(name.lexeme, syntax, found).at(name),
     );
   }
 
   /// Reports that the lookup of [name] in [domain] found no setter.
   ///
   /// The [foundInstead] is the declaration that has the name of the missing
-  /// setter, such as a getter, a method, a function, or a type. It is `null`
-  /// if nothing has the name, or if the caller reports every missing setter in
-  /// [domain] as not found.
+  /// setter, such as a getter, a method, a function, a type, or a private
+  /// declaration of another library. It is `null` if nothing has the name, or
+  /// if the caller reports every missing setter in [domain] as not found.
   void reportWriteFailure({
     required LookupDomain domain,
     required Token name,
     required Element? foundInstead,
   }) {
-    switch (foundInstead) {
-      case VariableElement(isConst: true):
-        _diagnosticReporter.report(diag.assignmentToConst.at(name));
-      case DynamicElementImpl():
-      case InterfaceElement():
-      case TypeAliasElement():
-      case TypeParameterElement():
-        _diagnosticReporter.report(diag.assignmentToType.at(name));
-      case LocalFunctionElement():
-      case TopLevelFunctionElement():
-        _diagnosticReporter.report(diag.assignmentToFunction.at(name));
-      case MethodElement():
-        _diagnosticReporter.report(diag.assignmentToMethod.at(name));
-      case PrefixElement(name: var prefixName?):
-        _diagnosticReporter.report(
-          diag.prefixIdentifierNotFollowedByDot
-              .withArguments(name: prefixName)
-              .at(name),
-        );
-      case PrefixElement():
-        break;
-      case GetterElement(:var variable):
-        _reportWriteOfGetter(variable, name);
-      case MultiplyDefinedElementImpl():
-        // Reported as an ambiguous import by the caller, or by ErrorVerifier.
-        break;
-      default:
-        if (!_isIgnored(domain, name)) {
-          _diagnosticReporter.report(
-            domain._writeNotFound(name.lexeme).at(name),
-          );
-        }
+    var found = _FoundInstead.of(foundInstead, _libraryFragment.element);
+    if (found is _FoundNothing && _isIgnored(domain, name)) {
+      return;
+    }
+    if (domain._writeFailure(name.lexeme, found) case var diagnostic?) {
+      _diagnosticReporter.report(diagnostic.at(name));
     }
   }
 
@@ -289,38 +327,12 @@ class LookupFailureReporter {
     // The parser has already reported the missing name.
     return name.isSynthetic || domain._isIgnored(_libraryFragment, name.lexeme);
   }
-
-  void _reportWriteOfGetter(PropertyInducingElement variable, Token name) {
-    var variableName = variable.name;
-    if (variableName == null) {
-      return;
-    }
-
-    if (variable.isConst) {
-      _diagnosticReporter.report(diag.assignmentToConst.at(name));
-    } else if (variable is FieldElement && variable.isOriginGetterSetter) {
-      _diagnosticReporter.report(
-        diag.assignmentToFinalNoSetter
-            .withArguments(
-              variableName: variableName,
-              className: variable.enclosingElement.displayName,
-            )
-            .at(name),
-      );
-    } else {
-      _diagnosticReporter.report(
-        diag.assignmentToFinal
-            .withArguments(variableName: variableName)
-            .at(name),
-      );
-    }
-  }
 }
 
 /// A lookup in the names imported through an import prefix.
 ///
 /// For example, `p.foo` and `p.foo = 0`.
-final class PrefixedLookupDomain extends LookupDomain {
+final class PrefixedLookupDomain extends LookupDomain with _LegacyWriteFailure {
   /// The import prefix.
   final PrefixElement prefix;
 
@@ -335,7 +347,11 @@ final class PrefixedLookupDomain extends LookupDomain {
   }
 
   @override
-  LocatableDiagnostic _readFailure(String name, ReadSyntax syntax) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    ReadSyntax syntax,
+    _FoundInstead foundInstead,
+  ) {
     switch (syntax) {
       case ReadSyntax.invocation:
         return diag.undefinedFunction.withArguments(name: name);
@@ -378,7 +394,7 @@ enum ReadSyntax {
 /// or extension.
 ///
 /// For example, `C.foo` and `C.foo = 0`.
-final class StaticLookupDomain extends LookupDomain {
+final class StaticLookupDomain extends LookupDomain with _LegacyWriteFailure {
   /// The declaration whose static members were searched.
   final InstanceElementImpl declaration;
 
@@ -435,7 +451,11 @@ final class StaticLookupDomain extends LookupDomain {
   }
 
   @override
-  LocatableDiagnostic _readFailure(String name, ReadSyntax syntax) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    ReadSyntax syntax,
+    _FoundInstead foundInstead,
+  ) {
     switch (declaration) {
       case ExtensionElementImpl declaration:
         return _extensionReadFailure(declaration, name, syntax);
@@ -475,28 +495,73 @@ final class SuperLookupDomain extends LookupDomain {
   SuperLookupDomain(this.type);
 
   @override
-  LocatableDiagnostic _readFailure(String name, ReadSyntax syntax) {
-    switch (syntax) {
-      case ReadSyntax.invocation:
-        return diag.undefinedSuperMethod.withArguments(
-          methodName: name,
-          typeName: type.element.firstFragment.displayName,
+  LocatableDiagnostic _readFailure(
+    String name,
+    ReadSyntax syntax,
+    _FoundInstead foundInstead,
+  ) {
+    switch (foundInstead) {
+      case _FoundNothing():
+        return diag.undefinedSuperMemberReadNotFound.withArguments(
+          name: name,
+          type: type,
         );
-      case ReadSyntax.reference:
-      case ReadSyntax.typeInstantiation:
-        return diag.undefinedSuperGetter.withArguments(
-          getterName: name,
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedSuperMemberReadPrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration():
+        // Only a setter has the name.
+        return diag.undefinedSuperMemberReadSetterOnly.withArguments(
+          name: name,
           type: type,
         );
     }
   }
 
   @override
-  LocatableDiagnostic _writeNotFound(String name) {
-    return diag.undefinedSuperSetter.withArguments(
-      setterName: name,
-      type: type,
-    );
+  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead) {
+    switch (foundInstead) {
+      case _FoundNothing():
+        return diag.undefinedSuperMemberWriteNotFound.withArguments(
+          name: name,
+          type: type,
+        );
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedSuperMemberWritePrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration(element: GetterElement(:var variable)):
+        if (variable.isConst) {
+          // An instance field can't be constant, and its declaration already
+          // reports that.
+          return null;
+        } else if (variable.isFinal && !variable.isOriginGetterSetter) {
+          // A final field, declared in a field declaration, or by a declaring
+          // formal parameter of a primary constructor.
+          return diag.undefinedSuperMemberWriteFinal.withArguments(
+            name: name,
+            type: type,
+          );
+        } else {
+          // There is no setter in the interface that `super` has. Either no
+          // superclass declares one, or the setters that the interface would
+          // combine conflict, which can drop the setter of a non-final field
+          // too.
+          return diag.undefinedSuperMemberWriteGetterOnly.withArguments(
+            name: name,
+            type: type,
+          );
+        }
+      case _FoundDeclaration(:var element):
+        return diag.undefinedSuperMemberWriteWrongKind.withArguments(
+          kind: element.kind.displayName,
+          name: name,
+          type: type,
+        );
+    }
   }
 }
 
@@ -504,7 +569,8 @@ final class SuperLookupDomain extends LookupDomain {
 ///
 /// For example, `foo` and `foo = 0`. Inside an instance declaration, the
 /// scope includes its members, which are found through an implicit `this`.
-final class UnqualifiedLookupDomain extends LookupDomain {
+final class UnqualifiedLookupDomain extends LookupDomain
+    with _LegacyWriteFailure {
   /// The type of `this`, if the scope includes the members of an enclosing
   /// instance declaration.
   ///
@@ -520,7 +586,11 @@ final class UnqualifiedLookupDomain extends LookupDomain {
   }
 
   @override
-  LocatableDiagnostic _readFailure(String name, ReadSyntax syntax) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    ReadSyntax syntax,
+    _FoundInstead foundInstead,
+  ) {
     var thisType = this.thisType;
     switch (syntax) {
       case ReadSyntax.invocation:
@@ -549,5 +619,110 @@ final class UnqualifiedLookupDomain extends LookupDomain {
   @override
   LocatableDiagnostic _writeNotFound(String name) {
     return diag.undefinedIdentifier.withArguments(name: name);
+  }
+}
+
+/// A declaration that has the name, but not the required capability, such as
+/// a setter for a read, or a getter for a write.
+final class _FoundDeclaration extends _FoundInstead {
+  final Element element;
+
+  _FoundDeclaration(this.element);
+}
+
+/// What a failed lookup found instead of a declaration with the required
+/// capability.
+sealed class _FoundInstead {
+  const _FoundInstead();
+
+  /// What a lookup in [library] found instead: the [element] that the caller
+  /// found, or nothing if it is `null`.
+  factory _FoundInstead.of(Element? element, LibraryElement library) {
+    if (element == null) {
+      return const _FoundNothing();
+    } else if (element.isPrivate && element.library != library) {
+      return _FoundPrivate(element);
+    } else {
+      return _FoundDeclaration(element);
+    }
+  }
+}
+
+/// Nothing that has the name.
+final class _FoundNothing extends _FoundInstead {
+  const _FoundNothing();
+}
+
+/// A private declaration of another library that has the name, which is
+/// visible only in its own library.
+final class _FoundPrivate extends _FoundInstead {
+  final Element element;
+
+  _FoundPrivate(this.element);
+
+  /// The URI of the library that declares the [element].
+  Uri get libraryUri => element.library!.uri;
+}
+
+/// The write diagnostics that are used before
+/// https://github.com/dart-lang/sdk/issues/64411, such as
+/// `assignment_to_final`, for the domains that still use them.
+mixin _LegacyWriteFailure on LookupDomain {
+  @override
+  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead) {
+    switch (foundInstead) {
+      case _FoundNothing():
+      case _FoundPrivate():
+        return _writeNotFound(name);
+      case _FoundDeclaration(:var element):
+        switch (element) {
+          case VariableElement(isConst: true):
+            return diag.assignmentToConst;
+          case DynamicElementImpl():
+          case InterfaceElement():
+          case TypeAliasElement():
+          case TypeParameterElement():
+            return diag.assignmentToType;
+          case LocalFunctionElement():
+          case TopLevelFunctionElement():
+            return diag.assignmentToFunction;
+          case MethodElement():
+            return diag.assignmentToMethod;
+          case PrefixElement(name: var prefixName?):
+            return diag.prefixIdentifierNotFollowedByDot.withArguments(
+              name: prefixName,
+            );
+          case PrefixElement():
+            return null;
+          case GetterElement(:var variable):
+            return _writeOfGetter(variable);
+          case MultiplyDefinedElementImpl():
+            // Reported as an ambiguous import by the caller, or by
+            // ErrorVerifier.
+            return null;
+          default:
+            return _writeNotFound(name);
+        }
+    }
+  }
+
+  /// The diagnostic for a lookup of [name] that found no setter, and nothing
+  /// else instead.
+  LocatableDiagnostic _writeNotFound(String name);
+
+  LocatableDiagnostic? _writeOfGetter(PropertyInducingElement variable) {
+    var variableName = variable.name;
+    if (variableName == null) {
+      return null;
+    } else if (variable.isConst) {
+      return diag.assignmentToConst;
+    } else if (variable is FieldElement && variable.isOriginGetterSetter) {
+      return diag.assignmentToFinalNoSetter.withArguments(
+        variableName: variableName,
+        className: variable.enclosingElement.displayName,
+      );
+    } else {
+      return diag.assignmentToFinal.withArguments(variableName: variableName);
+    }
   }
 }

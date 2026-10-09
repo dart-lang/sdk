@@ -812,7 +812,7 @@ class A {
   void f() {
     super.foo;
 //        ^^^
-// [diag.undefinedSuperGetter] The getter 'foo' isn't defined in a superclass of 'A'.
+// [diag.undefinedSuperMemberReadNotFound] The member 'foo' isn't defined in a superclass of 'A'.
   }
 }
 ''');
@@ -931,7 +931,7 @@ class B extends A {
   void f() {
     super.foo;
 //        ^^^
-// [diag.undefinedSuperGetter] The getter 'foo' isn't defined in a superclass of 'B'.
+// [diag.undefinedSuperMemberReadSetterOnly] There's a setter 'foo' in a superclass of 'B', but no getter.
   }
 }
 ''');

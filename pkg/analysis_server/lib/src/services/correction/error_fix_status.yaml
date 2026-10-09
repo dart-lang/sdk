@@ -1711,6 +1711,28 @@ undefined_enum_constructor_unnamed:
   since: 2.17
 undefined_extension_getter:
   status: hasFix
+undefined_extension_member_read_not_found:
+  status: hasFix
+undefined_extension_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_extension_member_read_setter_only:
+  status: hasFix
+undefined_extension_member_write_getter_only:
+  status: hasFix
+undefined_extension_member_write_not_found:
+  status: hasFix
+undefined_extension_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_extension_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
 undefined_extension_method:
   status: hasFix
 undefined_extension_operator:
@@ -1746,22 +1768,47 @@ undefined_setter:
 undefined_setter_on_function_type:
   status: needsFix
   since: 2.15
-undefined_super_getter:
+undefined_super_member_read_not_found:
+  status: needsFix
+  notes: |-
+    The fix is to create a method, getter, or field, assuming the superclass
+    is editable.
+undefined_super_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_super_member_read_setter_only:
   status: needsFix
   notes: |-
     The fix is to create the getter, assuming the superclass is editable.
-undefined_super_method:
+undefined_super_member_write_final:
   status: needsFix
   notes: |-
-    The fix is to create the method, assuming the superclass is editable.
+    The fix is to remove `final` from the field, assuming the superclass is
+    editable.
+undefined_super_member_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter, assuming the superclass is editable.
+undefined_super_member_write_not_found:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter or field, assuming the superclass is
+    editable.
+undefined_super_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_super_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
 undefined_super_operator:
   status: needsFix
   notes: |-
     The fix is to create the operator, assuming the superclass is editable.
-undefined_super_setter:
-  status: needsFix
-  notes: |-
-    The fix is to create the setter, assuming the superclass is editable.
 unqualified_reference_to_non_local_static_member:
   status: hasFix
 unqualified_reference_to_static_member_of_extended_type:

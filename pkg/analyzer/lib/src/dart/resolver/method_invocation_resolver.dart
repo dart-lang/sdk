@@ -153,6 +153,7 @@ class MethodInvocationResolver with ScopeHelpers {
         domain: PrefixedLookupDomain(prefix),
         name: name,
         syntax: ReadSyntax.invocation,
+        foundInstead: null,
       );
     }
     _resolveNamedInvocation(
@@ -226,6 +227,7 @@ class MethodInvocationResolver with ScopeHelpers {
           domain: UnqualifiedLookupDomain(thisType: null),
           name: name,
           syntax: ReadSyntax.invocation,
+          foundInstead: null,
         );
       } else {
         var setter = lookup.setter;
@@ -272,6 +274,7 @@ class MethodInvocationResolver with ScopeHelpers {
             domain: UnqualifiedLookupDomain(thisType: receiverType),
             name: name,
             syntax: ReadSyntax.invocation,
+            foundInstead: null,
           );
         }
       }
@@ -582,6 +585,10 @@ class MethodInvocationResolver with ScopeHelpers {
           domain: ExtensionOverrideLookupDomain(receiver.element),
           name: name,
           syntax: ReadSyntax.invocation,
+          foundInstead: _extensionResolver.getOverrideMemberForFailedLookup(
+            receiver,
+            Name(_definingLibraryUri, name.lexeme),
+          ),
         );
       } else if (member.isStatic) {
         diagnosticReporter.report(
@@ -725,6 +732,7 @@ class MethodInvocationResolver with ScopeHelpers {
         domain: InstanceLookupDomain(receiverType),
         name: name,
         syntax: ReadSyntax.invocation,
+        foundInstead: null,
       );
     }
     var invocation = _createNamedInvocation(node, receiver);
@@ -896,6 +904,7 @@ class MethodInvocationResolver with ScopeHelpers {
         domain: StaticLookupDomain(declaration),
         name: name,
         syntax: ReadSyntax.invocation,
+        foundInstead: null,
       );
     }
     _resolveNamedInvocation(
@@ -974,24 +983,28 @@ class MethodInvocationResolver with ScopeHelpers {
       return;
     }
     if (member == null) {
-      // Keep the inherited interface member for argument checking when there
-      // is no concrete superclass dispatch target.
-      member = _inheritance.getInherited(enclosingInterface, memberName);
-      if (member != null) {
-        diagnosticReporter.report(
-          diag.abstractSuperMemberReference
-              .withArguments(
-                memberKind: member.kind.displayName,
-                name: name.lexeme,
-              )
-              .at(name),
-        );
-      } else {
-        _lookupFailureReporter.reportReadFailure(
-          domain: SuperLookupDomain(enclosingInterface.thisType),
-          name: name,
-          syntax: ReadSyntax.invocation,
-        );
+      switch (_inheritance.recoverFailedSuperLookup(
+        enclosingInterface,
+        memberName,
+      )) {
+        case AbstractMemberSuperLookupRecovery(member: var abstractMember):
+          // Keep the abstract member for argument checking.
+          member = abstractMember;
+          diagnosticReporter.report(
+            diag.abstractSuperMemberReference
+                .withArguments(
+                  memberKind: abstractMember.kind.displayName,
+                  name: name.lexeme,
+                )
+                .at(name),
+          );
+        case MissingMemberSuperLookupRecovery(:var foundInstead):
+          _lookupFailureReporter.reportReadFailure(
+            domain: SuperLookupDomain(enclosingInterface.thisType),
+            name: name,
+            syntax: ReadSyntax.invocation,
+            foundInstead: foundInstead,
+          );
       }
     }
     _resolveNamedInvocation(

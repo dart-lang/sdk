@@ -6,8 +6,8 @@ import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 
-import 'package:analyzer/src/dart/analysis/fletcher16.dart';
 import 'package:analyzer/src/dart/analysis/single_file_byte_store.dart';
+import 'package:analyzer/src/dart/analysis/xxh64.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -226,7 +226,11 @@ class SingleFileByteStoreTest {
     var header = storage.read(0, pageSize);
     ByteData.sublistView(header)
       ..setUint32(32, store.tableSlotCount, Endian.little)
-      ..setUint16(36, fletcher16(header.sublist(0, 36)), Endian.little);
+      ..setUint32(
+        headerChecksumOffset,
+        xxh64(header.sublist(0, headerChecksumOffset)) & 0xFFFFFFFF,
+        Endian.little,
+      );
     storage.write(0, header);
 
     _open();
@@ -255,6 +259,23 @@ class SingleFileByteStoreTest {
       expect(store.get('old_key'), isNull);
       expect(store.get('new_key'), _value(20));
     }
+  }
+
+  void test_constructor_resetsWhenHeaderChecksumIsCorrupt() {
+    store.putGet('key', _value(10));
+    store.flush();
+
+    // Corrupt the upper half of the 32-bit header checksum.
+    var header = storage.read(0, pageSize);
+    header[headerChecksumOffset + 2] ^= 0x80;
+    storage.write(0, header);
+
+    _open();
+    expect(store.get('key'), isNull);
+    store.putGet('new_key', _value(20));
+    store.flush();
+    _open();
+    expect(store.get('new_key'), _value(20));
   }
 
   void test_constructor_resetsWhenTableSlotCountChanges() {
@@ -806,8 +827,8 @@ class SingleFileByteStoreTest {
 
   void test_putGet_largeValue() {
     // This value needs 768 continuation data pages. For the three-byte key,
-    // the record header holds 251 page references, leaving 517 references for
-    // a chain of three overflow metadata pages (254 references per page).
+    // the record header holds 250 page references, leaving 518 references for
+    // a chain of three overflow metadata pages (253 references per page).
     var value = _value(768 * 1024);
     store.putGet('key', value);
     store.flush();
@@ -852,6 +873,16 @@ class SingleFileByteStoreTest {
 
     _open();
     expect(store.get('key'), _value(10));
+  }
+
+  void test_putGet_unalignedValue() {
+    var bytes = _value(2048);
+    var value = Uint8List.sublistView(bytes, 1, 2046);
+    store.putGet('key', value);
+    store.flush();
+
+    _open();
+    expect(store.get('key'), value);
   }
 
   String _keyForSlot(int slot) {

@@ -16,54 +16,6 @@ main() {
 
 @reflectiveTest
 class UndefinedExtensionGetterTest extends PubPackageResolutionTest {
-  test_override_defined() async {
-    await resolveTestCodeWithDiagnostics('''
-extension E on String {
-  int get g => 0;
-}
-f() {
-  E('a').g;
-}
-''');
-  }
-
-  test_override_undefined() async {
-    await resolveTestCodeWithDiagnostics('''
-extension E on String {}
-f() {
-  E('a').g;
-//       ^
-// [diag.undefinedExtensionGetter] The getter 'g' isn't defined for the extension 'E'.
-}
-''');
-  }
-
-  test_override_undefined_hasSetter() async {
-    await resolveTestCodeWithDiagnostics('''
-extension E on int {
-  set foo(int _) {}
-}
-f() {
-  E(0).foo;
-//     ^^^
-// [diag.undefinedExtensionGetter] The getter 'foo' isn't defined for the extension 'E'.
-}
-''');
-  }
-
-  test_override_undefined_hasSetter_plusEq() async {
-    await resolveTestCodeWithDiagnostics('''
-extension E on int {
-  set foo(int _) {}
-}
-f() {
-  E(0).foo += 1;
-//     ^^^
-// [diag.undefinedExtensionGetter] The getter 'foo' isn't defined for the extension 'E'.
-}
-''');
-  }
-
   test_static_withInference() async {
     await resolveTestCodeWithDiagnostics('''
 extension E on Object {}

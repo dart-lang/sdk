@@ -14,6 +14,14 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
+/// The lookup through `super` found a member with the name, but it is not
+/// concrete, so it can't be invoked.
+final class AbstractMemberSuperLookupRecovery extends SuperLookupRecovery {
+  final InternalExecutableElement member;
+
+  AbstractMemberSuperLookupRecovery(this.member);
+}
+
 /// Failure because of there is no most specific signature in [candidates].
 class CandidatesConflict extends Conflict {
   /// The list has at least two items, because the only item is always valid.
@@ -296,6 +304,81 @@ class InheritanceManager3 {
   ) {
     var interface = getInterface(element);
     return interface.overridden[name];
+  }
+
+  /// Returns why the lookup of [name] through `super` in [element] found no
+  /// concrete member to invoke.
+  ///
+  /// This is recovery, for when [getMember] with `forSuper` returned `null`.
+  SuperLookupRecovery recoverFailedSuperLookup(
+    InterfaceElement element,
+    Name name,
+  ) {
+    element as InterfaceElementImpl; // TODO(scheglov): remove cast
+
+    // What `super` sees, excluding the interfaces that [element] implements.
+    var superTypes = switch (element) {
+      ClassElementImpl() => [?element.supertype, ...element.mixins],
+      EnumElementImpl() => [?element.supertype, ...element.mixins],
+      ExtensionTypeElementImpl() => const <InterfaceTypeImpl>[],
+      MixinElementImpl() => element.superclassConstraints,
+    };
+
+    // Returns the member with [memberName] that `super` has, abstract or
+    // concrete. Records requirements for [memberName] only.
+    InternalExecutableElement? getSuperMember(Name memberName) {
+      if (element is MixinElementImpl) {
+        return getMember(element, memberName, forSuper: true);
+      }
+      for (var type in superTypes.reversed) {
+        if (getMember3(type, memberName) case var member?) {
+          return member;
+        }
+      }
+      return null;
+    }
+
+    // Returns a member that `super` has, declared in another library and
+    // spelled like the private [name]. The manifests of interfaces don't
+    // include private names, so we ask the declarations, which records
+    // requirements for private names too.
+    InternalExecutableElement? getPrivateOfOtherLibrary() {
+      var spelling = name.forGetter.name;
+      for (var superType in superTypes) {
+        for (var type in [superType, ...superType.element.allSupertypes]) {
+          var declaration = type.element;
+          if (declaration.library.uri != name.libraryUri) {
+            if (declaration.getGetter(spelling) ??
+                    declaration.getMethod(spelling) ??
+                    declaration.getSetter(spelling)
+                case var member?) {
+              return member;
+            }
+          }
+        }
+      }
+      return null;
+    }
+
+    if (getSuperMember(name) case var member?) {
+      return AbstractMemberSuperLookupRecovery(member);
+    }
+
+    // A getter or method instead of a setter, or a setter instead of a getter.
+    var otherName = name.isSetter ? name.forGetter : name.forSetter;
+    if (getSuperMember(otherName) case var member?) {
+      return MissingMemberSuperLookupRecovery(member);
+    }
+
+    // The lookups above don't find a private member of another library,
+    // because `_foo` of another library is a different name. Look for one,
+    // to report that it is private. A public name is the same in every
+    // library, so the lookups above would have found it.
+    if (!name.isPublic) {
+      return MissingMemberSuperLookupRecovery(getPrivateOfOtherLibrary());
+    }
+
+    return const MissingMemberSuperLookupRecovery(null);
   }
 
   /// Remove interfaces for classes defined in specified libraries.
@@ -1465,6 +1548,18 @@ class Interface {
   }
 }
 
+/// The lookup through `super` found no member with the name.
+final class MissingMemberSuperLookupRecovery extends SuperLookupRecovery {
+  /// The member that explains the failure, or `null` if there is none.
+  ///
+  /// This is the member with the same name, but of the other kind, such as
+  /// a getter when a setter was looked up. Otherwise, it is a private getter
+  /// or setter of another library, which is spelled like the name.
+  final InternalExecutableElement? foundInstead;
+
+  const MissingMemberSuperLookupRecovery(this.foundInstead);
+}
+
 /// A public name, or a private name qualified by a library URI.
 @AnalyzerPublicApi(message: 'Exposed by InterfaceElement2 methods')
 class Name {
@@ -1563,6 +1658,11 @@ class NotUniqueExtensionMemberConflict extends Conflict {
     required super.name,
     required this.candidates,
   });
+}
+
+/// Why a lookup through `super` found no concrete member to invoke.
+sealed class SuperLookupRecovery {
+  const SuperLookupRecovery();
 }
 
 class _ExtensionTypeCandidates {

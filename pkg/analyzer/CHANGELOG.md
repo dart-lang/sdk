@@ -1,6 +1,42 @@
 ## 14.6.0-dev
 
-* Internal changes only
+* Replaced the `undefined_super_member` diagnostic, which was reported for
+  getters, methods, setters, and operators, with three diagnostics, as
+  proposed in https://github.com/dart-lang/sdk/issues/64411:
+  * `undefined_super_member_read`, for `super.foo` and `super.foo()`, when no
+    superclass has a method, getter, or field that can be read. The message
+    says when a superclass has only a setter, or a private member of another
+    library.
+  * `undefined_super_member_write`, for `super.foo = v`, when no superclass
+    has a setter. The message says when a superclass has only a getter, a
+    final field, a method, or a private member of another library.
+  * `undefined_super_operator`, for `super + v`, `-super`, `super[i]`, and
+    `super[i] = v`.
+
+  Replace `undefined_super_member` with the new names in `// ignore:`
+  comments and in `analysis_options.yaml`, where the old name is still
+  accepted, but has no effect.
+* Members of the interfaces that a class or mixin implements are no longer
+  considered to be in a superclass. For example, `super.foo()` in
+  `mixin M implements A` now reports `undefined_super_member_read` instead of
+  `abstract_super_member_reference`, when only `A` has `foo`.
+* Extension overrides, such as `E(x).foo`, report two new diagnostics
+  instead of `undefined_extension_getter`, `undefined_extension_method`, and
+  `undefined_extension_setter`, which are still reported for static members,
+  such as `E.foo`:
+  * `undefined_extension_member_read`, for `E(x).foo` and `E(x).foo()`, when
+    the extension doesn't declare a method or getter. The message says when
+    the extension declares only a setter.
+  * `undefined_extension_member_write`, for `E(x).foo = v`, when the
+    extension doesn't declare a setter. The message says when the extension
+    declares only a getter, or a method.
+
+  A private member of an extension declared in another library is no longer
+  found through an extension override, such as `E(x)._foo`, and the message
+  says that it is private.
+
+  Use the new names in `// ignore:` comments and in `analysis_options.yaml`
+  for extension overrides.
 
 ## 14.5.0
 
