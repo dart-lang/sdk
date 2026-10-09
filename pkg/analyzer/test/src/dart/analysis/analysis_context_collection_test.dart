@@ -3352,7 +3352,10 @@ workspaces
   }
 
   test_packageConfigWorkspace_enabledExperiment() async {
-    configuration.withEnabledFeatures = true;
+    configuration.withFeatures = [
+      ExperimentalFeatures.digit_separators,
+      ExperimentalFeatures.variance,
+    ];
 
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
@@ -3394,40 +3397,8 @@ contexts
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
     features
-      class-modifiers
-      constant-update-2018
-      constructor-tearoffs
-      control-flow-collections
-      digit-separators
-      dot-shorthands
-      enhanced-enums
-      extension-methods
-      generic-metadata
-      getter-setter-error
-      inference-update-1
-      inference-update-2
-      inference-update-3
-      inference-using-bounds
-      inline-class
-      named-arguments-anywhere
-      native-assets
-      non-nullable
-      nonfunction-type-aliases
-      null-aware-elements
-      patterns
-      primary-constructors
-      private-named-parameters
-      record-use
-      records
-      sealed-class
-      set-literals
-      sound-flow-analysis
-      spread-collections
-      super-parameters
-      triple-shift
-      unnamed-libraries
-      variance
-      wildcard-variables
+      digit-separators: enabled
+      variance: enabled
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -3441,7 +3412,7 @@ workspaces
   test_packageConfigWorkspace_enabledExperiment_noAnalysisOptionsFile() async {
     configuration
       ..withAnalysisOptionsWithoutFiles = true
-      ..withEnabledFeatures = true;
+      ..withFeatures = [ExperimentalFeatures.variance];
 
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
@@ -3480,40 +3451,7 @@ contexts
 analysisOptions
   analysisOptions_0: <no file>
     features
-      class-modifiers
-      constant-update-2018
-      constructor-tearoffs
-      control-flow-collections
-      digit-separators
-      dot-shorthands
-      enhanced-enums
-      extension-methods
-      generic-metadata
-      getter-setter-error
-      inference-update-1
-      inference-update-2
-      inference-update-3
-      inference-using-bounds
-      inline-class
-      named-arguments-anywhere
-      native-assets
-      non-nullable
-      nonfunction-type-aliases
-      null-aware-elements
-      patterns
-      primary-constructors
-      private-named-parameters
-      record-use
-      records
-      sealed-class
-      set-literals
-      sound-flow-analysis
-      spread-collections
-      super-parameters
-      triple-shift
-      unnamed-libraries
-      variance
-      wildcard-variables
+      variance: enabled
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -5475,17 +5413,7 @@ class _AnalysisContextCollectionPrinter {
         _writeNamedFile(id, file);
       }
       sink.withIndent(() {
-        // TODO(scheglov): Update these tests to check only relevant features
-        // instead of snapshotting every enabled language feature.
-        if (configuration.withEnabledFeatures) {
-          var contextFeatures = analysisOptions.contextFeatures;
-          var enabledFeatures = ExperimentStatus.knownFeatures.values
-              .where((f) => contextFeatures.isEnabled(f))
-              .toList();
-          sink.writeElements('features', enabledFeatures, (feature) {
-            sink.writelnWithIndent(feature);
-          });
-        }
+        _writeFeatures(analysisOptions.contextFeatures);
         if (configuration.withLintRules) {
           sink.writeElements('lintRules', analysisOptions.lintRules, (
             lintRule,
@@ -5527,6 +5455,17 @@ class _AnalysisContextCollectionPrinter {
         var id = _idOfWorkspacePackage(workspacePackage);
         sink.writelnWithIndent(id);
       }
+    });
+  }
+
+  /// Writes the state of only the features listed in the configuration.
+  ///
+  /// So, expectations change only when the state of these features changes,
+  /// not when unrelated features are added, or any feature is released.
+  void _writeFeatures(FeatureSet features) {
+    sink.writeElements('features', configuration.withFeatures, (feature) {
+      var state = features.isEnabled(feature) ? 'enabled' : 'disabled';
+      sink.writelnWithIndent('${feature.enableString}: $state');
     });
   }
 
@@ -5634,8 +5573,8 @@ class _AnalysisContextCollectionPrinter {
 class _AnalysisContextCollectionPrinterConfiguration {
   bool withAnalysisOptionsWithoutFiles = false;
   bool withEmptyContextRoots = false;
-  bool withEnabledFeatures = false;
   bool withExcludedPaths = false;
+  List<ExperimentalFeature> withFeatures = [];
   bool withLintRules = false;
   bool withLegacyPlugins = false;
   bool withIncludedPaths = false;
