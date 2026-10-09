@@ -32,6 +32,7 @@ import "dart:_internal"
 import "dart:collection" show ListBase;
 
 import 'dart:math' show Random;
+import 'dart:math' as math show max, min, sqrt;
 
 /// There are no parts in patch library:
 
@@ -2007,35 +2008,20 @@ final class _ExternalFloat64x2Array extends _TypedFloat64x2ListBase
 @pragma('vm:deeply-immutable')
 class Float32x4 {
   @patch
-  @pragma("vm:prefer-inline")
-  factory Float32x4(double x, double y, double z, double w) {
-    return _Float32x4FromDoubles(x, y, z, w);
-  }
-
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_fromDoubles")
-  external static _Float32x4 _Float32x4FromDoubles(
-    double x,
-    double y,
-    double z,
-    double w,
-  );
+  external factory Float32x4(double x, double y, double z, double w);
 
   @patch
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  factory Float32x4.splat(double value) => _Float32x4Splat(value);
-
-  @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_splat")
-  external static _Float32x4 _Float32x4Splat(double v);
+  factory Float32x4.splat(double value) =>
+      Float32x4(value, value, value, value);
 
   @patch
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_zero")
-  external factory Float32x4.zero();
+  factory Float32x4.zero() => Float32x4(0.0, 0.0, 0.0, 0.0);
 
   @patch
   @pragma("vm:recognized", "other")
@@ -2045,57 +2031,71 @@ class Float32x4 {
 
   @patch
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_fromFloat64x2")
-  external factory Float32x4.fromFloat64x2(Float64x2 xy);
+  factory Float32x4.fromFloat64x2(Float64x2 xy) =>
+      Float32x4(xy.x, xy.y, 0.0, 0.0);
 }
 
 @pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Float32x4 implements Float32x4 {
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_add")
-  external Float32x4 operator +(Float32x4 other);
+  Float32x4 operator +(Float32x4 other) =>
+      Float32x4(x + other.x, y + other.y, z + other.z, w + other.w);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_negate")
   external Float32x4 operator -();
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_sub")
-  external Float32x4 operator -(Float32x4 other);
+  Float32x4 operator -(Float32x4 other) =>
+      Float32x4(x - other.x, y - other.y, z - other.z, w - other.w);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_mul")
-  external Float32x4 operator *(Float32x4 other);
+  Float32x4 operator *(Float32x4 other) =>
+      Float32x4(x * other.x, y * other.y, z * other.z, w * other.w);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "Float32x4_div")
-  external Float32x4 operator /(Float32x4 other);
+  Float32x4 operator /(Float32x4 other) =>
+      Float32x4(x / other.x, y / other.y, z / other.z, w / other.w);
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Float32x4_cmplt")
-  external Int32x4 lessThan(Float32x4 other);
+  Int32x4 lessThan(Float32x4 other) => Int32x4(
+    x < other.x ? -1 : 0,
+    y < other.y ? -1 : 0,
+    z < other.z ? -1 : 0,
+    w < other.w ? -1 : 0,
+  );
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Float32x4_cmplte")
-  external Int32x4 lessThanOrEqual(Float32x4 other);
+  Int32x4 lessThanOrEqual(Float32x4 other) => Int32x4(
+    x <= other.x ? -1 : 0,
+    y <= other.y ? -1 : 0,
+    z <= other.z ? -1 : 0,
+    w <= other.w ? -1 : 0,
+  );
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Float32x4_cmpgt")
-  external Int32x4 greaterThan(Float32x4 other);
+  Int32x4 greaterThan(Float32x4 other) => Int32x4(
+    x > other.x ? -1 : 0,
+    y > other.y ? -1 : 0,
+    z > other.z ? -1 : 0,
+    w > other.w ? -1 : 0,
+  );
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Float32x4_cmpgte")
-  external Int32x4 greaterThanOrEqual(Float32x4 other);
+  Int32x4 greaterThanOrEqual(Float32x4 other) => Int32x4(
+    x >= other.x ? -1 : 0,
+    y >= other.y ? -1 : 0,
+    z >= other.z ? -1 : 0,
+    w >= other.w ? -1 : 0,
+  );
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Float32x4_cmpequal")
-  external Int32x4 equal(Float32x4 other);
+  Int32x4 equal(Float32x4 other) => Int32x4(
+    x == other.x ? -1 : 0,
+    y == other.y ? -1 : 0,
+    z == other.z ? -1 : 0,
+    w == other.w ? -1 : 0,
+  );
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Int32x4)
-  @pragma("vm:external-name", "Float32x4_cmpnequal")
-  external Int32x4 notEqual(Float32x4 other);
+  Int32x4 notEqual(Float32x4 other) => Int32x4(
+    x != other.x ? -1 : 0,
+    y != other.y ? -1 : 0,
+    z != other.z ? -1 : 0,
+    w != other.w ? -1 : 0,
+  );
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_scale")
@@ -2137,58 +2137,43 @@ final class _Float32x4 implements Float32x4 {
   @pragma("vm:external-name", "Float32x4_shuffleMix")
   external Float32x4 shuffleMix(Float32x4 zw, int mask);
 
-  @pragma("vm:prefer-inline")
-  Float32x4 withX(double x) {
-    return _withX(x);
-  }
-
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_setX")
-  external Float32x4 _withX(double x);
-
-  @pragma("vm:prefer-inline")
-  Float32x4 withY(double y) {
-    return _withY(y);
-  }
+  external Float32x4 withX(double x);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_setY")
-  external Float32x4 _withY(double y);
-
-  @pragma("vm:prefer-inline")
-  Float32x4 withZ(double z) {
-    return _withZ(z);
-  }
+  external Float32x4 withY(double y);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_setZ")
-  external Float32x4 _withZ(double z);
-
-  @pragma("vm:prefer-inline")
-  Float32x4 withW(double w) {
-    return _withW(w);
-  }
+  external Float32x4 withZ(double z);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_setW")
-  external Float32x4 _withW(double w);
+  external Float32x4 withW(double w);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_min")
-  external Float32x4 min(Float32x4 other);
+  Float32x4 min(Float32x4 other) => Float32x4(
+    math.min(x, other.x),
+    math.min(y, other.y),
+    math.min(z, other.z),
+    math.min(w, other.w),
+  );
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_max")
-  external Float32x4 max(Float32x4 other);
+  Float32x4 max(Float32x4 other) => Float32x4(
+    math.max(x, other.x),
+    math.max(y, other.y),
+    math.max(z, other.z),
+    math.max(w, other.w),
+  );
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float32x4)
-  @pragma("vm:external-name", "Float32x4_sqrt")
-  external Float32x4 sqrt();
+  Float32x4 sqrt() =>
+      Float32x4(math.sqrt(x), math.sqrt(y), math.sqrt(z), math.sqrt(w));
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float32x4)
   @pragma("vm:external-name", "Float32x4_reciprocal")
@@ -2458,32 +2443,19 @@ final class _Int32x4 implements Int32x4 {
 @pragma('vm:deeply-immutable')
 class Float64x2 {
   @patch
-  @pragma("vm:prefer-inline")
-  factory Float64x2(double x, double y) {
-    return _Float64x2FromDoubles(x, y);
-  }
-
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_fromDoubles")
-  external static _Float64x2 _Float64x2FromDoubles(double x, double y);
+  external factory Float64x2(double x, double y);
 
   @patch
+  @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
-  factory Float64x2.splat(double v) {
-    return _Float64x2Splat(v);
-  }
-
-  @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float64x2)
-  @pragma("vm:external-name", "Float64x2_splat")
-  external static _Float64x2 _Float64x2Splat(double v);
+  factory Float64x2.splat(double v) => Float64x2(v, v);
 
   @patch
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float64x2)
-  @pragma("vm:external-name", "Float64x2_zero")
-  external factory Float64x2.zero();
+  factory Float64x2.zero() => Float64x2(0.0, 0.0);
 
   @patch
   @pragma("vm:recognized", "other")
@@ -2496,25 +2468,17 @@ class Float64x2 {
 @pragma("vm:entry-point")
 final class _Float64x2 implements Float64x2 {
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "Float64x2_add")
-  external Float64x2 operator +(Float64x2 other);
+  Float64x2 operator +(Float64x2 other) => Float64x2(x + other.x, y + other.y);
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float64x2)
-  @pragma("vm:external-name", "Float64x2_negate")
-  external Float64x2 operator -();
+  Float64x2 operator -() => Float64x2(-x, -y);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "Float64x2_sub")
-  external Float64x2 operator -(Float64x2 other);
+  Float64x2 operator -(Float64x2 other) => Float64x2(x - other.x, y - other.y);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "Float64x2_mul")
-  external Float64x2 operator *(Float64x2 other);
+  Float64x2 operator *(Float64x2 other) => Float64x2(x * other.x, y * other.y);
   @pragma("vm:recognized", "graph-intrinsic")
-  @pragma("vm:external-name", "Float64x2_div")
-  external Float64x2 operator /(Float64x2 other);
+  Float64x2 operator /(Float64x2 other) => Float64x2(x / other.x, y / other.y);
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float64x2)
-  @pragma("vm:external-name", "Float64x2_scale")
-  external Float64x2 scale(double s);
+  Float64x2 scale(double s) => Float64x2(x * s, y * s);
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_abs")
@@ -2535,38 +2499,24 @@ final class _Float64x2 implements Float64x2 {
   @pragma("vm:external-name", "Float64x2_getSignMask")
   external int get signMask;
 
-  @pragma("vm:prefer-inline")
-  Float64x2 withX(double x) {
-    return _withX(x);
-  }
-
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_setX")
-  external Float64x2 _withX(double x);
-
-  @pragma("vm:prefer-inline")
-  Float64x2 withY(double y) {
-    return _withY(y);
-  }
+  external Float64x2 withX(double x);
 
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", _Float64x2)
   @pragma("vm:external-name", "Float64x2_setY")
-  external Float64x2 _withY(double y);
+  external Float64x2 withY(double y);
 
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float64x2)
-  @pragma("vm:external-name", "Float64x2_min")
-  external Float64x2 min(Float64x2 other);
+  Float64x2 min(Float64x2 other) =>
+      Float64x2(math.min(x, other.x), math.min(y, other.y));
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float64x2)
-  @pragma("vm:external-name", "Float64x2_max")
-  external Float64x2 max(Float64x2 other);
+  Float64x2 max(Float64x2 other) =>
+      Float64x2(math.max(x, other.x), math.max(y, other.y));
   @pragma("vm:recognized", "other")
-  @pragma("vm:exact-result-type", _Float64x2)
-  @pragma("vm:external-name", "Float64x2_sqrt")
-  external Float64x2 sqrt();
+  Float64x2 sqrt() => Float64x2(math.sqrt(x), math.sqrt(y));
 
   String toString() => 'V128';
 }
