@@ -42,6 +42,21 @@ Future<void> spawnIsolateAndWaitForExit() async {
   await onExit.first;
 }
 
+// Whether this VM was built with Perfetto support: builds can leave it out
+// (dart_support_perfetto = false), and then streaming to the Perfetto
+// recorder throws an UnsupportedError.
+bool hasPerfettoRecorder(String tempDir) {
+  final probe = File(path.join(tempDir, 'probe.pb'));
+  try {
+    NativeRuntime.streamTimelineTo(.perfetto, path: probe.path);
+  } on UnsupportedError {
+    return false;
+  }
+  NativeRuntime.stopStreamingTimeline();
+  probe.deleteSync();
+  return true;
+}
+
 Future<void> testPerfettoRecorder({
   required String tempDir,
   required bool withProfiler,
@@ -120,8 +135,10 @@ void main() async {
   await withTempDir('stream_timeline_to_test', (tempDir) async {
     // Must run before the profiler is started for the first time: the sample
     // buffer is not freed when the profiler is stopped.
-    await testPerfettoRecorder(tempDir: tempDir, withProfiler: false);
-    await testPerfettoRecorder(tempDir: tempDir, withProfiler: true);
+    if (hasPerfettoRecorder(tempDir)) {
+      await testPerfettoRecorder(tempDir: tempDir, withProfiler: false);
+      await testPerfettoRecorder(tempDir: tempDir, withProfiler: true);
+    }
     await testChromeRecorder(tempDir: tempDir);
 
     // Perfetto and Chrome recorders require file path for output.
