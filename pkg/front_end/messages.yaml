@@ -7292,6 +7292,10 @@ wasmImportOrExportTearOff:
   parameters: none
   problemMessage: "Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' may not be torn off."
 
+wasmFunctionFromFunctionInvalidArgument:
+  parameters: none
+  problemMessage: "The argument to 'WasmFunction.fromFunction' must be a tear-off of a static function with a valid Wasm signature."
+
 weakReferenceNotStatic:
   parameters: none
   problemMessage: "Weak reference pragma can be used on a static method only."

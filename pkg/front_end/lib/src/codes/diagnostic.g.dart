@@ -12993,6 +12993,12 @@ const MessageCode wasmExternMemoryMissingAnnotation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmFunctionFromFunctionInvalidArgument = const MessageCode(
+  "WasmFunctionFromFunctionInvalidArgument",
+  problemMessage: """The argument to 'WasmFunction.fromFunction' must be a tear-off of a static function with a valid Wasm signature.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmImportInvalidPragma = const MessageCode(
   "WasmImportInvalidPragma",
   problemMessage: """The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.""",

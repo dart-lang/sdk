@@ -172,6 +172,7 @@ v
 wasm:export
 wasm:import
 wasm:weak
+wasmfunction.fromfunction
 wasmv
 wasmvoid
 webassembly

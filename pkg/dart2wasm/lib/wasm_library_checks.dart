@@ -235,20 +235,34 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
   @override
   void visitStaticInvocation(StaticInvocation node) {
     final target = node.target;
-    if (target == exportWasmFunctionProcedure ||
-        target == wasmFunctionFromFunction) {
-      final arg = node.arguments.positional.singleOrNull;
-      final tearOffTarget = switch (arg) {
-        StaticTearOff(:final target) => target,
-        ConstantExpression(constant: StaticTearOffConstant(:final target)) =>
-          target,
-        _ => null,
-      };
+    if (target == exportWasmFunctionProcedure) {
+      final tearOffTarget = _extractStaticTearOffTarget(
+        node.arguments.positional.single,
+      );
       if (tearOffTarget != null &&
-          (target == wasmFunctionFromFunction ||
-              util.hasWasmWeakExportPragma(coreTypes, tearOffTarget))) {
+          util.hasWasmWeakExportPragma(coreTypes, tearOffTarget)) {
         return;
       }
+    } else if (target == wasmFunctionFromFunction) {
+      final tearOffTarget = _extractStaticTearOffTarget(
+        node.arguments.positional.single,
+      );
+      if (tearOffTarget == null ||
+          !tearOffTarget.isStatic ||
+          tearOffTarget.kind != ProcedureKind.Method ||
+          !_hasValidWasmSignature(tearOffTarget.function) ||
+          node.arguments.types.single !=
+              tearOffTarget.function.computeFunctionType(
+                Nullability.nonNullable,
+              )) {
+        _diagnosticReporter.report(
+          diag.wasmFunctionFromFunctionInvalidArgument,
+          node.fileOffset,
+          1,
+          _currentMember!.fileUri,
+        );
+      }
+      return;
     }
 
     super.visitStaticInvocation(node);
@@ -332,10 +346,7 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
 
     if (isMethod) {
       final function = node.function;
-      if (function.typeParameters.isNotEmpty ||
-          function.namedParameters.isNotEmpty ||
-          function.requiredParameterCount !=
-              function.positionalParameters.length) {
+      if (!_hasOnlyRequiredPositionalParameters(function)) {
         _diagnosticReporter.report(
           diag.wasmImportOrExportInvalidSignature,
           node.fileOffset,
@@ -360,7 +371,7 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
       }
 
       final returnType = function.returnType;
-      if (!_isWasmVoid(returnType) && !_isValidExternalValueType(returnType)) {
+      if (!_isValidExternalReturnType(returnType)) {
         _diagnosticReporter.report(
           diag.wasmImportOrExportInvalidReturnType.withArguments(
             type: returnType,
@@ -373,6 +384,29 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
     }
   }
 
+  Procedure? _extractStaticTearOffTarget(Expression expr) {
+    return switch (expr) {
+      StaticTearOff(:final target) => target,
+      ConstantExpression(constant: StaticTearOffConstant(:final target)) =>
+        target,
+      _ => null,
+    };
+  }
+
+  bool _hasValidWasmSignature(FunctionNode function) {
+    return _hasOnlyRequiredPositionalParameters(function) &&
+        function.positionalParameters.every(
+          (param) => _isValidExternalValueType(param.type),
+        ) &&
+        _isValidExternalReturnType(function.returnType);
+  }
+
+  bool _hasOnlyRequiredPositionalParameters(FunctionNode function) {
+    return function.typeParameters.isEmpty &&
+        function.namedParameters.isEmpty &&
+        function.requiredParameterCount == function.positionalParameters.length;
+  }
+
   bool _hasAnyImportOrExportPragma(Member member) {
     if (member.annotations.isEmpty) return false;
     return util.hasWasmImportPragma(coreTypes, member) ||
@@ -380,10 +414,11 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
         util.hasWasmWeakExportPragma(coreTypes, member);
   }
 
-  bool _isWasmVoid(DartType type) {
-    return type is InterfaceType &&
-        type.classNode == wasmVoidClass &&
-        !type.isPotentiallyNullable;
+  bool _isValidExternalReturnType(DartType type) {
+    return (type is InterfaceType &&
+            type.classNode == wasmVoidClass &&
+            !type.isPotentiallyNullable) ||
+        _isValidExternalValueType(type);
   }
 
   bool _isValidExternalValueType(DartType type) {
