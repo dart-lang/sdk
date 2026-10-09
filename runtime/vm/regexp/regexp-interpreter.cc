@@ -130,8 +130,11 @@ class BacktrackStack {
   BacktrackStack& operator=(const BacktrackStack&) = delete;
 
   V8_WARN_UNUSED_RESULT bool push(int v) {
+    if (static_cast<int>(data_.size()) >= kMaxSize) {
+      return false;
+    }
     data_.emplace_back(v);
-    return (static_cast<int>(data_.size()) <= kMaxSize);
+    return true;
   }
   int peek() const {
     SBXCHECK(!data_.empty());
@@ -212,26 +215,6 @@ class InterpreterRegisters {
   const int total_register_count_;
   const int output_register_count_;
 };
-
-IrregexpInterpreter::Result ThrowStackOverflow(
-    Thread* thread,
-    RegExpStatics::CallOrigin call_origin) {
-  CHECK(call_origin == RegExpStatics::CallOrigin::kFromRuntime);
-
-  Exceptions::ThrowStackOverflow();
-}
-
-// Only throws if called from the runtime, otherwise just returns the EXCEPTION
-// status code.
-IrregexpInterpreter::Result MaybeThrowStackOverflow(
-    Thread* thread,
-    RegExpStatics::CallOrigin call_origin) {
-  if (call_origin == RegExpStatics::CallOrigin::kFromRuntime) {
-    return ThrowStackOverflow(thread, call_origin);
-  } else {
-    return IrregexpInterpreter::EXCEPTION;
-  }
-}
 
 bool CheckBitInTable(const uint32_t current_char, const uint8_t* const table) {
   int mask = RegExpMacroAssembler::kTableMask;
@@ -512,14 +495,14 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
     BYTECODE(PushCurrentPosition) {
       ADVANCE();
       if (!backtrack_stack.push(current)) {
-        return MaybeThrowStackOverflow(thread, call_origin);
+        return IrregexpInterpreter::EXCEPTION;
       }
       DISPATCH();
     }
     BYTECODE(PushBacktrack, label) {
       ADVANCE();
       if (!backtrack_stack.push(label)) {
-        return MaybeThrowStackOverflow(thread, call_origin);
+        return IrregexpInterpreter::EXCEPTION;
       }
       DISPATCH();
     }
@@ -527,7 +510,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
       ADVANCE();
       USE(stack_check);  // Unused in interpreter.
       if (!backtrack_stack.push(registers[register_index])) {
-        return MaybeThrowStackOverflow(thread, call_origin);
+        return IrregexpInterpreter::EXCEPTION;
       }
       DISPATCH();
     }
