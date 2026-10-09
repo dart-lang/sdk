@@ -271,7 +271,13 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
         ComparisonOpcode.intLess ||
         ComparisonOpcode.intLessOrEqual ||
         ComparisonOpcode.intGreater ||
-        ComparisonOpcode.intGreaterOrEqual => true,
+        ComparisonOpcode.intGreaterOrEqual ||
+        ComparisonOpcode.doubleEqual ||
+        ComparisonOpcode.doubleNotEqual ||
+        ComparisonOpcode.doubleLess ||
+        ComparisonOpcode.doubleLessOrEqual ||
+        ComparisonOpcode.doubleGreater ||
+        ComparisonOpcode.doubleGreaterOrEqual => true,
         _ => false,
       },
       BinaryIntOp(:final op) =>
@@ -354,6 +360,18 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
         b.i64_gt_s();
       case ComparisonOpcode.intGreaterOrEqual:
         b.i64_ge_s();
+      case ComparisonOpcode.doubleEqual:
+        b.f64_eq();
+      case ComparisonOpcode.doubleNotEqual:
+        b.f64_ne();
+      case ComparisonOpcode.doubleLess:
+        b.f64_lt();
+      case ComparisonOpcode.doubleLessOrEqual:
+        b.f64_le();
+      case ComparisonOpcode.doubleGreater:
+        b.f64_gt();
+      case ComparisonOpcode.doubleGreaterOrEqual:
+        b.f64_ge();
       default:
         throw UnimplementedError('Comparison ${instr.op}');
     }
