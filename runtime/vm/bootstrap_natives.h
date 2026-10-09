@@ -169,24 +169,10 @@ namespace dart {
   V(TypedDataView_offsetInBytes, 1)                                            \
   V(TypedDataView_typedData, 1)                                                \
   V(Float32x4_fromDoubles, 4)                                                  \
-  V(Float32x4_splat, 1)                                                        \
   V(Float32x4_fromInt32x4Bits, 1)                                              \
-  V(Float32x4_fromFloat64x2, 1)                                                \
-  V(Float32x4_zero, 0)                                                         \
-  V(Float32x4_add, 2)                                                          \
   V(Float32x4_negate, 1)                                                       \
-  V(Float32x4_sub, 2)                                                          \
-  V(Float32x4_mul, 2)                                                          \
-  V(Float32x4_div, 2)                                                          \
-  V(Float32x4_cmplt, 2)                                                        \
-  V(Float32x4_cmplte, 2)                                                       \
-  V(Float32x4_cmpgt, 2)                                                        \
-  V(Float32x4_cmpgte, 2)                                                       \
-  V(Float32x4_cmpequal, 2)                                                     \
-  V(Float32x4_cmpnequal, 2)                                                    \
   V(Float32x4_scale, 2)                                                        \
   V(Float32x4_abs, 1)                                                          \
-  V(Float32x4_clamp, 3)                                                        \
   V(Float32x4_getX, 1)                                                         \
   V(Float32x4_getY, 1)                                                         \
   V(Float32x4_getZ, 1)                                                         \
@@ -198,31 +184,16 @@ namespace dart {
   V(Float32x4_setY, 2)                                                         \
   V(Float32x4_setZ, 2)                                                         \
   V(Float32x4_setW, 2)                                                         \
-  V(Float32x4_min, 2)                                                          \
-  V(Float32x4_max, 2)                                                          \
-  V(Float32x4_sqrt, 1)                                                         \
   V(Float32x4_reciprocal, 1)                                                   \
   V(Float32x4_reciprocalSqrt, 1)                                               \
   V(Float64x2_fromDoubles, 2)                                                  \
-  V(Float64x2_splat, 1)                                                        \
-  V(Float64x2_zero, 0)                                                         \
   V(Float64x2_fromFloat32x4, 1)                                                \
-  V(Float64x2_add, 2)                                                          \
-  V(Float64x2_negate, 1)                                                       \
-  V(Float64x2_sub, 2)                                                          \
-  V(Float64x2_mul, 2)                                                          \
-  V(Float64x2_div, 2)                                                          \
-  V(Float64x2_scale, 2)                                                        \
   V(Float64x2_abs, 1)                                                          \
-  V(Float64x2_clamp, 3)                                                        \
   V(Float64x2_getX, 1)                                                         \
   V(Float64x2_getY, 1)                                                         \
   V(Float64x2_getSignMask, 1)                                                  \
   V(Float64x2_setX, 2)                                                         \
   V(Float64x2_setY, 2)                                                         \
-  V(Float64x2_min, 2)                                                          \
-  V(Float64x2_max, 2)                                                          \
-  V(Float64x2_sqrt, 1)                                                         \
   V(Int32x4_fromInts, 4)                                                       \
   V(Int32x4_select, 3)                                                         \
   V(Int32x4_fromFloat32x4Bits, 1)                                              \

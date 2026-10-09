@@ -676,7 +676,11 @@ class AnnotateKernel extends RecursiveVisitor {
                   )
                   as InterfaceType;
         }
-        return (dartType, isExactClass: isExactClass, isExactType: false);
+        return (
+          dartType.extensionTypeErasure as InterfaceType,
+          isExactClass: isExactClass,
+          isExactType: false,
+        );
       case ConeType(:final cls):
         return (
           interfaceTypeWithDefaultBounds(cls.classNode, nullability),
@@ -712,7 +716,7 @@ class AnnotateKernel extends RecursiveVisitor {
           return t.representedType;
         }
         isExactType = false;
-        return concreteClass.typeParameters[i].defaultType;
+        return concreteClass.typeParameters[i].defaultType.extensionTypeErasure;
       });
       return (
         InterfaceType(concreteClass, nullability, dartTypeArgs),
