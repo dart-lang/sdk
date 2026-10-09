@@ -453,14 +453,27 @@ class NativeCodeOracle {
       if (pragma is ParsedResultTypeByTypePragma) {
         var type = pragma.type;
         if (type is InterfaceType) {
-          returnType = entryPointsListener.addAllocatedClass(type.classNode);
-          if (pragma.resultTypeUsesPassedTypeArguments) {
+          final concreteClass = entryPointsListener.addAllocatedClass(
+            type.classNode,
+          );
+          if (pragma.resultTypeUsesPassedTypeArguments ||
+              pragma.resultTypeUsesReceiverTypeArguments) {
+            assert(
+              pragma.resultTypeUsesReceiverTypeArguments
+                  ? member.isInstanceMember
+                  : member is Procedure && member.isFactory,
+            );
+            final typeParameters = pragma.resultTypeUsesReceiverTypeArguments
+                ? member.enclosingClass!.typeParameters
+                : member.function!.typeParameters;
             returnType = translator.instantiateConcreteType(
-              returnType as ConcreteType,
-              member.function!.typeParameters
+              concreteClass,
+              typeParameters
                   .map((t) => TypeParameterType.withDefaultNullability(t))
                   .toList(),
             );
+          } else {
+            returnType = concreteClass;
           }
           continue;
         }
