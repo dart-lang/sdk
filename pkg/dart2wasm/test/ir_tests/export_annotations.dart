@@ -10,7 +10,7 @@
 import 'dart:_wasm';
 
 void main() {
-  print(usedWeakExport);
+  print(usedWeakExport().toIntSigned());
 }
 
 @pragma('wasm:export', 'strongExport')
@@ -19,7 +19,7 @@ WasmI32 strongExport() {
   return 1.toWasmI32();
 }
 
-@pragma('wasm:export', 'usedWeakExport')
+@pragma('wasm:weak-export', 'usedWeakExport')
 WasmI32 usedWeakExport() {
   print('usedWeakExport');
   return 1.toWasmI32();

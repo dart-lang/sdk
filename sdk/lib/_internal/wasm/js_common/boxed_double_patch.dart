@@ -98,8 +98,8 @@ class BoxedDouble {
   String _toStringAsFixed(int fractionDigits) => JSStringImpl.fromRefUnchecked(
     JS<WasmExternRef>(
       "(d, digits) => d.toFixed(digits)",
-      value,
-      fractionDigits.toDouble(),
+      WasmF64.fromDouble(value),
+      WasmI32.fromInt(fractionDigits),
     ),
   );
 
@@ -133,11 +133,14 @@ class BoxedDouble {
   String _toStringAsExponential(int? fractionDigits) =>
       JSStringImpl.fromRefUnchecked(
         fractionDigits == null
-            ? JS<WasmExternRef>("d => d.toExponential()", value)
+            ? JS<WasmExternRef>(
+                "d => d.toExponential()",
+                WasmF64.fromDouble(value),
+              )
             : JS<WasmExternRef>(
                 "(d, f) => d.toExponential(f)",
-                value,
-                fractionDigits.toDouble(),
+                WasmF64.fromDouble(value),
+                WasmI32.fromInt(fractionDigits),
               ),
       );
 
@@ -165,8 +168,8 @@ class BoxedDouble {
       JSStringImpl.fromRefUnchecked(
         JS<WasmExternRef>(
           "(d, precision) => d.toPrecision(precision)",
-          value,
-          fractionDigits.toDouble(),
+          WasmF64.fromDouble(value),
+          WasmI32.fromInt(fractionDigits),
         ),
       );
 }

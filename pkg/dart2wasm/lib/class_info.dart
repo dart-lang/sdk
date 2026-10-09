@@ -889,7 +889,7 @@ class ClassIdNumbering {
         // TFA but they can never be instantiated, as they represent raw Wasm
         // types that aren't part of the Dart object hierarchy.
         // Move them to the very end of the class table.
-        if (klass.name.startsWith('_WasmBase')) return 0xffffff;
+        if (klass.name.startsWith('WasmBase')) return 0xffffff;
         return 3;
       }
       return 10;

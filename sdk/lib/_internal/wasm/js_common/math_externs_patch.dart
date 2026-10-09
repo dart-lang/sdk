@@ -9,46 +9,50 @@ import "dart:_js_types" show JSUint8ArrayImpl;
 import "dart:_wasm";
 
 @patch
-double atan2(num a, num b) => _atan2(a.toDouble(), b.toDouble());
+double atan2(num a, num b) =>
+    _atan2(a.toDouble().toWasmF64(), b.toDouble().toWasmF64()).toDouble();
 @patch
-double sin(num radians) => _sin(radians.toDouble());
+double sin(num radians) => _sin(radians.toDouble().toWasmF64()).toDouble();
 @patch
-double cos(num radians) => _cos(radians.toDouble());
+double cos(num radians) => _cos(radians.toDouble().toWasmF64()).toDouble();
 @patch
-double tan(num radians) => _tan(radians.toDouble());
+double tan(num radians) => _tan(radians.toDouble().toWasmF64()).toDouble();
 @patch
-double acos(num x) => _acos(x.toDouble());
+double acos(num x) => _acos(x.toDouble().toWasmF64()).toDouble();
 @patch
-double asin(num x) => _asin(x.toDouble());
+double asin(num x) => _asin(x.toDouble().toWasmF64()).toDouble();
 @patch
-double atan(num x) => _atan(x.toDouble());
+double atan(num x) => _atan(x.toDouble().toWasmF64()).toDouble();
 @patch
 double sqrt(num x) => x.toDouble().sqrt();
 @patch
-double exp(num x) => _exp(x.toDouble());
+double exp(num x) => _exp(x.toDouble().toWasmF64()).toDouble();
 @patch
-double log(num x) => _log(x.toDouble());
+double log(num x) => _log(x.toDouble().toWasmF64()).toDouble();
+
+double _doublePow(double base, double exponent) =>
+    _wasmDoublePow(base.toWasmF64(), exponent.toWasmF64()).toDouble();
 
 @pragma("wasm:import", "Math.pow")
-external double _doublePow(double base, double exponent);
+external WasmF64 _wasmDoublePow(WasmF64 base, WasmF64 exponent);
 @pragma("wasm:import", "Math.atan2")
-external double _atan2(double a, double b);
+external WasmF64 _atan2(WasmF64 a, WasmF64 b);
 @pragma("wasm:import", "Math.sin")
-external double _sin(double x);
+external WasmF64 _sin(WasmF64 x);
 @pragma("wasm:import", "Math.cos")
-external double _cos(double x);
+external WasmF64 _cos(WasmF64 x);
 @pragma("wasm:import", "Math.tan")
-external double _tan(double x);
+external WasmF64 _tan(WasmF64 x);
 @pragma("wasm:import", "Math.acos")
-external double _acos(double x);
+external WasmF64 _acos(WasmF64 x);
 @pragma("wasm:import", "Math.asin")
-external double _asin(double x);
+external WasmF64 _asin(WasmF64 x);
 @pragma("wasm:import", "Math.atan")
-external double _atan(double x);
+external WasmF64 _atan(WasmF64 x);
 @pragma("wasm:import", "Math.exp")
-external double _exp(double x);
+external WasmF64 _exp(WasmF64 x);
 @pragma("wasm:import", "Math.log")
-external double _log(double x);
+external WasmF64 _log(WasmF64 x);
 
 @JS('crypto')
 external _JSCrypto get _jsCryptoGetter;

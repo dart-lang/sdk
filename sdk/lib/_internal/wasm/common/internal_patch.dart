@@ -59,6 +59,7 @@ void reachabilityFence(Object? object) {}
 // Used for exporting wasm functions that are annotated via
 // `@pragma('wasm:weak-export', '<name>')
 @pragma("wasm:intrinsic")
+@pragma("wasm:entry-point")
 external void exportWasmFunction(Function object);
 
 // This function can be used to encode native side effects.

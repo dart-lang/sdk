@@ -2152,10 +2152,12 @@ class Intrinsifier {
       case StaticIntrinsic.wasmFunctionFromFunction:
         assert(name == "fromFunction");
         Expression f = node.arguments.positional[0];
-        if (f is! ConstantExpression || f.constant is! StaticTearOffConstant) {
-          throw "Argument to WasmFunction.fromFunction isn't a static function";
-        }
-        StaticTearOffConstant func = f.constant as StaticTearOffConstant;
+        assert(
+          f is ConstantExpression && f.constant is StaticTearOffConstant,
+          "Argument to WasmFunction.fromFunction isn't a static function",
+        );
+        StaticTearOffConstant func =
+            (f as ConstantExpression).constant as StaticTearOffConstant;
         w.BaseFunction wasmFunction = translator.functions.getFunction(
           func.targetReference,
         )..isJSCalled = true;

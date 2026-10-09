@@ -33,11 +33,11 @@ class _Uri {
   @patch
   static bool get _isWindows => _isWindowsCached;
 
-  static final bool _isWindowsCached = JS<bool>("""() => {
+  static final bool _isWindowsCached = JS<WasmI32>("""() => {
         return typeof process != "undefined" &&
                Object.prototype.toString.call(process) == "[object process]" &&
                process.platform == "win32"
-      }""");
+      }""").toBool();
 
   // Matches a String that _uriEncodes to itself regardless of the kind of
   // component.  This corresponds to `_unreservedMask` table,

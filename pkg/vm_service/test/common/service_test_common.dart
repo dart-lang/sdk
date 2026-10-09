@@ -85,7 +85,7 @@ class IsolateTestHarness extends _TestHarness<IsolateTest> {
     bool pauseOnStart = false,
     bool pauseOnExit = false,
     bool pauseOnUnhandledExceptions = false,
-    bool launchTesteeWithDartRunResident = false,
+    bool? launchTesteeWithDartRunResident,
     bool allowForNonZeroExitCode = false,
     bool useAuthToken = false,
     List<String>? extraArgs,

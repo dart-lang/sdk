@@ -129,27 +129,30 @@ Object jsObjectToDartObject(WasmExternRef? ref) =>
 WasmExternRef jsObjectFromDartObject(Object object) =>
     unsafeCastOpaque<WasmAnyRef>(object).externalize();
 
-bool isJSUndefined(WasmExternRef? o) => JS<bool>('o => o === undefined', o);
+bool isJSUndefined(WasmExternRef? o) =>
+    JS<WasmI32>('o => o === undefined', o).toBool();
 
 bool isJSFunction(WasmExternRef? o) =>
-    JS<bool>("o => typeof o === 'function'", o);
+    JS<WasmI32>("o => typeof o === 'function'", o).toBool();
 
-bool isJSWrappedDartFunction(WasmExternRef? o) => JS<bool>(
+bool isJSWrappedDartFunction(WasmExternRef? o) => JS<WasmI32>(
   "o => typeof o === 'function' && o[jsWrappedDartFunctionSymbol] === true",
   o,
-);
+).toBool();
 
-bool isJSObject(WasmExternRef? o) => JS<bool>("o => o instanceof Object", o);
+bool isJSObject(WasmExternRef? o) =>
+    JS<WasmI32>("o => o instanceof Object", o).toBool();
 
-bool isJSSimpleObject(WasmExternRef? o) => JS<bool>("""o => {
+bool isJSSimpleObject(WasmExternRef? o) => JS<WasmI32>("""o => {
             const proto = Object.getPrototypeOf(o);
             return proto === Object.prototype || proto === null;
-          }""", o);
+          }""", o).toBool();
 
-bool isJSRegExp(WasmExternRef? o) => JS<bool>("o => o instanceof RegExp", o);
+bool isJSRegExp(WasmExternRef? o) =>
+    JS<WasmI32>("o => o instanceof RegExp", o).toBool();
 
 bool areEqualInJS(WasmExternRef? l, WasmExternRef? r) =>
-    JS<bool>("(l, r) => l === r", l, r);
+    JS<WasmI32>("(l, r) => l === r", l, r).toBool();
 
 @pragma('wasm:entry-point')
 double toDartDouble(WasmExternRef? ref) {
@@ -168,7 +171,8 @@ double? toDartNullableDouble(WasmExternRef? ref) {
   throw ArgumentError('JS value is not a number');
 }
 
-double _toDartDoubleUnchecked(WasmExternRef? ref) => JS<double>("o => o", ref);
+double _toDartDoubleUnchecked(WasmExternRef? ref) =>
+    JS<WasmF64>("o => o", ref).toDouble();
 
 int _checkNumberType(WasmExternRef? ref) {
   return JS<WasmI32>("""o => {
@@ -205,7 +209,8 @@ int? toDartNullableInt(WasmExternRef? ref) {
 }
 
 @pragma('wasm:entry-point')
-WasmExternRef? toJSNumber(double ref) => JS<WasmExternRef?>("o => o", ref);
+WasmExternRef? toJSNumber(double ref) =>
+    JS<WasmExternRef?>("o => o", ref.toWasmF64());
 
 int _checkBoolType(WasmExternRef? ref) {
   return JS<WasmI32>("""o => {
@@ -232,9 +237,11 @@ bool? toDartNullableBool(WasmExternRef? ref) {
   throw ArgumentError('JS value is not a boolean');
 }
 
-bool _toDartBoolUnchecked(WasmExternRef? ref) => JS<bool>("o => o", ref);
+bool _toDartBoolUnchecked(WasmExternRef? ref) =>
+    JS<WasmI32>("o => o", ref).toBool();
 
-WasmExternRef? toJSBoolean(bool b) => JS<WasmExternRef?>("b => !!b", b);
+WasmExternRef? toJSBoolean(bool b) =>
+    JS<WasmExternRef?>("b => !!b", WasmI32.fromBool(b));
 
 int objectLength(WasmExternRef? o) =>
     JS<WasmI32>("o => o.length", o).toIntSigned();
@@ -245,8 +252,9 @@ int byteLength(WasmExternRef? o) =>
 WasmExternRef? objectReadIndex(WasmExternRef? o, int index) =>
     JS<WasmExternRef?>("(o, i) => o[i]", o, index.toWasmI32());
 
-Function unwrapJSWrappedDartFunction(WasmExternRef? f) =>
-    JS<Function>("f => f.dartFunction", f);
+Function unwrapJSWrappedDartFunction(WasmExternRef? f) => unsafeCast<Function>(
+  jsObjectToDartObject(JS<WasmExternRef?>("f => f.dartFunction", f)),
+);
 
 external WasmExternRef jsInt8ArrayFromDartInt8List(Int8List l);
 
@@ -308,7 +316,7 @@ WasmExternRef? callConstructorVarArgsRaw(
     );
 
 bool hasPropertyRaw(WasmExternRef? o, WasmExternRef? p) =>
-    JS<bool>("(o, p) => p in o", o, p);
+    JS<WasmI32>("(o, p) => p in o", o, p).toBool();
 
 WasmExternRef? getPropertyRaw(WasmExternRef? o, WasmExternRef? p) =>
     JS<WasmExternRef?>("(o, p) => o[p]", o, p);
@@ -341,7 +349,7 @@ void promiseThenWithIsUndefined(
   WasmExternRef? promise,
   WasmExternRef? successFunc,
   WasmExternRef? failureFunc,
-) => JS<void>(
+) => JS<WasmVoid>(
   "(p, s, f) => p.then(s, (e) => f(e, e === undefined))",
   promise,
   successFunc,
@@ -742,28 +750,28 @@ F _wrapDartFunction<F extends Function>(F f, WasmExternRef ref) {
 ///   2) The enclosing procedure has a body with a single statement, and that
 ///      statement is just the `StaticInvocation` of [JS] itself.
 ///   3) All of the arguments to [JS] are `VariableGet`s.
-external T JS<T>(
+external T JS<T extends WasmBase?>(
   String codeTemplate, [
-  arg0,
-  arg1,
-  arg2,
-  arg3,
-  arg4,
-  arg5,
-  arg6,
-  arg7,
-  arg8,
-  arg9,
-  arg10,
-  arg11,
-  arg12,
-  arg13,
-  arg14,
-  arg51,
-  arg16,
-  arg17,
-  arg18,
-  arg19,
+  WasmBase? arg0,
+  WasmBase? arg1,
+  WasmBase? arg2,
+  WasmBase? arg3,
+  WasmBase? arg4,
+  WasmBase? arg5,
+  WasmBase? arg6,
+  WasmBase? arg7,
+  WasmBase? arg8,
+  WasmBase? arg9,
+  WasmBase? arg10,
+  WasmBase? arg11,
+  WasmBase? arg12,
+  WasmBase? arg13,
+  WasmBase? arg14,
+  WasmBase? arg51,
+  WasmBase? arg16,
+  WasmBase? arg17,
+  WasmBase? arg18,
+  WasmBase? arg19,
 ]);
 
 /// Represents a JS `null` or `undefined` thrown from JS and caught in Wasm.

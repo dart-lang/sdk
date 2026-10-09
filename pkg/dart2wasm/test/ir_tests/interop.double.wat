@@ -4,8 +4,8 @@
   (type $BoxedDouble (sub final $#Top (struct
     (field $#classId i32)
     (field $value f64))))
-  (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param f64) (result externref))
-  (func $"dart2wasm.N (import)" (import "dart2wasm" "N") (param externref) (result externref))
+  (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param externref) (result externref))
+  (func $"dart2wasm.P (import)" (import "dart2wasm" "P") (param f64) (result externref))
   (func $"dart2wasm.R (import)" (import "dart2wasm" "R") (param f64) (result externref))
   (global $"doubleValueNullable initialized" (mut i32) <...>)
   (global $doubleValueNullable (mut (ref null $BoxedDouble)) <...>)
@@ -23,7 +23,7 @@
   (@binaryen.inline 0)
   (func $testDoubleConstantNullable
     ref.null noextern
-    call $"dart2wasm.N (import)"
+    call $"dart2wasm.M (import)"
     call $toDartNullableDouble
     call $sinkDoubleNullable
   )
@@ -62,9 +62,9 @@
     else
       local.get $var0
       struct.get $BoxedDouble $value
-      call $"dart2wasm.M (import)"
+      call $"dart2wasm.P (import)"
     end
-    call $"dart2wasm.N (import)"
+    call $"dart2wasm.M (import)"
     call $toDartNullableDouble
     call $sinkDoubleNullable
   )
