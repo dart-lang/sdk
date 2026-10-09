@@ -318,6 +318,17 @@ class SmallVector {
     end_ = begin_;
   }
 
+  // Free any heap-allocated backing storage and revert to inline storage
+  // now, without waiting for the destructor. Used when a subsequent
+  // operation may abort by jumping over this object's C++ frames (e.g.
+  // a runtime stack overflow), so the destructor would not run.
+  void ReleaseHeapStorage() {
+    FreeStorage();
+    begin_ = inline_storage_begin();
+    end_ = begin_;
+    end_of_storage_ = begin_ + kInlineSize;
+  }
+
   Allocator get_allocator() const { return allocator_; }
 
  private:

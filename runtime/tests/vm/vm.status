@@ -203,6 +203,7 @@ cc/TypePropagator_NonNullableLoadStaticField: SkipByDesign # Sanitizers build di
 cc/TypePropagator_RecordFieldAccess: SkipByDesign # Sanitizers build different flow graphs
 dart/exported_symbols_test: SkipByDesign # Sanitizers add extra symbols.
 dart/heap_snapshot_referrers_test: Pass, Slow
+dart/regress_backtrack_stack_overflow_leak_test: SkipByDesign # Sanitizers retain freed memory in quarantine
 
 [ $sanitizer == tsan ]
 dart/analyze_snapshot_binary_test: SkipSlow
