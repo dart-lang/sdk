@@ -5274,8 +5274,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         lookupType: lookupType,
       );
     }
+    if (contextType is UnknownInferredType) {
+      return const MissingDotShorthandContextResolutionImpl();
+    }
     return InvalidDotShorthandContextResolutionImpl(
-      contextType: contextType is UnknownInferredType ? null : contextType,
+      contextType: contextType,
+      lookupType: lookupType,
     );
   }
 
@@ -5508,6 +5512,15 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         return;
       }
       switch (shorthandContext) {
+        case MissingDotShorthandContextResolutionImpl():
+          diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
+        case InvalidDotShorthandContextResolutionImpl(:var contextType):
+          lookupFailureReporter.reportReadFailure(
+            domain: DotShorthandLookupDomain.type(contextType),
+            name: head.name,
+            syntax: ReadSyntax.invocation,
+            foundInstead: null,
+          );
         case ValidDotShorthandContextResolutionImpl():
           lookupFailureReporter.reportReadFailure(
             domain: DotShorthandLookupDomain.declaration(shorthandContext),
@@ -5515,15 +5528,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
             syntax: ReadSyntax.invocation,
             foundInstead: null,
           );
-        case InvalidDotShorthandContextResolutionImpl(:var contextType?):
-          lookupFailureReporter.reportReadFailure(
-            domain: DotShorthandLookupDomain.type(contextType),
-            name: head.name,
-            syntax: ReadSyntax.invocation,
-            foundInstead: null,
-          );
-        case InvalidDotShorthandContextResolutionImpl():
-          diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
       }
       element = null;
     }

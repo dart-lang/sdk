@@ -264,6 +264,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         MethodIndexWriteResolution,
         MethodInvocation,
         MethodReferenceExpression,
+        MissingDotShorthandContextResolution,
         MixinDeclaration,
         MixinOnClause,
         NameExpression,

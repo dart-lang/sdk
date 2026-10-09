@@ -2094,7 +2094,8 @@ package:analyzer/dart/ast/ast.dart:
     read (getter: InvalidReadResolution?)
     write (getter: InvalidWriteResolution?)
   InvalidDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental):
-    contextType (getter: DartType?)
+    contextType (getter: DartType)
+    lookupType (getter: DartType)
   InvalidExpressionAssignmentTarget (class extends Object implements InvalidAssignmentTarget, abstract, final, experimental):
     expression (getter: Expression)
   InvalidExtensionOverrideAssignmentTarget (class extends Object implements InvalidAssignmentTarget, abstract, final, experimental):
@@ -2248,6 +2249,7 @@ package:analyzer/dart/ast/ast.dart:
     target2 (getter: Expression?, experimental)
   MethodReferenceExpression (class extends Object implements Expression, abstract, final):
     element (getter: MethodElement?)
+  MissingDotShorthandContextResolution (class extends Object implements DotShorthandContextResolution, abstract, final, experimental)
   MixinDeclaration (class extends Object implements CompilationUnitMember, abstract, final):
     augmentKeyword (getter: Token?)
     baseKeyword (getter: Token?)

@@ -14817,7 +14817,9 @@ final class DotShorthandConstructorInvocationImpl
 abstract final class DotShorthandContextResolution {}
 
 sealed class DotShorthandContextResolutionImpl
-    implements DotShorthandContextResolution {}
+    implements DotShorthandContextResolution {
+  const DotShorthandContextResolutionImpl();
+}
 
 /// A value-producing dot-shorthand head.
 ///
@@ -31640,22 +31642,36 @@ sealed class InvalidAssignmentTarget implements AssignmentTarget {
   InvalidWriteResolution? get write;
 }
 
-/// An unusable or absent dot-shorthand context.
+/// An unusable dot-shorthand context: there is a context type, but it has no
+/// static namespace that can be searched.
 @experimental
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class InvalidDotShorthandContextResolution
     implements DotShorthandContextResolution {
-  /// The unusable contextual type, or `null` if no context type was available.
-  DartType? get contextType;
+  /// The contextual type supplied to the maximal dot-shorthand expression.
+  DartType get contextType;
+
+  /// The normalized [contextType] whose static namespace would be searched.
+  ///
+  /// It is not an interface type, such as a function type, or it is an
+  /// interface type whose declaration is not accessible, such as a private
+  /// class of another library.
+  DartType get lookupType;
 }
 
 final class InvalidDotShorthandContextResolutionImpl
     extends DotShorthandContextResolutionImpl
     implements InvalidDotShorthandContextResolution {
   @override
-  final TypeImpl? contextType;
+  final TypeImpl contextType;
 
-  InvalidDotShorthandContextResolutionImpl({required this.contextType});
+  @override
+  final TypeImpl lookupType;
+
+  InvalidDotShorthandContextResolutionImpl({
+    required this.contextType,
+    required this.lookupType,
+  });
 }
 
 /// An invalid assignment target whose source is an ordinary value expression.
@@ -37116,6 +37132,18 @@ abstract final class MethodReferenceExpression implements Expression {
   /// this is a non-compound assignment expression, or when the method referred
   /// to couldn't be resolved.
   MethodElement? get element;
+}
+
+/// An absent dot-shorthand context: no context type was available.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class MissingDotShorthandContextResolution
+    implements DotShorthandContextResolution {}
+
+final class MissingDotShorthandContextResolutionImpl
+    extends DotShorthandContextResolutionImpl
+    implements MissingDotShorthandContextResolution {
+  const MissingDotShorthandContextResolutionImpl();
 }
 
 /// The declaration of a mixin.

@@ -434,14 +434,17 @@ class AstBinaryReader {
 
   DotShorthandContextResolutionImpl _readDotShorthandContextResolution() {
     switch (_reader.readEnum(DotShorthandContextResolutionTag.values)) {
+      case DotShorthandContextResolutionTag.missing:
+        return const MissingDotShorthandContextResolutionImpl();
+      case DotShorthandContextResolutionTag.invalid:
+        return InvalidDotShorthandContextResolutionImpl(
+          contextType: _reader.readType() as TypeImpl,
+          lookupType: _reader.readType() as TypeImpl,
+        );
       case DotShorthandContextResolutionTag.valid:
         return ValidDotShorthandContextResolutionImpl(
           contextType: _reader.readType() as TypeImpl,
           lookupType: _reader.readType() as InterfaceTypeImpl,
-        );
-      case DotShorthandContextResolutionTag.invalid:
-        return InvalidDotShorthandContextResolutionImpl(
-          contextType: _reader.readType(),
         );
     }
   }

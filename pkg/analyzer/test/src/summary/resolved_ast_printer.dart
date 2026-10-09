@@ -2794,16 +2794,19 @@ Expected parent: (${parent.runtimeType}) $parent
     switch (resolution) {
       case null:
         _sink.writelnWithIndent('$name: <null>');
+      case MissingDotShorthandContextResolutionImpl():
+        _sink.writelnWithIndent('$name: MissingDotShorthandContextResolution');
+      case InvalidDotShorthandContextResolutionImpl():
+        _sink.writelnWithIndent('$name: InvalidDotShorthandContextResolution');
+        _sink.withIndent(() {
+          _writeType('contextType', resolution.contextType);
+          _writeType('lookupType', resolution.lookupType);
+        });
       case ValidDotShorthandContextResolutionImpl():
         _sink.writelnWithIndent('$name: ValidDotShorthandContextResolution');
         _sink.withIndent(() {
           _writeType('contextType', resolution.contextType);
           _writeType('lookupType', resolution.lookupType);
-        });
-      case InvalidDotShorthandContextResolutionImpl():
-        _sink.writelnWithIndent('$name: InvalidDotShorthandContextResolution');
-        _sink.withIndent(() {
-          _writeType('contextType', resolution.contextType);
         });
     }
   }

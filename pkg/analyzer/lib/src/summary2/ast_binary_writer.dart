@@ -1183,13 +1183,16 @@ class AstBinaryWriter extends ThrowingAstVisitor2<void> {
     DotShorthandContextResolutionImpl resolution,
   ) {
     switch (resolution) {
+      case MissingDotShorthandContextResolutionImpl():
+        _sink.writeEnum(DotShorthandContextResolutionTag.missing);
+      case InvalidDotShorthandContextResolutionImpl():
+        _sink.writeEnum(DotShorthandContextResolutionTag.invalid);
+        _sink.writeType(resolution.contextType);
+        _sink.writeType(resolution.lookupType);
       case ValidDotShorthandContextResolutionImpl():
         _sink.writeEnum(DotShorthandContextResolutionTag.valid);
         _sink.writeType(resolution.contextType);
         _sink.writeType(resolution.lookupType);
-      case InvalidDotShorthandContextResolutionImpl():
-        _sink.writeEnum(DotShorthandContextResolutionTag.invalid);
-        _sink.writeType(resolution.contextType);
     }
   }
 
