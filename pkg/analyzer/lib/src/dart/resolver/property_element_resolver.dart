@@ -1265,23 +1265,6 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  /// If the [element] is not static, report the error on the [propertyName].
-  ///
-  /// Returns `true` if an error was reported.
-  bool _checkForStaticAccessToInstanceMember(
-    Token propertyName,
-    ExecutableElement element,
-  ) {
-    if (element.isStatic) return false;
-
-    diagnosticReporter.report(
-      diag.staticAccessToInstanceMember
-          .withArguments(name: propertyName.lexeme)
-          .at(propertyName),
-    );
-    return true;
-  }
-
   void _checkForStaticMember(
     AstNode target,
     Token propertyName,
@@ -1463,8 +1446,12 @@ class PropertyElementResolver with ScopeHelpers {
     return null;
   }
 
-  bool _isAccessible(ExecutableElement element) {
-    return element.isAccessibleIn(_definingLibrary);
+  /// Returns [element] if it is accessible in [_definingLibrary], or `null`.
+  T? _ifAccessible<T extends ExecutableElement>(T? element) {
+    if (element != null && element.isAccessibleIn(_definingLibrary)) {
+      return element;
+    }
+    return null;
   }
 
   TypeImpl? _namedReadType(Element? element) {
@@ -1482,8 +1469,8 @@ class PropertyElementResolver with ScopeHelpers {
     ExpressionInfo? readExpressionInfo,
   })
   _propertyReadWriteTargetResult(PropertyElementResolverResult result) {
-    var readElement = result.readElement2;
-    var writeElement = result.writeElement2;
+    var readElement = result.readElementRequested2;
+    var writeElement = result.writeElementRequested2;
     var readResolution = _createPropertyReadResolution(
       element: readElement,
       recordField: result.recordField,
@@ -1739,41 +1726,52 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? readElement;
     ExecutableElement? readElementRecovery;
     DartType? getType;
+    var isReadFailure = false;
     if (hasRead) {
-      readElement ??= extension.getGetter(memberName);
-      readElement ??= extension.getMethod(memberName);
-
-      if (readElement == null) {
+      var element = _ifAccessible(
+        extension.getGetter(memberName) ?? extension.getMethod(memberName),
+      );
+      if (element != null && element.isStatic) {
+        readElement = element;
+        getType = element.returnType;
+      } else {
+        // An instance member is reported as found instead.
+        isReadFailure = true;
+        readElementRecovery = element;
         _lookupFailureReporter.reportReadFailure(
           domain: StaticLookupDomain(extension),
           name: propertyName,
           syntax: ReadSyntax.reference,
-          foundInstead: null,
+          foundInstead:
+              element ??
+              extension.getMemberForFailedLookup(
+                Name(_definingLibrary.uri, memberName),
+              ),
         );
-      } else {
-        getType = readElement.returnType;
-        if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
-          readElementRecovery = readElement;
-          readElement = null;
-        }
       }
     }
 
     ExecutableElement? writeElement;
     ExecutableElement? writeElementRecovery;
     if (hasWrite) {
-      writeElement = extension.getSetter(memberName);
-
-      if (writeElement == null) {
-        _lookupFailureReporter.reportWriteFailure(
-          domain: StaticLookupDomain(extension),
-          name: propertyName,
-          foundInstead: null,
-        );
+      var element = _ifAccessible(extension.getSetter(memberName));
+      if (element != null && element.isStatic) {
+        writeElement = element;
       } else {
-        if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
-          writeElementRecovery = writeElement;
-          writeElement = null;
+        // Recovery, use the instance setter, or try to use getter.
+        writeElementRecovery =
+            element ?? _ifAccessible(extension.getGetter(memberName));
+        // The read is evaluated first, so a failed read takes precedence.
+        if (!isReadFailure) {
+          _lookupFailureReporter.reportWriteFailure(
+            domain: StaticLookupDomain(extension),
+            name: propertyName,
+            foundInstead:
+                element ??
+                extension.getMemberForFailedLookup(
+                  Name(_definingLibrary.uri, memberName).forSetter,
+                ),
+          );
         }
       }
     }
@@ -1817,8 +1815,7 @@ class PropertyElementResolver with ScopeHelpers {
           domain: ExtensionOverrideLookupDomain(target.element),
           name: propertyName,
           syntax: ReadSyntax.reference,
-          foundInstead: _extensionResolver.getOverrideMemberForFailedLookup(
-            target,
+          foundInstead: target.element.getMemberForFailedLookup(
             Name(_definingLibrary.uri, memberName),
           ),
         );
@@ -1836,8 +1833,7 @@ class PropertyElementResolver with ScopeHelpers {
         _lookupFailureReporter.reportWriteFailure(
           domain: ExtensionOverrideLookupDomain(target.element),
           name: propertyName,
-          foundInstead: _extensionResolver.getOverrideMemberForFailedLookup(
-            target,
+          foundInstead: target.element.getMemberForFailedLookup(
             Name(_definingLibrary.uri, memberName).forSetter,
           ),
         );
@@ -1864,54 +1860,53 @@ class PropertyElementResolver with ScopeHelpers {
       typeReference = _typeAnalyzer.typeProvider.typeType.element;
     }
 
+    var memberName = propertyName.lexeme;
+
     ExecutableElement? readElement;
     ExecutableElement? readElementRecovery;
     DartType? getType;
+    var isReadFailure = false;
     if (hasRead) {
-      readElement = typeReference.getGetter(propertyName.lexeme);
-      if (readElement != null && !_isAccessible(readElement)) {
-        readElement = null;
+      ExecutableElement? element =
+          _ifAccessible(typeReference.getGetter(memberName)) ??
+          _ifAccessible(typeReference.getMethod(memberName));
+
+      if (element == null &&
+          _definingLibrary.featureSet.isEnabled(Feature.static_extensions)) {
+        // When direct lookups fail, try static extension resolution.
+        var result = _typeAnalyzer.typePropertyResolver.resolveStaticExtension(
+          declaration: typeReference,
+          name: memberName,
+          hasRead: hasRead,
+          hasWrite: hasWrite,
+          propertyErrorEntity: propertyName,
+          nameErrorEntity: propertyName,
+        );
+        element = result.getter2;
       }
 
-      if (readElement == null) {
-        readElement = typeReference.getMethod(propertyName.lexeme);
-        if (readElement != null && !_isAccessible(readElement)) {
-          readElement = null;
-        }
-      }
-
-      if (readElement == null) {
-        if (_definingLibrary.featureSet.isEnabled(Feature.static_extensions)) {
-          // When direct lookups fail, try static extension resolution.
-          var result = _typeAnalyzer.typePropertyResolver
-              .resolveStaticExtension(
-                declaration: typeReference,
-                name: propertyName.lexeme,
-                hasRead: hasRead,
-                hasWrite: hasWrite,
-                propertyErrorEntity: propertyName,
-                nameErrorEntity: propertyName,
-              );
-          if (result.getter2 != null) {
-            readElement = result.getter2;
-          }
-        }
-      }
-
-      if (readElement != null) {
-        getType = readElement.returnType;
-        if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
-          readElementRecovery = readElement;
-          readElement = null;
-        }
+      if (element != null && element.isStatic) {
+        readElement = element;
+        getType = element.returnType;
       } else {
+        // An instance member is reported as found instead, also for a dot
+        // shorthand, so that the diagnostic says why it can't be used.
+        isReadFailure = true;
+        readElementRecovery = element;
         _lookupFailureReporter.reportReadFailure(
-          domain: dotShorthandContext != null
-              ? DotShorthandLookupDomain.declaration(dotShorthandContext)
-              : StaticLookupDomain(typeReference),
+          domain: switch ((dotShorthandContext, element)) {
+            (var context?, null) => DotShorthandLookupDomain.declaration(
+              context,
+            ),
+            _ => StaticLookupDomain(typeReference),
+          },
           name: propertyName,
           syntax: ReadSyntax.reference,
-          foundInstead: null,
+          foundInstead:
+              element ??
+              typeReference.getMemberForFailedLookup(
+                Name(_definingLibrary.uri, memberName),
+              ),
         );
       }
     }
@@ -1919,51 +1914,42 @@ class PropertyElementResolver with ScopeHelpers {
     ExecutableElement? writeElement;
     ExecutableElement? writeElementRecovery;
     if (hasWrite) {
-      writeElement = typeReference.getSetter(propertyName.lexeme);
-      if (writeElement != null) {
-        if (!_isAccessible(writeElement)) {
-          diagnosticReporter.report(
-            diag.privateSetter
-                .withArguments(name: propertyName.lexeme)
-                .at(propertyName),
-          );
-        }
-        if (_checkForStaticAccessToInstanceMember(propertyName, writeElement)) {
-          writeElementRecovery = writeElement;
-          writeElement = null;
-        }
-      } else if (_definingLibrary.featureSet.isEnabled(
-        Feature.static_extensions,
-      )) {
+      ExecutableElement? element = _ifAccessible(
+        typeReference.getSetter(memberName),
+      );
+
+      if (element == null &&
+          _definingLibrary.featureSet.isEnabled(Feature.static_extensions)) {
         // When direct lookups fail, try static extension resolution.
         var result = _typeAnalyzer.typePropertyResolver.resolveStaticExtension(
           declaration: typeReference,
-          name: propertyName.lexeme,
+          name: memberName,
           hasRead: hasRead,
           hasWrite: hasWrite,
           propertyErrorEntity: propertyName,
           nameErrorEntity: propertyName,
         );
-        if (result.setter2 != null) {
-          writeElementRecovery = writeElement;
-          writeElement = result.setter2;
-        } else {
-          // Recovery, try to use getter.
-          writeElementRecovery = typeReference.getGetter(propertyName.lexeme);
+        element = result.setter2;
+      }
+
+      if (element != null && element.isStatic) {
+        writeElement = element;
+      } else {
+        // Recovery, use the instance setter, or try to use getter.
+        writeElementRecovery =
+            element ?? _ifAccessible(typeReference.getGetter(memberName));
+        // The read is evaluated first, so a failed read takes precedence.
+        if (!isReadFailure) {
           _lookupFailureReporter.reportWriteFailure(
             domain: StaticLookupDomain(typeReference),
             name: propertyName,
-            foundInstead: writeElementRecovery,
+            foundInstead:
+                element ??
+                typeReference.getMemberForFailedLookup(
+                  Name(_definingLibrary.uri, memberName).forSetter,
+                ),
           );
         }
-      } else {
-        // Recovery, try to use getter.
-        writeElementRecovery = typeReference.getGetter(propertyName.lexeme);
-        _lookupFailureReporter.reportWriteFailure(
-          domain: StaticLookupDomain(typeReference),
-          name: propertyName,
-          foundInstead: writeElementRecovery,
-        );
       }
     }
 

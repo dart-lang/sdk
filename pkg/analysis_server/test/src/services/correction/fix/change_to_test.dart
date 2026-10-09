@@ -784,7 +784,7 @@ class A {
 void f() {
   A.foo += 2;
 }
-''', filter: (e) => e.diagnosticCode == diag.undefinedGetter);
+''');
   }
 
   Future<void> test_getterSetter_unqualified() async {

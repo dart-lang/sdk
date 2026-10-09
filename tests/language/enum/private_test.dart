@@ -17,6 +17,6 @@ main() {
   Expect.equals('Enum2._A,Enum2._B', Enum2.values.join(','));
   Expect.throwsNoSuchMethodError(() => Enum2._A);
   //                                         ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_ENUM_CONSTANT
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] Member not found: '_A'.
 }

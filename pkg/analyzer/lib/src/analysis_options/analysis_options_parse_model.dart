@@ -80,6 +80,13 @@ abstract final class _DiagnosticOptions {
     // Split into `UNDEFINED_SUPER_MEMBER_READ`, `UNDEFINED_SUPER_MEMBER_WRITE`,
     // and `UNDEFINED_SUPER_OPERATOR`.
     'UNDEFINED_SUPER_MEMBER',
+    // Static members report `UNDEFINED_STATIC_MEMBER_READ` and
+    // `UNDEFINED_STATIC_MEMBER_WRITE`.
+    'PRIVATE_SETTER',
+    'UNDEFINED_ENUM_CONSTANT',
+    'UNDEFINED_EXTENSION_GETTER',
+    'UNDEFINED_EXTENSION_METHOD',
+    'UNDEFINED_EXTENSION_SETTER',
   };
 
   static Set<String> currentLintCodeNames() {

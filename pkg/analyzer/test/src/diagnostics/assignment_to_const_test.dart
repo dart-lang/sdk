@@ -16,30 +16,6 @@ main() {
 
 @reflectiveTest
 class AssignmentToConstTest extends PubPackageResolutionTest {
-  test_instanceVariable() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  static const v = 0;
-}
-f() {
-  A.v = 1;
-//  ^
-// [diag.assignmentToConst] Constant variables can't be assigned a value after initialization.
-}''');
-  }
-
-  test_instanceVariable_plusEq() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {
-  static const v = 0;
-}
-f() {
-  A.v += 1;
-//  ^
-// [diag.assignmentToConst] Constant variables can't be assigned a value after initialization.
-}''');
-  }
-
   test_localVariable() async {
     await resolveTestCodeWithDiagnostics(r'''
 f() {

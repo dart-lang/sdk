@@ -12,15 +12,15 @@ void test1() {
   {
     PublicClass._privateStaticMethod();
     //          ^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] Member not found: '_PrivateClass._privateStaticMethod'.
     AlsoPublicClass._privateStaticMethod();
     //              ^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] Member not found: '_PrivateClass._privateStaticMethod'.
     PublicGenericClassOfInt._privateStaticMethod();
     //                      ^^^^^^^^^^^^^^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
     // [cfe] Member not found: '_PrivateGenericClass._privateStaticMethod'.
   }
 }

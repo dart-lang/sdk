@@ -16,37 +16,6 @@ main() {
 
 @reflectiveTest
 class UndefinedSetterTest extends PubPackageResolutionTest {
-  test_functionAlias_notInstantiated_prefixed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-typedef Fn<T> = void Function(T);
-''');
-    await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as a;
-
-void f() {
-  a.Fn.foo = 0;
-//     ^^^
-// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'a.Fn' function type.
-}
-''');
-  }
-
-  test_functionAlias_typeInstantiated() async {
-    await resolveTestCodeWithDiagnostics('''
-typedef Fn<T> = void Function(T);
-
-void bar() {
-  Fn<int>.foo = 7;
-//        ^^^
-// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'Fn' function type.
-}
-
-extension E on Type {
-  set foo(int value) {}
-}
-''');
-  }
-
   test_functionAlias_typeInstantiated_parenthesized() async {
     await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
@@ -155,18 +124,6 @@ f(C c) {
 ''');
   }
 
-  test_new_interfaceType() async {
-    await resolveTestCodeWithDiagnostics('''
-class C {}
-
-f() {
-  C.new = 1;
-//  ^^^
-// [diag.undefinedSetter] The setter 'new' isn't defined for the type 'C'.
-}
-''');
-  }
-
   test_new_nullAware() async {
     await resolveTestCodeWithDiagnostics('''
 class C {}
@@ -233,19 +190,6 @@ f() { A?.x = 1; }
 ''');
   }
 
-  test_static_definedInSuperclass() async {
-    await resolveTestCodeWithDiagnostics('''
-class S {
-  static set s(int i) {}
-}
-class C extends S {}
-f(p) {
-  f(C.s = 1);
-//    ^
-// [diag.undefinedSetter] The setter 's' isn't defined for the type 'C'.
-}''');
-  }
-
   test_static_extension_instanceAccess() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {}
@@ -306,15 +250,6 @@ V1: AssignmentExpression
   writeType: InvalidType
   element: <null>
   staticType: int
-''');
-  }
-
-  test_static_undefined() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {}
-f() { A.B = 0;}
-//      ^
-// [diag.undefinedSetter] The setter 'B' isn't defined for the type 'A'.
 ''');
   }
 

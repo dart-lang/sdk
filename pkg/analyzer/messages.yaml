@@ -15639,6 +15639,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the setter
+    removedIn: "3.15"
     problemMessage: "The setter '#name' is private and can't be accessed outside the library that declares it."
     correctionMessage: Try making it public.
     hasPublishedDocs: true
@@ -18559,6 +18560,7 @@ CompileTimeErrorCode:
     parameters:
       String memberName: the name of the enum value that is not defined
       Type type: the type of the enum used to access the constant
+    removedIn: "3.15"
     problemMessage: "There's no constant named '#memberName' in '#type'."
     correctionMessage: "Try correcting the name to the name of an existing constant, or defining a constant named '#memberName'."
     hasPublishedDocs: true
@@ -18702,6 +18704,7 @@ CompileTimeErrorCode:
     parameters:
       String getterName: the name of the getter that is undefined
       String extensionName: the name of the extension that was explicitly specified
+    removedIn: "3.15"
     problemMessage: "The getter '#getterName' isn't defined for the extension '#extensionName'."
     correctionMessage: "Try correcting the name to the name of an existing getter, or defining a getter named '#getterName'."
     hasPublishedDocs: true
@@ -18917,6 +18920,7 @@ CompileTimeErrorCode:
     parameters:
       String methodName: the name of the method that is undefined
       String extensionName: the name of the extension that was explicitly specified
+    removedIn: "3.15"
     problemMessage: "The method '#methodName' isn't defined for the extension '#extensionName'."
     correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
     hasPublishedDocs: true
@@ -19013,6 +19017,7 @@ CompileTimeErrorCode:
     parameters:
       String setterName: the name of the setter that is undefined
       String extensionName: the name of the extension that was explicitly specified
+    removedIn: "3.15"
     problemMessage: "The setter '#setterName' isn't defined for the extension '#extensionName'."
     correctionMessage: "Try correcting the name to the name of an existing setter, or defining a setter named '#setterName'."
     hasPublishedDocs: true
@@ -19144,6 +19149,7 @@ CompileTimeErrorCode:
       String getterName: the name of the getter
       String functionTypeAliasName: the name of the function type alias
     sharedName: undefinedGetter
+    removedIn: "3.15"
     problemMessage: "The getter '#getterName' isn't defined for the '#functionTypeAliasName' function type."
     correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#getterName' as an extension getter on 'Type'."
     hasPublishedDocs: true
@@ -19265,6 +19271,7 @@ CompileTimeErrorCode:
       String methodName: the name of the method that is undefined
       String typeName: the name of the type literal where the method is being looked for
     sharedName: undefinedMethod
+    removedIn: "3.15"
     problemMessage: "The method '#methodName' isn't defined for the type '#typeName'."
     correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
     hasPublishedDocs: true
@@ -19274,6 +19281,7 @@ CompileTimeErrorCode:
       String methodName: the name of the method
       String functionTypeAliasName: the name of the function type alias
     sharedName: undefinedMethod
+    removedIn: "3.15"
     problemMessage: "The method '#methodName' isn't defined for the '#functionTypeAliasName' function type."
     correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#methodName' as an extension method on 'Type'."
     hasPublishedDocs: true
@@ -19470,9 +19478,213 @@ CompileTimeErrorCode:
       String setterName: the name of the setter
       String functionTypeAliasName: the name of the function type alias
     sharedName: undefinedSetter
+    removedIn: "3.15"
     problemMessage: "The setter '#setterName' isn't defined for the '#functionTypeAliasName' function type."
     correctionMessage: "Try wrapping the function type alias in parentheses in order to access '#setterName' as an extension getter on 'Type'."
     hasPublishedDocs: true
+  undefinedStaticMemberReadNoStaticMembers:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      String aliasName: the name of the function type alias, with its import prefix
+    sharedName: undefinedStaticMemberRead
+    problemMessage: "The function type '#aliasName' doesn't have a static member named '#name'."
+    correctionMessage: "Try wrapping the function type alias in parentheses to access '#name' on the 'Type' object."
+    hasPublishedDocs: false
+  undefinedStaticMemberReadNotFound:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      String containerKind: the kind of the declaration, such as 'class' or 'extension'
+      String containerName: the name of the declaration
+      String expectedKinds: the kinds of declarations that the lookup could have found, such as 'static member or constructor'
+    sharedName: undefinedStaticMemberRead
+    problemMessage: "The #containerKind '#containerName' doesn't have a #expectedKinds named '#name'."
+    correctionMessage: "Try correcting the name to the name of an existing #expectedKinds, or defining a static member named '#name'."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a static member of a class,
+      enum, mixin, extension type, or extension is read, invoked, or torn
+      off, but the declaration doesn't have an accessible static method,
+      getter, or field with that name. For an enum, static members include
+      its enum values.
+
+      #### Examples
+
+      The following code produces this diagnostic because the class `C`
+      doesn't declare a static member named `b`:
+
+      ```dart
+      class C {
+        static int a = 0;
+      }
+
+      var x = C.[!b!];
+      ```
+
+      The following code produces this diagnostic because the enum `E`
+      doesn't have a value named `c`:
+
+      ```dart
+      enum E { a, b }
+
+      var e = E.[!c!];
+      ```
+
+      #### Common fixes
+
+      If you intended to use a different static member, then use its name:
+
+      ```dart
+      class C {
+        static int a = 0;
+      }
+
+      var x = C.a;
+      ```
+
+      If the member isn't declared, then declare it or remove the reference.
+  undefinedStaticMemberReadPrivate:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      Uri libraryUri: the URI of the library that declares the private member
+    sharedName: undefinedStaticMemberRead
+    problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
+    correctionMessage: "Try making the member public."
+    hasPublishedDocs: false
+  undefinedStaticMemberReadSetterOnly:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+      String containerKind: the kind of the declaration, such as 'class' or 'extension'
+      String containerName: the name of the declaration
+    sharedName: undefinedStaticMemberRead
+    problemMessage: "There's a static setter '#name' in the #containerKind '#containerName', but no getter."
+    correctionMessage: "Try defining a static getter named '#name'."
+    hasPublishedDocs: false
+  undefinedStaticMemberWriteConst:
+    type: compileTimeError
+    parameters:
+      String name: the name of the constant
+      String containerKind: the kind of the declaration, such as 'class' or 'extension'
+      String containerName: the name of the declaration
+    sharedName: undefinedStaticMemberWrite
+    problemMessage: "The constant '#name' in the #containerKind '#containerName' can't be assigned to."
+    correctionMessage: "Try making it a non-constant field, or removing the assignment."
+    hasPublishedDocs: false
+  undefinedStaticMemberWriteFinal:
+    type: compileTimeError
+    parameters:
+      String name: the name of the field
+      String containerKind: the kind of the declaration, such as 'class' or 'extension'
+      String containerName: the name of the declaration
+    sharedName: undefinedStaticMemberWrite
+    problemMessage: "The static field '#name' in the #containerKind '#containerName' is final, so it can't be assigned to."
+    correctionMessage: "Try making the field non-final, or removing the assignment."
+    hasPublishedDocs: false
+  undefinedStaticMemberWriteGetterOnly:
+    type: compileTimeError
+    parameters:
+      String name: the name of the getter
+      String containerKind: the kind of the declaration, such as 'class' or 'extension'
+      String containerName: the name of the declaration
+    sharedName: undefinedStaticMemberWrite
+    problemMessage: "There's a static getter '#name' in the #containerKind '#containerName', but no setter."
+    correctionMessage: "Try defining a static setter named '#name'."
+    hasPublishedDocs: false
+  undefinedStaticMemberWriteNoStaticMembers:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+      String aliasName: the name of the function type alias, with its import prefix
+    sharedName: undefinedStaticMemberWrite
+    problemMessage: "The function type '#aliasName' doesn't have a static setter named '#name'."
+    correctionMessage: "Try wrapping the function type alias in parentheses to access '#name' on the 'Type' object."
+    hasPublishedDocs: false
+  undefinedStaticMemberWriteNotFound:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+      String containerKind: the kind of the declaration, such as 'class' or 'extension'
+      String containerName: the name of the declaration
+    sharedName: undefinedStaticMemberWrite
+    problemMessage: "The #containerKind '#containerName' doesn't have a static setter named '#name'."
+    correctionMessage: "Try correcting the name to the name of an existing static setter, or defining a static setter or field named '#name'."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a value is assigned to a
+      static member of a class, enum, mixin, extension type, or extension,
+      but the declaration doesn't have an accessible static setter or
+      non-final static field with that name.
+
+      #### Examples
+
+      The following code produces this diagnostic because the class `C`
+      doesn't declare a static setter named `b`:
+
+      ```dart
+      class C {
+        static int a = 0;
+      }
+
+      void f() {
+        C.[!b!] = 1;
+      }
+      ```
+
+      The following code produces this diagnostic because the static field
+      `a` is final:
+
+      ```dart
+      class C {
+        static final int a = 0;
+      }
+
+      void f() {
+        C.[!a!] = 1;
+      }
+      ```
+
+      #### Common fixes
+
+      If you intended to assign a different static member, then use its name:
+
+      ```dart
+      class C {
+        static int a = 0;
+      }
+
+      void f() {
+        C.a = 1;
+      }
+      ```
+
+      If the setter isn't declared, then declare it or remove the assignment.
+  undefinedStaticMemberWritePrivate:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      Uri libraryUri: the URI of the library that declares the private member
+    sharedName: undefinedStaticMemberWrite
+    problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
+    correctionMessage: "Try making the member public."
+    hasPublishedDocs: false
+  undefinedStaticMemberWriteWrongKind:
+    type: compileTimeError
+    parameters:
+      String kind: the kind of the declaration that was found, such as 'method'
+      String name: the name of the declaration
+      String containerKind: the kind of the declaration, such as 'class' or 'extension'
+      String containerName: the name of the declaration
+    sharedName: undefinedStaticMemberWrite
+    problemMessage: "The #kind '#name' in the #containerKind '#containerName' can't be assigned to."
+    correctionMessage: "Try assigning to a static setter or field instead."
+    hasPublishedDocs: false
   undefinedSuperGetter:
     type: compileTimeError
     parameters:

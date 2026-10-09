@@ -405,6 +405,18 @@ extension NodeListExtension<E extends AstNode> on NodeList<E> {
   }
 }
 
+extension SimpleIdentifierExtension on SimpleIdentifier {
+  /// Whether this is the name of a method invocation, as in `a.foo()`.
+  ///
+  /// A diagnostic for a failed read covers both `a.foo` and `a.foo()`; the
+  /// fixes that declare something that can only be read, such as a getter or
+  /// a field, don't apply to an invoked name.
+  bool get isInvocationName {
+    var parent = this.parent;
+    return parent is MethodInvocation && parent.methodName == this;
+  }
+}
+
 extension StatementExtension on Statement {
   ThrowStatement? get followingThrow {
     var block = parent;

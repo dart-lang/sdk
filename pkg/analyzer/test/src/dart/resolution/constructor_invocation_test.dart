@@ -30,7 +30,7 @@ typedef Fn<T> = void Function(T);
 void bar() {
   Fn<int>.foo();
 //        ^^^
-// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'Fn' function type.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'foo'.
 }
 
 extension E on Type {
@@ -105,7 +105,7 @@ import 'a.dart' as a;
 void bar() {
   a.Fn<int>.foo();
 //          ^^^
-// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'a.Fn' function type.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'a.Fn' doesn't have a static member named 'foo'.
 }
 
 extension E on Type {

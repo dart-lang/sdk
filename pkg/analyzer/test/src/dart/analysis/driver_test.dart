@@ -18817,6 +18817,8 @@ void f() {
           A
             requestedDeclaredGetters
               c2: <null>
+            requestedDeclaredSetters
+              c2=: <null>
             requestedDeclaredMethods
               c2: <null>
         interfaces
@@ -18830,7 +18832,7 @@ void f() {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      32 +2 UNDEFINED_METHOD
+      32 +2 UNDEFINED_STATIC_MEMBER_READ
 ''',
       updatedA: r'''
 class A {
@@ -20357,6 +20359,8 @@ class A {
           A
             requestedDeclaredGetters
               c2: <null>
+            requestedDeclaredSetters
+              c2=: <null>
             requestedDeclaredMethods
               c2: <null>
         interfaces
@@ -20370,7 +20374,7 @@ class A {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      32 +2 UNDEFINED_METHOD
+      32 +2 UNDEFINED_STATIC_MEMBER_READ
 ''',
     );
   }

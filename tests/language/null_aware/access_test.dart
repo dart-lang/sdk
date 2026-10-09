@@ -125,13 +125,13 @@ main() {
   //                                    ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                      ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] Member not found: 'hashCode'.
   Expect.throwsNoSuchMethodError(() => h.C?.hashCode);
   //                                      ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                        ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] Member not found: 'hashCode'.
 
   // (C.staticInt?.floor())! can be assigned to int.

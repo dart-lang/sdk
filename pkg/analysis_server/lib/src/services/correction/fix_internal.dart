@@ -848,20 +848,8 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.uncheckedUseOfNullableValueInYieldEach: [AddNullCheck.new],
   diag.undefinedClass: [ChangeTo.classOrMixin],
   diag.undefinedClassBoolean: [ReplaceBooleanWithBool.new],
-  diag.undefinedEnumConstant: [
-    CreateEnumConstant.new,
-    CreateField.new,
-    CreateGetter.new,
-    ChangeTo.getterOrSetter,
-    CreateMethodOrFunction.new,
-  ],
   diag.undefinedEnumConstructorNamed: [CreateConstructor.new],
   diag.undefinedEnumConstructorUnnamed: [CreateConstructor.new],
-  diag.undefinedExtensionGetter: [
-    ChangeTo.getterOrSetter,
-    CreateExtensionGetter.new,
-    CreateExtensionMethod.new,
-  ],
   diag.undefinedExtensionMemberReadNotFound: [
     ChangeTo.getterOrSetter,
     ChangeTo.method,
@@ -876,17 +864,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateSetter.new,
     CreateExtensionSetter.new,
   ],
-  diag.undefinedExtensionMethod: [
-    ChangeTo.method,
-    CreateExtensionMethod.new,
-    CreateMethod.method,
-  ],
   diag.undefinedExtensionOperator: [CreateExtensionOperator.new],
-  diag.undefinedExtensionSetter: [
-    ChangeTo.getterOrSetter,
-    CreateSetter.new,
-    CreateExtensionSetter.new,
-  ],
   diag.undefinedFunction: [ChangeTo.function, CreateFunction.new],
   diag.undefinedGetter: [
     ChangeTo.getterOrSetter,
@@ -917,12 +895,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateFunction.new,
     CreateMethod.method,
   ],
-  diag.undefinedMethodOnTypeLiteral: [
-    ChangeTo.method,
-    CreateExtensionMethod.new,
-    CreateFunction.new,
-    CreateMethod.method,
-  ],
   diag.undefinedNamedParameter: [
     AddMissingParameterNamed.new,
     ConvertFlutterChild.new,
@@ -930,6 +902,25 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.undefinedOperator: [CreateExtensionOperator.new, CreateOperator.new],
   diag.undefinedSetter: [
+    ChangeTo.getterOrSetter,
+    CreateExtensionSetter.new,
+    CreateField.new,
+    CreateSetter.new,
+  ],
+  diag.undefinedStaticMemberReadNotFound: [
+    ChangeTo.getterOrSetter,
+    ChangeTo.method,
+    CreateEnumConstant.new,
+    CreateExtensionGetter.new,
+    CreateExtensionMethod.new,
+    CreateField.new,
+    CreateFunction.new,
+    CreateGetter.new,
+    CreateMethod.method,
+    CreateMethodOrFunction.new,
+  ],
+  diag.undefinedStaticMemberWriteFinal: [MakeFieldNotFinal.new, AddLate.new],
+  diag.undefinedStaticMemberWriteNotFound: [
     ChangeTo.getterOrSetter,
     CreateExtensionSetter.new,
     CreateField.new,
@@ -1248,7 +1239,6 @@ final _builtInNonLintMultiGenerators = {
   diag.undefinedConstructorInInitializerDefault: [
     AddSuperConstructorInvocation.new,
   ],
-  diag.undefinedExtensionGetter: [DataDriven.new],
   diag.undefinedExtensionMemberReadNotFound: [DataDriven.new],
   diag.undefinedFunction: [
     CreateClass.new,
@@ -1283,13 +1273,6 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forFunction,
     ImportLibrary.forTypeOrMember,
   ],
-  diag.undefinedMethodOnTypeLiteral: [
-    CreateClass.new,
-    DataDriven.new,
-    ImportLibrary.forExtensionMember,
-    ImportLibrary.forFunction,
-    ImportLibrary.forTypeOrMember,
-  ],
   diag.undefinedNamedParameter: [ChangeArgumentName.new, DataDriven.new],
   diag.undefinedOperator: [
     ImportLibrary.forExtensionMember,
@@ -1299,6 +1282,19 @@ final _builtInNonLintMultiGenerators = {
   diag.undefinedSetter: [
     DataDriven.new,
     // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
+    ImportLibrary.forExtensionMember,
+  ],
+  diag.undefinedStaticMemberReadNotFound: [
+    CreateClass.new,
+    CreateMixin.new,
+    DataDriven.new,
+    ImportLibrary.forExtensionMember,
+    ImportLibrary.forFunction,
+    ImportLibrary.forTopLevelVariable,
+    ImportLibrary.forTypeOrMember,
+  ],
+  diag.undefinedStaticMemberWriteNotFound: [
+    DataDriven.new,
     ImportLibrary.forExtensionMember,
   ],
   diag.uriDoesNotExist: [DataDriven.new],

@@ -105,8 +105,8 @@ final class ExtensionOverrideLookupDomain extends LookupDomain {
         );
       case _FoundDeclaration(element: ExecutableElement(isStatic: true)):
         return diag.extensionOverrideAccessToStaticMember;
-      case _FoundDeclaration():
-        // Only a setter has the name.
+      case _FoundDeclaration(:var element):
+        assert(element is SetterElement);
         return diag.undefinedExtensionMemberReadSetterOnly.withArguments(
           name: name,
           extensionName: _extensionName,
@@ -154,8 +154,7 @@ final class ExtensionOverrideLookupDomain extends LookupDomain {
 ///
 /// For example, `F.foo` and `F.foo = 0`. A function-type alias has no static
 /// members, so every lookup in it fails.
-final class FunctionTypeAliasLookupDomain extends LookupDomain
-    with _LegacyWriteFailure {
+final class FunctionTypeAliasLookupDomain extends LookupDomain {
   /// The name of the alias, with its import prefix if one is written.
   final String aliasName;
 
@@ -172,26 +171,17 @@ final class FunctionTypeAliasLookupDomain extends LookupDomain
     ReadSyntax syntax,
     _FoundInstead foundInstead,
   ) {
-    switch (syntax) {
-      case ReadSyntax.invocation:
-        return diag.undefinedMethodOnFunctionType.withArguments(
-          methodName: name,
-          functionTypeAliasName: aliasName,
-        );
-      case ReadSyntax.reference:
-      case ReadSyntax.typeInstantiation:
-        return diag.undefinedGetterOnFunctionType.withArguments(
-          getterName: name,
-          functionTypeAliasName: aliasName,
-        );
-    }
+    return diag.undefinedStaticMemberReadNoStaticMembers.withArguments(
+      name: name,
+      aliasName: aliasName,
+    );
   }
 
   @override
-  LocatableDiagnostic _writeNotFound(String name) {
-    return diag.undefinedSetterOnFunctionType.withArguments(
-      setterName: name,
-      functionTypeAliasName: aliasName,
+  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead) {
+    return diag.undefinedStaticMemberWriteNoStaticMembers.withArguments(
+      name: name,
+      aliasName: aliasName,
     );
   }
 }
@@ -394,59 +384,28 @@ enum ReadSyntax {
 /// or extension.
 ///
 /// For example, `C.foo` and `C.foo = 0`.
-final class StaticLookupDomain extends LookupDomain with _LegacyWriteFailure {
+final class StaticLookupDomain extends LookupDomain {
   /// The declaration whose static members were searched.
   final InstanceElementImpl declaration;
 
   StaticLookupDomain(this.declaration);
 
-  LocatableDiagnostic _extensionReadFailure(
-    ExtensionElement extension,
-    String name,
-    ReadSyntax syntax,
-  ) {
-    // Only a named extension can be a qualifier.
-    // TODO(scheglov): Prove this with types, instead of a null check.
-    var extensionName = extension.name!;
-    switch (syntax) {
-      case ReadSyntax.invocation:
-        return diag.undefinedExtensionMethod.withArguments(
-          methodName: name,
-          extensionName: extensionName,
-        );
-      case ReadSyntax.reference:
-      case ReadSyntax.typeInstantiation:
-        return diag.undefinedExtensionGetter.withArguments(
-          getterName: name,
-          extensionName: extensionName,
-        );
-    }
-  }
+  String get _containerKind => declaration.kind.displayName;
 
-  LocatableDiagnostic _interfaceReadFailure(
-    InterfaceElement interface,
-    String name,
-    ReadSyntax syntax,
-  ) {
-    switch (syntax) {
-      case ReadSyntax.invocation:
-        return diag.undefinedMethodOnTypeLiteral.withArguments(
-          methodName: name,
-          typeName: interface.displayName,
-        );
-      case ReadSyntax.reference:
-      case ReadSyntax.typeInstantiation:
-        if (interface is EnumElement) {
-          return diag.undefinedEnumConstant.withArguments(
-            memberName: name,
-            type: interface.thisType,
-          );
-        } else {
-          return diag.undefinedGetter.withArguments(
-            memberName: name,
-            type: interface.thisType,
-          );
-        }
+  String get _containerName => declaration.displayName;
+
+  /// The kinds of declarations that a lookup in [declaration] could find, as
+  /// they are displayed in messages.
+  String get _expectedKinds {
+    switch (declaration) {
+      case ClassElementImpl():
+      case ExtensionTypeElementImpl():
+        return 'static member or constructor';
+      case EnumElementImpl():
+        return 'value or static member';
+      case ExtensionElementImpl():
+      case MixinElementImpl():
+        return 'static member';
     }
   }
 
@@ -456,28 +415,74 @@ final class StaticLookupDomain extends LookupDomain with _LegacyWriteFailure {
     ReadSyntax syntax,
     _FoundInstead foundInstead,
   ) {
-    switch (declaration) {
-      case ExtensionElementImpl declaration:
-        return _extensionReadFailure(declaration, name, syntax);
-      case InterfaceElementImpl declaration:
-        return _interfaceReadFailure(declaration, name, syntax);
+    switch (foundInstead) {
+      case _FoundNothing():
+        return diag.undefinedStaticMemberReadNotFound.withArguments(
+          name: name,
+          containerKind: _containerKind,
+          containerName: _containerName,
+          expectedKinds: _expectedKinds,
+        );
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedStaticMemberReadPrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration(element: ExecutableElement(isStatic: false)):
+        return diag.staticAccessToInstanceMember.withArguments(name: name);
+      case _FoundDeclaration(:var element):
+        assert(element is SetterElement);
+        return diag.undefinedStaticMemberReadSetterOnly.withArguments(
+          name: name,
+          containerKind: _containerKind,
+          containerName: _containerName,
+        );
     }
   }
 
   @override
-  LocatableDiagnostic _writeNotFound(String name) {
-    switch (declaration) {
-      case ExtensionElementImpl declaration:
-        // Only a named extension can be a qualifier.
-        // TODO(scheglov): Prove this with types, instead of a null check.
-        return diag.undefinedExtensionSetter.withArguments(
-          setterName: name,
-          extensionName: declaration.name!,
+  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead) {
+    switch (foundInstead) {
+      case _FoundNothing():
+        return diag.undefinedStaticMemberWriteNotFound.withArguments(
+          name: name,
+          containerKind: _containerKind,
+          containerName: _containerName,
         );
-      case InterfaceElementImpl declaration:
-        return diag.undefinedSetter.withArguments(
-          setterName: name,
-          type: declaration.thisType,
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedStaticMemberWritePrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration(element: ExecutableElement(isStatic: false)):
+        return diag.staticAccessToInstanceMember.withArguments(name: name);
+      case _FoundDeclaration(element: GetterElement(:var variable)):
+        if (variable.isOriginGetterSetter) {
+          return diag.undefinedStaticMemberWriteGetterOnly.withArguments(
+            name: name,
+            containerKind: _containerKind,
+            containerName: _containerName,
+          );
+        } else if (variable.isConst) {
+          return diag.undefinedStaticMemberWriteConst.withArguments(
+            name: name,
+            containerKind: _containerKind,
+            containerName: _containerName,
+          );
+        } else {
+          assert(variable.isFinal);
+          return diag.undefinedStaticMemberWriteFinal.withArguments(
+            name: name,
+            containerKind: _containerKind,
+            containerName: _containerName,
+          );
+        }
+      case _FoundDeclaration(:var element):
+        return diag.undefinedStaticMemberWriteWrongKind.withArguments(
+          kind: element.kind.displayName,
+          name: name,
+          containerKind: _containerKind,
+          containerName: _containerName,
         );
     }
   }
@@ -511,8 +516,8 @@ final class SuperLookupDomain extends LookupDomain {
           name: name,
           libraryUri: libraryUri,
         );
-      case _FoundDeclaration():
-        // Only a setter has the name.
+      case _FoundDeclaration(:var element):
+        assert(element is SetterElement);
         return diag.undefinedSuperMemberReadSetterOnly.withArguments(
           name: name,
           type: type,

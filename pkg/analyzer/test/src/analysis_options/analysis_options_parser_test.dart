@@ -647,6 +647,20 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_privateSetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    private_setter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    private_setter: ignore
+''');
+  }
+
   test_analyzer_errors_removed_undefinedAnnotation() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
@@ -658,6 +672,62 @@ analyzer:
 AnalysisOptionsImpl
   errorProcessors
     undefined_annotation: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedEnumConstant() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_enum_constant: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_enum_constant: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedExtensionGetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_extension_getter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_extension_getter: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedExtensionMethod() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_extension_method: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_extension_method: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedExtensionSetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_extension_setter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_extension_setter: ignore
 ''');
   }
 
