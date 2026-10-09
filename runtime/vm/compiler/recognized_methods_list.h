@@ -493,7 +493,6 @@ namespace dart {
   V(TypedDataLibrary, _Float32x4, reciprocal, Float32x4Reciprocal, 0xd4350ab2) \
   V(TypedDataLibrary, _Float32x4, unary-, Float32x4Negate, 0xe68eac52)         \
   V(TypedDataLibrary, _Float32x4, abs, Float32x4Abs, 0xeb296688)               \
-  V(TypedDataLibrary, _Float32x4, clamp, Float32x4Clamp, 0x77b05a1d)           \
   V(TypedDataLibrary, _Float32x4, withX, Float32x4WithX, 0x9b766656)           \
   V(TypedDataLibrary, _Float32x4, withY, Float32x4WithY, 0xb889207c)           \
   V(TypedDataLibrary, _Float32x4, withZ, Float32x4WithZ, 0xc7e2bf2f)           \
@@ -507,7 +506,6 @@ namespace dart {
   V(TypedDataLibrary, _Float64x2, get:y, Float64x2GetY, 0x27adc893)            \
   V(TypedDataLibrary, _Float64x2, unary-, Float64x2Negate, 0x3a5dc21a)         \
   V(TypedDataLibrary, _Float64x2, abs, Float64x2Abs, 0x9a07af9e)               \
-  V(TypedDataLibrary, _Float64x2, clamp, Float64x2Clamp, 0xfdbefd73)           \
   V(TypedDataLibrary, _Float64x2, sqrt, Float64x2Sqrt, 0x6ac8ad92)             \
   V(TypedDataLibrary, _Float64x2, get:signMask, Float64x2GetSignMask,          \
     0x7c4dfa2a)                                                                \
