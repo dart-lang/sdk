@@ -12967,6 +12967,12 @@ Message _withArgumentsWasmConstantLaneOutOfRange({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmExportInvalidPragma = const MessageCode(
+  "WasmExportInvalidPragma",
+  problemMessage: """The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmExternInvalidLoad = const MessageCode(
   "WasmExternInvalidLoad",
   problemMessage: """WebAssembly elements may only be referenced to directly call a method on them.""",
@@ -12987,9 +12993,71 @@ const MessageCode wasmExternMemoryMissingAnnotation = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmImportInvalidPragma = const MessageCode(
+  "WasmImportInvalidPragma",
+  problemMessage: """The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmImportOrExportInUserCode = const MessageCode(
   "WasmImportOrExportInUserCode",
   problemMessage: """Pragmas `wasm:import` and `wasm:export` are for internal use only and cannot be used by user code.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required DartType type})>
+wasmImportOrExportInvalidParameterType = const Template(
+  "WasmImportOrExportInvalidParameterType",
+  withArguments: _withArgumentsWasmImportOrExportInvalidParameterType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsWasmImportOrExportInvalidParameterType({
+  required DartType type,
+}) {
+  TypeLabeler labeler = new TypeLabeler();
+  var type_0 = labeler.labelType(type);
+  return new Message(
+    wasmImportOrExportInvalidParameterType,
+    problemMessage:
+        """Type '${type_0}' is not a valid Wasm parameter type for imported or exported functions.""" +
+        labeler.originMessages,
+    arguments: {'type': type},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required DartType type})>
+wasmImportOrExportInvalidReturnType = const Template(
+  "WasmImportOrExportInvalidReturnType",
+  withArguments: _withArgumentsWasmImportOrExportInvalidReturnType,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsWasmImportOrExportInvalidReturnType({
+  required DartType type,
+}) {
+  TypeLabeler labeler = new TypeLabeler();
+  var type_0 = labeler.labelType(type);
+  return new Message(
+    wasmImportOrExportInvalidReturnType,
+    problemMessage:
+        """Type '${type_0}' is not a valid Wasm return type for imported or exported functions (use 'WasmVoid' instead of 'void').""" +
+        labeler.originMessages,
+    arguments: {'type': type},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmImportOrExportInvalidSignature = const MessageCode(
+  "WasmImportOrExportInvalidSignature",
+  problemMessage: """Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' cannot have type parameters, optional parameters, or named parameters.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode wasmImportOrExportTearOff = const MessageCode(
+  "WasmImportOrExportTearOff",
+  problemMessage: """Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' may not be torn off.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

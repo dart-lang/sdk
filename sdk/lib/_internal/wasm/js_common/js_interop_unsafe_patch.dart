@@ -22,7 +22,7 @@ extension JSObjectUnsafeUtilExtension on JSObject {
   );
 
   @patch
-  void setProperty(JSAny property, JSAny? value) => JS<void>(
+  void setProperty(JSAny property, JSAny? value) => JS<WasmVoid>(
     '(o, p, v) => o[p] = v',
     toExternRef,
     property.toExternRef,

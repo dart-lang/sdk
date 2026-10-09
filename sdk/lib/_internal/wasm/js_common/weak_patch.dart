@@ -23,7 +23,7 @@ class Expando<T extends Object> {
     final result = JS<WasmExternRef?>(
       "(map, o) => map.get(o)",
       _jsWeakMap,
-      object,
+      WasmAnyRef.fromObject(object).externalize(),
     );
     // Coerce to null if JavaScript returns undefined.
     if (isJSUndefined(result)) return null;
@@ -33,11 +33,13 @@ class Expando<T extends Object> {
   @patch
   void operator []=(Object object, T? value) {
     checkValidWeakTarget(object, 'object');
-    JS<void>(
+    JS<WasmVoid>(
       "(map, o, v) => map.set(o, v)",
       _jsWeakMap,
-      object,
-      value as Object?,
+      WasmAnyRef.fromObject(object).externalize(),
+      value == null
+          ? WasmExternRef.nullRef
+          : WasmAnyRef.fromObject(value).externalize(),
     );
   }
 }

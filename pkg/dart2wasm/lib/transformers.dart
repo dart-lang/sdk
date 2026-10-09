@@ -144,7 +144,7 @@ class _WasmTransformer extends Transformer {
         'StreamController',
       ),
       _wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
-      _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', '_WasmBase'),
+      _wasmBaseClass = coreTypes.index.getClass('dart:_wasm', 'WasmBase'),
       _completerComplete = coreTypes.index.getProcedure(
         'dart:async',
         'Completer',

@@ -98,6 +98,7 @@ memorytype
 migrate
 mocking
 modifier
+module>.<name
 n
 name.#name
 name.stack
@@ -170,6 +171,8 @@ unsupportederror
 v
 wasm:export
 wasm:import
+wasm:weak
 wasmv
+wasmvoid
 webassembly
 x

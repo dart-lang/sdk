@@ -81,8 +81,8 @@ final class JSArrayBufferImpl extends js.JSExternWrapper implements ByteBuffer {
       return new DataView(dst);
     }''',
       wrappedExternRef,
-      offsetInBytes.toDouble(),
-      lengthInBytes.toDouble(),
+      WasmI32.fromInt(offsetInBytes),
+      WasmI32.fromInt(lengthInBytes),
     );
   }
 
@@ -1081,7 +1081,7 @@ final class JSUint8ClampedArrayImpl extends JSIntegerArrayBase
       JSUint8ClampedArrayImpl._(_newDataView(length));
 
   static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Uint8ClampedArray', ref);
+      js.JS<WasmI32>('o => o instanceof Uint8ClampedArray', ref).toBool();
 
   factory JSUint8ClampedArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
     assert(_checkArrayRefType(ref));
@@ -1184,7 +1184,7 @@ final class JSUint16ArrayImpl extends JSIntegerArrayBase
       JSUint16ArrayImpl._(_newDataView(length * 2));
 
   static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Uint16Array', ref);
+      js.JS<WasmI32>('o => o instanceof Uint16Array', ref).toBool();
 
   factory JSUint16ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
     assert(_checkArrayRefType(ref));
@@ -1309,7 +1309,7 @@ final class JSInt16ArrayImpl extends JSIntegerArrayBase
       JSInt16ArrayImpl._(_newDataView(length * 2));
 
   static bool _checkArrayRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Int16Array', ref);
+      js.JS<WasmI32>('o => o instanceof Int16Array', ref).toBool();
 
   factory JSInt16ArrayImpl.fromRefUnchecked(WasmExternRef? ref) {
     assert(_checkArrayRefType(ref));
@@ -2766,7 +2766,7 @@ final class JSFloat64x2ArrayImpl
 }
 
 void _setRangeFast(WasmExternRef? targetArray, WasmExternRef? sourceArray) =>
-    js.JS<void>('(t, s) => t.set(s)', targetArray, sourceArray);
+    js.JS<WasmVoid>('(t, s) => t.set(s)', targetArray, sourceArray);
 
 @pragma("wasm:prefer-inline")
 WasmExternRef? _newDataView(int length) => js.JS<WasmExternRef?>(
@@ -2828,12 +2828,13 @@ int _getUint8(WasmExternRef? ref, int byteOffset) => js
     .toIntUnsigned();
 
 @pragma("wasm:prefer-inline")
-void _setUint8(WasmExternRef? ref, int byteOffset, int value) => js.JS<void>(
-  'Function.prototype.call.bind(DataView.prototype.setUint8)',
-  ref,
-  WasmI32.fromInt(byteOffset),
-  WasmI32.fromInt(value),
-);
+void _setUint8(WasmExternRef? ref, int byteOffset, int value) =>
+    js.JS<WasmVoid>(
+      'Function.prototype.call.bind(DataView.prototype.setUint8)',
+      ref,
+      WasmI32.fromInt(byteOffset),
+      WasmI32.fromInt(value),
+    );
 
 @pragma("wasm:prefer-inline")
 int _getInt8(WasmExternRef? ref, int byteOffset) => js
@@ -2845,7 +2846,7 @@ int _getInt8(WasmExternRef? ref, int byteOffset) => js
     .toIntSigned();
 
 @pragma("wasm:prefer-inline")
-void _setInt8(WasmExternRef? ref, int byteOffset, int value) => js.JS<void>(
+void _setInt8(WasmExternRef? ref, int byteOffset, int value) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setInt8)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2868,7 +2869,7 @@ void _setUint16(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setUint16)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2892,7 +2893,7 @@ void _setInt16(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setInt16)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2916,7 +2917,7 @@ void _setUint32(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setUint32)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2940,7 +2941,7 @@ void _setInt32(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setInt32)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2964,7 +2965,7 @@ void _setBigUint64(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setBigUint64)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -2988,7 +2989,7 @@ void _setBigInt64(
   int byteOffset,
   int value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setBigInt64)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -3012,7 +3013,7 @@ void _setFloat32(
   int byteOffset,
   num value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setFloat32)',
   ref,
   WasmI32.fromInt(byteOffset),
@@ -3036,7 +3037,7 @@ void _setFloat64(
   int byteOffset,
   num value,
   bool littleEndian,
-) => js.JS<void>(
+) => js.JS<WasmVoid>(
   'Function.prototype.call.bind(DataView.prototype.setFloat64)',
   ref,
   WasmI32.fromInt(byteOffset),

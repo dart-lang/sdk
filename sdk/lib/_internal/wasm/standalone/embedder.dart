@@ -26,7 +26,7 @@ import 'dart:_wasm';
 @pragma("wasm:import", "dart.scheduleOnce")
 external WasmExternRef scheduleOnce(
   WasmI64 delay,
-  WasmFunction<WasmVoid Function(WasmAnyRef)> callback,
+  WasmFuncRef /* WasmFunction<WasmVoid Function(WasmAnyRef)> */ callback,
   WasmAnyRef arg,
 );
 
@@ -37,7 +37,7 @@ external WasmExternRef scheduleOnce(
 @pragma("wasm:import", "dart.scheduleRepeated")
 external WasmExternRef scheduleRepeated(
   WasmI64 interval,
-  WasmFunction<WasmVoid Function(WasmAnyRef)> callback,
+  WasmFuncRef /* WasmFunction<WasmVoid Function(WasmAnyRef)> */ callback,
   WasmAnyRef arg,
 );
 
@@ -45,7 +45,7 @@ external WasmExternRef scheduleRepeated(
 /// event loop.
 @pragma("wasm:import", "dart.queueMicrotask")
 external WasmVoid queueMicrotask(
-  WasmFunction<WasmVoid Function(WasmAnyRef)> callback,
+  WasmFuncRef /* WasmFunction<WasmVoid Function(WasmAnyRef)> */ callback,
   WasmAnyRef arg,
 );
 
@@ -197,7 +197,8 @@ external WasmVoid expandoSet(
 /// unreachable.
 @pragma("wasm:import", "dart.finalizerCreate")
 external WasmExternRef finalizerCreate(
-  WasmFunction<WasmVoid Function(WasmAnyRef, WasmAnyRef?)> callback,
+  WasmFuncRef /* WasmFunction<WasmVoid Function(WasmAnyRef, WasmAnyRef?)> */
+  callback,
   WasmAnyRef firstParameter,
 );
 

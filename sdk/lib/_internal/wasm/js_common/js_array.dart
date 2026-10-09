@@ -14,7 +14,7 @@ extension JSArrayImplUncheckedOperations<T extends JSAny?> on JSArrayImpl {
 class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
     implements List<T> {
   static bool _checkRefType(WasmExternRef? ref) =>
-      js.JS<bool>('o => o instanceof Array', ref);
+      js.JS<WasmI32>('o => o instanceof Array', ref).toBool();
 
   JSArrayImpl.fromRefUnchecked(WasmExternRef? ref) : super(ref) {
     assert(_checkRefType(ref));
@@ -56,7 +56,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   @override
   void insert(int index, T value) {
     RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
-    js.JS<void>(
+    js.JS<WasmVoid>(
       '(a, i, v) => a.splice(i, 0, v)',
       wrappedExternRef,
       WasmI32.fromInt(index),
@@ -64,7 +64,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
     );
   }
 
-  void _setLengthUnsafe(int newLength) => js.JS<void>(
+  void _setLengthUnsafe(int newLength) => js.JS<WasmVoid>(
     '(a, l) => a.length = l',
     wrappedExternRef,
     WasmI32.fromInt(newLength),
@@ -99,7 +99,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   bool remove(Object? element) {
     for (var i = 0; i < length; i++) {
       if (this[i] == element) {
-        js.JS<void>(
+        js.JS<WasmVoid>(
           '(a, i) => a.splice(i, 1)',
           wrappedExternRef,
           WasmI32.fromInt(i),
@@ -308,7 +308,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   void removeRange(int start, int end) {
     RangeErrorUtils.checkValidRange(start, end, length);
     int deleteCount = end - start;
-    js.JS<void>(
+    js.JS<WasmVoid>(
       '(a, s, e) => a.splice(s, e)',
       wrappedExternRef,
       WasmI32.fromInt(start),
@@ -409,12 +409,12 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   Iterable<T> get reversed => ReversedListIterable<T>(this);
 
   static int _compareAny<T extends JSAny?>(T a, T b) => js
-      .JS<double>(
+      .JS<WasmI32>(
         '(a, b) => a == b ? 0 : (a > b ? 1 : -1)',
         a.toExternRef,
         b.toExternRef,
       )
-      .toInt();
+      .toIntSigned();
 
   @override
   void sort([int Function(T, T)? compare]) =>
@@ -495,11 +495,12 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   Iterator<T> get iterator => JSArrayImplIterator<T>(this);
 
   @override
-  int get length => js.JS<double>('a => a.length', wrappedExternRef).toInt();
+  int get length =>
+      js.JS<WasmI32>('a => a.length', wrappedExternRef).toIntUnsigned();
 
   void set length(int newLength) {
     RangeErrorUtils.checkNotNegative(newLength, "length");
-    js.JS<void>(
+    js.JS<WasmVoid>(
       '(a, l) => a.length = l',
       wrappedExternRef,
       WasmI32.fromInt(newLength),
@@ -523,7 +524,7 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
   }
 
   @pragma("wasm:prefer-inline")
-  void _setUnchecked(int index, T value) => js.JS<void>(
+  void _setUnchecked(int index, T value) => js.JS<WasmVoid>(
     '(a, i, v) => a[i] = v',
     wrappedExternRef,
     WasmI32.fromInt(index),
@@ -633,4 +634,4 @@ class JSArrayImplIterator<T extends JSAny?> implements Iterator<T> {
 }
 
 void arrayPush(WasmExternRef? array, WasmExternRef? elem) =>
-    js.JS<void>('(a, i) => a.push(i)', array, elem);
+    js.JS<WasmVoid>('(a, i) => a.push(i)', array, elem);

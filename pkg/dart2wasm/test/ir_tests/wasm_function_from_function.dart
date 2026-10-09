@@ -26,4 +26,6 @@ WasmVoid dartFunction() {
 }
 
 @pragma('wasm:import', 'outside.registerCallback')
-external WasmVoid registerCallback(WasmFunction<WasmVoid Function()> callback);
+external WasmVoid registerCallback(
+  WasmFuncRef /* WasmFunction<WasmVoid Function()> */ callback,
+);

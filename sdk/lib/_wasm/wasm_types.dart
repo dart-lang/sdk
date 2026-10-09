@@ -20,13 +20,13 @@ part 'memory.dart';
 // TODO(askesc): Give an error message if any of these constraints are violated.
 
 @pragma("wasm:entry-point")
-abstract class _WasmBase {
-  const _WasmBase();
+abstract class WasmBase {
+  const WasmBase();
 }
 
 /// The Wasm `anyref` type.
 @pragma("wasm:entry-point")
-class WasmAnyRef extends _WasmBase {
+class WasmAnyRef extends WasmBase {
   /// Dummy constructor to silence error about missing superclass constructor.
   const WasmAnyRef._();
 
@@ -56,7 +56,7 @@ extension ExternalizeNullable on WasmAnyRef? {
 
 /// The Wasm `externref` type.
 @pragma("wasm:entry-point")
-class WasmExternRef extends _WasmBase {
+class WasmExternRef extends WasmBase {
   // To avoid conflating the null externref with Dart's null, we provide a
   // special getter for the null externref.
   @pragma("wasm:intrinsic")
@@ -85,7 +85,7 @@ external bool _wasmExternRefIsNull(WasmExternRef? ref);
 
 /// The Wasm `i31ref` type.
 @pragma("wasm:entry-point")
-class WasmI31Ref extends _WasmBase {
+class WasmI31Ref extends WasmBase {
   /// Wasm `i31.new` instruction.
   @pragma("wasm:intrinsic")
   external factory WasmI31Ref.fromI32(WasmI32 i);
@@ -107,7 +107,7 @@ extension WasmI31RefExtensions on WasmI31Ref {
 
 /// The Wasm `funcref` type.
 @pragma("wasm:entry-point")
-class WasmFuncRef extends _WasmBase {
+class WasmFuncRef extends WasmBase {
   /// Upcast typed function reference to `funcref`
   @pragma("wasm:intrinsic")
   external factory WasmFuncRef.fromWasmFunction(WasmFunction<Function> fun);
@@ -144,15 +144,15 @@ class WasmArrayRef extends WasmEqRef {
 
 /// The Wasm `i8` storage type.
 @pragma("wasm:entry-point")
-class WasmI8 extends _WasmBase {}
+class WasmI8 extends WasmBase {}
 
 /// The Wasm `i16` storage type.
 @pragma("wasm:entry-point")
-class WasmI16 extends _WasmBase {}
+class WasmI16 extends WasmBase {}
 
 /// The Wasm `i32` type.
 @pragma("wasm:entry-point")
-class WasmI32 extends _WasmBase {
+class WasmI32 extends WasmBase {
   /// Dummy value field to contain the value for constant instances.
   @pragma('wasm:entry-point')
   final int _value;
@@ -206,7 +206,7 @@ extension WasmI32Extension on WasmI32 {
 
 /// The Wasm `i64` type.
 @pragma("wasm:entry-point")
-class WasmI64 extends _WasmBase {
+class WasmI64 extends WasmBase {
   /// Dummy value field to contain the value for constant instances.
   @pragma('wasm:entry-point')
   final int _value;
@@ -258,7 +258,7 @@ extension WasmI64Extension on WasmI64 {
 
 /// The Wasm `f32` type.
 @pragma("wasm:entry-point")
-class WasmF32 extends _WasmBase {
+class WasmF32 extends WasmBase {
   /// Dummy value field to contain the value for constant instances.
   @pragma('wasm:entry-point')
   final double _value;
@@ -280,7 +280,7 @@ extension WasmF32Extension on WasmF32 {
 
 /// The Wasm `f64` type.
 @pragma("wasm:entry-point")
-class WasmF64 extends _WasmBase {
+class WasmF64 extends WasmBase {
   /// Dummy value field to contain the value for constant instances.
   @pragma('wasm:entry-point')
   final double _value;
@@ -317,7 +317,7 @@ extension WasmF64Extension on WasmF64 {
 
 /// The Wasm `v128` type.
 @pragma("wasm:entry-point")
-final class WasmV128 extends _WasmBase {
+final class WasmV128 extends WasmBase {
   const WasmV128._();
 
   const factory WasmV128.i8x16(
@@ -1076,11 +1076,11 @@ class WasmFunction<F extends Function> extends WasmFuncRef {
 /// A marker type for the return type of functions and the type argument to
 /// [WasmFunction] to indicate that the function type should have no outputs.
 @pragma("wasm:entry-point")
-class WasmVoid extends _WasmBase {}
+class WasmVoid extends WasmBase {}
 
 /// A Wasm table.
 @pragma("wasm:entry-point")
-class WasmTable<T> extends _WasmBase {
+class WasmTable<T> extends WasmBase {
   /// Declare a table with the given size.
   ///
   /// Must be an initializer for a static field. The [size] argument must be

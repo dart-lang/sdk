@@ -10,9 +10,9 @@
 import 'dart:_wasm';
 
 @pragma('wasm:export', 'f')
-void f() {}
+WasmVoid f() => WasmVoid();
 
-@pragma('wasm:import', 'g')
+@pragma('wasm:import', 'm.g')
 external WasmI32 g(WasmI32 x);
 
 void main() {}

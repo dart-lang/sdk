@@ -450,11 +450,12 @@ class WasmTarget extends Target {
     }
 
     wasmTrans.transformLibraries(libraries, coreTypes, hierarchy);
-    wasmChecks.checkDartWasmApiUseIfImported(
+    wasmChecks.checkDartWasmApiUse(
       libraries,
       coreTypes,
       diagnosticReporter,
-      mode == .standalone,
+      isStandalone: mode == .standalone,
+      enableExperimentalWasmInterop: enableExperimentalWasmInterop,
     );
 
     awaitTrans.transformLibraries(libraries, hierarchy, coreTypes);

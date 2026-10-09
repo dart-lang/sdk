@@ -1214,43 +1214,14 @@ class Translator with KernelNodes {
   }
 
   /// Translate a Dart type as it should appear on parameters and returns of
-  /// imported and exported functions. All wasm types are allowed on the interop
-  /// boundary, but in order to be compatible with the `--closed-world` mode of
-  /// Binaryen, we coerce all reference types to abstract reference types
-  /// (`anyref`, `funcref` or `externref`).
-  /// This function can be called before the class info is built.
+  /// imported and exported functions.
+  ///
+  /// Only Wasm types that Binaryen supports on the module boundary under
+  /// `--closed-world` are allowed (primitives, abstract heap reference types,
+  /// and Wasm arrays of external storage types). No type or nullability
+  /// coercion is performed.
   w.ValueType translateExternalType(DartType type) {
-    final bool isPotentiallyNullable = type.isPotentiallyNullable;
-    if (type is InterfaceType) {
-      Class cls = type.classNode;
-      if (cls == wasmFuncRefClass || cls == wasmFunctionClass) {
-        return w.RefType.func(nullable: isPotentiallyNullable);
-      }
-      if (cls == wasmExternRefClass) {
-        return w.RefType.extern(nullable: isPotentiallyNullable);
-      }
-      if (cls == wasmArrayRefClass) {
-        return w.RefType.array(nullable: isPotentiallyNullable);
-      }
-      if (cls == wasmArrayClass) {
-        final elementType = translateExternalStorageType(
-          type.typeArguments.single,
-        );
-        return w.RefType.def(
-          wasmArrayType(elementType, '$elementType', mutable: true),
-          nullable: isPotentiallyNullable,
-        );
-      }
-      if (!isPotentiallyNullable) {
-        w.StorageType? builtin = builtinTypes[cls];
-        if (builtin != null && builtin.isPrimitive) {
-          return builtin as w.ValueType;
-        }
-      }
-    }
-    // TODO(joshualitt): We'd like to use the potential nullability here too,
-    // but unfortunately this seems to break things.
-    return w.RefType.any(nullable: true);
+    return translateExternalStorageType(type) as w.ValueType;
   }
 
   w.StorageType translateExternalStorageType(DartType type) {
@@ -1261,12 +1232,25 @@ class Translator with KernelNodes {
         final w.StorageType? builtin = builtinTypes[cls];
         if (builtin != null) {
           if (!isNullable) return builtin;
-          if (builtin.isPrimitive) throw "Wasm numeric types can't be nullable";
+          assert(!builtin.isPrimitive, "Wasm numeric types can't be nullable");
           return (builtin as w.RefType).withNullability(isNullable);
+        }
+        if (cls == wasmArrayClass || cls == immutableWasmArrayClass) {
+          final elementType = translateExternalStorageType(
+            type.typeArguments.single,
+          );
+          return w.RefType.def(
+            wasmArrayType(
+              elementType,
+              '$elementType',
+              mutable: cls == wasmArrayClass,
+            ),
+            nullable: isNullable,
+          );
         }
       }
     }
-    return translateExternalType(type) as w.RefType;
+    throw "Unsupported external type '$type' (${type.runtimeType})";
   }
 
   /// Creates a global reference to [f] in its [w.BaseFunction.enclosingModule].
@@ -1286,6 +1270,11 @@ class Translator with KernelNodes {
     Member member,
     w.ModuleBuilder closureModule,
   ) {
+    assert(
+      interopMemberNamer.getImportName(member) == null &&
+          interopMemberNamer.getExportName(member) == null,
+      "Cannot create tear-off closure for wasm import/export $member",
+    );
     assert(
       member is Constructor ||
           member is Procedure &&
@@ -2439,6 +2428,10 @@ class Translator with KernelNodes {
     if (member is Field) return true;
     if (member.function!.asyncMarker != AsyncMarker.Sync) return false;
     if (mayUseCfgToCompileMember(this, member)) return false;
+    if (util.hasWasmExportPragma(coreTypes, member) ||
+        util.hasWasmWeakExportPragma(coreTypes, member)) {
+      return false;
+    }
     return true;
   }
 
@@ -2612,17 +2605,13 @@ class Translator with KernelNodes {
         this,
         topLevelExternalMemoryGetter,
       )!;
-      final exportName = interopMemberNamer.getExportName(
-        topLevelExternalMemoryGetter,
-      );
       final import = util.getWasmImportPragma(
         coreTypes,
         topLevelExternalMemoryGetter,
       );
 
-      w.Memory memory;
       if (import != null) {
-        memory = mainModule.memories.import(
+        return mainModule.memories.import(
           import.moduleName,
           import.itemName,
           memoryType.shared,
@@ -2630,17 +2619,12 @@ class Translator with KernelNodes {
           memoryType.maxSize,
         );
       } else {
-        memory = mainModule.memories.define(
+        return mainModule.memories.define(
           memoryType.shared,
           memoryType.minSize,
           memoryType.maxSize,
         );
       }
-
-      if (exportName != null) {
-        mainModule.exports.export(exportName, memory);
-      }
-      return memory;
     });
   }
 

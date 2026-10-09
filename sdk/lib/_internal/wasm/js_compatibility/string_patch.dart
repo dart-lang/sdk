@@ -77,7 +77,7 @@ class String {
       JSStringImpl.fromRefUnchecked(
         js.JS<WasmExternRef?>(
           'c => String.fromCharCode(c)',
-          charCode.toDouble(),
+          WasmI32.fromInt(charCode),
         ),
       );
 
@@ -85,8 +85,8 @@ class String {
       JSStringImpl.fromRefUnchecked(
         js.JS<WasmExternRef?>(
           '(l, h) => String.fromCharCode(h, l)',
-          low.toDouble(),
-          high.toDouble(),
+          WasmI32.fromInt(low),
+          WasmI32.fromInt(high),
         ),
       );
 

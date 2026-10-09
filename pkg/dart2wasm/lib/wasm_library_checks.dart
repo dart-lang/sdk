@@ -10,40 +10,47 @@ import 'package:kernel/target/targets.dart';
 
 import 'intrinsics.dart';
 import 'kernel_nodes.dart';
+import 'util.dart' as util;
 import 'wasm_annotations.dart';
 
 /// Validates (a subset of) `dart:_wasm` usages.
 ///
 /// So far, we validate usages of:
 ///   * `Memory` and `MemoryAccessExtension`.
-void checkDartWasmApiUseIfImported(
+///   * `wasm:import`, `wasm:export`, and `wasm:weak-export` pragmas.
+void checkDartWasmApiUse(
   Iterable<Library> libraries,
   CoreTypes coreTypes,
-  DiagnosticReporter diagnosticReporter,
-  bool isStandalone,
-) {
+  DiagnosticReporter diagnosticReporter, {
+  required bool isStandalone,
+  required bool enableExperimentalWasmInterop,
+}) {
   final checks = _DartWasmLibraryChecks(
     coreTypes,
     isStandalone,
     diagnosticReporter,
   );
   for (final library in libraries) {
-    // Skip the check if the library doesn't import dart:_wasm.
-    // TODO: This misses libraries importing dart:_wasm through an export.
-    for (final dependency in library.dependencies) {
-      if (!dependency.isImport) continue;
-      if (dependency.targetLibrary == checks.wasmLibrary) {
-        library.accept(checks);
-        continue;
-      }
+    if (enableExperimentalWasmInterop || library.importUri.isScheme('dart')) {
+      library.accept(checks);
     }
   }
 }
 
-class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
-  Member? _currentMember;
+class _DartWasmLibraryChecks extends _BaseVerifier
+    with _MemoryVerifierMixin, _ImportExportVerifierMixin, _SimdVerifierMixin {
+  _DartWasmLibraryChecks(
+    super.coreTypes,
+    super.isStandalone,
+    super._diagnosticReporter,
+  );
+}
 
+abstract class _BaseVerifier extends RecursiveVisitor with KernelNodes {
   final DiagnosticReporter _diagnosticReporter;
+  final Set<Constant> _visitedConstants = {};
+  Member? _currentMember;
+  ConstantExpression? _currentConstantExpression;
 
   @override
   final CoreTypes coreTypes;
@@ -54,11 +61,7 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
   @override
   LibraryIndex get index => coreTypes.index;
 
-  _DartWasmLibraryChecks(
-    this.coreTypes,
-    this.isStandalone,
-    this._diagnosticReporter,
-  );
+  _BaseVerifier(this.coreTypes, this.isStandalone, this._diagnosticReporter);
 
   @override
   void visitLibrary(Library library) {
@@ -70,19 +73,55 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
       return;
     }
 
-    library.visitChildren(this);
+    super.visitLibrary(library);
   }
 
   @override
   void defaultMember(Member node) {
+    final oldMember = _currentMember;
     _currentMember = node;
-    node.visitChildren(this);
+    super.defaultMember(node);
+    _currentMember = oldMember;
   }
 
   @override
-  void visitProcedure(Procedure node) {
-    _currentMember = node;
+  void visitConstantExpression(ConstantExpression node) {
+    final oldConstantExpression = _currentConstantExpression;
+    _currentConstantExpression = node;
+    super.visitConstantExpression(node);
+    _currentConstantExpression = oldConstantExpression;
+  }
 
+  @override
+  void defaultConstantReference(Constant node) {
+    if (_visitedConstants.add(node)) {
+      node.accept(this);
+    }
+  }
+
+  /// Checks whether the getter defines an external WebAssembly member that can
+  /// only be used through intrinsics.
+  ExternType? _categorizeWasmExtern(Member getter) {
+    if (getter is Procedure &&
+        getter.isGetter &&
+        getter.isStatic &&
+        getter.isExternal) {
+      final type = getter.function.returnType;
+
+      if (type is InterfaceType) {
+        if (type.classNode == wasmMemoryClass) {
+          return ExternType.memory;
+        }
+      }
+    }
+
+    return null;
+  }
+}
+
+mixin _MemoryVerifierMixin on _BaseVerifier {
+  @override
+  void defaultMember(Member node) {
     if (_categorizeWasmExtern(node) == ExternType.memory) {
       final parsed = WasmMemoryType.readAnnotation(this, node);
       if (parsed == null) {
@@ -102,7 +141,7 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
       }
     }
 
-    node.visitChildren(this);
+    super.defaultMember(node);
   }
 
   @override
@@ -180,48 +219,221 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
     super.visitStaticGet(node);
   }
 
-  /// Checks whether the getter defines an external WebAssembly member that can
-  /// only be used through intrinsics.
-  ExternType? _categorizeWasmExtern(Member getter) {
-    if (getter is Procedure && getter.isExternal) {
-      final type = getter.function.returnType;
-
-      if (type is InterfaceType) {
-        if (type.classNode == wasmMemoryClass) {
-          return ExternType.memory;
-        }
-      }
-    }
-
-    return null;
-  }
-
   bool _isWasmMemoryRef(Expression expr) {
     return expr is StaticGet &&
         _categorizeWasmExtern(expr.target) == ExternType.memory;
   }
+}
+
+mixin _ImportExportVerifierMixin on _BaseVerifier {
+  @override
+  void defaultMember(Member node) {
+    _checkImportExportPragmas(node);
+    super.defaultMember(node);
+  }
 
   @override
-  void visitConstantExpression(ConstantExpression node) {
-    final constant = node.constant;
-    if (constant is InstanceConstant) {
-      final klass = constant.classNode;
-      if (klass == wasmI8x16ImplClass) {
-        _validateLanes(constant, klass, -128, 127, "8-bit", node);
-      } else if (klass == wasmI16x8ImplClass) {
-        _validateLanes(constant, klass, -32768, 32767, "16-bit", node);
-      } else if (klass == wasmI32x4ImplClass) {
-        _validateLanes(
-          constant,
-          klass,
-          -2147483648,
-          2147483647,
-          "32-bit",
-          node,
+  void visitStaticInvocation(StaticInvocation node) {
+    final target = node.target;
+    if (target == exportWasmFunctionProcedure ||
+        target == wasmFunctionFromFunction) {
+      final arg = node.arguments.positional.singleOrNull;
+      final tearOffTarget = switch (arg) {
+        StaticTearOff(:final target) => target,
+        ConstantExpression(constant: StaticTearOffConstant(:final target)) =>
+          target,
+        _ => null,
+      };
+      if (tearOffTarget != null &&
+          (target == wasmFunctionFromFunction ||
+              util.hasWasmWeakExportPragma(coreTypes, tearOffTarget))) {
+        return;
+      }
+    }
+
+    super.visitStaticInvocation(node);
+  }
+
+  @override
+  void visitStaticTearOff(StaticTearOff node) {
+    if (_hasAnyImportOrExportPragma(node.target)) {
+      _diagnosticReporter.report(
+        diag.wasmImportOrExportTearOff,
+        node.fileOffset,
+        1,
+        _currentMember?.fileUri ?? node.location?.file,
+      );
+    }
+
+    super.visitStaticTearOff(node);
+  }
+
+  @override
+  void visitStaticTearOffConstant(StaticTearOffConstant node) {
+    if (_hasAnyImportOrExportPragma(node.target)) {
+      final expr = _currentConstantExpression!;
+      _diagnosticReporter.report(
+        diag.wasmImportOrExportTearOff,
+        expr.fileOffset,
+        1,
+        _currentMember?.fileUri ?? expr.location?.file,
+      );
+    }
+    super.visitStaticTearOffConstant(node);
+  }
+
+  void _checkImportExportPragmas(Member node) {
+    final hasImport = util.hasWasmImportPragma(coreTypes, node);
+    final hasExport = util.hasWasmExportPragma(coreTypes, node);
+    final hasWeakExport = util.hasWasmWeakExportPragma(coreTypes, node);
+    if (!hasImport && !hasExport && !hasWeakExport) return;
+
+    final isMemory = _categorizeWasmExtern(node) == ExternType.memory;
+    final isMethod = node is Procedure && node.kind == ProcedureKind.Method;
+
+    if (hasImport) {
+      final isValidImport =
+          node is Procedure &&
+          node.isStatic &&
+          node.isExternal &&
+          (isMethod || isMemory) &&
+          !hasExport &&
+          !hasWeakExport &&
+          util.getWasmImportPragma(coreTypes, node) != null;
+      if (!isValidImport) {
+        _diagnosticReporter.report(
+          diag.wasmImportInvalidPragma,
+          node.fileOffset,
+          1,
+          node.fileUri,
         );
       }
     }
-    node.visitChildren(this);
+
+    if (hasExport || hasWeakExport) {
+      final isValidExport =
+          isMethod &&
+          node.isStatic &&
+          !node.isExternal &&
+          !hasImport &&
+          !(hasExport && hasWeakExport) &&
+          (hasExport
+              ? util.getWasmExportPragma(coreTypes, node) != null
+              : util.getWasmWeakExportPragma(coreTypes, node) != null);
+      if (!isValidExport) {
+        _diagnosticReporter.report(
+          diag.wasmExportInvalidPragma,
+          node.fileOffset,
+          1,
+          node.fileUri,
+        );
+      }
+    }
+
+    if (isMethod) {
+      final function = node.function;
+      if (function.typeParameters.isNotEmpty ||
+          function.namedParameters.isNotEmpty ||
+          function.requiredParameterCount !=
+              function.positionalParameters.length) {
+        _diagnosticReporter.report(
+          diag.wasmImportOrExportInvalidSignature,
+          node.fileOffset,
+          1,
+          node.fileUri,
+        );
+      }
+
+      for (final param in function.positionalParameters) {
+        if (!_isValidExternalValueType(param.type)) {
+          _diagnosticReporter.report(
+            diag.wasmImportOrExportInvalidParameterType.withArguments(
+              type: param.type,
+            ),
+            param.fileOffset != TreeNode.noOffset
+                ? param.fileOffset
+                : node.fileOffset,
+            1,
+            node.fileUri,
+          );
+        }
+      }
+
+      final returnType = function.returnType;
+      if (!_isWasmVoid(returnType) && !_isValidExternalValueType(returnType)) {
+        _diagnosticReporter.report(
+          diag.wasmImportOrExportInvalidReturnType.withArguments(
+            type: returnType,
+          ),
+          node.fileOffset,
+          1,
+          node.fileUri,
+        );
+      }
+    }
+  }
+
+  bool _hasAnyImportOrExportPragma(Member member) {
+    if (member.annotations.isEmpty) return false;
+    return util.hasWasmImportPragma(coreTypes, member) ||
+        util.hasWasmExportPragma(coreTypes, member) ||
+        util.hasWasmWeakExportPragma(coreTypes, member);
+  }
+
+  bool _isWasmVoid(DartType type) {
+    return type is InterfaceType &&
+        type.classNode == wasmVoidClass &&
+        !type.isPotentiallyNullable;
+  }
+
+  bool _isValidExternalValueType(DartType type) {
+    if (type is! InterfaceType) return false;
+    final cls = type.classNode;
+    if (cls == wasmI8Class || cls == wasmI16Class) return false;
+    return _isValidExternalStorageType(type);
+  }
+
+  bool _isValidExternalStorageType(DartType type) {
+    if (type is! InterfaceType) return false;
+    final cls = type.classNode;
+    final isNullable = type.isPotentiallyNullable;
+    if (cls == wasmI8Class ||
+        cls == wasmI16Class ||
+        cls == wasmI32Class ||
+        cls == wasmI64Class ||
+        cls == wasmF32Class ||
+        cls == wasmF64Class ||
+        cls == wasmV128Class) {
+      return !isNullable;
+    }
+    if (cls == wasmAnyRefClass ||
+        cls == wasmExternRefClass ||
+        cls == wasmI31RefClass ||
+        cls == wasmFuncRefClass ||
+        cls == wasmEqRefClass ||
+        cls == wasmStructRefClass ||
+        cls == wasmArrayRefClass) {
+      return true;
+    }
+    if (cls == wasmArrayClass || cls == immutableWasmArrayClass) {
+      return _isValidExternalStorageType(type.typeArguments.single);
+    }
+    return false;
+  }
+}
+
+mixin _SimdVerifierMixin on _BaseVerifier {
+  @override
+  void visitInstanceConstant(InstanceConstant node) {
+    final classNode = node.classNode;
+    if (classNode == wasmI8x16ImplClass) {
+      _validateLanes(node, classNode, -128, 127, "8-bit");
+    } else if (classNode == wasmI16x8ImplClass) {
+      _validateLanes(node, classNode, -32768, 32767, "16-bit");
+    } else if (classNode == wasmI32x4ImplClass) {
+      _validateLanes(node, classNode, -2147483648, 2147483647, "32-bit");
+    }
+    super.visitInstanceConstant(node);
   }
 
   void _validateLanes(
@@ -230,7 +442,6 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
     int min,
     int max,
     String size,
-    ConstantExpression node,
   ) {
     for (final field in cls.fields) {
       final laneConstant = constant.fieldValues[field.fieldReference];
@@ -243,7 +454,7 @@ class _DartWasmLibraryChecks extends RecursiveVisitor with KernelNodes {
               value: value,
               size: size,
             ),
-            node.fileOffset,
+            _currentConstantExpression!.fileOffset,
             1,
             _currentMember?.fileUri,
           );

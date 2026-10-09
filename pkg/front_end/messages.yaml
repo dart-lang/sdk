@@ -7266,6 +7266,32 @@ wasmIntrinsicTearOff:
   parameters: none
   problemMessage: This intrinsic extension member may not be torn off.
 
+wasmImportInvalidPragma:
+  parameters: none
+  problemMessage: "The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument."
+
+wasmExportInvalidPragma:
+  parameters: none
+  problemMessage: "The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions."
+
+wasmImportOrExportInvalidSignature:
+  parameters: none
+  problemMessage: "Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' cannot have type parameters, optional parameters, or named parameters."
+
+wasmImportOrExportInvalidParameterType:
+  parameters:
+    Type type: The invalid parameter type.
+  problemMessage: "Type '#type' is not a valid Wasm parameter type for imported or exported functions."
+
+wasmImportOrExportInvalidReturnType:
+  parameters:
+    Type type: The invalid return type.
+  problemMessage: "Type '#type' is not a valid Wasm return type for imported or exported functions (use 'WasmVoid' instead of 'void')."
+
+wasmImportOrExportTearOff:
+  parameters: none
+  problemMessage: "Functions annotated with 'wasm:import', 'wasm:export', or 'wasm:weak-export' may not be torn off."
+
 weakReferenceNotStatic:
   parameters: none
   problemMessage: "Weak reference pragma can be used on a static method only."

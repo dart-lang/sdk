@@ -214,8 +214,6 @@ class CoreTypesUtil {
   final Procedure numToIntTarget;
   final Class wasmExternRefClass;
   final Class wasmVoidClass;
-  final Class wasmArrayClass;
-  final Class wasmArrayRefClass;
   final Procedure wrapDartFunctionTarget;
   final Procedure exportWasmFunctionTarget;
   final Procedure wasmInternalizeNonNullable;
@@ -223,6 +221,8 @@ class CoreTypesUtil {
   final Member wasmExternRefNullRef;
   final Class wasmI32Class;
   final Procedure wasmI32ToIntSigned;
+  final Class wasmF64Class;
+  final Procedure wasmF64FromDouble;
   final Procedure isDartNullTarget;
   final Procedure throwArgumentNullErrorTarget;
 
@@ -511,16 +511,17 @@ class CoreTypesUtil {
         'dart:_internal',
         'unsafeCastOpaque',
       ),
-      wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
-      wasmArrayRefClass = coreTypes.index.getClass(
-        'dart:_wasm',
-        'WasmArrayRef',
-      ),
       wasmI32Class = coreTypes.index.getClass('dart:_wasm', 'WasmI32'),
       wasmI32ToIntSigned = coreTypes.index.getProcedure(
         'dart:_wasm',
         'WasmI32',
         'toIntSigned',
+      ),
+      wasmF64Class = coreTypes.index.getClass('dart:_wasm', 'WasmF64'),
+      wasmF64FromDouble = coreTypes.index.getProcedure(
+        'dart:_wasm',
+        'WasmF64',
+        'fromDouble',
       ),
       wrapDartFunctionTarget = coreTypes.index.getTopLevelProcedure(
         'dart:_js_helper',
@@ -745,6 +746,9 @@ class CoreTypesUtil {
   DartType get nonNullableWasmExternRefType =>
       wasmExternRefClass.getThisType(coreTypes, Nullability.nonNullable);
 
+  DartType get nonNullableWasmF64Type =>
+      wasmF64Class.getThisType(coreTypes, Nullability.nonNullable);
+
   DartType get nonNullableWasmFuncRefType =>
       wasmFuncRefClass.getThisType(coreTypes, Nullability.nonNullable);
 
@@ -910,12 +914,12 @@ class CoreTypesUtil {
           valueType.nullability == Nullability.nonNullable,
       'valueType: $valueType',
     );
-    if (expectedType == coreTypes.doubleNonNullableRawType) {
+    if (expectedType == nonNullableWasmF64Type) {
       assert(
         valueType is InterfaceType &&
             valueType.classNode == coreTypes.doubleClass,
       );
-      return null;
+      return wasmF64FromDouble;
     }
 
     if (coreTypes.isNull(valueType)) {
