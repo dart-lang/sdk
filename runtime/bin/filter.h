@@ -5,6 +5,9 @@
 #ifndef RUNTIME_BIN_FILTER_H_
 #define RUNTIME_BIN_FILTER_H_
 
+#include <memory>
+#include <utility>
+
 #include "bin/builtin.h"
 #include "bin/utils.h"
 
@@ -15,6 +18,11 @@ namespace bin {
 
 class Filter {
  public:
+  struct Dictionary {
+    std::unique_ptr<uint8_t[]> data;
+    intptr_t length = 0;
+  };
+
   virtual ~Filter() {}
 
   virtual bool Init() = 0;
@@ -59,16 +67,14 @@ class ZLibDeflateFilter : public Filter {
                     int32_t window_bits,
                     int32_t mem_level,
                     int32_t strategy,
-                    uint8_t* dictionary,
-                    intptr_t dictionary_length,
+                    Dictionary dictionary,
                     bool raw)
       : gzip_(gzip),
         level_(level),
         window_bits_(window_bits),
         mem_level_(mem_level),
         strategy_(strategy),
-        dictionary_(dictionary),
-        dictionary_length_(dictionary_length),
+        dictionary_(std::move(dictionary)),
         raw_(raw),
         current_buffer_(nullptr) {}
   virtual ~ZLibDeflateFilter();
@@ -86,8 +92,7 @@ class ZLibDeflateFilter : public Filter {
   const int32_t window_bits_;
   const int32_t mem_level_;
   const int32_t strategy_;
-  uint8_t* dictionary_;
-  const intptr_t dictionary_length_;
+  Dictionary dictionary_;
   const bool raw_;
   uint8_t* current_buffer_;
   z_stream stream_;
@@ -99,13 +104,11 @@ class ZLibInflateFilter : public Filter {
  public:
   ZLibInflateFilter(bool gzip,
                     int32_t window_bits,
-                    uint8_t* dictionary,
-                    intptr_t dictionary_length,
+                    Dictionary dictionary,
                     bool raw)
       : gzip_(gzip),
         window_bits_(window_bits),
-        dictionary_(dictionary),
-        dictionary_length_(dictionary_length),
+        dictionary_(std::move(dictionary)),
         raw_(raw),
         current_buffer_(nullptr) {}
   virtual ~ZLibInflateFilter();
@@ -120,8 +123,7 @@ class ZLibInflateFilter : public Filter {
  private:
   const bool gzip_;
   const int32_t window_bits_;
-  uint8_t* dictionary_;
-  const intptr_t dictionary_length_;
+  Dictionary dictionary_;
   const bool raw_;
   uint8_t* current_buffer_;
   z_stream stream_;
