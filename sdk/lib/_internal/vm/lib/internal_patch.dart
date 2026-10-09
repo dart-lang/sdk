@@ -20,16 +20,6 @@ part "print_patch.dart";
 part "symbol_patch.dart";
 
 @patch
-@pragma("vm:external-name", "Internal_makeListFixedLength")
-@pragma("vm:exact-result-type", "dart:core#_List")
-external List<T> makeListFixedLength<T>(List<T> growableList);
-
-@patch
-@pragma("vm:external-name", "Internal_makeFixedListUnmodifiable")
-@pragma("vm:exact-result-type", "dart:core#_ImmutableList")
-external List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList);
-
-@patch
 @pragma("vm:external-name", "Internal_extractTypeArguments")
 external Object? extractTypeArguments<T>(T instance, Function extract);
 

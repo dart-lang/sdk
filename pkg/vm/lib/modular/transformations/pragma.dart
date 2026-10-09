@@ -11,6 +11,8 @@ const vmEntryPointPragmaName = "vm:entry-point";
 const vmExactResultTypePragmaName = "vm:exact-result-type";
 const kResultTypeUsesPassedTypeArguments =
     "result-type-uses-passed-type-arguments";
+const kResultTypeUsesReceiverTypeArguments =
+    "result-type-uses-receiver-type-arguments";
 const vmRecognizedPragmaName = "vm:recognized";
 const vmDisableUnboxedParametersPragmaName = "vm:disable-unboxed-parameters";
 const vmKeepNamePragmaName = "vm:keep-name";
@@ -66,10 +68,12 @@ class ParsedEntryPointPragma implements ParsedPragma {
 class ParsedResultTypeByTypePragma implements ParsedPragma {
   final DartType type;
   final bool resultTypeUsesPassedTypeArguments;
+  final bool resultTypeUsesReceiverTypeArguments;
   const ParsedResultTypeByTypePragma(
-    this.type,
-    this.resultTypeUsesPassedTypeArguments,
-  );
+    this.type, {
+    this.resultTypeUsesPassedTypeArguments = false,
+    this.resultTypeUsesReceiverTypeArguments = false,
+  });
 }
 
 class ParsedResultTypeByPathPragma implements ParsedPragma {
@@ -194,19 +198,26 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
         return getEntryPointTypeFromOptions(options, pragmaName);
       case vmExactResultTypePragmaName:
         if (options is TypeLiteralConstant) {
-          return ParsedResultTypeByTypePragma(options.type, false);
+          return ParsedResultTypeByTypePragma(options.type);
         } else if (options is StringConstant) {
           return ParsedResultTypeByPathPragma(options.value);
-        } else if (options is ListConstant &&
-            options.entries.length == 2 &&
-            options.entries[0] is TypeLiteralConstant &&
-            options.entries[1] is StringConstant &&
-            (options.entries[1] as StringConstant).value ==
-                kResultTypeUsesPassedTypeArguments) {
-          return ParsedResultTypeByTypePragma(
-            (options.entries[0] as TypeLiteralConstant).type,
-            true,
-          );
+        } else if (options case ListConstant(
+          entries: [
+            TypeLiteralConstant(:final type),
+            StringConstant(:final value),
+          ],
+        )) {
+          if (value == kResultTypeUsesPassedTypeArguments) {
+            return ParsedResultTypeByTypePragma(
+              type,
+              resultTypeUsesPassedTypeArguments: true,
+            );
+          } else if (value == kResultTypeUsesReceiverTypeArguments) {
+            return ParsedResultTypeByTypePragma(
+              type,
+              resultTypeUsesReceiverTypeArguments: true,
+            );
+          }
         }
         throw "ERROR: Unsupported option to '$vmExactResultTypePragmaName' "
             "pragma: $options";

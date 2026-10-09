@@ -30,11 +30,15 @@ Object returnBase(bool cond) => cond ? Sub1() : Sub2();
 Object returnGenericBox(bool cond) =>
     cond ? GenericBox<int>(1) : GenericBox<double>(2.0);
 
-List<Foo> returnFixedLengthList(bool c1, bool c2) => c1
+List<Foo> returnFixedLengthList(bool c1, bool c2, bool c3, bool c4) => c1
     ? const <Foo>[]
     : (c2
           ? List<Foo>.generate(2, (_) => Foo(), growable: false)
-          : List<Foo>.filled(2, Foo(), growable: false));
+          : (c3
+                ? List<Foo>.filled(2, Foo(), growable: false)
+                : (c4
+                      ? List<Foo>.of(<Foo>[Foo()], growable: false)
+                      : List<Foo>.unmodifiableOf(<Foo>[Foo()]))));
 
 void useBase(Object arg) {
   if (arg is Base) {
@@ -47,5 +51,5 @@ void main() {
   useBase(field);
   useBase(returnBase(cond));
   print(returnGenericBox(cond));
-  print(returnFixedLengthList(cond, !cond));
+  print(returnFixedLengthList(cond, !cond, cond, !cond));
 }

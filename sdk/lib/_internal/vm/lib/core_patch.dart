@@ -29,8 +29,6 @@ import "dart:_internal"
         SubListIterable,
         SystemHash,
         UnmodifiableListMixin,
-        makeFixedListUnmodifiable,
-        makeListFixedLength,
         patch,
         reachabilityFence,
         unsafeCast,

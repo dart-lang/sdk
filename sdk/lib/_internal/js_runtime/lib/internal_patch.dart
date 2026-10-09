@@ -58,12 +58,10 @@ void printToConsole(String line) {
   printString('$line');
 }
 
-@patch
 List<T> makeListFixedLength<T>(List<T> growableList) {
   return JSArray.markFixedList(growableList);
 }
 
-@patch
 List<T> makeFixedListUnmodifiable<T>(List<T> fixedLengthList) {
   return JSArray.markUnmodifiableList(fixedLengthList);
 }
