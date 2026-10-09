@@ -6,6 +6,7 @@
 
 #include "vm/isolate.h"
 #include "vm/object.h"
+#include "vm/regexp/regexp-interpreter.h"
 #include "vm/regexp/regexp.h"
 #include "vm/symbols.h"
 #include "vm/unit_test.h"
@@ -46,6 +47,28 @@ ISOLATE_UNIT_TEST_CASE(RegExp_TwoByteString) {
   EXPECT_EQ(2, res.Length());
   EXPECT_EQ(1, res.GetInt32(0 * sizeof(int32_t)));
   EXPECT_EQ(3, res.GetInt32(1 * sizeof(int32_t)));
+}
+
+ISOLATE_UNIT_TEST_CASE(RegExp_RangeInBounds) {
+  // Normal cases within bounds.
+  EXPECT_EQ(true, RangeInBounds(0, 5, 10));
+  EXPECT_EQ(true, RangeInBounds(5, 5, 10));
+  EXPECT_EQ(false, RangeInBounds(6, 5, 10));
+  EXPECT_EQ(false, RangeInBounds(15, 0, 10));
+
+  // Release safety checks: negative count, index, or length must return false.
+  EXPECT_EQ(false, RangeInBounds(-1, 5, 10));
+  EXPECT_EQ(false, RangeInBounds(10, -5, 50));
+  EXPECT_EQ(false, RangeInBounds(0, -1, 10));
+  EXPECT_EQ(false, RangeInBounds(0, 0, -1));
+  EXPECT_EQ(false, RangeInBounds(-5, 0, 10));
+
+  // Overflow cases near kMaxInt32: index + count >= 2^31.
+  // Evaluates without forming additive overflow.
+  constexpr int kMaxInt32 = 0x7FFFFFFF;
+  EXPECT_EQ(false, RangeInBounds(kMaxInt32 - 10, 20, kMaxInt32));
+  EXPECT_EQ(false, RangeInBounds(1 << 30, 1 << 30, kMaxInt32));
+  EXPECT_EQ(true, RangeInBounds(kMaxInt32 - 10, 10, kMaxInt32));
 }
 
 }  // namespace dart
