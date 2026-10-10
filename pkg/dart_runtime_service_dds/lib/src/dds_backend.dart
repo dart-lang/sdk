@@ -164,6 +164,10 @@ class DartRuntimeServiceDdsBackend
         devtoolsExtensionsManager: ExtensionsManager(),
         appRoot: appRoot,
         enableLogging: frontend.config.enableLogging,
+        // Mirrors the host and origin policy the enclosing pipeline already
+        // applies, so this path is neither stricter nor weaker than before.
+        serverUri: frontend.uri,
+        disableOriginCheck: frontend.config.disableOriginCheck,
       );
     } else {
       _httpHandler = (shelf.Request request) {
