@@ -4195,7 +4195,7 @@ class C {}
 main() {
   C.foo(0);
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4250,7 +4250,7 @@ int x = 0;
 main() {
   C.foo(x);
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4313,7 +4313,7 @@ class C extends S {}
 main() {
   C.foo(0);
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4367,7 +4367,7 @@ class C {}
 main() {
   C.foo<int>();
 //  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 }
 ''');
 
@@ -4429,7 +4429,7 @@ V1: MethodInvocation
 class C<T> {
   static main() => C.T();
 //                   ^
-// [diag.undefinedMethodOnTypeLiteral] The method 'T' isn't defined for the type 'C'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'T'.
 }
 ''');
 
@@ -4788,7 +4788,7 @@ main() {
 // ^^
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 //   ^^^^^^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'toString' isn't defined for the type 'A'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'A' doesn't have a static member or constructor named 'toString'.
 }
 ''');
   }

@@ -768,8 +768,7 @@ void f() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -803,8 +802,7 @@ void f() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -982,8 +980,7 @@ class B extends A {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
@@ -1019,8 +1016,7 @@ class B extends A {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: dart:core::@class::Object::@method::==::@formalParameter::other
@@ -1055,6 +1051,39 @@ DotShorthandNameExpression
   name: member
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: C Function()
+    lookupType: C Function()
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_error_context_invalid_futureOr() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class C {}
+
+FutureOr<C Function()> f() => .member;
+//                            ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: member
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: FutureOr<C Function()>
+    lookupType: C Function()
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1083,8 +1112,7 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1844,8 +1872,7 @@ IncrementOrDecrementExpression
       receiver: DotShorthandNameExpression
         period: .
         name: values
-        shorthandContext: InvalidDotShorthandContextResolution
-          contextType: null
+        shorthandContext: MissingDotShorthandContextResolution
         resolution: InvalidNamedReadResolution
           recoveryElement: <null>
         staticType: InvalidType
@@ -1918,8 +1945,7 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -1957,8 +1983,7 @@ IncrementOrDecrementExpression
       receiver: DotShorthandNameExpression
         period: .
         name: values
-        shorthandContext: InvalidDotShorthandContextResolution
-          contextType: null
+        shorthandContext: MissingDotShorthandContextResolution
         resolution: InvalidNamedReadResolution
           recoveryElement: <null>
         staticType: InvalidType
@@ -2030,8 +2055,7 @@ void main() {
 DotShorthandNameExpression
   period: .
   name: member
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   staticType: InvalidType
@@ -2074,6 +2098,8 @@ DotShorthandNameExpression
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
   correspondingParameter: <null>
@@ -2085,6 +2111,46 @@ V1: DotShorthandPropertyAccess
     element: <null>
     staticType: InvalidType
   correspondingParameter: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_privateClass_otherLibrary_futureOr() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class _Private {
+  static _Private get getter => _Private();
+}
+
+typedef Public = _Private;
+''');
+
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+import 'a.dart';
+
+FutureOr<Public> f() => .getter;
+//                      ^^^^^^^
+// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: getter
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: FutureOr<_Private>
+    lookupType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: getter
+    element: <null>
+    staticType: InvalidType
   staticType: InvalidType
 ''');
   }
@@ -2158,6 +2224,8 @@ DotShorthandNameExpression
   name: two
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
@@ -2243,6 +2311,8 @@ DotShorthandNameExpression
   name: getter
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
@@ -2331,6 +2401,8 @@ DotShorthandNameExpression
   name: getter
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidNamedReadResolution
     recoveryElement: <null>
@@ -2605,6 +2677,7 @@ FunctionInstantiation
     name: new
     shorthandContext: InvalidDotShorthandContextResolution
       contextType: C Function()
+      lookupType: C Function()
     resolution: InvalidNamedReadResolution
       recoveryElement: <null>
     staticType: InvalidType

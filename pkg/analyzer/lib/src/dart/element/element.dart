@@ -5430,6 +5430,29 @@ sealed class InstanceElementImpl extends ElementImpl
     });
   }
 
+  /// Returns what this declares instead of [name], for a lookup of [name]
+  /// that failed, or `null` if it declares nothing.
+  ///
+  /// If [name] is public, or this is declared in the library of [name], this
+  /// is a getter or method when [name] is a setter, or a setter when it is a
+  /// getter. Otherwise this is a private getter, setter, or method spelled
+  /// like [name] that this declares in another library.
+  @trackedIndirectly
+  ExecutableElementImpl? getMemberForFailedLookup(Name name) {
+    var getterName = name.forGetter.name;
+    if (name.isPublic || library.uri == name.libraryUri) {
+      if (name.isSetter) {
+        return getGetter(getterName) ?? getMethod(getterName);
+      } else {
+        return getSetter(getterName);
+      }
+    } else {
+      return getGetter(getterName) ??
+          getMethod(getterName) ??
+          getSetter(getterName);
+    }
+  }
+
   @override
   @trackedDirectly
   MethodElementImpl? getMethod(String name) {

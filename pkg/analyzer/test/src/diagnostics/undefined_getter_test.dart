@@ -30,20 +30,6 @@ f(C c) {
 ''');
   }
 
-  test_compoundAssignment_hasSetter_static() async {
-    await resolveTestCodeWithDiagnostics('''
-class C {
-  static set foo(int _) {}
-}
-
-f() {
-  C.foo += 1;
-//  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'C'.
-}
-''');
-  }
-
   test_emptyName() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
@@ -164,37 +150,6 @@ f(C c) {
   c.foo;
 //  ^^^
 // [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'C'.
-}
-''');
-  }
-
-  test_functionAlias_notInstantiated_getter_prefixed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-typedef Fn<T> = void Function(T);
-''');
-    await resolveTestCodeWithDiagnostics('''
-import 'a.dart' as a;
-
-void f() {
-  a.Fn.foo;
-//     ^^^
-// [diag.undefinedGetterOnFunctionType] The getter 'foo' isn't defined for the 'a.Fn' function type.
-}
-''');
-  }
-
-  test_functionAlias_typeInstantiated_getter() async {
-    await resolveTestCodeWithDiagnostics('''
-typedef Fn<T> = void Function(T);
-
-void bar() {
-  Fn<int>.foo;
-//        ^^^
-// [diag.undefinedGetterOnFunctionType] The getter 'foo' isn't defined for the 'Fn' function type.
-}
-
-extension E on Type {
-  int get foo => 1;
 }
 ''');
   }
@@ -523,19 +478,6 @@ var a = A?.x;
 ''');
   }
 
-  test_static_definedInSuperclass() async {
-    await resolveTestCodeWithDiagnostics('''
-class S {
-  static int get g => 0;
-}
-class C extends S {}
-f(p) {
-  f(C.g);
-//    ^
-// [diag.undefinedGetter] The getter 'g' isn't defined for the type 'C'.
-}''');
-  }
-
   test_static_extension_InstanceAccess() async {
     await resolveTestCodeWithDiagnostics('''
 class C {}
@@ -553,16 +495,6 @@ f(C c) {
 ''');
   }
 
-  test_static_undefined() async {
-    await resolveTestCodeWithDiagnostics('''
-class C {}
-f(p) {
-  f(C.m);
-//    ^
-// [diag.undefinedGetter] The getter 'm' isn't defined for the type 'C'.
-}''');
-  }
-
   test_typeLiteral_cascadeTarget() async {
     await resolveTestCodeWithDiagnostics(r'''
 class T {
@@ -573,17 +505,6 @@ main() {
 //   ^^^
 // [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
 }
-''');
-  }
-
-  test_typeLiteral_conditionalAccess() async {
-    await resolveTestCodeWithDiagnostics('''
-class A {}
-f() => A?.hashCode;
-//      ^^
-// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
-//        ^^^^^^^^
-// [diag.undefinedGetter] The getter 'hashCode' isn't defined for the type 'A'.
 ''');
   }
 

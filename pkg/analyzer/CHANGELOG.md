@@ -22,8 +22,7 @@
   `abstract_super_member_reference`, when only `A` has `foo`.
 * Extension overrides, such as `E(x).foo`, report two new diagnostics
   instead of `undefined_extension_getter`, `undefined_extension_method`, and
-  `undefined_extension_setter`, which are still reported for static members,
-  such as `E.foo`:
+  `undefined_extension_setter`:
   * `undefined_extension_member_read`, for `E(x).foo` and `E(x).foo()`, when
     the extension doesn't declare a method or getter. The message says when
     the extension declares only a setter.
@@ -37,6 +36,28 @@
 
   Use the new names in `// ignore:` comments and in `analysis_options.yaml`
   for extension overrides.
+* Static member accesses, such as `C.foo` and `E.foo`, report two new
+  diagnostics:
+  * `undefined_static_member_read`, for `C.foo` and `C.foo()`, when the
+    class, enum, mixin, extension type, or extension doesn't declare a static
+    method, getter, or field, or an enum value. The message says when it
+    declares only a setter or a private member in another library, or when
+    the qualifier is a function type alias, which has no static members.
+  * `undefined_static_member_write`, for `C.foo = v`, when the target doesn't
+    declare a static setter. The message says when it declares only a getter,
+    a final or constant field, a method, or a private member in another
+    library.
+
+  These replace `undefined_enum_constant`, `undefined_extension_getter`,
+  `undefined_extension_method`, `undefined_extension_setter`, and
+  `private_setter` entirely, as well as `undefined_getter`,
+  `undefined_setter`, and `undefined_method` for static members. A private
+  static member of an extension declared in another library, such as
+  `E._foo`, is no longer found.
+
+  Replace the removed names with the new names in `// ignore:` comments and
+  in `analysis_options.yaml`, where the old names are still accepted but have
+  no effect.
 
 ## 14.5.0
 

@@ -14499,24 +14499,6 @@ const DiagnosticWithoutArguments privateOptionalParameter =
     );
 
 /// Parameters:
-/// String name: the name of the setter
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String name})
->
-privateSetter = DiagnosticWithArguments(
-  name: 'private_setter',
-  problemMessage:
-      "The setter '{0}' is private and can't be accessed outside the library "
-      "that declares it.",
-  correctionMessage: "Try making it public.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'private_setter',
-  withArguments: _withArgumentsPrivateSetter,
-  expectedTypes: [ExpectedType.string],
-);
-
-/// Parameters:
 /// String name: the name of the variable
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name})
@@ -16720,28 +16702,6 @@ undefinedConstructorInInitializerDefault = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String memberName: the name of the enum value that is not defined
-/// Type type: the type of the enum used to access the constant
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String memberName,
-    required DartType type,
-  })
->
-undefinedEnumConstant = DiagnosticWithArguments(
-  name: 'undefined_enum_constant',
-  problemMessage: "There's no constant named '{0}' in '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing constant, or "
-      "defining a constant named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_enum_constant',
-  withArguments: _withArgumentsUndefinedEnumConstant,
-  expectedTypes: [ExpectedType.string, ExpectedType.type],
-);
-
-/// Parameters:
 /// String name: the name of the constructor that is undefined
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name})
@@ -16772,29 +16732,6 @@ const DiagnosticWithoutArguments undefinedEnumConstructorUnnamed =
       uniqueName: 'undefined_enum_constructor_unnamed',
       expectedTypes: [],
     );
-
-/// Parameters:
-/// String getterName: the name of the getter that is undefined
-/// String extensionName: the name of the extension that was explicitly
-///                       specified
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String getterName,
-    required String extensionName,
-  })
->
-undefinedExtensionGetter = DiagnosticWithArguments(
-  name: 'undefined_extension_getter',
-  problemMessage: "The getter '{0}' isn't defined for the extension '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing getter, or "
-      "defining a getter named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_extension_getter',
-  withArguments: _withArgumentsUndefinedExtensionGetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
 
 /// Parameters:
 /// String name: the name of the member
@@ -16942,29 +16879,6 @@ undefinedExtensionMemberWriteWrongKind = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String methodName: the name of the method that is undefined
-/// String extensionName: the name of the extension that was explicitly
-///                       specified
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String methodName,
-    required String extensionName,
-  })
->
-undefinedExtensionMethod = DiagnosticWithArguments(
-  name: 'undefined_extension_method',
-  problemMessage: "The method '{0}' isn't defined for the extension '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing method, or "
-      "defining a method named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_extension_method',
-  withArguments: _withArgumentsUndefinedExtensionMethod,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
 /// String operator: the name of the operator that is undefined
 /// String extensionName: the name of the extension that was explicitly
 ///                       specified
@@ -16982,29 +16896,6 @@ undefinedExtensionOperator = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_extension_operator',
   withArguments: _withArgumentsUndefinedExtensionOperator,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
-/// String setterName: the name of the setter that is undefined
-/// String extensionName: the name of the extension that was explicitly
-///                       specified
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String setterName,
-    required String extensionName,
-  })
->
-undefinedExtensionSetter = DiagnosticWithArguments(
-  name: 'undefined_extension_setter',
-  problemMessage: "The setter '{0}' isn't defined for the extension '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing setter, or "
-      "defining a setter named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_extension_setter',
-  withArguments: _withArgumentsUndefinedExtensionSetter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
@@ -17048,28 +16939,6 @@ undefinedGetter = DiagnosticWithArguments(
   uniqueName: 'undefined_getter',
   withArguments: _withArgumentsUndefinedGetter,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
-);
-
-/// Parameters:
-/// String getterName: the name of the getter
-/// String functionTypeAliasName: the name of the function type alias
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String getterName,
-    required String functionTypeAliasName,
-  })
->
-undefinedGetterOnFunctionType = DiagnosticWithArguments(
-  name: 'undefined_getter',
-  problemMessage: "The getter '{0}' isn't defined for the '{1}' function type.",
-  correctionMessage:
-      "Try wrapping the function type alias in parentheses in order to "
-      "access '{0}' as an extension getter on 'Type'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_getter_on_function_type',
-  withArguments: _withArgumentsUndefinedGetterOnFunctionType,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
@@ -17161,51 +17030,6 @@ undefinedMethod = DiagnosticWithArguments(
   uniqueName: 'undefined_method',
   withArguments: _withArgumentsUndefinedMethod,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
-);
-
-/// Parameters:
-/// String methodName: the name of the method
-/// String functionTypeAliasName: the name of the function type alias
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String methodName,
-    required String functionTypeAliasName,
-  })
->
-undefinedMethodOnFunctionType = DiagnosticWithArguments(
-  name: 'undefined_method',
-  problemMessage: "The method '{0}' isn't defined for the '{1}' function type.",
-  correctionMessage:
-      "Try wrapping the function type alias in parentheses in order to "
-      "access '{0}' as an extension method on 'Type'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_method_on_function_type',
-  withArguments: _withArgumentsUndefinedMethodOnFunctionType,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
-/// String methodName: the name of the method that is undefined
-/// String typeName: the name of the type literal where the method is being
-///                  looked for
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String methodName,
-    required String typeName,
-  })
->
-undefinedMethodOnTypeLiteral = DiagnosticWithArguments(
-  name: 'undefined_method',
-  problemMessage: "The method '{0}' isn't defined for the type '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing method, or "
-      "defining a method named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_method_on_type_literal',
-  withArguments: _withArgumentsUndefinedMethodOnTypeLiteral,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// Parameters:
@@ -17313,28 +17137,6 @@ undefinedSetter = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String setterName: the name of the setter
-/// String functionTypeAliasName: the name of the function type alias
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String setterName,
-    required String functionTypeAliasName,
-  })
->
-undefinedSetterOnFunctionType = DiagnosticWithArguments(
-  name: 'undefined_setter',
-  problemMessage: "The setter '{0}' isn't defined for the '{1}' function type.",
-  correctionMessage:
-      "Try wrapping the function type alias in parentheses in order to "
-      "access '{0}' as an extension getter on 'Type'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_setter_on_function_type',
-  withArguments: _withArgumentsUndefinedSetterOnFunctionType,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
 /// String library: the name of the library being imported
 /// String name: the name in the show clause that isn't defined in the library
 const DiagnosticWithArguments<
@@ -17350,6 +17152,287 @@ undefinedShownName = DiagnosticWithArguments(
   uniqueName: 'undefined_shown_name',
   withArguments: _withArgumentsUndefinedShownName,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String aliasName: the name of the function type alias, with its import
+///                   prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String aliasName,
+  })
+>
+undefinedStaticMemberReadNoStaticMembers = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage:
+      "The function type '{1}' doesn't have a static member named '{0}'.",
+  correctionMessage:
+      "Try wrapping the function type alias in parentheses to access '{0}' "
+      "on the 'Type' object.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_no_static_members',
+  withArguments: _withArgumentsUndefinedStaticMemberReadNoStaticMembers,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+/// String expectedKinds: the kinds of declarations that the lookup could have
+///                       found, such as 'static member or constructor'
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+    required String expectedKinds,
+  })
+>
+undefinedStaticMemberReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage: "The {1} '{2}' doesn't have a {3} named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing {3}, or defining a "
+      "static member named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_not_found',
+  withArguments: _withArgumentsUndefinedStaticMemberReadNotFound,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedStaticMemberReadPrivate = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_private',
+  withArguments: _withArgumentsUndefinedStaticMemberReadPrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage:
+      "There's a static setter '{0}' in the {1} '{2}', but no getter.",
+  correctionMessage: "Try defining a static getter named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_setter_only',
+  withArguments: _withArgumentsUndefinedStaticMemberReadSetterOnly,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the constant
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberWriteConst = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage: "The constant '{0}' in the {1} '{2}' can't be assigned to.",
+  correctionMessage:
+      "Try making it a non-constant field, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_const',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteConst,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the field
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberWriteFinal = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage:
+      "The static field '{0}' in the {1} '{2}' is final, so it can't be assigned "
+      "to.",
+  correctionMessage:
+      "Try making the field non-final, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_final',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteFinal,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage:
+      "There's a static getter '{0}' in the {1} '{2}', but no setter.",
+  correctionMessage: "Try defining a static setter named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_getter_only',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteGetterOnly,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String aliasName: the name of the function type alias, with its import
+///                   prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String aliasName,
+  })
+>
+undefinedStaticMemberWriteNoStaticMembers = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage:
+      "The function type '{1}' doesn't have a static setter named '{0}'.",
+  correctionMessage:
+      "Try wrapping the function type alias in parentheses to access '{0}' "
+      "on the 'Type' object.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_no_static_members',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteNoStaticMembers,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage: "The {1} '{2}' doesn't have a static setter named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing static setter, or "
+      "defining a static setter or field named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_not_found',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteNotFound,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedStaticMemberWritePrivate = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_private',
+  withArguments: _withArgumentsUndefinedStaticMemberWritePrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as 'method'
+/// String name: the name of the declaration
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String kind,
+    required String name,
+    required String containerKind,
+    required String containerName,
+  })
+>
+undefinedStaticMemberWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_static_member_write',
+  problemMessage: "The {0} '{1}' in the {2} '{3}' can't be assigned to.",
+  correctionMessage: "Try assigning to a static setter or field instead.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedStaticMemberWriteWrongKind,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
 );
 
 /// Parameters:
@@ -22162,10 +22245,6 @@ LocatableDiagnostic _withArgumentsPrivateNamedParameterDuplicatePublicName({
   );
 }
 
-LocatableDiagnostic _withArgumentsPrivateSetter({required String name}) {
-  return LocatableDiagnosticImpl(diag.privateSetter, [name]);
-}
-
 LocatableDiagnostic _withArgumentsReadPotentiallyUnassignedFinal({
   required String name,
 }) {
@@ -22678,30 +22757,10 @@ LocatableDiagnostic _withArgumentsUndefinedConstructorInInitializerDefault({
   );
 }
 
-LocatableDiagnostic _withArgumentsUndefinedEnumConstant({
-  required String memberName,
-  required DartType type,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedEnumConstant, [
-    memberName,
-    type,
-  ]);
-}
-
 LocatableDiagnostic _withArgumentsUndefinedEnumConstructorNamed({
   required String name,
 }) {
   return LocatableDiagnosticImpl(diag.undefinedEnumConstructorNamed, [name]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedExtensionGetter({
-  required String getterName,
-  required String extensionName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedExtensionGetter, [
-    getterName,
-    extensionName,
-  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedExtensionMemberReadNotFound({
@@ -22776,32 +22835,12 @@ LocatableDiagnostic _withArgumentsUndefinedExtensionMemberWriteWrongKind({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedExtensionMethod({
-  required String methodName,
-  required String extensionName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedExtensionMethod, [
-    methodName,
-    extensionName,
-  ]);
-}
-
 LocatableDiagnostic _withArgumentsUndefinedExtensionOperator({
   required String operator,
   required String extensionName,
 }) {
   return LocatableDiagnosticImpl(diag.undefinedExtensionOperator, [
     operator,
-    extensionName,
-  ]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedExtensionSetter({
-  required String setterName,
-  required String extensionName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedExtensionSetter, [
-    setterName,
     extensionName,
   ]);
 }
@@ -22815,16 +22854,6 @@ LocatableDiagnostic _withArgumentsUndefinedGetter({
   required DartType type,
 }) {
   return LocatableDiagnosticImpl(diag.undefinedGetter, [memberName, type]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedGetterOnFunctionType({
-  required String getterName,
-  required String functionTypeAliasName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedGetterOnFunctionType, [
-    getterName,
-    functionTypeAliasName,
-  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedHiddenName({
@@ -22847,26 +22876,6 @@ LocatableDiagnostic _withArgumentsUndefinedMethod({
   required DartType type,
 }) {
   return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, type]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedMethodOnFunctionType({
-  required String methodName,
-  required String functionTypeAliasName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedMethodOnFunctionType, [
-    methodName,
-    functionTypeAliasName,
-  ]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedMethodOnTypeLiteral({
-  required String methodName,
-  required String typeName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedMethodOnTypeLiteral, [
-    methodName,
-    typeName,
-  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedNamedParameter({
@@ -22909,21 +22918,139 @@ LocatableDiagnostic _withArgumentsUndefinedSetter({
   return LocatableDiagnosticImpl(diag.undefinedSetter, [setterName, type]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedSetterOnFunctionType({
-  required String setterName,
-  required String functionTypeAliasName,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedSetterOnFunctionType, [
-    setterName,
-    functionTypeAliasName,
-  ]);
-}
-
 LocatableDiagnostic _withArgumentsUndefinedShownName({
   required String library,
   required String name,
 }) {
   return LocatableDiagnosticImpl(diag.undefinedShownName, [library, name]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadNoStaticMembers({
+  required String name,
+  required String aliasName,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadNoStaticMembers,
+    [name, aliasName],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadNotFound({
+  required String name,
+  required String containerKind,
+  required String containerName,
+  required String expectedKinds,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberReadNotFound, [
+    name,
+    containerKind,
+    containerName,
+    expectedKinds,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadPrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberReadPrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadSetterOnly({
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberReadSetterOnly, [
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteConst({
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWriteConst, [
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteFinal({
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWriteFinal, [
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteGetterOnly({
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWriteGetterOnly, [
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteNoStaticMembers({
+  required String name,
+  required String aliasName,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberWriteNoStaticMembers,
+    [name, aliasName],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteNotFound({
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWriteNotFound, [
+    name,
+    containerKind,
+    containerName,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWritePrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWritePrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberWriteWrongKind({
+  required String kind,
+  required String name,
+  required String containerKind,
+  required String containerName,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedStaticMemberWriteWrongKind, [
+    kind,
+    name,
+    containerKind,
+    containerName,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedSuperMemberReadNotFound({

@@ -671,7 +671,7 @@ void f() {
 ''',
       filter: (e) {
         // Filter to ignore enum_without_constants
-        return e.diagnosticCode == diag.undefinedEnumConstant;
+        return e.diagnosticCode == diag.undefinedStaticMemberReadNotFound;
       },
     );
   }
@@ -717,7 +717,7 @@ void f() {
 ''',
       filter: (e) {
         // Filter to ignore enum_without_constants
-        return e.diagnosticCode == diag.undefinedEnumConstant;
+        return e.diagnosticCode == diag.undefinedStaticMemberReadNotFound;
       },
     );
   }

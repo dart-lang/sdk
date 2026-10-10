@@ -45,8 +45,7 @@ DotShorthandConstructorInvocation2
         correspondingParameter: <null>
         staticType: int
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   element: <null>
   staticType: dynamic
 V1: DotShorthandConstructorInvocation
@@ -553,8 +552,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -596,8 +594,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -684,8 +681,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -729,8 +725,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -773,6 +768,47 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: C Function()
+    lookupType: C Function()
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: member
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_error_context_invalid_futureOr() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class C {}
+
+FutureOr<C Function()> f() => .member();
+//                             ^^^^^^
+// [diag.dotShorthandUndefinedInvocation] The static method or constructor 'member' isn't defined for the context type 'FutureOr<C Function()>'.
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: member
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: FutureOr<C Function()>
+    lookupType: C Function()
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -809,8 +845,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1769,8 +1804,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1815,8 +1849,7 @@ DotShorthandMethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  shorthandContext: InvalidDotShorthandContextResolution
-    contextType: null
+  shorthandContext: MissingDotShorthandContextResolution
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1871,6 +1904,8 @@ DotShorthandMethodInvocation
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -1900,6 +1935,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -1952,6 +1989,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2102,6 +2141,8 @@ DotShorthandMethodInvocation
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2154,6 +2195,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2313,6 +2356,8 @@ DotShorthandMethodInvocation
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
       alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
     recovery: <null>
@@ -2352,6 +2397,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2409,6 +2456,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType
@@ -2566,6 +2615,8 @@ DotShorthandMethodInvocation
     rightParenthesis: )
   shorthandContext: InvalidDotShorthandContextResolution
     contextType: _Private
+      alias: package:test/a.dart::@typeAlias::Public
+    lookupType: _Private
       alias: package:test/a.dart::@typeAlias::Public
   resolution: InvalidInvocationResolution
     type: InvalidType

@@ -1498,8 +1498,6 @@ private_named_parameter_duplicate_public_name:
   status: noFix
 private_named_parameter_without_public_name:
   status: noFix
-private_setter:
-  status: noFix
 read_potentially_unassigned_final:
   status: noFix
 record_literal_one_positional_no_trailing_comma_by_type:
@@ -1701,16 +1699,12 @@ undefined_constructor_in_initializer:
     for closely named constructors.
 undefined_constructor_in_initializer_default:
   status: hasFix
-undefined_enum_constant:
-  status: hasFix
 undefined_enum_constructor_named:
   status: hasFix
   since: 2.17
 undefined_enum_constructor_unnamed:
   status: hasFix
   since: 2.17
-undefined_extension_getter:
-  status: hasFix
 undefined_extension_member_read_not_found:
   status: hasFix
 undefined_extension_member_read_private:
@@ -1733,29 +1727,17 @@ undefined_extension_member_write_wrong_kind:
   status: noFix
   notes: |-
     A method can't be made assignable; the fix is to assign to something else.
-undefined_extension_method:
-  status: hasFix
 undefined_extension_operator:
-  status: hasFix
-undefined_extension_setter:
   status: hasFix
 undefined_function:
   status: hasFix
 undefined_getter:
   status: hasFix
-undefined_getter_on_function_type:
-  status: needsFix
-  since: 2.15
 undefined_identifier:
   status: hasFix
 undefined_identifier_await:
   status: hasFix
 undefined_method:
-  status: hasFix
-undefined_method_on_function_type:
-  status: needsFix
-  since: 2.15
-undefined_method_on_type_literal:
   status: hasFix
 undefined_named_parameter:
   status: hasFix
@@ -1765,9 +1747,48 @@ undefined_prefixed_name:
   status: hasFix
 undefined_setter:
   status: hasFix
-undefined_setter_on_function_type:
+undefined_static_member_read_no_static_members:
+  status: noFix
+  notes: |-
+    A function type has no static members; the correction suggests wrapping
+    the alias in parentheses, which changes the meaning.
+undefined_static_member_read_not_found:
+  status: hasFix
+undefined_static_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_static_member_read_setter_only:
   status: needsFix
-  since: 2.15
+  notes: |-
+    The fix is to create the static getter.
+undefined_static_member_write_const:
+  status: noFix
+  notes: |-
+    A constant can't be assigned; making it a variable changes its meaning.
+undefined_static_member_write_final:
+  status: hasFix
+undefined_static_member_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the static setter.
+undefined_static_member_write_no_static_members:
+  status: noFix
+  notes: |-
+    A function type has no static members; the correction suggests wrapping
+    the alias in parentheses, which changes the meaning.
+undefined_static_member_write_not_found:
+  status: hasFix
+undefined_static_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_static_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
 undefined_super_member_read_not_found:
   status: needsFix
   notes: |-

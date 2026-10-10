@@ -257,7 +257,7 @@ main() {
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   h.C.xgetValue = 1;
   //  ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_WRITE
   // [cfe] Setter not found: 'xgetValue'.
   check(1, () => h.c?.x ??= bad(), ['h.C.x']);
   //               ^

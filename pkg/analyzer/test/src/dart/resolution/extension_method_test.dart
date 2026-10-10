@@ -3933,7 +3933,7 @@ extension E on FutureOr<int> {
 void f() {
   FutureOr.foo;
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'FutureOr<T>'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'FutureOr' doesn't have a static member or constructor named 'foo'.
 }
 ''');
   }
@@ -3961,7 +3961,7 @@ extension E<X extends String> on X {
 void f() {
   String.foo;
 //       ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'String'.
+// [diag.undefinedStaticMemberReadNotFound] The class 'String' doesn't have a static member or constructor named 'foo'.
 }
 ''');
   }
@@ -4685,7 +4685,7 @@ extension E on FutureOr<int> {
 void f() {
   FutureOr.foo = 0;
 //         ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'FutureOr<T>'.
+// [diag.undefinedStaticMemberWriteNotFound] The class 'FutureOr' doesn't have a static setter named 'foo'.
 }
 ''');
   }
@@ -4713,7 +4713,7 @@ extension E<X extends String> on X {
 void f() {
   String.foo = 0;
 //       ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'String'.
+// [diag.undefinedStaticMemberWriteNotFound] The class 'String' doesn't have a static setter named 'foo'.
 }
 ''');
   }

@@ -157,22 +157,6 @@ extension E on Type {
 ''');
   }
 
-  test_functionAlias_typeInstantiated() async {
-    await resolveTestCodeWithDiagnostics('''
-typedef Fn<T> = void Function(T);
-
-void bar() {
-  Fn<int>.foo();
-//        ^^^
-// [diag.undefinedMethodOnFunctionType] The method 'foo' isn't defined for the 'Fn' function type.
-}
-
-extension E on Type {
-  void foo() {}
-}
-''');
-  }
-
   test_functionAlias_typeInstantiated_parenthesized() async {
     await resolveTestCodeWithDiagnostics('''
 typedef Fn<T> = void Function(T);
@@ -293,15 +277,6 @@ f(C c) {
 ''');
   }
 
-  test_method_undefined_enum() async {
-    await resolveTestCodeWithDiagnostics(r'''
-enum E { A }
-f() => E.abs();
-//       ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'abs' isn't defined for the type 'E'.
-''');
-  }
-
   test_method_undefined_mixin() async {
     await resolveTestCodeWithDiagnostics(r'''
 mixin M {}
@@ -362,25 +337,6 @@ f(C c) {
 ''');
   }
 
-  test_static_mixinApplication_superConstructorIsFactory() async {
-    await resolveTestCodeWithDiagnostics(r'''
-mixin M {}
-
-class A {
-  A();
-  factory A.named() = A;
-}
-
-class B = A with M;
-
-void main() {
-  B.named();
-//  ^^^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'named' isn't defined for the type 'B'.
-}
-''');
-  }
-
   test_typeAlias_functionType() async {
     await resolveTestCodeWithDiagnostics(r'''
 typedef A = void Function();
@@ -389,18 +345,6 @@ void f() {
   A.foo();
 //  ^^^
 // [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Type'.
-}
-''');
-  }
-
-  test_typeAlias_interfaceType() async {
-    await resolveTestCodeWithDiagnostics(r'''
-typedef A = List<int>;
-
-void f() {
-  A.foo();
-//  ^^^
-// [diag.undefinedMethodOnTypeLiteral] The method 'foo' isn't defined for the type 'List'.
 }
 ''');
   }

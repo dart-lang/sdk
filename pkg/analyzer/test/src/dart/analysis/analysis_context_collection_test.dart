@@ -2957,6 +2957,250 @@ workspaces
     );
   }
 
+  /// The context root has an analysis options file and a nested one, and
+  /// each enables its own experiment. The client passes `enabledExperiments`.
+  /// These experiments replace the experiments from both options files.
+  test_enabledExperiments_hasOptions() async {
+    configuration.withFeatures = [
+      ExperimentalFeatures.const_functions,
+      ExperimentalFeatures.inference_update_4,
+      ExperimentalFeatures.variance,
+    ];
+
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+analyzer:
+  enable-experiment:
+    - const-functions
+''');
+    newFile('$testPackageLibPath/a.dart', '');
+
+    var nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, r'''
+analyzer:
+  enable-experiment:
+    - inference-update-4
+''');
+    newFile('$nestedPath/b.dart', '');
+
+    _assertWorkspaceCollectionText(
+      workspaceRootPath,
+      enabledExperiments: ['variance'],
+      r'''
+contexts
+  /home
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/analysis_options.yaml
+      /home/test/lib/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/lib/nested/analysis_options.yaml
+      /home/test/lib/nested/b.dart
+        analysisOptions_1
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+    features
+      const-functions: disabled
+      inference-update-4: disabled
+      variance: enabled
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+    features
+      const-functions: disabled
+      inference-update-4: disabled
+      variance: enabled
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home
+    workspacePackage_0_0
+''',
+    );
+  }
+
+  /// The context root has an analysis options file and a nested one, and
+  /// each enables its own experiment. The client passes empty
+  /// `enabledExperiments`, so it has no preference, and each options file
+  /// enables its experiment.
+  test_enabledExperiments_hasOptions_empty() async {
+    configuration.withFeatures = [
+      ExperimentalFeatures.const_functions,
+      ExperimentalFeatures.inference_update_4,
+    ];
+
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    var testPackageLibPath = '$testPackageRootPath/lib';
+
+    newAnalysisOptionsYamlFile(testPackageRootPath, r'''
+analyzer:
+  enable-experiment:
+    - const-functions
+''');
+    newFile('$testPackageLibPath/a.dart', '');
+
+    var nestedPath = '$testPackageLibPath/nested';
+    newAnalysisOptionsYamlFile(nestedPath, r'''
+analyzer:
+  enable-experiment:
+    - inference-update-4
+''');
+    newFile('$nestedPath/b.dart', '');
+
+    _assertWorkspaceCollectionText(
+      workspaceRootPath,
+      enabledExperiments: [],
+      r'''
+contexts
+  /home
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/analysis_options.yaml
+      /home/test/lib/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+      /home/test/lib/nested/analysis_options.yaml
+      /home/test/lib/nested/b.dart
+        analysisOptions_1
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /home/test/analysis_options.yaml
+    features
+      const-functions: enabled
+      inference-update-4: disabled
+  analysisOptions_1: /home/test/lib/nested/analysis_options.yaml
+    features
+      const-functions: disabled
+      inference-update-4: enabled
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home
+    workspacePackage_0_0
+''',
+    );
+  }
+
+  /// The context root has no analysis options file. The client passes
+  /// `enabledExperiments`, and they are enabled in the default options.
+  test_enabledExperiments_noOptions() async {
+    configuration
+      ..withAnalysisOptionsWithoutFiles = true
+      ..withFeatures = [ExperimentalFeatures.variance];
+
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    newFile('$testPackageRootPath/lib/a.dart', '');
+
+    _assertWorkspaceCollectionText(
+      workspaceRootPath,
+      enabledExperiments: ['variance'],
+      r'''
+contexts
+  /home
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: <no file>
+    features
+      variance: enabled
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home
+    workspacePackage_0_0
+''',
+    );
+  }
+
+  /// The client passes an explicit `optionsFile`, which enables an
+  /// experiment, and `enabledExperiments`. These experiments replace the
+  /// experiments from the options file.
+  test_enabledExperiments_overrideOptions() async {
+    configuration.withFeatures = [
+      ExperimentalFeatures.const_functions,
+      ExperimentalFeatures.variance,
+    ];
+
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    newFile('$testPackageRootPath/lib/a.dart', '');
+
+    var optionsFile = newFile('/other/analysis_options.yaml', r'''
+analyzer:
+  enable-experiment:
+    - const-functions
+''');
+
+    _assertWorkspaceCollectionText(
+      workspaceRootPath,
+      optionsFile: optionsFile,
+      enabledExperiments: ['variance'],
+      r'''
+contexts
+  /home
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /other/analysis_options.yaml
+    features
+      const-functions: disabled
+      variance: enabled
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home
+    workspacePackage_0_0
+''',
+    );
+  }
+
+  /// The client passes an explicit `optionsFile`, which enables an
+  /// experiment, and empty `enabledExperiments`. So, the client has no
+  /// preference, and the options file enables its experiment.
+  test_enabledExperiments_overrideOptions_empty() async {
+    configuration.withFeatures = [ExperimentalFeatures.const_functions];
+
+    var workspaceRootPath = '/home';
+    var testPackageRootPath = '$workspaceRootPath/test';
+    newFile('$testPackageRootPath/lib/a.dart', '');
+
+    var optionsFile = newFile('/other/analysis_options.yaml', r'''
+analyzer:
+  enable-experiment:
+    - const-functions
+''');
+
+    _assertWorkspaceCollectionText(
+      workspaceRootPath,
+      optionsFile: optionsFile,
+      enabledExperiments: [],
+      r'''
+contexts
+  /home
+    workspace: workspace_0
+    analyzedFiles
+      /home/test/lib/a.dart
+        analysisOptions_0
+        workspacePackage_0_0
+analysisOptions
+  analysisOptions_0: /other/analysis_options.yaml
+    features
+      const-functions: enabled
+workspaces
+  workspace_0: BasicWorkspace
+    root: /home
+    workspacePackage_0_0
+''',
+    );
+  }
+
   test_languageVersionOverride_analysisOptions_packageInclude() async {
     configuration
       ..withLintRules = true
@@ -3352,7 +3596,10 @@ workspaces
   }
 
   test_packageConfigWorkspace_enabledExperiment() async {
-    configuration.withEnabledFeatures = true;
+    configuration.withFeatures = [
+      ExperimentalFeatures.digit_separators,
+      ExperimentalFeatures.variance,
+    ];
 
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
@@ -3394,40 +3641,8 @@ contexts
 analysisOptions
   analysisOptions_0: /home/test/analysis_options.yaml
     features
-      class-modifiers
-      constant-update-2018
-      constructor-tearoffs
-      control-flow-collections
-      digit-separators
-      dot-shorthands
-      enhanced-enums
-      extension-methods
-      generic-metadata
-      getter-setter-error
-      inference-update-1
-      inference-update-2
-      inference-update-3
-      inference-using-bounds
-      inline-class
-      named-arguments-anywhere
-      native-assets
-      non-nullable
-      nonfunction-type-aliases
-      null-aware-elements
-      patterns
-      primary-constructors
-      private-named-parameters
-      record-use
-      records
-      sealed-class
-      set-literals
-      sound-flow-analysis
-      spread-collections
-      super-parameters
-      triple-shift
-      unnamed-libraries
-      variance
-      wildcard-variables
+      digit-separators: enabled
+      variance: enabled
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -3441,7 +3656,7 @@ workspaces
   test_packageConfigWorkspace_enabledExperiment_noAnalysisOptionsFile() async {
     configuration
       ..withAnalysisOptionsWithoutFiles = true
-      ..withEnabledFeatures = true;
+      ..withFeatures = [ExperimentalFeatures.variance];
 
     var workspaceRootPath = '/home';
     var testPackageRootPath = '$workspaceRootPath/test';
@@ -3480,40 +3695,7 @@ contexts
 analysisOptions
   analysisOptions_0: <no file>
     features
-      class-modifiers
-      constant-update-2018
-      constructor-tearoffs
-      control-flow-collections
-      digit-separators
-      dot-shorthands
-      enhanced-enums
-      extension-methods
-      generic-metadata
-      getter-setter-error
-      inference-update-1
-      inference-update-2
-      inference-update-3
-      inference-using-bounds
-      inline-class
-      named-arguments-anywhere
-      native-assets
-      non-nullable
-      nonfunction-type-aliases
-      null-aware-elements
-      patterns
-      primary-constructors
-      private-named-parameters
-      record-use
-      records
-      sealed-class
-      set-literals
-      sound-flow-analysis
-      spread-collections
-      super-parameters
-      triple-shift
-      unnamed-libraries
-      variance
-      wildcard-variables
+      variance: enabled
 workspaces
   workspace_0: PackageConfigWorkspace
     root: /home/test
@@ -5282,6 +5464,7 @@ workspaces
     String workspaceRootPath,
     String expected, {
     File? optionsFile,
+    List<String> enabledExperiments = const [],
     void Function({required AnalysisOptionsBuilder analysisOptionsBuilder})?
     configureAnalysisOptionsBuilder,
   }) {
@@ -5293,6 +5476,7 @@ workspaces
       sdkPath: sdkRoot.path,
       includedPaths: [getFolder(workspaceRootPath).path],
       optionsFile: optionsFile?.path,
+      enabledExperiments: enabledExperiments,
       configureAnalysisOptionsBuilder: configureAnalysisOptionsBuilder,
       withFineDependencies: true,
     );
@@ -5475,17 +5659,7 @@ class _AnalysisContextCollectionPrinter {
         _writeNamedFile(id, file);
       }
       sink.withIndent(() {
-        // TODO(scheglov): Update these tests to check only relevant features
-        // instead of snapshotting every enabled language feature.
-        if (configuration.withEnabledFeatures) {
-          var contextFeatures = analysisOptions.contextFeatures;
-          var enabledFeatures = ExperimentStatus.knownFeatures.values
-              .where((f) => contextFeatures.isEnabled(f))
-              .toList();
-          sink.writeElements('features', enabledFeatures, (feature) {
-            sink.writelnWithIndent(feature);
-          });
-        }
+        _writeFeatures(analysisOptions.contextFeatures);
         if (configuration.withLintRules) {
           sink.writeElements('lintRules', analysisOptions.lintRules, (
             lintRule,
@@ -5527,6 +5701,17 @@ class _AnalysisContextCollectionPrinter {
         var id = _idOfWorkspacePackage(workspacePackage);
         sink.writelnWithIndent(id);
       }
+    });
+  }
+
+  /// Writes the state of only the features listed in the configuration.
+  ///
+  /// So, expectations change only when the state of these features changes,
+  /// not when unrelated features are added, or any feature is released.
+  void _writeFeatures(FeatureSet features) {
+    sink.writeElements('features', configuration.withFeatures, (feature) {
+      var state = features.isEnabled(feature) ? 'enabled' : 'disabled';
+      sink.writelnWithIndent('${feature.enableString}: $state');
     });
   }
 
@@ -5634,8 +5819,8 @@ class _AnalysisContextCollectionPrinter {
 class _AnalysisContextCollectionPrinterConfiguration {
   bool withAnalysisOptionsWithoutFiles = false;
   bool withEmptyContextRoots = false;
-  bool withEnabledFeatures = false;
   bool withExcludedPaths = false;
+  List<ExperimentalFeature> withFeatures = [];
   bool withLintRules = false;
   bool withLegacyPlugins = false;
   bool withIncludedPaths = false;

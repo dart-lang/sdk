@@ -736,7 +736,6 @@ import 'prefix_shadowed_by_local_declaration_test.dart'
 import 'private_collision_in_mixin_application_test.dart'
     as private_collision_in_mixin_application;
 import 'private_optional_parameter_test.dart' as private_optional_parameter;
-import 'private_setter_test.dart' as private_setter;
 import 'receiver_of_type_never_test.dart' as receiver_of_type_never;
 import 'record_literal_one_positional_no_trailing_comma_test.dart'
     as record_literal_one_positional_no_trailing_comma;
@@ -870,19 +869,15 @@ import 'undefined_constructor_in_initializer_default_test.dart'
     as undefined_constructor_in_initializer_default;
 import 'undefined_constructor_in_initializer_test.dart'
     as undefined_constructor_in_initializer;
-import 'undefined_enum_constant_test.dart' as undefined_enum_constant;
 import 'undefined_enum_constructor_named_test.dart'
     as undefined_enum_constructor_named;
 import 'undefined_enum_constructor_unnamed_test.dart'
     as undefined_enum_constructor_unnamed;
-import 'undefined_extension_getter_test.dart' as undefined_extension_getter;
 import 'undefined_extension_member_read_test.dart'
     as undefined_extension_member_read;
 import 'undefined_extension_member_write_test.dart'
     as undefined_extension_member_write;
-import 'undefined_extension_method_test.dart' as undefined_extension_method;
 import 'undefined_extension_operator_test.dart' as undefined_extension_operator;
-import 'undefined_extension_setter_test.dart' as undefined_extension_setter;
 import 'undefined_getter_test.dart' as undefined_getter;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
 import 'undefined_identifier_await_test.dart' as undefined_identifier_await;
@@ -895,6 +890,9 @@ import 'undefined_referenced_parameter_test.dart'
     as undefined_referenced_parameter;
 import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
+import 'undefined_static_member_read_test.dart' as undefined_static_member_read;
+import 'undefined_static_member_write_test.dart'
+    as undefined_static_member_write;
 import 'undefined_super_member_read_test.dart' as undefined_super_member_read;
 import 'undefined_super_member_write_test.dart' as undefined_super_member_write;
 import 'undefined_super_operator_test.dart' as undefined_super_operator;
@@ -1433,7 +1431,6 @@ main() {
     prefix_shadowed_by_local_declaration.main();
     private_collision_in_mixin_application.main();
     private_optional_parameter.main();
-    private_setter.main();
     receiver_of_type_never.main();
     record_literal_one_positional_no_trailing_comma.main();
     recursive_compile_time_constant.main();
@@ -1517,15 +1514,11 @@ main() {
     undefined_class.main();
     undefined_constructor_in_initializer_default.main();
     undefined_constructor_in_initializer.main();
-    undefined_enum_constant.main();
     undefined_enum_constructor_named.main();
     undefined_enum_constructor_unnamed.main();
-    undefined_extension_getter.main();
     undefined_extension_member_read.main();
     undefined_extension_member_write.main();
-    undefined_extension_method.main();
     undefined_extension_operator.main();
-    undefined_extension_setter.main();
     undefined_getter.main();
     undefined_hidden_name.main();
     undefined_identifier_await.main();
@@ -1537,6 +1530,8 @@ main() {
     undefined_referenced_parameter.main();
     undefined_setter.main();
     undefined_shown_name.main();
+    undefined_static_member_read.main();
+    undefined_static_member_write.main();
     undefined_super_member_read.main();
     undefined_super_member_write.main();
     undefined_super_operator.main();

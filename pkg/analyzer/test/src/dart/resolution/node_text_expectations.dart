@@ -32,17 +32,17 @@ class NodeTextExpectationsCollector {
     ),
     _AssertMethod(
       className: 'AnalysisContextCollectionTest',
-      methodName: '_assertCollectionText',
-      argument: _ArgumentIndex(1),
-    ),
-    _AssertMethod(
-      className: 'AnalysisContextCollectionTest',
       methodName: '_assertContextRootsText',
       argument: _ArgumentNamed('expected'),
     ),
     _AssertMethod(
       className: 'AnalysisContextCollectionTest',
       methodName: '_assertWorkspaceCollectionText',
+      argument: _ArgumentIndex(1),
+    ),
+    _AssertMethod(
+      className: 'AnalysisContextCollectionTest',
+      methodName: '_assertCollectionText',
       argument: _ArgumentIndex(1),
     ),
     _AssertMethod(

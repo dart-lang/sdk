@@ -168,29 +168,6 @@ void f(A a) {
 ''');
   }
 
-  test_prefixedIdentifier_staticField_externalFinal() async {
-    await resolveTestCodeWithDiagnostics(r'''
-abstract class A {
-  external static final int x;
-}
-
-void f() {
-  A.x = 0;
-//  ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
-  A.x += 0;
-//  ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
-  ++A.x;
-//    ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
-  A.x++;
-//  ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
-}
-''');
-  }
-
   test_prefixedIdentifier_staticField_lateFinal() async {
     await resolveTestCodeWithDiagnostics(r'''
 abstract class A {
@@ -202,29 +179,6 @@ void f() {
   A.x += 0;
   ++A.x;
   A.x++;
-}
-''');
-  }
-
-  test_prefixedIdentifier_staticField_lateFinal_hasInitializer() async {
-    await resolveTestCodeWithDiagnostics(r'''
-abstract class A {
-  static late final int x = 0;
-}
-
-void f() {
-  A.x = 0;
-//  ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
-  A.x += 0;
-//  ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
-  ++A.x;
-//    ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
-  A.x++;
-//  ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
 }
 ''');
   }

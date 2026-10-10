@@ -585,8 +585,7 @@ class MethodInvocationResolver with ScopeHelpers {
           domain: ExtensionOverrideLookupDomain(receiver.element),
           name: name,
           syntax: ReadSyntax.invocation,
-          foundInstead: _extensionResolver.getOverrideMemberForFailedLookup(
-            receiver,
+          foundInstead: receiver.element.getMemberForFailedLookup(
             Name(_definingLibraryUri, name.lexeme),
           ),
         );
@@ -904,7 +903,9 @@ class MethodInvocationResolver with ScopeHelpers {
         domain: StaticLookupDomain(declaration),
         name: name,
         syntax: ReadSyntax.invocation,
-        foundInstead: null,
+        foundInstead: declaration.getMemberForFailedLookup(
+          Name(_definingLibraryUri, name.lexeme),
+        ),
       );
     }
     _resolveNamedInvocation(

@@ -18,7 +18,7 @@ main() {
   try {
     A.unknown = p(2);
     //^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_WRITE
     // [cfe] Setter not found: 'unknown'.
   } catch (_) {
     caught = true;

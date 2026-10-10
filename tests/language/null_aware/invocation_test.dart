@@ -129,12 +129,12 @@ main() {
   //                                    ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                      ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] Method not found: 'C.toString'.
   Expect.throwsNoSuchMethodError(() => h.C?.toString());
   //                                      ^^
   // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
   //                                        ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] Method not found: 'C.toString'.
 }

@@ -1117,7 +1117,7 @@ extension E on Type {
 void f() {
   Fn<int>.foo += 1;
 //        ^^^
-// [diag.undefinedGetterOnFunctionType] The getter 'foo' isn't defined for the 'Fn' function type.
+// [diag.undefinedStaticMemberReadNoStaticMembers] The function type 'Fn' doesn't have a static member named 'foo'.
 }
 ''');
 
@@ -1200,7 +1200,7 @@ typedef Fn<T> = void Function(T);
 void bar() {
   Fn<int>.foo = 7;
 //        ^^^
-// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'Fn' function type.
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The function type 'Fn' doesn't have a static setter named 'foo'.
 }
 
 extension E on Type {
@@ -1379,7 +1379,7 @@ extension E on Type {
 void f() {
   a.Fn<int>.foo = 1;
 //          ^^^
-// [diag.undefinedSetterOnFunctionType] The setter 'foo' isn't defined for the 'a.Fn' function type.
+// [diag.undefinedStaticMemberWriteNoStaticMembers] The function type 'a.Fn' doesn't have a static setter named 'foo'.
 }
 ''');
 
@@ -4469,7 +4469,7 @@ class A {
 void f() {
   A.x = 2;
 //  ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
+// [diag.undefinedStaticMemberWriteGetterOnly] There's a static getter 'x' in the class 'A', but no setter.
 }
 ''');
 

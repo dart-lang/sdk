@@ -541,7 +541,7 @@ void test() {
 ''',
       filter: (error) {
         // Filter to ignore enum_without_constants
-        return error.diagnosticCode == diag.undefinedEnumConstant;
+        return error.diagnosticCode == diag.undefinedStaticMemberReadNotFound;
       },
     );
   }

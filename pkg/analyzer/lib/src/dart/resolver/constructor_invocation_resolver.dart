@@ -34,8 +34,9 @@ class ConstructorInvocationResolver {
     required DotShorthandContextResolutionImpl shorthandContext,
   }) {
     var dotShorthandContextType = switch (shorthandContext) {
-      ValidDotShorthandContextResolutionImpl(:var lookupType) => lookupType,
+      MissingDotShorthandContextResolutionImpl() => InvalidTypeImpl.instance,
       InvalidDotShorthandContextResolutionImpl() => InvalidTypeImpl.instance,
+      ValidDotShorthandContextResolutionImpl(:var lookupType) => lookupType,
     };
 
     if (shorthandContext case ValidDotShorthandContextResolutionImpl(

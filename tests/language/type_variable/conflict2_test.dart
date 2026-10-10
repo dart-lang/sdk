@@ -33,7 +33,7 @@ class C<T> {
   // Class 'C' has no static method 'T': NoSuchMethodError.
   static qux() => C.T();
   //                ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] Member not found: 'C.T'.
 
   // Class '_Type' has no instance method 'call': NoSuchMethodError.

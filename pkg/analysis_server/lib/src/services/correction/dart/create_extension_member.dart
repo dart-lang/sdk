@@ -40,12 +40,7 @@ class CreateExtensionGetter extends _CreateExtensionMember {
         nameNode.annotationContainingName != null) {
       return;
     }
-    if (!nameNode.inGetterContext()) {
-      return;
-    }
-    // An invoked name needs a method, which `CreateExtensionMethod` creates.
-    if (nameNode.parent case MethodInvocation(:var methodName)
-        when methodName == nameNode) {
+    if (!nameNode.inGetterContext() || nameNode.isInvocationName) {
       return;
     }
 
