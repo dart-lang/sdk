@@ -193,7 +193,7 @@ class C<T> {}
 ''');
     await assertHasAssist('''
 C<int> f() {
-  var c = C<int>.new()..toString();
+  var c = C<int>()..toString();
   return c;
 }
 class C<T> {}
@@ -373,7 +373,7 @@ E f() {
     await assertHasAssist('''
 class E {}
 E f() {
-  var e = E.new();
+  var e = E();
   return e;
 }
 ''');
