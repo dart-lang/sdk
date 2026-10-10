@@ -8,6 +8,7 @@ import 'dart:typed_data';
 
 import 'package:analyzer/src/dart/analysis/single_file_byte_store.dart';
 import 'package:analyzer/src/dart/analysis/xxh64.dart';
+import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -692,12 +693,19 @@ class SingleFileByteStoreTest {
     expect(store.statistics.evictedEntryCount, 0);
     expect(store.statistics.capacityDiscardedBatchCount, 0);
 
+    // Expected values, generated once: generating them in each corruption
+    // iteration below takes longer than everything else in this test.
+    var values = [
+      for (var i = 0; i < valueLengths.length; i++)
+        _value(valueLengths[i], startByte: i),
+    ];
+
     // Verify every value after reopening before taking the clean snapshot.
     _open();
-    for (var i = 0; i < valueLengths.length; i++) {
-      expect(
+    for (var i = 0; i < values.length; i++) {
+      _expectBytes(
         store.get('key_$i'),
-        _value(valueLengths[i], startByte: i),
+        values[i],
         reason: 'key_$i in clean storage',
       );
     }
@@ -719,11 +727,11 @@ class SingleFileByteStoreTest {
       expect(
         () {
           _open();
-          for (var i = 0; i < valueLengths.length; i++) {
+          for (var i = 0; i < values.length; i++) {
             var key = 'key_$i';
             var value = store.get(key);
             if (value != null) {
-              expect(value, _value(valueLengths[i], startByte: i), reason: key);
+              _expectBytes(value, values[i], reason: key);
             }
           }
         },
@@ -917,6 +925,20 @@ class SingleFileByteStoreTest {
     return Uint8List.fromList(
       List.generate(length, (index) => (index + startByte) & 0xff),
     );
+  }
+
+  /// Like `expect(actual, expected)`, but fast for large equal values.
+  ///
+  /// The `equals` matcher formats a location string for every element it
+  /// compares, which dominates tests that compare megabytes many times.
+  static void _expectBytes(
+    Uint8List? actual,
+    Uint8List expected, {
+    String? reason,
+  }) {
+    if (!const ListEquality<int>().equals(actual, expected)) {
+      expect(actual, expected, reason: reason);
+    }
   }
 }
 
