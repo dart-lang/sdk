@@ -481,7 +481,7 @@ void test(E e) {
 ''',
       filter: (error) {
         // Filter to ignore enum_without_constants
-        return error.diagnosticCode == diag.undefinedGetter;
+        return error.diagnosticCode == diag.undefinedInstanceMemberReadNotFound;
       },
     );
   }

@@ -364,42 +364,42 @@ void rhsNeedsToBeShorthand(
 void objectContextType(StaticMember member, ConstructorWithNonFinal ctor) {
   if ((member as Object) == .member().field) print('not ok');
   //                         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((member as Object) == .member().method()) print('not ok');
   //                         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((member as Object) == .member().method().field) print('not ok');
   //                         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((member as Object) == .member().field.method()) print('not ok');
   //                         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((member as Object) != .member().field) print('not ok');
   //                         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((member as Object) != .member().method()) print('not ok');
   //                         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((member as Object) != .member().method().field) print('not ok');
   //                         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((member as Object) != .member().field.method()) print('not ok');
   //                         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   // The following shorthands have the context type of `Object` instead of
@@ -414,7 +414,7 @@ void objectContextType(StaticMember member, ConstructorWithNonFinal ctor) {
   //                           ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
   //                              ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 
   if ((ctor as Object) == .new(1).method()) print('not ok');
   //                          ^
@@ -422,7 +422,7 @@ void objectContextType(StaticMember member, ConstructorWithNonFinal ctor) {
   //                           ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
   //                              ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 
   if ((ctor as Object) == .new(1).method().field) print('not ok');
   //                          ^
@@ -430,7 +430,7 @@ void objectContextType(StaticMember member, ConstructorWithNonFinal ctor) {
   //                           ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
   //                              ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 
   if ((ctor as Object) == .new(1).field.method()) print('not ok');
   //                          ^
@@ -438,7 +438,7 @@ void objectContextType(StaticMember member, ConstructorWithNonFinal ctor) {
   //                           ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
   //                              ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 
   if ((ctor as Object) != .new(1).field) print('not ok');
   //                          ^
@@ -446,7 +446,7 @@ void objectContextType(StaticMember member, ConstructorWithNonFinal ctor) {
   //                           ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
   //                              ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 
   if ((ctor as Object) != .new(1).method()) print('not ok');
   //                          ^
@@ -454,7 +454,7 @@ void objectContextType(StaticMember member, ConstructorWithNonFinal ctor) {
   //                           ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
   //                              ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 
   if ((ctor as Object) != .new(1).method().field) print('not ok');
   //                          ^
@@ -462,7 +462,7 @@ void objectContextType(StaticMember member, ConstructorWithNonFinal ctor) {
   //                           ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
   //                              ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 
   if ((ctor as Object) != .new(1).field.method()) print('not ok');
   //                          ^
@@ -470,5 +470,5 @@ void objectContextType(StaticMember member, ConstructorWithNonFinal ctor) {
   //                           ^
   // [analyzer] COMPILE_TIME_ERROR.EXTRA_POSITIONAL_ARGUMENTS
   //                              ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 }

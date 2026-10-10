@@ -84,8 +84,6 @@ class BulkFixProcessor {
   nonLintMultiProducerMap = {
     diag.argumentTypeNotAssignable: [DataDriven.new],
     diag.castToNonType: [DataDriven.new],
-    diag.dotShorthandUndefinedGetter: [DataDriven.new],
-    diag.dotShorthandUndefinedInvocation: [DataDriven.new],
     diag.extendsNonClass: [DataDriven.new],
     // TODO(brianwilkerson): The following fix fails if an invocation of the
     //  function is the argument that needs to be removed.
@@ -111,12 +109,13 @@ class BulkFixProcessor {
     diag.undefinedClass: [DataDriven.new],
     diag.undefinedExtensionMemberReadNotFound: [DataDriven.new],
     diag.undefinedFunction: [DataDriven.new],
-    diag.undefinedGetter: [DataDriven.new],
     diag.undefinedIdentifier: [DataDriven.new],
+    diag.undefinedInstanceMemberReadNotFound: [DataDriven.new],
     diag.undefinedMethod: [DataDriven.new],
     diag.undefinedNamedParameter: [DataDriven.new],
     diag.undefinedSetter: [DataDriven.new],
     diag.undefinedStaticMemberReadNotFound: [DataDriven.new],
+    diag.undefinedStaticMemberReadNotFoundDotShorthand: [DataDriven.new],
     diag.undefinedStaticMemberWriteNotFound: [DataDriven.new],
     diag.wrongNumberOfTypeArguments: [DataDriven.new],
     diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],

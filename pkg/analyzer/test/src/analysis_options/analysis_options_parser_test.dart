@@ -630,6 +630,20 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_dotShorthandUndefinedMember() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    dot_shorthand_undefined_member: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    dot_shorthand_undefined_member: ignore
+''');
+  }
+
   test_analyzer_errors_removed_pluginsInInnerOptions() {
     // TODO(scheglov): Remove this test together with the
     // `PLUGINS_IN_INNER_OPTIONS` entry in `_DiagnosticOptions.removedCodeNames`
@@ -728,6 +742,20 @@ analyzer:
 AnalysisOptionsImpl
   errorProcessors
     undefined_extension_setter: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedGetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_getter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_getter: ignore
 ''');
   }
 

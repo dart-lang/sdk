@@ -4471,7 +4471,7 @@ V1: MethodInvocation
 main() {
   42.foo(0);
 //   ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'int'.
 }
 ''');
 
@@ -4523,7 +4523,7 @@ main() {
   var v = () {};
   v.foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Null Function()'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Null Function()'.
 }
 ''');
 
@@ -4709,7 +4709,7 @@ V1: MethodInvocation
 main(Object o) {
   o.call();
 //  ^^^^
-// [diag.undefinedMethod] The method 'call' isn't defined for the type 'Object'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'call' isn't defined for the type 'Object'.
 }
 ''');
   }
@@ -4775,7 +4775,7 @@ class C {
 main() {
   C..foo();
 //   ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }
@@ -7535,7 +7535,7 @@ extension type X(B it) implements A {}
 void f(X x) {
   x.foo();
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'X'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'X'.
 }
 ''');
 

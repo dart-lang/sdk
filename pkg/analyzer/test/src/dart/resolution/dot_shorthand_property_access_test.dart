@@ -1038,8 +1038,8 @@ class C { }
 
 void main() {
   C Function() c = .member;
-//                 ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//                  ^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'C Function()' doesn't have static members or constructors.
   print(c);
 }
 ''');
@@ -1072,8 +1072,8 @@ import 'dart:async';
 class C {}
 
 FutureOr<C Function()> f() => .member;
-//                            ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//                             ^^^^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'FutureOr<C Function()>' doesn't have static members or constructors.
 ''');
 
     var node = result.findNode.singleDotShorthandNameExpression;
@@ -1133,7 +1133,7 @@ class C { }
 void main() {
   C c = .getter;
 //       ^^^^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'getter' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'getter'.
   print(c);
 }
 ''');
@@ -1168,7 +1168,7 @@ class C {
 void main() {
   C c = .new;
 //       ^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'new' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'new'.
   print(c);
 }
 ''');
@@ -1203,7 +1203,7 @@ class C {
 void main() {
   C c = .value;
 //       ^^^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'value' isn't defined for the context type 'C'.
+// [diag.undefinedStaticMemberReadSetterOnly] There's a static setter 'value' in the class 'C', but no getter.
   print(c);
 }
 ''');
@@ -2084,8 +2084,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
-//    ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2129,8 +2129,8 @@ import 'dart:async';
 import 'a.dart';
 
 FutureOr<Public> f() => .getter;
-//                      ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//                       ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
 ''');
 
     var node = result.findNode.singleDotShorthandNameExpression;
@@ -2211,8 +2211,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .two;
-//    ^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2298,8 +2298,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
-//    ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2388,8 +2388,8 @@ import 'a.dart';
 void main() {
   var x = p;
   x = .getter;
-//    ^^^^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
+//     ^^^^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_Private' is declared in 'package:test/a.dart', but private names are visible only in their own library.
   print(x);
 }
 ''');
@@ -2666,8 +2666,9 @@ class C {}
 
 C Function() f() => .new<int>;
 //                  ^^^^
-// [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 // [diag.disallowedTypeInstantiationExpression] Only a generic type, generic function, generic instance method, or generic constructor can have type arguments.
+//                   ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'C Function()' doesn't have static members or constructors.
 ''');
     var node = result.findNode.singleFunctionInstantiation;
     assertResolvedNodeText(node, r'''
@@ -2780,7 +2781,7 @@ V1: FunctionReference
     var result = await resolveTestCodeWithDiagnostics(r'''
 int f() => .foo;
 //          ^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'foo' isn't defined for the context type 'int'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'int' doesn't have a static member or constructor named 'foo'.
 ''');
 
     var node = result.findNode.singleDotShorthandNameExpression;
@@ -2808,7 +2809,7 @@ V1: DotShorthandPropertyAccess
     var result = await resolveTestCodeWithDiagnostics(r'''
 bool f(int x) => x == .foo;
 //                     ^^^
-// [diag.dotShorthandUndefinedGetter] The static getter 'foo' isn't defined for the context type 'int'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'int' doesn't have a static member or constructor named 'foo'.
 ''');
 
     var node = result.findNode.singleDotShorthandNameExpression;

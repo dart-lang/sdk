@@ -87,6 +87,10 @@ abstract final class _DiagnosticOptions {
     'UNDEFINED_EXTENSION_GETTER',
     'UNDEFINED_EXTENSION_METHOD',
     'UNDEFINED_EXTENSION_SETTER',
+    // Dot shorthands report `UNDEFINED_STATIC_MEMBER_READ`.
+    'DOT_SHORTHAND_UNDEFINED_MEMBER',
+    // Instance members report `UNDEFINED_INSTANCE_MEMBER_READ`.
+    'UNDEFINED_GETTER',
   };
 
   static Set<String> currentLintCodeNames() {

@@ -19,7 +19,7 @@ const var1 = fn();
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn() => const A(1).x;
 //                     ^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 // [cfe] The getter 'x' isn't defined for the type 'A'.
 
 const var2 = fn2();
@@ -29,7 +29,7 @@ int fn2() {
   var x = const A(1);
   return x.x;
   //       ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'x' isn't defined for the type 'A'.
 }
 
@@ -37,5 +37,5 @@ const var3 = const A(1).x;
 //           ^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_PROPERTY_ACCESS
 //                      ^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 // [cfe] The getter 'x' isn't defined for the type 'A'.

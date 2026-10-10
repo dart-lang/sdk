@@ -13,7 +13,7 @@ void f(int i) {
     i.abs();
     i.bogus();
     //^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bogus' isn't defined for the type 'int'.
   }
 }

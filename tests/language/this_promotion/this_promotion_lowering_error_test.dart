@@ -63,7 +63,7 @@ class ClassTest extends A {
 
     this.bOnly();
     //   ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'ClassTest'.
   }
 }
@@ -102,7 +102,7 @@ mixin M on A {
 
     this.bOnly();
     //   ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'M'.
   }
 }
@@ -141,7 +141,7 @@ extension Ext on A {
 
     this.bOnly();
     //   ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'A'.
   }
 }
@@ -199,7 +199,7 @@ extension type E(ClassTest r) implements C {
 
     this.bOnly();
     //   ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'E'.
   }
 }
@@ -238,7 +238,7 @@ extension type F(M r) implements C {
 
     this.bOnly();
     //   ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'bOnly' isn't defined for the type 'F'.
   }
 }

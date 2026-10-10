@@ -23,11 +23,11 @@ main() {
   // Private extensions can't be used.
   value.bar;
   //    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'bar' isn't defined for the type 'String'.
 
   value.fn;
   //    ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'fn' isn't defined for the type 'String'.
 }

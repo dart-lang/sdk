@@ -883,7 +883,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 //                             ^^
 // [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
 //                                           ^^^^^^^^^^^
-// [diag.undefinedMethod] The method 'toLowerCase' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'toLowerCase' isn't defined for the type 'int'.
         Function2<String, String> l4 = (x) => x.toLowerCase();
 //                                ^^
 // [diag.unusedLocalVariable] The value of the local variable 'l4' isn't used.
@@ -1107,7 +1107,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     _TestInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.abs();
 //                                     ^^^
-// [diag.undefinedMethod] The method 'abs' isn't defined for the type 'FutureOr<int>'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'abs' isn't defined for the type 'FutureOr<int>'.
     ''');
     _isInvalidType(invoke.typeOrThrow);
   }
@@ -1117,7 +1117,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     _TestInvocation invoke = await _testFutureOr(r'''
     dynamic test(FutureOr<int> x) => x.then((x) => x);
 //                                     ^^^^
-// [diag.undefinedMethod] The method 'then' isn't defined for the type 'FutureOr<int>'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'then' isn't defined for the type 'FutureOr<int>'.
     ''');
     _isInvalidType(invoke.typeOrThrow);
   }

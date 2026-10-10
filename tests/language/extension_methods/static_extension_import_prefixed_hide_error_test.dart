@@ -12,7 +12,7 @@ void main() {
   Object o = i;
   i.onInt;
   //^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'onInt' isn't defined for the type 'int'.
   i.onObject;
   o.onObject;

@@ -79,6 +79,77 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_found_dotShorthandMethodInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static C foo() => C();
+}
+
+C f() => .foo();
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: ExecutableInvocationResolution
+    element: <testLibrary>::@class::C::@method::foo
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::C::@method::foo
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_found_dotShorthandNameExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static C get foo => C();
+}
+
+C f() => .foo;
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: GetterInvocationResolution
+    element: <testLibrary>::@class::C::@getter::foo
+    invokeType: C Function()
+    type: C
+  staticType: C
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::C::@getter::foo
+    staticType: C
+  staticType: C
+''');
+  }
+
   test_found_ifNullAssignment() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -332,6 +403,24 @@ V1: PrefixedIdentifier
 ''');
   }
 
+  test_found_propertyExtraction_externalField() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  external static int x;
+}
+int f() => A.x;
+''');
+  }
+
+  test_found_propertyExtraction_externalFinalField() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  external static final int x;
+}
+int f() => A.x;
+''');
+  }
+
   test_found_propertyExtraction_inEnum() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -486,6 +575,17 @@ V1: PrefixedIdentifier
     staticType: int
   element: <testLibrary>::@mixin::M::@getter::foo
   staticType: int
+''');
+  }
+
+  test_found_propertyExtraction_nullAware() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  static var x;
+}
+var a = A?.x;
+//       ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 ''');
   }
 
@@ -808,6 +908,150 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_instanceMember_dotShorthandMethodInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  C foo() => this;
+}
+
+C f() => .foo();
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_instanceMember_dotShorthandMethodInvocation_setter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  set foo(C _) {}
+}
+
+C f() => .foo();
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_instanceMember_dotShorthandNameExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  C get foo => this;
+}
+
+C f() => .foo;
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <testLibrary>::@class::C::@getter::foo
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@class::C::@getter::foo
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_instanceMember_dotShorthandNameExpression_setter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  set foo(C _) {}
+}
+
+C f() => .foo;
+//        ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
   test_instanceMember_ifNullAssignment() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -1071,6 +1315,45 @@ V1: PrefixedIdentifier
 ''');
   }
 
+  test_instanceMember_propertyExtraction_setter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  set foo(int _) {}
+}
+
+void f() {
+  C.foo;
+//  ^^^
+// [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: StaticQualifier
+    name: C
+    element: <testLibrary>::@class::C
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: C
+    element: <testLibrary>::@class::C
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_noStaticMembers_compoundAssignment() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 typedef F = void Function();
@@ -1127,6 +1410,153 @@ V1: AssignmentExpression
   writeElement: <null>
   writeType: InvalidType
   element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_dotShorthandMethodInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void Function() f() => .foo();
+//                      ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'void Function()' doesn't have static members or constructors.
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: void Function()
+    lookupType: void Function()
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_dotShorthandNameExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void Function() f() => .foo;
+//                      ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'void Function()' doesn't have static members or constructors.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: void Function()
+    lookupType: void Function()
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_dotShorthandNameExpression_invalidType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+Unknown f() => .foo;
+// [diag.undefinedClass][column 1][length 7] Undefined class 'Unknown'.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: InvalidType
+    lookupType: InvalidType
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_dotShorthandNameExpression_record() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+(int,) f() => .foo;
+//             ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type '(int,)' doesn't have static members or constructors.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: (int,)
+    lookupType: (int,)
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_noStaticMembers_dotShorthandNameExpression_typeParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+T f<T>() => .foo;
+//           ^^^
+// [diag.undefinedStaticMemberReadNoStaticMembersDotShorthand] The context type 'T' doesn't have static members or constructors.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: T
+    lookupType: T
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
   staticType: InvalidType
 ''');
   }
@@ -1247,7 +1677,7 @@ typedef F = void Function();
 void f() {
   F.foo();
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
 
@@ -1561,6 +1991,226 @@ V1: AssignmentExpression
   writeElement: <null>
   writeType: InvalidType
   element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_notFound_dotShorthandMethodInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+C f() => .foo();
+//        ^^^
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'foo'.
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_notFound_dotShorthandNameExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+C f() => .foo;
+//        ^^^
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'foo'.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_notFound_dotShorthandNameExpression_futureOr() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:async';
+
+class C {}
+
+FutureOr<C> f() => .foo;
+//                  ^^^
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'foo'.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: FutureOr<C>
+    lookupType: C
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_notFound_dotShorthandNameExpression_inEnum() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+enum E { a }
+
+E f() => .foo;
+//        ^^^
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'E' doesn't have a value or static member named 'foo'.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: E
+    lookupType: E
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_notFound_dotShorthandNameExpression_inExtensionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type X(int it) {}
+
+X f() => .foo;
+//        ^^^
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'X' doesn't have a static member or constructor named 'foo'.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: X
+    lookupType: X
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_notFound_dotShorthandNameExpression_inMixin() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+mixin M {}
+
+M f() => .foo;
+//        ^^^
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'M' doesn't have a static member named 'foo'.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: M
+    lookupType: M
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_notFound_dotShorthandNameExpression_nullable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+C? f() => .foo;
+//         ^^^
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'foo'.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C?
+    lookupType: C?
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
   staticType: InvalidType
 ''');
   }
@@ -2279,6 +2929,174 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_private_dotShorthandMethodInvocation() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class C {
+  static C _foo() => C();
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
+
+C f() => ._foo();
+//        ^^^^
+// [diag.undefinedStaticMemberReadPrivate] The member '_foo' is declared in 'package:test/a.dart', but private names are visible only in their own library.
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: _foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: _foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_private_dotShorthandMethodInvocation_privateDeclaration() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class _C {
+  static _C foo() => _C();
+}
+
+void g(_C c) {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
+
+void f() {
+  g(.foo());
+//   ^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_C' is declared in 'package:test/a.dart', but private names are visible only in their own library.
+}
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _C
+    lookupType: _C
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  correspondingParameter: package:test/a.dart::@function::g::@formalParameter::c
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  correspondingParameter: package:test/a.dart::@function::g::@formalParameter::c
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_private_dotShorthandNameExpression() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class C {
+  static C get _foo => C();
+}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
+
+C f() => ._foo;
+//        ^^^^
+// [diag.undefinedStaticMemberReadPrivate] The member '_foo' is declared in 'package:test/a.dart', but private names are visible only in their own library.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: _foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: _foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_private_dotShorthandNameExpression_privateDeclaration() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class _C {
+  static _C get foo => _C();
+}
+
+void g(_C c) {}
+''');
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
+
+void f() {
+  g(.foo);
+//   ^^^
+// [diag.undefinedStaticMemberReadPrivateDotShorthand] The context type '_C' is declared in 'package:test/a.dart', but private names are visible only in their own library.
+}
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: InvalidDotShorthandContextResolution
+    contextType: _C
+    lookupType: _C
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  correspondingParameter: package:test/a.dart::@function::g::@formalParameter::c
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  correspondingParameter: package:test/a.dart::@function::g::@formalParameter::c
+  staticType: InvalidType
+''');
+  }
+
   test_private_ifNullAssignment() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class C {
@@ -2590,6 +3408,78 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@class::C::@setter::foo
   writeType: int
   element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_setterOnly_dotShorthandMethodInvocation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static set foo(C _) {}
+}
+
+C f() => .foo();
+//        ^^^
+// [diag.undefinedStaticMemberReadSetterOnly] There's a static setter 'foo' in the class 'C', but no getter.
+''');
+
+    var node = result.findNode.singleDotShorthandMethodInvocation;
+    assertResolvedNodeText(node, r'''
+DotShorthandMethodInvocation
+  period: .
+  name: foo
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidInvocationResolution
+    type: InvalidType
+    recovery: <null>
+  staticType: InvalidType
+V1: DotShorthandInvocation
+  period: .
+  memberName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_setterOnly_dotShorthandNameExpression() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  static set foo(C _) {}
+}
+
+C f() => .foo;
+//        ^^^
+// [diag.undefinedStaticMemberReadSetterOnly] There's a static setter 'foo' in the class 'C', but no getter.
+''');
+
+    var node = result.findNode.singleDotShorthandNameExpression;
+    assertResolvedNodeText(node, r'''
+DotShorthandNameExpression
+  period: .
+  name: foo
+  shorthandContext: ValidDotShorthandContextResolution
+    contextType: C
+    lookupType: C
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: DotShorthandPropertyAccess
+  period: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
   staticType: InvalidType
 ''');
   }

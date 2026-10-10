@@ -200,7 +200,7 @@ main() {
     //   ^^
     // [analyzer] STATIC_WARNING.INVALID_NULL_AWARE_OPERATOR
     //     ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_SETTER
     // [cfe] The getter 'v' isn't defined for the type 'B'.
     // [cfe] The setter 'v' isn't defined for the type 'B'.

@@ -106,7 +106,7 @@ main() {
     var b = new C() as B?;
     Expect.equals(1, b?.f(() => 1));
     //                  ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'f' isn't defined for the type 'B'.
   }
   {

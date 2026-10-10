@@ -150,6 +150,6 @@ void testEF(E<B> e, F<C> f) {
   r5 = (true ? e : f).e;
   r5 = (false ? e : f).f;
   //                   ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'f' isn't defined for the type 'E<B>'.
 }

@@ -51,7 +51,7 @@ int invalidPropertyFn() {
   const List<int> x = [1, 2];
   return x.invalidProperty;
   //       ^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'invalidProperty' isn't defined for the type 'List<int>'.
 }
 

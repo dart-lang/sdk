@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
@@ -62,7 +63,8 @@ class CallInvocationResolver {
             target: InvocationTargetExecutableElement(element),
           );
         } else {
-          if (result.needsGetterError || result.getter2 != null) {
+          if (result.getterOutcome == LookupOutcome.notFound ||
+              result.getter2 != null) {
             _diagnosticReporter.report(
               diag.invocationOfNonFunctionExpression.at(receiver),
             );
@@ -163,14 +165,14 @@ class CallInvocationResolver {
         }
 
         if (callElement == null) {
-          if (result.needsGetterError) {
+          if (result.getterOutcome == LookupOutcome.notFound) {
             _diagnosticReporter.report(
               diag.invocationOfNonFunctionExpression.at(function),
             );
           }
-          var type = result.isGetterInvalid
-              ? InvalidTypeImpl.instance
-              : DynamicTypeImpl.instance;
+          var type = result.getterOutcome == LookupOutcome.resolved
+              ? DynamicTypeImpl.instance
+              : InvalidTypeImpl.instance;
           _unresolved(
             node,
             type,

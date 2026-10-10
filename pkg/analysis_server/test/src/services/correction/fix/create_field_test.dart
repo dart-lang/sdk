@@ -44,7 +44,8 @@ int f(E e) {
 ''',
       filter: (diagnostic) {
         // Filter to ignore enum_without_constants
-        return diagnostic.diagnosticCode == diag.undefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedInstanceMemberReadNotFound;
       },
     );
   }
@@ -490,7 +491,8 @@ A f() {
 }
 ''',
       filter: (diagnostic) {
-        return diagnostic.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }
@@ -513,7 +515,8 @@ A f() {
 }
 ''',
       filter: (diagnostic) {
-        return diagnostic.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }

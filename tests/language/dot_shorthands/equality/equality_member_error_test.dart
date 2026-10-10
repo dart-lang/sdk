@@ -178,42 +178,42 @@ void rhsNeedsToBeShorthand(
 void objectContextType(StaticMember member, StaticMemberExt memberExt) {
   if ((member as Object) == .member()) print('not ok');
   //                         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((member as Object) == .memberType<String, int>('s')) print('not ok');
   //                         ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'memberType' isn't defined for the type 'Object'.
 
   if ((member as Object) != .member()) print('not ok');
   //                         ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((member as Object) != .memberType<String, int>('s')) print('not ok');
   //                         ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'memberType' isn't defined for the type 'Object'.
 
   if ((memberExt as Object) == .member()) print('not ok');
   //                            ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((memberExt as Object) == .memberType<String, int>('s')) print('not ok');
   //                            ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'memberType' isn't defined for the type 'Object'.
 
   if ((memberExt as Object) != .member()) print('not ok');
   //                            ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'member' isn't defined for the type 'Object'.
 
   if ((memberExt as Object) != .memberType<String, int>('s')) print('not ok');
   //                            ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'memberType' isn't defined for the type 'Object'.
 }
 

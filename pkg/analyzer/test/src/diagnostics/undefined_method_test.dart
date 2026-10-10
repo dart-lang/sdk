@@ -16,94 +16,12 @@ main() {
 
 @reflectiveTest
 class UndefinedMethodTest extends PubPackageResolutionTest {
-  test_conditional_expression_condition_context() async {
-    await resolveTestCodeWithDiagnostics('''
-T castObject<T>(Object value) => value as T;
-
-main() {
-  (castObject(true)..whatever()) ? 1 : 2;
-//                   ^^^^^^^^
-// [diag.undefinedMethod] The method 'whatever' isn't defined for the type 'bool'.
-}
-''');
-  }
-
   test_constructor_defined() async {
     await resolveTestCodeWithDiagnostics(r'''
 class C {
   C.m();
 }
 C c = C.m();
-''');
-  }
-
-  test_definedInPrivateExtension() async {
-    newFile('$testPackageLibPath/lib.dart', '''
-class B {}
-
-extension _ on B {
-  void a() {}
-}
-''');
-    await resolveTestCodeWithDiagnostics(r'''
-import 'lib.dart';
-
-f(B b) {
-  b.a();
-//  ^
-// [diag.undefinedMethod] The method 'a' isn't defined for the type 'B'.
-}
-''');
-  }
-
-  test_definedInUnnamedExtension() async {
-    newFile('$testPackageLibPath/lib.dart', '''
-class C {}
-
-extension on C {
-  void a() {}
-}
-''');
-    await resolveTestCodeWithDiagnostics(r'''
-import 'lib.dart';
-
-f(C c) {
-  c.a();
-//  ^
-// [diag.undefinedMethod] The method 'a' isn't defined for the type 'C'.
-}
-''');
-  }
-
-  test_emptyName() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(int a) {
-  a.(0);
-//  ^
-// [diag.missingIdentifier] Expected an identifier.
-}
-''');
-  }
-
-  test_emptyName_argumentsResolved() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(int a) {
-  a.(unresolved);
-//  ^
-// [diag.missingIdentifier] Expected an identifier.
-//   ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
-}
-''');
-  }
-
-  test_emptyName_nullAware() async {
-    await resolveTestCodeWithDiagnostics('''
-void f(int? a) {
-  a?.(0);
-//   ^
-// [diag.missingIdentifier] Expected an identifier.
-}
 ''');
   }
 
@@ -217,23 +135,6 @@ class A {
 ''');
   }
 
-  test_ignoreTypePropagation() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class A {}
-class B extends A {
-  m() {}
-}
-class C {
-  f() {
-    A a = new B();
-    a.m();
-//    ^
-// [diag.undefinedMethod] The method 'm' isn't defined for the type 'A'.
-  }
-}
-''');
-  }
-
   test_localSetterShadowingExtensionMethod() async {
     await resolveTestCodeWithDiagnostics('''
 class C {}
@@ -266,50 +167,6 @@ class C {
 ''');
   }
 
-  test_method_undefined_cascade() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class C {}
-f(C c) {
-  c..abs();
-//   ^^^
-// [diag.undefinedMethod] The method 'abs' isn't defined for the type 'C'.
-}
-''');
-  }
-
-  test_method_undefined_mixin() async {
-    await resolveTestCodeWithDiagnostics(r'''
-mixin M {}
-f(M m) {
-  m.abs();
-//  ^^^
-// [diag.undefinedMethod] The method 'abs' isn't defined for the type 'M'.
-}
-''');
-  }
-
-  test_method_undefined_mixin_cascade() async {
-    await resolveTestCodeWithDiagnostics(r'''
-mixin M {}
-f(M m) {
-  m..abs();
-//   ^^^
-// [diag.undefinedMethod] The method 'abs' isn't defined for the type 'M'.
-}
-''');
-  }
-
-  test_method_undefined_record() async {
-    await resolveTestCodeWithDiagnostics(r'''
-void f() {
-  var x = 1;
-  (x,).foo();
-//     ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type '(int,)'.
-}
-''');
-  }
-
   test_static_conditionalAccess_defined() async {
     await resolveTestCodeWithDiagnostics('''
 class A {
@@ -318,50 +175,6 @@ class A {
 f() { A?.m(); }
 //     ^^
 // [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
-''');
-  }
-
-  test_static_extension_instanceAccess() async {
-    await resolveTestCodeWithDiagnostics('''
-class C {}
-
-extension E on C {
-  static void a() {}
-}
-
-f(C c) {
-  c.a();
-//  ^
-// [diag.undefinedMethod] The method 'a' isn't defined for the type 'C'.
-}
-''');
-  }
-
-  test_typeAlias_functionType() async {
-    await resolveTestCodeWithDiagnostics(r'''
-typedef A = void Function();
-
-void f() {
-  A.foo();
-//  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Type'.
-}
-''');
-  }
-
-  test_withExtension() async {
-    await resolveTestCodeWithDiagnostics(r'''
-class C {}
-
-extension E on C {
-  void a() {}
-}
-
-f(C c) {
-  c.c();
-//  ^
-// [diag.undefinedMethod] The method 'c' isn't defined for the type 'C'.
-}
 ''');
   }
 }

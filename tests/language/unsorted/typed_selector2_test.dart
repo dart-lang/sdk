@@ -18,7 +18,7 @@ main() {
     // selector with a typedef as a receiver type.
     a.foo();
     //^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'foo' isn't defined for the type 'int Function(dynamic, dynamic)'.
   }
   var b = new A();

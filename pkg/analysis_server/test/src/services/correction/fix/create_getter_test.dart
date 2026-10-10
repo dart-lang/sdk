@@ -132,7 +132,8 @@ void f() {
 }
 ''',
       filter: (e) {
-        return e.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return e.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }

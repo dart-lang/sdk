@@ -694,7 +694,8 @@ E e() {
 ''',
       filter: (e) {
         // Filter to ignore enum_without_constants
-        return e.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return e.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }

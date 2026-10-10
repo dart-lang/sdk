@@ -306,6 +306,37 @@ class InheritanceManager3 {
     return interface.overridden[name];
   }
 
+  /// Returns an instance member of [type], declared in another library than
+  /// [name] and spelled like the private [name], or `null` if there is none.
+  ///
+  /// This is for reporting a failed lookup of [name]: `_foo` of another
+  /// library is a different name, so the lookup doesn't find it. The manifests
+  /// of interfaces don't include private names, so we ask the declarations,
+  /// which records requirements for private names too.
+  ///
+  /// Static members are ignored, because the lookup of instance members would
+  /// not find them even if [name] were accessible.
+  InternalExecutableElement? getPrivateMemberOfOtherLibrary(
+    InterfaceTypeImpl type,
+    Name name,
+  ) {
+    var spelling = name.forGetter.name;
+    for (var candidate in [type, ...type.element.allSupertypes]) {
+      var declaration = candidate.element;
+      if (declaration.library.uri != name.libraryUri) {
+        if (declaration.getGetter(spelling) ??
+                declaration.getMethod(spelling) ??
+                declaration.getSetter(spelling)
+            case var member?) {
+          if (!member.isStatic) {
+            return member;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   /// Returns why the lookup of [name] through `super` in [element] found no
   /// concrete member to invoke.
   ///
@@ -339,22 +370,11 @@ class InheritanceManager3 {
     }
 
     // Returns a member that `super` has, declared in another library and
-    // spelled like the private [name]. The manifests of interfaces don't
-    // include private names, so we ask the declarations, which records
-    // requirements for private names too.
+    // spelled like the private [name].
     InternalExecutableElement? getPrivateOfOtherLibrary() {
-      var spelling = name.forGetter.name;
       for (var superType in superTypes) {
-        for (var type in [superType, ...superType.element.allSupertypes]) {
-          var declaration = type.element;
-          if (declaration.library.uri != name.libraryUri) {
-            if (declaration.getGetter(spelling) ??
-                    declaration.getMethod(spelling) ??
-                    declaration.getSetter(spelling)
-                case var member?) {
-              return member;
-            }
-          }
+        if (getPrivateMemberOfOtherLibrary(superType, name) case var member?) {
+          return member;
         }
       }
       return null;

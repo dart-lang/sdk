@@ -13,7 +13,7 @@ class B<T> {
   doFunc() {
     T.func();
     //^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The method 'func' isn't defined for the type 'Type'.
   }
 }

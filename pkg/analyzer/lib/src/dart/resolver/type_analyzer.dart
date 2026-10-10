@@ -56,6 +56,7 @@ import 'package:analyzer/src/dart/resolver/logical_not_resolver.dart';
 import 'package:analyzer/src/dart/resolver/null_assertion_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -1688,12 +1689,16 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       nameErrorEntity: nameToken,
     );
 
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       lookupFailureReporter.reportReadFailure(
         domain: InstanceLookupDomain(receiverType.unwrapTypeView()),
         name: nameToken,
         syntax: ReadSyntax.reference,
-        foundInstead: null,
+        foundInstead: typePropertyResolver.getMemberForFailedRead(
+          result: result,
+          receiverType: receiverType.unwrapTypeView(),
+          name: nameToken.lexeme,
+        ),
       );
     }
 
@@ -1764,7 +1769,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       parentNode: node,
     );
 
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       diagnosticReporter.report(
         diag.undefinedOperator
             .withArguments(
@@ -5514,19 +5519,23 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       switch (shorthandContext) {
         case MissingDotShorthandContextResolutionImpl():
           diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
-        case InvalidDotShorthandContextResolutionImpl(:var contextType):
+        case InvalidDotShorthandContextResolutionImpl():
           lookupFailureReporter.reportReadFailure(
-            domain: DotShorthandLookupDomain.type(contextType),
+            domain: DotShorthandLookupDomain.invalid(shorthandContext),
             name: head.name,
             syntax: ReadSyntax.invocation,
             foundInstead: null,
           );
-        case ValidDotShorthandContextResolutionImpl():
+        case ValidDotShorthandContextResolutionImpl(:var lookupType):
           lookupFailureReporter.reportReadFailure(
             domain: DotShorthandLookupDomain.declaration(shorthandContext),
             name: head.name,
             syntax: ReadSyntax.invocation,
-            foundInstead: null,
+            foundInstead:
+                element ??
+                lookupType.element.getMemberForFailedLookup(
+                  Name(definingLibrary.uri, head.name.lexeme),
+                ),
           );
       }
       element = null;

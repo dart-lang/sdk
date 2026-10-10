@@ -12,14 +12,14 @@ main() {
   var f = new C().foo;
   var target = f.target;
   //             ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'target' isn't defined for the type 'dynamic Function()'.
   var self = f.self;
   //           ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'self' isn't defined for the type 'dynamic Function()'.
   var receiver = f.receiver;
   //               ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'receiver' isn't defined for the type 'dynamic Function()'.
 }

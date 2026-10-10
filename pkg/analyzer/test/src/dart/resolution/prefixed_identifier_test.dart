@@ -998,7 +998,7 @@ V1: PrefixedIdentifier
 void f(int a) {
   a.foo;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'int'.
 }
 ''');
 

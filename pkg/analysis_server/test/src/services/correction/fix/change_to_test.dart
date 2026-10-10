@@ -752,7 +752,8 @@ void f(A a) {
   a.foo2 += 2;
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class A {
   int get foo => 0;
   set foo(int _) {}
@@ -761,7 +762,10 @@ class A {
 void f(A a) {
   a.foo += 2;
 }
-''', filter: (e) => e.diagnosticCode == diag.undefinedGetter);
+''',
+      filter: (e) =>
+          e.diagnosticCode == diag.undefinedInstanceMemberReadNotFound,
+    );
   }
 
   Future<void> test_getterSetter_qualified_static() async {
