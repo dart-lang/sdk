@@ -111,6 +111,29 @@ class X extends A {}
     ]);
   }
 
+  test_element_allSupertypes_recursive_mixinInference() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A extends B {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'A' can't be a superinterface of itself: B, A.
+class B extends A {}
+//    ^
+// [diag.recursiveInterfaceInheritance] 'B' can't be a superinterface of itself: B, A.
+mixin M on Object {}
+
+class X extends A with M {}
+''');
+
+    assertElementTypes(result.findElement.class_('A').allSupertypes, [
+      'Object',
+    ]);
+    assertElementTypes(result.findElement.class_('X').allSupertypes, [
+      'A',
+      'M',
+      'Object',
+    ]);
+  }
+
   test_element_typeFunction_extends() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A extends Function {}

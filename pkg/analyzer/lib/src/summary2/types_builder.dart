@@ -66,6 +66,7 @@ class TypesBuilder {
       _declaration(declaration);
     }
 
+    _setDefaultSupertypes();
     _copyDeclaringFormalParametersExplicitTypes();
     _MixinsInference(_toInferMixins).perform();
     breakInterfaceCycles(_linker, nodes.declarations);
@@ -390,6 +391,30 @@ class TypesBuilder {
       element.type = _dynamicType;
     } else {
       element.type = typeAnnotation.typeOrThrow;
+    }
+  }
+
+  /// Sets `Object` as the supertype of classes without one, and as the
+  /// superclass constraint of mixins without any.
+  ///
+  /// This must happen before mixin inference, which computes and caches class
+  /// hierarchies, so that these hierarchies are computed with final supertypes.
+  void _setDefaultSupertypes() {
+    for (var builder in _linker.builders.values) {
+      var library = builder.element;
+      var objectType = library.typeProvider.objectType;
+
+      for (var classElement in library.classes) {
+        if (!classElement.isDartCoreObject) {
+          classElement.supertype ??= objectType;
+        }
+      }
+
+      for (var mixinElement in library.mixins) {
+        if (mixinElement.superclassConstraints.isEmpty) {
+          mixinElement.superclassConstraints = [objectType];
+        }
+      }
     }
   }
 
