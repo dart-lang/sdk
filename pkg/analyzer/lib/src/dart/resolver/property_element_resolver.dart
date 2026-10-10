@@ -971,7 +971,12 @@ class PropertyElementResolver with ScopeHelpers {
             domain: InstanceLookupDomain(receiverType),
             name: node.name,
             syntax: ReadSyntax.reference,
-            foundInstead: null,
+            foundInstead: _typeAnalyzer.typePropertyResolver
+                .getMemberForFailedRead(
+                  result: result,
+                  receiverType: receiverType,
+                  name: node.name.lexeme,
+                ),
           );
         }
 
@@ -1150,7 +1155,12 @@ class PropertyElementResolver with ScopeHelpers {
             domain: InstanceLookupDomain(receiverType),
             name: node.name,
             syntax: ReadSyntax.reference,
-            foundInstead: null,
+            foundInstead: _typeAnalyzer.typePropertyResolver
+                .getMemberForFailedRead(
+                  result: result,
+                  receiverType: receiverType,
+                  name: node.name.lexeme,
+                ),
           );
         }
         if (result.setterOutcome == LookupOutcome.notFound) {
@@ -1638,7 +1648,12 @@ class PropertyElementResolver with ScopeHelpers {
           domain: InstanceLookupDomain(targetType),
           name: propertyName,
           syntax: ReadSyntax.reference,
-          foundInstead: null,
+          foundInstead: _typeAnalyzer.typePropertyResolver
+              .getMemberForFailedRead(
+                result: result,
+                receiverType: targetType,
+                name: propertyName.lexeme,
+              ),
         );
       }
     }

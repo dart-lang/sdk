@@ -35,7 +35,7 @@ extension on C {
     if (this is D) {
       f(this.dProp);
       //     ^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
       // [cfe] The getter 'dProp' isn't defined for the type 'C'.
       f(dProp);
       //^^^^^

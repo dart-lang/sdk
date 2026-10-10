@@ -25,7 +25,7 @@ class C {
   void f(Pointer<Double> p) {
     p.asFunction<R>();
 //    ^^^^^^^^^^
-// [diag.undefinedMethod] The method 'asFunction' isn't defined for the type 'Pointer<Double>'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'asFunction' isn't defined for the type 'Pointer<Double>'.
   }
 }
 ''');

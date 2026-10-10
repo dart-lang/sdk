@@ -14,6 +14,6 @@ void main() {
   // [cfe] Method not found: 'OnObject'.
   o.onObject;
   //^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'onObject' isn't defined for the type 'Object'.
 }

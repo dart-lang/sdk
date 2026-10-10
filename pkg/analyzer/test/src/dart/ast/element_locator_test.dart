@@ -956,7 +956,7 @@ class A {
 void f(A a) {
   a..foo;
 //   ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type 'A', but no getter.
 }
 ''');
     var node = result.findNode.singleCascadePropertyExtraction;
@@ -972,7 +972,7 @@ class A {}
 void f(A a) {
   a..foo;
 //   ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 }
 ''');
     var node = result.findNode.singleCascadePropertyExtraction;
@@ -1949,7 +1949,7 @@ class A {
 void f(A a) {
   (a).foo;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type 'A', but no getter.
 }
 ''');
     var node = result.findNode.singleReceiverPropertyExtraction;

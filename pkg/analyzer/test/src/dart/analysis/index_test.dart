@@ -6914,10 +6914,10 @@ class A {
 // [diag.undefinedIdentifier] Undefined name 'item'.
     this.item;
 //       ^^^^
-// [diag.undefinedGetter] The getter 'item' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'item' for the type 'A', but no getter.
     (this).item;
 //         ^^^^
-// [diag.undefinedGetter] The getter 'item' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'item' for the type 'A', but no getter.
   }
 }
 ''');

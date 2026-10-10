@@ -232,6 +232,29 @@ class ExtensionMemberResolver {
     );
   }
 
+  /// Returns an instance member of an accessible extension that applies to
+  /// [type], declared in another library than [name] and spelled like the
+  /// private [name], or `null` if there is none.
+  ///
+  /// This is for reporting a failed lookup of [name], which [findExtension]
+  /// doesn't find, because `_foo` of another library is a different name.
+  /// Any applicable extension is enough, without choosing the most specific.
+  InternalExecutableElement? getPrivateMemberOfOtherLibrary(
+    TypeImpl type,
+    Name name,
+  ) {
+    var extensions = _typeAnalyzer.libraryFragment.accessibleExtensions
+        .havingPrivateMemberOfOtherLibraryWithBaseName(name)
+        .applicableTo(
+          targetLibrary: _typeAnalyzer.definingLibrary,
+          targetType: type,
+        );
+    if (extensions.firstOrNull case var extension?) {
+      return extension.getter ?? extension.setter;
+    }
+    return null;
+  }
+
   /// Perform upward inference for the override.
   void resolveOverride(
     ExtensionOverride2 node,

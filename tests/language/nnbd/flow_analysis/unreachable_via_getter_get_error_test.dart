@@ -19,7 +19,7 @@ void explicitNeverQuestionType(Object x, bool b) {
   // to `int`.
   x.isEven;
   //^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'isEven' isn't defined for the type 'Object'.
 }
 

@@ -1727,11 +1727,18 @@ undefined_extension_operator:
   status: hasFix
 undefined_function:
   status: hasFix
-undefined_getter:
-  status: hasFix
 undefined_identifier:
   status: hasFix
 undefined_identifier_await:
+  status: hasFix
+undefined_instance_member_read_not_found:
+  status: hasFix
+undefined_instance_member_read_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_instance_member_read_setter_only:
   status: hasFix
 undefined_method:
   status: hasFix

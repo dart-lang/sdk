@@ -175,7 +175,7 @@ import 'lib.dart' hide E;
 f(C c) {
   c.a;
 //  ^
-// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'C'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'a' isn't defined for the type 'C'.
 }
 ''');
   }
@@ -193,7 +193,7 @@ import 'lib.dart' show C;
 f(C c) {
   c.a;
 //  ^
-// [diag.undefinedGetter] The getter 'a' isn't defined for the type 'C'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'a' isn't defined for the type 'C'.
 }
 ''');
   }
@@ -211,7 +211,7 @@ import 'lib.dart';
 f(C c) {
   c._a;
 //  ^^
-// [diag.undefinedGetter] The getter '_a' isn't defined for the type 'C'.
+// [diag.undefinedInstanceMemberReadPrivate] The member '_a' is declared in 'package:test/lib.dart', but private names are visible only in their own library.
 }
 ''');
   }
@@ -3917,7 +3917,7 @@ extension E on dynamic {
 void f() {
   dynamic.foo;
 //        ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }
@@ -3947,7 +3947,7 @@ extension E on Never {
 void f() {
   Never.foo;
 //      ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }

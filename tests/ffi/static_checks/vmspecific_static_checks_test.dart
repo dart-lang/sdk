@@ -84,7 +84,7 @@ void testGetGeneric() {
     int result = -1;
     result = p.value;
     //         ^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'value' isn't defined for the type 'Pointer<NativeType>'.
     return result;
   }
@@ -119,7 +119,7 @@ void testGetVoid() {
 
   p2.value;
   // ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'value' isn't defined for the type 'Pointer<Void>'.
 
   calloc.free(p1);
@@ -129,7 +129,7 @@ void testGetNativeFunction() {
   Pointer<NativeFunction<Int8UnOp>> p = Pointer.fromAddress(1337);
   IntUnOp f = p.value;
   //            ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'value' isn't defined for the type 'Pointer<NativeFunction<Int8 Function(Int8)>>'.
 }
 

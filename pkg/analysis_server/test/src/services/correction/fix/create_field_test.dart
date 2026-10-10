@@ -44,7 +44,8 @@ int f(E e) {
 ''',
       filter: (diagnostic) {
         // Filter to ignore enum_without_constants
-        return diagnostic.diagnosticCode == diag.undefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedInstanceMemberReadNotFound;
       },
     );
   }

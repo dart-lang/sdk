@@ -1694,7 +1694,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         domain: InstanceLookupDomain(receiverType.unwrapTypeView()),
         name: nameToken,
         syntax: ReadSyntax.reference,
-        foundInstead: null,
+        foundInstead: typePropertyResolver.getMemberForFailedRead(
+          result: result,
+          receiverType: receiverType.unwrapTypeView(),
+          name: nameToken.lexeme,
+        ),
       );
     }
 

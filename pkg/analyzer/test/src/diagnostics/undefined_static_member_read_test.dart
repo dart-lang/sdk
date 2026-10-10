@@ -403,6 +403,24 @@ V1: PrefixedIdentifier
 ''');
   }
 
+  test_found_propertyExtraction_externalField() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  external static int x;
+}
+int f() => A.x;
+''');
+  }
+
+  test_found_propertyExtraction_externalFinalField() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  external static final int x;
+}
+int f() => A.x;
+''');
+  }
+
   test_found_propertyExtraction_inEnum() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -557,6 +575,17 @@ V1: PrefixedIdentifier
     staticType: int
   element: <testLibrary>::@mixin::M::@getter::foo
   staticType: int
+''');
+  }
+
+  test_found_propertyExtraction_nullAware() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  static var x;
+}
+var a = A?.x;
+//       ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 ''');
   }
 
@@ -1648,7 +1677,7 @@ typedef F = void Function();
 void f() {
   F.foo();
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
 

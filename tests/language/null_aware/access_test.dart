@@ -103,13 +103,13 @@ main() {
   // generated in the case of e1?.id.
   Expect.equals(null, nullC()?.bad);
   //                           ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'bad' isn't defined for the type 'C'.
   {
     B? b = new C(1) as dynamic;
     Expect.equals(1, b?.v);
     //                  ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'v' isn't defined for the type 'B'.
   }
 

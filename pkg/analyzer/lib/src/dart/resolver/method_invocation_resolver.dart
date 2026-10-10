@@ -732,7 +732,11 @@ class MethodInvocationResolver with ScopeHelpers {
         domain: InstanceLookupDomain(receiverType),
         name: name,
         syntax: ReadSyntax.invocation,
-        foundInstead: null,
+        foundInstead: _typeAnalyzer.typePropertyResolver.getMemberForFailedRead(
+          result: result,
+          receiverType: receiverType,
+          name: name.lexeme,
+        ),
       );
     }
     var invocation = _createNamedInvocation(node, receiver);

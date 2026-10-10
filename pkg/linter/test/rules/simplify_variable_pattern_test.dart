@@ -133,7 +133,7 @@ void f(Object o) {
   if (o case int(isEvenn:var isEvenn) when isEvenn) {}
 }
 ''',
-      [error(diag.undefinedGetter, 36, 7)],
+      [error(diag.undefinedInstanceMemberReadNotFound, 36, 7)],
     );
   }
 

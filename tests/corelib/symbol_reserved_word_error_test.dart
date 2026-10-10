@@ -13,7 +13,7 @@ main() {
 
   #void.foo;
   //    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] The getter 'foo' isn't defined for the type 'Symbol'.
 
   #foo.void;

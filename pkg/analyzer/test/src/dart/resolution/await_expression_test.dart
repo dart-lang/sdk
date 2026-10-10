@@ -189,7 +189,7 @@ AwaitExpression
 void f() async {
   await 0.isEven.unresolved;
 //               ^^^^^^^^^^
-// [diag.undefinedGetter] The getter 'unresolved' isn't defined for the type 'bool'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'unresolved' isn't defined for the type 'bool'.
 }
 ''');
 

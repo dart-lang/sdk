@@ -16870,29 +16870,6 @@ undefinedFunction = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String memberName: the name of the getter
-/// Type type: the type where the getter is being looked for
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String memberName,
-    required DartType type,
-  })
->
-undefinedGetter = DiagnosticWithArguments(
-  name: 'undefined_getter',
-  problemMessage: "The getter '{0}' isn't defined for the type '{1}'.",
-  correctionMessage:
-      "Try importing the library that defines '{0}', correcting the name to "
-      "the name of an existing getter, or defining a getter or field named "
-      "'{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_getter',
-  withArguments: _withArgumentsUndefinedGetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.type],
-);
-
-/// Parameters:
 /// String library: the name of the library being imported
 /// String name: the name in the hide clause that isn't defined in the library
 const DiagnosticWithArguments<
@@ -16941,6 +16918,59 @@ undefinedIdentifierAwait = DiagnosticWithoutArgumentsImpl(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_identifier_await',
   expectedTypes: [],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedInstanceMemberReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_instance_member_read',
+  problemMessage: "The member '{0}' isn't defined for the type '{1}'.",
+  correctionMessage:
+      "Try importing the library that defines '{0}', correcting the name to "
+      "the name of an existing member, or defining a method, getter, or "
+      "field named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_read_not_found',
+  withArguments: _withArgumentsUndefinedInstanceMemberReadNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedInstanceMemberReadPrivate = DiagnosticWithArguments(
+  name: 'undefined_instance_member_read',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_read_private',
+  withArguments: _withArgumentsUndefinedInstanceMemberReadPrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedInstanceMemberReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_instance_member_read',
+  problemMessage: "There's a setter '{0}' for the type '{1}', but no getter.",
+  correctionMessage: "Try defining a getter or field named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_read_setter_only',
+  withArguments: _withArgumentsUndefinedInstanceMemberReadSetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
 /// An error code indicating an undefined lint rule.
@@ -22858,13 +22888,6 @@ LocatableDiagnostic _withArgumentsUndefinedFunction({required String name}) {
   return LocatableDiagnosticImpl(diag.undefinedFunction, [name]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedGetter({
-  required String memberName,
-  required DartType type,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedGetter, [memberName, type]);
-}
-
 LocatableDiagnostic _withArgumentsUndefinedHiddenName({
   required String library,
   required String name,
@@ -22874,6 +22897,36 @@ LocatableDiagnostic _withArgumentsUndefinedHiddenName({
 
 LocatableDiagnostic _withArgumentsUndefinedIdentifier({required String name}) {
   return LocatableDiagnosticImpl(diag.undefinedIdentifier, [name]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberReadNotFound({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberReadNotFound, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberReadPrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberReadPrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberReadSetterOnly({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberReadSetterOnly, [
+    name,
+    type,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {

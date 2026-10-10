@@ -251,16 +251,21 @@ final class InstanceLookupDomain extends LookupDomain with _LegacyWriteFailure {
     ReadSyntax syntax,
     _FoundInstead foundInstead,
   ) {
-    switch (syntax) {
-      case ReadSyntax.invocation:
-        return diag.undefinedMethod.withArguments(
-          methodName: name,
+    switch (foundInstead) {
+      case _FoundNothing():
+        return diag.undefinedInstanceMemberReadNotFound.withArguments(
+          name: name,
           type: receiverType,
         );
-      case ReadSyntax.reference:
-      case ReadSyntax.typeInstantiation:
-        return diag.undefinedGetter.withArguments(
-          memberName: name,
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedInstanceMemberReadPrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration(:var element):
+        assert(element is SetterElement);
+        return diag.undefinedInstanceMemberReadSetterOnly.withArguments(
+          name: name,
           type: receiverType,
         );
     }

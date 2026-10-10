@@ -985,7 +985,7 @@ import 'dart:foo';
 void f(A a) {
   (a).foo += 0;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type 'A', but no getter.
 // [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');
@@ -1030,7 +1030,7 @@ import 'dart:foo';
 void f(A a) {
   (a).foo ??= 0;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type 'A', but no getter.
 // [diag.sdkVersionSince] This API is available since SDK 3.5.0, but constraints '>=3.4.0' don't guarantee it.
 }
 ''');

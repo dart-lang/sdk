@@ -75,7 +75,7 @@ main() {
 
   T<List<List<List<List>>>>.staticMethod<T<int>>();
   //                        ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
   // [cfe] A constructor invocation can't have type arguments after the constructor name.
   // [cfe] Member not found: 'FutureOr.staticMethod'.
 }

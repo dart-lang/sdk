@@ -107,6 +107,42 @@ class _NotInstantiatedExtensionWithoutMember
   }
 }
 
+extension on List<_NotInstantiatedExtensionWithMember> {
+  /// Adds [extension] with its instance members that have the basename
+  /// [name], if it has any.
+  void addIfHasMemberWithBaseName(ExtensionElementImpl extension, String name) {
+    if (name == '[]') {
+      var getter = extension.getMethod('[]');
+      var setter = extension.getMethod('[]=');
+      if (getter != null || setter != null) {
+        add(
+          _NotInstantiatedExtensionWithMember(
+            extension,
+            getter: getter,
+            setter: setter,
+          ),
+        );
+      }
+    } else {
+      var field = extension.getField(name);
+      if (field != null && !field.isStatic) {
+        add(
+          _NotInstantiatedExtensionWithMember(
+            extension,
+            getter: field.getter,
+            setter: field.setter,
+          ),
+        );
+      }
+
+      var method = extension.getMethod(name);
+      if (method != null && !method.isStatic) {
+        add(_NotInstantiatedExtensionWithMember(extension, getter: method));
+      }
+    }
+  }
+}
+
 extension ExtensionsExtensions on Iterable<ExtensionElement> {
   /// Extensions that can be applied, within [targetLibrary], to [targetType].
   List<InstantiatedExtensionWithoutMember> applicableTo({
@@ -126,40 +162,25 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   ) {
     var result = <_NotInstantiatedExtensionWithMember>[];
     for (var extension in cast<ExtensionElementImpl>()) {
-      if (!baseName.isAccessibleFor(extension.library.uri)) {
-        continue;
+      if (baseName.isAccessibleFor(extension.library.uri)) {
+        result.addIfHasMemberWithBaseName(extension, baseName.name);
       }
+    }
+    return result;
+  }
 
-      if (baseName.name == '[]') {
-        var getter = extension.getMethod('[]');
-        var setter = extension.getMethod('[]=');
-        if (getter != null || setter != null) {
-          result.add(
-            _NotInstantiatedExtensionWithMember(
-              extension,
-              getter: getter,
-              setter: setter,
-            ),
-          );
-        }
-      } else {
-        var field = extension.getField(baseName.name);
-        if (field != null && !field.isStatic) {
-          result.add(
-            _NotInstantiatedExtensionWithMember(
-              extension,
-              getter: field.getter,
-              setter: field.setter,
-            ),
-          );
-        }
-
-        var method = extension.getMethod(baseName.name);
-        if (method != null && !method.isStatic) {
-          result.add(
-            _NotInstantiatedExtensionWithMember(extension, getter: method),
-          );
-        }
+  /// Returns the sublist of [ExtensionElement]s that are declared in another
+  /// library than the private [baseName], and have an instance member with
+  /// its basename.
+  ///
+  /// This is for reporting a failed lookup of [baseName]: `_foo` of another
+  /// library is a different name, so [havingMemberWithBaseName] skips it.
+  List<_NotInstantiatedExtensionWithMember>
+  havingPrivateMemberOfOtherLibraryWithBaseName(Name baseName) {
+    var result = <_NotInstantiatedExtensionWithMember>[];
+    for (var extension in cast<ExtensionElementImpl>()) {
+      if (!baseName.isAccessibleFor(extension.library.uri)) {
+        result.addIfHasMemberWithBaseName(extension, baseName.name);
       }
     }
     return result;

@@ -46,7 +46,7 @@ void testInterface() {
     // No promotion C !<< A.
     x = a.c;
     //    ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'c' isn't defined for the type 'A'.
   }
   B b = new B();
@@ -58,7 +58,7 @@ void testInterface() {
     // Promotion A << dynamic.
     y = x.b;
     //    ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'b' isn't defined for the type 'A'.
   }
 }
@@ -92,7 +92,7 @@ testGeneric() {
     // No promotion: E !<< D<A>
     x = d2.e;
     //     ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
     // [cfe] The getter 'e' isn't defined for the type 'D<A>'.
   }
 

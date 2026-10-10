@@ -66,6 +66,17 @@
   `dot_shorthand_missing_context`, which is now reported only when there is
   no context type. Replace `dot_shorthand_undefined_member` in `// ignore:`
   comments and in `analysis_options.yaml`.
+* Reads of instance members, such as `x.foo`, `x.foo()`, `x.foo += 1`, and
+  the field `foo` of an object pattern `C(foo: _)`, report
+  `undefined_instance_member_read` when neither the static type of the
+  receiver nor an applicable extension has a method, getter, or field named
+  `foo`. The message says when there is only a setter, or a private member
+  of another library, including a member of an extension. This replaces
+  `undefined_getter`, and `undefined_method` for invocations with a receiver;
+  `undefined_method` is still reported for invocations without a receiver,
+  such as `foo()` inside a class. Replace `undefined_getter` in `// ignore:`
+  comments and in `analysis_options.yaml`, where it is still accepted, but
+  has no effect.
 
 ## 14.5.0
 

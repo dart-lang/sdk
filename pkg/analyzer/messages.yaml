@@ -15333,9 +15333,9 @@ CompileTimeErrorCode:
     problemMessage: "The name '#name' is already used as an import prefix and can't be used to name a top-level element."
     correctionMessage: Try renaming either the top-level element or the prefix.
     hasPublishedDocs: true
-    # In the documentation, the `undefined_method` and `unused_import`
-    # diagnostics are being ignored because the invalid code is necesary in
-    # order to motivate the fixes.
+    # In the documentation, the `undefined_instance_member_read` and
+    # `unused_import` diagnostics are ignored because the invalid code
+    # is necessary to motivate the fixes.
     documentation: |-
       #### Description
 
@@ -15348,7 +15348,7 @@ CompileTimeErrorCode:
       import prefix and the name of a function:
 
       ```dart
-      %ignore=undefined_method,unused_import
+      %ignore=undefined_instance_member_read,unused_import
       import 'dart:math' as [!f!];
 
       int f() => f.min(0, 1);
@@ -19117,6 +19117,7 @@ CompileTimeErrorCode:
     parameters:
       String memberName: the name of the getter
       Type type: the type where the getter is being looked for
+    removedIn: "3.15"
     problemMessage: "The getter '#memberName' isn't defined for the type '#type'."
     correctionMessage: "Try importing the library that defines '#memberName', correcting the name to the name of an existing getter, or defining a getter or field named '#memberName'."
     hasPublishedDocs: true
@@ -19234,6 +19235,102 @@ CompileTimeErrorCode:
         await p;
       }
       ```
+  undefinedInstanceMemberReadNotFound:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      Type type: the static type of the receiver
+    sharedName: undefinedInstanceMemberRead
+    problemMessage: "The member '#name' isn't defined for the type '#type'."
+    correctionMessage: "Try importing the library that defines '#name', correcting the name to the name of an existing member, or defining a method, getter, or field named '#name'."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance member is read,
+      invoked, or torn off, but neither the static type of the receiver nor any
+      applicable extension has an accessible method, getter, or field with that
+      name.
+
+      #### Examples
+
+      The following code produces this diagnostic because `String` doesn't
+      have a member named `len`:
+
+      ```dart
+      int f(String s) => s.[!len!];
+      ```
+
+      The following code produces this diagnostic because `List<int>` doesn't
+      have a member named `middleIndex`:
+
+      ```dart
+      int f(List<int> l) => l.[!middleIndex!]();
+      ```
+
+      The following code produces this diagnostic because `C` has only a
+      setter named `x`, which can't be read:
+
+      ```dart
+      class C {
+        set x(int _) {}
+      }
+
+      int f(C c) => c.[!x!];
+      ```
+
+      #### Common fixes
+
+      If the member you intend to use has a different name, then change the
+      name to match:
+
+      ```dart
+      int f(String s) => s.length;
+      ```
+
+      If the member is declared in an extension that isn't imported, then
+      import the library that declares the extension.
+
+      If the member isn't defined, then define it in the type of the receiver
+      or in an extension that applies to that type:
+
+      ```dart
+      extension on List<int> {
+        int middleIndex() => length ~/ 2;
+      }
+
+      int f(List<int> l) => l.middleIndex();
+      ```
+
+      If the type has only a setter, then add a getter with the same name:
+
+      ```dart
+      class C {
+        int get x => 0;
+
+        set x(int _) {}
+      }
+
+      int f(C c) => c.x;
+      ```
+  undefinedInstanceMemberReadPrivate:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      Uri libraryUri: the URI of the library that declares the private member
+    sharedName: undefinedInstanceMemberRead
+    problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
+    correctionMessage: "Try making the member public."
+    hasPublishedDocs: false
+  undefinedInstanceMemberReadSetterOnly:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+      Type type: the static type of the receiver
+    sharedName: undefinedInstanceMemberRead
+    problemMessage: "There's a setter '#name' for the type '#type', but no getter."
+    correctionMessage: "Try defining a getter or field named '#name'."
+    hasPublishedDocs: false
   undefinedMethod:
     type: compileTimeError
     parameters:
@@ -19245,17 +19342,25 @@ CompileTimeErrorCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when it encounters an identifier that
-      appears to be the name of a method but either isn't defined or isn't
-      visible in the scope in which it's being referenced.
+      The analyzer produces this diagnostic when a name is invoked without a
+      receiver inside a class, enum, mixin, extension, or extension type, and
+      it isn't defined by the enclosing declaration or in an enclosing scope.
+      An invocation with an instance receiver, such as `x.foo()`, reports
+      `undefined_instance_member_read` instead.
 
       #### Example
 
-      The following code produces this diagnostic because the identifier
-      `removeMiddle` isn't defined:
+      The following code produces this diagnostic because `C` doesn't have a
+      member named `removeMiddle`:
 
       ```dart
-      int f(List<int> l) => l.[!removeMiddle!]();
+      class C {
+        void removeLast() {}
+
+        void f() {
+          [!removeMiddle!]();
+        }
+      }
       ```
 
       #### Common fixes
@@ -19265,7 +19370,13 @@ CompileTimeErrorCode:
       fixing the spelling of the method:
 
       ```dart
-      int f(List<int> l) => l.removeLast();
+      class C {
+        void removeLast() {}
+
+        void f() {
+          removeLast();
+        }
+      }
       ```
   undefinedMethodOnTypeLiteral:
     type: compileTimeError

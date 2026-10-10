@@ -4714,7 +4714,7 @@ V1: AssignmentExpression
 void f(int a, int c) {
   a.b += c;
 //  ^
-// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'b' isn't defined for the type 'int'.
 // [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
 }
 ''');
@@ -5755,7 +5755,7 @@ class A {
 void f(A a) {
   (a).x += 2;
 //    ^
-// [diag.undefinedGetter] The getter 'x' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'x' for the type 'A', but no getter.
 }
 ''');
 
@@ -6793,7 +6793,7 @@ V1: AssignmentExpression
 void f(int a, int c) {
   (a).b += c;
 //    ^
-// [diag.undefinedGetter] The getter 'b' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'b' isn't defined for the type 'int'.
 // [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
 }
 ''');
@@ -6870,7 +6870,7 @@ V1: AssignmentExpression
 void f(({int bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type '({int bar})'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type '({int bar})'.
 // [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({int bar})'.
 }
 ''');
@@ -6999,7 +6999,7 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type '({int bar})'.
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type '({int bar})', but no getter.
 }
 ''');
 
@@ -7917,7 +7917,7 @@ V1: AssignmentExpression
 void f((int, String) r) {
   r.$4 += 0;
 //  ^^
-// [diag.undefinedGetter] The getter '$4' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member '$4' isn't defined for the type '(int, String)'.
 // [diag.undefinedSetter] The setter '$4' isn't defined for the type '(int, String)'.
 }
 ''');

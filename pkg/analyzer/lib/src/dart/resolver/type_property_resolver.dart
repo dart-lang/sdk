@@ -55,6 +55,27 @@ class TypePropertyResolver {
     return _getterRequested != null || _setterRequested != null;
   }
 
+  /// Returns what [receiverType] has instead of a getter or method named
+  /// [name], for a read whose lookup by [resolve] returned [result] with
+  /// [LookupOutcome.notFound], or `null` if it has nothing.
+  ///
+  /// This is the instance setter with the name, or else a member spelled
+  /// like the private [name] that is declared in another library. A static
+  /// setter in [result] is treated as no setter: it is only recovery for a
+  /// write, and the lookup of instance members doesn't find static members.
+  InternalExecutableElement? getMemberForFailedRead({
+    required ResolutionResult result,
+    required TypeImpl receiverType,
+    required String name,
+  }) {
+    if (result.setter2 case var setter?) {
+      if (!setter.isStatic) {
+        return setter;
+      }
+    }
+    return _getPrivateMemberOfOtherLibrary(receiverType, name);
+  }
+
   /// Look up the property with the given [name] in the [receiverType].
   ///
   /// The [receiver] might be `null`, used to identify `super`.
@@ -285,6 +306,39 @@ class TypePropertyResolver {
     }
 
     return _toResult();
+  }
+
+  /// Returns a member of [receiverType], or of an extension that applies to
+  /// it, that is declared in another library and spelled like the private
+  /// [name], or `null` if there is none, or [name] is public.
+  ///
+  /// The lookup by [resolve] doesn't find it, because `_foo` of another
+  /// library is a different name. The interface of [receiverType] is searched
+  /// first.
+  InternalExecutableElement? _getPrivateMemberOfOtherLibrary(
+    TypeImpl receiverType,
+    String name,
+  ) {
+    var memberName = Name(_definingLibrary.uri, name);
+    if (memberName.isPublic) {
+      return null;
+    }
+
+    if (_typeSystem.resolveToBound(receiverType)
+        case InterfaceTypeImpl interfaceType) {
+      if (_typeAnalyzer.inheritance.getPrivateMemberOfOtherLibrary(
+            interfaceType,
+            memberName,
+          )
+          case var member?) {
+        return member;
+      }
+    }
+
+    return _extensionResolver.getPrivateMemberOfOtherLibrary(
+      receiverType,
+      memberName,
+    );
   }
 
   void _lookupExtension(TypeImpl type) {

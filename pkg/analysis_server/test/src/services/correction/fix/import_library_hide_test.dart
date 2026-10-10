@@ -89,7 +89,7 @@ void f(String s, lib.C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedMethod;
+        return error.offset == testCode.indexOf('m()');
       },
     );
   }
@@ -123,7 +123,7 @@ void f(String s, C c) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedMethod;
+        return error.offset == testCode.indexOf('m()');
       },
     );
   }

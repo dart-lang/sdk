@@ -745,6 +745,20 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_undefinedGetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_getter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_getter: ignore
+''');
+  }
+
   test_analyzer_errors_removed_undefinedSuperMember() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:

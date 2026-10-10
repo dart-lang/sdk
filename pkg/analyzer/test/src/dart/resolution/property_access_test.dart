@@ -2757,7 +2757,7 @@ extension type A(int it) {}
 void f(A a) {
   (a).foo;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 }
 ''');
 
@@ -3346,7 +3346,7 @@ V1: PropertyAccess
 void f((int, String) r) {
   r.$3;
 //  ^^
-// [diag.undefinedGetter] The getter '$3' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member '$3' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -3425,7 +3425,7 @@ V1: PropertyAccess
 void f((int, String) r) {
   r.$0a;
 //  ^^^
-// [diag.undefinedGetter] The getter '$0a' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member '$0a' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -3462,7 +3462,7 @@ V1: PropertyAccess
 void f((int, String) r) {
   r.$zero;
 //  ^^^^^
-// [diag.undefinedGetter] The getter '$zero' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member '$zero' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -3499,7 +3499,7 @@ V1: PropertyAccess
 void f((int, String) r) {
   r.a$0;
 //  ^^^
-// [diag.undefinedGetter] The getter 'a$0' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'a$0' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -3571,7 +3571,7 @@ V1: PropertyAccess
 void f(({int foo}) r) {
   r.bar;
 //  ^^^
-// [diag.undefinedGetter] The getter 'bar' isn't defined for the type '({int foo})'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'bar' isn't defined for the type '({int foo})'.
 }
 ''');
 
@@ -3610,7 +3610,7 @@ V1: PropertyAccess
 void f((int foo, String) r) {
   r.foo;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type '(int, String)'.
 }
 ''');
 

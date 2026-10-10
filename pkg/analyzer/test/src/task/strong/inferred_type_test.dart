@@ -1205,7 +1205,7 @@ void main () {
 //                         ^^
 // [diag.unusedLocalVariable] The value of the local variable 'l3' isn't used.
 //                                       ^^^^^^^^^
-// [diag.undefinedMethod] The method 'substring' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'substring' isn't defined for the type 'int'.
     Function2<String, String> l4 = (x) => x.substring(3);
 //                            ^^
 // [diag.unusedLocalVariable] The value of the local variable 'l4' isn't used.
@@ -1449,7 +1449,7 @@ void main () {
 // [diag.returnOfInvalidTypeFromClosure] The returned type 'int' isn't returnable from a 'String' function, as required by the closure's context.
     y = <T>(x) => x.substring(3);
 //                  ^^^^^^^^^
-// [diag.undefinedMethod] The method 'substring' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'substring' isn't defined for the type 'int'.
     var z = string2String;
 //      ^
 // [diag.unusedLocalVariable] The value of the local variable 'z' isn't used.

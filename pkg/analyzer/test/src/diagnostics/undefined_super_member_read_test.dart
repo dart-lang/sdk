@@ -900,6 +900,25 @@ V1: PropertyAccess
 ''');
   }
 
+  test_notFound_propertyExtraction_privateStatic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  static int get _foo => 0;
+}
+''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart';
+
+class B extends A {
+  void f() {
+    super._foo;
+//        ^^^^
+// [diag.undefinedSuperMemberReadNotFound] The member '_foo' isn't defined in a superclass of 'B'.
+  }
+}
+''');
+  }
+
   test_private_compoundAssignment() async {
     newFile('$testPackageLibPath/a.dart', r'''
 class A {

@@ -1934,7 +1934,7 @@ void foo<T>(T a) {}
 void bar() {
   foo.m<int>;
 //    ^
-// [diag.undefinedGetter] The getter 'm' isn't defined for the type 'void Function<T>(T)'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'm' isn't defined for the type 'void Function<T>(T)'.
 }
 
 extension E on Function {
@@ -4170,7 +4170,7 @@ import 'a.dart' as prefix;
 bar() {
   prefix.a.foo<int>;
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
 }
 ''');
 
@@ -4240,7 +4240,7 @@ V1: FunctionReference
 bar<T>() {
   T.foo<int>;
 //  ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 }
 ''');
 
@@ -7670,7 +7670,7 @@ typedef Cb = void Function();
 
 var a = Cb.foo<int>;
 //         ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 ''');
 
     var node = result.findNode.functionInstantiation('foo<int>;');
@@ -7731,7 +7731,7 @@ typedef T<E> = E;
 
 var a = T.foo<int>;
 //        ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'Type'.
 ''');
 
     var node = result.findNode.functionInstantiation('foo<int>;');
@@ -7955,7 +7955,7 @@ class B {
   bar(A a) {
     a.foo<int>;
 //    ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'A'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'A'.
   }
 }
 ''');

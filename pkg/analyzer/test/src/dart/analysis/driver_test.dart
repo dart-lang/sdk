@@ -9772,7 +9772,7 @@ void f (B b) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      84 +6 UNDEFINED_GETTER
+      84 +6 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
     );
   }
@@ -10340,7 +10340,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_METHOD
+      35 +3 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
       updatedA: r'''
 class A {
@@ -12345,6 +12345,8 @@ void f(B b) {
           B
             requestedDeclaredGetters
               _foo: <null>
+            requestedDeclaredSetters
+              _foo=: <null>
             requestedDeclaredMethods
               _foo: <null>
         exportedExtensions: []
@@ -12355,7 +12357,7 @@ void f(B b) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      66 +4 UNDEFINED_METHOD
+      66 +4 UNDEFINED_INSTANCE_MEMBER_READ
       35 +4 UNUSED_ELEMENT
 ''',
     );
@@ -14967,7 +14969,7 @@ void f (B b) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      84 +6 UNDEFINED_GETTER
+      84 +6 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
     );
   }
@@ -15108,7 +15110,7 @@ class A {}
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_METHOD
+      35 +3 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
     );
   }
@@ -30288,7 +30290,7 @@ void f() {
     uri: package:test/test.dart
     flags: exists isLibrary
     errors
-      32 +3 UNDEFINED_METHOD
+      32 +3 UNDEFINED_INSTANCE_MEMBER_READ
       7 +8 UNUSED_IMPORT
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
@@ -30311,7 +30313,7 @@ void f() {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      32 +3 UNDEFINED_METHOD
+      32 +3 UNDEFINED_INSTANCE_MEMBER_READ
       7 +8 UNUSED_IMPORT
 ''',
       updatedA: r'''
@@ -40574,7 +40576,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_METHOD
+      35 +3 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
       updatedA: r'''
 mixin A {
@@ -41681,7 +41683,7 @@ mixin A {}
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_METHOD
+      35 +3 UNDEFINED_INSTANCE_MEMBER_READ
 ''',
     );
   }

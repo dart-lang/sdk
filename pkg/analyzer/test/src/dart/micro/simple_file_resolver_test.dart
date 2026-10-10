@@ -1575,14 +1575,14 @@ var a = 0;
 import 'a.dart';
 var b = a.foo;
 //        ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'int'.
 ''';
 
     var testCodeWhenAIsDouble = r'''
 import 'a.dart';
 var b = a.foo;
 //        ^^^
-// [diag.undefinedGetter] The getter 'foo' isn't defined for the type 'double'.
+// [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'double'.
 ''';
 
     addTestFileWithDiagnosticExpectations(testCodeWhenAIsInt);
