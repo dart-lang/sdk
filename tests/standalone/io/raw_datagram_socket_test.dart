@@ -25,9 +25,7 @@ testDatagramBroadcastOptions() {
     RawDatagramSocket.bind(address, 0).then((socket) {
       Expect.isFalse(socket.broadcastEnabled);
       socket.broadcastEnabled = true;
-      if (!Platform.isMacOS) {
-        Expect.isTrue(socket.broadcastEnabled);
-      }
+      Expect.isTrue(socket.broadcastEnabled);
       socket.broadcastEnabled = false;
       Expect.isFalse(socket.broadcastEnabled);
       asyncEnd();
