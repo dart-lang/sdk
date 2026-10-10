@@ -56,6 +56,7 @@ import 'package:analyzer/src/dart/resolver/logical_not_resolver.dart';
 import 'package:analyzer/src/dart/resolver/null_assertion_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/property_element_resolver.dart';
 import 'package:analyzer/src/dart/resolver/record_literal_resolver.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/shared_type_analyzer.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_property_resolver.dart';
@@ -1688,7 +1689,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       nameErrorEntity: nameToken,
     );
 
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       lookupFailureReporter.reportReadFailure(
         domain: InstanceLookupDomain(receiverType.unwrapTypeView()),
         name: nameToken,
@@ -1764,7 +1765,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       parentNode: node,
     );
 
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       diagnosticReporter.report(
         diag.undefinedOperator
             .withArguments(

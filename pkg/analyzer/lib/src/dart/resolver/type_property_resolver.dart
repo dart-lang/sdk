@@ -33,13 +33,15 @@ class TypePropertyResolver {
   late bool _hasRead;
   late bool _hasWrite;
 
-  bool _needsGetterError = false;
-  bool _reportedGetterError = false;
+  /// The failure that has already been reported, for both the getter and the
+  /// setter; the lookups that follow it are only for recovery.
+  LookupOutcome? _reportedOutcome;
+
+  LookupOutcome _getterOutcome = LookupOutcome.resolved;
   InternalExecutableElement? _getterRequested;
   InternalExecutableElement? _getterRecovery;
 
-  bool _needsSetterError = false;
-  bool _reportedSetterError = false;
+  LookupOutcome _setterOutcome = LookupOutcome.resolved;
   InternalExecutableElement? _setterRequested;
   InternalExecutableElement? _setterRecovery;
 
@@ -79,16 +81,16 @@ class TypePropertyResolver {
     _resetResult();
 
     if (name == 'new') {
-      _needsGetterError = true;
-      _needsSetterError = true;
+      _getterOutcome = LookupOutcome.notFound;
+      _setterOutcome = LookupOutcome.notFound;
       return _toResult();
     }
 
     if (_typeSystem.isDynamicBounded(receiverType) ||
         _typeSystem.isInvalidBounded(receiverType)) {
       _lookupInterfaceType(_typeProvider.objectType, recoverWithStatic: false);
-      _needsGetterError = false;
-      _needsSetterError = false;
+      _getterOutcome = LookupOutcome.resolved;
+      _setterOutcome = LookupOutcome.resolved;
       return _toResult();
     }
 
@@ -179,8 +181,7 @@ class TypePropertyResolver {
         receiverType,
         messages: messages,
       );
-      _reportedGetterError = true;
-      _reportedSetterError = true;
+      _reportedOutcome = LookupOutcome.nullableReceiver;
 
       // Recovery, get some resolution.
       receiverType = _typeSystem.resolveToBound(receiverType);
@@ -199,8 +200,8 @@ class TypePropertyResolver {
         }
         if (receiverTypeResolved.isDartCoreFunction &&
             _name == MethodElement.CALL_METHOD_NAME) {
-          _needsGetterError = false;
-          _needsSetterError = false;
+          _getterOutcome = LookupOutcome.resolved;
+          _setterOutcome = LookupOutcome.resolved;
           return _toResult();
         }
       }
@@ -208,26 +209,29 @@ class TypePropertyResolver {
       if (receiverTypeResolved is FunctionTypeImpl &&
           _name == MethodElement.CALL_METHOD_NAME) {
         return ResolutionResult(
-          needsGetterError: false,
-          needsSetterError: false,
+          getterOutcome: LookupOutcome.resolved,
+          setterOutcome: LookupOutcome.resolved,
           callFunctionType: receiverTypeResolved,
         );
       }
 
       if (receiverTypeResolved is NeverType) {
         _lookupInterfaceType(_typeProvider.objectType);
-        _needsGetterError = false;
-        _needsSetterError = false;
+        _getterOutcome = LookupOutcome.resolved;
+        _setterOutcome = LookupOutcome.resolved;
         return _toResult();
       }
 
       if (receiverTypeResolved is RecordTypeImpl) {
         var field = receiverTypeResolved.fieldByName(name);
         if (field != null) {
-          return ResolutionResult(recordField: field, needsGetterError: false);
+          return ResolutionResult(
+            recordField: field,
+            getterOutcome: LookupOutcome.resolved,
+          );
         }
-        _needsGetterError = true;
-        _needsSetterError = true;
+        _getterOutcome = LookupOutcome.notFound;
+        _setterOutcome = LookupOutcome.notFound;
       }
 
       _lookupExtension(receiverType);
@@ -264,18 +268,19 @@ class TypePropertyResolver {
       memberName,
     );
 
-    _reportedGetterError =
-        result == const AmbiguousStaticExtensionResolutionError();
-    _reportedSetterError =
-        result == const AmbiguousStaticExtensionResolutionError();
+    if (result == const AmbiguousStaticExtensionResolutionError()) {
+      _reportedOutcome = LookupOutcome.ambiguousExtensions;
+    }
+
+    var outcome = LookupOutcome.of(result.member);
+    _getterOutcome = outcome;
+    _setterOutcome = outcome;
 
     if (result.member != null && hasRead) {
-      _needsGetterError = false;
       _getterRequested = result.member;
     }
 
     if (result.member != null && hasWrite) {
-      _needsSetterError = false;
       _setterRequested = result.member;
     }
 
@@ -289,16 +294,17 @@ class TypePropertyResolver {
       _nameErrorEntity,
       getterName,
     );
-    _reportedGetterError = result == ExtensionResolutionError.ambiguous;
-    _reportedSetterError = result == ExtensionResolutionError.ambiguous;
+    if (result == ExtensionResolutionError.ambiguous) {
+      _reportedOutcome = LookupOutcome.ambiguousExtensions;
+    }
 
     if (result.getter2 != null) {
-      _needsGetterError = false;
+      _getterOutcome = LookupOutcome.resolved;
       _getterRequested = result.getter2;
     }
 
     if (result.setter2 != null) {
-      _needsSetterError = false;
+      _setterOutcome = LookupOutcome.resolved;
       _setterRequested = result.setter2;
     }
   }
@@ -316,14 +322,14 @@ class TypePropertyResolver {
         getterName,
         forSuper: isSuper,
       );
-      _needsGetterError = _getterRequested == null;
+      _getterOutcome = LookupOutcome.of(_getterRequested);
 
       if (_getterRequested == null && recoverWithStatic) {
         var classElement = type.element;
         _getterRecovery ??=
             classElement.lookupStaticGetter(_name, _definingLibrary) ??
             classElement.lookupStaticMethod(_name, _definingLibrary);
-        _needsGetterError = _getterRecovery == null;
+        _getterOutcome = LookupOutcome.of(_getterRecovery);
       }
     }
 
@@ -334,7 +340,7 @@ class TypePropertyResolver {
         setterName,
         forSuper: isSuper,
       );
-      _needsSetterError = _setterRequested == null;
+      _setterOutcome = LookupOutcome.of(_setterRequested);
 
       if (_setterRequested == null && recoverWithStatic) {
         var classElement = type.element;
@@ -342,7 +348,7 @@ class TypePropertyResolver {
           _name,
           _definingLibrary,
         );
-        _needsSetterError = _setterRecovery == null;
+        _setterOutcome = LookupOutcome.of(_setterRecovery);
       }
     }
 
@@ -369,13 +375,13 @@ class TypePropertyResolver {
   }
 
   void _resetResult() {
-    _needsGetterError = false;
-    _reportedGetterError = false;
+    _reportedOutcome = null;
+
+    _getterOutcome = LookupOutcome.resolved;
     _getterRequested = null;
     _getterRecovery = null;
 
-    _needsSetterError = false;
-    _reportedSetterError = false;
+    _setterOutcome = LookupOutcome.resolved;
     _setterRequested = null;
     _setterRecovery = null;
   }
@@ -384,15 +390,16 @@ class TypePropertyResolver {
     var getter = _getterRequested ?? _getterRecovery;
     var setter = _setterRequested ?? _setterRecovery;
 
+    var getterOutcome = _reportedOutcome ?? _getterOutcome;
+    if (getterOutcome == LookupOutcome.notFound && _name.isEmpty) {
+      getterOutcome = LookupOutcome.missingName;
+    }
+
     return ResolutionResult(
       getter2: getter,
-      // Parser recovery resulting in an empty property name should not be
-      // reported as an undefined getter.
-      needsGetterError:
-          _needsGetterError && _name.isNotEmpty && !_reportedGetterError,
-      isGetterInvalid: _needsGetterError || _reportedGetterError,
+      getterOutcome: getterOutcome,
       setter2: setter,
-      needsSetterError: _needsSetterError && !_reportedSetterError,
+      setterOutcome: _reportedOutcome ?? _setterOutcome,
     );
   }
 }

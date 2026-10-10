@@ -20,6 +20,7 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/lexical_lookup.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/this_lookup.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -144,7 +145,7 @@ class PropertyElementResolver with ScopeHelpers {
       nameErrorEntity: receiver,
       parentNode: node,
     );
-    if (hasRead && result.needsGetterError) {
+    if (hasRead && result.getterOutcome == LookupOutcome.notFound) {
       _reportUnresolvedIndex(
         node,
         (receiver is SuperReference
@@ -153,7 +154,7 @@ class PropertyElementResolver with ScopeHelpers {
             .withArguments(operator: '[]', type: receiverType),
       );
     }
-    if (hasWrite && result.needsSetterError) {
+    if (hasWrite && result.setterOutcome == LookupOutcome.notFound) {
       _reportUnresolvedIndex(
         node,
         (receiver is SuperReference
@@ -168,14 +169,18 @@ class PropertyElementResolver with ScopeHelpers {
           ? _createIndexReadResolution(
               result.getter2,
               atDynamicTarget: false,
-              isInvalid: result.needsGetterError || isReceiverInvalid,
+              isInvalid:
+                  result.getterOutcome == LookupOutcome.notFound ||
+                  isReceiverInvalid,
             )
           : null,
       write: hasWrite
           ? _createIndexWriteResolution(
               result.setter2,
               atDynamicTarget: false,
-              isInvalid: result.needsSetterError || isReceiverInvalid,
+              isInvalid:
+                  result.setterOutcome == LookupOutcome.notFound ||
+                  isReceiverInvalid,
             )
           : null,
     );
@@ -476,7 +481,7 @@ class PropertyElementResolver with ScopeHelpers {
       nameErrorEntity: receiver,
       parentNode: node,
     );
-    if (result.needsSetterError) {
+    if (result.setterOutcome == LookupOutcome.notFound) {
       _reportUnresolvedIndex(
         node,
         (receiver is SuperReference
@@ -488,7 +493,9 @@ class PropertyElementResolver with ScopeHelpers {
     return _createIndexWriteResolution(
       result.setter2,
       atDynamicTarget: false,
-      isInvalid: result.needsSetterError || receiverType is InvalidType,
+      isInvalid:
+          result.setterOutcome == LookupOutcome.notFound ||
+          receiverType is InvalidType,
     );
   }
 
@@ -576,7 +583,7 @@ class PropertyElementResolver with ScopeHelpers {
       nameErrorEntity: receiver,
       parentNode: node,
     );
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       _reportUnresolvedIndex(
         node,
         (receiver is SuperReference
@@ -587,7 +594,8 @@ class PropertyElementResolver with ScopeHelpers {
     }
     if (receiver is SuperReference) {
       // `[]` is evaluated first, so a missing `[]` takes precedence.
-      if (result.needsSetterError && !result.needsGetterError) {
+      if (result.setterOutcome == LookupOutcome.notFound &&
+          result.getterOutcome != LookupOutcome.notFound) {
         _reportUnresolvedIndex(
           node,
           diag.undefinedSuperOperator.withArguments(
@@ -596,7 +604,7 @@ class PropertyElementResolver with ScopeHelpers {
           ),
         );
       }
-    } else if (result.needsSetterError) {
+    } else if (result.setterOutcome == LookupOutcome.notFound) {
       _reportUnresolvedIndex(
         node,
         diag.undefinedOperator.withArguments(
@@ -610,12 +618,14 @@ class PropertyElementResolver with ScopeHelpers {
       read: _createIndexReadResolution(
         result.getter2,
         atDynamicTarget: false,
-        isInvalid: result.needsGetterError || isReceiverInvalid,
+        isInvalid:
+            result.getterOutcome == LookupOutcome.notFound || isReceiverInvalid,
       ),
       write: _createIndexWriteResolution(
         result.setter2,
         atDynamicTarget: false,
-        isInvalid: result.needsSetterError || isReceiverInvalid,
+        isInvalid:
+            result.setterOutcome == LookupOutcome.notFound || isReceiverInvalid,
       ),
     );
   }
@@ -679,7 +689,7 @@ class PropertyElementResolver with ScopeHelpers {
       nameErrorEntity: receiver,
       parentNode: node,
     );
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       _reportUnresolvedIndex(
         node,
         (receiver is SuperReference
@@ -691,7 +701,9 @@ class PropertyElementResolver with ScopeHelpers {
     return _createIndexReadResolution(
       result.getter2,
       atDynamicTarget: false,
-      isInvalid: result.needsGetterError || receiverType is InvalidType,
+      isInvalid:
+          result.getterOutcome == LookupOutcome.notFound ||
+          receiverType is InvalidType,
     );
   }
 
@@ -786,7 +798,7 @@ class PropertyElementResolver with ScopeHelpers {
         _checkForStaticMember(receiver, node.name, writeElement);
 
         InternalExecutableElement? writeRecovery;
-        if (result.needsSetterError) {
+        if (result.setterOutcome == LookupOutcome.notFound) {
           var readResult = _typeAnalyzer.typePropertyResolver.resolve(
             receiver: receiver,
             receiverType: receiverType,
@@ -954,7 +966,7 @@ class PropertyElementResolver with ScopeHelpers {
         var readElement = result.getter2;
         _checkForStaticMember(receiver, node.name, readElement);
 
-        if (result.needsGetterError) {
+        if (result.getterOutcome == LookupOutcome.notFound) {
           _lookupFailureReporter.reportReadFailure(
             domain: InstanceLookupDomain(receiverType),
             name: node.name,
@@ -1133,7 +1145,7 @@ class PropertyElementResolver with ScopeHelpers {
         _checkForStaticMember(receiver, node.name, readElement);
         _checkForStaticMember(receiver, node.name, writeElement);
 
-        if (result.needsGetterError) {
+        if (result.getterOutcome == LookupOutcome.notFound) {
           _lookupFailureReporter.reportReadFailure(
             domain: InstanceLookupDomain(receiverType),
             name: node.name,
@@ -1141,7 +1153,7 @@ class PropertyElementResolver with ScopeHelpers {
             foundInstead: null,
           );
         }
-        if (result.needsSetterError) {
+        if (result.setterOutcome == LookupOutcome.notFound) {
           _lookupFailureReporter.reportWriteFailure(
             domain: InstanceLookupDomain(receiverType),
             name: node.name,
@@ -1621,7 +1633,7 @@ class PropertyElementResolver with ScopeHelpers {
       getType ??= unpromotedType;
 
       _checkForStaticMember(target, propertyName, result.getter2);
-      if (result.needsGetterError) {
+      if (result.getterOutcome == LookupOutcome.notFound) {
         _lookupFailureReporter.reportReadFailure(
           domain: InstanceLookupDomain(targetType),
           name: propertyName,
@@ -1633,7 +1645,7 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (hasWrite) {
       _checkForStaticMember(target, propertyName, result.setter2);
-      if (result.needsSetterError) {
+      if (result.setterOutcome == LookupOutcome.notFound) {
         var readResult = _typeAnalyzer.typePropertyResolver.resolve(
           receiver: target,
           receiverType: targetType,

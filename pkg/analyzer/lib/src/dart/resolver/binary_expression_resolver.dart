@@ -459,7 +459,7 @@ class BinaryExpressionResolver {
     );
 
     node.element = result.getter2 as InternalMethodElement?;
-    if (result.needsGetterError) {
+    if (result.getterOutcome == LookupOutcome.notFound) {
       if (leftOperand is SuperReference) {
         _diagnosticReporter.report(
           diag.undefinedSuperOperator

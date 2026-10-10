@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
 import 'package:analyzer/src/dart/resolver/invocation_inferrer.dart';
+import 'package:analyzer/src/dart/resolver/resolution_result.dart';
 import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -258,7 +259,7 @@ class MethodInvocationResolver with ScopeHelpers {
           isFunctionInterfaceCall =
               receiverType.isDartCoreFunction &&
               name.lexeme == MethodElement.CALL_METHOD_NAME;
-          needsError = result.needsGetterError;
+          needsError = result.getterOutcome == LookupOutcome.notFound;
           if (element is InternalExecutableElement && element.isStatic) {
             _reportInstanceAccessToStaticMember(name, element, true);
           }
@@ -724,7 +725,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (element == null &&
         result.callFunctionType == null &&
         !isFunctionInterfaceCall &&
-        result.needsGetterError &&
+        result.getterOutcome == LookupOutcome.notFound &&
         !(receiverType is InterfaceTypeImpl &&
             receiverType.element.name == null)) {
       _lookupFailureReporter.reportReadFailure(
