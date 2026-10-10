@@ -1613,6 +1613,7 @@ class TypeAliasItem extends ManifestItem<TypeAliasElementImpl> {
   bool match(MatchContext context, TypeAliasElementImpl element) {
     context.addTypeParameters(element.typeParameters);
     return super.match(context, element) &&
+        flags.hasSelfReference == element.hasSelfReference &&
         flags.isSimplyBounded == element.isSimplyBounded &&
         flags.isProperRename == element.isProperRename &&
         typeParameters.match(context, element.typeParameters) &&
@@ -1752,7 +1753,7 @@ enum _TopLevelVariableItemFlag {
   isOriginGetterSetter,
 }
 
-enum _TypeAliasItemFlag { isProperRename, isSimplyBounded }
+enum _TypeAliasItemFlag { hasSelfReference, isProperRename, isSimplyBounded }
 
 enum _VariableItemFlag {
   hasInitializer,
@@ -2489,6 +2490,9 @@ extension type _TypeAliasItemFlags._(int _bits) implements _ManifestItemFlags {
 
   factory _TypeAliasItemFlags.encode(TypeAliasElementImpl element) {
     var bits = _ManifestItemFlags.encode(element)._bits;
+    if (element.hasSelfReference) {
+      bits |= _maskFor(_TypeAliasItemFlag.hasSelfReference);
+    }
     if (element.isProperRename) {
       bits |= _maskFor(_TypeAliasItemFlag.isProperRename);
     }
@@ -2500,6 +2504,10 @@ extension type _TypeAliasItemFlags._(int _bits) implements _ManifestItemFlags {
 
   factory _TypeAliasItemFlags.read(BinaryReader reader) {
     return _TypeAliasItemFlags._(reader.readUint30());
+  }
+
+  bool get hasSelfReference {
+    return _has(_TypeAliasItemFlag.hasSelfReference);
   }
 
   bool get isProperRename {
