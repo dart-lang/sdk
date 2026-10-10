@@ -13,6 +13,14 @@ namespace dart {
 
 class TrustedByteArray;
 
+// Returns true iff the half-open range [index, index + count) lies within
+// [0, length). Evaluated without forming `index + count` to avoid signed 32-bit
+// integer overflow. Enforces count >= 0, length >= 0, and index >= 0 in both
+// debug and release builds.
+static inline bool RangeInBounds(int index, int count, int length) {
+  return length >= 0 && index >= 0 && count >= 0 && count <= length - index;
+}
+
 class IrregexpInterpreter : public AllStatic {
  public:
   enum Result {
