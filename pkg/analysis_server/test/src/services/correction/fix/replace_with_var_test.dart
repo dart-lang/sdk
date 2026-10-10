@@ -306,7 +306,7 @@ class C<T> {}
 ''');
     await assertHasFix('''
 C<int> f() {
-  var c = C<int>.new()..toString();
+  var c = C<int>()..toString();
   return c;
 }
 class C<T> {}
@@ -358,7 +358,7 @@ class C<T> {}
 ''');
     await assertHasFix('''
 C<int> f() {
-  var c = C<int>.new();
+  var c = C<int>();
   return c;
 }
 class C<T> {}
@@ -632,7 +632,7 @@ E f() {
     await assertHasFix('''
 class E {}
 E f() {
-  var e = E.new();
+  var e = E();
   return e;
 }
 ''');
