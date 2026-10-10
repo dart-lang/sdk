@@ -616,6 +616,55 @@ class NullRejectionException implements Exception {
   }
 }
 
+/// The JavaScript `Error` type.
+///
+/// Checking this type with [NullableObjectUtilExtension.isA] uses
+/// [`Error.isError`] on browsers where it's supported. Because Safari has
+/// [known bugs] in its implementation, `isA<JSError>()` will return true if
+/// either `Error.isError()` or `instanceof Error` returns true.
+///
+/// [`Error.isError`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/isError
+/// [known bugs]: https://bugs.webkit.org/show_bug.cgi?id=292727
+@JS('Error')
+extension type JSError._(JSObject _) implements JSObject {
+  /// See [`Error.captureStackTrace()`].
+  ///
+  /// [`Error.captureStackTrace()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/captureStackTrace
+  external static void captureStackTrace(
+    JSError error, [
+    JSFunction constructor,
+  ]);
+
+  /// See [`new Error()`].
+  ///
+  /// [`new Error()`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/Error
+  factory JSError(String message, {JSAny? cause}) => cause == null
+      ? JSError.__(message)
+      : JSError.__(message, JSObject()..['cause'] = cause);
+
+  external JSError.__(String message, [JSObject options]);
+
+  /// See [`Error.cause`].
+  ///
+  /// [`Error.cause`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/cause
+  external JSAny? cause;
+
+  /// See [`Error.message`].
+  ///
+  /// [`Error.message`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/message
+  external String message;
+
+  /// See [`Error.name`].
+  ///
+  /// [`Error.name`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/name
+  external String name;
+
+  /// See [`Error.stack`].
+  ///
+  /// [`Error.stack`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/stack
+  external String stack;
+}
+
 /// A Dart object that is wrapped with a JavaScript object so that it can be
 /// passed to JavaScript safely.
 ///
@@ -2450,6 +2499,61 @@ extension ListOfNullableBoolToJSArray on List<bool?> {
   /// Avoid assuming that modifications to this [List] will affect the
   /// returned [JSArray] and vice versa in all compilers.
   external JSArray<JSBoolean?> get toJS;
+}
+
+/// Conversions from {JSError] to [Error].
+extension JSErrorToError on JSError {
+  /// Returns a Dart [Error] wrapping this error object.
+  ///
+  /// This should only be used for [JSError]s that the user isn't expected to
+  /// catch (that is, those that represent programming errors). Other exceptions
+  /// should be rethrown as dedicated Dart types that extend [Exception] so the
+  /// user can catch them based on type.
+  WrappedJSError get toDart => new WrappedJSError._(this);
+
+  /// Throws the result of [toDart] with a Dart stack trace that matches the JS
+  /// stack trace.
+  Never throwLikeDart() {
+    var error = toDart;
+    Error.throwWithStackTrace(error, error.stackTrace);
+  }
+}
+
+/// An error object that wraps a [JSError] and exposes the Dart [Error]
+/// interface.
+final class WrappedJSError implements Error {
+  /// The wrapped error.
+  final JSError jsError;
+
+  @override
+  StackTrace get stackTrace => StackTrace.fromString(jsError.stack);
+
+  WrappedJSError._(this.jsError);
+
+  String toString() => jsError.message;
+}
+
+/// Conversion from [Error] to [JSError].
+extension ErrorToJSError on Error {
+  /// Converts [this] to a [JSError] by cloning it.
+  ///
+  /// For native Dart exceptions, this attaches this exception object as the
+  /// [JSError.cause], translated to JS using
+  /// [ObjectToJSBoxedDartObject.toJSBox]. For exceptions that came from JS
+  /// using [JSError.toDart], this returns the original [JSError].
+  JSError get toJS => switch (this) {
+    WrappedJSError error => error.jsError,
+    _ => JSError(this.toString(), cause: this.toJSBox),
+  };
+}
+
+/// Conversion from [Exception] to [JSError].
+extension ExceptionToJSError on Exception {
+  /// Converts [this] to a [JSError] by cloning it.
+  ///
+  /// This attaches this exception object as the [JSError.cause], translated to
+  /// JS using [ObjectToJSBoxedDartObject.toJSBox].
+  JSError get toJS => JSError(this.toString(), cause: this.toJSBox);
 }
 
 /// General-purpose JavaScript operators.

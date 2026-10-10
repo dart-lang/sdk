@@ -1002,6 +1002,38 @@ void syncTests() {
   Expect.isFalse(definedNonNullAny.isUndefinedOrNull);
   Expect.isTrue(definedNonNullAny.isDefinedAndNotNull);
   Expect.isTrue(definedNonNullAny.typeofEquals('object'));
+
+  Expect.equals('foo', JSError('foo').message);
+  Expect.equals('Error', JSError('foo').name);
+  final defaultCause = JSError('foo').cause;
+  Expect.isTrue(
+    isJSBackend ? defaultCause.isUndefined : defaultCause.isUndefinedOrNull,
+  );
+  Expect.equals('bar'.toJS, JSError('foo', cause: 'bar'.toJS).cause);
+  Expect.isTrue(JSError('foo').isA<JSError>());
+  Expect.isFalse('foo'.isA<JSError>());
+  Expect.isFalse(JSObject().isA<JSError>());
+
+  final errorWithStack = JSError('foo');
+  JSError.captureStackTrace(errorWithStack);
+  Expect.notEquals('', errorWithStack.stack);
+
+  Expect.isTrue(JSError('foo').toDart is Error);
+  Expect.equals('foo', JSError('foo').toDart.toString());
+  Expect.equals(
+    erroWithStack.stack,
+    errorWithStack.toDart.stackTrace.toString(),
+  );
+  {
+    try {
+      errorWithStack.throwLikeDart();
+    } catch (error, stack) {
+      Expect.equals(errorWithStack.stack, stack.toString());
+    }
+  }
+
+  Expect.equals('Invalid argument(s): foo', ArgumentError('foo').toJS.message);
+  Expect.equals('foo', Exception('foo').toJS.message);
 }
 
 @JS()
