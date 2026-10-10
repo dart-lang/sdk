@@ -249,7 +249,6 @@ class Linker {
     _createTypeSystem();
     _resolveTypes();
     _computeHasNonFinalField();
-    _setDefaultSupertypes();
 
     _buildClassSyntheticConstructors();
     _buildEnumSyntheticConstructors();
@@ -449,12 +448,6 @@ class Linker {
     computeSimplyBounded(this);
     TypeAliasSelfReferenceFinder().perform(this);
     TypesBuilder(this).build(nodesToBuildType);
-  }
-
-  void _setDefaultSupertypes() {
-    for (var library in builders.values) {
-      library.setDefaultSupertypes();
-    }
   }
 
   void _writeLibraries({required OperationPerformanceImpl performance}) {
