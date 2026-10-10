@@ -130,8 +130,17 @@ class BacktrackStack {
   BacktrackStack& operator=(const BacktrackStack&) = delete;
 
   V8_WARN_UNUSED_RESULT bool push(int v) {
+    // Check the logical limit before appending: appending first would grow
+    // the backing store (to 2x capacity = 128 MiB at the limit). On stack
+    // overflow, ThrowStackOverflow invokes JumpToFrame, which jumps over C++
+    // stack frames and bypasses destructors. Release heap storage before
+    // reporting overflow so no allocation outlives the abort.
+    if (static_cast<int>(data_.size()) >= kMaxSize) {
+      data_.ReleaseHeapStorage();
+      return false;
+    }
     data_.emplace_back(v);
-    return (static_cast<int>(data_.size()) <= kMaxSize);
+    return true;
   }
   int peek() const {
     SBXCHECK(!data_.empty());
@@ -204,6 +213,10 @@ class InterpreterRegisters {
     base::MemCopy(output_registers_, registers_.data(),
                   output_register_count_ * sizeof(RegisterT));
   }
+
+  // Release heap-allocated register backing before a runtime stack-overflow
+  // abort jumps over this object's destructor.
+  void ReleaseHeapStorage() { registers_.ReleaseHeapStorage(); }
 
  private:
   static constexpr int kStaticCapacity = 64;  // Arbitrary.
@@ -496,6 +509,16 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
 
   uint32_t backtrack_count = 0;
 
+  // When backtrack stack push limit is reached, ThrowStackOverflow terminates
+  // via JumpToFrame (call_origin == kFromRuntime) or returns EXCEPTION
+  // (call_origin == kFromJs, i.e. compiled Dart code entry) which immediately
+  // aborts matching without further register access. Release heap storage
+  // before unwinding.
+  auto HandleStackOverflow = [&]() {
+    registers.ReleaseHeapStorage();
+    return MaybeThrowStackOverflow(thread, call_origin);
+  };
+
   while (true) {
     const uint8_t* next_pc = pc;
 #if V8_USE_COMPUTED_GOTO
@@ -512,14 +535,14 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
     BYTECODE(PushCurrentPosition) {
       ADVANCE();
       if (!backtrack_stack.push(current)) {
-        return MaybeThrowStackOverflow(thread, call_origin);
+        return HandleStackOverflow();
       }
       DISPATCH();
     }
     BYTECODE(PushBacktrack, label) {
       ADVANCE();
       if (!backtrack_stack.push(label)) {
-        return MaybeThrowStackOverflow(thread, call_origin);
+        return HandleStackOverflow();
       }
       DISPATCH();
     }
@@ -527,7 +550,7 @@ IrregexpInterpreter::Result RawMatch(Thread* thread,
       ADVANCE();
       USE(stack_check);  // Unused in interpreter.
       if (!backtrack_stack.push(registers[register_index])) {
-        return MaybeThrowStackOverflow(thread, call_origin);
+        return HandleStackOverflow();
       }
       DISPATCH();
     }
