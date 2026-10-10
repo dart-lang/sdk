@@ -11273,7 +11273,11 @@ class TypeAliasElementImpl extends ElementImpl
   @visibleForTesting
   @trackedInternal
   Map<String, bool> get flagsForTesting {
-    return {...super.flagsForTesting, 'isSimplyBounded': isSimplyBounded};
+    return {
+      ...super.flagsForTesting,
+      'hasSelfReference': hasSelfReference,
+      'isSimplyBounded': isSimplyBounded,
+    };
   }
 
   @override
@@ -11285,6 +11289,19 @@ class TypeAliasElementImpl extends ElementImpl
       method: 'fragments',
     );
     return _fragments;
+  }
+
+  /// Whether this alias references itself, directly or indirectly, from
+  /// anywhere except a class element or type parameter bounds.
+  @generated
+  @trackedIncludedInId
+  bool get hasSelfReference {
+    return hasFlag(_ElementStorageFlag.typeAliasElement_hasSelfReference);
+  }
+
+  @generated
+  set hasSelfReference(bool value) {
+    setFlag(_ElementStorageFlag.typeAliasElement_hasSelfReference, value);
   }
 
   @trackedIncludedInId
@@ -11409,7 +11426,7 @@ class TypeAliasElementImpl extends ElementImpl
     required List<TypeImpl> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   }) {
-    if (_firstFragment.hasSelfReference) {
+    if (hasSelfReference) {
       if (isNonFunctionTypeAliasesEnabled) {
         return DynamicTypeImpl.instance;
       } else {
@@ -11462,10 +11479,6 @@ class TypeAliasFragmentImpl extends FragmentImpl
 
   @override
   Null nextFragment;
-
-  /// Is `true` if the element has direct or indirect reference to itself
-  /// from anywhere except a class element or type parameter bounds.
-  bool hasSelfReference = false;
 
   @override
   late TypeAliasElementImpl element;
@@ -12180,6 +12193,7 @@ enum _ElementStorageFlag {
   libraryElement_isSynthetic,
   propertyInducingElement_isTypeInferredFromInitializer,
   propertyInducingElement_isTypeInferredFromOverride,
+  typeAliasElement_hasSelfReference,
   typeAliasElement_isSimplyBounded,
 }
 
@@ -12492,6 +12506,7 @@ enum _TopLevelFunctionElementFlags {
 }
 
 enum _TypeAliasElementFlags {
+  hasSelfReference(element: _ElementFlagSource.stored),
   isSimplyBounded(element: _ElementFlagSource.stored);
 
   final bool fragment;

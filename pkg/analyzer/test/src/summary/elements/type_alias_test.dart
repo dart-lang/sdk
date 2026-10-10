@@ -984,7 +984,7 @@ library
             #F2 X (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 X
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1012,11 +1012,11 @@ library
         #F2 G (nameOffset:34) (firstTokenOffset:26) (offset:34)
           element: <testLibrary>::@typeAlias::G
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: dynamic Function()
-    G
+    hasSelfReference G
       reference: <testLibrary>::@typeAlias::G
       firstFragment: #F2
       aliasedType: dynamic Function()
@@ -1037,7 +1037,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: List<dynamic> Function()
@@ -1061,7 +1061,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1137,7 +1137,7 @@ library
             #F2 T (nameOffset:10) (firstTokenOffset:10) (offset:10)
               element: #E0 T
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -1162,7 +1162,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: List<dynamic>
@@ -2317,7 +2317,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2749,7 +2749,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -2778,7 +2778,7 @@ library
             #F2 T (nameOffset:15) (firstTokenOffset:15) (offset:15)
               element: #E0 T
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       typeParameters
@@ -4980,7 +4980,7 @@ library
         #F1 F (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@typeAlias::F
   typeAliases
-    F
+    hasSelfReference F
       reference: <testLibrary>::@typeAlias::F
       firstFragment: #F1
       aliasedType: (dynamic, int) Function()
