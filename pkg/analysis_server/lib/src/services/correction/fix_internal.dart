@@ -567,17 +567,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     RemoveRequired.new,
   ],
   diag.deprecatedFactoryMethod: [AddReturnType.new],
-  diag.dotShorthandUndefinedGetter: [
-    ChangeTo.getterOrSetter,
-    CreateEnumConstant.new,
-    CreateField.new,
-    CreateGetter.new,
-  ],
-  diag.dotShorthandUndefinedInvocation: [
-    ChangeTo.method,
-    CreateConstructor.new,
-    CreateMethod.method,
-  ],
   diag.emptyMapPattern: [
     ReplaceEmptyMapPattern.any,
     ReplaceEmptyMapPattern.empty,
@@ -919,6 +908,15 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateMethod.method,
     CreateMethodOrFunction.new,
   ],
+  diag.undefinedStaticMemberReadNotFoundDotShorthand: [
+    ChangeTo.getterOrSetter,
+    ChangeTo.method,
+    CreateConstructor.new,
+    CreateEnumConstant.new,
+    CreateField.new,
+    CreateGetter.new,
+    CreateMethod.method,
+  ],
   diag.undefinedStaticMemberWriteFinal: [MakeFieldNotFinal.new, AddLate.new],
   diag.undefinedStaticMemberWriteNotFound: [
     ChangeTo.getterOrSetter,
@@ -1149,8 +1147,6 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forTypeOrMember,
   ],
   diag.constWithNonType: [CreateClass.new, ImportLibrary.forTypeOrMember],
-  diag.dotShorthandUndefinedGetter: [DataDriven.new],
-  diag.dotShorthandUndefinedInvocation: [DataDriven.new],
   diag.extendsNonClass: [
     CreateClass.new,
     DataDriven.new,
@@ -1293,6 +1289,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forTopLevelVariable,
     ImportLibrary.forTypeOrMember,
   ],
+  diag.undefinedStaticMemberReadNotFoundDotShorthand: [DataDriven.new],
   diag.undefinedStaticMemberWriteNotFound: [
     DataDriven.new,
     ImportLibrary.forExtensionMember,

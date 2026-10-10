@@ -5022,6 +5022,7 @@ CompileTimeErrorCode:
       String getterName: the name of the static getter
       String typeName: the name of the enclosing type where the getter is being looked for
     sharedName: dotShorthandUndefinedMember
+    removedIn: "3.15"
     problemMessage: "The static getter '#getterName' isn't defined for the context type '#typeName'."
     correctionMessage: "Try correcting the name to the name of an existing static getter, or defining a getter or field named '#getterName'."
     hasPublishedDocs: true
@@ -5076,6 +5077,7 @@ CompileTimeErrorCode:
       String name: the name of the static method or constructor
       String contextType: the name of the enclosing type where the method or constructor is being looked for
     sharedName: dotShorthandUndefinedMember
+    removedIn: "3.15"
     problemMessage: "The static method or constructor '#name' isn't defined for the context type '#contextType'."
     correctionMessage: "Try correcting the name to the name of an existing static method or constructor, or defining a static method or constructor named '#name'."
     hasPublishedDocs: true
@@ -19491,6 +19493,15 @@ CompileTimeErrorCode:
     problemMessage: "The function type '#aliasName' doesn't have a static member named '#name'."
     correctionMessage: "Try wrapping the function type alias in parentheses to access '#name' on the 'Type' object."
     hasPublishedDocs: false
+  undefinedStaticMemberReadNoStaticMembersDotShorthand:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      String contextType: the context type of the dot shorthand
+    sharedName: undefinedStaticMemberRead
+    problemMessage: "The context type '#contextType' doesn't have static members or constructors."
+    correctionMessage: "Try qualifying '#name' with the name of the declaration that has it."
+    hasPublishedDocs: false
   undefinedStaticMemberReadNotFound:
     type: compileTimeError
     parameters:
@@ -19510,6 +19521,10 @@ CompileTimeErrorCode:
       off, but the declaration doesn't have an accessible static method,
       getter, or field with that name. For an enum, static members include
       its enum values.
+
+      For a dot shorthand such as `.a`, the analyzer looks up the name in the
+      declaration of its context type. It also produces this diagnostic when
+      the context type, such as a function type, doesn't have static members.
 
       #### Examples
 
@@ -19533,6 +19548,16 @@ CompileTimeErrorCode:
       var e = E.[!c!];
       ```
 
+      The following code produces this diagnostic because the enum `E`, which
+      is the context type of the dot shorthand `.c`, doesn't have a value
+      named `c`:
+
+      ```dart
+      enum E { a, b }
+
+      E e = .[!c!];
+      ```
+
       #### Common fixes
 
       If you intended to use a different static member, then use its name:
@@ -19546,6 +19571,16 @@ CompileTimeErrorCode:
       ```
 
       If the member isn't declared, then declare it or remove the reference.
+  undefinedStaticMemberReadNotFoundDotShorthand:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      String contextType: the name of the declaration that the context type of the dot shorthand denotes
+      String expectedKinds: the kinds of declarations that the lookup could have found, such as 'static member or constructor'
+    sharedName: undefinedStaticMemberRead
+    problemMessage: "The context type '#contextType' doesn't have a #expectedKinds named '#name'."
+    correctionMessage: "Try correcting the name to the name of an existing #expectedKinds, or defining a static member named '#name'."
+    hasPublishedDocs: false
   undefinedStaticMemberReadPrivate:
     type: compileTimeError
     parameters:
@@ -19554,6 +19589,16 @@ CompileTimeErrorCode:
     sharedName: undefinedStaticMemberRead
     problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
     correctionMessage: "Try making the member public."
+    hasPublishedDocs: false
+  undefinedStaticMemberReadPrivateDotShorthand:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      String contextType: the name of the private declaration that the context type of the dot shorthand denotes
+      Uri libraryUri: the URI of the library that declares the private declaration
+    sharedName: undefinedStaticMemberRead
+    problemMessage: "The context type '#contextType' is declared in '#libraryUri', but private names are visible only in their own library."
+    correctionMessage: "Try qualifying '#name' with a public name for the declaration, or making the declaration public."
     hasPublishedDocs: false
   undefinedStaticMemberReadSetterOnly:
     type: compileTimeError

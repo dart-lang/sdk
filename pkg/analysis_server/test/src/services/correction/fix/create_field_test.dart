@@ -490,7 +490,8 @@ A f() {
 }
 ''',
       filter: (diagnostic) {
-        return diagnostic.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }
@@ -513,7 +514,8 @@ A f() {
 }
 ''',
       filter: (diagnostic) {
-        return diagnostic.diagnosticCode == diag.dotShorthandUndefinedGetter;
+        return diagnostic.diagnosticCode ==
+            diag.undefinedStaticMemberReadNotFoundDotShorthand;
       },
     );
   }

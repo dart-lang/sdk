@@ -17,31 +17,54 @@ import 'package:analyzer/src/error/listener.dart';
 ///
 /// A dot shorthand without a context type is reported as missing a context
 /// instead, so this domain always has a context type.
-final class DotShorthandLookupDomain extends LookupDomain
-    with _LegacyWriteFailure {
+final class DotShorthandLookupDomain extends LookupDomain {
   /// The context type of the dot shorthand.
   final TypeImpl contextType;
 
-  /// The declaration whose static members were searched, or `null` if the
-  /// context type doesn't denote an accessible interface declaration.
-  final InterfaceElement? declaration;
+  /// The interface declaration that [contextType] denotes, or `null` if it
+  /// doesn't denote one.
+  final InterfaceElementImpl? declaration;
+
+  /// Whether [declaration] is private to another library, so its static
+  /// members were not searched.
+  final bool _isPrivateDeclaration;
 
   /// A lookup in the declaration that [context] denotes.
   DotShorthandLookupDomain.declaration(
     ValidDotShorthandContextResolutionImpl context,
   ) : contextType = context.contextType,
-      declaration = context.lookupType.element;
+      declaration = context.lookupType.element,
+      _isPrivateDeclaration = false;
 
-  /// A lookup in a [contextType] that doesn't denote an accessible interface
-  /// declaration, such as a function type, so nothing could be found.
-  DotShorthandLookupDomain.type(this.contextType) : declaration = null;
+  /// A lookup in the context type of [context], which doesn't denote an
+  /// accessible interface declaration, so nothing could be found.
+  factory DotShorthandLookupDomain.invalid(
+    InvalidDotShorthandContextResolutionImpl context,
+  ) {
+    if (context.lookupType case InterfaceTypeImpl(:var element)) {
+      if (element.isPrivate) {
+        return DotShorthandLookupDomain._privateDeclaration(
+          context.contextType,
+          element,
+        );
+      }
+    }
+    return DotShorthandLookupDomain._noDeclaration(context.contextType);
+  }
 
-  /// The context type, as it is displayed in messages.
-  ///
-  /// If the context type denotes a declaration, this is its name, without
-  /// type arguments or nullability.
-  String get contextTypeName {
-    return declaration?.displayName ?? contextType.getDisplayString();
+  DotShorthandLookupDomain._noDeclaration(this.contextType)
+    : declaration = null,
+      _isPrivateDeclaration = false;
+
+  DotShorthandLookupDomain._privateDeclaration(
+    this.contextType,
+    InterfaceElementImpl this.declaration,
+  ) : _isPrivateDeclaration = true;
+
+  @override
+  bool _isIgnored(LibraryFragmentImpl libraryFragment, String name) {
+    // The invalid context type has already been reported.
+    return contextType is InvalidTypeImpl;
   }
 
   @override
@@ -50,23 +73,49 @@ final class DotShorthandLookupDomain extends LookupDomain
     ReadSyntax syntax,
     _FoundInstead foundInstead,
   ) {
-    switch (syntax) {
-      case ReadSyntax.invocation:
-        return diag.dotShorthandUndefinedInvocation.withArguments(
+    var declaration = this.declaration;
+    if (declaration == null) {
+      return diag.undefinedStaticMemberReadNoStaticMembersDotShorthand
+          .withArguments(
+            name: name,
+            contextType: contextType.getDisplayString(),
+          );
+    } else if (_isPrivateDeclaration) {
+      return diag.undefinedStaticMemberReadPrivateDotShorthand.withArguments(
+        name: name,
+        contextType: declaration.displayName,
+        libraryUri: declaration.library.uri,
+      );
+    }
+
+    // Only the message for a missing member names the context type; the
+    // others are the messages of `StaticLookupDomain`.
+    switch (foundInstead) {
+      case _FoundNothing():
+        return diag.undefinedStaticMemberReadNotFoundDotShorthand.withArguments(
           name: name,
-          contextType: contextTypeName,
+          contextType: declaration.displayName,
+          expectedKinds: StaticLookupDomain._expectedKindsOf(declaration),
         );
-      case ReadSyntax.reference:
-      case ReadSyntax.typeInstantiation:
-        return diag.dotShorthandUndefinedGetter.withArguments(
-          getterName: name,
-          typeName: contextTypeName,
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedStaticMemberReadPrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration(element: ExecutableElement(isStatic: false)):
+        return diag.staticAccessToInstanceMember.withArguments(name: name);
+      case _FoundDeclaration(:var element):
+        assert(element is SetterElement);
+        return diag.undefinedStaticMemberReadSetterOnly.withArguments(
+          name: name,
+          containerKind: declaration.kind.displayName,
+          containerName: declaration.displayName,
         );
     }
   }
 
   @override
-  LocatableDiagnostic _writeNotFound(String name) {
+  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead) {
     throw StateError('A dot shorthand cannot be written.');
   }
 }
@@ -394,21 +443,6 @@ final class StaticLookupDomain extends LookupDomain {
 
   String get _containerName => declaration.displayName;
 
-  /// The kinds of declarations that a lookup in [declaration] could find, as
-  /// they are displayed in messages.
-  String get _expectedKinds {
-    switch (declaration) {
-      case ClassElementImpl():
-      case ExtensionTypeElementImpl():
-        return 'static member or constructor';
-      case EnumElementImpl():
-        return 'value or static member';
-      case ExtensionElementImpl():
-      case MixinElementImpl():
-        return 'static member';
-    }
-  }
-
   @override
   LocatableDiagnostic _readFailure(
     String name,
@@ -421,7 +455,7 @@ final class StaticLookupDomain extends LookupDomain {
           name: name,
           containerKind: _containerKind,
           containerName: _containerName,
-          expectedKinds: _expectedKinds,
+          expectedKinds: _expectedKindsOf(declaration),
         );
       case _FoundPrivate(:var libraryUri):
         return diag.undefinedStaticMemberReadPrivate.withArguments(
@@ -484,6 +518,21 @@ final class StaticLookupDomain extends LookupDomain {
           containerKind: _containerKind,
           containerName: _containerName,
         );
+    }
+  }
+
+  /// The kinds of declarations that a lookup in the static members of
+  /// [declaration] could find, as they are displayed in messages.
+  static String _expectedKindsOf(InstanceElementImpl declaration) {
+    switch (declaration) {
+      case ClassElementImpl():
+      case ExtensionTypeElementImpl():
+        return 'static member or constructor';
+      case EnumElementImpl():
+        return 'value or static member';
+      case ExtensionElementImpl():
+      case MixinElementImpl():
+        return 'static member';
     }
   }
 }

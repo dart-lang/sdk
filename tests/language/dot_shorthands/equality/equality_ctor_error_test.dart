@@ -412,7 +412,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                           ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                            ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constRegular' isn't defined for the type 'Object'.
 
   const bool contextTypeCtorEqNamed =
@@ -420,7 +420,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                           ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                            ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constNamed' isn't defined for the type 'Object'.
 
   const bool contextTypeCtorEqOptional =
@@ -428,7 +428,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                           ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                            ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constOptional' isn't defined for the type 'Object'.
 
   const bool contextTypeCtorNeqRegular =
@@ -436,7 +436,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                           ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                            ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constRegular' isn't defined for the type 'Object'.
 
   const bool contextTypeCtorNeqNamed =
@@ -444,7 +444,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                           ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                            ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constNamed' isn't defined for the type 'Object'.
 
   const bool contextTypeCtorNeqOptional =
@@ -452,7 +452,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                           ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                            ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constOptional' isn't defined for the type 'Object'.
 
   if ((ctor as Object) == .new(1)) print('not ok');
@@ -463,17 +463,17 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
 
   if ((ctor as Object) == .regular(1)) print('not ok');
   //                       ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'regular' isn't defined for the type 'Object'.
 
   if ((ctor as Object) == .named(x: 1)) print('not ok');
   //                       ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'named' isn't defined for the type 'Object'.
 
   if ((ctor as Object) == .optional(1)) print('not ok');
   //                       ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'optional' isn't defined for the type 'Object'.
 
   if ((ctor as Object) != .new(1)) print('not ok');
@@ -484,17 +484,17 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
 
   if ((ctor as Object) != .regular(1)) print('not ok');
   //                       ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'regular' isn't defined for the type 'Object'.
 
   if ((ctor as Object) != .named(x: 1)) print('not ok');
   //                       ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'named' isn't defined for the type 'Object'.
 
   if ((ctor as Object) != .optional(1)) print('not ok');
   //                       ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'optional' isn't defined for the type 'Object'.
 
   if ((ctor as Object) case == const .constRegular(1)) print('not ok');
@@ -545,7 +545,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                              ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                               ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constRegular' isn't defined for the type 'Object'.
 
   const bool contextTypeCtorExtEqNamed =
@@ -553,7 +553,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                              ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                               ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constNamed' isn't defined for the type 'Object'.
 
   const bool contextTypeCtorExtEqOptional =
@@ -561,7 +561,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                              ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                               ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constOptional' isn't defined for the type 'Object'.
 
   const bool contextTypeCtorExtNeqRegular =
@@ -569,7 +569,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                              ^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                               ^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constRegular' isn't defined for the type 'Object'.
 
   const bool contextTypeCtorExtNeqNamed =
@@ -577,7 +577,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                              ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                               ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constNamed' isn't defined for the type 'Object'.
 
   const bool contextTypeCtorExtNeqOptional =
@@ -585,7 +585,7 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
   //                              ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                               ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'constOptional' isn't defined for the type 'Object'.
 
   if ((ctorExt as Object) == .new(1)) print('not ok');
@@ -596,17 +596,17 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
 
   if ((ctorExt as Object) == .regular(1)) print('not ok');
   //                          ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'regular' isn't defined for the type 'Object'.
 
   if ((ctorExt as Object) == .named(x: 1)) print('not ok');
   //                          ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'named' isn't defined for the type 'Object'.
 
   if ((ctorExt as Object) == .optional(1)) print('not ok');
   //                          ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'optional' isn't defined for the type 'Object'.
 
   if ((ctorExt as Object) != .new(1)) print('not ok');
@@ -617,17 +617,17 @@ void objectContextType(ConstructorClass ctor, ConstructorExt ctorExt) {
 
   if ((ctorExt as Object) != .regular(1)) print('not ok');
   //                          ^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'regular' isn't defined for the type 'Object'.
 
   if ((ctorExt as Object) != .named(x: 1)) print('not ok');
   //                          ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'named' isn't defined for the type 'Object'.
 
   if ((ctorExt as Object) != .optional(1)) print('not ok');
   //                          ^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_UNDEFINED_MEMBER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_STATIC_MEMBER_READ
   // [cfe] The static method or constructor 'optional' isn't defined for the type 'Object'.
 
   if ((ctorExt as Object) case == const .constRegular(1)) print('not ok');

@@ -5514,19 +5514,23 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       switch (shorthandContext) {
         case MissingDotShorthandContextResolutionImpl():
           diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
-        case InvalidDotShorthandContextResolutionImpl(:var contextType):
+        case InvalidDotShorthandContextResolutionImpl():
           lookupFailureReporter.reportReadFailure(
-            domain: DotShorthandLookupDomain.type(contextType),
+            domain: DotShorthandLookupDomain.invalid(shorthandContext),
             name: head.name,
             syntax: ReadSyntax.invocation,
             foundInstead: null,
           );
-        case ValidDotShorthandContextResolutionImpl():
+        case ValidDotShorthandContextResolutionImpl(:var lookupType):
           lookupFailureReporter.reportReadFailure(
             domain: DotShorthandLookupDomain.declaration(shorthandContext),
             name: head.name,
             syntax: ReadSyntax.invocation,
-            foundInstead: null,
+            foundInstead:
+                element ??
+                lookupType.element.getMemberForFailedLookup(
+                  Name(definingLibrary.uri, head.name.lexeme),
+                ),
           );
       }
       element = null;

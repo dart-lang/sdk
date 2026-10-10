@@ -58,6 +58,14 @@
   Replace the removed names with the new names in `// ignore:` comments and
   in `analysis_options.yaml`, where the old names are still accepted but have
   no effect.
+* Dot shorthands, such as `.foo` and `.foo()`, report
+  `undefined_static_member_read` instead of `dot_shorthand_undefined_member`,
+  with a message that names the context type. A dot shorthand whose context
+  type has no static members, such as a function type, or is a private class
+  of another library, reports it too, instead of
+  `dot_shorthand_missing_context`, which is now reported only when there is
+  no context type. Replace `dot_shorthand_undefined_member` in `// ignore:`
+  comments and in `analysis_options.yaml`.
 
 ## 14.5.0
 

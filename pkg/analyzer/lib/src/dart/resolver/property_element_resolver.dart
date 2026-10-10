@@ -344,7 +344,16 @@ class PropertyElementResolver with ScopeHelpers {
       return _dotShorthandReadResolution(result);
     }
 
-    diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
+    if (shorthandContext is MissingDotShorthandContextResolutionImpl) {
+      diagnosticReporter.report(diag.dotShorthandMissingContext.at(node));
+    } else if (shorthandContext is InvalidDotShorthandContextResolutionImpl) {
+      _lookupFailureReporter.reportReadFailure(
+        domain: DotShorthandLookupDomain.invalid(shorthandContext),
+        name: node.name,
+        syntax: ReadSyntax.reference,
+        foundInstead: null,
+      );
+    }
     return InvalidNamedReadResolutionImpl(recoveryElement: null);
   }
 
@@ -1894,12 +1903,9 @@ class PropertyElementResolver with ScopeHelpers {
         isReadFailure = true;
         readElementRecovery = element;
         _lookupFailureReporter.reportReadFailure(
-          domain: switch ((dotShorthandContext, element)) {
-            (var context?, null) => DotShorthandLookupDomain.declaration(
-              context,
-            ),
-            _ => StaticLookupDomain(typeReference),
-          },
+          domain: dotShorthandContext != null
+              ? DotShorthandLookupDomain.declaration(dotShorthandContext)
+              : StaticLookupDomain(typeReference),
           name: propertyName,
           syntax: ReadSyntax.reference,
           foundInstead:

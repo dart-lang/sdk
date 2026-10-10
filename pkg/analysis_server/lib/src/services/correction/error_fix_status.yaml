@@ -627,10 +627,6 @@ disallowed_type_instantiation_expression:
   since: 2.15
 dot_shorthand_missing_context:
   status: needsEvaluation
-dot_shorthand_undefined_getter:
-  status: hasFix
-dot_shorthand_undefined_invocation:
-  status: hasFix
 duplicate_constructor_default:
   status: noFix
   notes: |-
@@ -1752,13 +1748,25 @@ undefined_static_member_read_no_static_members:
   notes: |-
     A function type has no static members; the correction suggests wrapping
     the alias in parentheses, which changes the meaning.
+undefined_static_member_read_no_static_members_dot_shorthand:
+  status: noFix
+  notes: |-
+    The context type has no static members; the fix depends on which
+    declaration was meant.
 undefined_static_member_read_not_found:
+  status: hasFix
+undefined_static_member_read_not_found_dot_shorthand:
   status: hasFix
 undefined_static_member_read_private:
   status: noFix
   notes: |-
     The member is declared in another library, which would have to make it
     public.
+undefined_static_member_read_private_dot_shorthand:
+  status: noFix
+  notes: |-
+    The context type is declared in another library, which would have to make
+    it public.
 undefined_static_member_read_setter_only:
   status: needsFix
   notes: |-
