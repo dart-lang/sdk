@@ -617,6 +617,14 @@ class NullRejectionException implements Exception {
 }
 
 /// The JavaScript `Error` type.
+///
+/// Checking this type with [NullableObjectUtilExtension.isA] uses
+/// [`Error.isError`] on browsers where it's supported. Because Safari has
+/// [known bugs] in its implementation, `isA<JSError>()` will return true if
+/// either `Error.isError()` or `instanceof Error` returns true.
+///
+/// [`Error.isError`]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error/isError
+/// [known bugs]: https://bugs.webkit.org/show_bug.cgi?id=292727
 @JS('Error')
 extension type JSError._(JSObject _) implements JSObject {
   /// See [`Error.captureStackTrace()`].

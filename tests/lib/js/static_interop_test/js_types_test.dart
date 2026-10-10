@@ -1010,9 +1010,9 @@ void syncTests() {
     isJSBackend ? defaultCause.isUndefined : defaultCause.isUndefinedOrNull,
   );
   Expect.equals('bar'.toJS, JSError('foo', cause: 'bar'.toJS).cause);
-  Expect.isTrue(JSError.isError(JSError('foo')));
-  Expect.isFalse(JSError.isError('foo'));
-  Expect.isFalse(JSError.isError(JSObject()));
+  Expect.isTrue(JSError('foo').isA<JSError>());
+  Expect.isFalse('foo'.isA<JSError>());
+  Expect.isFalse(JSObject().isA<JSError>());
 
   final errorWithStack = JSError('foo');
   JSError.captureStackTrace(errorWithStack);
