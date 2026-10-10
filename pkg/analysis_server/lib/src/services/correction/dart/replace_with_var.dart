@@ -70,6 +70,23 @@ class ReplaceWithVar extends ResolvedCorrectionProducer {
         // declared type with `var`.
         insertionText = utils.getNodeText(type);
         insertionOffset = initializer.beginToken.offset;
+        if (initializer is DotShorthandConstructorInvocation &&
+            initializer.constructorName.name == 'new') {
+          // For the unnamed constructor `.new()`, inserting the type before the
+          // shorthand would produce `E.new()`. Instead we want `E()`, so also
+          // delete the period and `new` keyword (i.e. `.new`).
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addSimpleReplacement(range.node(type), 'var');
+            builder.addSimpleInsertion(insertionOffset!, insertionText!);
+            builder.addDeletion(
+              range.startStart(
+                initializer.period,
+                initializer.argumentList.leftParenthesis,
+              ),
+            );
+          });
+          return;
+        }
       } else if (type is NamedType) {
         var typeArguments = type.typeArguments;
         if (typeArguments != null) {
