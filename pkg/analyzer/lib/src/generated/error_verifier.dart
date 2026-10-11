@@ -1482,7 +1482,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       diag.builtInIdentifierAsTypedefName,
     );
     _checkForMainFunction1(declaredFragment, node.name);
-    _checkForTypeAliasCannotReferenceItself(declaredFragment, node.name);
+    _checkForTypeAliasCannotReferenceItself(
+      declaredFragment.element,
+      node.name,
+    );
     super.visitFunctionTypeAlias(node);
   }
 
@@ -1495,7 +1498,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       diag.builtInIdentifierAsTypedefName,
     );
     _checkForMainFunction1(declaredFragment, node.name);
-    _checkForTypeAliasCannotReferenceItself(declaredFragment, node.name);
+    _checkForTypeAliasCannotReferenceItself(
+      declaredFragment.element,
+      node.name,
+    );
     super.visitGenericTypeAlias(node);
   }
 
@@ -7485,15 +7491,15 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  /// Verify that the given [fragment] does not reference itself directly.
+  /// Verify that the given [element] does not reference itself directly.
   /// If it does, report the error on the [nameToken].
   ///
   /// See [diag.typeAliasCannotReferenceItself].
   void _checkForTypeAliasCannotReferenceItself(
-    TypeAliasFragmentImpl fragment,
+    TypeAliasElementImpl element,
     Token nameToken,
   ) {
-    if (fragment.hasSelfReference) {
+    if (element.hasSelfReference) {
       diagnosticReporter.report(
         diag.typeAliasCannotReferenceItself.at(nameToken),
       );
