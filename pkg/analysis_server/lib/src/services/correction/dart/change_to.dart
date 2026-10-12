@@ -266,17 +266,22 @@ class ChangeTo extends ResolvedCorrectionProducer {
   Future<void> _proposeFunction(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {
-      // Prepare the optional import prefix name.
-      String? prefixName;
-      {
-        var invocation = node.parent;
-        if (invocation is MethodInvocation && invocation.methodName == node) {
-          var target = invocation.target;
-          if (target is SimpleIdentifier && target.element is PrefixElement) {
-            prefixName = target.name;
-          }
-        }
-      }
+      // Prepare the optional import prefix name, for `p.foo()` and `p.foo`.
+      var prefixName = switch (node.parent) {
+        MethodInvocation(
+          target: SimpleIdentifier(:var name, element: PrefixElement()),
+          :var methodName,
+        )
+            when methodName == node =>
+          name,
+        PrefixedIdentifier(
+          prefix: SimpleIdentifier(:var name, element: PrefixElement()),
+          :var identifier,
+        )
+            when identifier == node =>
+          name,
+        _ => null,
+      };
       // Prepare for selecting the closest element.
       var finder = _ClosestElementFinder(
         node.name,

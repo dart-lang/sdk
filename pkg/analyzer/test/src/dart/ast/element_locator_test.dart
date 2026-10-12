@@ -1578,7 +1578,7 @@ import 'a.dart' as p;
 void f() {
   p.value;
 //  ^^^^^
-// [diag.undefinedPrefixedName] The name 'value' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadSetterOnly] There's a setter 'value' in the libraries imported with the prefix 'p', but no getter.
 }
 ''');
     var node = result.findNode.importPrefixedNameExpression('p.value');

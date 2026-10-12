@@ -378,7 +378,7 @@ import 'a.dart' as p;
 void f() {
   p.missing;
 //  ^^^^^^^
-// [diag.undefinedPrefixedName] The name 'missing' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'missing' isn't defined in the libraries imported with the prefix 'p'.
 }
 ''');
     assertResolvedNodeText(
@@ -602,7 +602,7 @@ import 'a.dart' as prefix;
 void f() {
   prefix.foo;
 //       ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadSetterOnly] There's a setter 'foo' in the libraries imported with the prefix 'prefix', but no getter.
 }
 ''');
 

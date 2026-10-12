@@ -151,7 +151,7 @@ import 'dart:math' as prefix;
 void f() async {
   await prefix.unresolved;
 //             ^^^^^^^^^^
-// [diag.undefinedPrefixedName] The name 'unresolved' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'unresolved' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
 

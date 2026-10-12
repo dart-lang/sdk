@@ -759,6 +759,20 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_undefinedPrefixedName() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_prefixed_name: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_prefixed_name: ignore
+''');
+  }
+
   test_analyzer_errors_removed_undefinedSetter() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:

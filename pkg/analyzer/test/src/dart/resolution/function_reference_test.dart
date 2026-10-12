@@ -7601,7 +7601,7 @@ import 'a.dart' as prefix;
 bar() {
   prefix.a.foo<int>;
 //       ^
-// [diag.undefinedPrefixedName] The name 'a' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'a' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
 
@@ -8017,7 +8017,7 @@ import 'a.dart' as a;
 void bar() {
   a.foo<int>;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'a', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'a'.
 }
 ''');
 

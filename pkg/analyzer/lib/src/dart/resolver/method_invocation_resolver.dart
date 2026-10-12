@@ -7,6 +7,7 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -100,8 +101,9 @@ class MethodInvocationResolver with ScopeHelpers {
         candidate = imports.single.importedLibrary?.loadLibraryFunction;
       }
     }
+    ScopeLookupResult? lookup;
     if (candidate == null) {
-      var lookup = prefix.scope.lookup(name.lexeme);
+      lookup = prefix.scope.lookup(name.lexeme);
       reportDeprecatedExportUseGetter(
         scopeLookupResult: lookup,
         nameToken: name,
@@ -144,7 +146,7 @@ class MethodInvocationResolver with ScopeHelpers {
       );
       return;
     }
-    if (element is! InternalExecutableElement) {
+    if (element == null) {
       if (name.isSynthetic) {
         // The parser has already reported the missing name. But the prefix
         // is still used, so its imports must not be reported as unused.
@@ -154,7 +156,15 @@ class MethodInvocationResolver with ScopeHelpers {
         domain: PrefixedLookupDomain(prefix),
         name: name,
         syntax: ReadSyntax.invocation,
-        foundInstead: null,
+        foundInstead:
+            lookup?.setter ??
+            prefix.scope.getPrivateDeclarationOfImportedLibrary(name.lexeme),
+      );
+    } else if (element is! InternalExecutableElement) {
+      // Such as a type alias of a function type; other types are invoked as
+      // instance creations.
+      diagnosticReporter.report(
+        diag.invocationOfNonFunction.withArguments(name: name.lexeme).at(name),
       );
     }
     _resolveNamedInvocation(

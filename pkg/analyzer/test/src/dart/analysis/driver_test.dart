@@ -44756,7 +44756,7 @@ int get prefix => 0;
     uri: package:test/c.dart
     flags: exists isPart
     errors
-      96 +6 UNDEFINED_FUNCTION
+      96 +6 UNDEFINED_PREFIXED_NAME_READ
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -44970,6 +44970,154 @@ double get b => 1.2;
     topLevelVariables
       hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
+''',
+    );
+  }
+
+  test_dependency_topLevelVariable_add_private_importPrefixed() async {
+    await _runChangeScenarioTA(
+      initialA: r'''
+final a = 0;
+''',
+      testCode: r'''
+import 'a.dart' as p;
+void f() {
+  p._foo;
+}
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredGetters
+      a: #M0
+    declaredVariables
+      a: #M1
+    exportMapId: #M2
+    exportMap
+      a: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredFunctions
+      f: #M3
+    exportMapId: #M4
+    exportMap
+      f: #M3
+  requirements
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      37 +4 UNDEFINED_PREFIXED_NAME_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportMapId: #M2
+        exportMap
+          _foo: <null>
+          _foo=: <null>
+        requestedDeclaredClasses
+          _foo: <null>
+        requestedDeclaredEnums
+          _foo: <null>
+        requestedDeclaredExtensions
+          _foo: <null>
+        requestedDeclaredExtensionTypes
+          _foo: <null>
+        requestedDeclaredMixins
+          _foo: <null>
+        requestedDeclaredTypeAliases
+          _foo: <null>
+        requestedDeclaredFunctions
+          _foo: <null>
+        requestedDeclaredGetters
+          _foo: <null>
+        requestedDeclaredSetters
+          _foo=: <null>
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      37 +4 UNDEFINED_PREFIXED_NAME_READ
+''',
+      // Add the private variable, now it is reported as private.
+      updatedA: r'''
+final a = 0;
+final _foo = 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredGetters
+      _foo: #M6
+      a: #M0
+    declaredVariables
+      _foo: #M7
+      a: #M1
+    exportMapId: #M8
+    exportMap
+      _foo: #M6
+      a: #M0
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: _foo
+    expectedId: <null>
+    actualId: #M6
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      37 +4 UNDEFINED_PREFIXED_NAME_READ
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M5
+        exportMapId: #M8
+        exportMap
+          _foo: #M6
+          _foo=: <null>
+        reExportDeprecatedOnly
+          _foo: false
+        requestedDeclaredGetters
+          _foo: #M6
+[status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      37 +4 UNDEFINED_PREFIXED_NAME_READ
 ''',
     );
   }

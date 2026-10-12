@@ -888,7 +888,9 @@ import 'undefined_instance_member_write_test.dart'
 import 'undefined_method_test.dart' as undefined_method;
 import 'undefined_named_parameter_test.dart' as undefined_named_parameter;
 import 'undefined_operator_test.dart' as undefined_operator;
-import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
+import 'undefined_prefixed_name_read_test.dart' as undefined_prefixed_name_read;
+import 'undefined_prefixed_name_write_test.dart'
+    as undefined_prefixed_name_write;
 import 'undefined_referenced_parameter_test.dart'
     as undefined_referenced_parameter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
@@ -1529,7 +1531,8 @@ main() {
     undefined_method.main();
     undefined_named_parameter.main();
     undefined_operator.main();
-    undefined_prefixed_name.main();
+    undefined_prefixed_name_read.main();
+    undefined_prefixed_name_write.main();
     undefined_referenced_parameter.main();
     undefined_shown_name.main();
     undefined_static_member_read.main();

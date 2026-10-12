@@ -19647,6 +19647,7 @@ CompileTimeErrorCode:
     parameters:
       String referenceName: the name of the reference
       String prefixName: the name of the prefix
+    removedIn: "3.15"
     problemMessage: "The name '#referenceName' is being referenced through the prefix '#prefixName', but it isn't defined in any of the libraries imported using that prefix."
     correctionMessage: "Try correcting the prefix or importing the library that defines '#referenceName'."
     hasPublishedDocs: true
@@ -19677,6 +19678,197 @@ CompileTimeErrorCode:
 
       If the name is wrong, then change it to one of the names that's declared in
       the imported libraries.
+  undefinedPrefixedNameReadNotFound:
+    type: compileTimeError
+    parameters:
+      String name: the name of the declaration
+      String prefix: the name of the import prefix
+    sharedName: undefinedPrefixedNameRead
+    problemMessage: "The name '#name' isn't defined in the libraries imported with the prefix '#prefix'."
+    correctionMessage: "Try correcting the name to the name of an existing declaration, or importing the library that defines '#name' with the prefix '#prefix'."
+    hasPublishedDocs: false
+    isUnresolvedIdentifier: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a name is read, invoked, or
+      torn off through an import prefix, but none of the libraries imported
+      with that prefix has a getter, function, variable, or type with that
+      name that can be read.
+
+      #### Examples
+
+      The following code produces this diagnostic because `dart:core` doesn't
+      define anything named `a`:
+
+      ```dart
+      import 'dart:core' as p;
+
+      void f() {
+        p.[!a!];
+      }
+      ```
+
+      Given a file `a.dart` that contains:
+
+      ```dart
+      %uri="lib/a.dart"
+      set x(int _) {}
+      ```
+
+      The following code produces this diagnostic because `a.dart` has only a
+      setter named `x`, which can't be read:
+
+      ```dart
+      import 'a.dart' as p;
+
+      int f() => p.[!x!];
+      ```
+
+      #### Common fixes
+
+      If the library in which the name is declared isn't imported yet, then
+      import it with the prefix.
+
+      If the name is wrong, then change it to one of the names that's declared
+      in the imported libraries.
+
+      If the library has only a setter, then add a getter with the same name
+      to that library.
+  undefinedPrefixedNameReadPrivate:
+    type: compileTimeError
+    parameters:
+      String name: the name of the declaration
+      Uri libraryUri: the URI of the library that declares the private declaration
+    sharedName: undefinedPrefixedNameRead
+    problemMessage: "The name '#name' is declared in '#libraryUri', but private names are visible only in their own library."
+    correctionMessage: "Try making the declaration public."
+    hasPublishedDocs: false
+  undefinedPrefixedNameReadSetterOnly:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+      String prefix: the name of the import prefix
+    sharedName: undefinedPrefixedNameRead
+    problemMessage: "There's a setter '#name' in the libraries imported with the prefix '#prefix', but no getter."
+    correctionMessage: "Try defining a getter or variable named '#name'."
+    hasPublishedDocs: false
+  undefinedPrefixedNameWriteConst:
+    type: compileTimeError
+    parameters:
+      String name: the name of the constant
+      String prefix: the name of the import prefix
+    sharedName: undefinedPrefixedNameWrite
+    problemMessage: "The constant '#name' imported with the prefix '#prefix' can't be assigned to."
+    correctionMessage: "Try making it a non-constant variable, or removing the assignment."
+    hasPublishedDocs: false
+  undefinedPrefixedNameWriteFinal:
+    type: compileTimeError
+    parameters:
+      String name: the name of the variable
+      String prefix: the name of the import prefix
+    sharedName: undefinedPrefixedNameWrite
+    problemMessage: "The variable '#name' imported with the prefix '#prefix' is final, so it can't be assigned to."
+    correctionMessage: "Try making the variable non-final, or removing the assignment."
+    hasPublishedDocs: false
+  undefinedPrefixedNameWriteGetterOnly:
+    type: compileTimeError
+    parameters:
+      String name: the name of the getter
+      String prefix: the name of the import prefix
+    sharedName: undefinedPrefixedNameWrite
+    problemMessage: "There's a getter '#name' in the libraries imported with the prefix '#prefix', but no setter."
+    correctionMessage: "Try defining a setter named '#name'."
+    hasPublishedDocs: false
+  undefinedPrefixedNameWriteNotFound:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+      String prefix: the name of the import prefix
+    sharedName: undefinedPrefixedNameWrite
+    problemMessage: "The setter '#name' isn't defined in the libraries imported with the prefix '#prefix'."
+    correctionMessage: "Try correcting the name to the name of an existing setter, or importing the library that defines '#name' with the prefix '#prefix'."
+    hasPublishedDocs: false
+    isUnresolvedIdentifier: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a name is assigned through an
+      import prefix, but none of the libraries imported with that prefix has a
+      setter or non-final variable with that name.
+
+      #### Examples
+
+      The following code produces this diagnostic because `dart:core` doesn't
+      define anything named `a`:
+
+      ```dart
+      import 'dart:core' as p;
+
+      void f() {
+        p.[!a!] = 0;
+      }
+      ```
+
+      Given a file `a.dart` that contains:
+
+      ```dart
+      %uri="lib/a.dart"
+      int get x => 0;
+      ```
+
+      The following code produces this diagnostic because `a.dart` has only a
+      getter named `x`:
+
+      ```dart
+      import 'a.dart' as p;
+
+      void f() {
+        p.[!x!] = 0;
+      }
+      ```
+
+      The following code produces this diagnostic because `pi` is a constant:
+
+      ```dart
+      import 'dart:math' as p;
+
+      void f() {
+        p.[!pi!] = 0;
+      }
+      ```
+
+      #### Common fixes
+
+      If the library in which the setter is declared isn't imported yet, then
+      import it with the prefix.
+
+      If the name is wrong, then change it to the name of a setter or variable
+      that's declared in the imported libraries.
+
+      If the library has only a getter, then add a setter with the same name
+      to that library. If the variable is final, then make it non-final.
+
+      Otherwise, remove the assignment.
+  undefinedPrefixedNameWritePrivate:
+    type: compileTimeError
+    parameters:
+      String name: the name of the declaration
+      Uri libraryUri: the URI of the library that declares the private declaration
+    sharedName: undefinedPrefixedNameWrite
+    problemMessage: "The name '#name' is declared in '#libraryUri', but private names are visible only in their own library."
+    correctionMessage: "Try making the declaration public."
+    hasPublishedDocs: false
+  undefinedPrefixedNameWriteWrongKind:
+    type: compileTimeError
+    parameters:
+      String kind: the kind of the declaration that was found, such as 'function'
+      String name: the name of the declaration
+      String prefix: the name of the import prefix
+    sharedName: undefinedPrefixedNameWrite
+    problemMessage: "The #kind '#name' imported with the prefix '#prefix' can't be assigned to."
+    correctionMessage: "Try assigning to a setter or a non-final variable instead."
+    hasPublishedDocs: false
   undefinedSetter:
     type: compileTimeError
     parameters:

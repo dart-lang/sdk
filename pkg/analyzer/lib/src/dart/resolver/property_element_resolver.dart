@@ -2034,13 +2034,30 @@ class PropertyElementResolver with ScopeHelpers {
           domain: PrefixedLookupDomain(target),
           name: nameToken,
           syntax: ReadSyntax.reference,
-          foundInstead: null,
+          foundInstead:
+              writeElement ??
+              target.scope.getPrivateDeclarationOfImportedLibrary(name),
         );
+      } else if (readElement is MultiplyDefinedElement) {
+        // Several imported libraries declare the getter, and none the setter.
+        // In a read-write operation, the read is evaluated first, and reports
+        // the ambiguous import, so the write isn't reported too. Without a
+        // read, the getters may be of different kinds, so they don't say why
+        // there is no setter.
+        if (!hasRead) {
+          _lookupFailureReporter.reportWriteFailure(
+            domain: PrefixedLookupDomain(target),
+            name: nameToken,
+            foundInstead: null,
+          );
+        }
       } else {
         _lookupFailureReporter.reportWriteFailure(
           domain: PrefixedLookupDomain(target),
           name: nameToken,
-          foundInstead: null,
+          foundInstead:
+              readElement ??
+              target.scope.getPrivateDeclarationOfImportedLibrary(name),
         );
       }
     }

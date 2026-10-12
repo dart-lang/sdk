@@ -4088,7 +4088,7 @@ import 'dart:math' as math;
 main() {
   math.foo(0);
 //     ^^^
-// [diag.undefinedFunction] The function 'foo' isn't defined.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'math'.
 }
 ''');
 

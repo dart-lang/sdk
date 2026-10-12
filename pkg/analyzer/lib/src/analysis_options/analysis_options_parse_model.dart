@@ -93,6 +93,9 @@ abstract final class _DiagnosticOptions {
     'UNDEFINED_GETTER',
     // Instance members report `UNDEFINED_INSTANCE_MEMBER_WRITE`.
     'UNDEFINED_SETTER',
+    // Split into `UNDEFINED_PREFIXED_NAME_READ` and
+    // `UNDEFINED_PREFIXED_NAME_WRITE`.
+    'UNDEFINED_PREFIXED_NAME',
   };
 
   static Set<String> currentLintCodeNames() {

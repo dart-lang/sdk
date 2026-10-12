@@ -17144,27 +17144,184 @@ undefinedOperator = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String referenceName: the name of the reference
-/// String prefixName: the name of the prefix
+/// String name: the name of the declaration
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_read',
+  problemMessage:
+      "The name '{0}' isn't defined in the libraries imported with the prefix "
+      "'{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing declaration, or "
+      "importing the library that defines '{0}' with the prefix '{1}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_read_not_found',
+  withArguments: _withArgumentsUndefinedPrefixedNameReadNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the declaration
+/// Uri libraryUri: the URI of the library that declares the private
+///                 declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedPrefixedNameReadPrivate = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_read',
+  problemMessage:
+      "The name '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the declaration public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_read_private',
+  withArguments: _withArgumentsUndefinedPrefixedNameReadPrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_read',
+  problemMessage:
+      "There's a setter '{0}' in the libraries imported with the prefix '{1}', "
+      "but no getter.",
+  correctionMessage: "Try defining a getter or variable named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_read_setter_only',
+  withArguments: _withArgumentsUndefinedPrefixedNameReadSetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the constant
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameWriteConst = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
+  problemMessage:
+      "The constant '{0}' imported with the prefix '{1}' can't be assigned to.",
+  correctionMessage:
+      "Try making it a non-constant variable, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_write_const',
+  withArguments: _withArgumentsUndefinedPrefixedNameWriteConst,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the variable
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameWriteFinal = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
+  problemMessage:
+      "The variable '{0}' imported with the prefix '{1}' is final, so it can't "
+      "be assigned to.",
+  correctionMessage:
+      "Try making the variable non-final, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_write_final',
+  withArguments: _withArgumentsUndefinedPrefixedNameWriteFinal,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
+  problemMessage:
+      "There's a getter '{0}' in the libraries imported with the prefix '{1}', "
+      "but no setter.",
+  correctionMessage: "Try defining a setter named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_write_getter_only',
+  withArguments: _withArgumentsUndefinedPrefixedNameWriteGetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
+  problemMessage:
+      "The setter '{0}' isn't defined in the libraries imported with the prefix "
+      "'{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing setter, or "
+      "importing the library that defines '{0}' with the prefix '{1}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_write_not_found',
+  withArguments: _withArgumentsUndefinedPrefixedNameWriteNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the declaration
+/// Uri libraryUri: the URI of the library that declares the private
+///                 declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedPrefixedNameWritePrivate = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
+  problemMessage:
+      "The name '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the declaration public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_write_private',
+  withArguments: _withArgumentsUndefinedPrefixedNameWritePrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as
+///              'function'
+/// String name: the name of the declaration
+/// String prefix: the name of the import prefix
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({
-    required String referenceName,
-    required String prefixName,
+    required String kind,
+    required String name,
+    required String prefix,
   })
 >
-undefinedPrefixedName = DiagnosticWithArguments(
-  name: 'undefined_prefixed_name',
+undefinedPrefixedNameWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_write',
   problemMessage:
-      "The name '{0}' is being referenced through the prefix '{1}', but it isn't "
-      "defined in any of the libraries imported using that prefix.",
+      "The {0} '{1}' imported with the prefix '{2}' can't be assigned to.",
   correctionMessage:
-      "Try correcting the prefix or importing the library that defines "
-      "'{0}'.",
-  hasPublishedDocs: true,
+      "Try assigning to a setter or a non-final variable instead.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_prefixed_name',
-  withArguments: _withArgumentsUndefinedPrefixedName,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
+  uniqueName: 'undefined_prefixed_name_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedPrefixedNameWriteWrongKind,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
 );
 
 /// Parameters:
@@ -23074,13 +23231,95 @@ LocatableDiagnostic _withArgumentsUndefinedOperator({
   return LocatableDiagnosticImpl(diag.undefinedOperator, [operator, type]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedPrefixedName({
-  required String referenceName,
-  required String prefixName,
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadNotFound({
+  required String name,
+  required String prefix,
 }) {
-  return LocatableDiagnosticImpl(diag.undefinedPrefixedName, [
-    referenceName,
-    prefixName,
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameReadNotFound, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadPrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameReadPrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadSetterOnly({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameReadSetterOnly, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWriteConst({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWriteConst, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWriteFinal({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWriteFinal, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWriteGetterOnly({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWriteGetterOnly, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWriteNotFound({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWriteNotFound, [
+    name,
+    prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWritePrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWritePrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameWriteWrongKind({
+  required String kind,
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedPrefixedNameWriteWrongKind, [
+    kind,
+    name,
+    prefix,
   ]);
 }
 

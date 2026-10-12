@@ -295,7 +295,7 @@ f() => g();
 
     await resolveFileWithDiagnostics(file, '''
 import 'dart:collection' as c;
-// ignore: undefined_prefixed_name
+// ignore: undefined_prefixed_name_read
 f() => c.g;
 ''');
   }

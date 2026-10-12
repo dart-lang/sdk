@@ -96,6 +96,22 @@
   both the read and the write fail. Replace `undefined_setter` in
   `// ignore:` comments and in `analysis_options.yaml`, where it is still
   accepted, but has no effect.
+* Names imported with a prefix, such as `p.foo`, report two new diagnostics
+  instead of `undefined_prefixed_name`:
+  * `undefined_prefixed_name_read`, for `p.foo`, `p.foo()`, and the read of
+    `p.foo += 1`, when no library imported with the prefix has a getter,
+    function, variable, or type named `foo`. This replaces
+    `undefined_function` for prefixed invocations. The message says when
+    there is only a setter, or a private declaration of an imported library.
+  * `undefined_prefixed_name_write`, for `p.foo = v`, when no library
+    imported with the prefix has a setter named `foo`. The message says when
+    there is only a getter, a final or constant variable, a function or a
+    type, or a private declaration of an imported library. Before, all of
+    these reported that `foo` isn't defined.
+
+  Replace `undefined_prefixed_name` with the new names in `// ignore:`
+  comments and in `analysis_options.yaml`, where it is still accepted, but
+  has no effect.
 
 ## 14.5.0
 

@@ -423,16 +423,20 @@ class LookupFailureReporter {
 /// A lookup in the names imported through an import prefix.
 ///
 /// For example, `p.foo` and `p.foo = 0`.
-final class PrefixedLookupDomain extends LookupDomain with _LegacyWriteFailure {
+final class PrefixedLookupDomain extends LookupDomain {
   /// The import prefix.
   final PrefixElement prefix;
 
   PrefixedLookupDomain(this.prefix);
 
+  /// The name of the [prefix], which the code being analyzed used to
+  /// reference it, so it isn't `null`.
+  String get _prefixName => prefix.name!;
+
   @override
   bool _isIgnored(LibraryFragmentImpl libraryFragment, String name) {
     return libraryFragment.shouldIgnoreUndefined(
-      prefix: prefix.name,
+      prefix: _prefixName,
       name: name,
     );
   }
@@ -443,24 +447,65 @@ final class PrefixedLookupDomain extends LookupDomain with _LegacyWriteFailure {
     ReadSyntax syntax,
     _FoundInstead foundInstead,
   ) {
-    switch (syntax) {
-      case ReadSyntax.invocation:
-        return diag.undefinedFunction.withArguments(name: name);
-      case ReadSyntax.reference:
-      case ReadSyntax.typeInstantiation:
-        return diag.undefinedPrefixedName.withArguments(
-          referenceName: name,
-          prefixName: prefix.name!,
+    switch (foundInstead) {
+      case _FoundNothing():
+        return diag.undefinedPrefixedNameReadNotFound.withArguments(
+          name: name,
+          prefix: _prefixName,
+        );
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedPrefixedNameReadPrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration(:var element):
+        // Setters, possibly ambiguous between the imported libraries.
+        assert(element is SetterElement || element is MultiplyDefinedElement);
+        return diag.undefinedPrefixedNameReadSetterOnly.withArguments(
+          name: name,
+          prefix: _prefixName,
         );
     }
   }
 
   @override
-  LocatableDiagnostic _writeNotFound(String name) {
-    return diag.undefinedPrefixedName.withArguments(
-      referenceName: name,
-      prefixName: prefix.name!,
-    );
+  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead) {
+    switch (foundInstead) {
+      case _FoundNothing():
+        return diag.undefinedPrefixedNameWriteNotFound.withArguments(
+          name: name,
+          prefix: _prefixName,
+        );
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedPrefixedNameWritePrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration(element: GetterElement(:var variable)):
+        if (variable.isOriginGetterSetter) {
+          return diag.undefinedPrefixedNameWriteGetterOnly.withArguments(
+            name: name,
+            prefix: _prefixName,
+          );
+        } else if (variable.isConst) {
+          return diag.undefinedPrefixedNameWriteConst.withArguments(
+            name: name,
+            prefix: _prefixName,
+          );
+        } else {
+          assert(variable.isFinal);
+          return diag.undefinedPrefixedNameWriteFinal.withArguments(
+            name: name,
+            prefix: _prefixName,
+          );
+        }
+      case _FoundDeclaration(:var element):
+        return diag.undefinedPrefixedNameWriteWrongKind.withArguments(
+          kind: element.kind.displayName,
+          name: name,
+          prefix: _prefixName,
+        );
+    }
   }
 }
 

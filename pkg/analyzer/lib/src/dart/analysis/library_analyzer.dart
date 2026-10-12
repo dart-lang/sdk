@@ -622,7 +622,10 @@ class LibraryAnalyzer {
         diag.undefinedClass,
         diag.undefinedFunction,
         diag.undefinedIdentifier,
-        diag.undefinedPrefixedName,
+        diag.undefinedPrefixedNameReadNotFound,
+        diag.undefinedPrefixedNameReadPrivate,
+        diag.undefinedPrefixedNameWriteNotFound,
+        diag.undefinedPrefixedNameWritePrivate,
         diag.deprecatedExportUse,
       }.contains(errorCode)) {
         return true;

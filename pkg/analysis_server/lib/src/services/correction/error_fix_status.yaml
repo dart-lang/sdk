@@ -1763,8 +1763,41 @@ undefined_named_parameter:
   status: hasFix
 undefined_operator:
   status: hasFix
-undefined_prefixed_name:
+undefined_prefixed_name_read_not_found:
   status: hasFix
+undefined_prefixed_name_read_private:
+  status: noFix
+  notes: |-
+    The declaration is in another library, which would have to make it
+    public.
+undefined_prefixed_name_read_setter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the getter in the imported library.
+undefined_prefixed_name_write_const:
+  status: noFix
+  notes: |-
+    A constant can't be assigned; making it a variable changes its meaning.
+undefined_prefixed_name_write_final:
+  status: needsFix
+  notes: |-
+    The fix is to make the variable in the imported library non-final.
+undefined_prefixed_name_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter in the imported library.
+undefined_prefixed_name_write_not_found:
+  status: hasFix
+undefined_prefixed_name_write_private:
+  status: noFix
+  notes: |-
+    The declaration is in another library, which would have to make it
+    public.
+undefined_prefixed_name_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A function or a type can't be made assignable; the fix is to assign to
+    something else.
 undefined_static_member_read_no_static_members:
   status: noFix
   notes: |-

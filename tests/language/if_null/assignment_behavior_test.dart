@@ -261,7 +261,7 @@ main() {
   // [cfe] Setter not found: 'xgetValue'.
   check(1, () => h.c?.x ??= bad(), ['h.C.x']);
   //               ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'c'.
   yGetValue = 1;
   check(1, () => C?.x ??= y, ['C.x', 'y', 'C.x=1']);

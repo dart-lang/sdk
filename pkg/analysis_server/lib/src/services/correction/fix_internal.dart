@@ -901,6 +901,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ConvertFlutterChildren.new,
   ],
   diag.undefinedOperator: [CreateExtensionOperator.new, CreateOperator.new],
+  diag.undefinedPrefixedNameReadNotFound: [ChangeTo.function],
   diag.undefinedStaticMemberReadNotFound: [
     ChangeTo.getterOrSetter,
     ChangeTo.method,
@@ -1285,7 +1286,15 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forExtensionMember,
     UseDifferentDivisionOperator.new,
   ],
-  diag.undefinedPrefixedName: [DataDriven.new],
+  diag.undefinedPrefixedNameReadNotFound: [
+    CreateClass.new,
+    DataDriven.new,
+    ImportLibrary.forExtension,
+    ImportLibrary.forExtensionType,
+    ImportLibrary.forFunction,
+    ImportLibrary.forTypeOrMember,
+  ],
+  diag.undefinedPrefixedNameWriteNotFound: [DataDriven.new],
   diag.undefinedStaticMemberReadNotFound: [
     CreateClass.new,
     CreateMixin.new,

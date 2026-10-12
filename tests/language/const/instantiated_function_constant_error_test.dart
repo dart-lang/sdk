@@ -61,14 +61,14 @@ void test<Z extends num>() {
   //          ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                 ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'g2'.
 
   const c09 = prefix.g1<int>;
   //          ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                 ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'g1'.
 
   const c10 = g2<int>;
@@ -87,7 +87,7 @@ void test<Z extends num>() {
   //          ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                 ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'g2'.
   //                    ^
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
@@ -96,7 +96,7 @@ void test<Z extends num>() {
   //          ^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                 ^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'g1'.
   //                    ^
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS

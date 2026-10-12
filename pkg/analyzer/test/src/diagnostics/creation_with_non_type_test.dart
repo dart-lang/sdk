@@ -466,7 +466,7 @@ import 'test.dart' as prefix;
 f() {
   prefix.UnresolvedClass();
 //       ^^^^^^^^^^^^^^^
-// [diag.undefinedFunction] The function 'UnresolvedClass' isn't defined.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'UnresolvedClass' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
   }
@@ -478,7 +478,7 @@ import 'test.dart' as prefix;
 f() {
   prefix.UnresolvedClass<int>();
 //       ^^^^^^^^^^^^^^^
-// [diag.undefinedFunction] The function 'UnresolvedClass' isn't defined.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'UnresolvedClass' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
   }
@@ -502,7 +502,7 @@ import 'test.dart' as prefix;
 f() {
   prefix.UnresolvedClass.named();
 //       ^^^^^^^^^^^^^^^
-// [diag.undefinedPrefixedName] The name 'UnresolvedClass' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'UnresolvedClass' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
   }

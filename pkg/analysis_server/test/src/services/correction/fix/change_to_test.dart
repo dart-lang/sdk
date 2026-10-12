@@ -590,6 +590,46 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_function_prefixed_reference_fromImport() async {
+    await resolveTestCode('''
+import 'dart:core' as c;
+void f() {
+  c.prnt;
+}
+''');
+    await assertHasFix('''
+import 'dart:core' as c;
+void f() {
+  c.print;
+}
+''');
+  }
+
+  Future<void> test_function_prefixed_reference_ignoreLocal() async {
+    await resolveTestCode('''
+import 'dart:async' as c;
+void myFunction() {}
+void f() {
+  c.myFuntcion;
+}
+''');
+    await assertNoFix();
+  }
+
+  Future<void> test_function_prefixed_reference_ignoreUnprefixedImport() async {
+    newFile('$testPackageLibPath/a.dart', '''
+void myFunction() {}
+''');
+    await resolveTestCode('''
+import 'dart:async' as c;
+import 'a.dart';
+void f() {
+  c.myFuntcion;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_function_thisLibrary() async {
     await resolveTestCode('''
 myFunction() {}

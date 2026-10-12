@@ -3862,10 +3862,7 @@ TypeLiteral
 ''');
   }
 
-  @FailingTest(reason: 'TODO: decide exact diagnostic for prefix.TypeLiteral++')
   test_class_postfixExpression_operand_increment_withPrefix() async {
-    // TODO(scheglov): Decide the exact diagnostic for `prefix.TypeLiteral++`.
-    // Speculation: it should be `assignmentToType` on `C`.
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
@@ -3874,22 +3871,49 @@ import 'a.dart' as a;
 void f() {
   a.C++;
 //  ^
-// [diag.undefinedPrefixedName] The name 'C' is being referenced through the prefix 'a', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameWriteWrongKind] The class 'C' imported with the prefix 'a' can't be assigned to.
 }
 ''');
 
-    var node = result.findNode.typeLiteral('a.C++;');
+    var node = result.findNode.singleIncrementOrDecrement;
     assertResolvedNodeText(node, r'''
-TypeLiteral
-  type: NamedType
+IncrementOrDecrementExpression
+  target: ImportPrefixedAssignmentTarget
     importPrefix: ImportPrefixReference
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
     name: C
-    element: package:test/a.dart::@class::C
-    type: C
-  staticType: Type
+    read: InvalidNamedReadResolution
+      recoveryElement: package:test/a.dart::@class::C
+    write: InvalidNamedWriteResolution
+      recoveryElement: package:test/a.dart::@class::C
+  operator: ++
+  operation: increment
+  position: postfix
+  element: <null>
+  operatorResultType: dynamic
+  staticType: InvalidType
+V1: PostfixExpression
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibraryFragment>::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: C
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: ++
+  readElement: package:test/a.dart::@class::C
+  readType: InvalidType
+  writeElement: package:test/a.dart::@class::C
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
 ''');
   }
 
@@ -3962,10 +3986,7 @@ TypeLiteral
 ''');
   }
 
-  @FailingTest(reason: 'TODO: decide exact diagnostic for ++prefix.TypeLiteral')
   test_class_prefixExpression_operand_increment_withPrefix() async {
-    // TODO(scheglov): Decide the exact diagnostic for `++prefix.TypeLiteral`.
-    // Speculation: it should be `assignmentToType` on `C`.
     newFile('$testPackageLibPath/a.dart', '''
 class C {}
 ''');
@@ -3974,22 +3995,49 @@ import 'a.dart' as a;
 void f() {
   ++a.C;
 //    ^
-// [diag.undefinedPrefixedName] The name 'C' is being referenced through the prefix 'a', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameWriteWrongKind] The class 'C' imported with the prefix 'a' can't be assigned to.
 }
 ''');
 
-    var node = result.findNode.typeLiteral('a.C;');
+    var node = result.findNode.singleIncrementOrDecrement;
     assertResolvedNodeText(node, r'''
-TypeLiteral
-  type: NamedType
+IncrementOrDecrementExpression
+  operator: ++
+  target: ImportPrefixedAssignmentTarget
     importPrefix: ImportPrefixReference
       name: a
       period: .
       element: <testLibraryFragment>::@prefix::a
     name: C
-    element: package:test/a.dart::@class::C
-    type: C
-  staticType: Type
+    read: InvalidNamedReadResolution
+      recoveryElement: package:test/a.dart::@class::C
+    write: InvalidNamedWriteResolution
+      recoveryElement: package:test/a.dart::@class::C
+  operation: increment
+  position: prefix
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: PrefixExpression
+  operator: ++
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      element: <testLibraryFragment>::@prefix::a
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: C
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  readElement: package:test/a.dart::@class::C
+  readType: InvalidType
+  writeElement: package:test/a.dart::@class::C
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
 ''');
   }
 

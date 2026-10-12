@@ -14,7 +14,7 @@ main() {
   // [cfe] Method not found: '_function'.
   private._function();
   //      ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Method not found: '_function'.
   new _Class();
   //  ^^^^^^
@@ -22,7 +22,7 @@ main() {
   // [cfe] Couldn't find constructor '_Class'.
   private._Class();
   //      ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Method not found: '_Class'.
   new Class._constructor();
   //        ^^^^^^^^^^^^
