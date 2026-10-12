@@ -475,6 +475,125 @@ package:test/aaa.dart
     );
   }
 
+  test_scope_hasPrefix_append_deferredParent() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+part 'aa.dart';
+''');
+
+    newFile('$testPackageLibPath/aa.dart', r'''
+part of 'a.dart';
+import 'dart:io' as prefix;
+''');
+
+    var library = await buildLibrary(r'''
+import 'dart:math' deferred as prefix;
+part 'a.dart';
+''');
+
+    _assertScopeLookups(
+      library,
+      [
+        Uri.parse('package:test/test.dart'),
+        Uri.parse('package:test/a.dart'),
+        Uri.parse('package:test/aa.dart'),
+      ],
+      ['prefix.File', 'prefix.Random', 'prefix.loadLibrary'],
+      r'''
+package:test/test.dart
+  prefix.File
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: <null>
+  prefix.Random
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: dart:math::@class::Random
+  prefix.loadLibrary
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: dart:math::@function::loadLibrary
+package:test/a.dart
+  prefix.File
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: <null>
+  prefix.Random
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: dart:math::@class::Random
+  prefix.loadLibrary
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: dart:math::@function::loadLibrary
+package:test/aa.dart
+  prefix.File
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
+    getter: dart:io::@class::File
+  prefix.Random
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
+    getter: <null>
+  prefix.loadLibrary
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
+    getter: <null>
+''',
+    );
+  }
+
+  test_scope_hasPrefix_append_deferredParent_nonDeferredGrandparent() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+import 'dart:math' deferred as prefix;
+part 'aa.dart';
+''');
+
+    newFile('$testPackageLibPath/aa.dart', r'''
+part of 'a.dart';
+import 'dart:async' as prefix;
+''');
+
+    var library = await buildLibrary(r'''
+import 'dart:io' as prefix;
+part 'a.dart';
+''');
+
+    _assertScopeLookups(
+      library,
+      [
+        Uri.parse('package:test/test.dart'),
+        Uri.parse('package:test/a.dart'),
+        Uri.parse('package:test/aa.dart'),
+      ],
+      ['prefix.File', 'prefix.Random', 'prefix.Future'],
+      r'''
+package:test/test.dart
+  prefix.File
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: dart:io::@class::File
+  prefix.Random
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: <null>
+  prefix.Future
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: <null>
+package:test/a.dart
+  prefix.File
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
+    getter: <null>
+  prefix.Random
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
+    getter: dart:math::@class::Random
+  prefix.Future
+    prefix: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
+    getter: <null>
+package:test/aa.dart
+  prefix.File
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
+    getter: <null>
+  prefix.Random
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
+    getter: <null>
+  prefix.Future
+    prefix: <testLibrary>::@fragment::package:test/aa.dart::@prefix::prefix
+    getter: dart:async::@class::Future
+''',
+    );
+  }
+
   test_scope_hasPrefix_append_skipFile() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';

@@ -559,17 +559,14 @@ class LibraryFragmentScope implements Scope {
   }
 
   PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
-    var isDeferred = prefix.imports.any((import) {
-      return import.prefix?.isDeferred ?? false;
-    });
-    if (isDeferred) {
+    if (prefix.isDeferred) {
       return null;
     }
 
     for (var scope = parent; scope != null; scope = scope.parent) {
       var parentPrefix = scope._prefixElements[prefix.name];
       if (parentPrefix != null) {
-        return parentPrefix.scope;
+        return parentPrefix.isDeferred ? null : parentPrefix.scope;
       }
     }
     return null;
@@ -642,8 +639,9 @@ class PrefixScope implements Scope {
   /// The scope of the prefix with the same name in an enclosing file, whose
   /// names are also accessible through this prefix.
   ///
-  /// It is `null` for a deferred prefix, which provides only the names of its
-  /// own library, and for the imports without a prefix.
+  /// It is `null` if this prefix, or the nearest prefix with the same name in
+  /// an enclosing file, is deferred: a deferred prefix provides only the names
+  /// of its own library. It is also `null` for the imports without a prefix.
   final PrefixScope? parent;
 
   final List<LibraryImportImpl> _importElements = [];
