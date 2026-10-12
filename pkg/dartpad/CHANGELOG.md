@@ -1,3 +1,21 @@
+## v0.1.0
+ - Add `DartPadSdk.sharedWorker` and `dart run dartpad setup shared-worker` CLI
+   subcommand for running DartPad inside a `SharedWorker`.
+ - Add `Sandbox.connectServiceProtocol`, `Sandbox.startServiceProtocol`, and
+   `DartPadSdk.createDevToolsIframe` (`DevToolsIframe`) for VM Service and
+   embedded DevTools support (replacing `Sandbox.invokeExtension` and
+   `Sandbox.extensionEvents`).
+ - Add `ConsoleLevel` to `Sandbox.console` and fold `Sandbox.errors` and
+   `Sandbox.unhandledRejections` into `ConsoleLevel.error`.
+ - Add `WorkerClient.version()` (`VersionInfo`), `WorkerClient.ping()`, and
+   `abort` support on `DartPadSdk.dedicatedWorker` and `DartPadSdk.sharedWorker`.
+ - Replace `Uri` parameters/fields with `String` workspace paths across
+   `Workspace`, `Sandbox`, `FileChangeEvent`, and `DartPadRunMode`.
+ - Standardize resource cleanup methods to `close()` across all client types and
+   clean up child streams automatically on disconnect.
+ - Strip request headers in embedded `pub` that trigger CORS preflight requests
+   in Firefox and Safari.
+
 ## v0.0.10
  - Add `dart run dartpad setup` CLI (`dart` and `flutter` subcommands) to
    download or build DartPad SDK assets.
