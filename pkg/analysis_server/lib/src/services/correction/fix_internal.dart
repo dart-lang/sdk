@@ -882,6 +882,13 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateMethodOrFunction.new,
   ],
   diag.undefinedInstanceMemberReadSetterOnly: [CreateGetter.new],
+  diag.undefinedInstanceMemberWriteFinal: [MakeFieldNotFinal.new, AddLate.new],
+  diag.undefinedInstanceMemberWriteNotFound: [
+    ChangeTo.getterOrSetter,
+    CreateExtensionSetter.new,
+    CreateField.new,
+    CreateSetter.new,
+  ],
   diag.undefinedMethod: [
     ChangeTo.method,
     CreateExtensionMethod.new,
@@ -894,12 +901,6 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ConvertFlutterChildren.new,
   ],
   diag.undefinedOperator: [CreateExtensionOperator.new, CreateOperator.new],
-  diag.undefinedSetter: [
-    ChangeTo.getterOrSetter,
-    CreateExtensionSetter.new,
-    CreateField.new,
-    CreateSetter.new,
-  ],
   diag.undefinedStaticMemberReadNotFound: [
     ChangeTo.getterOrSetter,
     ChangeTo.method,
@@ -1267,6 +1268,11 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forTypeOrMember,
     CreateMixin.new,
   ],
+  diag.undefinedInstanceMemberWriteNotFound: [
+    DataDriven.new,
+    // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
+    ImportLibrary.forExtensionMember,
+  ],
   diag.undefinedMethod: [
     CreateClass.new,
     DataDriven.new,
@@ -1280,11 +1286,6 @@ final _builtInNonLintMultiGenerators = {
     UseDifferentDivisionOperator.new,
   ],
   diag.undefinedPrefixedName: [DataDriven.new],
-  diag.undefinedSetter: [
-    DataDriven.new,
-    // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
-    ImportLibrary.forExtensionMember,
-  ],
   diag.undefinedStaticMemberReadNotFound: [
     CreateClass.new,
     CreateMixin.new,

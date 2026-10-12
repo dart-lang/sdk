@@ -4669,7 +4669,7 @@ extension E on dynamic {
 void f() {
   dynamic.foo = 0;
 //        ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }
@@ -4699,7 +4699,7 @@ extension E on Never {
 void f() {
   Never.foo = 0;
 //      ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'Type'.
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'foo' isn't defined for the type 'Type'.
 }
 ''');
   }

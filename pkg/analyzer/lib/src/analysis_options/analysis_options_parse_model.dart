@@ -91,6 +91,8 @@ abstract final class _DiagnosticOptions {
     'DOT_SHORTHAND_UNDEFINED_MEMBER',
     // Instance members report `UNDEFINED_INSTANCE_MEMBER_READ`.
     'UNDEFINED_GETTER',
+    // Instance members report `UNDEFINED_INSTANCE_MEMBER_WRITE`.
+    'UNDEFINED_SETTER',
   };
 
   static Set<String> currentLintCodeNames() {

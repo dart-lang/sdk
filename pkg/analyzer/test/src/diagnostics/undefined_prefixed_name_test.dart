@@ -166,4 +166,16 @@ f() {
 }
 ''');
   }
+
+  test_setterContext_defined() async {
+    newFile('$testPackageLibPath/lib.dart', r'''
+library lib;
+set y(int value) {}''');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'lib.dart' as x;
+main() {
+  x.y = 0;
+}
+''');
+  }
 }

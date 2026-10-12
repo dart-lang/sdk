@@ -183,7 +183,8 @@ void f(C c) {
   c.s = '';
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class C {
   late final String s;
 }
@@ -191,7 +192,10 @@ class C {
 void f(C c) {
   c.s = '';
 }
-''', filter: (error) => error.diagnosticCode == diag.assignmentToFinal);
+''',
+      filter: (error) =>
+          error.diagnosticCode == diag.undefinedInstanceMemberWriteFinal,
+    );
   }
 
   Future<void> test_withFinalStaticAssignedInConstructor() async {

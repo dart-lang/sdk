@@ -883,13 +883,14 @@ import 'undefined_identifier_await_test.dart' as undefined_identifier_await;
 import 'undefined_identifier_test.dart' as undefined_identifier;
 import 'undefined_instance_member_read_test.dart'
     as undefined_instance_member_read;
+import 'undefined_instance_member_write_test.dart'
+    as undefined_instance_member_write;
 import 'undefined_method_test.dart' as undefined_method;
 import 'undefined_named_parameter_test.dart' as undefined_named_parameter;
 import 'undefined_operator_test.dart' as undefined_operator;
 import 'undefined_prefixed_name_test.dart' as undefined_prefixed_name;
 import 'undefined_referenced_parameter_test.dart'
     as undefined_referenced_parameter;
-import 'undefined_setter_test.dart' as undefined_setter;
 import 'undefined_shown_name_test.dart' as undefined_shown_name;
 import 'undefined_static_member_read_test.dart' as undefined_static_member_read;
 import 'undefined_static_member_write_test.dart'
@@ -1524,12 +1525,12 @@ main() {
     undefined_identifier_await.main();
     undefined_identifier.main();
     undefined_instance_member_read.main();
+    undefined_instance_member_write.main();
     undefined_method.main();
     undefined_named_parameter.main();
     undefined_operator.main();
     undefined_prefixed_name.main();
     undefined_referenced_parameter.main();
-    undefined_setter.main();
     undefined_shown_name.main();
     undefined_static_member_read.main();
     undefined_static_member_write.main();

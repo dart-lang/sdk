@@ -37,11 +37,11 @@ class TypePropertyResolver {
   /// setter; the lookups that follow it are only for recovery.
   LookupOutcome? _reportedOutcome;
 
-  LookupOutcome _getterOutcome = LookupOutcome.resolved;
+  LookupOutcome _getterOutcome = LookupOutcome.notFound;
   InternalExecutableElement? _getterRequested;
   InternalExecutableElement? _getterRecovery;
 
-  LookupOutcome _setterOutcome = LookupOutcome.resolved;
+  LookupOutcome _setterOutcome = LookupOutcome.notFound;
   InternalExecutableElement? _setterRequested;
   InternalExecutableElement? _setterRecovery;
 
@@ -76,6 +76,28 @@ class TypePropertyResolver {
     return _getPrivateMemberOfOtherLibrary(receiverType, name);
   }
 
+  /// Returns what [receiverType] has instead of a setter named [name], for a
+  /// write whose lookup by [resolve] returned [result] with
+  /// [LookupOutcome.notFound], or `null` if it has nothing.
+  ///
+  /// This is the instance getter or method with the name, or else a member
+  /// spelled like the private [name] that is declared in another library. A
+  /// static getter or method in [result] is treated as no getter: it is only
+  /// recovery for a read, and the lookup of instance members doesn't find
+  /// static members.
+  InternalExecutableElement? getMemberForFailedWrite({
+    required ResolutionResult result,
+    required TypeImpl receiverType,
+    required String name,
+  }) {
+    if (result.getter2 case var getter?) {
+      if (!getter.isStatic) {
+        return getter;
+      }
+    }
+    return _getPrivateMemberOfOtherLibrary(receiverType, name);
+  }
+
   /// Look up the property with the given [name] in the [receiverType].
   ///
   /// The [receiver] might be `null`, used to identify `super`.
@@ -102,8 +124,6 @@ class TypePropertyResolver {
     _resetResult();
 
     if (name == 'new') {
-      _getterOutcome = LookupOutcome.notFound;
-      _setterOutcome = LookupOutcome.notFound;
       return _toResult();
     }
 
@@ -251,8 +271,6 @@ class TypePropertyResolver {
             getterOutcome: LookupOutcome.resolved,
           );
         }
-        _getterOutcome = LookupOutcome.notFound;
-        _setterOutcome = LookupOutcome.notFound;
       }
 
       _lookupExtension(receiverType);
@@ -428,14 +446,20 @@ class TypePropertyResolver {
     }
   }
 
+  /// Resets the state for a new lookup.
+  ///
+  /// The getter and setter outcomes start as [LookupOutcome.notFound]. A
+  /// lookup that finds the member sets [LookupOutcome.resolved], and so must
+  /// any path that needs no member, such as a `dynamic` receiver or `call`
+  /// of a function type.
   void _resetResult() {
     _reportedOutcome = null;
 
-    _getterOutcome = LookupOutcome.resolved;
+    _getterOutcome = LookupOutcome.notFound;
     _getterRequested = null;
     _getterRecovery = null;
 
-    _setterOutcome = LookupOutcome.resolved;
+    _setterOutcome = LookupOutcome.notFound;
     _setterRequested = null;
     _setterRecovery = null;
   }

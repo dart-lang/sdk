@@ -1560,35 +1560,31 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when it finds an invocation of a
-      setter, but there's no setter because the field with the same name was
-      declared to be `final` or `const`.
+      setter, but there's no setter because the variable or field with the
+      same name was declared to be `final`.
 
       #### Example
 
       The following code produces this diagnostic because `v` is final:
 
       ```dart
-      class C {
-        final v = 0;
-      }
+      final v = 0;
 
-      void f(C c) {
-        c.[!v!] = 1;
+      void f() {
+        [!v!] = 1;
       }
       ```
 
       #### Common fixes
 
-      If you need to be able to set the value of the field, then remove the
-      modifier `final` from the field:
+      If you need to be able to set the value of the variable, then remove the
+      modifier `final` from the variable:
 
       ```dart
-      class C {
-        int v = 0;
-      }
+      var v = 0;
 
-      void f(C c) {
-        c.v = 1;
+      void f() {
+        v = 1;
       }
       ```
   assignmentToFinalLocal:
@@ -1653,10 +1649,10 @@ CompileTimeErrorCode:
       class C {
         int get x => 0;
         set y(int p) {}
-      }
 
-      void f(C c) {
-        c.[!x!] = 1;
+        void f() {
+          [!x!] = 1;
+        }
       }
       ```
 
@@ -1668,10 +1664,10 @@ CompileTimeErrorCode:
       class C {
         int get x => 0;
         set y(int p) {}
-      }
 
-      void f(C c) {
-        c.y = 1;
+        void f() {
+          y = 1;
+        }
       }
       ```
 
@@ -1683,10 +1679,10 @@ CompileTimeErrorCode:
         int get x => 0;
         set x(int p) {}
         set y(int p) {}
-      }
 
-      void f(C c) {
-        c.x = 1;
+        void f() {
+          x = 1;
+        }
       }
       ```
   assignmentToFunction:
@@ -19331,6 +19327,145 @@ CompileTimeErrorCode:
     problemMessage: "There's a setter '#name' for the type '#type', but no getter."
     correctionMessage: "Try defining a getter or field named '#name'."
     hasPublishedDocs: false
+  undefinedInstanceMemberWriteFinal:
+    type: compileTimeError
+    parameters:
+      String name: the name of the field
+      Type type: the static type of the receiver
+    sharedName: undefinedInstanceMemberWrite
+    problemMessage: "The field '#name' of the type '#type' is final, so it can't be assigned to."
+    correctionMessage: "Try making the field non-final, or removing the assignment."
+    hasPublishedDocs: false
+  undefinedInstanceMemberWriteGetterOnly:
+    type: compileTimeError
+    parameters:
+      String name: the name of the getter
+      Type type: the static type of the receiver
+    sharedName: undefinedInstanceMemberWrite
+    problemMessage: "There's a getter '#name' for the type '#type', but no setter."
+    correctionMessage: "Try defining a setter named '#name'."
+    hasPublishedDocs: false
+  undefinedInstanceMemberWriteNotFound:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+      Type type: the static type of the receiver
+    sharedName: undefinedInstanceMemberWrite
+    problemMessage: "The setter '#name' isn't defined for the type '#type'."
+    correctionMessage: "Try importing the library that defines '#name', correcting the name to the name of an existing setter, or defining a setter or field named '#name'."
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an instance member is
+      assigned, but neither the static type of the receiver nor any applicable
+      extension has an accessible setter or non-final field with that name.
+
+      #### Examples
+
+      The following code produces this diagnostic because `C` doesn't have a
+      setter named `z`:
+
+      ```dart
+      class C {
+        int x = 0;
+      }
+
+      void f(C c) {
+        c.[!z!] = 0;
+      }
+      ```
+
+      The following code produces this diagnostic because `C` has only a
+      getter named `x`:
+
+      ```dart
+      class C {
+        int get x => 0;
+      }
+
+      void f(C c) {
+        c.[!x!] = 0;
+      }
+      ```
+
+      The following code produces this diagnostic because the field `x` is
+      final:
+
+      ```dart
+      class C {
+        final int x = 0;
+      }
+
+      void f(C c) {
+        c.[!x!] = 0;
+      }
+      ```
+
+      #### Common fixes
+
+      If the setter you intend to use has a different name, then change the
+      name to match:
+
+      ```dart
+      class C {
+        int x = 0;
+      }
+
+      void f(C c) {
+        c.x = 0;
+      }
+      ```
+
+      If the setter is declared in an extension that isn't imported, then
+      import the library that declares the extension.
+
+      If the type has only a getter, then add a setter with the same name:
+
+      ```dart
+      class C {
+        int get x => 0;
+
+        set x(int _) {}
+      }
+
+      void f(C c) {
+        c.x = 0;
+      }
+      ```
+
+      If the field is final, then make it non-final:
+
+      ```dart
+      class C {
+        int x = 0;
+      }
+
+      void f(C c) {
+        c.x = 0;
+      }
+      ```
+
+      Otherwise, remove the assignment.
+  undefinedInstanceMemberWritePrivate:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      Uri libraryUri: the URI of the library that declares the private member
+    sharedName: undefinedInstanceMemberWrite
+    problemMessage: "The member '#name' is declared in '#libraryUri', but private names are visible only in their own library."
+    correctionMessage: "Try making the member public."
+    hasPublishedDocs: false
+  undefinedInstanceMemberWriteWrongKind:
+    type: compileTimeError
+    parameters:
+      String kind: the kind of the declaration that was found, such as 'method'
+      String name: the name of the declaration
+      Type type: the static type of the receiver
+    sharedName: undefinedInstanceMemberWrite
+    problemMessage: "The #kind '#name' of the type '#type' can't be assigned to."
+    correctionMessage: "Try assigning to a setter or a non-final field instead."
+    hasPublishedDocs: false
   undefinedMethod:
     type: compileTimeError
     parameters:
@@ -19547,6 +19682,7 @@ CompileTimeErrorCode:
     parameters:
       String setterName: the name of the setter
       Type type: the enclosing type where the setter is being looked for
+    removedIn: "3.15"
     problemMessage: "The setter '#setterName' isn't defined for the type '#type'."
     correctionMessage: "Try importing the library that defines '#setterName', correcting the name to the name of an existing setter, or defining a setter or field named '#setterName'."
     hasPublishedDocs: true

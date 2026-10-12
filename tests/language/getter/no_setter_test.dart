@@ -15,7 +15,7 @@ class Example {
     // [cfe] Setter not found: 'nextVar'.
     this.nextVar = 1;
     //   ^^^^^^^
-    // [analyzer] COMPILE_TIME_ERROR.ASSIGNMENT_TO_FINAL_NO_SETTER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_WRITE
     // [cfe] The setter 'nextVar' isn't defined for the type 'Example'.
   }
   static test() {

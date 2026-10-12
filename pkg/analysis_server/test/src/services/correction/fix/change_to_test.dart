@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -752,8 +751,7 @@ void f(A a) {
   a.foo2 += 2;
 }
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 class A {
   int get foo => 0;
   set foo(int _) {}
@@ -762,10 +760,7 @@ class A {
 void f(A a) {
   a.foo += 2;
 }
-''',
-      filter: (e) =>
-          e.diagnosticCode == diag.undefinedInstanceMemberReadNotFound,
-    );
+''');
   }
 
   Future<void> test_getterSetter_qualified_static() async {

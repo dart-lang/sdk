@@ -3396,10 +3396,10 @@ enum E {
 void f(E e, dynamic d) {
   e.foo = 1;
 //  ^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedInstanceMemberWriteFinal] The field 'foo' of the type 'E' is final, so it can't be assigned to.
   e..foo = 2;
 //   ^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedInstanceMemberWriteFinal] The field 'foo' of the type 'E' is final, so it can't be assigned to.
   d.foo = 3;
   d..foo = 4;
 }
@@ -5480,7 +5480,7 @@ class A {
 void f(A a) {
   (a).foo ??= () {};
 //    ^^^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'A' can't be assigned to.
 //            ^^^^^
 // [diag.deadCode] Dead code.
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.

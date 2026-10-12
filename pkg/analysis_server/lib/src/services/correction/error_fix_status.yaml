@@ -1740,6 +1740,23 @@ undefined_instance_member_read_private:
     public.
 undefined_instance_member_read_setter_only:
   status: hasFix
+undefined_instance_member_write_final:
+  status: hasFix
+undefined_instance_member_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the missing setter.
+undefined_instance_member_write_not_found:
+  status: hasFix
+undefined_instance_member_write_private:
+  status: noFix
+  notes: |-
+    The member is declared in another library, which would have to make it
+    public.
+undefined_instance_member_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A method can't be made assignable; the fix is to assign to something else.
 undefined_method:
   status: hasFix
 undefined_named_parameter:
@@ -1747,8 +1764,6 @@ undefined_named_parameter:
 undefined_operator:
   status: hasFix
 undefined_prefixed_name:
-  status: hasFix
-undefined_setter:
   status: hasFix
 undefined_static_member_read_no_static_members:
   status: noFix

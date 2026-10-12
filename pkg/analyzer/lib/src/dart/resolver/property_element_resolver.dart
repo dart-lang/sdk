@@ -797,29 +797,25 @@ class PropertyElementResolver with ScopeHelpers {
         var writeElement = result.setter2;
         _checkForStaticMember(receiver, node.name, writeElement);
 
-        InternalExecutableElement? writeRecovery;
         if (result.setterOutcome == LookupOutcome.notFound) {
-          var readResult = _typeAnalyzer.typePropertyResolver.resolve(
-            receiver: receiver,
-            receiverType: receiverType,
-            name: node.name.lexeme,
-            hasRead: true,
-            hasWrite: false,
-            propertyErrorEntity: node.name,
-            nameErrorEntity: node.name,
-            parentNode: node.parent2,
-          );
-          writeRecovery = readResult.getter2;
           _lookupFailureReporter.reportWriteFailure(
-            domain: InstanceLookupDomain(receiverType),
+            domain: InstanceLookupDomain(
+              receiverType,
+              recordField: result.recordField,
+            ),
             name: node.name,
-            foundInstead: writeRecovery,
+            foundInstead: _typeAnalyzer.typePropertyResolver
+                .getMemberForFailedWrite(
+                  result: result,
+                  receiverType: receiverType,
+                  name: node.name.lexeme,
+                ),
           );
         }
 
         return _createNamedWriteResolutionWithElement(writeElement) ??
             InvalidNamedWriteResolutionImpl(
-              recoveryElement: writeElement ?? writeRecovery,
+              recoveryElement: writeElement ?? result.getter2,
             );
     }
   }
@@ -1162,12 +1158,20 @@ class PropertyElementResolver with ScopeHelpers {
                   name: node.name.lexeme,
                 ),
           );
-        }
-        if (result.setterOutcome == LookupOutcome.notFound) {
+        } else if (result.setterOutcome == LookupOutcome.notFound) {
+          // The read is evaluated first, so a failed read takes precedence.
           _lookupFailureReporter.reportWriteFailure(
-            domain: InstanceLookupDomain(receiverType),
+            domain: InstanceLookupDomain(
+              receiverType,
+              recordField: result.recordField,
+            ),
             name: node.name,
-            foundInstead: readElement,
+            foundInstead: _typeAnalyzer.typePropertyResolver
+                .getMemberForFailedWrite(
+                  result: result,
+                  receiverType: receiverType,
+                  name: node.name.lexeme,
+                ),
           );
         }
 
@@ -1618,6 +1622,7 @@ class PropertyElementResolver with ScopeHelpers {
     );
 
     TypeImpl? getType;
+    var isReadFailure = false;
     if (hasRead) {
       var unpromotedType = switch (result.getter2) {
         InternalMethodElement(:var type) => type,
@@ -1644,6 +1649,7 @@ class PropertyElementResolver with ScopeHelpers {
 
       _checkForStaticMember(target, propertyName, result.getter2);
       if (result.getterOutcome == LookupOutcome.notFound) {
+        isReadFailure = true;
         _lookupFailureReporter.reportReadFailure(
           domain: InstanceLookupDomain(targetType),
           name: propertyName,
@@ -1660,21 +1666,20 @@ class PropertyElementResolver with ScopeHelpers {
 
     if (hasWrite) {
       _checkForStaticMember(target, propertyName, result.setter2);
-      if (result.setterOutcome == LookupOutcome.notFound) {
-        var readResult = _typeAnalyzer.typePropertyResolver.resolve(
-          receiver: target,
-          receiverType: targetType,
-          name: propertyName.lexeme,
-          hasRead: true,
-          hasWrite: false,
-          propertyErrorEntity: propertyName,
-          nameErrorEntity: propertyName,
-        );
-
+      // The read is evaluated first, so a failed read takes precedence.
+      if (!isReadFailure && result.setterOutcome == LookupOutcome.notFound) {
         _lookupFailureReporter.reportWriteFailure(
-          domain: InstanceLookupDomain(targetType),
+          domain: InstanceLookupDomain(
+            targetType,
+            recordField: result.recordField,
+          ),
           name: propertyName,
-          foundInstead: readResult.getter2,
+          foundInstead: _typeAnalyzer.typePropertyResolver
+              .getMemberForFailedWrite(
+                result: result,
+                receiverType: targetType,
+                name: propertyName.lexeme,
+              ),
         );
       }
     }

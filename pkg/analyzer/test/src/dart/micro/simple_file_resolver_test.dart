@@ -458,7 +458,7 @@ import 'a.dart';
 void f(A a) {
   a.foo = 1;
 //  ^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedInstanceMemberWriteFinal] The field 'foo' of the type 'A' is final, so it can't be assigned to.
 }
 ''');
 

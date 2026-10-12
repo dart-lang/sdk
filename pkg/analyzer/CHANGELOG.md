@@ -84,6 +84,18 @@
   such as `foo()` inside a class. Replace `undefined_getter` in `// ignore:`
   comments and in `analysis_options.yaml`, where it is still accepted, but
   has no effect.
+* Writes of instance members, such as `x.foo = v` and `x.foo += 1`, report
+  `undefined_instance_member_write` when neither the static type of the
+  receiver nor an applicable extension has a setter named `foo`. The message
+  says when there is only a getter, including a field of a record, a final
+  field, a method, or a private member of another library. This replaces `undefined_setter`, and
+  `assignment_to_final`, `assignment_to_final_no_setter`, and
+  `assignment_to_method` for instance members; these three are still
+  reported for unqualified names, such as `foo = v` inside a class. A
+  read-write operation, such as `x.foo += 1`, reports only the read when
+  both the read and the write fail. Replace `undefined_setter` in
+  `// ignore:` comments and in `analysis_options.yaml`, where it is still
+  accepted, but has no effect.
 
 ## 14.5.0
 

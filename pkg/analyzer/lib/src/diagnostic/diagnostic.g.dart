@@ -16973,6 +16973,98 @@ undefinedInstanceMemberReadSetterOnly = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
+/// Parameters:
+/// String name: the name of the field
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedInstanceMemberWriteFinal = DiagnosticWithArguments(
+  name: 'undefined_instance_member_write',
+  problemMessage:
+      "The field '{0}' of the type '{1}' is final, so it can't be assigned to.",
+  correctionMessage:
+      "Try making the field non-final, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_write_final',
+  withArguments: _withArgumentsUndefinedInstanceMemberWriteFinal,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedInstanceMemberWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_instance_member_write',
+  problemMessage: "There's a getter '{0}' for the type '{1}', but no setter.",
+  correctionMessage: "Try defining a setter named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_write_getter_only',
+  withArguments: _withArgumentsUndefinedInstanceMemberWriteGetterOnly,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required DartType type})
+>
+undefinedInstanceMemberWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_instance_member_write',
+  problemMessage: "The setter '{0}' isn't defined for the type '{1}'.",
+  correctionMessage:
+      "Try importing the library that defines '{0}', correcting the name to "
+      "the name of an existing setter, or defining a setter or field named "
+      "'{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_write_not_found',
+  withArguments: _withArgumentsUndefinedInstanceMemberWriteNotFound,
+  expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// Uri libraryUri: the URI of the library that declares the private member
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required Uri libraryUri})
+>
+undefinedInstanceMemberWritePrivate = DiagnosticWithArguments(
+  name: 'undefined_instance_member_write',
+  problemMessage:
+      "The member '{0}' is declared in '{1}', but private names are visible only "
+      "in their own library.",
+  correctionMessage: "Try making the member public.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_write_private',
+  withArguments: _withArgumentsUndefinedInstanceMemberWritePrivate,
+  expectedTypes: [ExpectedType.string, ExpectedType.uri],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as 'method'
+/// String name: the name of the declaration
+/// Type type: the static type of the receiver
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String kind,
+    required String name,
+    required DartType type,
+  })
+>
+undefinedInstanceMemberWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_instance_member_write',
+  problemMessage: "The {0} '{1}' of the type '{2}' can't be assigned to.",
+  correctionMessage: "Try assigning to a setter or a non-final field instead.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_instance_member_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedInstanceMemberWriteWrongKind,
+  expectedTypes: [ExpectedType.string, ExpectedType.string, ExpectedType.type],
+);
+
 /// An error code indicating an undefined lint rule.
 ///
 /// Parameters:
@@ -17092,29 +17184,6 @@ undefinedReferencedParameter = DiagnosticWithArguments(
   uniqueName: 'undefined_referenced_parameter',
   withArguments: _withArgumentsUndefinedReferencedParameter,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
-/// String setterName: the name of the setter
-/// Type type: the enclosing type where the setter is being looked for
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String setterName,
-    required DartType type,
-  })
->
-undefinedSetter = DiagnosticWithArguments(
-  name: 'undefined_setter',
-  problemMessage: "The setter '{0}' isn't defined for the type '{1}'.",
-  correctionMessage:
-      "Try importing the library that defines '{0}', correcting the name to "
-      "the name of an existing setter, or defining a setter or field named "
-      "'{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_setter',
-  withArguments: _withArgumentsUndefinedSetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
@@ -22929,6 +22998,58 @@ LocatableDiagnostic _withArgumentsUndefinedInstanceMemberReadSetterOnly({
   ]);
 }
 
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWriteFinal({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberWriteFinal, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWriteGetterOnly({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberWriteGetterOnly, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWriteNotFound({
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberWriteNotFound, [
+    name,
+    type,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWritePrivate({
+  required String name,
+  required Uri libraryUri,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberWritePrivate, [
+    name,
+    libraryUri,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWriteWrongKind({
+  required String kind,
+  required String name,
+  required DartType type,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedInstanceMemberWriteWrongKind, [
+    kind,
+    name,
+    type,
+  ]);
+}
+
 LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {
   return LocatableDiagnosticImpl(diag.undefinedLint, [ruleName]);
 }
@@ -22971,13 +23092,6 @@ LocatableDiagnostic _withArgumentsUndefinedReferencedParameter({
     undefinedParameterName,
     targetedMemberName,
   ]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedSetter({
-  required String setterName,
-  required DartType type,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedSetter, [setterName, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedShownName({

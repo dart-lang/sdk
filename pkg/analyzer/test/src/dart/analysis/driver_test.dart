@@ -15356,7 +15356,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: exists isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -15371,12 +15371,8 @@ void f(A a) {
           A: false
         instances
           A
-            requestedDeclaredGetters
-              foo: <null>
             requestedDeclaredSetters
               foo=: <null>
-            requestedDeclaredMethods
-              foo: <null>
         interfaces
           A
             methods
@@ -15390,7 +15386,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 ''',
       updatedA: r'''
 class A {
@@ -17194,7 +17190,7 @@ class A {}
     uri: package:test/test.dart
     flags: exists isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -17209,12 +17205,8 @@ class A {}
           A: false
         instances
           A
-            requestedDeclaredGetters
-              foo: <null>
             requestedDeclaredSetters
               foo=: <null>
-            requestedDeclaredMethods
-              foo: <null>
         interfaces
           A
             methods
@@ -17228,7 +17220,7 @@ class A {}
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 ''',
     );
   }
@@ -41901,7 +41893,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: exists isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -41916,12 +41908,8 @@ void f(A a) {
           A: false
         instances
           A
-            requestedDeclaredGetters
-              foo: <null>
             requestedDeclaredSetters
               foo=: <null>
-            requestedDeclaredMethods
-              foo: <null>
         interfaces
           A
             methods
@@ -41935,7 +41923,7 @@ void f(A a) {
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 ''',
       updatedA: r'''
 mixin A {
@@ -42624,7 +42612,7 @@ mixin A {}
     uri: package:test/test.dart
     flags: exists isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
   requirements
@@ -42639,12 +42627,8 @@ mixin A {}
           A: false
         instances
           A
-            requestedDeclaredGetters
-              foo: <null>
             requestedDeclaredSetters
               foo=: <null>
-            requestedDeclaredMethods
-              foo: <null>
         interfaces
           A
             methods
@@ -42658,7 +42642,7 @@ mixin A {}
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      35 +3 UNDEFINED_SETTER
+      35 +3 UNDEFINED_INSTANCE_MEMBER_WRITE
 ''',
     );
   }

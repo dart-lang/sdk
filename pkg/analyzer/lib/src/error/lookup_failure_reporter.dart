@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -239,11 +240,18 @@ final class FunctionTypeAliasLookupDomain extends LookupDomain {
 ///
 /// For example, `x.foo` and `x.foo = 0`. The members of applicable extensions
 /// are included.
-final class InstanceLookupDomain extends LookupDomain with _LegacyWriteFailure {
+final class InstanceLookupDomain extends LookupDomain {
   /// The static type of the receiver.
   final TypeImpl receiverType;
 
-  InstanceLookupDomain(this.receiverType);
+  /// The field of the record type [receiverType] that has the name, if the
+  /// lookup found one.
+  ///
+  /// A record field has a getter, but no setter. It isn't an [Element], so a
+  /// failed write can't report it as found instead.
+  final RecordTypeField? recordField;
+
+  InstanceLookupDomain(this.receiverType, {this.recordField});
 
   @override
   LocatableDiagnostic _readFailure(
@@ -272,11 +280,50 @@ final class InstanceLookupDomain extends LookupDomain with _LegacyWriteFailure {
   }
 
   @override
-  LocatableDiagnostic _writeNotFound(String name) {
-    return diag.undefinedSetter.withArguments(
-      setterName: name,
-      type: receiverType,
-    );
+  LocatableDiagnostic? _writeFailure(String name, _FoundInstead foundInstead) {
+    switch (foundInstead) {
+      case _FoundNothing():
+        if (recordField != null) {
+          return diag.undefinedInstanceMemberWriteGetterOnly.withArguments(
+            name: name,
+            type: receiverType,
+          );
+        }
+        return diag.undefinedInstanceMemberWriteNotFound.withArguments(
+          name: name,
+          type: receiverType,
+        );
+      case _FoundPrivate(:var libraryUri):
+        return diag.undefinedInstanceMemberWritePrivate.withArguments(
+          name: name,
+          libraryUri: libraryUri,
+        );
+      case _FoundDeclaration(element: GetterElement(:var variable)):
+        if (variable.isConst) {
+          // An instance field can't be constant, and its declaration already
+          // reports that.
+          return null;
+        } else if (variable.isFinal && !variable.isOriginGetterSetter) {
+          // A final field, declared in a field declaration, by a declaring
+          // formal parameter of a primary constructor, or as the
+          // representation field of an extension type.
+          return diag.undefinedInstanceMemberWriteFinal.withArguments(
+            name: name,
+            type: receiverType,
+          );
+        } else {
+          return diag.undefinedInstanceMemberWriteGetterOnly.withArguments(
+            name: name,
+            type: receiverType,
+          );
+        }
+      case _FoundDeclaration(:var element):
+        return diag.undefinedInstanceMemberWriteWrongKind.withArguments(
+          kind: element.kind.displayName,
+          name: name,
+          type: receiverType,
+        );
+    }
   }
 }
 
