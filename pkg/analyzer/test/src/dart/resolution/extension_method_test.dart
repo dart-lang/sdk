@@ -2523,9 +2523,9 @@ V1: BinaryExpression
 extension on Object {}
 var a = b + c;
 //      ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'c'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'c'.
 ''');
   }
 
@@ -5684,7 +5684,7 @@ extension E2 on int {
   void f() {
     foo = 0;
 //  ^^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'E2'.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
   }
 }
 ''');
@@ -6287,7 +6287,7 @@ extension E2 on int {
   void f() {
     foo;
 //  ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'foo', but no getter.
   }
 }
 ''');

@@ -45,6 +45,15 @@ class A {
     await assertNoFix();
   }
 
+  Future<void> test_invocation() async {
+    await resolveTestCode('''
+void f() {
+  myMixin();
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_lowercaseAssignment() async {
     await resolveTestCode('''
 newName? a;
@@ -326,7 +335,8 @@ mixin Test {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier;
+        return error.diagnosticCode ==
+            diag.undefinedUnqualifiedNameReadNotFound;
       },
     );
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);

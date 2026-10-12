@@ -970,6 +970,21 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_found_directAssignment_lateFinalField() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  static late final int x;
+}
+
+void f() {
+  A.x = 0;
+  A.x += 0;
+  ++A.x;
+  A.x++;
+}
+''');
+  }
+
   test_found_directAssignment_nullAware() async {
     await resolveTestCodeWithDiagnostics('''
 class A {

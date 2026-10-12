@@ -355,7 +355,6 @@ class PropertyElementResolver with ScopeHelpers {
       _lookupFailureReporter.reportReadFailure(
         domain: DotShorthandLookupDomain.invalid(shorthandContext),
         name: node.name,
-        syntax: ReadSyntax.reference,
         foundInstead: null,
       );
     }
@@ -966,7 +965,6 @@ class PropertyElementResolver with ScopeHelpers {
           _lookupFailureReporter.reportReadFailure(
             domain: InstanceLookupDomain(receiverType),
             name: node.name,
-            syntax: ReadSyntax.reference,
             foundInstead: _typeAnalyzer.typePropertyResolver
                 .getMemberForFailedRead(
                   result: result,
@@ -1150,7 +1148,6 @@ class PropertyElementResolver with ScopeHelpers {
           _lookupFailureReporter.reportReadFailure(
             domain: InstanceLookupDomain(receiverType),
             name: node.name,
-            syntax: ReadSyntax.reference,
             foundInstead: _typeAnalyzer.typePropertyResolver
                 .getMemberForFailedRead(
                   result: result,
@@ -1234,7 +1231,7 @@ class PropertyElementResolver with ScopeHelpers {
       hasWrite: true,
     );
 
-    return _resolveUnqualifiedNameWrite(node);
+    return _resolveUnqualifiedNameWrite(node, reportsFailure: true);
   }
 
   ({NamedReadResolutionImpl resolution, ExpressionInfo? expressionInfo})
@@ -1264,10 +1261,14 @@ class PropertyElementResolver with ScopeHelpers {
                   .at(node),
       );
     }
-    return _resolveUnqualifiedNameRead(
+    var readResult = _resolveUnqualifiedNameRead(
       node: node,
       name: node.name,
       scopeLookupResult: scopeLookupResult,
+    );
+    return (
+      resolution: readResult.resolution,
+      expressionInfo: readResult.expressionInfo,
     );
   }
 
@@ -1292,7 +1293,11 @@ class PropertyElementResolver with ScopeHelpers {
       name: node.name,
       scopeLookupResult: scopeLookupResult,
     );
-    var writeResolution = _resolveUnqualifiedNameWrite(node);
+    var writeResolution = _resolveUnqualifiedNameWrite(
+      node,
+      // The read is evaluated first, so a failed read takes precedence.
+      reportsFailure: !readResult.isFailure,
+    );
     return (
       read: readResult.resolution,
       write: writeResolution,
@@ -1595,7 +1600,6 @@ class PropertyElementResolver with ScopeHelpers {
             name: target.type.name,
           ),
           name: propertyName,
-          syntax: ReadSyntax.reference,
           foundInstead: null,
         );
       } else {
@@ -1653,7 +1657,6 @@ class PropertyElementResolver with ScopeHelpers {
         _lookupFailureReporter.reportReadFailure(
           domain: InstanceLookupDomain(targetType),
           name: propertyName,
-          syntax: ReadSyntax.reference,
           foundInstead: _typeAnalyzer.typePropertyResolver
               .getMemberForFailedRead(
                 result: result,
@@ -1738,7 +1741,6 @@ class PropertyElementResolver with ScopeHelpers {
             name: receiver.name,
           ),
           name: name,
-          syntax: ReadSyntax.reference,
           foundInstead: null,
         );
       } else if (hasWrite) {
@@ -1782,7 +1784,6 @@ class PropertyElementResolver with ScopeHelpers {
         _lookupFailureReporter.reportReadFailure(
           domain: StaticLookupDomain(extension),
           name: propertyName,
-          syntax: ReadSyntax.reference,
           foundInstead:
               element ??
               extension.getMemberForFailedLookup(
@@ -1855,7 +1856,6 @@ class PropertyElementResolver with ScopeHelpers {
         _lookupFailureReporter.reportReadFailure(
           domain: ExtensionOverrideLookupDomain(target.element),
           name: propertyName,
-          syntax: ReadSyntax.reference,
           foundInstead: target.element.getMemberForFailedLookup(
             Name(_definingLibrary.uri, memberName),
           ),
@@ -1939,7 +1939,6 @@ class PropertyElementResolver with ScopeHelpers {
               ? DotShorthandLookupDomain.declaration(dotShorthandContext)
               : StaticLookupDomain(typeReference),
           name: propertyName,
-          syntax: ReadSyntax.reference,
           foundInstead:
               element ??
               typeReference.getMemberForFailedLookup(
@@ -2033,7 +2032,6 @@ class PropertyElementResolver with ScopeHelpers {
         _lookupFailureReporter.reportReadFailure(
           domain: PrefixedLookupDomain(target),
           name: nameToken,
-          syntax: ReadSyntax.reference,
           foundInstead:
               writeElement ??
               target.scope.getPrivateDeclarationOfImportedLibrary(name),
@@ -2119,7 +2117,6 @@ class PropertyElementResolver with ScopeHelpers {
               _lookupFailureReporter.reportReadFailure(
                 domain: SuperLookupDomain(targetType),
                 name: propertyName,
-                syntax: ReadSyntax.reference,
                 foundInstead: foundInstead,
               );
           }
@@ -2194,7 +2191,11 @@ class PropertyElementResolver with ScopeHelpers {
     );
   }
 
-  ({NamedReadResolutionImpl resolution, ExpressionInfo? expressionInfo})
+  ({
+    NamedReadResolutionImpl resolution,
+    ExpressionInfo? expressionInfo,
+    bool isFailure,
+  })
   _resolveUnqualifiedNameRead({
     required AstNode node,
     required Token name,
@@ -2206,20 +2207,19 @@ class PropertyElementResolver with ScopeHelpers {
     var readElementRequested = readLookup?.requested;
     var readElementRecovery = readLookup?.recovery;
 
-    if (readElementRequested == null &&
+    var isFailure =
+        readElementRequested == null &&
         readLookup?.callFunctionType == null &&
-        readLookup?.recordField == null) {
+        readLookup?.recordField == null;
+    if (isFailure) {
       if (name.lexeme == 'await' &&
           _typeAnalyzer.enclosingExecutableElement != null) {
         diagnosticReporter.report(diag.undefinedIdentifierAwait.at(node));
       } else {
         _lookupFailureReporter.reportReadFailure(
-          domain: UnqualifiedLookupDomain(thisType: _typeAnalyzer.thisType),
+          domain: UnqualifiedLookupDomain(),
           name: name,
-          syntax: node.parent2 is FunctionInstantiationImpl
-              ? ReadSyntax.typeInstantiation
-              : ReadSyntax.reference,
-          foundInstead: null,
+          foundInstead: readElementRecovery,
         );
       }
     }
@@ -2276,12 +2276,19 @@ class PropertyElementResolver with ScopeHelpers {
     resolution ??= InvalidNamedReadResolutionImpl(
       recoveryElement: readElementRequested ?? readElementRecovery,
     );
-    return (resolution: resolution, expressionInfo: expressionInfo);
+    return (
+      resolution: resolution,
+      expressionInfo: expressionInfo,
+      isFailure: isFailure,
+    );
   }
 
+  /// Resolves the write of [node], and reports a failure to resolve it, if
+  /// [reportsFailure].
   NamedWriteResolutionImpl _resolveUnqualifiedNameWrite(
-    UnqualifiedNameAssignmentTargetImpl node,
-  ) {
+    UnqualifiedNameAssignmentTargetImpl node, {
+    required bool reportsFailure,
+  }) {
     var name = node.name;
     var writeLookup =
         LexicalLookup.resolveSetter(node.scopeLookupResult!) ??
@@ -2299,11 +2306,12 @@ class PropertyElementResolver with ScopeHelpers {
           element: ambiguousElement,
         ),
       );
-    } else if (writeElementRequested == null ||
-        writeElementRequested is VariableElement &&
-            writeElementRequested.isConst) {
+    } else if (reportsFailure &&
+        (writeElementRequested == null ||
+            writeElementRequested is VariableElement &&
+                writeElementRequested.isConst)) {
       _lookupFailureReporter.reportWriteFailure(
-        domain: UnqualifiedLookupDomain(thisType: _typeAnalyzer.thisType),
+        domain: UnqualifiedLookupDomain(),
         name: name,
         foundInstead: writeElementRequested ?? writeElementRecovery,
       );

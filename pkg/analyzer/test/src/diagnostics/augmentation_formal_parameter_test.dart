@@ -256,7 +256,7 @@ class A {
   augment A(int _) {
     p1;
 //  ^^
-// [diag.undefinedIdentifier] Undefined name 'p1'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'p1'.
   }
 }
 ''');
@@ -269,7 +269,7 @@ class A {
   A(int p1);
   augment A(int _) : value = p1;
 //                           ^^
-// [diag.undefinedIdentifier] Undefined name 'p1'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'p1'.
 }
 ''');
   }
@@ -285,7 +285,7 @@ class A {
 //                 ^
 // [diag.augmentationRequiredPositionalFormalParameterCount][context 1] The augmentation has 1 required positional formal parameters, but the declaration has 2.
 //                             ^^
-// [diag.undefinedIdentifier] Undefined name 'p2'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'p2'.
 }
 ''');
   }
@@ -297,7 +297,7 @@ abstract class A {
   augment void f(int _) {
     p1;
 //  ^^
-// [diag.undefinedIdentifier] Undefined name 'p1'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'p1'.
   }
 }
 ''');
@@ -309,7 +309,7 @@ class A(int p1);
 augment class A(int _) {
   final int value = p1;
 //                  ^^
-// [diag.undefinedIdentifier] Undefined name 'p1'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'p1'.
 }
 ''');
   }
@@ -320,7 +320,7 @@ void f(int x);
 augment void f(int _) {
   x;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 }
 ''');
   }

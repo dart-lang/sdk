@@ -763,6 +763,11 @@ class ImportLibrary extends MultiCorrectionProducer {
 
   List<_PrefixedName> _namesForType([List<ElementKind> kinds = _typeKinds]) {
     var targetNode = node.annotationContainingName ?? node;
+    // An undefined import prefix is reported at the prefix, which in
+    // `new Foo.named()` might be the name of a class.
+    if (targetNode case ImportPrefixReference(parent: NamedType namedType)) {
+      targetNode = namedType;
+    }
     if (targetNode case Annotation(:var name)) {
       if (name.element == null) {
         if (targetNode.period != null && targetNode.arguments == null) {

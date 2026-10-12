@@ -12,7 +12,7 @@ class Annotation {
 class Class<@Annotation(foo) T> {
   //                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'foo'.
   static void foo() {}
 }
@@ -20,7 +20,7 @@ class Class<@Annotation(foo) T> {
 void function<@Annotation(foo) T>(dynamic foo) {
   //                      ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'foo'.
   dynamic foo;
 }
@@ -28,14 +28,14 @@ void function<@Annotation(foo) T>(dynamic foo) {
 extension Extension<@Annotation(foo) T> on Class<T> {
   //                            ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'foo'.
   static void foo() {}
 
   void extensionMethod<@Annotation(foo) T, @Annotation(bar) U>() {}
   //                                                   ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Not a constant expression.
 }
 
@@ -43,7 +43,7 @@ class C {
   void method<@Annotation(foo) T, @Annotation(bar) U>(dynamic foo) {
     //                    ^^^
     // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] Not a constant expression.
     dynamic foo;
   }
@@ -54,7 +54,7 @@ class C {
 mixin Mixin<@Annotation(foo) T> {
   //                    ^^^
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'foo'.
   static void foo() {}
 }
@@ -62,5 +62,5 @@ mixin Mixin<@Annotation(foo) T> {
 typedef Typedef<@Annotation(foo) T> = void Function<foo>();
 //                          ^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [cfe] Undefined name 'foo'.

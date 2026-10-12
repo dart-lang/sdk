@@ -155,7 +155,6 @@ class MethodInvocationResolver with ScopeHelpers {
       _lookupFailureReporter.reportReadFailure(
         domain: PrefixedLookupDomain(prefix),
         name: name,
-        syntax: ReadSyntax.invocation,
         foundInstead:
             lookup?.setter ??
             prefix.scope.getPrivateDeclarationOfImportedLibrary(name.lexeme),
@@ -235,10 +234,9 @@ class MethodInvocationResolver with ScopeHelpers {
       var receiverType = _typeAnalyzer.thisType;
       if (receiverType == null) {
         _lookupFailureReporter.reportReadFailure(
-          domain: UnqualifiedLookupDomain(thisType: null),
+          domain: UnqualifiedLookupDomain(),
           name: name,
-          syntax: ReadSyntax.invocation,
-          foundInstead: null,
+          foundInstead: lookup.setter,
         );
       } else {
         var setter = lookup.setter;
@@ -250,8 +248,9 @@ class MethodInvocationResolver with ScopeHelpers {
                 setter.enclosingElement is ExtensionElement ||
                 setter is ExecutableElement && setter.isStatic);
         var needsError = true;
+        Element? setterInstead;
         if (stopsLookup) {
-          candidate = setter;
+          candidate = setterInstead = setter;
         } else {
           var result = _typeAnalyzer.typePropertyResolver.resolve(
             receiver: null,
@@ -264,6 +263,7 @@ class MethodInvocationResolver with ScopeHelpers {
             parentNode: node,
           );
           candidate = element = result.getter2;
+          setterInstead = result.setter2;
           callFunctionType = result.callFunctionType;
           recordFieldType = result.recordField?.type;
           isFunctionInterfaceCall =
@@ -282,10 +282,9 @@ class MethodInvocationResolver with ScopeHelpers {
             !(receiverType is InterfaceTypeImpl &&
                 receiverType.element.name == null)) {
           _lookupFailureReporter.reportReadFailure(
-            domain: UnqualifiedLookupDomain(thisType: receiverType),
+            domain: UnqualifiedLookupDomain(),
             name: name,
-            syntax: ReadSyntax.invocation,
-            foundInstead: null,
+            foundInstead: setterInstead,
           );
         }
       }
@@ -595,7 +594,6 @@ class MethodInvocationResolver with ScopeHelpers {
         _lookupFailureReporter.reportReadFailure(
           domain: ExtensionOverrideLookupDomain(receiver.element),
           name: name,
-          syntax: ReadSyntax.invocation,
           foundInstead: receiver.element.getMemberForFailedLookup(
             Name(_definingLibraryUri, name.lexeme),
           ),
@@ -741,7 +739,6 @@ class MethodInvocationResolver with ScopeHelpers {
       _lookupFailureReporter.reportReadFailure(
         domain: InstanceLookupDomain(receiverType),
         name: name,
-        syntax: ReadSyntax.invocation,
         foundInstead: _typeAnalyzer.typePropertyResolver.getMemberForFailedRead(
           result: result,
           receiverType: receiverType,
@@ -917,7 +914,6 @@ class MethodInvocationResolver with ScopeHelpers {
       _lookupFailureReporter.reportReadFailure(
         domain: StaticLookupDomain(declaration),
         name: name,
-        syntax: ReadSyntax.invocation,
         foundInstead: declaration.getMemberForFailedLookup(
           Name(_definingLibraryUri, name.lexeme),
         ),
@@ -1018,7 +1014,6 @@ class MethodInvocationResolver with ScopeHelpers {
           _lookupFailureReporter.reportReadFailure(
             domain: SuperLookupDomain(enclosingInterface.thisType),
             name: name,
-            syntax: ReadSyntax.invocation,
             foundInstead: foundInstead,
           );
       }

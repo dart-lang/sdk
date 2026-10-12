@@ -159,7 +159,7 @@ class Class {
     switch (o) {
       case assert(false): // Error
       //   ^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
       //   ^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       // [cfe] `assert` can't be used as an expression.
@@ -315,7 +315,7 @@ class Class {
     switch (o) {
       case const assert(false): // Error
       //         ^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
       //         ^^^^^^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       // [cfe] `assert` can't be used as an expression.

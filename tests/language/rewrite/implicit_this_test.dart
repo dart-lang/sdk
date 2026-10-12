@@ -12,7 +12,7 @@ class Foo {
   easy(z) {
     return x + y + z;
     //         ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The getter 'y' isn't defined for the type 'Foo'.
   }
 
@@ -71,7 +71,7 @@ class Foo {
   shadow_x_parameter(x) {
     return this.x + y + x;
     //              ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The getter 'y' isn't defined for the type 'Foo'.
   }
 
@@ -79,7 +79,7 @@ class Foo {
     var x = z;
     return this.x + y + x;
     //              ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The getter 'y' isn't defined for the type 'Foo'.
   }
 
@@ -88,7 +88,7 @@ class Foo {
     foo() {
       return this.x + y + x;
       //              ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
       // [cfe] The getter 'y' isn't defined for the type 'Foo'.
     }
 
@@ -99,7 +99,7 @@ class Foo {
     foo(x) {
       return this.x + y + x;
       //              ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
       // [cfe] The getter 'y' isn't defined for the type 'Foo'.
     }
 
@@ -111,7 +111,7 @@ class Foo {
       var x = z;
       return this.x + y + x;
       //              ^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
       // [cfe] The getter 'y' isn't defined for the type 'Foo'.
     }
 

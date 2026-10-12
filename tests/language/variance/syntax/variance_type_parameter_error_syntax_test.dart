@@ -19,7 +19,7 @@ void A(out int foo) {
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '<' isn't defined for the type 'Type'.
   //   ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
   // [cfe] Expected ';' after this.
   // [cfe] Undefined name 'out'.
@@ -27,7 +27,7 @@ void A(out int foo) {
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_OPERATOR
   // [cfe] The operator '>' isn't defined for the type 'Type'.
   //               ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'bar'.
 }
 

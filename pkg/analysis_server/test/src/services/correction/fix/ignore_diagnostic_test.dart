@@ -390,13 +390,13 @@ String get _AA => '';
   Future<void> test_existingIgnore() async {
     await resolveTestCode('''
 void f() {
-  // ignore: undefined_identifier
+  // ignore: undefined_unqualified_name_read
   var a = b;
 }
 ''');
     await assertHasFix('''
 void f() {
-  // ignore: unused_local_variable, undefined_identifier
+  // ignore: unused_local_variable, undefined_unqualified_name_read
   var a = b;
 }
 ''');

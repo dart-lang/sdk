@@ -759,6 +759,224 @@ AnalysisOptionsWarningCode:
       ```
     comment: |-
       An error code indicating an undefined lint rule.
+  undefinedUnqualifiedNameReadNotFound:
+    type: compileTimeError
+    parameters:
+      String name: the name that isn't defined
+    sharedName: undefinedUnqualifiedNameRead
+    problemMessage: "Undefined name '#name'."
+    correctionMessage: "Try importing the library that defines '#name', correcting the name to one that is defined, or defining the name."
+    hasPublishedDocs: false
+    isUnresolvedIdentifier: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a name without a qualifier is
+      read, invoked, or torn off, but there's no variable, getter, function,
+      method, or type with that name in the scope in which it's used.
+
+      #### Examples
+
+      The following code produces this diagnostic because the name `rihgt`
+      isn't defined:
+
+      ```dart
+      int min(int left, int right) => left <= [!rihgt!] ? left : right;
+      ```
+
+      The following code produces this diagnostic because there's no function
+      named `emty`:
+
+      ```dart
+      List<int> empty() => [];
+
+      void main() {
+        print([!emty!]());
+      }
+      ```
+
+      The following code produces this diagnostic because `C` doesn't have a
+      member named `removeMiddle`:
+
+      ```dart
+      class C {
+        void removeLast() {}
+
+        void f() {
+          [!removeMiddle!]();
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because there's only a
+      setter named `x`, which can't be read:
+
+      ```dart
+      set x(int _) {}
+
+      int f() => [!x!];
+      ```
+
+      #### Common fixes
+
+      If the name is misspelled, then correct it:
+
+      ```dart
+      int min(int left, int right) => left <= right ? left : right;
+      ```
+
+      If the name is declared in a library that isn't imported, then import
+      that library.
+
+      If the name isn't declared, then declare it.
+
+      If there's only a setter, then add a getter with the same name:
+
+      ```dart
+      int get x => 0;
+
+      set x(int _) {}
+
+      int f() => x;
+      ```
+  undefinedUnqualifiedNameReadSetterOnly:
+    type: compileTimeError
+    parameters:
+      String name: the name of the setter
+    sharedName: undefinedUnqualifiedNameRead
+    problemMessage: "There's a setter '#name', but no getter."
+    correctionMessage: "Try defining a getter or variable named '#name'."
+    hasPublishedDocs: false
+  undefinedUnqualifiedNameWriteConst:
+    type: compileTimeError
+    parameters:
+      String name: the name of the constant
+    sharedName: undefinedUnqualifiedNameWrite
+    problemMessage: "The constant '#name' can't be assigned to."
+    correctionMessage: "Try making it a non-constant variable, or removing the assignment."
+    hasPublishedDocs: false
+  undefinedUnqualifiedNameWriteFinal:
+    type: compileTimeError
+    parameters:
+      String name: the name of the variable or field
+    sharedName: undefinedUnqualifiedNameWrite
+    problemMessage: "'#name' is final, so it can't be assigned to."
+    correctionMessage: "Try making '#name' non-final, or removing the assignment."
+    hasPublishedDocs: false
+  undefinedUnqualifiedNameWriteGetterOnly:
+    type: compileTimeError
+    parameters:
+      String name: the name of the getter
+    sharedName: undefinedUnqualifiedNameWrite
+    problemMessage: "There's a getter '#name', but no setter."
+    correctionMessage: "Try defining a setter named '#name'."
+    hasPublishedDocs: false
+  undefinedUnqualifiedNameWriteNotFound:
+    type: compileTimeError
+    parameters:
+      String name: the name that isn't defined
+    sharedName: undefinedUnqualifiedNameWrite
+    problemMessage: "Undefined name '#name'."
+    correctionMessage: "Try importing the library that defines '#name', correcting the name to one that is defined, or defining a setter or variable named '#name'."
+    hasPublishedDocs: false
+    isUnresolvedIdentifier: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a name without a qualifier is
+      assigned, but there's no setter or variable that can be assigned with
+      that name in the scope in which it's used.
+
+      #### Examples
+
+      The following code produces this diagnostic because the name `cuont`
+      isn't defined:
+
+      ```dart
+      var count = 0;
+
+      void f() {
+        [!cuont!] = 1;
+      }
+      ```
+
+      The following code produces this diagnostic because there's only a
+      getter named `x`:
+
+      ```dart
+      int get x => 0;
+
+      void f() {
+        [!x!] = 1;
+      }
+      ```
+
+      The following code produces this diagnostic because `y` is final:
+
+      ```dart
+      final y = 0;
+
+      void f() {
+        [!y!] = 1;
+      }
+      ```
+
+      The following code produces this diagnostic because `m` is a method:
+
+      ```dart
+      class C {
+        void m() {}
+
+        void f() {
+          [!m!] = () {};
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the name is misspelled, then correct it:
+
+      ```dart
+      var count = 0;
+
+      void f() {
+        count = 1;
+      }
+      ```
+
+      If there's only a getter, then add a setter with the same name:
+
+      ```dart
+      int get x => 0;
+
+      set x(int _) {}
+
+      void f() {
+        x = 1;
+      }
+      ```
+
+      If the variable is final, then make it non-final:
+
+      ```dart
+      var y = 0;
+
+      void f() {
+        y = 1;
+      }
+      ```
+
+      Otherwise, remove the assignment, or assign to a variable instead.
+  undefinedUnqualifiedNameWriteWrongKind:
+    type: compileTimeError
+    parameters:
+      String kind: the kind of the declaration that was found, such as 'function'
+      String name: the name of the declaration
+    sharedName: undefinedUnqualifiedNameWrite
+    problemMessage: "The #kind '#name' can't be assigned to."
+    correctionMessage: "Try assigning to a setter or a non-final variable instead."
+    hasPublishedDocs: false
   unrecognizedErrorCode:
     type: staticWarning
     parameters:
@@ -1500,6 +1718,7 @@ CompileTimeErrorCode:
   assignmentToConst:
     type: compileTimeError
     parameters: none
+    removedIn: "3.15"
     problemMessage: "Constant variables can't be assigned a value after initialization."
     correctionMessage: "Try removing the assignment, or remove the modifier 'const' from the variable."
     hasPublishedDocs: true
@@ -1553,6 +1772,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String variableName: the name of the final variable
+    removedIn: "3.15"
     problemMessage: "'#variableName' can't be used as a setter because it's final."
     correctionMessage: "Try finding a different setter, or making '#variableName' non-final."
     hasPublishedDocs: true
@@ -1630,6 +1850,7 @@ CompileTimeErrorCode:
     parameters:
       String variableName: the name of the reference
       String className: the name of the class
+    removedIn: "3.15"
     problemMessage: "There isn't a setter named '#variableName' in class '#className'."
     correctionMessage: Try correcting the name to reference an existing setter, or declare the setter.
     hasPublishedDocs: true
@@ -1688,6 +1909,7 @@ CompileTimeErrorCode:
   assignmentToFunction:
     type: compileTimeError
     parameters: none
+    removedIn: "3.15"
     problemMessage: "Functions can't be assigned a value."
     hasPublishedDocs: true
     # In the documentation, the `prefer_function_declarations_over_variables`
@@ -1740,6 +1962,7 @@ CompileTimeErrorCode:
   assignmentToMethod:
     type: compileTimeError
     parameters: none
+    removedIn: "3.15"
     problemMessage: "Methods can't be assigned a value."
     hasPublishedDocs: true
     documentation: |-
@@ -1769,6 +1992,7 @@ CompileTimeErrorCode:
   assignmentToType:
     type: compileTimeError
     parameters: none
+    removedIn: "3.15"
     problemMessage: "Types can't be assigned a value."
     hasPublishedDocs: true
     documentation: |-
@@ -19068,6 +19292,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the method that is undefined
+    removedIn: "3.15"
     problemMessage: "The function '#name' isn't defined."
     correctionMessage: "Try importing the library that defines '#name', correcting the name to the name of an existing function, or defining a function named '#name'."
     isUnresolvedIdentifier: true
@@ -19156,6 +19381,7 @@ CompileTimeErrorCode:
     type: compileTimeError
     parameters:
       String name: the name of the identifier
+    removedIn: "3.15"
     problemMessage: "Undefined name '#name'."
     correctionMessage: Try correcting the name to one that is defined, or defining the name.
     isUnresolvedIdentifier: true
@@ -19471,6 +19697,7 @@ CompileTimeErrorCode:
     parameters:
       String methodName: the name of the method that is undefined
       Type type: the type where the method is being looked for
+    removedIn: "3.15"
     problemMessage: "The method '#methodName' isn't defined for the type '#type'."
     correctionMessage: "Try correcting the name to the name of an existing method, or defining a method named '#methodName'."
     hasPublishedDocs: true

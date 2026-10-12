@@ -75,7 +75,7 @@ abstract final class _DiagnosticOptions {
     // removes its `plugins_in_inner_options` suppression.
     'PLUGINS_IN_INNER_OPTIONS',
     // Annotations report undefined names like other expressions, as
-    // `UNDEFINED_IDENTIFIER` or `UNDEFINED_PREFIXED_NAME`.
+    // `UNDEFINED_UNQUALIFIED_NAME_READ` or `UNDEFINED_PREFIXED_NAME_READ`.
     'UNDEFINED_ANNOTATION',
     // Split into `UNDEFINED_SUPER_MEMBER_READ`, `UNDEFINED_SUPER_MEMBER_WRITE`,
     // and `UNDEFINED_SUPER_OPERATOR`.
@@ -96,6 +96,17 @@ abstract final class _DiagnosticOptions {
     // Split into `UNDEFINED_PREFIXED_NAME_READ` and
     // `UNDEFINED_PREFIXED_NAME_WRITE`.
     'UNDEFINED_PREFIXED_NAME',
+    // Unqualified names report `UNDEFINED_UNQUALIFIED_NAME_READ` and
+    // `UNDEFINED_UNQUALIFIED_NAME_WRITE`.
+    'ASSIGNMENT_TO_CONST',
+    'ASSIGNMENT_TO_FINAL',
+    'ASSIGNMENT_TO_FINAL_NO_SETTER',
+    'ASSIGNMENT_TO_FUNCTION',
+    'ASSIGNMENT_TO_METHOD',
+    'ASSIGNMENT_TO_TYPE',
+    'UNDEFINED_FUNCTION',
+    'UNDEFINED_IDENTIFIER',
+    'UNDEFINED_METHOD',
   };
 
   static Set<String> currentLintCodeNames() {

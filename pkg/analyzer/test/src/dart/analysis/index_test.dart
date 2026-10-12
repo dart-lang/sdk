@@ -6911,7 +6911,7 @@ class A {
   void f() {
     item;
 //  ^^^^
-// [diag.undefinedIdentifier] Undefined name 'item'.
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'item', but no getter.
     this.item;
 //       ^^^^
 // [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'item' for the type 'A', but no getter.
@@ -7437,10 +7437,10 @@ void foo() {}
 void f() {
   foo = 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
   for (foo in [0]) {}
 //     ^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
 
@@ -7489,7 +7489,7 @@ void foo() {}
 void f() {
   foo ??= () {};
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 //        ^^^^^
 // [diag.deadCode] Dead code.
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
@@ -7549,10 +7549,10 @@ int get foo => 0;
 void f() {
   foo = 1;
 //^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
   for (foo in [1]) {}
 //     ^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 }
 ''');
 
@@ -8152,19 +8152,19 @@ class C {
 void f() {
   x;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
   x = 1;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameWriteNotFound] Undefined name 'x'.
   x += 2;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
   x();
 //^
-// [diag.undefinedFunction] The function 'x' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
   for (x in [3]) {}
 //     ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameWriteNotFound] Undefined name 'x'.
 }
 ''');
     assertNamesIndexText(

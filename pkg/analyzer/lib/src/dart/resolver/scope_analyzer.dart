@@ -195,9 +195,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
         _diagnosticReporter,
         _libraryFragment,
       ).reportWriteFailure(
-        // Only messages for failed reads name the type of `this`, so this
-        // write doesn't need it, and the scope analysis doesn't know it.
-        domain: UnqualifiedLookupDomain(thisType: null),
+        domain: UnqualifiedLookupDomain(),
         name: node.name,
         foundInstead: null,
       );

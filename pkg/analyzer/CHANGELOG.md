@@ -114,6 +114,31 @@
   Replace `undefined_prefixed_name` with the new names in `// ignore:`
   comments and in `analysis_options.yaml`, where it is still accepted, but
   has no effect.
+* Names without a qualifier, such as `foo`, `foo()`, and `foo = v`, report
+  two new diagnostics:
+  * `undefined_unqualified_name_read`, for `foo`, `foo()`, `foo<int>`, and
+    the read of `foo += 1`, when no variable, getter, function, method, or
+    type named `foo` is in scope. This replaces `undefined_identifier` for
+    reads, `undefined_function`, and `undefined_method` for invocations
+    without a receiver. The message says when there is only a setter.
+  * `undefined_unqualified_name_write`, for `foo = v`, the write of
+    `foo += 1`, `for (foo in xs)`, and `(foo) = r`, when no setter or
+    variable named `foo` is in scope. This replaces `undefined_identifier`
+    for writes, and `assignment_to_const`, `assignment_to_final`,
+    `assignment_to_final_no_setter`, `assignment_to_function`,
+    `assignment_to_method`, and `assignment_to_type`. The message says when
+    there is only a getter, a final or constant variable, or a function,
+    method, or type.
+
+  An assignment to an erroneously constant instance field, or to an instance
+  field declared in an extension, no longer reports anything at the
+  assignment; the declaration already reports `const_instance_field` or
+  `extension_declares_instance_field`. A read-write operation, such as
+  `foo += 1`, reports only the read when both the read and the write fail.
+
+  Replace the removed names with the new names in `// ignore:` comments and
+  in `analysis_options.yaml`, where they are still accepted, but have no
+  effect.
 
 ## 14.5.0
 

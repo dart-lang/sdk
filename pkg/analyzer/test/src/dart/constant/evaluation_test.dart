@@ -593,7 +593,7 @@ bool false
     await resolveTestCodeWithDiagnostics('''
 const v = a == 1;
 //        ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 ''');
   }
@@ -602,7 +602,7 @@ const v = a == 1;
     await resolveTestCodeWithDiagnostics('''
 const v = 1 == a;
 //             ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 ''');
   }
@@ -1952,10 +1952,10 @@ class A {
 const bool kIsWeb = identical(0, 0.0);
 const x = kIsWeb ? a : b;
 //                 ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 //                     ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
@@ -2903,7 +2903,7 @@ test() {
 // [diag.deadCode] Dead code.
   const c = _;
 //          ^
-// [diag.undefinedIdentifier] Undefined name '_'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_'.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
   print(c);
 }
@@ -4958,7 +4958,7 @@ bool true
     await resolveTestCodeWithDiagnostics(r'''
 const c = a != 3;
 //        ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 ''');
   }
@@ -4967,7 +4967,7 @@ const c = a != 3;
     await resolveTestCodeWithDiagnostics(r'''
 const c = 2 != a;
 //             ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 ''');
   }
@@ -5272,7 +5272,7 @@ int 1
     await resolveTestCodeWithDiagnostics(r'''
 const c = true ? 1 : x;
 //                   ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 // [diag.deadCode] Dead code.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 ''');
@@ -5282,7 +5282,7 @@ const c = true ? 1 : x;
     await resolveTestCodeWithDiagnostics(r'''
 const c = true ? x : 0;
 //               ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 //                   ^
 // [diag.deadCode] Dead code.
@@ -5664,7 +5664,7 @@ const y = B(x);
 //        ^^^^
 // [diag.constEvalTypeString][context 1] In constant expressions, operands of this operator must be of type 'String'.
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 // [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 ''');
   }
@@ -5702,7 +5702,7 @@ test() {
 //      ^
 // [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
 //          ^
-// [diag.undefinedIdentifier] Undefined name '_'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_'.
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 }
 ''');
@@ -5741,7 +5741,7 @@ String abc
     await resolveTestCodeWithDiagnostics(r'''
 const c = 'a${f()}c';
 //            ^
-// [diag.undefinedFunction] The function 'f' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'f'.
 //            ^^^
 // [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
 ''');

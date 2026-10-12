@@ -6,7 +6,7 @@
 class LateError(int x) {
   late int y = x;
   //           ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] The getter 'x' isn't defined for the type 'LateError'.
 }
 
@@ -14,11 +14,11 @@ class LateError(int x) {
 class NotPrimaryConstructor {
   int y = x;
   //      ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'x'.
   int z = x + 1;
   //      ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'x'.
   NotPrimaryConstructor(int x);
 }

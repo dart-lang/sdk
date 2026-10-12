@@ -735,7 +735,8 @@ enum E {
 enum F { c }
 ''');
     await assertNoFix(
-      filter: (e) => e.diagnosticCode == diag.undefinedIdentifier,
+      filter: (e) =>
+          e.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -781,7 +782,8 @@ void f() {
 }
 ''');
     await assertNoFix(
-      filter: (e) => e.diagnosticCode == diag.undefinedIdentifier,
+      filter: (e) =>
+          e.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -794,7 +796,8 @@ void f() {
 }
 ''');
     await assertNoFix(
-      filter: (e) => e.diagnosticCode == diag.undefinedIdentifier,
+      filter: (e) =>
+          e.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 

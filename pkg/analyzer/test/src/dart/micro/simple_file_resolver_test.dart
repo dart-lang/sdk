@@ -488,7 +488,7 @@ part 'b.dart';
 
 var b = B(0);
 //      ^
-// [diag.undefinedFunction] The function 'B' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'B'.
 ''',
       b: r'''
 part of 'a.dart';
@@ -1491,7 +1491,7 @@ void f(int? a) {
     var result = await getErrorsWithDiagnostics(testFile, r'''
 var a = b;
 //      ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 var foo = 0;
 ''');
 
@@ -1537,13 +1537,13 @@ var a = 42
     var unresolvedB = r'''
 var a = b;
 //      ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''';
 
     var unresolvedC = r'''
 var a = c;
 //      ^
-// [diag.undefinedIdentifier] Undefined name 'c'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'c'.
 ''';
 
     addTestFileWithDiagnosticExpectations(unresolvedB);
@@ -1936,7 +1936,7 @@ byteStore
     assertDiagnosticsInCode(r'''
 var a = b;
 //      ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 var foo = 0;
 ''', result.diagnostics);
     expect(result.lineInfo.lineStarts, [0, 11, 24]);

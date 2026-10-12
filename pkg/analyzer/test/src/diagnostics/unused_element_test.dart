@@ -2219,7 +2219,7 @@ main() {
   f(int value) {}
   f = 0;
 //^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'f' can't be assigned to.
 }
 ''');
   }
@@ -2320,7 +2320,7 @@ int get _g => 0;
 void f() {
   _g = 1;
 //^^
-// [diag.assignmentToFinal] '_g' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter '_g', but no setter.
 }
 ''');
   }

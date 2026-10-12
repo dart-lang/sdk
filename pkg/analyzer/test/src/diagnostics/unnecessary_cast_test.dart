@@ -104,7 +104,7 @@ void f(a) {
 void f() {
   x as int;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 }
 ''');
   }

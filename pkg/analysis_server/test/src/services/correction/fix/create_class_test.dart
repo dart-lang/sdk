@@ -477,7 +477,7 @@ class Test {
 }
 ''',
       filter: (e) {
-        return e.diagnosticCode == diag.undefinedFunction;
+        return e.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound;
       },
     );
   }
@@ -568,7 +568,8 @@ class Test {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier;
+        return error.diagnosticCode ==
+            diag.undefinedUnqualifiedNameReadNotFound;
       },
     );
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);

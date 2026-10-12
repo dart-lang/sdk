@@ -162,6 +162,28 @@ V1: MethodInvocation
 ''');
   }
 
+  test_found_invocation_functionExpressionCall() async {
+    await resolveTestCodeWithDiagnostics(r'''
+main() {
+  (() => null).call();
+}
+''');
+  }
+
+  test_found_invocation_typeLiteralExtension_parenthesized() async {
+    await resolveTestCodeWithDiagnostics('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo();
+}
+
+extension E on Type {
+  void foo() {}
+}
+''');
+  }
+
   test_found_objectPattern() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -925,7 +947,18 @@ void f(int a) {
 //  ^
 // [diag.missingIdentifier] Expected an identifier.
 //   ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
+}
+''');
+  }
+
+  test_notFound_invocation_syntheticName_parameterReceiver() async {
+    await resolveTestCodeWithDiagnostics(r'''
+print(x) {}
+void f(int p) {
+  p.();
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 ''');
   }

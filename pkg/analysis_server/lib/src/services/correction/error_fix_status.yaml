@@ -224,35 +224,10 @@ argument_type_not_assignable:
   status: hasFix
 assert_in_redirecting_constructor:
   status: hasFix
-assignment_to_const:
-  status: noFix
-  notes: |-
-    Making the field non-const doesn't seem to be a good choice, but it is a
-    possibility.
 assignment_to_primary_constructor_parameter:
   status: needsEvaluation
-assignment_to_final:
-  status: hasFix
 assignment_to_final_local:
   status: hasFix
-assignment_to_final_no_setter:
-  status: needsFix
-  notes: |-
-    The fix is to create the missing setter.
-assignment_to_function:
-  status: noFix
-  notes: |-
-    Theoretically we could replace the function with a function valued variable
-    if the value being assigned is a function with the same signature, but that
-    case is likely rare enough to not be worth supporting.
-assignment_to_method:
-  status: noFix
-  notes: |-
-    Theoretically we could replace the method with a function valued variable
-    if the value being assigned is a function with the same signature, but that
-    case is likely rare enough to not be worth supporting.
-assignment_to_type:
-  status: noFix
 async_for_in_wrong_context:
   status: hasFix
 augmentation_extends_clause_already_present:
@@ -1725,10 +1700,6 @@ undefined_extension_member_write_wrong_kind:
     A method can't be made assignable; the fix is to assign to something else.
 undefined_extension_operator:
   status: hasFix
-undefined_function:
-  status: hasFix
-undefined_identifier:
-  status: hasFix
 undefined_identifier_await:
   status: hasFix
 undefined_instance_member_read_not_found:
@@ -1757,8 +1728,6 @@ undefined_instance_member_write_wrong_kind:
   status: noFix
   notes: |-
     A method can't be made assignable; the fix is to assign to something else.
-undefined_method:
-  status: hasFix
 undefined_named_parameter:
   status: hasFix
 undefined_operator:
@@ -1893,6 +1862,29 @@ undefined_super_operator:
   status: needsFix
   notes: |-
     The fix is to create the operator, assuming the superclass is editable.
+undefined_unqualified_name_read_not_found:
+  status: hasFix
+undefined_unqualified_name_read_setter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the getter.
+undefined_unqualified_name_write_const:
+  status: noFix
+  notes: |-
+    A constant can't be assigned; making it a variable changes its meaning.
+undefined_unqualified_name_write_final:
+  status: hasFix
+undefined_unqualified_name_write_getter_only:
+  status: needsFix
+  notes: |-
+    The fix is to create the setter.
+undefined_unqualified_name_write_not_found:
+  status: hasFix
+undefined_unqualified_name_write_wrong_kind:
+  status: noFix
+  notes: |-
+    A function, a method, or a type can't be made assignable; the fix is to
+    assign to something else.
 unqualified_reference_to_non_local_static_member:
   status: hasFix
 unqualified_reference_to_static_member_of_extended_type:

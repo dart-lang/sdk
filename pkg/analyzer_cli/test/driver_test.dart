@@ -395,8 +395,8 @@ class OptionsTest extends BaseTest {
     // dead_code: error
     expect(stdout, contains('error - Dead code'));
 
-    // undefined_function: warning
-    expect(stdout, contains("warning - The function 'bar' isn't defined."));
+    // undefined_unqualified_name_read: warning
+    expect(stdout, contains("warning - Undefined name 'bar'."));
 
     expect(outSink.toString(), contains('1 error and 1 warning found.'));
   }

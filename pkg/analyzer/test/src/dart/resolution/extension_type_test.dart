@@ -4861,7 +4861,7 @@ extension type E<T extends Unresolved>(int it) {}
     await resolveTestCodeWithDiagnostics(r'''
 extension type E<@Unresolved T>(int it) {}
 //                ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'Unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'Unresolved'.
 ''');
   }
 

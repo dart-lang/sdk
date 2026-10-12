@@ -15,7 +15,7 @@ class Tag {
 @Tag(named: undefined)
 //          ^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [cfe] Undefined name 'undefined'.
 class A {}
 
@@ -32,7 +32,7 @@ class D {
 @Tag(named: instanceField)
 //          ^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [cfe] Undefined name 'instanceField'.
 class E {
   var instanceField;
@@ -50,7 +50,7 @@ class F {
 @Tag(named: instanceMethod)
 //          ^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [cfe] Undefined name 'instanceMethod'.
 class G {
   instanceMethod() {}

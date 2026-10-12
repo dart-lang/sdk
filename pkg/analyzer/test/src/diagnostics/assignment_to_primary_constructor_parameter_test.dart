@@ -22,7 +22,7 @@ class AssignmentToPrimaryConstructorParameterTest
 class A(int x) {
   late int y = x = 0;
 //             ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameWriteNotFound] Undefined name 'x'.
 }
 ''');
   }

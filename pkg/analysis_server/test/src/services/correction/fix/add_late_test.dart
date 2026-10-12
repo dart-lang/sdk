@@ -150,14 +150,18 @@ class C {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class C {
   late final String s;
   C() {
     s = '';
   }
 }
-''', filter: (error) => error.diagnosticCode == diag.assignmentToFinal);
+''',
+      filter: (error) =>
+          error.diagnosticCode == diag.undefinedUnqualifiedNameWriteFinal,
+    );
   }
 
   Future<void> test_withFinalAssignedInDeclaration() async {
@@ -207,14 +211,18 @@ class C {
   }
 }
 ''');
-    await assertHasFix('''
+    await assertHasFix(
+      '''
 class C {
   static late final String s;
   C() {
     s = '';
   }
 }
-''', filter: (error) => error.diagnosticCode == diag.assignmentToFinal);
+''',
+      filter: (error) =>
+          error.diagnosticCode == diag.undefinedUnqualifiedNameWriteFinal,
+    );
   }
 
   Future<void> test_withLate() async {

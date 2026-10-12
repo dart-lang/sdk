@@ -403,7 +403,8 @@ class MyAnnotation {
 void f() {}
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier;
+        return error.diagnosticCode ==
+            diag.undefinedUnqualifiedNameReadNotFound;
       },
     );
   }

@@ -2256,10 +2256,10 @@ enum A/*(bool x, int y)*/ {
 //^^^^
 // [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
 //              ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
     y;
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'y'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'y'.
   }
 }
 ''');
@@ -2478,7 +2478,7 @@ enum A(int foo) {
 //^^^^
 // [diag.lateFinalFieldWithConstConstructor] Can't have a late final field in a class with a generative const constructor.
 //                 ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
@@ -2513,7 +2513,7 @@ enum A(int foo) {
   v(0);
   static var bar = foo;
 //                 ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 

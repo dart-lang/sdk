@@ -2785,7 +2785,7 @@ Annotation
   test_value_invalid_undefinedName() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 @undefined
-// [diag.undefinedIdentifier][column 2][length 9] Undefined name 'undefined'.
+// [diag.undefinedUnqualifiedNameReadNotFound][column 2][length 9] Undefined name 'undefined'.
 void f() {}
 ''');
 

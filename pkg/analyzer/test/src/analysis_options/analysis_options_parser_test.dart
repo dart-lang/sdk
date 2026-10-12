@@ -630,6 +630,90 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_assignmentToConst() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_const: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_const: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_assignmentToFinal() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_final: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_final: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_assignmentToFinalNoSetter() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_final_no_setter: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_final_no_setter: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_assignmentToFunction() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_function: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_function: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_assignmentToMethod() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_method: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_method: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_assignmentToType() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    assignment_to_type: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    assignment_to_type: ignore
+''');
+  }
+
   test_analyzer_errors_removed_dotShorthandUndefinedMember() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
@@ -745,6 +829,20 @@ AnalysisOptionsImpl
 ''');
   }
 
+  test_analyzer_errors_removed_undefinedFunction() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_function: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_function: ignore
+''');
+  }
+
   test_analyzer_errors_removed_undefinedGetter() {
     var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
 analyzer:
@@ -756,6 +854,34 @@ analyzer:
 AnalysisOptionsImpl
   errorProcessors
     undefined_getter: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedIdentifier() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_identifier: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_identifier: ignore
+''');
+  }
+
+  test_analyzer_errors_removed_undefinedMethod() {
+    var analysisOptions = parseAnalysisOptionsWithDiagnostics('''
+analyzer:
+  errors:
+    undefined_method: ignore
+''');
+
+    assertAnalysisOptionsText(analysisOptions, r'''
+AnalysisOptionsImpl
+  errorProcessors
+    undefined_method: ignore
 ''');
   }
 

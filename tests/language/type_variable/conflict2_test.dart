@@ -27,7 +27,7 @@ class C<T> {
   // X is not in scope. NoSuchMethodError.
   static baz() => X();
   //              ^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Method not found: 'X'.
 
   // Class 'C' has no static method 'T': NoSuchMethodError.

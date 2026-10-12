@@ -219,7 +219,7 @@ f() {
   ''.stringExt2;
   _.a;
 //^
-// [diag.undefinedIdentifier] Undefined name '_'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_'.
 }
 ''');
   }

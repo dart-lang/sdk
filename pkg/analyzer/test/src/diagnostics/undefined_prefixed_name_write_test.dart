@@ -1388,6 +1388,118 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_wrongKind_directAssignment_dynamic() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:core' as core;
+
+void f() {
+  core.dynamic = 0;
+//     ^^^^^^^
+// [diag.undefinedPrefixedNameWriteWrongKind] The type 'dynamic' imported with the prefix 'core' can't be assigned to.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ImportPrefixedAssignmentTarget
+    importPrefix: ImportPrefixReference
+      name: core
+      period: .
+      element: <testLibraryFragment>::@prefix::core
+    name: dynamic
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: dynamic
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: core
+      element: <testLibraryFragment>::@prefix::core
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: dynamic
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: dynamic
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_wrongKind_directAssignment_never() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+import 'dart:core' as core;
+
+void f() {
+  core.Never = 0;
+//     ^^^^^
+// [diag.undefinedPrefixedNameWriteWrongKind] The type 'Never' imported with the prefix 'core' can't be assigned to.
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ImportPrefixedAssignmentTarget
+    importPrefix: ImportPrefixReference
+      name: core
+      period: .
+      element: <testLibraryFragment>::@prefix::core
+    name: Never
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: Never
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: core
+      element: <testLibraryFragment>::@prefix::core
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: Never
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: Never
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
   test_wrongKind_directAssignment_typeAlias() async {
     newFile('$testPackageLibPath/a.dart', r'''
 typedef Foo = int;

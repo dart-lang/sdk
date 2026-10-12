@@ -3,6 +3,6 @@ analyzer:
   errors:
     unused_local_variable: ignore
     assignment_of_do_not_store: error
-    undefined_function: warning
+    undefined_unqualified_name_read: warning
   language:
     enableSuperMixins: true

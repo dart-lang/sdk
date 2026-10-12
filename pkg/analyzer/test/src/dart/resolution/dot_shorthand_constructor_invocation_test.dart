@@ -2861,7 +2861,7 @@ void main() {
 //    ^^^^^^^^^^^^^^^^^^^^^
 // [diag.dotShorthandMissingContext] A dot shorthand can't be used where there is no context type.
 //                 ^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unknown'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unknown'.
   print(x);
 }
 ''');

@@ -60,7 +60,7 @@ class I {}
 
    @this.toString
 //  ^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'this' can't be used as an identifier because it's a keyword.
 //       ^
@@ -69,7 +69,7 @@ class J {}
 
    @super.toString
 //  ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'super' can't be used as an identifier because it's a keyword.
 //        ^
@@ -127,13 +127,13 @@ class W {}
 
    @TypeParameter
 //  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [cfe] Undefined name 'TypeParameter'.
 class X<TypeParameter> {}
 
    @TypeParameter.member
 //  ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 //                ^
 // [cfe] Member not found: 'TypeParameter.member'.
 class Y<TypeParameter> {}
@@ -190,7 +190,7 @@ class EE {}
 
    @true
 //  ^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'true' can't be used as an identifier because it's a keyword.
 // [cfe] Undefined name 'true'.
@@ -198,7 +198,7 @@ class FF {}
 
    @false
 //  ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'false' can't be used as an identifier because it's a keyword.
 // [cfe] Undefined name 'false'.
@@ -206,7 +206,7 @@ class GG {}
 
    @null
 //  ^^^^
-// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+// [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_IDENTIFIER_BUT_GOT_KEYWORD
 // [cfe] 'null' can't be used as an identifier because it's a keyword.
 // [cfe] Undefined name 'null'.

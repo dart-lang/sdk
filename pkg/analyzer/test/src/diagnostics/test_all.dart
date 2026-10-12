@@ -25,16 +25,9 @@ import 'argument_type_not_assignable_to_error_handler_test.dart'
 import 'assert_in_redirecting_constructor_test.dart'
     as assert_in_redirecting_constructor;
 import 'assignment_of_do_not_store_test.dart' as assignment_of_do_not_store;
-import 'assignment_to_const_test.dart' as assignment_to_const;
 import 'assignment_to_final_local_test.dart' as assignment_to_final_local;
-import 'assignment_to_final_no_setter_test.dart'
-    as assignment_to_final_no_setter;
-import 'assignment_to_final_test.dart' as assignment_to_final;
-import 'assignment_to_function_test.dart' as assignment_to_function;
-import 'assignment_to_method_test.dart' as assignment_to_method;
 import 'assignment_to_primary_constructor_parameter_test.dart'
     as assignment_to_primary_constructor_parameter;
-import 'assignment_to_type_test.dart' as assignment_to_type;
 import 'async_for_in_wrong_context_test.dart' as async_for_in_wrong_context;
 import 'async_keyword_used_as_identifier_test.dart'
     as async_keyword_used_as_identifier;
@@ -880,12 +873,10 @@ import 'undefined_extension_member_write_test.dart'
 import 'undefined_extension_operator_test.dart' as undefined_extension_operator;
 import 'undefined_hidden_name_test.dart' as undefined_hidden_name;
 import 'undefined_identifier_await_test.dart' as undefined_identifier_await;
-import 'undefined_identifier_test.dart' as undefined_identifier;
 import 'undefined_instance_member_read_test.dart'
     as undefined_instance_member_read;
 import 'undefined_instance_member_write_test.dart'
     as undefined_instance_member_write;
-import 'undefined_method_test.dart' as undefined_method;
 import 'undefined_named_parameter_test.dart' as undefined_named_parameter;
 import 'undefined_operator_test.dart' as undefined_operator;
 import 'undefined_prefixed_name_read_test.dart' as undefined_prefixed_name_read;
@@ -900,6 +891,10 @@ import 'undefined_static_member_write_test.dart'
 import 'undefined_super_member_read_test.dart' as undefined_super_member_read;
 import 'undefined_super_member_write_test.dart' as undefined_super_member_write;
 import 'undefined_super_operator_test.dart' as undefined_super_operator;
+import 'undefined_unqualified_name_read_test.dart'
+    as undefined_unqualified_name_read;
+import 'undefined_unqualified_name_write_test.dart'
+    as undefined_unqualified_name_write;
 import 'unignorable_ignore_test.dart' as unignorable_ignore;
 import 'unnecessary_cast_pattern_test.dart' as unnecessary_cast_pattern;
 import 'unnecessary_cast_test.dart' as unnecessary_cast;
@@ -979,14 +974,8 @@ main() {
     argument_type_not_assignable_to_error_handler.main();
     assert_in_redirecting_constructor.main();
     assignment_of_do_not_store.main();
-    assignment_to_const.main();
     assignment_to_final_local.main();
-    assignment_to_final_no_setter.main();
-    assignment_to_final.main();
-    assignment_to_function.main();
-    assignment_to_method.main();
     assignment_to_primary_constructor_parameter.main();
-    assignment_to_type.main();
     async_for_in_wrong_context.main();
     async_keyword_used_as_identifier.main();
     augmentation_extends_clause_already_present.main();
@@ -1525,10 +1514,8 @@ main() {
     undefined_extension_operator.main();
     undefined_hidden_name.main();
     undefined_identifier_await.main();
-    undefined_identifier.main();
     undefined_instance_member_read.main();
     undefined_instance_member_write.main();
-    undefined_method.main();
     undefined_named_parameter.main();
     undefined_operator.main();
     undefined_prefixed_name_read.main();
@@ -1540,6 +1527,8 @@ main() {
     undefined_super_member_read.main();
     undefined_super_member_write.main();
     undefined_super_operator.main();
+    undefined_unqualified_name_read.main();
+    undefined_unqualified_name_write.main();
     unignorable_ignore.main();
     unnecessary_import.main();
     unnecessary_cast_pattern.main();

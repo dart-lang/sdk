@@ -596,7 +596,7 @@ void f(A x) {
   switch (x) {
     case unresolved:
 //       ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
       break;
   }
 }

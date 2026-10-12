@@ -10,7 +10,7 @@ void main() {
   Object o = 1;
   OnObject(o).onObject;
   // [error column 3, length 8]
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Method not found: 'OnObject'.
   o.onObject;
   //^^^^^^^^

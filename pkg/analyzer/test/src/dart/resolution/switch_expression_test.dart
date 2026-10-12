@@ -859,7 +859,7 @@ void f(Object? x) {
     int a when a > 0 => a,
     _ => a,
 //       ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
   });
 }
 ''');

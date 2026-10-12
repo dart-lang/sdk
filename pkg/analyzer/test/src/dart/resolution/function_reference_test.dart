@@ -689,7 +689,7 @@ V1: FunctionReference
 bar() {
   a.foo<int>;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -746,7 +746,7 @@ V1: FunctionReference
 bar() {
   a.b.foo<int>;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -1563,7 +1563,7 @@ extension on double {
 // [diag.unusedElement] The declaration 'bar' isn't referenced.
     foo<int>;
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'double'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -5505,7 +5505,7 @@ class A {
   bar() {
     foo<int>;
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'A'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -7303,7 +7303,7 @@ V1: MethodInvocation
 bar() {
   prefix.foo<int>;
 //^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'prefix'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'prefix'.
 }
 ''');
 
@@ -7851,7 +7851,7 @@ V1: FunctionReference
 void bar() {
   foo<int>;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 

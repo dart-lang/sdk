@@ -35743,7 +35743,7 @@ library;
     uri: package:test/test.dart
     flags: isLibrary
     errors
-      30 +1 UNDEFINED_IDENTIFIER
+      30 +1 UNDEFINED_UNQUALIFIED_NAME_READ
 ''',
     );
   }
@@ -102412,7 +102412,7 @@ const x = 0;
     flags: exists isLibrary
     errors
       7 +8 IMPORT_OF_NON_LIBRARY
-      30 +1 UNDEFINED_IDENTIFIER
+      30 +1 UNDEFINED_UNQUALIFIED_NAME_READ
 [operation] analyzedLibrary
   file: /home/test/lib/test.dart
 [status] idle
@@ -102423,7 +102423,7 @@ const x = 0;
     flags: isLibrary
     errors
       7 +8 IMPORT_OF_NON_LIBRARY
-      30 +1 UNDEFINED_IDENTIFIER
+      30 +1 UNDEFINED_UNQUALIFIED_NAME_READ
 ''');
       await disposeAnalysisContextCollection();
     }

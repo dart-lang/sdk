@@ -620,12 +620,12 @@ class LibraryAnalyzer {
         diag.notAType,
         diag.prefixIdentifierNotFollowedByDot,
         diag.undefinedClass,
-        diag.undefinedFunction,
-        diag.undefinedIdentifier,
         diag.undefinedPrefixedNameReadNotFound,
         diag.undefinedPrefixedNameReadPrivate,
         diag.undefinedPrefixedNameWriteNotFound,
         diag.undefinedPrefixedNameWritePrivate,
+        diag.undefinedUnqualifiedNameReadNotFound,
+        diag.undefinedUnqualifiedNameWriteNotFound,
         diag.deprecatedExportUse,
       }.contains(errorCode)) {
         return true;

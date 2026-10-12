@@ -123,7 +123,7 @@ AwaitExpression
 void f() async {
   await unresolved;
 //      ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
 

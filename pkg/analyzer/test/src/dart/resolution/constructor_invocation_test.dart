@@ -3291,8 +3291,8 @@ V1: InstanceCreationExpression
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new Unresolved.named(0);
-//    ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'Unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'Unresolved'.
 }
 
 ''');
@@ -3348,8 +3348,8 @@ V1: InstanceCreationExpression
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f() {
   new unresolved.Foo.bar(0);
-//    ^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 
 ''');

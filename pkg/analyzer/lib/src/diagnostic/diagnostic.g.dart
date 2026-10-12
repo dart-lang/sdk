@@ -803,38 +803,6 @@ assignmentOfDoNotStore = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
-/// No parameters.
-const DiagnosticWithoutArguments
-assignmentToConst = DiagnosticWithoutArgumentsImpl(
-  name: 'assignment_to_const',
-  problemMessage:
-      "Constant variables can't be assigned a value after initialization.",
-  correctionMessage:
-      "Try removing the assignment, or remove the modifier 'const' from the "
-      "variable.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'assignment_to_const',
-  expectedTypes: [],
-);
-
-/// Parameters:
-/// String variableName: the name of the final variable
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String variableName})
->
-assignmentToFinal = DiagnosticWithArguments(
-  name: 'assignment_to_final',
-  problemMessage: "'{0}' can't be used as a setter because it's final.",
-  correctionMessage:
-      "Try finding a different setter, or making '{0}' non-final.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'assignment_to_final',
-  withArguments: _withArgumentsAssignmentToFinal,
-  expectedTypes: [ExpectedType.string],
-);
-
 /// Parameters:
 /// String variableName: the name of the variable
 const DiagnosticWithArguments<
@@ -851,50 +819,6 @@ assignmentToFinalLocal = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
-/// Parameters:
-/// String variableName: the name of the reference
-/// String className: the name of the class
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String variableName,
-    required String className,
-  })
->
-assignmentToFinalNoSetter = DiagnosticWithArguments(
-  name: 'assignment_to_final_no_setter',
-  problemMessage: "There isn't a setter named '{0}' in class '{1}'.",
-  correctionMessage:
-      "Try correcting the name to reference an existing setter, or declare "
-      "the setter.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'assignment_to_final_no_setter',
-  withArguments: _withArgumentsAssignmentToFinalNoSetter,
-  expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// No parameters.
-const DiagnosticWithoutArguments assignmentToFunction =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'assignment_to_function',
-      problemMessage: "Functions can't be assigned a value.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'assignment_to_function',
-      expectedTypes: [],
-    );
-
-/// No parameters.
-const DiagnosticWithoutArguments assignmentToMethod =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'assignment_to_method',
-      problemMessage: "Methods can't be assigned a value.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'assignment_to_method',
-      expectedTypes: [],
-    );
-
 /// No parameters.
 const DiagnosticWithoutArguments
 assignmentToPrimaryConstructorParameter = DiagnosticWithoutArgumentsImpl(
@@ -906,17 +830,6 @@ assignmentToPrimaryConstructorParameter = DiagnosticWithoutArgumentsImpl(
   uniqueName: 'assignment_to_primary_constructor_parameter',
   expectedTypes: [],
 );
-
-/// No parameters.
-const DiagnosticWithoutArguments assignmentToType =
-    DiagnosticWithoutArgumentsImpl(
-      name: 'assignment_to_type',
-      problemMessage: "Types can't be assigned a value.",
-      hasPublishedDocs: true,
-      type: DiagnosticType.COMPILE_TIME_ERROR,
-      uniqueName: 'assignment_to_type',
-      expectedTypes: [],
-    );
 
 /// No parameters.
 const DiagnosticWithoutArguments asyncForInWrongContext =
@@ -16851,25 +16764,6 @@ undefinedExtensionOperator = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String name: the name of the method that is undefined
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String name})
->
-undefinedFunction = DiagnosticWithArguments(
-  name: 'undefined_function',
-  problemMessage: "The function '{0}' isn't defined.",
-  correctionMessage:
-      "Try importing the library that defines '{0}', correcting the name to "
-      "the name of an existing function, or defining a function named '{0}'.",
-  hasPublishedDocs: true,
-  isUnresolvedIdentifier: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_function',
-  withArguments: _withArgumentsUndefinedFunction,
-  expectedTypes: [ExpectedType.string],
-);
-
-/// Parameters:
 /// String library: the name of the library being imported
 /// String name: the name in the hide clause that isn't defined in the library
 const DiagnosticWithArguments<
@@ -16885,24 +16779,6 @@ undefinedHiddenName = DiagnosticWithArguments(
   uniqueName: 'undefined_hidden_name',
   withArguments: _withArgumentsUndefinedHiddenName,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
-);
-
-/// Parameters:
-/// String name: the name of the identifier
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({required String name})
->
-undefinedIdentifier = DiagnosticWithArguments(
-  name: 'undefined_identifier',
-  problemMessage: "Undefined name '{0}'.",
-  correctionMessage:
-      "Try correcting the name to one that is defined, or defining the name.",
-  hasPublishedDocs: true,
-  isUnresolvedIdentifier: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_identifier',
-  withArguments: _withArgumentsUndefinedIdentifier,
-  expectedTypes: [ExpectedType.string],
 );
 
 /// No parameters.
@@ -17081,28 +16957,6 @@ undefinedLint = DiagnosticWithArguments(
   uniqueName: 'undefined_lint',
   withArguments: _withArgumentsUndefinedLint,
   expectedTypes: [ExpectedType.string],
-);
-
-/// Parameters:
-/// String methodName: the name of the method that is undefined
-/// Type type: the type where the method is being looked for
-const DiagnosticWithArguments<
-  LocatableDiagnostic Function({
-    required String methodName,
-    required DartType type,
-  })
->
-undefinedMethod = DiagnosticWithArguments(
-  name: 'undefined_method',
-  problemMessage: "The method '{0}' isn't defined for the type '{1}'.",
-  correctionMessage:
-      "Try correcting the name to the name of an existing method, or "
-      "defining a method named '{0}'.",
-  hasPublishedDocs: true,
-  type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'undefined_method',
-  withArguments: _withArgumentsUndefinedMethod,
-  expectedTypes: [ExpectedType.string, ExpectedType.type],
 );
 
 /// Parameters:
@@ -17885,6 +17739,121 @@ undefinedSuperOperator = DiagnosticWithArguments(
   uniqueName: 'undefined_super_operator',
   withArguments: _withArgumentsUndefinedSuperOperator,
   expectedTypes: [ExpectedType.string, ExpectedType.type],
+);
+
+/// Parameters:
+/// String name: the name that isn't defined
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameReadNotFound = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_read',
+  problemMessage: "Undefined name '{0}'.",
+  correctionMessage:
+      "Try importing the library that defines '{0}', correcting the name to "
+      "one that is defined, or defining the name.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_read_not_found',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameReadNotFound,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the setter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameReadSetterOnly = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_read',
+  problemMessage: "There's a setter '{0}', but no getter.",
+  correctionMessage: "Try defining a getter or variable named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_read_setter_only',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameReadSetterOnly,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the constant
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameWriteConst = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_write',
+  problemMessage: "The constant '{0}' can't be assigned to.",
+  correctionMessage:
+      "Try making it a non-constant variable, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_write_const',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameWriteConst,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the variable or field
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameWriteFinal = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_write',
+  problemMessage: "'{0}' is final, so it can't be assigned to.",
+  correctionMessage: "Try making '{0}' non-final, or removing the assignment.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_write_final',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameWriteFinal,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the getter
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameWriteGetterOnly = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_write',
+  problemMessage: "There's a getter '{0}', but no setter.",
+  correctionMessage: "Try defining a setter named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_write_getter_only',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameWriteGetterOnly,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name that isn't defined
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameWriteNotFound = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_write',
+  problemMessage: "Undefined name '{0}'.",
+  correctionMessage:
+      "Try importing the library that defines '{0}', correcting the name to "
+      "one that is defined, or defining a setter or variable named '{0}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_write_not_found',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameWriteNotFound,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String kind: the kind of the declaration that was found, such as
+///              'function'
+/// String name: the name of the declaration
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String kind, required String name})
+>
+undefinedUnqualifiedNameWriteWrongKind = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_write',
+  problemMessage: "The {0} '{1}' can't be assigned to.",
+  correctionMessage:
+      "Try assigning to a setter or a non-final variable instead.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_write_wrong_kind',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameWriteWrongKind,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
 /// A TODO comment marked as UNDONE.
@@ -19640,26 +19609,10 @@ LocatableDiagnostic _withArgumentsAssignmentOfDoNotStore({
   return LocatableDiagnosticImpl(diag.assignmentOfDoNotStore, [name]);
 }
 
-LocatableDiagnostic _withArgumentsAssignmentToFinal({
-  required String variableName,
-}) {
-  return LocatableDiagnosticImpl(diag.assignmentToFinal, [variableName]);
-}
-
 LocatableDiagnostic _withArgumentsAssignmentToFinalLocal({
   required String variableName,
 }) {
   return LocatableDiagnosticImpl(diag.assignmentToFinalLocal, [variableName]);
-}
-
-LocatableDiagnostic _withArgumentsAssignmentToFinalNoSetter({
-  required String variableName,
-  required String className,
-}) {
-  return LocatableDiagnosticImpl(diag.assignmentToFinalNoSetter, [
-    variableName,
-    className,
-  ]);
 }
 
 LocatableDiagnostic _withArgumentsAugmentationFormalParameterModifierExtra({
@@ -23110,19 +23063,11 @@ LocatableDiagnostic _withArgumentsUndefinedExtensionOperator({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsUndefinedFunction({required String name}) {
-  return LocatableDiagnosticImpl(diag.undefinedFunction, [name]);
-}
-
 LocatableDiagnostic _withArgumentsUndefinedHiddenName({
   required String library,
   required String name,
 }) {
   return LocatableDiagnosticImpl(diag.undefinedHiddenName, [library, name]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedIdentifier({required String name}) {
-  return LocatableDiagnosticImpl(diag.undefinedIdentifier, [name]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedInstanceMemberReadNotFound({
@@ -23209,13 +23154,6 @@ LocatableDiagnostic _withArgumentsUndefinedInstanceMemberWriteWrongKind({
 
 LocatableDiagnostic _withArgumentsUndefinedLint({required String ruleName}) {
   return LocatableDiagnosticImpl(diag.undefinedLint, [ruleName]);
-}
-
-LocatableDiagnostic _withArgumentsUndefinedMethod({
-  required String methodName,
-  required DartType type,
-}) {
-  return LocatableDiagnosticImpl(diag.undefinedMethod, [methodName, type]);
 }
 
 LocatableDiagnostic _withArgumentsUndefinedNamedParameter({
@@ -23589,6 +23527,64 @@ LocatableDiagnostic _withArgumentsUndefinedSuperOperator({
   required DartType type,
 }) {
   return LocatableDiagnosticImpl(diag.undefinedSuperOperator, [operator, type]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameReadNotFound({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameReadNotFound, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameReadSetterOnly({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameReadSetterOnly, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameWriteConst({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameWriteConst, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameWriteFinal({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameWriteFinal, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameWriteGetterOnly({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameWriteGetterOnly, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameWriteNotFound({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameWriteNotFound, [
+    name,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameWriteWrongKind({
+  required String kind,
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameWriteWrongKind, [
+    kind,
+    name,
+  ]);
 }
 
 LocatableDiagnostic _withArgumentsUndone({required String message}) {

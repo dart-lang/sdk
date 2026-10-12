@@ -527,7 +527,7 @@ var x = p.(unresolved);
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 //         ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 ''');
   }
 

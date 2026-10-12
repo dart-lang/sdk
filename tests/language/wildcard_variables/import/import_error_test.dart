@@ -12,12 +12,12 @@ main() {
 
   _.topLevel;
   // [error column 3, length 1]
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name '_'.
 
   _.C(value);
   // [error column 3, length 1]
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name '_'.
 
   // Private extensions can't be used.

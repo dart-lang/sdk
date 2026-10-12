@@ -15,22 +15,22 @@ class C {
   foo() {
     print(a);
     //    ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The getter 'a' isn't defined for the type 'C'.
     return a;
     //     ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The getter 'a' isn't defined for the type 'C'.
   }
 
   bar() {
     print(b.a);
     //    ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The getter 'b' isn't defined for the type 'C'.
     return b.a;
     //     ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The getter 'b' isn't defined for the type 'C'.
   }
 }

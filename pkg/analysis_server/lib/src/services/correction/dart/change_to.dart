@@ -93,6 +93,29 @@ class ChangeTo extends ResolvedCorrectionProducer {
     );
   }
 
+  /// Whether [element] is a getter or a field whose value can be invoked.
+  bool _hasInvocableValue(Element element) {
+    var type = switch (element) {
+      GetterElement() => element.returnType,
+      FieldElement() => element.type,
+      _ => null,
+    };
+    if (type == null) {
+      return false;
+    }
+    type = typeSystem.resolveToBound(type);
+    if (type is DynamicType) {
+      return true;
+    }
+    if (typeSystem.isPotentiallyNullable(type)) {
+      return false;
+    }
+    return type is FunctionType ||
+        type.isDartCoreFunction ||
+        type is InterfaceType &&
+            type.lookUpMethod('call', unitResult.libraryElement) != null;
+  }
+
   /// Proposes a static constant for the undefined [node], which is the name,
   /// or the last part of the name, of an annotation.
   ///
@@ -266,6 +289,11 @@ class ChangeTo extends ResolvedCorrectionProducer {
   Future<void> _proposeFunction(ChangeBuilder builder) async {
     var node = this.node;
     if (node is SimpleIdentifier) {
+      // A function can be invoked or torn off, but it can't be an annotation,
+      // or be written, as in `foo += 1`.
+      if (node.annotationContainingName != null || node.inSetterContext()) {
+        return;
+      }
       // Prepare the optional import prefix name, for `p.foo()` and `p.foo`.
       var prefixName = switch (node.parent) {
         MethodInvocation(
@@ -325,6 +353,8 @@ class ChangeTo extends ResolvedCorrectionProducer {
         target = parent.prefix;
       } else if (parent is PropertyAccess) {
         target = parent.target;
+      } else if (parent is MethodInvocation && parent.methodName == node) {
+        target = parent.realTarget;
       } else if (parent is Annotation && parent.constructorName == node) {
         // In `@p.C.name`, the target of `name` is `p.C`.
         target = parent.name;
@@ -336,7 +366,12 @@ class ChangeTo extends ResolvedCorrectionProducer {
       // find getter or setter
       var wantGetter = node.inGetterContext();
       var wantSetter = node.inSetterContext();
+      // In `foo()` the value of the getter is invoked.
+      var wantInvocable = node.isInvocationName;
       await _proposeClassOrMixinMember(builder, node.token, target, (element) {
+        if (wantInvocable && !_hasInvocableValue(element)) {
+          return false;
+        }
         if (element is GetterElement) {
           return wantGetter;
         } else if (element is SetterElement) {

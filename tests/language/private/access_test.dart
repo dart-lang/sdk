@@ -10,7 +10,7 @@ import 'access_lib.dart' as private;
 main() {
   _function();
   // [error column 3, length 9]
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Method not found: '_function'.
   private._function();
   //      ^^^^^^^^^
