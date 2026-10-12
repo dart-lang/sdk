@@ -73,35 +73,6 @@ class CompletionState {
   String get preferredQuoteForStrings =>
       codeStyleOptions.preferredQuoteForStrings;
 
-  /// The type of `this` at the completion location, or `null` if the completion
-  /// location doesn't allow `this` to be used.
-  DartType? get thisType {
-    AstNode? node = selection.coveringNode;
-    while (node != null) {
-      switch (node) {
-        case ClassDeclaration():
-          var element = node.declaredFragment?.element;
-          if (element != null) {
-            return element.thisType;
-          }
-        case EnumDeclaration():
-          var element = node.declaredFragment?.element;
-          if (element != null) {
-            return element.thisType;
-          }
-        case ExtensionDeclaration():
-          return node.onClause?.extendedType.type;
-        case MixinDeclaration():
-          var element = node.declaredFragment?.element;
-          if (element != null) {
-            return element.thisType;
-          }
-      }
-      node = node.parent;
-    }
-    return null;
-  }
-
   /// Whether the given `feature` is enabled in the library containing the
   /// selection.
   bool isFeatureEnabled(Feature feature) {
