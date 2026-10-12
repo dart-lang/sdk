@@ -10543,7 +10543,7 @@ V1: MethodInvocation
     var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?.foo()}) {}
 //          ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
 
     var node = result.findNode.receiverMethodInvocation('?.foo()');
@@ -10587,7 +10587,7 @@ typedef void F({a = b?.foo()});
 //                ^
 // [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 //                  ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
 
     var node = result.findNode.receiverMethodInvocation('?.foo()');

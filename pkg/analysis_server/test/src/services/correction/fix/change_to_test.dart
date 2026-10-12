@@ -412,6 +412,21 @@ class BaseClass {}
 ''');
   }
 
+  Future<void> test_constant_staticConst() async {
+    await resolveTestCode('''
+class A {
+  static const value = 0;
+  static const x = vaule;
+}
+''');
+    await assertHasFix('''
+class A {
+  static const value = 0;
+  static const x = value;
+}
+''');
+  }
+
   Future<void> test_enum_constant() async {
     await resolveTestCode('''
 enum E { ONE }

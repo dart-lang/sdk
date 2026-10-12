@@ -1734,6 +1734,10 @@ undefined_operator:
   status: hasFix
 undefined_prefixed_name_read_not_found:
   status: hasFix
+undefined_prefixed_name_read_not_found_annotation:
+  status: hasFix
+undefined_prefixed_name_read_not_found_constant:
+  status: hasFix
 undefined_prefixed_name_read_private:
   status: noFix
   notes: |-
@@ -1778,6 +1782,10 @@ undefined_static_member_read_no_static_members_dot_shorthand:
     The context type has no static members; the fix depends on which
     declaration was meant.
 undefined_static_member_read_not_found:
+  status: hasFix
+undefined_static_member_read_not_found_annotation:
+  status: hasFix
+undefined_static_member_read_not_found_constant:
   status: hasFix
 undefined_static_member_read_not_found_dot_shorthand:
   status: hasFix
@@ -1863,6 +1871,10 @@ undefined_super_operator:
   notes: |-
     The fix is to create the operator, assuming the superclass is editable.
 undefined_unqualified_name_read_not_found:
+  status: hasFix
+undefined_unqualified_name_read_not_found_annotation:
+  status: hasFix
+undefined_unqualified_name_read_not_found_constant:
   status: hasFix
 undefined_unqualified_name_read_setter_only:
   status: needsFix

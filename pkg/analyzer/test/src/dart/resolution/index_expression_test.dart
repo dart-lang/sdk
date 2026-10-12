@@ -204,7 +204,7 @@ V1: MethodInvocation
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f({a = b?[0]}) {}
 //          ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
 
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
@@ -249,7 +249,7 @@ typedef void F({a = b?[0]});
 //                ^
 // [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 //                  ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
 
     var node = result.findNode.receiverIndexExpression('[0]');

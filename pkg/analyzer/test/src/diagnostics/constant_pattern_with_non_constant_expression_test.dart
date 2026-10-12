@@ -695,7 +695,7 @@ GuardedPattern
 void f(Object? x) {
   if (x case foo) {}
 //           ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 }
 ''');
 
