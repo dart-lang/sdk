@@ -7,6 +7,17 @@ import 'dart:io';
 
 import "package:expect/expect.dart";
 
+Future<int> freeIPv4AndIPv6Port() async {
+  final socket = await ServerSocket.bind(
+    InternetAddress.anyIPv6,
+    0,
+    v6Only: false,
+  );
+  final port = socket.port;
+  await socket.close();
+  return port;
+}
+
 int lastRetryId = 0;
 
 Future retry(Future fun(), {int maxCount = 10}) async {
