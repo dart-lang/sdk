@@ -38077,14 +38077,8 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   bool get isDeferred {
     var importPrefixElement = importPrefix?.element;
-    if (importPrefixElement is PrefixElement) {
-      var fragments = importPrefixElement.fragments;
-      for (var i = 0; i < fragments.length; i++) {
-        if (fragments[i].isDeferred) return true;
-      }
-      return false;
-    }
-    return false;
+    return importPrefixElement is PrefixElementImpl &&
+        importPrefixElement.isDeferred;
   }
 
   @override
@@ -43975,10 +43969,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @override
   bool get isDeferred {
     var element = _prefix.element;
-    if (element is PrefixElement) {
-      return element.fragments.any((fragment) => fragment.isDeferred);
-    }
-    return false;
+    return element is PrefixElementImpl && element.isDeferred;
   }
 
   @override

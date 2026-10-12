@@ -1531,9 +1531,7 @@ class DocImportPrefixElementImpl extends PrefixElementImpl {
   @override
   late final PrefixScope scope = PrefixScope(
     libraryFragment: firstFragment.enclosingFragment,
-    parent: imports.any((import) => import.prefix?.isDeferred ?? false)
-        ? null
-        : enclosingPrefix?.scope,
+    parent: isDeferred ? null : enclosingPrefix?.scope,
     parentSearchedScopes: const [],
     libraryImports: imports,
     prefix: this,
@@ -9884,7 +9882,18 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   }
 
   /// Whether this prefix is declared by a `deferred` import.
-  bool get isDeferred => fragments.any((fragment) => fragment.isDeferred);
+  bool get isDeferred {
+    for (
+      PrefixFragmentImpl? fragment = _firstFragment;
+      fragment != null;
+      fragment = fragment.nextFragment
+    ) {
+      if (fragment.isDeferred) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
