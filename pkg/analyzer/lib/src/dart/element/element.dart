@@ -1534,6 +1534,7 @@ class DocImportPrefixElementImpl extends PrefixElementImpl {
     parent: imports.any((import) => import.prefix?.isDeferred ?? false)
         ? null
         : enclosingPrefix?.scope,
+    parentSearchedScopes: const [],
     libraryImports: imports,
     prefix: this,
   );

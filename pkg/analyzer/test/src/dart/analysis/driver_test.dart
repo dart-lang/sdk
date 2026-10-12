@@ -44462,6 +44462,184 @@ double bar() {}
     );
   }
 
+  test_dependency_topLevelGetter_add_nameOfPartPrefix() async {
+    newFile('$testPackageLibPath/b.dart', r'''
+part of 'test.dart';
+import 'a.dart';
+part 'c.dart';
+int g() => foo;
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+part of 'b.dart';
+import 'dart:async' as prefix;
+void f() {
+  prefix.Completer<int>();
+  prefix.Random();
+}
+''');
+
+    await _runChangeScenarioTA(
+      initialA: r'''
+int get foo => 0;
+''',
+      testCode: r'''
+import 'dart:math' as prefix;
+part 'b.dart';
+''',
+      operation: _FineOperationTestFileGetErrors(),
+      expectedInitialEvents: r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H0
+    declaredGetters
+      foo: #M0
+    declaredVariables
+      foo: #M1
+    exportMapId: #M2
+    exportMap
+      foo: #M0
+  requirements
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredFunctions
+      f: #M3
+      g: #M4
+    exportMapId: #M5
+    exportMap
+      f: #M3
+      g: #M4
+  requirements
+    libraries
+      package:test/a.dart
+        exportMapId: #M2
+        exportMap
+          int: <null>
+          int=: <null>
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #1
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: exists isPart
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M6
+        exportMapId: #M2
+        exportMap
+          foo: #M0
+          foo=: <null>
+          int: <null>
+          int=: <null>
+          prefix: <null>
+          prefix=: <null>
+        reExportDeprecatedOnly
+          foo: false
+        requestedDeclaredVariables
+          foo: #M1
+[status] idle
+[future] getErrors T1
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+      updatedA: r'''
+int get foo => 0;
+int get prefix => 0;
+''',
+      expectedUpdatedEvents: r'''
+[status] working
+[operation] linkLibraryCycle
+  package:test/a.dart
+    hashForRequirements: #H2
+    declaredGetters
+      foo: #M0
+      prefix: #M7
+    declaredVariables
+      foo: #M1
+      prefix: #M8
+    exportMapId: #M9
+    exportMap
+      foo: #M0
+      prefix: #M7
+  requirements
+[operation] reuseLinkedBundle
+  package:test/test.dart
+[operation] checkLibraryDiagnosticsRequirements
+  library: /home/test/lib/test.dart
+  topLevelIdMismatch
+    libraryUri: package:test/a.dart
+    name: prefix
+    expectedId: <null>
+    actualId: #M7
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #4
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[stream]
+  ResolvedUnitResult #5
+    path: /home/test/lib/b.dart
+    uri: package:test/b.dart
+    flags: exists isPart
+[stream]
+  ResolvedUnitResult #6
+    path: /home/test/lib/c.dart
+    uri: package:test/c.dart
+    flags: exists isPart
+    errors
+      96 +6 UNDEFINED_FUNCTION
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+  requirements
+    libraries
+      package:test/a.dart
+        libraryMetadataId: #M6
+        exportMapId: #M9
+        exportMap
+          foo: #M0
+          foo=: <null>
+          int: <null>
+          int=: <null>
+          prefix: #M7
+          prefix=: <null>
+        reExportDeprecatedOnly
+          foo: false
+          prefix: false
+        requestedDeclaredVariables
+          foo: #M1
+[status] idle
+[future] getErrors T2
+  ErrorsResult #7
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''',
+    );
+  }
+
   test_dependency_topLevelGetter_change_invoked() async {
     await _runChangeScenarioTA(
       initialA: r'''

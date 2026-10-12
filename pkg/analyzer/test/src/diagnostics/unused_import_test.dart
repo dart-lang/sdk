@@ -754,6 +754,33 @@ void f() {
     });
   }
 
+  test_part_notUsedLibraryImport_nameOfPartPrefix() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+int get prefix => 0;
+''');
+
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    // To decide whether `prefix` in `b.dart` also gives access to the names
+    // imported with the prefix `prefix` in `a.dart`, we look up `prefix` in
+    // the imports of `a.dart`. We find the getter from `x.dart`, so there is
+    // nothing to inherit. This lookup is not a use of `x.dart`.
+    await resolveFilesWithDiagnostics({
+      a: r'''
+import 'x.dart';
+//     ^^^^^^^^
+// [diag.unusedImport] Unused import: 'x.dart'.
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+import 'dart:math' as prefix;
+void f(prefix.Random _) {}
+''',
+    });
+  }
+
   test_part_notUsedPartImport() async {
     var a = getFile('$testPackageLibPath/a.dart');
     var b = getFile('$testPackageLibPath/b.dart');

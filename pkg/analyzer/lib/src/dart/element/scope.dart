@@ -66,6 +66,7 @@ class DocImportScope implements Scope {
   late final PrefixScope _noPrefixScope = PrefixScope(
     libraryFragment: _libraryFragment,
     parent: null,
+    parentSearchedScopes: const [],
     libraryImports: _imports,
     prefix: null,
   );
@@ -447,6 +448,7 @@ class LibraryFragmentScope implements Scope {
       noPrefixScope: PrefixScope(
         libraryFragment: fragment,
         parent: null,
+        parentSearchedScopes: const [],
         libraryImports: fragment.libraryImports,
         prefix: null,
       ),
@@ -462,9 +464,11 @@ class LibraryFragmentScope implements Scope {
       if (prefix.name case var name?) {
         _prefixElements[name] = prefix;
       }
+      var (:parent, :searchedScopes) = _getParentPrefixScope(prefix);
       prefix.scope = PrefixScope(
         libraryFragment: fragment,
-        parent: _getParentPrefixScope(prefix),
+        parent: parent,
+        parentSearchedScopes: searchedScopes,
         libraryImports: fragment.libraryImports,
         prefix: prefix,
       );
@@ -558,18 +562,27 @@ class LibraryFragmentScope implements Scope {
     }
   }
 
-  PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
-    if (prefix.isDeferred) {
-      return null;
+  ({PrefixScope? parent, List<PrefixScope> searchedScopes})
+  _getParentPrefixScope(PrefixElementImpl prefix) {
+    var name = prefix.name;
+    if (name == null || prefix.isDeferred) {
+      return (parent: null, searchedScopes: const []);
     }
 
+    var searchedScopes = <PrefixScope>[];
     for (var scope = parent; scope != null; scope = scope.parent) {
-      var parentPrefix = scope._prefixElements[prefix.name];
-      if (parentPrefix != null) {
-        return parentPrefix.isDeferred ? null : parentPrefix.scope;
+      if (scope._prefixElements[name] case var parentPrefix?) {
+        return (
+          parent: parentPrefix.isDeferred ? null : parentPrefix.scope,
+          searchedScopes: searchedScopes,
+        );
+      }
+      searchedScopes.add(scope.noPrefixScope);
+      if (scope.noPrefixScope._importsName(name)) {
+        break;
       }
     }
-    return null;
+    return (parent: null, searchedScopes: searchedScopes);
   }
 
   ScopeLookupResult? _lookupCombined(String id) {
@@ -636,13 +649,28 @@ class LocalScope extends EnclosedScope {
 class PrefixScope implements Scope {
   final LibraryFragmentImpl libraryFragment;
 
+  /// The prefix of this scope, `null` for the imports without a prefix.
+  final PrefixElement? _prefixElement;
+
   /// The scope of the prefix with the same name in an enclosing file, whose
   /// names are also accessible through this prefix.
   ///
   /// It is `null` if this prefix, or the nearest prefix with the same name in
   /// an enclosing file, is deferred: a deferred prefix provides only the names
-  /// of its own library. It is also `null` for the imports without a prefix.
-  final PrefixScope? parent;
+  /// of its own library. It is also `null` if there is no such prefix, and for
+  /// the imports without a prefix.
+  ///
+  /// We search the enclosing files from the nearest one, and stop at the
+  /// first file that has a prefix with this name, or imports this name
+  /// without a prefix.
+  final PrefixScope? _parent;
+
+  /// The scopes of the imports without a prefix of the enclosing files that
+  /// we searched for the name of this prefix to choose [_parent].
+  ///
+  /// The choice depends on the names that these scopes import, so every time
+  /// [parent] is read, we record this requirement.
+  final List<PrefixScope> _parentSearchedScopes;
 
   final List<LibraryImportImpl> _importElements = [];
   final List<LibraryElementImpl> _importedLibraries = [];
@@ -661,10 +689,13 @@ class PrefixScope implements Scope {
 
   PrefixScope({
     required this.libraryFragment,
-    required this.parent,
+    required PrefixScope? parent,
+    required List<PrefixScope> parentSearchedScopes,
     required List<LibraryImportImpl> libraryImports,
     required PrefixElement? prefix,
-  }) {
+  }) : _prefixElement = prefix,
+       _parent = parent,
+       _parentSearchedScopes = parentSearchedScopes {
     var elementFactory = libraryElement.session.elementFactory;
     for (var import in libraryImports) {
       var importedUri = import.uri;
@@ -707,6 +738,16 @@ class PrefixScope implements Scope {
     return libraryFragment.element;
   }
 
+  /// Returns [_parent], and records that the result depends on its choice.
+  PrefixScope? get parent {
+    if (_prefixElement?.name case var name?) {
+      for (var scope in _parentSearchedScopes) {
+        scope._recordLookupRequirement(name);
+      }
+    }
+    return _parent;
+  }
+
   void importsTrackingDestroy() {
     _importsTracking = null;
   }
@@ -726,13 +767,7 @@ class PrefixScope implements Scope {
       );
     }
 
-    if (globalResultRequirements case var resultRequirements?) {
-      resultRequirements.record_importPrefixScope_lookup(
-        state: _requirementState,
-        importedLibraries: _importedLibraries,
-        id: id,
-      );
-    }
+    _recordLookupRequirement(id);
 
     var getter = _getters[id];
     var setter = _setters[id];
@@ -820,6 +855,15 @@ class PrefixScope implements Scope {
     }
   }
 
+  /// Whether the imports of this scope (without [parent]) provide a getter
+  /// or setter named [id].
+  ///
+  /// Unlike [lookup], this is not a use of an import, so it is not tracked,
+  /// and does not record a requirement.
+  bool _importsName(String id) {
+    return _getters.containsKey(id) || _setters.containsKey(id);
+  }
+
   Element _merge(Element existing, Element other) {
     if (_isSdkElement(existing)) {
       if (!_isSdkElement(other)) {
@@ -840,6 +884,17 @@ class PrefixScope implements Scope {
       conflictingElements.first.name!,
       conflictingElements.toList(),
     );
+  }
+
+  /// Records that [id] was looked up in the imports of this scope.
+  void _recordLookupRequirement(String id) {
+    if (globalResultRequirements case var resultRequirements?) {
+      resultRequirements.record_importPrefixScope_lookup(
+        state: _requirementState,
+        importedLibraries: _importedLibraries,
+        id: id,
+      );
+    }
   }
 
   bool _shouldAdd(LibraryElementImpl importedLibrary, Element element) {
