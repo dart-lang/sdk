@@ -1572,7 +1572,6 @@ static void TryAllocateString(Assembler* assembler,
   // EDI: allocation size.
   __ cmpl(EBX, Address(THR, target::Thread::end_offset()));
   __ j(ABOVE_EQUAL, &pop_and_fail);
-  __ CheckAllocationCanary(EAX);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
