@@ -501,6 +501,16 @@ class CompletionHandler
             : null,
       );
 
+      // If the user is completing a URI and has typed a slash, we can trim the
+      // completion label to not shore the entire URI, which might result in
+      // truncation for long URIs. To do this, compute a prefix to be hidden
+      // from the label.
+      // See https://github.com/Dart-Code/Dart-Code/issues/1837
+      var targetPrefixLastSlashIndex = targetPrefix.lastIndexOf('/');
+      var hiddenLabelPrefix = targetPrefixLastSlashIndex != -1
+          ? targetPrefix.substring(0, targetPrefixLastSlashIndex + 1)
+          : null;
+
       /// Helper to convert [CandidateSuggestion] to [CompletionItem].
       Future<CompletionItem?> candidateSuggestionToCompletionItem(
         CandidateSuggestion item,
@@ -618,6 +628,7 @@ class CompletionHandler
           unit.lineInfo,
           item,
           request: completionRequest,
+          hiddenLabelPrefix: hiddenLabelPrefix,
           uriConverter: uriConverter,
           pathContext: pathContext,
           completionFilePath: unit.path,
