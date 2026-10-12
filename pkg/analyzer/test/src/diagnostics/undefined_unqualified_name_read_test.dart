@@ -207,7 +207,6 @@ void f() {}
 @Annotation(foo)
 //          ^^^
 // [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 class C {
   static void foo() {}
 }
@@ -224,7 +223,6 @@ class Annotation {
 class C<@Annotation(foo) T> {
 //                  ^^^
 // [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
   static void foo() {}
 }
 class Annotation {
@@ -238,7 +236,6 @@ class Annotation {
 @Annotation(foo)
 //          ^^^
 // [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 extension E on int {
   static void foo() {}
 }
@@ -255,7 +252,6 @@ class Annotation {
 extension E<@Annotation(foo) T> on T {
 //                      ^^^
 // [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
   static void foo() {}
 }
 class Annotation {
@@ -269,7 +265,6 @@ class Annotation {
 @Annotation(foo)
 //          ^^^
 // [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 mixin M {
   static void foo() {}
 }
@@ -286,7 +281,6 @@ class Annotation {
 mixin M<@Annotation(foo) T> {
 //                  ^^^
 // [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
   static void foo() {}
 }
 class Annotation {
@@ -303,7 +297,6 @@ class Annotation {
 class C<@Annotation.function(foo) @Annotation.type(B) T> {
 //                           ^^^
 // [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
   static void foo() {}
   static void B() {}
 }
@@ -323,7 +316,6 @@ class Annotation {
 extension E<@Annotation.function(foo) @Annotation.type(B) T> on C {}
 //                               ^^^
 // [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 class C {
   static void foo() {}
   static void B() {}
@@ -344,7 +336,6 @@ class Annotation {
 mixin M<@Annotation.function(foo) @Annotation.type(B) T> {
 //                           ^^^
 // [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
   static void foo() {}
   static void B() {}
 }

@@ -58,15 +58,11 @@ void test<Z extends num>() {
   // [cfe] Not a constant expression.
 
   const c08 = prefix.g2<int>;
-  //          ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                 ^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'g2'.
 
   const c09 = prefix.g1<int>;
-  //          ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                 ^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'g1'.
@@ -84,8 +80,6 @@ void test<Z extends num>() {
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c12 = prefix.g2<Z>;
-  //          ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                 ^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'g2'.
@@ -93,8 +87,6 @@ void test<Z extends num>() {
   // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_TYPE_PARAMETERS
 
   const c13 = prefix.g1<Z>;
-  //          ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   //                 ^^
   // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Undefined name 'g1'.

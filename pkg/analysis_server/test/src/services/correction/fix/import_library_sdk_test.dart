@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -392,8 +391,7 @@ class MyAnnotation {
 @MyAnnotation(int, const [Completer])
 void f() {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 import 'dart:async';
 
 class MyAnnotation {
@@ -401,12 +399,7 @@ class MyAnnotation {
 }
 @MyAnnotation(int, const [Completer])
 void f() {}
-''',
-      filter: (error) {
-        return error.diagnosticCode ==
-            diag.undefinedUnqualifiedNameReadNotFound;
-      },
-    );
+''');
   }
 
   Future<void> test_withClass_typeAnnotation() async {

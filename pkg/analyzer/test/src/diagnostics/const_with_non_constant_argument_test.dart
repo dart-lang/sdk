@@ -40,7 +40,6 @@ class Foo {
   @Annotation(Bar)
 //            ^^^
 // [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'Bar', but no getter.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
   set Bar(int value) {}
 }
 ''');
@@ -87,6 +86,28 @@ class A {
 f(p) { return const A(a: p); }
 //                       ^
 // [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
+''');
+  }
+
+  test_invalidNamedRead() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(a);
+}
+const x = A(foo);
+//          ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+''');
+  }
+
+  test_invalidNamedRead_namedArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A({a});
+}
+const x = A(a: foo);
+//             ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 ''');
   }
 

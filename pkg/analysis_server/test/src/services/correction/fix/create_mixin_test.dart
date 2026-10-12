@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -323,8 +322,7 @@ class MyAnnotation {
 @MyAnnotation(int, const [Test])
 void f() {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
@@ -333,12 +331,7 @@ void f() {}
 
 mixin Test {
 }
-''',
-      filter: (error) {
-        return error.diagnosticCode ==
-            diag.undefinedUnqualifiedNameReadNotFound;
-      },
-    );
+''');
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
   }
 

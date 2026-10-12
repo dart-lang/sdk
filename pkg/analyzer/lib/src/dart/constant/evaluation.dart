@@ -541,6 +541,10 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   /// computing the constant.
   final DiagnosticReporter _diagnosticReporter;
 
+  /// Whether errors for invalid named reads are reported, see
+  /// [InvalidConstant.isInvalidNamedRead].
+  final bool _reportsInvalidNamedReads;
+
   /// Helper class used to compute constant values.
   late final DartObjectComputer _dartObjectComputer;
 
@@ -558,9 +562,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     Map<FormalParameterElement, DartObjectImpl>? lexicalEnvironment,
     Map<TypeParameterElement, TypeImpl>? lexicalTypeEnvironment,
     Substitution? substitution,
+    bool reportsInvalidNamedReads = true,
   }) : _lexicalEnvironment = lexicalEnvironment,
        _lexicalTypeEnvironment = lexicalTypeEnvironment,
-       _substitution = substitution {
+       _substitution = substitution,
+       _reportsInvalidNamedReads = reportsInvalidNamedReads {
     _dartObjectComputer = DartObjectComputer(typeSystem, _library.featureSet);
   }
 
@@ -1155,6 +1161,14 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     var targetResult = evaluateConstant(node.receiver);
     if (targetResult is! DartObjectImpl) {
       return targetResult;
+    }
+
+    if (node.isInvalidNamedRead) {
+      return InvalidConstant.genericError(
+        node: node,
+        isUnresolved: true,
+        isInvalidNamedRead: true,
+      );
     }
 
     var propertyElement = node.resolution?.element;
@@ -1890,10 +1904,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     var errorNode2 = _evaluationEngine.configuration.errorNode(errorNode);
     element = element?.baseElement;
 
+    var isInvalidNamedRead = expression?.isInvalidNamedRead ?? false;
+
     // Invalid name lookup can retain a declaration that has no readable value.
     // In particular, recovering a type declaration must not create a type literal.
-    if (expression is NameExpression &&
-        expression.resolution is InvalidNamedReadResolution &&
+    if (isInvalidNamedRead &&
         element is! VariableElement &&
         element is! ExecutableElement) {
       element = null;
@@ -2043,7 +2058,11 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     // The expression is unresolved by the time we are evaluating it. We'll mark
     // it and return immediately.
     if (expression != null && expression.staticType is InvalidType) {
-      return InvalidConstant.genericError(node: errorNode, isUnresolved: true);
+      return InvalidConstant.genericError(
+        node: errorNode,
+        isUnresolved: true,
+        isInvalidNamedRead: isInvalidNamedRead,
+      );
     }
 
     // TODO(srawlins): Use a specific error code.
@@ -2210,17 +2229,33 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   /// Returns the first not-potentially constant error found with [node] or
   /// `null` if there are none.
   InvalidConstant? _reportNotPotentialConstants(AstNode node) {
-    var notPotentiallyConstants = getNotPotentiallyConstants(
+    var (
+      :reportable,
+      :firstInvalidNamedRead,
+    ) = getReportableNotPotentiallyConstants(
       node,
       featureSet: _library.featureSet,
     );
-    if (notPotentiallyConstants.isEmpty) return null;
 
     // Only report the first invalid constant we see.
-    return InvalidConstant.forEntity(
-      entity: notPotentiallyConstants.first,
-      locatableDiagnostic: diag.invalidConstant,
-    );
+    if (reportable.firstOrNull case var first?) {
+      return InvalidConstant.forEntity(
+        entity: first,
+        locatableDiagnostic: diag.invalidConstant,
+      );
+    }
+
+    // Still an error, but evaluated like the invalid named read itself.
+    if (firstInvalidNamedRead != null) {
+      return InvalidConstant.forEntity(
+        entity: firstInvalidNamedRead,
+        locatableDiagnostic: diag.invalidConstant,
+        isUnresolved: true,
+        isInvalidNamedRead: true,
+      );
+    }
+
+    return null;
   }
 
   /// Return the value of the given [expression], or a representation of a fake
@@ -2232,7 +2267,9 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       // being able to continue the evaluation with populating fields. Fix the
       // interaction with g3 more elegantly.
       case InvalidConstant(isUnresolved: true):
-        if (!expressionValue.avoidReporting) {
+        if (!expressionValue.avoidReporting &&
+            (_reportsInvalidNamedReads ||
+                !expressionValue.isInvalidNamedRead)) {
           _diagnosticReporter.report(
             expressionValue.locatableDiagnostic.atOffset(
               offset: expressionValue.offset,
@@ -2260,16 +2297,6 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       return leftResult;
     }
 
-    DartObjectImpl computeRightOperand() {
-      var constant = evaluateConstant(rightOperand);
-      switch (constant) {
-        case DartObjectImpl():
-          return constant;
-        case InvalidConstant():
-          throw EvaluationException(constant.locatableDiagnostic);
-      }
-    }
-
     var skipsRightOperand = isAnd
         ? leftResult.toBoolValue() == false
         : leftResult.toBoolValue() == true;
@@ -2280,10 +2307,22 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
       }
     }
 
+    // An error in the right operand is returned as is, the same as an error
+    // in the left operand. The right operand is not used when the left one
+    // short-circuits, or isn't a bool, which is reported instead.
+    DartObjectImpl? rightResult;
+    if (leftResult.isBool && !skipsRightOperand) {
+      var constant = evaluateConstant(rightOperand);
+      if (constant is! DartObjectImpl) {
+        return constant;
+      }
+      rightResult = constant;
+    }
+
     if (isAnd) {
-      return _dartObjectComputer.lazyAnd(node, leftResult, computeRightOperand);
+      return _dartObjectComputer.lazyAnd(node, leftResult, () => rightResult!);
     } else {
-      return _dartObjectComputer.lazyOr(node, leftResult, computeRightOperand);
+      return _dartObjectComputer.lazyOr(node, leftResult, () => rightResult!);
     }
   }
 

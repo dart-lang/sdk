@@ -139,6 +139,16 @@
   Replace the removed names with the new names in `// ignore:` comments and
   in `analysis_options.yaml`, where they are still accepted, but have no
   effect.
+* A name in a constant expression whose read is already reported as invalid,
+  such as an undefined name in `const x = foo;`, `const y = [C.foo];`,
+  `const z = 'abc'.lenght;`, or `@A(p.foo)`, no longer also reports that the
+  expression isn't constant, for example
+  `const_initialized_with_non_constant_value`, `non_constant_list_element`,
+  `const_eval_property_access`, or `const_with_non_constant_argument`. The
+  same applies to the initializers of a constant constructor, such as
+  `const A() : f = foo;`, which no longer also reports `invalid_constant`
+  there, or `invalid_constant` at each invocation such as `const A()`.
+  `ElementAnnotation.constantEvaluationErrors` still includes these errors.
 
 ## 14.5.0
 

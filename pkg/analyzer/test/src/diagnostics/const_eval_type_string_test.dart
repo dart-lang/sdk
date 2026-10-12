@@ -28,7 +28,6 @@ const y = B(x);
 // [diag.constEvalTypeString][context 1] In constant expressions, operands of this operator must be of type 'String'.
 //          ^
 // [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
-// [diag.constWithNonConstantArgument] Arguments of a constant creation must be constant expressions.
 ''');
   }
 }

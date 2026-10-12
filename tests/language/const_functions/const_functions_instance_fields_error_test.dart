@@ -34,8 +34,6 @@ int fn2() {
 }
 
 const var3 = const A(1).x;
-//           ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_PROPERTY_ACCESS
 //                      ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_INSTANCE_MEMBER_READ
 // [cfe] The getter 'x' isn't defined for the type 'A'.

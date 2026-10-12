@@ -2471,8 +2471,6 @@ FieldDeclaration
   test_primaryInitializerScope_fieldInitializer_instance_late() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(int foo) {
-//   ^
-// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'bar' is initialized with a non-constant value.
   v(0);
   late final bar = foo;
 //^^^^
