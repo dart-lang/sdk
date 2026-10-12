@@ -446,7 +446,7 @@ class LibraryFragmentScope implements Scope {
       fragment: fragment,
       noPrefixScope: PrefixScope(
         libraryFragment: fragment,
-        parent: parent?.noPrefixScope,
+        parent: null,
         libraryImports: fragment.libraryImports,
         prefix: null,
       ),
@@ -639,12 +639,11 @@ class LocalScope extends EnclosedScope {
 class PrefixScope implements Scope {
   final LibraryFragmentImpl libraryFragment;
 
-  /// The scope of the enclosing file that this scope extends: for a prefix,
-  /// the scope of the prefix with the same name, and for the imports without
-  /// a prefix, the scope of such imports.
+  /// The scope of the prefix with the same name in an enclosing file, whose
+  /// names are also accessible through this prefix.
   ///
   /// It is `null` for a deferred prefix, which provides only the names of its
-  /// own library.
+  /// own library, and for the imports without a prefix.
   final PrefixScope? parent;
 
   final List<LibraryImportImpl> _importElements = [];

@@ -870,6 +870,84 @@ package:test/aa.dart
     );
   }
 
+  test_scope_hasPrefix_shadowsNoPrefix_enclosingFile() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+int get prefix => 0;
+''');
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+import 'dart:io' as prefix;
+part 'aa.dart';
+''');
+
+    newFile('$testPackageLibPath/aa.dart', r'''
+part of 'a.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'x.dart';
+part 'a.dart';
+''');
+
+    _assertScopeLookups(
+      library,
+      [
+        Uri.parse('package:test/test.dart'),
+        Uri.parse('package:test/a.dart'),
+        Uri.parse('package:test/aa.dart'),
+      ],
+      ['prefix'],
+      r'''
+package:test/test.dart
+  prefix
+    getter: package:test/x.dart::@getter::prefix
+package:test/a.dart
+  prefix
+    getter: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
+package:test/aa.dart
+  prefix
+    getter: <testLibrary>::@fragment::package:test/a.dart::@prefix::prefix
+''',
+    );
+  }
+
+  test_scope_hasPrefix_shadowsNoPrefix_sameFile() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+int get prefix => 0;
+''');
+
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+''');
+
+    var library = await buildLibrary(r'''
+import 'x.dart';
+import 'dart:io' as prefix;
+part 'a.dart';
+''');
+
+    _assertScopeLookups(
+      library,
+      [Uri.parse('package:test/test.dart'), Uri.parse('package:test/a.dart')],
+      ['prefix', 'prefix.File'],
+      r'''
+package:test/test.dart
+  prefix
+    getter: <testLibraryFragment>::@prefix::prefix
+  prefix.File
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: dart:io::@class::File
+package:test/a.dart
+  prefix
+    getter: <testLibraryFragment>::@prefix::prefix
+  prefix.File
+    prefix: <testLibraryFragment>::@prefix::prefix
+    getter: dart:io::@class::File
+''',
+    );
+  }
+
   test_scope_localShadowsPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
