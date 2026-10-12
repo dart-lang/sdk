@@ -1,5 +1,7 @@
 ## 14.6.0-dev
 
+* Added the `enabledExperiments` parameter to `AnalysisContextCollection`
+  to override experiments from analysis options files.
 * Fixed a regression in 14.2.0 through 14.5.0, where `analyzer: exclude:`
   patterns from an included options file, such as
   `include: package:my_lints/options.yaml`, were relative to the included
