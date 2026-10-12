@@ -1,4 +1,4 @@
-## v0.1.0
+## v0.1.1
  - Add `DartPadSdk.sharedWorker` and `dart run dartpad setup shared-worker` CLI
    subcommand for running DartPad inside a `SharedWorker`.
  - Add `Sandbox.connectServiceProtocol`, `Sandbox.startServiceProtocol`, and
