@@ -12,12 +12,33 @@ import 'package:test/test.dart';
 
 void main() {
   group('dartpad CLI', () {
-    test('registers setup subcommand with dart and flutter targets', () {
+    test('registers setup subcommand with dart, flutter, and shared-worker '
+        'targets', () {
       final setupCmd = SetupCommand();
       check(setupCmd.name).equals('setup');
       check(
         setupCmd.subcommands.keys.toSet(),
-      ).unorderedEquals({'dart', 'flutter'});
+      ).unorderedEquals({'dart', 'flutter', 'shared-worker'});
+    });
+
+    test('setup shared-worker writes shared-worker.js', () async {
+      final tempDir = Directory.systemTemp.createTempSync(
+        'dartpad_setup_test_',
+      );
+      addTearDown(() => tempDir.deleteSync(recursive: true));
+      final outFile = File('${tempDir.path}/sub/shared-worker.js');
+
+      final result = await Process.run(Platform.resolvedExecutable, [
+        'run',
+        'dartpad',
+        'setup',
+        'shared-worker',
+        '-o',
+        outFile.path,
+      ]);
+      check(result.exitCode).equals(0);
+      check(outFile.existsSync()).isTrue;
+      check(outFile.readAsStringSync()).contains('self.onconnect');
     });
 
     test('bin/dartpad.dart --help and setup --help succeed', () async {
@@ -41,7 +62,8 @@ void main() {
       check(setupHelpResult.stdout.toString())
         ..contains('Download or build DartPad SDK assets for Dart and Flutter.')
         ..contains('dart')
-        ..contains('flutter');
+        ..contains('flutter')
+        ..contains('shared-worker');
     });
   });
 
