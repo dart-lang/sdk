@@ -73,13 +73,20 @@ PubspecTelemetry? collectPubspecTelemetry({
 }
 
 /// Create the `Analytics` instance to be used to report analytics.
-Analytics createUnifiedAnalytics({bool disableAnalytics = false}) {
+///
+/// [agent] is the name of the AI coding agent executing the tool, if any (see
+/// [AiAgent.detectAgentName]).
+Analytics createUnifiedAnalytics({
+  bool disableAnalytics = false,
+  String? agent,
+}) {
   if (disableAnalytics) {
     return NoOpAnalytics();
   }
   return Analytics(
     tool: DashTool.dartTool,
     dartVersion: Runtime.runtime.version,
+    agent: agent,
   );
 }
 
@@ -152,7 +159,10 @@ Directory? getDartStorageDirectory() {
 
 /// The method used by dartdev to determine if this machine is a bot such as a
 /// CI machine.
-bool isBot() => _isRunningOnBot();
+///
+/// [environment] defaults to `Platform.environment`.
+bool isBot({Map<String, String>? environment}) =>
+    _isRunningOnBot(environment ?? Platform.environment);
 
 // Matches file:/, non-ws, /, non-ws, .dart
 final RegExp _pathRegex = RegExp(r'file:/\S+/(\S+\.dart)');
@@ -194,9 +204,7 @@ String sanitizeStacktrace(dynamic st, {bool shorten = true}) {
 /// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/base/bot_detector.dart#L30
 /// and
 /// https://github.com/flutter/flutter/blob/master/packages/flutter_tools/lib/src/reporting/usage.dart#L200.
-bool _isRunningOnBot() {
-  final Map<String, String> env = Platform.environment;
-
+bool _isRunningOnBot(Map<String, String> env) {
   if (
   // Explicitly stated to not be a bot.
   env['BOT'] == 'false'
