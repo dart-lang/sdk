@@ -235,14 +235,17 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
   }
 
   void completeError(Object e, [StackTrace? st]) {
-    st ??= AsyncError.defaultStackTrace(e);
     // If throwing synchronously, delay error completion to a microtask so the
     // caller can attach an error handler before the error is reported as
     // uncaught.
+    final error = _interceptCaughtError(
+      e,
+      st ?? AsyncError.defaultStackTrace(e),
+    );
     if (hasSuspended) {
-      _future._completeError(e, st);
+      _future._completeErrorObject(error);
     } else {
-      _future._asyncCompleteError(e, st);
+      _future._asyncCompleteErrorObject(error);
     }
   }
 

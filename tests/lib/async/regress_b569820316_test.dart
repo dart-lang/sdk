@@ -17,6 +17,7 @@ void main() {
     await testFutureChaining();
     await testErrorCompletionAfterAwait();
     await testSyncErrorCompletion();
+    await testZoneErrorCallback();
     asyncEnd();
   }();
 }
@@ -263,4 +264,42 @@ Future<void> testSyncErrorCompletion() {
     completer.complete();
   });
   return completer.future;
+}
+
+Future<void> testZoneErrorCallback() {
+  final completer = Completer<void>();
+  final log = <String>[];
+
+  Future<void> failSync() async {
+    throw 'sync boom';
+  }
+
+  Future<void> failAsync() async {
+    await null;
+    throw 'async boom';
+  }
+
+  runZoned(
+    () {
+      failSync().catchError((Object e) {
+        log.add('caught: $e');
+      });
+      failAsync().catchError((Object e) {
+        log.add('caught: $e');
+        completer.complete();
+      });
+    },
+    zoneSpecification: ZoneSpecification(
+      errorCallback: (self, parent, zone, error, stackTrace) {
+        return AsyncError('intercepted: $error', stackTrace);
+      },
+    ),
+  );
+
+  return completer.future.whenComplete(() {
+    Expect.listEquals([
+      'caught: intercepted: sync boom',
+      'caught: intercepted: async boom',
+    ], log);
+  });
 }
