@@ -3035,10 +3035,8 @@ class Function : public Object {
   bool FfiCSignatureReturnsHandle() const;
 
   // Can only be called on FFI trampolines.
+  // Lazily assigns a callback ID if one hasn't been assigned yet.
   int32_t FfiCallbackId() const;
-
-  // Should be called when ffi trampoline function object is created.
-  void AssignFfiCallbackId(int32_t callback_id) const;
 
   // Can only be called on FFI natives and FFI call closures.
   bool FfiIsLeaf() const;

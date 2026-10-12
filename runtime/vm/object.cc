@@ -8592,24 +8592,34 @@ bool Function::FfiCSignatureReturnsHandle() const {
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiCallbackTrampoline());
 
-  const auto& obj = Object::Handle(data());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const auto& obj = Object::Handle(zone, data());
   ASSERT(!obj.IsNull());
   const auto& trampoline_data = FfiTrampolineData::Cast(obj);
+
+  if (trampoline_data.callback_id() == -1) {
+    static constexpr intptr_t kInitialCallbackIdsReserved = 16;
+    auto isolate_group = thread->isolate_group();
+    SafepointWriteRwLocker ml(thread, isolate_group->program_lock());
+    if (trampoline_data.callback_id() == -1) {
+      auto object_store = isolate_group->object_store();
+      auto& code_array =
+          GrowableObjectArray::Handle(zone, object_store->ffi_callback_code());
+      if (code_array.IsNull()) {
+        code_array =
+            GrowableObjectArray::New(kInitialCallbackIdsReserved, Heap::kOld);
+        object_store->set_ffi_callback_code(code_array);
+      }
+      const intptr_t callback_id = code_array.Length();
+      code_array.Add(Code::null_object(), Heap::kOld);
+      trampoline_data.set_callback_id(callback_id);
+    }
+  }
 
   ASSERT(trampoline_data.callback_id() != -1);
 
   return trampoline_data.callback_id();
-}
-
-void Function::AssignFfiCallbackId(int32_t callback_id) const {
-  ASSERT(IsFfiCallbackTrampoline());
-
-  const auto& obj = Object::Handle(data());
-  ASSERT(!obj.IsNull());
-  const auto& trampoline_data = FfiTrampolineData::Cast(obj);
-
-  ASSERT(trampoline_data.callback_id() == -1);
-  trampoline_data.set_callback_id(callback_id);
 }
 
 bool Function::FfiIsLeaf() const {
