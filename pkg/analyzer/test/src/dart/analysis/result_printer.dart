@@ -1886,15 +1886,12 @@ class LibraryManifestPrinter extends ManifestPrinter {
         sink.writeln('RecordType');
         sink.withIndent(() {
           sink.writeElements('positional', type.positionalFields, (field) {
-            sink.writeIndentedLine(() {
-              _writeType(field);
-            });
+            sink.writeIndent();
+            _writeType(field);
           });
           sink.writeElements('named', type.namedFields, (field) {
-            sink.writeIndentedLine(() {
-              sink.write('${field.name}: ');
-              _writeType(field.type);
-            });
+            sink.writeWithIndent('${field.name}: ');
+            _writeType(field.type);
           });
         });
       case ManifestTypeParameterType():
@@ -1910,6 +1907,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
     if (configuration.withElementManifests) {
       sink.withIndent(() {
         sink.writeFlags({
+          'hasSelfReference': item.flags.hasSelfReference,
           'isProperRename': item.flags.isProperRename,
           'isSimplyBounded': item.flags.isSimplyBounded,
         });

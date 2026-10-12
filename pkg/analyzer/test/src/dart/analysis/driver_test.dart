@@ -100854,6 +100854,133 @@ typedef B = int;
     );
   }
 
+  test_manifest_typeAlias_modifier_hasSelfReference() async {
+    configuration.withElementManifests = true;
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+typedef A<T extends List<T>> = (A<T>, T) Function();
+typedef B<T extends List<T>> = (dynamic, T) Function();
+typedef C<T extends List<T>> = (C<T>, T) Function();
+typedef D<T extends List<T>> = (dynamic, T) Function();
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredTypeAliases
+      A: #M0
+        flags: hasSelfReference
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      B: #M1
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      C: #M2
+        flags: hasSelfReference
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      D: #M3
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+    exportMapId: #M4
+    exportMap
+      A: #M0
+      B: #M1
+      C: #M2
+      D: #M3
+''',
+      updatedCode: r'''
+typedef A<T extends List<T>> = (A<T>, T) Function();
+typedef B<T extends List<T>> = (dynamic, T) Function();
+typedef C<T extends List<T>> = (dynamic, T) Function();
+typedef D<T extends List<T>> = (D<T>, T) Function();
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredTypeAliases
+      A: #M0
+        flags: hasSelfReference
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      B: #M1
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      C: #M5
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+      D: #M6
+        flags: hasSelfReference
+        typeParameters
+          #0 covariant
+            bound: List @ dart:core
+              typeParameter#0
+        aliasedType: FunctionType
+          returnType: RecordType
+            positional
+              dynamic
+              typeParameter#0
+    exportMapId: #M7
+    exportMap
+      A: #M0
+      B: #M1
+      C: #M5
+      D: #M6
+''',
+    );
+  }
+
   test_manifest_typeAlias_modifier_isProperRename() async {
     configuration.withElementManifests = true;
     await _runLibraryManifestScenario(

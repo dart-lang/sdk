@@ -1,4 +1,4 @@
-import 'dart:_internal' show _AsyncCompleter, patch;
+import 'dart:_internal' show patch;
 
 import 'dart:_wasm';
 
@@ -25,7 +25,7 @@ class _AsyncSuspendState {
   // The inner function.
   //
   // Note: this function never throws. Any uncaught exceptions are passed to
-  // `_completer.completeError`.
+  // `_completeError`.
   @pragma("wasm:entry-point")
   final _AsyncResumeFun _resume;
 
@@ -57,6 +57,8 @@ class _AsyncSuspendState {
   @pragma("wasm:entry-point")
   Object? _currentReturnValue;
 
+  bool _hasSuspended = false;
+
   @pragma("wasm:entry-point")
   _AsyncSuspendState(this._resume, this._context, this._future)
     : _targetIndex = WasmI32.fromInt(0),
@@ -65,20 +67,35 @@ class _AsyncSuspendState {
       _currentReturnValue = null;
 
   @pragma("wasm:entry-point")
-  void _complete(FutureOr value) {
-    _future._asyncComplete(value == null ? value as dynamic : value);
+  void _complete(Object? value) {
+    // NOTE: We don't check `_hasSuspended`:
+    //   * if the body completes synchronously, the very next thing we'll
+    //     synchronously do is return the future from the call before running
+    //     any microtasks (so there are no listeners yet). `_chainFuture` will
+    //     not complete with an error synchronously, and completing with a value
+    //     synchronously is safe.
+    //   * if the body completes after a suspend point, we will already be in a
+    //     microtask queue and can run any listener callbacks immediately.
+    if (value is Future) {
+      _future._chainFutureOrCompleteWithValue(value);
+    } else {
+      _future._completeWithValue(value);
+    }
   }
 
   @pragma("wasm:entry-point")
   void _completeError(Object error, StackTrace stackTrace) {
-    _future._asyncCompleteError(error, stackTrace);
+    // If throwing synchronously, delay error completion to a microtask so the
+    // caller can attach an error handler before the error is reported as
+    // uncaught.
+    if (_hasSuspended) {
+      _future._completeError(error, stackTrace);
+    } else {
+      _future._asyncCompleteError(error, stackTrace);
+    }
   }
 }
 
-// Note: [_AsyncCompleter] is taken as an argument to be able to pass the type
-// parameter to [_AsyncCompleter] without having to add a type parameter to
-// [_AsyncSuspendState]. Completer type parameter is passed to the completer's
-// future, which the outer function returns to the caller.
 @pragma("wasm:entry-point")
 _AsyncSuspendState _newAsyncSuspendState(
   _AsyncResumeFun resume,
@@ -99,6 +116,7 @@ void _awaitHelper(_AsyncSuspendState suspendState, Future operand) {
       suspendState._resume.call(suspendState, null, exception, stackTrace);
     },
   );
+  suspendState._hasSuspended = true;
 }
 
 @pragma("wasm:entry-point")
@@ -107,16 +125,18 @@ void _awaitHelperWithTypeCheck<T>(
   Object? operand,
 ) {
   if (operand is! Future<T>) {
-    return scheduleMicrotask(
+    scheduleMicrotask(
       () => suspendState._resume.call(suspendState, operand, null, null),
     );
+  } else {
+    operand.then(
+      (Object? value) {
+        suspendState._resume.call(suspendState, value, null, null);
+      },
+      onError: (exception, stackTrace) {
+        suspendState._resume.call(suspendState, null, exception, stackTrace);
+      },
+    );
   }
-  operand.then(
-    (Object? value) {
-      suspendState._resume.call(suspendState, value, null, null);
-    },
-    onError: (exception, stackTrace) {
-      suspendState._resume.call(suspendState, null, exception, stackTrace);
-    },
-  );
+  suspendState._hasSuspended = true;
 }

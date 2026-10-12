@@ -212,17 +212,22 @@ bool _hasTimer() {
 
 class _AsyncAwaitCompleter<T> implements Completer<T> {
   final _future = _Future<T>();
-  bool isSync;
+  bool hasSuspended;
 
-  _AsyncAwaitCompleter() : isSync = false;
+  _AsyncAwaitCompleter() : hasSuspended = false;
 
   void complete([FutureOr<T>? value]) {
     // All paths require that if value is null, null as T succeeds.
     value = (value == null) ? value as T : value;
-    if (!isSync) {
-      _future._asyncComplete(value);
-    } else if (value is Future<T>) {
-      assert(!_future._isComplete);
+    // NOTE: We don't check `hasSuspended`:
+    //   * if the body completes synchronously, the very next thing we'll
+    //     synchronously do is return the future from the call before running
+    //     any microtasks (so there are no listeners yet). `_chainFuture` will
+    //     not complete with an error synchronously, and completing with a value
+    //     synchronously is safe.
+    //   * if the body completes after a suspend point, we will already be in a
+    //     microtask queue and can run any listener callbacks immediately.
+    if (value is Future<T>) {
       _future._chainFuture(value);
     } else {
       _future._completeWithValue(value);
@@ -231,7 +236,10 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 
   void completeError(Object e, [StackTrace? st]) {
     st ??= AsyncError.defaultStackTrace(e);
-    if (isSync) {
+    // If throwing synchronously, delay error completion to a microtask so the
+    // caller can attach an error handler before the error is reported as
+    // uncaught.
+    if (hasSuspended) {
       _future._completeError(e, st);
     } else {
       _future._asyncCompleteError(e, st);
@@ -263,7 +271,7 @@ dynamic _asyncStartSync(
   _AsyncAwaitCompleter completer,
 ) {
   bodyFunction(async_status_codes.SUCCESS, null);
-  completer.isSync = true;
+  completer.hasSuspended = true;
   return completer.future;
 }
 
