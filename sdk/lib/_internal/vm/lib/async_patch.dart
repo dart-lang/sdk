@@ -372,8 +372,16 @@ class _SuspendState {
     } else {
       future = unsafeCast<_Future>(suspendState);
     }
+    // NOTE: We don't check whether the function suspended:
+    //   * if the body completes synchronously, the very next thing we'll
+    //     synchronously do is return the future from the call before running
+    //     any microtasks (so there are no listeners yet). `_chainFuture` will
+    //     not complete with an error synchronously, and completing with a value
+    //     synchronously is safe.
+    //   * if the body completes after a suspend point, we will already be in a
+    //     microtask queue and can run any listener callbacks immediately.
     if (returnValue is Future) {
-      future._asyncCompleteUnchecked(returnValue);
+      future._chainFutureOrCompleteWithValue(returnValue);
     } else {
       future._completeWithValue(returnValue);
     }
@@ -440,19 +448,22 @@ class _SuspendState {
     StackTrace stackTrace,
   ) {
     Object? functionData;
-    bool isSync = true;
+    bool hasSuspended;
     if (suspendState is _SuspendState) {
       functionData = suspendState._functionData;
+      hasSuspended = true;
     } else {
       functionData = suspendState;
-      isSync = false;
+      hasSuspended = false;
     }
     if (functionData is _Future) {
-      // async function.
-      if (!isSync) {
-        functionData._asyncCompleteError(exception, stackTrace);
-      } else {
+      // async function: if throwing synchronously, delay error completion to a
+      // microtask so the caller can attach an error handler before the error is
+      // reported as uncaught.
+      if (hasSuspended) {
         functionData._completeError(exception, stackTrace);
+      } else {
+        functionData._asyncCompleteError(exception, stackTrace);
       }
     } else if (functionData is _AsyncStarStreamController) {
       // async* function.

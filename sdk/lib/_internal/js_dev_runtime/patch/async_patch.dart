@@ -83,57 +83,33 @@ _async<T>(Function() initGenerator) {
 
   var asyncFuture = _Future<T>();
 
-  // This will be set to true once we've yielded to the event loop.
-  //
-  // Before we've done that, we need to complete the future asynchronously to
-  // match dart2js/VM. See https://github.com/dart-lang/sdk/issues/33330
-  //
-  // Once we've yielded to the event loop we can complete synchronously.
-  // Other implementations call this `isSync` to indicate that.
-  bool isRunningAsEvent = false;
+  bool hasSuspended = false;
   runBody() {
     try {
       iter = JS('', '#[Symbol.iterator]()', initGenerator());
       var iteratorValue = JS('', '#.next(null)', iter);
       var value = JS('', '#.value', iteratorValue);
       if (JS<bool>('!', '#.done', iteratorValue)) {
-        // TODO(jmesserly): this is a workaround for ignored cast failures.
-        // Remove it once we've fixed those. We should be able to call:
-        //
-        //     if (isRunningAsEvent) {
-        //       asyncFuture._complete(value);
-        //     } else {
-        //       asyncFuture._asyncComplete(value);
-        //     }
-        //
-        // But if the user code returns `Future<dynamic>` instead of
-        // `Future<T>`, that function won't recognize it as a future and will
-        // instead treat it as a completed value.
-        if (value is Future) {
-          if (value is _Future) {
-            _Future._chainCoreFuture(value, asyncFuture, isRunningAsEvent);
-          } else {
-            asyncFuture._chainForeignFuture(value);
-          }
-        } else if (isRunningAsEvent) {
-          asyncFuture._completeWithValue(JS('', '#', value));
+        if (value is Future<T>) {
+          asyncFuture._chainFuture(value);
         } else {
-          asyncFuture._asyncComplete(JS('', '#', value));
+          asyncFuture._completeWithValue(JS('', '#', value));
         }
       } else {
-        _Future._chainCoreFuture(onAwait(value), asyncFuture, true);
+        _Future._chainCoreFuture(onAwait(value), asyncFuture, false);
       }
     } catch (e, s) {
-      if (isRunningAsEvent) {
-        _completeWithErrorCallback(asyncFuture, e, s);
+      final error = _interceptCaughtError(e, s);
+      if (hasSuspended) {
+        asyncFuture._completeErrorObject(error);
       } else {
-        asyncFuture._asyncCompleteErrorObject(_interceptCaughtError(e, s));
+        asyncFuture._asyncCompleteErrorObject(error);
       }
     }
   }
 
   runBody();
-  isRunningAsEvent = true;
+  hasSuspended = true;
   return asyncFuture;
 }
 
@@ -483,17 +459,22 @@ class _AsyncStarImpl<T> {
 
 class _AsyncAwaitCompleter<T> implements Completer<T> {
   final _future = _Future<T>();
-  bool isSync;
+  bool hasSuspended;
 
-  _AsyncAwaitCompleter() : isSync = false;
+  _AsyncAwaitCompleter() : hasSuspended = false;
 
   void complete([FutureOr<T>? value]) {
     // All paths require that if value is null, null as T succeeds.
     value = (value == null) ? value as T : value;
-    if (!isSync) {
-      _future._asyncComplete(value);
-    } else if (value is Future<T>) {
-      assert(!_future._isComplete);
+    // NOTE: We don't check `hasSuspended`:
+    //   * if the body completes synchronously, the very next thing we'll
+    //     synchronously do is return the future from the call before running
+    //     any microtasks (so there are no listeners yet). `_chainFuture` will
+    //     not complete with an error synchronously, and completing with a value
+    //     synchronously is safe.
+    //   * if the body completes after a suspend point, we will already be in a
+    //     microtask queue and can run any listener callbacks immediately.
+    if (value is Future<T>) {
       _future._chainFuture(value);
     } else {
       _future._completeWithValue(value);
@@ -502,7 +483,10 @@ class _AsyncAwaitCompleter<T> implements Completer<T> {
 
   void completeError(Object e, [StackTrace? st]) {
     st ??= AsyncError.defaultStackTrace(e);
-    if (isSync) {
+    // If throwing synchronously, delay error completion to a microtask so the
+    // caller can attach an error handler before the error is reported as
+    // uncaught.
+    if (hasSuspended) {
       _future._completeError(e, st);
     } else {
       _future._asyncCompleteError(e, st);
@@ -535,7 +519,7 @@ Future _asyncStartSync(
   _AsyncAwaitCompleter completer,
 ) {
   bodyFunction(async_status_codes.SUCCESS, null);
-  completer.isSync = true;
+  completer.hasSuspended = true;
   return completer.future;
 }
 
