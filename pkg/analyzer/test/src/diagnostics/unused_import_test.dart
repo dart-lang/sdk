@@ -677,6 +677,30 @@ void f() {
     });
   }
 
+  test_part_extension_usedLibraryImport_prefixed() async {
+    newFile('$testPackageLibPath/x.dart', r'''
+extension E on int {
+  void foo() {}
+}
+''');
+
+    var a = getFile('$testPackageLibPath/a.dart');
+    var b = getFile('$testPackageLibPath/b.dart');
+
+    await resolveFilesWithDiagnostics({
+      a: r'''
+import 'x.dart' as x;
+part 'b.dart';
+''',
+      b: r'''
+part of 'a.dart';
+void f() {
+  0.foo();
+}
+''',
+    });
+  }
+
   test_part_extension_usedPartImport() async {
     newFile('$testPackageLibPath/x.dart', r'''
 extension E on int {
