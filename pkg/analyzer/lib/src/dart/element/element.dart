@@ -1522,26 +1522,17 @@ class DocImportPrefixElementImpl extends PrefixElementImpl {
   @override
   final List<LibraryImportImpl> imports = [];
 
-  /// The doc import prefix with the same name, declared in an enclosing file.
-  ///
-  /// Like an import prefix, the doc import prefix of a part file extends the
-  /// prefix with the same name of the enclosing file, unless it is deferred.
-  final DocImportPrefixElementImpl? enclosingPrefix;
-
-  @override
-  late final PrefixScope scope = PrefixScope(
-    libraryFragment: firstFragment.enclosingFragment,
-    parent: isDeferred ? null : enclosingPrefix?.scope,
-    parentSearchedScopes: const [],
-    libraryImports: imports,
-    prefix: this,
-  );
-
   DocImportPrefixElementImpl({
     required super.localId,
     required super.firstFragment,
-    required this.enclosingPrefix,
   });
+
+  @override
+  PrefixScope get scope {
+    // SAFETY: We create the [DocImportScope] of the file right after its doc
+    // import prefixes, and its constructor sets this field.
+    return _scope!;
+  }
 }
 
 /// The synthetic element representing the declaration of the type `dynamic`.
