@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/usr/bin/env bash
 
 # This script expects the following arguments
 # $1: Path to dart executable
