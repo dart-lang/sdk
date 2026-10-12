@@ -13,8 +13,7 @@ name: Publish package to pub.dev
 on:
   push:
     tags:
-      # Note: this is a glob pattern, not a regular expression.
-      - '[a-z0-9_]*-v[0-9]*'
+      - '*-v[0-9]*'
 
 # Declare default permissions as read only.
 permissions: read-all

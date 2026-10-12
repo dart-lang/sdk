@@ -201,10 +201,14 @@ class ImportsTracking {
     return trackerOf(import)?.importToUsedElements[import] ?? {};
   }
 
-  void notifyExtensionUsed(ExtensionElement element) {
+  /// Records that [element] is used, and returns whether any import of
+  /// this fragment provides it.
+  bool notifyExtensionUsed(ExtensionElement element) {
+    var isProvided = false;
     for (var tracking in map.values) {
-      tracking.notifyExtensionUsed(element);
+      isProvided |= tracking.notifyExtensionUsed(element);
     }
+    return isProvided;
   }
 
   ImportsTrackingOfPrefix? trackerOf(LibraryImportImpl import) {
@@ -305,19 +309,17 @@ class ImportsTrackingOfPrefix {
     }
   }
 
-  void notifyExtensionUsed(ExtensionElement element) {
+  /// Records that [element] is used, and returns whether any import of
+  /// this scope provides it.
+  bool notifyExtensionUsed(ExtensionElement element) {
     var imports = _elementImports[element];
-    if (imports != null) {
-      for (var import in imports) {
-        (importToUsedElements[import] ??= {}).add(element);
-      }
-    } else {
-      // We include into `accessibleExtensions` elements from parents.
-      // So, it is possible that the element is not from this scope.
-      // In this case we notify the parent tracker.
-      var parentTracking = scope.parent?._importsTracking;
-      parentTracking?.notifyExtensionUsed(element);
+    if (imports == null) {
+      return false;
     }
+    for (var import in imports) {
+      (importToUsedElements[import] ??= {}).add(element);
+    }
+    return true;
   }
 
   void notifyPrefixUsedWithoutName() {
@@ -444,7 +446,7 @@ class LibraryFragmentScope implements Scope {
       fragment: fragment,
       noPrefixScope: PrefixScope(
         libraryFragment: fragment,
-        parent: parent?.noPrefixScope,
+        parent: null,
         libraryImports: fragment.libraryImports,
         prefix: null,
       ),
@@ -542,22 +544,29 @@ class LibraryFragmentScope implements Scope {
     return ScopeLookupResultImpl(getter: null, setter: null);
   }
 
+  /// Records that [element] is used.
+  ///
+  /// The [accessibleExtensions] include extensions from the enclosing
+  /// fragments, so we attribute the usage to the nearest fragment that
+  /// imports [element].
   void notifyExtensionUsed(ExtensionElement element) {
-    _importsTracking?.notifyExtensionUsed(element);
+    for (LibraryFragmentScope? scope = this; scope != null;) {
+      if (scope._importsTracking?.notifyExtensionUsed(element) ?? false) {
+        return;
+      }
+      scope = scope.parent;
+    }
   }
 
   PrefixScope? _getParentPrefixScope(PrefixElementImpl prefix) {
-    var isDeferred = prefix.imports.any((import) {
-      return import.prefix?.isDeferred ?? false;
-    });
-    if (isDeferred) {
+    if (prefix.isDeferred) {
       return null;
     }
 
     for (var scope = parent; scope != null; scope = scope.parent) {
       var parentPrefix = scope._prefixElements[prefix.name];
       if (parentPrefix != null) {
-        return parentPrefix.scope;
+        return parentPrefix.isDeferred ? null : parentPrefix.scope;
       }
     }
     return null;
@@ -627,12 +636,12 @@ class LocalScope extends EnclosedScope {
 class PrefixScope implements Scope {
   final LibraryFragmentImpl libraryFragment;
 
-  /// The scope of the enclosing file that this scope extends: for a prefix,
-  /// the scope of the prefix with the same name, and for the imports without
-  /// a prefix, the scope of such imports.
+  /// The scope of the prefix with the same name in an enclosing file, whose
+  /// names are also accessible through this prefix.
   ///
-  /// It is `null` for a deferred prefix, which provides only the names of its
-  /// own library.
+  /// It is `null` if this prefix, or the nearest prefix with the same name in
+  /// an enclosing file, is deferred: a deferred prefix provides only the names
+  /// of its own library. It is also `null` for the imports without a prefix.
   final PrefixScope? parent;
 
   final List<LibraryImportImpl> _importElements = [];

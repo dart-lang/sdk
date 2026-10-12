@@ -9882,6 +9882,9 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
         .toList();
   }
 
+  /// Whether this prefix is declared by a `deferred` import.
+  bool get isDeferred => fragments.any((fragment) => fragment.isDeferred);
+
   @override
   ElementKind get kind => ElementKind.PREFIX;
 

@@ -460,10 +460,11 @@ class _SuspendState {
       // async function: if throwing synchronously, delay error completion to a
       // microtask so the caller can attach an error handler before the error is
       // reported as uncaught.
+      final error = _interceptCaughtError(exception, stackTrace);
       if (hasSuspended) {
-        functionData._completeError(exception, stackTrace);
+        functionData._completeErrorObject(error);
       } else {
-        functionData._asyncCompleteError(exception, stackTrace);
+        functionData._asyncCompleteErrorObject(error);
       }
     } else if (functionData is _AsyncStarStreamController) {
       // async* function.

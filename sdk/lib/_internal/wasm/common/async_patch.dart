@@ -88,10 +88,11 @@ class _AsyncSuspendState {
     // If throwing synchronously, delay error completion to a microtask so the
     // caller can attach an error handler before the error is reported as
     // uncaught.
+    final asyncError = _interceptCaughtError(error, stackTrace);
     if (_hasSuspended) {
-      _future._completeError(error, stackTrace);
+      _future._completeErrorObject(asyncError);
     } else {
-      _future._asyncCompleteError(error, stackTrace);
+      _future._asyncCompleteErrorObject(asyncError);
     }
   }
 }
