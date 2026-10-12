@@ -126,7 +126,7 @@ vars = {
   # well so that the format presubmit check uses the same style as the repo.
   #
   # See: https://github.com/dart-lang/dart_style/wiki/Release-process
-  "dart_style_rev": "5a9534fad9ff2faba89596a70323d2b1f1bcf163", # rolled manually
+  "dart_style_rev": "76978d23bfb3d225c81ce3f119ab7055a2a57136", # rolled manually
 
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
