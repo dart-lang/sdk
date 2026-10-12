@@ -807,8 +807,14 @@ abstract class FlowAnalysis<
   /// The order of visiting a "for-in" statement or collection element should
   /// be:
   /// - Visit the iterable expression.
-  /// - Call [forEach_bodyBegin] or [patternForIn_bodyBegin] (depending whether
-  ///   the loop is a pattern for-in or an ordinary for-in).
+  /// - If the loop is a pattern for-in, call [patternForIn_beforePattern],
+  ///   visit the pattern (declaring the pattern variables), and then call
+  ///   [patternForIn_bodyBegin]. Otherwise, call [forEach_bodyBegin], and
+  ///   then:
+  ///   - If the loop declares a loop variable (`for (var x in ...)`), call
+  ///     [declare] for it.
+  ///   - If the loop assigns to an existing variable (`for (x in ...)`), call
+  ///     [write] for it (or visit an equivalent synthetic assignment).
   /// - Visit the body.
   /// - Call [forEach_end].
   ///

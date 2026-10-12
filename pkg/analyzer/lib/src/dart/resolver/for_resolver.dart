@@ -217,7 +217,17 @@ class ForResolver {
       loopVariableElement.type = elementType;
     }
 
+    _typeAnalyzer.flowAnalysis.flow?.forEach_bodyBegin(
+      node,
+      offset: rightParenthesisOffset,
+    );
     if (loopVariable != null) {
+      // Each iteration of the loop gets a fresh copy of the loop variable, so
+      // the loop variable is declared after `forEach_bodyBegin`. This ensures
+      // that the conservative join performed by `forEach_bodyBegin` doesn't
+      // affect it. In particular, a write to the loop variable inside a
+      // closure in the loop body doesn't prevent the loop variable from being
+      // promoted before the closure is created.
       var declaredElement = loopVariable.declaredFragment!.element;
       _typeAnalyzer.flowAnalysis.flow?.declare(
         declaredElement,
@@ -226,11 +236,6 @@ class ForResolver {
         offset: rightParenthesisOffset,
       );
     }
-
-    _typeAnalyzer.flowAnalysis.flow?.forEach_bodyBegin(
-      node,
-      offset: rightParenthesisOffset,
-    );
     if (target != null) {
       if (target.write?.elementOrRecovery case PromotableElementImpl element) {
         _typeAnalyzer.flowAnalysis.flow?.write(
