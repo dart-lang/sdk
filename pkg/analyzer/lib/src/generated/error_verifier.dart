@@ -4549,8 +4549,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     ConstructorTypeReference typeReference,
   ) {
     var prefixElement = typeReference.importPrefix?.element;
-    if (prefixElement is PrefixElement &&
-        prefixElement.fragments.any((fragment) => fragment.isDeferred)) {
+    if (prefixElement is PrefixElementImpl && prefixElement.isDeferred) {
       diagnosticReporter.report(
         diag.constDeferredClass.at(constructorReference),
       );
@@ -5971,9 +5970,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         importPrefix,
       _ => null,
     };
-    if (importPrefix?.element case PrefixElement(
-      :var fragments,
-    ) when fragments.any((fragment) => fragment.isDeferred)) {
+    if (importPrefix?.element case PrefixElementImpl(isDeferred: true)) {
       diagnosticReporter.report(
         diag.invalidAnnotationFromDeferredLibrary.at(annotation.nameEntity),
       );

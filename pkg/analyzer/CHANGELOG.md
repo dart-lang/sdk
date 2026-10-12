@@ -1,5 +1,12 @@
 ## 14.6.0-dev
 
+* Fixed a regression in 14.2.0 through 14.5.0, where `analyzer: exclude:`
+  patterns from an included options file, such as
+  `include: package:my_lints/options.yaml`, were relative to the included
+  file, so they did not exclude any files of the including package. These
+  patterns are again relative to the folder of the `analysis_options.yaml`
+  file at the start of the `include:` chain.
+  See https://github.com/dart-lang/sdk/issues/64549.
 * Replaced the `undefined_super_member` diagnostic, which was reported for
   getters, methods, setters, and operators, with three diagnostics, as
   proposed in https://github.com/dart-lang/sdk/issues/64411:

@@ -231,23 +231,6 @@ extension AstNodeNullableExtension on AstNode? {
   }
 }
 
-extension BlockExtension on Block {
-  /// The last statement of this block, or `null` if this is empty.
-  ///
-  /// If the last immediate statement of this block is a [Block], recurses into
-  /// it to find the last statement.
-  Statement? get lastStatement {
-    if (statements.isEmpty) {
-      return null;
-    }
-    var lastStatement = statements.last;
-    if (lastStatement is Block) {
-      return lastStatement.lastStatement;
-    }
-    return lastStatement;
-  }
-}
-
 extension ClassElementExtension on ClassElement {
   /// Whether this [ClassElement], or one of its supertypes, is annotated with
   /// `@Immutable`.

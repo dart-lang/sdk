@@ -9,6 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
     show DotShorthandNameExpressionImpl;
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/dart/element/element.dart' show PrefixElementImpl;
 import 'package:analyzer/src/dart/element/type.dart';
 
 /// Some [ConstructorElement]s can be temporary marked as "const" to check
@@ -74,8 +75,7 @@ class _Collector {
 
     if (node is ImportPrefixedNameExpression) {
       var prefixElement = node.importPrefix.element;
-      if (prefixElement is PrefixElement &&
-          prefixElement.fragments.any((fragment) => fragment.isDeferred)) {
+      if (prefixElement is PrefixElementImpl && prefixElement.isDeferred) {
         nodes.add(node);
         return;
       }
@@ -322,8 +322,7 @@ class _Collector {
 
   void _receiverPropertyExtraction(ReceiverPropertyExtraction node) {
     if (node.receiver case StaticQualifier(:var importPrefix)) {
-      if (importPrefix?.element case PrefixElement prefix
-          when prefix.fragments.any((fragment) => fragment.isDeferred)) {
+      if (importPrefix?.element case PrefixElementImpl(isDeferred: true)) {
         nodes.add(node);
         return;
       }

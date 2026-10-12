@@ -258,7 +258,7 @@ Statement forEachWithVariableDecl(
   return new ForEach._(
     variable,
     iterable.asExpression(location: location),
-    block(body),
+    Block._(body, location: location),
     true,
     location: location,
   );
@@ -1898,14 +1898,26 @@ class ForEach extends Statement {
     );
     h.flow.forEach_bodyBegin(this, offset: _syntheticBodyBeginOffset!);
     var variable = this.variable;
-    if (variable != null && !declaresVariable) {
-      h.flow.write(
-        this,
-        variable,
-        SharedTypeView(iteratedType),
-        null,
-        offset: _syntheticBodyBeginOffset!,
-      );
+    if (variable != null) {
+      if (declaresVariable) {
+        // As in both front ends, the loop variable is declared after
+        // `forEach_bodyBegin`, since each iteration gets a fresh copy of it.
+        variable._type ??= iteratedType;
+        h.flow.declare(
+          variable,
+          SharedTypeView(variable.type),
+          initialized: true,
+          offset: _syntheticBodyBeginOffset!,
+        );
+      } else {
+        h.flow.write(
+          this,
+          variable,
+          SharedTypeView(iteratedType),
+          null,
+          offset: _syntheticBodyBeginOffset!,
+        );
+      }
     }
     h.typeAnalyzer._visitLoopBody(this, body);
     h.flow.forEach_end(offset: _syntheticEndOffset!);

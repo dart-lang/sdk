@@ -1234,6 +1234,12 @@ class FileSystemState {
   /// Mapping from a URI to the corresponding [FileState].
   final Map<Uri, FileState> _uriToFile = {};
 
+  late final LibraryCycleComputer _libraryCycleComputer = LibraryCycleComputer(
+    withFineDependencies: withFineDependencies,
+    saltForElements: _saltForElements,
+    sourceFactory: _sourceFactory,
+  );
+
   /// All known file paths.
   final Set<String> knownFilePaths = <String>{};
 
@@ -1923,12 +1929,7 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   /// just this file.  If the library cycle is not known yet, compute it.
   LibraryCycle get libraryCycle {
     if (_libraryCycle == null) {
-      computeLibraryCycle(
-        withFineDependencies: file._fsState.withFineDependencies,
-        saltForElements: file._fsState._saltForElements,
-        sourceFactory: file._fsState._sourceFactory,
-        file: this,
-      );
+      file._fsState._libraryCycleComputer.compute(this);
     }
 
     return _libraryCycle!;

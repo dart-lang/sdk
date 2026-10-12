@@ -981,8 +981,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   Constant visitImportPrefixedNameExpression(
     covariant ImportPrefixedNameExpressionImpl node,
   ) {
-    if (node.importPrefix.element case PrefixElement prefix
-        when prefix.fragments.any((fragment) => fragment.isDeferred)) {
+    if (node.importPrefix.element case PrefixElementImpl(isDeferred: true)) {
       return _getDeferredLibraryError(node, node.name);
     }
     return _getConstantValue(
@@ -1144,8 +1143,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
     covariant ReceiverPropertyExtractionImpl node,
   ) {
     if (node.receiver case StaticQualifierImpl(:var importPrefix, :var name)) {
-      if (importPrefix?.element case PrefixElement prefix
-          when prefix.fragments.any((fragment) => fragment.isDeferred)) {
+      if (importPrefix?.element case PrefixElementImpl(isDeferred: true)) {
         return _getDeferredLibraryError(node, name);
       }
       return _getConstantValue(

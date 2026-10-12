@@ -885,10 +885,6 @@ class LibraryAnalyzer {
           prefix = DocImportPrefixElementImpl(
             localId: id,
             firstFragment: prefixFragment,
-            enclosingPrefix: switch (prefixFragment.name) {
-              var name? => parent?.lookupPrefix(name),
-              null => null,
-            },
           );
           prefixes[id] = prefix;
         } else {

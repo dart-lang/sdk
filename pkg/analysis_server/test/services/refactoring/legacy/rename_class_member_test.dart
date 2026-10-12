@@ -1297,6 +1297,23 @@ class A {
 ''');
   }
 
+  Future<void> test_createChange_FieldElement_interpolation_dollar() async {
+    await indexTestUnit(r'''
+class A {
+  int t^est = 0;
+  String f() => '$test';
+}
+''');
+    createRenameRefactoring();
+    refactoring.newName = r'test$';
+    return assertSuccessfulRefactoring(r'''
+class A {
+  int test$ = 0;
+  String f() => '${test$}';
+}
+''');
+  }
+
   Future<void> test_createChange_FieldElement_invocation() async {
     await indexTestUnit('''
 typedef F(a);
