@@ -1,4 +1,4 @@
-import 'dart:_internal' show patch;
+import 'dart:_internal' show patch, unsafeCast;
 
 import 'dart:_wasm';
 
@@ -59,6 +59,10 @@ class _AsyncSuspendState {
 
   bool _hasSuspended = false;
 
+  void Function(Object?)? _thenCallback;
+
+  void Function(Object, StackTrace)? _errorCallback;
+
   @pragma("wasm:entry-point")
   _AsyncSuspendState(this._resume, this._context, this._future)
     : _targetIndex = WasmI32.fromInt(0),
@@ -95,6 +99,30 @@ class _AsyncSuspendState {
       _future._asyncCompleteErrorObject(asyncError);
     }
   }
+
+  @pragma("wasm:prefer-inline")
+  ZoneUnaryCallback<void, Object?> _ensureAsyncCallbacks() =>
+      _thenCallback ?? _createAsyncCallbacks();
+
+  ZoneUnaryCallback<void, Object?> _createAsyncCallbacks() {
+    // Only register (not bind) the callbacks; `Future.then` / `_thenAwait`
+    // is responsible for invoking them in the right zone via `zone.run*`.
+    final currentZone = Zone._current;
+    final thenCallback = currentZone.registerUnaryCallback<void, Object?>((
+      value,
+    ) {
+      _resume.call(this, value, null, null);
+    });
+    _thenCallback = thenCallback;
+    _errorCallback = currentZone
+        .registerBinaryCallback<void, Object, StackTrace>((
+          exception,
+          stackTrace,
+        ) {
+          _resume.call(this, null, exception, stackTrace);
+        });
+    return thenCallback;
+  }
 }
 
 @pragma("wasm:entry-point")
@@ -109,14 +137,25 @@ _Future<T> _makeFuture<T>() => _Future<T>();
 
 @pragma("wasm:entry-point")
 void _awaitHelper(_AsyncSuspendState suspendState, Future operand) {
-  operand.then(
-    (value) {
-      suspendState._resume.call(suspendState, value, null, null);
-    },
-    onError: (exception, stackTrace) {
-      suspendState._resume.call(suspendState, null, exception, stackTrace);
-    },
-  );
+  final thenCallback = suspendState._ensureAsyncCallbacks();
+  if (operand is _Future) {
+    if (operand._isComplete && !operand._hasError) {
+      _scheduleValueMicrotask(
+        operand._zone,
+        thenCallback,
+        operand._resultOrListeners,
+      );
+    } else {
+      operand._thenAwait<void>(
+        thenCallback,
+        unsafeCast<ZoneBinaryCallback<void, Object, StackTrace>>(
+          suspendState._errorCallback,
+        ),
+      );
+    }
+  } else {
+    operand.then<void>(thenCallback, onError: suspendState._errorCallback);
+  }
   suspendState._hasSuspended = true;
 }
 
@@ -125,19 +164,21 @@ void _awaitHelperWithTypeCheck<T>(
   _AsyncSuspendState suspendState,
   Object? operand,
 ) {
-  if (operand is! Future<T>) {
-    scheduleMicrotask(
-      () => suspendState._resume.call(suspendState, operand, null, null),
-    );
-  } else {
-    operand.then(
-      (Object? value) {
-        suspendState._resume.call(suspendState, value, null, null);
-      },
-      onError: (exception, stackTrace) {
-        suspendState._resume.call(suspendState, null, exception, stackTrace);
-      },
-    );
+  if (operand is Future<T>) {
+    return _awaitHelper(suspendState, operand);
   }
+  final thenCallback = suspendState._ensureAsyncCallbacks();
+  _scheduleValueMicrotask(Zone._current, thenCallback, operand);
   suspendState._hasSuspended = true;
+}
+
+void _scheduleValueMicrotask(
+  Zone scheduleZone,
+  ZoneUnaryCallback<void, Object?> thenCallback,
+  Object? value,
+) {
+  final zone = Zone._current;
+  scheduleZone.scheduleMicrotask(() {
+    zone.runUnary(thenCallback, value);
+  });
 }
