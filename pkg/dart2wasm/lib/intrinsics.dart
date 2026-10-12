@@ -1237,7 +1237,8 @@ class Intrinsifier {
       }
     }
 
-    if (node.target.enclosingLibrary == translator.coreTypes.coreLibrary) {
+    final enclosingLibrary = node.target.enclosingLibrary;
+    if (enclosingLibrary == translator.coreTypes.coreLibrary) {
       switch (target.name.text) {
         case "_isIntrinsified":
           // This is part of the VM's [BigInt] implementation. We just return false.
@@ -1312,6 +1313,19 @@ class Intrinsifier {
             type,
           );
           return type;
+      }
+    }
+
+    if (enclosingLibrary == translator.internalLibrary) {
+      switch (target.name.text) {
+        case 'dummyExternRef':
+          final refExtern = w.RefType.extern(nullable: false);
+          instantiateDummyValue(
+            b,
+            refExtern,
+            (_, _) => throw AssertionError('unreachable'),
+          );
+          return refExtern;
       }
     }
 

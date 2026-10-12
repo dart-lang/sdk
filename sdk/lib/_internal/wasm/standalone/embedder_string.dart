@@ -31,11 +31,11 @@ extension StringUncheckedOperations on String {
 /// A string managed by the WebAssembly embedder.
 final class EmbedderStringImpl
     implements String, StringUncheckedOperationsBase {
-  WasmExternRef? _ref;
+  final WasmExternRef _ref;
 
   EmbedderStringImpl.fromRefUnchecked(this._ref);
 
-  WasmExternRef? get wrappedExternRef => _ref;
+  WasmExternRef get wrappedExternRef => _ref;
 
   @override
   @pragma("wasm:prefer-inline")
