@@ -13,6 +13,7 @@ import importlib.util
 import importlib.machinery
 import os
 import os.path
+import re
 from typing import Callable
 import scm
 import subprocess
@@ -609,10 +610,166 @@ def _CheckHasTestField(input_api, output_api):
     ]
 
 
+# Lines in the commit message controlling automated publishing of packages in
+# pkg/ and third_party/pkg/, see docs/Publishing-SDK-packages.md. Anchored at
+# the start of the line so that quoted lines in reverts (`> PUBLISH=...`) are
+# ignored.
+_PUBLISH_RE = re.compile(r'^PUBLISH=([a-z0-9_]+)-v(\S+)$')
+_SKIP_PUBLISH_RE = re.compile(r'^SKIP_PUBLISH=([a-z0-9_]+)$')
+_PUBLISH_LIKE_RE = re.compile(r'^\s*(SKIP_)?PUBLISH\s*=')
+_PKG_PUBSPEC_RE = re.compile(
+    r'^(?:pkg|third_party/pkg)/([a-z0-9_]+)/pubspec\.yaml$')
+_CHANGELOG_VERSION_RE = re.compile(r'^#{1,2}\s+v?([0-9]\S*)')
+
+
+def _PubspecField(lines, key):
+    """Returns the scalar value of a top-level pubspec field, or None."""
+    field = re.compile(r'^' + key + r':\s*[\'"]?([^\'"\s#]+)')
+    for line in lines:
+        m = field.match(line)
+        if m:
+            return m.group(1)
+    return None
+
+
+def _IsReleaseVersion(version):
+    return not version.endswith(('-wip', '-dev'))
+
+
+def _HasPublishTo(lines):
+    """Whether the pubspec has a publish_to field (and is not published)."""
+    return any(line.startswith('publish_to:') for line in lines)
+
+
+def _TrackedPubspec(input_api, pkg):
+    """Returns the path of the pubspec.yaml tracked in git for pkg, or None.
+
+    Packages from DEPS are present on disk but not tracked, so they are never
+    returned.
+    """
+    candidates = [
+        'pkg/%s/pubspec.yaml' % pkg,
+        'third_party/pkg/%s/pubspec.yaml' % pkg,
+    ]
+    tracked = scm.GIT.Capture(['ls-files', '--'] + candidates,
+                              cwd=input_api.change.RepositoryRoot()).split()
+    return tracked[0] if tracked else None
+
+
+def _CheckPackagePublish(input_api, output_api):
+    """Checks PUBLISH= lines for packages that are published to pub.dev.
+
+    A PUBLISH=<package>-v<version> line in the commit message causes the
+    package to be published once the commit lands on main, see
+    docs/Publishing-SDK-packages.md. This check requires such a line (or
+    SKIP_PUBLISH=<package>) when the version of a publishable package is
+    changed to a release version, and validates PUBLISH= lines against the
+    pubspec and changelog.
+    """
+    # Packages are only published from main.
+    gerrit = input_api.gerrit
+    if gerrit and gerrit.branch and gerrit.branch != 'refs/heads/main':
+        return []
+
+    publish = []
+    skip_pkgs = set()
+    errors = []
+    for line in input_api.change.FullDescriptionText().splitlines():
+        m = _PUBLISH_RE.match(line)
+        if m:
+            publish.append(m.groups())
+            continue
+        m = _SKIP_PUBLISH_RE.match(line)
+        if m:
+            skip_pkgs.add(m.group(1))
+            continue
+        if _PUBLISH_LIKE_RE.match(line):
+            errors.append(
+                '"%s" is not a valid PUBLISH= line. It must be exactly '
+                'PUBLISH=<package>-v<version> or SKIP_PUBLISH=<package> at '
+                'the start of the line.' % line)
+    publish_pkgs = set(pkg for pkg, _ in publish)
+
+    # Changing to a release version requires PUBLISH= or SKIP_PUBLISH=. Pure
+    # reverts restore an already published version and are exempt.
+    is_revert = input_api.change.DescriptionText().lstrip().startswith(
+        'Revert "')
+    for f in input_api.AffectedFiles(include_deletes=False):
+        path = f.LocalPath().replace(os.sep, '/')
+        m = _PKG_PUBSPEC_RE.match(path)
+        if not m or is_revert:
+            continue
+        pkg = m.group(1)
+        if pkg in publish_pkgs or pkg in skip_pkgs:
+            continue
+        if _HasPublishTo(f.NewContents()):
+            continue
+        new_version = _PubspecField(f.NewContents(), 'version')
+        if new_version is None or not _IsReleaseVersion(new_version):
+            continue
+        # Unchanged, unless the package was not publishable before.
+        if (new_version == _PubspecField(f.OldContents(), 'version') and
+                not _HasPublishTo(f.OldContents())):
+            continue
+        errors.append(
+            '%s has version %s, which will not be published to pub.dev.\n'
+            'Add PUBLISH=%s-v%s to the commit message to publish it, or '
+            'SKIP_PUBLISH=%s to not publish it.' %
+            (path, new_version, pkg, new_version, pkg))
+
+    # Validate PUBLISH= lines.
+    root = input_api.change.RepositoryRoot()
+    for pkg, version in publish:
+        if pkg in skip_pkgs:
+            errors.append('PUBLISH=%s-v%s conflicts with SKIP_PUBLISH=%s.' %
+                          (pkg, version, pkg))
+            continue
+        pubspec = _TrackedPubspec(input_api, pkg)
+        if pubspec is None:
+            errors.append(
+                'PUBLISH=%s-v%s: there is no pkg/%s/pubspec.yaml or '
+                'third_party/pkg/%s/pubspec.yaml in this repository.' %
+                (pkg, version, pkg, pkg))
+            continue
+        pkg_dir = os.path.dirname(pubspec)
+        with open(os.path.join(root, pubspec), encoding='utf-8') as f:
+            lines = f.read().splitlines()
+        if _HasPublishTo(lines):
+            errors.append('PUBLISH=%s-v%s: %s has publish_to.' %
+                          (pkg, version, pubspec))
+            continue
+        if not _IsReleaseVersion(version):
+            errors.append(
+                'PUBLISH=%s-v%s: versions ending with -wip or -dev are not '
+                'published.' % (pkg, version))
+            continue
+        pubspec_version = _PubspecField(lines, 'version')
+        if version != pubspec_version:
+            errors.append('PUBLISH=%s-v%s: %s has version %s.' %
+                          (pkg, version, pubspec, pubspec_version))
+            continue
+        changelog = os.path.join(root, pkg_dir, 'CHANGELOG.md')
+        if os.path.isfile(changelog):
+            with open(changelog, encoding='utf-8') as f:
+                lines = f.read().splitlines()
+            headings = [
+                m.group(1) for m in map(_CHANGELOG_VERSION_RE.match, lines) if m
+            ]
+            if not headings or headings[0] != version:
+                errors.append(
+                    'PUBLISH=%s-v%s: the first version in %s/CHANGELOG.md '
+                    'is %s, expected %s.' %
+                    (pkg, version, pkg_dir, headings[0] if headings else None,
+                     version))
+
+    return [output_api.PresubmitError(e) for e in errors]
+
+
 def _CommonChecks(input_api, output_api):
     results = []
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
     results.extend(_CheckHasTestField(input_api, output_api))
+    results.extend(_CheckPackagePublish(input_api, output_api))
     results.extend(_CheckDartFormat(input_api, output_api))
     results.extend(_CheckStatusFiles(input_api, output_api))
     results.extend(_CheckLayering(input_api, output_api))
