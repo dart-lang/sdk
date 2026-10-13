@@ -2125,7 +2125,22 @@ class C {}
 
 const C x = .foo;
 //           ^^^
-// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'foo'.
+// [diag.undefinedStaticMemberReadNotFoundDotShorthandConstant] The context type 'C' doesn't have a static member or constructor named 'foo'.
+''');
+  }
+
+  test_notFound_dotShorthandNameExpression_constant_switchCase() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E { a }
+
+void f(E e) {
+  switch (e) {
+    case .b:
+//        ^
+// [diag.undefinedStaticMemberReadNotFoundDotShorthandConstant] The context type 'E' doesn't have a value or static member named 'b'.
+      break;
+  }
+}
 ''');
   }
 

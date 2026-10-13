@@ -1789,6 +1789,8 @@ undefined_static_member_read_not_found_constant:
   status: hasFix
 undefined_static_member_read_not_found_dot_shorthand:
   status: hasFix
+undefined_static_member_read_not_found_dot_shorthand_constant:
+  status: hasFix
 undefined_static_member_read_private:
   status: noFix
   notes: |-

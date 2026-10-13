@@ -54,6 +54,19 @@ E e() {
 ''', fixMessageContains: "Create enum constant 'TWO'");
   }
 
+  Future<void> test_add_dotShorthand_constant() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+const E e = .TWO;
+''');
+    await assertHasFix('''
+enum E { ONE, TWO }
+
+const E e = .TWO;
+''', fixMessageContains: "Create enum constant 'TWO'");
+  }
+
   Future<void> test_differentLibrary() async {
     newFile('$testPackageLibPath/a.dart', '''
 enum E {ONE}
