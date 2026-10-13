@@ -29,3 +29,7 @@ per-file .style.yapf,codereview.settings,PRESUBMIT.py=file:/tools/OWNERS_INFRA
 
 # Test status files
 per-file pkg.status=file:/tools/OWNERS_ENG
+
+# Generated API summaries. These change when package:api_summary is updated
+# in a DEPS roll, so the people doing rolls can approve the regenerated files.
+per-file pkg/**/api.txt=bquinlan@google.com,nbosch@google.com
