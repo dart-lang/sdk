@@ -1,3 +1,9 @@
+## 27.2.0-wip
+
+- Fix the extension backend and debug service intermittently failing to start
+  with "Address already in use" by letting the OS pick the port instead of
+  probing for one on `[::1]` first.
+
 ## 27.1.3
 
 - Fix WebSocket protocol upgrade to `wss` in the DWDS injected client when served over HTTPS on non-localhost hosts.
