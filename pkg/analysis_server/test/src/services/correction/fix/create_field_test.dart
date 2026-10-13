@@ -432,6 +432,15 @@ class C {
     await assertNoFix();
   }
 
+  Future<void> test_constant() async {
+    await resolveTestCode('''
+class A {
+  static const x = foo;
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_dotShorthand_class() async {
     await resolveTestCode('''
 class A {}

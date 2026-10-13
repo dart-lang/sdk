@@ -154,7 +154,7 @@ void f({x = (0, const [1])}) {}
     await resolveTestCodeWithDiagnostics(r'''
 void f({int x = X}) {}
 //              ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'X'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'X'.
 ''');
   }
 
@@ -171,7 +171,7 @@ f([x = y]) {}
     await resolveTestCodeWithDiagnostics(r'''
 void f([int x = X]) {}
 //              ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'X'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'X'.
 ''');
   }
 

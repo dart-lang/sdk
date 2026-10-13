@@ -62,7 +62,7 @@ const x = 'abc'.lenght;
 import 'a.dart' as p;
 const x = p.foo;
 //          ^^^
-// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'p'.
+// [diag.undefinedPrefixedNameReadNotFoundConstant] The name 'foo' isn't defined in the libraries imported with the prefix 'p'.
 ''');
   }
 
@@ -71,7 +71,7 @@ const x = p.foo;
 class C {}
 const x = C.foo;
 //          ^^^
-// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
+// [diag.undefinedStaticMemberReadNotFoundConstant] The class 'C' doesn't have a static member or constructor named 'foo'.
 ''');
   }
 
@@ -79,7 +79,7 @@ const x = C.foo;
     await resolveTestCodeWithDiagnostics(r'''
 const x = foo;
 //        ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
@@ -87,7 +87,7 @@ const x = foo;
     await resolveTestCodeWithDiagnostics(r'''
 const x = foo + 1;
 //        ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 

@@ -69,7 +69,11 @@ final class DotShorthandLookupDomain extends LookupDomain {
   }
 
   @override
-  LocatableDiagnostic _readFailure(String name, _FoundInstead foundInstead) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    _FoundInstead foundInstead,
+    ReadPosition position,
+  ) {
     var declaration = this.declaration;
     if (declaration == null) {
       return diag.undefinedStaticMemberReadNoStaticMembersDotShorthand
@@ -89,6 +93,11 @@ final class DotShorthandLookupDomain extends LookupDomain {
     // others are the messages of `StaticLookupDomain`.
     switch (foundInstead) {
       case _FoundNothing():
+        // Regardless of `position`, use the dot-shorthand diagnostic so that
+        // the message names the context type.
+        // TODO(scheglov): For `ReadPosition.constant`, report a new diagnostic
+        // that also suggests a static constant, like
+        // `undefinedStaticMemberReadNotFoundConstant`.
         return diag.undefinedStaticMemberReadNotFoundDotShorthand.withArguments(
           name: name,
           contextType: declaration.displayName,
@@ -133,7 +142,11 @@ final class ExtensionOverrideLookupDomain extends LookupDomain {
   }
 
   @override
-  LocatableDiagnostic _readFailure(String name, _FoundInstead foundInstead) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    _FoundInstead foundInstead,
+    ReadPosition position,
+  ) {
     switch (foundInstead) {
       case _FoundNothing():
         return diag.undefinedExtensionMemberReadNotFound.withArguments(
@@ -208,7 +221,11 @@ final class FunctionTypeAliasLookupDomain extends LookupDomain {
            : name.lexeme;
 
   @override
-  LocatableDiagnostic _readFailure(String name, _FoundInstead foundInstead) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    _FoundInstead foundInstead,
+    ReadPosition position,
+  ) {
     return diag.undefinedStaticMemberReadNoStaticMembers.withArguments(
       name: name,
       aliasName: aliasName,
@@ -242,7 +259,11 @@ final class InstanceLookupDomain extends LookupDomain {
   InstanceLookupDomain(this.receiverType, {this.recordField});
 
   @override
-  LocatableDiagnostic _readFailure(String name, _FoundInstead foundInstead) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    _FoundInstead foundInstead,
+    ReadPosition position,
+  ) {
     switch (foundInstead) {
       case _FoundNothing():
         return diag.undefinedInstanceMemberReadNotFound.withArguments(
@@ -335,9 +356,13 @@ sealed class LookupDomain {
     return false;
   }
 
-  /// The diagnostic for a lookup of [name] that found nothing that can be
-  /// read, but [foundInstead].
-  LocatableDiagnostic _readFailure(String name, _FoundInstead foundInstead);
+  /// The diagnostic for a lookup of [name] at [position] that found nothing
+  /// that can be read, but [foundInstead].
+  LocatableDiagnostic _readFailure(
+    String name,
+    _FoundInstead foundInstead,
+    ReadPosition position,
+  );
 
   /// The diagnostic for a lookup of [name] that found no setter, but
   /// [foundInstead], or `null` if nothing is reported.
@@ -368,17 +393,22 @@ class LookupFailureReporter {
   /// read, such as a setter, or a private declaration of another library. It
   /// is `null` if nothing has the name, or if the caller reports every failed
   /// read in [domain] as not found.
+  ///
+  /// The [position] selects the message when nothing has the name. Only a
+  /// read whose value is used, not an invocation, a receiver, or the read of
+  /// a compound assignment, has a position other than [ReadPosition.other].
   void reportReadFailure({
     required LookupDomain domain,
     required Token name,
     required Element? foundInstead,
+    ReadPosition position = ReadPosition.other,
   }) {
     if (_isIgnored(domain, name)) {
       return;
     }
     var found = _FoundInstead.of(foundInstead, _libraryFragment.element);
     _diagnosticReporter.report(
-      domain._readFailure(name.lexeme, found).at(name),
+      domain._readFailure(name.lexeme, found, position).at(name),
     );
   }
 
@@ -431,13 +461,21 @@ final class PrefixedLookupDomain extends LookupDomain {
   }
 
   @override
-  LocatableDiagnostic _readFailure(String name, _FoundInstead foundInstead) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    _FoundInstead foundInstead,
+    ReadPosition position,
+  ) {
     switch (foundInstead) {
       case _FoundNothing():
-        return diag.undefinedPrefixedNameReadNotFound.withArguments(
-          name: name,
-          prefix: _prefixName,
-        );
+        var code = switch (position) {
+          ReadPosition.annotation =>
+            diag.undefinedPrefixedNameReadNotFoundAnnotation,
+          ReadPosition.constant =>
+            diag.undefinedPrefixedNameReadNotFoundConstant,
+          ReadPosition.other => diag.undefinedPrefixedNameReadNotFound,
+        };
+        return code.withArguments(name: name, prefix: _prefixName);
       case _FoundPrivate(:var libraryUri):
         return diag.undefinedPrefixedNameReadPrivate.withArguments(
           name: name,
@@ -494,6 +532,81 @@ final class PrefixedLookupDomain extends LookupDomain {
   }
 }
 
+/// Where a read is, which selects the message when its name isn't found,
+/// because the position narrows the declarations that would make the read
+/// valid.
+enum ReadPosition {
+  /// The whole expression of an annotation, such as `@foo`, `@p.foo`, and
+  /// `@C.foo`, which must denote a constant variable.
+  annotation,
+
+  /// A position that requires a constant expression, such as
+  /// `const x = foo;`, `const [p.foo]`, `@A(C.foo)`, `[int a = foo]`, and
+  /// `case foo:`.
+  constant,
+
+  /// Any other position.
+  other;
+
+  /// The position of the read [node].
+  static ReadPosition of(NameExpressionImpl node) {
+    var parent = node.parent2;
+    if (parent is AnnotationImpl) {
+      return annotation;
+    }
+
+    // In `const x = foo.bar;`, the undefined `foo` is the receiver. The
+    // whole `foo.bar` must be constant, so `foo` would usually be a class or
+    // an import prefix, and a correction that suggests a constant variable
+    // named `foo` would mislead.
+    if (parent is ReceiverPropertyExtractionImpl ||
+        parent is ReceiverMethodInvocationImpl) {
+      return other;
+    }
+
+    // These are more positions than `AstNodeImpl.constantContext2`, which
+    // decides where literals are implicitly constant: a default value and a
+    // constant pattern without `const` require a constant, but
+    // `[List x = []]` is not a constant default value.
+    for (var current = parent; current != null; current = current.parent2) {
+      switch (current) {
+        // Every expression in these positions must be constant.
+        case AnnotationImpl():
+        case ConstantPatternImpl():
+        case EnumConstantArgumentsImpl():
+        case FormalParameterDefaultClauseImpl():
+        case MapPatternEntryImpl():
+        case RelationalPatternImpl():
+        case SwitchCaseImpl():
+          return constant;
+        case VariableDeclarationListImpl(:var keyword):
+          return keyword?.keyword == Keyword.CONST ? constant : other;
+        // An explicitly constant expression makes its parts constant.
+        case ConstructorInvocationImpl(keyword: Token(keyword: Keyword.CONST)):
+        case DotShorthandConstructorInvocation2Impl(constKeyword: _?):
+        case RecordLiteralImpl(constKeyword: _?):
+        case TypedLiteralImpl(constKeyword: _?):
+          return constant;
+        case ArgumentListImpl():
+        case ExpressionImpl():
+        case ForElementImpl():
+        case IfElementImpl():
+        case InterpolationExpressionImpl():
+        case MapLiteralEntryImpl():
+        case NamedArgumentImpl():
+        case NullAwareElementImpl():
+        case RecordLiteralNamedFieldImpl():
+        case SpreadElementImpl():
+        case VariableDeclarationImpl():
+          break;
+        default:
+          return other;
+      }
+    }
+    return other;
+  }
+}
+
 /// A lookup in the static members of a class, enum, mixin, extension type,
 /// or extension.
 ///
@@ -509,10 +622,21 @@ final class StaticLookupDomain extends LookupDomain {
   String get _containerName => declaration.displayName;
 
   @override
-  LocatableDiagnostic _readFailure(String name, _FoundInstead foundInstead) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    _FoundInstead foundInstead,
+    ReadPosition position,
+  ) {
     switch (foundInstead) {
       case _FoundNothing():
-        return diag.undefinedStaticMemberReadNotFound.withArguments(
+        var code = switch (position) {
+          ReadPosition.annotation =>
+            diag.undefinedStaticMemberReadNotFoundAnnotation,
+          ReadPosition.constant =>
+            diag.undefinedStaticMemberReadNotFoundConstant,
+          ReadPosition.other => diag.undefinedStaticMemberReadNotFound,
+        };
+        return code.withArguments(
           name: name,
           containerKind: _containerKind,
           containerName: _containerName,
@@ -610,7 +734,11 @@ final class SuperLookupDomain extends LookupDomain {
   SuperLookupDomain(this.type);
 
   @override
-  LocatableDiagnostic _readFailure(String name, _FoundInstead foundInstead) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    _FoundInstead foundInstead,
+    ReadPosition position,
+  ) {
     switch (foundInstead) {
       case _FoundNothing():
         return diag.undefinedSuperMemberReadNotFound.withArguments(
@@ -687,14 +815,23 @@ final class UnqualifiedLookupDomain extends LookupDomain {
   }
 
   @override
-  LocatableDiagnostic _readFailure(String name, _FoundInstead foundInstead) {
+  LocatableDiagnostic _readFailure(
+    String name,
+    _FoundInstead foundInstead,
+    ReadPosition position,
+  ) {
     switch (foundInstead) {
       case _FoundNothing():
       // The lookup doesn't find private names of other libraries.
       case _FoundPrivate():
-        return diag.undefinedUnqualifiedNameReadNotFound.withArguments(
-          name: name,
-        );
+        var code = switch (position) {
+          ReadPosition.annotation =>
+            diag.undefinedUnqualifiedNameReadNotFoundAnnotation,
+          ReadPosition.constant =>
+            diag.undefinedUnqualifiedNameReadNotFoundConstant,
+          ReadPosition.other => diag.undefinedUnqualifiedNameReadNotFound,
+        };
+        return code.withArguments(name: name);
       case _FoundDeclaration():
         // Only a setter, possibly ambiguous, can be found instead of a getter.
         return diag.undefinedUnqualifiedNameReadSetterOnly.withArguments(

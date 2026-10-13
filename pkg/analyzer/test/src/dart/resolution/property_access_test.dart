@@ -1184,7 +1184,7 @@ V1: PropertyAccess
     var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?..foo}) {}
 //          ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
 
     var node = result.findNode.singleFormalParameter;

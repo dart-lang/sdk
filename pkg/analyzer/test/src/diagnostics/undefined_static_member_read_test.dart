@@ -1969,6 +1969,28 @@ V1: PropertyAccess
 ''');
   }
 
+  test_notFound_annotation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+@C.foo
+// ^^^
+// [diag.undefinedStaticMemberReadNotFoundAnnotation] The class 'C' doesn't have a static member or constructor named 'foo'.
+void f() {}
+''');
+  }
+
+  test_notFound_annotation_inExtension() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+
+@E.foo
+// ^^^
+// [diag.undefinedStaticMemberReadNotFoundAnnotation] The extension 'E' doesn't have a static member named 'foo'.
+void f() {}
+''');
+  }
+
   test_notFound_compoundAssignment() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {}
@@ -2094,6 +2116,16 @@ V1: DotShorthandPropertyAccess
     element: <null>
     staticType: InvalidType
   staticType: InvalidType
+''');
+  }
+
+  test_notFound_dotShorthandNameExpression_constant() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+const C x = .foo;
+//           ^^^
+// [diag.undefinedStaticMemberReadNotFoundDotShorthand] The context type 'C' doesn't have a static member or constructor named 'foo'.
 ''');
   }
 
@@ -2541,6 +2573,36 @@ V1: PrefixedIdentifier
     staticType: InvalidType
   element: <null>
   staticType: InvalidType
+''');
+  }
+
+  test_notFound_propertyExtraction_constant() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+const x = C.foo;
+//          ^^^
+// [diag.undefinedStaticMemberReadNotFoundConstant] The class 'C' doesn't have a static member or constructor named 'foo'.
+''');
+  }
+
+  test_notFound_propertyExtraction_constant_inExtension() async {
+    await resolveTestCodeWithDiagnostics(r'''
+extension E on int {}
+
+const x = E.foo;
+//          ^^^
+// [diag.undefinedStaticMemberReadNotFoundConstant] The extension 'E' doesn't have a static member named 'foo'.
+''');
+  }
+
+  test_notFound_propertyExtraction_constant_receiver() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+
+const x = C.foo.bar;
+//          ^^^
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
 ''');
   }
 

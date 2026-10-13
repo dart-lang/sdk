@@ -17020,6 +17020,50 @@ undefinedPrefixedNameReadNotFound = DiagnosticWithArguments(
 
 /// Parameters:
 /// String name: the name of the declaration
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameReadNotFoundAnnotation = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_read',
+  problemMessage:
+      "The name '{0}' isn't defined in the libraries imported with the prefix "
+      "'{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of a constant variable, or "
+      "importing the library that defines the constant '{0}' with the prefix "
+      "'{1}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_read_not_found_annotation',
+  withArguments: _withArgumentsUndefinedPrefixedNameReadNotFoundAnnotation,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the declaration
+/// String prefix: the name of the import prefix
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name, required String prefix})
+>
+undefinedPrefixedNameReadNotFoundConstant = DiagnosticWithArguments(
+  name: 'undefined_prefixed_name_read',
+  problemMessage:
+      "The name '{0}' isn't defined in the libraries imported with the prefix "
+      "'{1}'.",
+  correctionMessage:
+      "Try correcting the name to the name of a constant variable, function, "
+      "or type, or importing the library that defines '{0}' with the prefix "
+      "'{1}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_prefixed_name_read_not_found_constant',
+  withArguments: _withArgumentsUndefinedPrefixedNameReadNotFoundConstant,
+  expectedTypes: [ExpectedType.string, ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name of the declaration
 /// Uri libraryUri: the URI of the library that declares the private
 ///                 declaration
 const DiagnosticWithArguments<
@@ -17284,6 +17328,70 @@ undefinedStaticMemberReadNotFound = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_static_member_read_not_found',
   withArguments: _withArgumentsUndefinedStaticMemberReadNotFound,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+/// String expectedKinds: the kinds of declarations that the lookup could have
+///                       found, such as 'static member or constructor'
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+    required String expectedKinds,
+  })
+>
+undefinedStaticMemberReadNotFoundAnnotation = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage: "The {1} '{2}' doesn't have a {3} named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing static constant, "
+      "or defining a static constant named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_not_found_annotation',
+  withArguments: _withArgumentsUndefinedStaticMemberReadNotFoundAnnotation,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
+/// String containerKind: the kind of the declaration, such as 'class' or
+///                       'extension'
+/// String containerName: the name of the declaration
+/// String expectedKinds: the kinds of declarations that the lookup could have
+///                       found, such as 'static member or constructor'
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String containerKind,
+    required String containerName,
+    required String expectedKinds,
+  })
+>
+undefinedStaticMemberReadNotFoundConstant = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage: "The {1} '{2}' doesn't have a {3} named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing static constant or "
+      "static method, or defining a static constant named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_not_found_constant',
+  withArguments: _withArgumentsUndefinedStaticMemberReadNotFoundConstant,
   expectedTypes: [
     ExpectedType.string,
     ExpectedType.string,
@@ -17756,6 +17864,44 @@ undefinedUnqualifiedNameReadNotFound = DiagnosticWithArguments(
   type: DiagnosticType.COMPILE_TIME_ERROR,
   uniqueName: 'undefined_unqualified_name_read_not_found',
   withArguments: _withArgumentsUndefinedUnqualifiedNameReadNotFound,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name that isn't defined
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameReadNotFoundAnnotation = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_read',
+  problemMessage: "Undefined name '{0}' used as an annotation.",
+  correctionMessage:
+      "Try correcting the name to the name of a constant variable, importing "
+      "the library that defines it, or defining a constant variable named "
+      "'{0}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_read_not_found_annotation',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameReadNotFoundAnnotation,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
+/// String name: the name that isn't defined
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+undefinedUnqualifiedNameReadNotFoundConstant = DiagnosticWithArguments(
+  name: 'undefined_unqualified_name_read',
+  problemMessage: "Undefined name '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of a constant variable, function, "
+      "or type, importing the library that defines it, or defining a "
+      "constant variable named '{0}'.",
+  isUnresolvedIdentifier: true,
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_unqualified_name_read_not_found_constant',
+  withArguments: _withArgumentsUndefinedUnqualifiedNameReadNotFoundConstant,
   expectedTypes: [ExpectedType.string],
 );
 
@@ -23179,6 +23325,26 @@ LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadNotFound({
   ]);
 }
 
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadNotFoundAnnotation({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedPrefixedNameReadNotFoundAnnotation,
+    [name, prefix],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadNotFoundConstant({
+  required String name,
+  required String prefix,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedPrefixedNameReadNotFoundConstant,
+    [name, prefix],
+  );
+}
+
 LocatableDiagnostic _withArgumentsUndefinedPrefixedNameReadPrivate({
   required String name,
   required Uri libraryUri,
@@ -23311,6 +23477,30 @@ LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadNotFound({
     containerName,
     expectedKinds,
   ]);
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadNotFoundAnnotation({
+  required String name,
+  required String containerKind,
+  required String containerName,
+  required String expectedKinds,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadNotFoundAnnotation,
+    [name, containerKind, containerName, expectedKinds],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedStaticMemberReadNotFoundConstant({
+  required String name,
+  required String containerKind,
+  required String containerName,
+  required String expectedKinds,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadNotFoundConstant,
+    [name, containerKind, containerName, expectedKinds],
+  );
 }
 
 LocatableDiagnostic
@@ -23535,6 +23725,25 @@ LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameReadNotFound({
   return LocatableDiagnosticImpl(diag.undefinedUnqualifiedNameReadNotFound, [
     name,
   ]);
+}
+
+LocatableDiagnostic
+_withArgumentsUndefinedUnqualifiedNameReadNotFoundAnnotation({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedUnqualifiedNameReadNotFoundAnnotation,
+    [name],
+  );
+}
+
+LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameReadNotFoundConstant({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedUnqualifiedNameReadNotFoundConstant,
+    [name],
+  );
 }
 
 LocatableDiagnostic _withArgumentsUndefinedUnqualifiedNameReadSetterOnly({

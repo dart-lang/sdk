@@ -276,7 +276,7 @@ import 'dart:math' as p;
 
 @p.unresolved
 // ^^^^^^^^^^
-// [diag.undefinedPrefixedNameReadNotFound] The name 'unresolved' isn't defined in the libraries imported with the prefix 'p'.
+// [diag.undefinedPrefixedNameReadNotFoundAnnotation] The name 'unresolved' isn't defined in the libraries imported with the prefix 'p'.
 void f() {}
 ''');
   }
@@ -578,6 +578,29 @@ V1: PrefixedIdentifier
     staticType: InvalidType
   element: <null>
   staticType: InvalidType
+''');
+  }
+
+  test_notFound_propertyExtraction_constant() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+
+const x = p.foo;
+//          ^^^
+// [diag.undefinedPrefixedNameReadNotFoundConstant] The name 'foo' isn't defined in the libraries imported with the prefix 'p'.
+''');
+  }
+
+  test_notFound_propertyExtraction_constant_receiver() async {
+    // A receiver can also be a type.
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+
+const x = p.foo.bar;
+//          ^^^
+// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'p'.
 ''');
   }
 

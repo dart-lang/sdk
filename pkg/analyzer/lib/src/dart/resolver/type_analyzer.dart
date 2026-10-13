@@ -1458,32 +1458,35 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     if (parent is CompilationUnit) {
       return node is ClassDeclaration ||
           node is Directive ||
+          node is EnumDeclaration ||
           node is ExtensionDeclaration ||
+          node is ExtensionTypeDeclaration ||
           node is FunctionDeclaration ||
+          node is MixinDeclaration ||
           node is TopLevelGetterDeclaration ||
           node is TopLevelVariableDeclaration;
     }
 
-    if (parent is ClassBody) {
-      parent = parent.parent2;
+    if (parent is ClassBody || parent is EnumBody) {
+      parent = parent!.parent2;
     }
 
-    if (parent is ClassDeclarationImpl) {
-      enclosingInstanceElement = parent.declaredFragment!.element;
-      return true;
+    // The visit methods of these declarations set only the enclosing
+    // instance element before visiting their members.
+    InstanceElementImpl? enclosingElement = switch (parent) {
+      ClassDeclarationImpl() => parent.declaredFragment!.element,
+      EnumDeclarationImpl() => parent.declaredFragment!.element,
+      ExtensionDeclarationImpl() => parent.declaredFragment!.element,
+      ExtensionTypeDeclarationImpl() => parent.declaredFragment!.element,
+      MixinDeclarationImpl() => parent.declaredFragment!.element,
+      _ => null,
+    };
+    if (enclosingElement == null) {
+      return false;
     }
 
-    if (parent is ExtensionDeclarationImpl) {
-      enclosingInstanceElement = parent.declaredFragment!.element;
-      return true;
-    }
-
-    if (parent is MixinDeclarationImpl) {
-      enclosingInstanceElement = parent.declaredFragment!.element;
-      return true;
-    }
-
-    return false;
+    enclosingInstanceElement = enclosingElement;
+    return true;
   }
 
   /// Pushes an entry onto [_rewriteStack].

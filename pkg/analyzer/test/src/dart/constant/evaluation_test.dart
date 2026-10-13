@@ -592,7 +592,7 @@ bool false
     await resolveTestCodeWithDiagnostics('''
 const v = a == 1;
 //        ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'a'.
 ''');
   }
 
@@ -600,7 +600,7 @@ const v = a == 1;
     await resolveTestCodeWithDiagnostics('''
 const v = 1 == a;
 //             ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'a'.
 ''');
   }
 
@@ -1949,9 +1949,9 @@ class A {
 const bool kIsWeb = identical(0, 0.0);
 const x = kIsWeb ? a : b;
 //                 ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'a'.
 //                     ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'b'.
 ''');
     var result = _topLevelVar(unitResult, 'x');
     assertDartObjectText(result, r'''
@@ -2899,7 +2899,7 @@ test() {
 // [diag.deadCode] Dead code.
   const c = _;
 //          ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name '_'.
   print(c);
 }
 ''');
@@ -4740,7 +4740,7 @@ const c = false && foo;
 //              ^^^^^^
 // [diag.deadCode] Dead code.
 //                 ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
@@ -4798,7 +4798,7 @@ const c = true && a;
     var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = true && foo;
 //                ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
     var result = _topLevelVar(unitResult, 'c');
     assertDartObjectText(result, r'''
@@ -4838,7 +4838,7 @@ const c = d && foo;
 //        ^^^^^^^^
 // [diag.constEvalTypeBool] In constant expressions, operands of this operator must be of type 'bool'.
 //             ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
@@ -4985,7 +4985,7 @@ bool true
     await resolveTestCodeWithDiagnostics(r'''
 const c = a != 3;
 //        ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'a'.
 ''');
   }
 
@@ -4993,7 +4993,7 @@ const c = a != 3;
     await resolveTestCodeWithDiagnostics(r'''
 const c = 2 != a;
 //             ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'a'.
 ''');
   }
 
@@ -5021,7 +5021,7 @@ const c = false || a;
     await resolveTestCodeWithDiagnostics(r'''
 const c = false || foo;
 //                 ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
@@ -5083,7 +5083,7 @@ const c = true || foo;
 //             ^^^^^^
 // [diag.deadCode] Dead code.
 //                ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
@@ -5152,7 +5152,7 @@ const c = 0 ?? foo;
 //          ^^^^^^
 // [diag.deadCode] Dead code.
 //             ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 ''');
   }
@@ -5185,7 +5185,7 @@ class C {}
     await resolveTestCodeWithDiagnostics(r'''
 const c = null ?? foo;
 //                ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
@@ -5321,7 +5321,7 @@ int 0
     var unitResult = await resolveTestCodeWithDiagnostics(r'''
 const c = false ? x : 0;
 //                ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'x'.
 // [diag.deadCode] Dead code.
 ''');
     var result = _topLevelVar(unitResult, 'c');
@@ -5347,7 +5347,7 @@ int 1
     await resolveTestCodeWithDiagnostics(r'''
 const c = true ? 1 : x;
 //                   ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'x'.
 // [diag.deadCode] Dead code.
 ''');
   }
@@ -5357,7 +5357,7 @@ const c = true ? 1 : x;
 final a = 0;
 const c = true ? 1 : x + a;
 //                   ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'x'.
 //                   ^^^^^
 // [diag.deadCode] Dead code.
 //                       ^
@@ -5369,7 +5369,7 @@ const c = true ? 1 : x + a;
     await resolveTestCodeWithDiagnostics(r'''
 const c = true ? x : 0;
 //               ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'x'.
 //                   ^
 // [diag.deadCode] Dead code.
 ''');
@@ -5750,7 +5750,7 @@ const y = B(x);
 //        ^^^^
 // [diag.constEvalTypeString][context 1] In constant expressions, operands of this operator must be of type 'String'.
 //          ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'x'.
 ''');
   }
 
@@ -5787,7 +5787,7 @@ test() {
 //      ^
 // [diag.unusedLocalVariable] The value of the local variable 'c' isn't used.
 //          ^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name '_'.
 }
 ''');
   }

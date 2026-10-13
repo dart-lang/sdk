@@ -817,6 +817,14 @@ AnalysisOptionsWarningCode:
       int f() => [!x!];
       ```
 
+      The following code produces this diagnostic because there's no
+      constant named `deprecatedApi` to use as an annotation:
+
+      ```dart
+      @[!deprecatedApi!]
+      void f() {}
+      ```
+
       #### Common fixes
 
       If the name is misspelled, then correct it:
@@ -828,7 +836,15 @@ AnalysisOptionsWarningCode:
       If the name is declared in a library that isn't imported, then import
       that library.
 
-      If the name isn't declared, then declare it.
+      If the name isn't declared, then declare it. An annotation without
+      arguments, and a constant expression, can use only a constant:
+
+      ```dart
+      const deprecatedApi = 'Use g instead.';
+
+      @deprecatedApi
+      void f() {}
+      ```
 
       If there's only a setter, then add a getter with the same name:
 
@@ -839,6 +855,24 @@ AnalysisOptionsWarningCode:
 
       int f() => x;
       ```
+  undefinedUnqualifiedNameReadNotFoundAnnotation:
+    type: compileTimeError
+    parameters:
+      String name: the name that isn't defined
+    sharedName: undefinedUnqualifiedNameRead
+    problemMessage: "Undefined name '#name' used as an annotation."
+    correctionMessage: "Try correcting the name to the name of a constant variable, importing the library that defines it, or defining a constant variable named '#name'."
+    hasPublishedDocs: false
+    isUnresolvedIdentifier: true
+  undefinedUnqualifiedNameReadNotFoundConstant:
+    type: compileTimeError
+    parameters:
+      String name: the name that isn't defined
+    sharedName: undefinedUnqualifiedNameRead
+    problemMessage: "Undefined name '#name'."
+    correctionMessage: "Try correcting the name to the name of a constant variable, function, or type, importing the library that defines it, or defining a constant variable named '#name'."
+    hasPublishedDocs: false
+    isUnresolvedIdentifier: true
   undefinedUnqualifiedNameReadSetterOnly:
     type: compileTimeError
     parameters:
@@ -19962,6 +19996,26 @@ CompileTimeErrorCode:
 
       If the library has only a setter, then add a getter with the same name
       to that library.
+  undefinedPrefixedNameReadNotFoundAnnotation:
+    type: compileTimeError
+    parameters:
+      String name: the name of the declaration
+      String prefix: the name of the import prefix
+    sharedName: undefinedPrefixedNameRead
+    problemMessage: "The name '#name' isn't defined in the libraries imported with the prefix '#prefix'."
+    correctionMessage: "Try correcting the name to the name of a constant variable, or importing the library that defines the constant '#name' with the prefix '#prefix'."
+    hasPublishedDocs: false
+    isUnresolvedIdentifier: true
+  undefinedPrefixedNameReadNotFoundConstant:
+    type: compileTimeError
+    parameters:
+      String name: the name of the declaration
+      String prefix: the name of the import prefix
+    sharedName: undefinedPrefixedNameRead
+    problemMessage: "The name '#name' isn't defined in the libraries imported with the prefix '#prefix'."
+    correctionMessage: "Try correcting the name to the name of a constant variable, function, or type, or importing the library that defines '#name' with the prefix '#prefix'."
+    hasPublishedDocs: false
+    isUnresolvedIdentifier: true
   undefinedPrefixedNameReadPrivate:
     type: compileTimeError
     parameters:
@@ -20237,6 +20291,28 @@ CompileTimeErrorCode:
       ```
 
       If the member isn't declared, then declare it or remove the reference.
+  undefinedStaticMemberReadNotFoundAnnotation:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      String containerKind: the kind of the declaration, such as 'class' or 'extension'
+      String containerName: the name of the declaration
+      String expectedKinds: the kinds of declarations that the lookup could have found, such as 'static member or constructor'
+    sharedName: undefinedStaticMemberRead
+    problemMessage: "The #containerKind '#containerName' doesn't have a #expectedKinds named '#name'."
+    correctionMessage: "Try correcting the name to the name of an existing static constant, or defining a static constant named '#name'."
+    hasPublishedDocs: false
+  undefinedStaticMemberReadNotFoundConstant:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      String containerKind: the kind of the declaration, such as 'class' or 'extension'
+      String containerName: the name of the declaration
+      String expectedKinds: the kinds of declarations that the lookup could have found, such as 'static member or constructor'
+    sharedName: undefinedStaticMemberRead
+    problemMessage: "The #containerKind '#containerName' doesn't have a #expectedKinds named '#name'."
+    correctionMessage: "Try correcting the name to the name of an existing static constant or static method, or defining a static constant named '#name'."
+    hasPublishedDocs: false
   undefinedStaticMemberReadNotFoundDotShorthand:
     type: compileTimeError
     parameters:

@@ -221,16 +221,21 @@
 
 #### Formatter
 
-The following bug fixes are *not* language versioned and apply also when
-formatting Dart 3.13 code:
+- Enable experiments specified by surrounding `analysis_options.yaml` file when
+  parsing code ([#1886][dart_style #1886]).
 
-- Don't crash when formatting an enum with a primary constructor when trailing
+- Fix crash when formatting an enum with a primary constructor when trailing
   commas are preserved ([#1885][dart_style #1885]).
 
 - Fix missing trailing comma on enum values when an enum has a primary
-  constructor ([#1888][dart_style #1888]).
+  constructor ([#1888][dart_style #1888]). Note that this style change is *not*
+  language-versioned and also applies when formatting Dart 3.13 code.
+
+- Fix crash when attempting to write a line with exactly 128 spaces of
+  indentation.
 
 [dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
+[dart_style #1886]: https://github.com/dart-lang/dart_style/issues/1886
 [dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
 
 #### dart2js

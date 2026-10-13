@@ -19,7 +19,9 @@ class SuperContext {
   static const SuperContext extensionType = SuperContext._('extensionType');
 
   /// An indication that the super reference is in a context in which it is
-  /// invalid because it is not in an instance member.
+  /// invalid because `this` is not available there, such as outside an
+  /// instance member, in a constructor initializer, or in a default value of
+  /// a member.
   static const SuperContext static = SuperContext._('static');
 
   /// An indication that the super reference is in a context in which it is
@@ -36,15 +38,21 @@ class SuperContext {
   /// Return an indication of the context in which the super [reference] is
   /// being used.
   factory SuperContext.of(SuperReference reference) {
+    var inDefaultValue = false;
     for (AstNode? node = reference; node != null; node = node.parent2) {
       if (node is Annotation) {
         return SuperContext.annotation;
-      } else if (node is AnonymousMethodBody &&
-          node.parent2 is AnonymousMethodInvocation &&
-          (node.parent2 as AnonymousMethodInvocation).parameters == null) {
+      } else if (node case AnonymousMethodBody(
+        parent2: AnonymousMethodInvocation(parameters: null),
+      )) {
         return SuperContext.anonymousMethod;
-      } else if (node is ClassDeclaration) {
-        return SuperContext.valid;
+      } else if (node is AnonymousMethodInvocation ||
+          node is FunctionExpression) {
+        inDefaultValue = false;
+      } else if (node is ClassDeclaration ||
+          node is EnumDeclaration ||
+          node is MixinDeclaration) {
+        return inDefaultValue ? SuperContext.static : SuperContext.valid;
       } else if (node is CompilationUnit) {
         return SuperContext.static;
       } else if (node is ConstructorDeclaration) {
@@ -53,8 +61,6 @@ class SuperContext {
         }
       } else if (node is ConstructorInitializer) {
         return SuperContext.static;
-      } else if (node is EnumDeclaration) {
-        return SuperContext.valid;
       } else if (node is ExtensionDeclaration) {
         return SuperContext.extension;
       } else if (node is ExtensionTypeDeclaration) {
@@ -66,12 +72,12 @@ class SuperContext {
         if (node.fields.lateKeyword == null) {
           return SuperContext.static;
         }
+      } else if (node is FormalParameterDefaultClause) {
+        inDefaultValue = true;
       } else if (node is MethodDeclaration) {
         if (node.isStatic) {
           return SuperContext.static;
         }
-      } else if (node is MixinDeclaration) {
-        return SuperContext.valid;
       }
     }
     return SuperContext.static;

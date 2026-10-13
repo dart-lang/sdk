@@ -345,6 +345,7 @@ class PropertyElementResolver with ScopeHelpers {
         hasRead: true,
         hasWrite: false,
         dotShorthandContext: shorthandContext,
+        readPosition: ReadPosition.of(node),
       );
       return _dotShorthandReadResolution(result);
     }
@@ -370,6 +371,7 @@ class PropertyElementResolver with ScopeHelpers {
       nameToken: node.name,
       hasRead: hasRead,
       hasWrite: true,
+      readPosition: ReadPosition.other,
     );
     if (hasRead) {
       var resolution = _propertyReadWriteTargetResult(result);
@@ -396,6 +398,7 @@ class PropertyElementResolver with ScopeHelpers {
       nameToken: node.name,
       hasRead: true,
       hasWrite: false,
+      readPosition: ReadPosition.of(node),
     );
     var element = result.readElementRequested2;
     if (element is ExtensionElement) {
@@ -731,6 +734,7 @@ class PropertyElementResolver with ScopeHelpers {
           name: node.name,
           hasRead: false,
           hasWrite: true,
+          readPosition: ReadPosition.other,
         );
         return _createNamedWriteResolutionWithElement(
               result.writeElementRequested2,
@@ -857,6 +861,7 @@ class PropertyElementResolver with ScopeHelpers {
           name: node.name,
           hasRead: true,
           hasWrite: false,
+          readPosition: ReadPosition.of(node),
         );
         var readElement = result.readElementRequested2;
         var resolution =
@@ -1053,6 +1058,7 @@ class PropertyElementResolver with ScopeHelpers {
             name: node.name,
             hasRead: true,
             hasWrite: true,
+            readPosition: ReadPosition.other,
           ),
         );
       case ExtensionOverride2Impl():
@@ -1075,6 +1081,7 @@ class PropertyElementResolver with ScopeHelpers {
             hasRead: true,
             hasWrite: true,
             dotShorthandContext: null,
+            readPosition: ReadPosition.other,
           );
           return _propertyReadWriteTargetResult(result);
         }
@@ -1265,6 +1272,7 @@ class PropertyElementResolver with ScopeHelpers {
       node: node,
       name: node.name,
       scopeLookupResult: scopeLookupResult,
+      readPosition: ReadPosition.of(node),
     );
     return (
       resolution: readResult.resolution,
@@ -1292,6 +1300,7 @@ class PropertyElementResolver with ScopeHelpers {
       node: node,
       name: node.name,
       scopeLookupResult: scopeLookupResult,
+      readPosition: ReadPosition.other,
     );
     var writeResolution = _resolveUnqualifiedNameWrite(
       node,
@@ -1703,6 +1712,7 @@ class PropertyElementResolver with ScopeHelpers {
     required Token name,
     required bool hasRead,
     required bool hasWrite,
+    required ReadPosition readPosition,
   }) {
     if (receiver.scopeLookupResult case var lookupResult?) {
       reportDeprecatedExportUseGetter(
@@ -1725,6 +1735,7 @@ class PropertyElementResolver with ScopeHelpers {
         hasRead: hasRead,
         hasWrite: hasWrite,
         dotShorthandContext: null,
+        readPosition: readPosition,
       );
     } else if (element is ExtensionElementImpl) {
       return _resolveTargetExtensionElement(
@@ -1732,6 +1743,7 @@ class PropertyElementResolver with ScopeHelpers {
         propertyName: name,
         hasRead: hasRead,
         hasWrite: hasWrite,
+        readPosition: readPosition,
       );
     } else if (element case TypeAliasElement(aliasedType: FunctionType())) {
       if (hasRead) {
@@ -1763,6 +1775,7 @@ class PropertyElementResolver with ScopeHelpers {
     required Token propertyName,
     required bool hasRead,
     required bool hasWrite,
+    required ReadPosition readPosition,
   }) {
     var memberName = propertyName.lexeme;
 
@@ -1789,6 +1802,7 @@ class PropertyElementResolver with ScopeHelpers {
               extension.getMemberForFailedLookup(
                 Name(_definingLibrary.uri, memberName),
               ),
+          position: readPosition,
         );
       }
     }
@@ -1896,6 +1910,7 @@ class PropertyElementResolver with ScopeHelpers {
     required bool hasRead,
     required bool hasWrite,
     required ValidDotShorthandContextResolutionImpl? dotShorthandContext,
+    required ReadPosition readPosition,
   }) {
     if (isCascaded) {
       typeReference = _typeAnalyzer.typeProvider.typeType.element;
@@ -1944,6 +1959,7 @@ class PropertyElementResolver with ScopeHelpers {
               typeReference.getMemberForFailedLookup(
                 Name(_definingLibrary.uri, memberName),
               ),
+          position: readPosition,
         );
       }
     }
@@ -2004,6 +2020,7 @@ class PropertyElementResolver with ScopeHelpers {
     required Token nameToken,
     required bool hasRead,
     required bool hasWrite,
+    required ReadPosition readPosition,
   }) {
     var name = nameToken.lexeme;
     var lookupResult = target.scope.lookup(name);
@@ -2035,6 +2052,7 @@ class PropertyElementResolver with ScopeHelpers {
           foundInstead:
               writeElement ??
               target.scope.getPrivateDeclarationOfImportedLibrary(name),
+          position: readPosition,
         );
       } else if (readElement is MultiplyDefinedElement) {
         // Several imported libraries declare the getter, and none the setter.
@@ -2200,6 +2218,7 @@ class PropertyElementResolver with ScopeHelpers {
     required AstNode node,
     required Token name,
     required ScopeLookupResult scopeLookupResult,
+    required ReadPosition readPosition,
   }) {
     var readLookup =
         LexicalLookup.resolveGetter(scopeLookupResult) ??
@@ -2220,6 +2239,7 @@ class PropertyElementResolver with ScopeHelpers {
           domain: UnqualifiedLookupDomain(),
           name: name,
           foundInstead: readElementRecovery,
+          position: readPosition,
         );
       }
     }

@@ -169,7 +169,7 @@ f() {
   test_notFound_annotation() async {
     await resolveTestCodeWithDiagnostics(r'''
 @unresolved
-// [diag.undefinedUnqualifiedNameReadNotFound][column 2][length 10] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFoundAnnotation][column 2][length 10] Undefined name 'unresolved' used as an annotation.
 void f() {}
 ''');
   }
@@ -185,7 +185,7 @@ void f() {}
   test_notFound_annotation_staticConstOfClass() async {
     await resolveTestCodeWithDiagnostics(r'''
 @foo
-// [diag.undefinedUnqualifiedNameReadNotFound][column 2][length 3] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundAnnotation][column 2][length 3] Undefined name 'foo' used as an annotation.
 class A {
   static const foo = null;
 }
@@ -195,7 +195,7 @@ class A {
   test_notFound_annotation_typeArguments() async {
     await resolveTestCodeWithDiagnostics(r'''
 @unresolved<int>
-// [diag.undefinedUnqualifiedNameReadNotFound][column 2][length 10] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant][column 2][length 10] Undefined name 'unresolved'.
 //             ^
 // [diag.annotationWithTypeArgumentsUninstantiated] An annotation with type arguments must be followed by an argument list.
 void f() {}
@@ -206,7 +206,7 @@ void f() {}
     await resolveTestCodeWithDiagnostics('''
 @Annotation(foo)
 //          ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 class C {
   static void foo() {}
 }
@@ -222,7 +222,7 @@ class Annotation {
     await resolveTestCodeWithDiagnostics('''
 class C<@Annotation(foo) T> {
 //                  ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
   static void foo() {}
 }
 class Annotation {
@@ -235,7 +235,7 @@ class Annotation {
     await resolveTestCodeWithDiagnostics('''
 @Annotation(foo)
 //          ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 extension E on int {
   static void foo() {}
 }
@@ -251,7 +251,7 @@ class Annotation {
     await resolveTestCodeWithDiagnostics('''
 extension E<@Annotation(foo) T> on T {
 //                      ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
   static void foo() {}
 }
 class Annotation {
@@ -264,7 +264,7 @@ class Annotation {
     await resolveTestCodeWithDiagnostics('''
 @Annotation(foo)
 //          ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 mixin M {
   static void foo() {}
 }
@@ -280,7 +280,7 @@ class Annotation {
     await resolveTestCodeWithDiagnostics('''
 mixin M<@Annotation(foo) T> {
 //                  ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
   static void foo() {}
 }
 class Annotation {
@@ -296,7 +296,7 @@ class Annotation {
     await resolveTestCodeWithDiagnostics('''
 class C<@Annotation.function(foo) @Annotation.type(B) T> {
 //                           ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
   static void foo() {}
   static void B() {}
 }
@@ -315,7 +315,7 @@ class Annotation {
     await resolveTestCodeWithDiagnostics('''
 extension E<@Annotation.function(foo) @Annotation.type(B) T> on C {}
 //                               ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 class C {
   static void foo() {}
   static void B() {}
@@ -335,7 +335,7 @@ class Annotation {
     await resolveTestCodeWithDiagnostics('''
 mixin M<@Annotation.function(foo) @Annotation.type(B) T> {
 //                           ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
   static void foo() {}
   static void B() {}
 }
@@ -532,6 +532,18 @@ V1: MethodInvocation
 ''');
   }
 
+  test_notFound_invocation_constant() async {
+    // An invocation is never constant, so no declaration would make it valid,
+    // and that is reported separately.
+    await resolveTestCodeWithDiagnostics(r'''
+const x = foo();
+//        ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+//        ^^^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
+  }
+
   test_notFound_invocation_implicitThis() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -618,6 +630,178 @@ V1: SimpleIdentifier
   token: foo
   element: <null>
   staticType: InvalidType
+''');
+  }
+
+  test_notFound_nameExpression_constant_binaryOperand() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = foo + 1;
+//        ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+''');
+  }
+
+  test_notFound_nameExpression_constant_constantPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Object o) {
+  if (o case foo) {}
+//           ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+}
+''');
+  }
+
+  test_notFound_nameExpression_constant_constructorArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(Object o);
+}
+var a = const A(foo);
+//              ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+''');
+  }
+
+  test_notFound_nameExpression_constant_constructorInitializer() async {
+    // A constructor parameter can also be used in an initializer, so the
+    // initializer is not a position that requires a constant.
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  final Object f;
+  const A() : f = foo;
+//                ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+}
+''');
+  }
+
+  test_notFound_nameExpression_constant_constVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const x = foo;
+//        ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+''');
+
+    var node = result.findNode.singleUnqualifiedNameExpression;
+    assertResolvedNodeText(node, r'''
+UnqualifiedNameExpression
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: SimpleIdentifier
+  token: foo
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
+  test_notFound_nameExpression_constant_defaultValue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f([Object a = foo]) {}
+//                 ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+''');
+  }
+
+  test_notFound_nameExpression_constant_defaultValue_listElement() async {
+    // A default value is not a constant context, so the list literal is not
+    // constant either.
+    await resolveTestCodeWithDiagnostics(r'''
+void f({Object a = [foo]}) {}
+//                 ^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+//                  ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+''');
+  }
+
+  test_notFound_nameExpression_constant_dotShorthandConstructorArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  const A(Object o);
+}
+A a = const .new(foo);
+//               ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+''');
+  }
+
+  test_notFound_nameExpression_constant_enumArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+enum E {
+  v(foo);
+//  ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+  const E(Object o);
+}
+''');
+  }
+
+  test_notFound_nameExpression_constant_interpolation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = '$foo';
+//          ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+''');
+  }
+
+  test_notFound_nameExpression_constant_listElement() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = [foo];
+//         ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+''');
+  }
+
+  test_notFound_nameExpression_constant_mapPatternKey() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(Object o) {
+  if (o case {foo: _}) {}
+//            ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+}
+''');
+  }
+
+  test_notFound_nameExpression_constant_receiver() async {
+    // A receiver can also be a type or an import prefix.
+    await resolveTestCodeWithDiagnostics(r'''
+const x = foo.bar;
+//        ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+''');
+  }
+
+  test_notFound_nameExpression_constant_recordField() async {
+    await resolveTestCodeWithDiagnostics(r'''
+var x = const (foo, 0);
+//             ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+''');
+  }
+
+  test_notFound_nameExpression_constant_relationalPattern() async {
+    await resolveTestCodeWithDiagnostics(r'''
+void f(int o) {
+  if (o case > foo) {}
+//             ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+}
+''');
+  }
+
+  test_notFound_nameExpression_constant_switchCase() async {
+    await resolveTestCodeWithDiagnostics(r'''
+// %before-language-feature: patterns
+void f(Object o) {
+  switch (o) {
+    case foo:
+//       ^^^
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
+      break;
+  }
+}
 ''');
   }
 

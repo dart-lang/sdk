@@ -259,6 +259,175 @@ class C extends S {
 ''');
   }
 
+  test_defaultValue_constructor() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  B([int x = super.foo]);
+//           ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_lateFieldClosure() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  late var f = ([int x = super.foo]) => x;
+//                       ^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+}
+''');
+  }
+
+  test_defaultValue_localFunction() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void m() {
+    void g([int x = super.foo]) {}
+//                  ^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+    g();
+  }
+}
+''');
+  }
+
+  test_defaultValue_method_binaryExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator +(int other) => 0;
+}
+
+class B extends A {
+  void m([int x = super + 1]) {}
+//                ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_method_closureBody() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void m([int Function() f = () => super.foo]) {}
+//                           ^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+//                                 ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_method_closureDefaultValue() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void m([int Function([int]) f = ([int x = super.foo]) => x]) {}
+//                                ^^^^^^^^^^^^^^^^^^^^^^^^^^
+// [diag.nonConstantDefaultValue] The default value of an optional parameter must be constant.
+//                                          ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_method_indexExpression() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int operator [](int index) => 0;
+}
+
+class B extends A {
+  void m([int x = super[0]]) {}
+//                ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_method_methodInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int foo() => 0;
+}
+
+class B extends A {
+  void m([int x = super.foo()]) {}
+//                ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
+  test_defaultValue_method_propertyAccess() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  void m([int x = super.foo]) {}
+//                ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: SuperReference
+    superKeyword: super
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <null>
+  staticType: InvalidType
+V1: PropertyAccess
+  target: SuperExpression
+    superKeyword: super
+    staticType: InvalidType
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_defaultValue_mixin() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class A {
+  int get foo => 0;
+}
+
+mixin M on A {
+  void m([int x = super.foo]) {}
+//                ^^^^^
+// [diag.superInInvalidContext] Invalid context for 'super' invocation.
+}
+''');
+  }
+
   test_factoryConstructor() async {
     await resolveTestCodeWithDiagnostics(r'''
 class A {

@@ -952,7 +952,7 @@ class A {
 
 @A(undefined, 0)
 // ^^^^^^^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'undefined'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'undefined'.
 void f() {}
 ''');
 
@@ -1041,7 +1041,7 @@ class A {
 
 @A(true ? 0 : undefined)
 //            ^^^^^^^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'undefined'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'undefined'.
 // [diag.deadCode] Dead code.
 void f() {}
 ''');
@@ -2969,7 +2969,7 @@ Annotation
   test_value_invalid_undefinedName() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 @undefined
-// [diag.undefinedUnqualifiedNameReadNotFound][column 2][length 9] Undefined name 'undefined'.
+// [diag.undefinedUnqualifiedNameReadNotFoundAnnotation][column 2][length 9] Undefined name 'undefined' used as an annotation.
 void f() {}
 ''');
 

@@ -489,6 +489,17 @@ import 'dart:math';
 void f() {}
 ''');
   }
+
+  Future<void> test_withTopLevelVariable_constant() async {
+    await resolveTestCode('''
+const x = pi;
+''');
+    await assertHasFix('''
+import 'dart:math';
+
+const x = pi;
+''');
+  }
 }
 
 @reflectiveTest

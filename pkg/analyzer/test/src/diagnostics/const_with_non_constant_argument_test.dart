@@ -96,7 +96,7 @@ class A {
 }
 const x = A(foo);
 //          ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
@@ -107,7 +107,7 @@ class A {
 }
 const x = A(a: foo);
 //             ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 

@@ -32,6 +32,16 @@ void f() {
     await assertNoFix();
   }
 
+  Future<void> test_constant() async {
+    await resolveTestCode('''
+void f() {
+  const x = foo;
+  print(x);
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_functionType_named() async {
     await resolveTestCode('''
 typedef MY_FUNCTION(int p);

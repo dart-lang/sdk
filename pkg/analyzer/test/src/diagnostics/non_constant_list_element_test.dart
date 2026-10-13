@@ -106,7 +106,7 @@ var v = const [a + 1];
     await resolveTestCodeWithDiagnostics(r'''
 const x = [foo];
 //         ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
@@ -115,7 +115,7 @@ const x = [foo];
 const c = false;
 const x = [if (c) foo else 0];
 //                ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
@@ -124,7 +124,7 @@ const x = [if (c) foo else 0];
 const c = true;
 const x = [if (c) foo else 0];
 //                ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
@@ -133,7 +133,7 @@ const x = [if (c) foo else 0];
 const c = identical(0, 0.0);
 const x = [if (c) foo else 0];
 //                ^^^
-// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFoundConstant] Undefined name 'foo'.
 ''');
   }
 
