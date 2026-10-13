@@ -261,7 +261,8 @@ class Node {
     if ((flags & kFSEventStreamEventFlagItemModified) != 0) {
       mask |= FileSystemWatcher::kModifyContent;
     }
-    if ((flags & kFSEventStreamEventFlagItemXattrMod) != 0) {
+    if ((flags & (kFSEventStreamEventFlagItemXattrMod |
+                  kFSEventStreamEventFlagItemInodeMetaMod)) != 0) {
       mask |= FileSystemWatcher::kModifyAttribute;
     }
     if ((flags & kFSEventStreamEventFlagItemCreated) != 0) {
