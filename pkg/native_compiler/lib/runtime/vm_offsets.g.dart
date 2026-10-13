@@ -747,7 +747,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Page_kBytesPerCardLog2 => 0x8;
   @override
-  int get Page_kPageMask => -0x80000;
+  int get Page_kPageMask => -0x200000;
   @override
   int get Record_kMaxElements => 0xffff;
   @override
@@ -1824,7 +1824,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Page_kBytesPerCardLog2 => 0x8;
   @override
-  int get Page_kPageMask => -0x80000;
+  int get Page_kPageMask => -0x200000;
   @override
   int get Record_kMaxElements => 0xffff;
   @override

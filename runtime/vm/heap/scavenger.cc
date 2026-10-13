@@ -1975,7 +1975,12 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   }
   SemiSpace* from = Prologue(reason);
 
-  const intptr_t num_tasks = NumScavengeWorkers();
+  intptr_t num_tasks = NumScavengeWorkers();
+  intptr_t max_pages = to_->gc_threshold_in_words() / Page::kPageSizeInWords;
+  ASSERT(max_pages >= 1);
+  if (num_tasks > max_pages) {
+    num_tasks = max_pages;
+  }
 
   ThreadBarrier* barrier = new ThreadBarrier(num_tasks, /*initial=*/1);
   RelaxedAtomic<uintptr_t> num_busy = 0;

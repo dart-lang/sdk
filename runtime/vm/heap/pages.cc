@@ -35,7 +35,7 @@ DEFINE_FLAG(int,
             "The desired maximum percentage of time spent in old gen GC");
 DEFINE_FLAG(int,
             old_gen_growth_rate,
-            280,
+            70,
             "The max number of pages the old generation can grow at a time");
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
