@@ -76,7 +76,6 @@ class ConstructorTearOffResolver {
                 name: typeReference.name,
               ),
               name: name,
-              syntax: ReadSyntax.reference,
               foundInstead: null,
             );
           }

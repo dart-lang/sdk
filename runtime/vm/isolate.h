@@ -76,6 +76,7 @@ class SafepointRwLock;
 class SampleBlock;
 class SampleBlockBuffer;
 class SampleBuffer;
+class Scavenger;
 class SendPort;
 class SerializedObjectBuffer;
 class ServiceIdZone;
@@ -630,6 +631,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   }
 
   // Prepares all threads in an isolate for Garbage Collection.
+  void AbandonRemainingTLABs(Scavenger* new_space);
   void ReleaseStoreBuffers();
   void FlushMarkingStacks();
   void EnableIncrementalBarrier(MarkingStack* old_marking_stack,

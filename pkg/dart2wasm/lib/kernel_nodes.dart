@@ -15,6 +15,7 @@ mixin KernelNodes {
   CoreTypes get coreTypes;
 
   // dart:_internal classes
+  late final Library internalLibrary = index.getLibrary('dart:_internal');
   late final Class symbolClass = index.getClass("dart:_internal", "Symbol");
 
   String get _stringImplClassName =>

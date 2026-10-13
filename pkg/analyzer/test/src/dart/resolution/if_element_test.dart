@@ -240,7 +240,7 @@ void f(Object x) {
     else
       a // error
 //    ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
   ];
 }
 ''');

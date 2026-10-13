@@ -6,6 +6,6 @@ void main() {
   // The `unawaited` function is not exposed by dart:core.
   unawaited;
   // [error column 3, length 9]
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'unawaited'.
 }

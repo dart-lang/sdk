@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary2/combinator.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
@@ -717,6 +718,38 @@ class PrefixScope implements Scope {
       }
     }
     return _parent;
+  }
+
+  /// Returns a top-level declaration named [name] of a library imported into
+  /// this scope or into [parent], if [name] is private, and that library is
+  /// another library than [libraryElement].
+  ///
+  /// This is for reporting a failed [lookup] of [name], which doesn't find
+  /// it, because private names aren't exported.
+  Element? getPrivateDeclarationOfImportedLibrary(String name) {
+    if (!name.isPrivateName) {
+      return null;
+    }
+
+    for (var library in libraries) {
+      if (library == libraryElement) {
+        continue;
+      }
+      var declaration =
+          library.getGetter(name) ??
+          library.getSetter(name) ??
+          library.getTopLevelFunction(name) ??
+          library.getClass(name) ??
+          library.getEnum(name) ??
+          library.getExtension(name) ??
+          library.getExtensionType(name) ??
+          library.getMixin(name) ??
+          library.getTypeAlias(name);
+      if (declaration != null) {
+        return declaration;
+      }
+    }
+    return null;
   }
 
   void importsTrackingDestroy() {

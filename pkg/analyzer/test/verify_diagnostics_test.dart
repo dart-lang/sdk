@@ -148,7 +148,7 @@ class DocumentationValidator {
     // yield_each_in_non_generator (analyzer)
     // - No error range in example
     // - Expected no errors but found 2 (example 0):
-    //   - undefined_identifier (29, 5) Undefined name 'yield'.
+    //   - undefined_unqualified_name_read (29, 5) Undefined name 'yield'.
     //   - body_might_complete_normally (18, 6) The body might complete
     //     normally, causing 'null' to be returned, but the return type,
     //     'Iterable<int>', is a potentially non-nullable type.

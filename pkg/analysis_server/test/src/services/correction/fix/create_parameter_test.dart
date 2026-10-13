@@ -50,6 +50,15 @@ int f(
 ''');
   }
 
+  Future<void> test_invocation() async {
+    await resolveTestCode('''
+void f() {
+  test();
+}
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_method_type() async {
     await resolveTestCode('''
 class A{

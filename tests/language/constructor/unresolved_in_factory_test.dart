@@ -11,7 +11,7 @@ class A {
     // [cfe] A non-null value must be returned since the return type 'A' doesn't allow null.
     foo();
     // [error column 5, length 3]
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_METHOD
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] Method not found: 'foo'.
   }
 }

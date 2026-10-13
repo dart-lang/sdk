@@ -162,6 +162,28 @@ V1: MethodInvocation
 ''');
   }
 
+  test_found_invocation_functionExpressionCall() async {
+    await resolveTestCodeWithDiagnostics(r'''
+main() {
+  (() => null).call();
+}
+''');
+  }
+
+  test_found_invocation_typeLiteralExtension_parenthesized() async {
+    await resolveTestCodeWithDiagnostics('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  (Fn<int>).foo();
+}
+
+extension E on Type {
+  void foo() {}
+}
+''');
+  }
+
   test_found_objectPattern() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -517,7 +539,6 @@ void f(C c) {
   c.foo += 1;
 //  ^^^
 // [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'C'.
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -648,7 +669,6 @@ void f(C c) {
   c.foo ??= 0;
 //  ^^^
 // [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'C'.
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -709,7 +729,6 @@ void f(C c) {
   c.foo++;
 //  ^^^
 // [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type 'C'.
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -928,7 +947,18 @@ void f(int a) {
 //  ^
 // [diag.missingIdentifier] Expected an identifier.
 //   ^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
+}
+''');
+  }
+
+  test_notFound_invocation_syntheticName_parameterReceiver() async {
+    await resolveTestCodeWithDiagnostics(r'''
+print(x) {}
+void f(int p) {
+  p.();
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 ''');
   }
@@ -1894,7 +1924,6 @@ void f(C c) {
   c._foo += 1;
 //  ^^^^
 // [diag.undefinedInstanceMemberReadPrivate] The member '_foo' is declared in 'package:test/a.dart', but private names are visible only in their own library.
-// [diag.undefinedSetter] The setter '_foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -1964,7 +1993,6 @@ void f(C c) {
   c._foo ??= 0;
 //  ^^^^
 // [diag.undefinedInstanceMemberReadPrivate] The member '_foo' is declared in 'package:test/a.dart', but private names are visible only in their own library.
-// [diag.undefinedSetter] The setter '_foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -2031,7 +2059,6 @@ void f(C c) {
   c._foo++;
 //  ^^^^
 // [diag.undefinedInstanceMemberReadPrivate] The member '_foo' is declared in 'package:test/a.dart', but private names are visible only in their own library.
-// [diag.undefinedSetter] The setter '_foo' isn't defined for the type 'C'.
 }
 ''');
 
@@ -2994,6 +3021,50 @@ extension E on C {
 // [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type 'C', but no getter.
   }
 }
+''');
+  }
+
+  test_setterOnly_propertyExtraction_functionType() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension on void Function() {
+  set foo(int _) {}
+//    ^^^
+// [diag.unusedElement] The declaration 'foo' isn't referenced.
+}
+
+void f(void Function() c) {
+  c.foo;
+//  ^^^
+// [diag.undefinedInstanceMemberReadSetterOnly] There's a setter 'foo' for the type 'void Function()', but no getter.
+}
+''');
+
+    var node = result.findNode.singleReceiverPropertyExtraction;
+    assertResolvedNodeText(node, r'''
+ReceiverPropertyExtraction
+  receiver: UnqualifiedNameExpression
+    name: c
+    resolution: VariableReadResolution
+      element: <testLibrary>::@function::f::@formalParameter::c
+      type: void Function()
+    staticType: void Function()
+  operator: .
+  name: foo
+  resolution: InvalidNamedReadResolution
+    recoveryElement: <testLibrary>::@extension::#0::@setter::foo
+  staticType: InvalidType
+V1: PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    element: <testLibrary>::@function::f::@formalParameter::c
+    staticType: void Function()
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@extension::#0::@setter::foo
+    staticType: InvalidType
+  element: <testLibrary>::@extension::#0::@setter::foo
+  staticType: InvalidType
 ''');
   }
 

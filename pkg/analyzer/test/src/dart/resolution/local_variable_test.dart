@@ -167,7 +167,7 @@ f() {
 // [diag.deadCode] Dead code.
   _();
 //^
-// [diag.undefinedFunction] The function '_' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_'.
 }
 ''');
   }

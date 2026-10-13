@@ -2778,9 +2778,9 @@ V1: AssignmentExpression
 void f(int c) {
   a[b] = c;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 }
 ''');
 
@@ -2850,7 +2850,7 @@ void f(int a, int c) {
 // ^^^
 // [diag.undefinedOperator] The operator '[]=' isn't defined for the type 'int'.
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 }
 ''');
 
@@ -2923,7 +2923,7 @@ class A {
 void f(A a, int c) {
   a[b] = c;
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 }
 ''');
 
@@ -3009,7 +3009,7 @@ void f(A a) {
 void f() {
   a[0] += 1;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -4052,7 +4052,7 @@ class C {}
 void f() {
   C = 0;
 //^
-// [diag.assignmentToType] Types can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The class 'C' can't be assigned to.
 }
 ''');
 
@@ -4351,7 +4351,7 @@ class A {
 void f(A a) {
   a.x = 2;
 //  ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'x' for the type 'A', but no setter.
 }
 ''');
 
@@ -4654,7 +4654,7 @@ V1: AssignmentExpression
 void f(int c) {
   a.b = c;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -4715,7 +4715,6 @@ void f(int a, int c) {
   a.b += c;
 //  ^
 // [diag.undefinedInstanceMemberReadNotFound] The member 'b' isn't defined for the type 'int'.
-// [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
 }
 ''');
 
@@ -5681,7 +5680,7 @@ class A {
 void f(A a) {
   (a).x += 2;
 //    ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'A'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'x' for the type 'A', but no setter.
 }
 ''');
 
@@ -6042,7 +6041,7 @@ class A {
 void f(A a) {
   (a).foo ??= () {};
 //    ^^^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'A' can't be assigned to.
 //            ^^^^^
 // [diag.deadCode] Dead code.
 // [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
@@ -6724,7 +6723,7 @@ V1: AssignmentExpression
 void f(({int x}) r) {
   (r).x ??= 0;
 //    ^
-// [diag.undefinedSetter] The setter 'x' isn't defined for the type '({int x})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'x' for the type '({int x})', but no setter.
 //          ^^
 // [diag.deadCode] Dead code.
 //          ^
@@ -6794,7 +6793,6 @@ void f(int a, int c) {
   (a).b += c;
 //    ^
 // [diag.undefinedInstanceMemberReadNotFound] The member 'b' isn't defined for the type 'int'.
-// [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
 }
 ''');
 
@@ -6871,7 +6869,6 @@ void f(({int bar}) r) {
   r.foo += 0;
 //  ^^^
 // [diag.undefinedInstanceMemberReadNotFound] The member 'foo' isn't defined for the type '({int bar})'.
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({int bar})'.
 }
 ''');
 
@@ -6935,7 +6932,7 @@ V1: AssignmentExpression
 void f(({int bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({int bar})'.
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'foo' isn't defined for the type '({int bar})'.
 }
 ''');
 
@@ -7131,7 +7128,7 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'E'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({int bar})', but no setter.
 }
 ''');
 
@@ -7201,7 +7198,7 @@ extension E on ({int bar}) {
 void f(({int bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'foo' in class 'E'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({int bar})', but no setter.
 }
 ''');
 
@@ -7395,7 +7392,7 @@ V1: AssignmentExpression
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7459,7 +7456,7 @@ V1: AssignmentExpression
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7523,7 +7520,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7591,7 +7588,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7655,7 +7652,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7723,7 +7720,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7788,7 +7785,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo += 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7857,7 +7854,7 @@ extension E on ({int foo, String bar}) {
 void f(({int foo, String bar}) r) {
   r.foo = 0;
 //  ^^^
-// [diag.undefinedSetter] The setter 'foo' isn't defined for the type '({String bar, int foo})'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter 'foo' for the type '({String bar, int foo})', but no setter.
 }
 ''');
 
@@ -7918,7 +7915,6 @@ void f((int, String) r) {
   r.$4 += 0;
 //  ^^
 // [diag.undefinedInstanceMemberReadNotFound] The member '$4' isn't defined for the type '(int, String)'.
-// [diag.undefinedSetter] The setter '$4' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -7982,7 +7978,7 @@ V1: AssignmentExpression
 void f((int, String) r) {
   r.$4 = 0;
 //  ^^
-// [diag.undefinedSetter] The setter '$4' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberWriteNotFound] The setter '$4' isn't defined for the type '(int, String)'.
 }
 ''');
 
@@ -8046,7 +8042,7 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$3 += 0;
 //  ^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named '$3' in class 'E'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$3' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8116,7 +8112,7 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$3 = 0;
 //  ^^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named '$3' in class 'E'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$3' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8176,7 +8172,7 @@ V1: AssignmentExpression
 void f((int, String) r) {
   r.$1 += 0;
 //  ^^
-// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$1' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8240,7 +8236,7 @@ V1: AssignmentExpression
 void f((int, String) r) {
   r.$1 = 0;
 //  ^^
-// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$1' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8304,7 +8300,7 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$1 += 0;
 //  ^^
-// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$1' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8372,7 +8368,7 @@ extension E on (int, String) {
 void f((int, String) r) {
   r.$1 = 0;
 //  ^^
-// [diag.undefinedSetter] The setter '$1' isn't defined for the type '(int, String)'.
+// [diag.undefinedInstanceMemberWriteGetterOnly] There's a getter '$1' for the type '(int, String)', but no setter.
 }
 ''');
 
@@ -8819,7 +8815,7 @@ V1: AssignmentExpression
 void f(int c) {
   (a).b = c;
 // ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -8886,7 +8882,7 @@ V1: AssignmentExpression
 void f(int a, int c) {
   (a).b = c;
 //    ^
-// [diag.undefinedSetter] The setter 'b' isn't defined for the type 'int'.
+// [diag.undefinedInstanceMemberWriteNotFound] The setter 'b' isn't defined for the type 'int'.
 }
 ''');
 
@@ -9521,7 +9517,7 @@ class C {
   void f() {
     x = 2;
 //  ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'C'.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
   }
 }
 ''');
@@ -9567,7 +9563,7 @@ class C {
   void f() {
     x = 2;
 //  ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'C'.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
   }
 }
 ''');
@@ -9612,7 +9608,7 @@ int get x => 0;
 void f() {
   x = 2;
 //^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
 }
 ''');
 
@@ -9841,7 +9837,7 @@ void f() {
   const num x = 1;
   x = 2;
 //^
-// [diag.assignmentToConst] Constant variables can't be assigned a value after initialization.
+// [diag.undefinedUnqualifiedNameWriteConst] The constant 'x' can't be assigned to.
 }
 ''');
 
@@ -10306,7 +10302,7 @@ class B extends A {
   void f() {
     x = 2;
 //  ^
-// [diag.assignmentToFinalNoSetter] There isn't a setter named 'x' in class 'B'.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
   }
 }
 ''');
@@ -10358,7 +10354,7 @@ class B extends A {
   void f() {
     x ??= 2;
 //  ^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The method 'x' can't be assigned to.
 //        ^^
 // [diag.deadCode] Dead code.
 //        ^
@@ -10416,7 +10412,7 @@ class B extends A {
   void f() {
     x = 2;
 //  ^
-// [diag.assignmentToMethod] Methods can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The method 'x' can't be assigned to.
   }
 }
 ''');
@@ -10841,7 +10837,7 @@ class B extends A {
   void f() {
     x = 2;
 //  ^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'x', but no setter.
   }
 }
 ''');
@@ -11057,7 +11053,7 @@ void foo(int value) {}
 void f() {
   foo += 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 //    ^^
 // [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function(int)'.
 }
@@ -11108,7 +11104,7 @@ void foo(int value) {}
 void f() {
   foo = 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
 
@@ -11240,7 +11236,7 @@ final num x = 0;
 void f() {
   x = 2;
 //^
-// [diag.assignmentToFinal] 'x' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteFinal] 'x' is final, so it can't be assigned to.
 }
 ''');
 
@@ -11282,7 +11278,7 @@ V1: AssignmentExpression
 void f() {
   int += 3;
 //^^^
-// [diag.assignmentToType] Types can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The class 'int' can't be assigned to.
 }
 ''');
 
@@ -11328,7 +11324,7 @@ V1: AssignmentExpression
 void f() {
   int = 0;
 //^^^
-// [diag.assignmentToType] Types can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The class 'int' can't be assigned to.
 }
 ''');
 
@@ -11370,7 +11366,7 @@ V1: AssignmentExpression
 void f() {
   x += 1;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 }
 ''');
 
@@ -11416,7 +11412,7 @@ V1: AssignmentExpression
 void f(int a) {
   x = a;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameWriteNotFound] Undefined name 'x'.
 }
 ''');
 

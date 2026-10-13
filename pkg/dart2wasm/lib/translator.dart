@@ -3950,6 +3950,12 @@ class DummyValuesCollector {
   }
 }
 
+/// Whether [type] has a trivial dummy value that doesn't require instantiating
+/// a custom heap type.
+bool hasTrivialDummyValue(w.RefType type) {
+  return type.nullable || type.heapType == w.HeapType.extern;
+}
+
 void instantiateDummyValue(
   w.InstructionsBuilder b,
   w.ValueType type,
@@ -3976,6 +3982,11 @@ void instantiateDummyValue(
         w.HeapType heapType = type.heapType;
         if (type.nullable) {
           b.ref_null(heapType.bottomType);
+        } else if (type.heapType == w.HeapType.extern) {
+          b
+            ..i32_const(0)
+            ..i31_new()
+            ..extern_convert_any();
         } else {
           instantiateHeapType(b, heapType);
         }

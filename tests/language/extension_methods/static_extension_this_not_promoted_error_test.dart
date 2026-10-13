@@ -39,7 +39,7 @@ extension on C {
       // [cfe] The getter 'dProp' isn't defined for the type 'C'.
       f(dProp);
       //^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+      // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
       // [cfe] The getter 'dProp' isn't defined for the type 'C'.
     }
   }

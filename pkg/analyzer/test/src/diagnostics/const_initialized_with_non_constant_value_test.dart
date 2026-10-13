@@ -48,6 +48,69 @@ const a = () {};
 ''');
   }
 
+  test_invalidNamedRead_instance() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = 'abc'.lenght;
+//              ^^^^^^
+// [diag.undefinedInstanceMemberReadNotFound] The member 'lenght' isn't defined for the type 'String'.
+''');
+  }
+
+  test_invalidNamedRead_prefixed() async {
+    newFile('$testPackageLibPath/a.dart', '');
+    await resolveTestCodeWithDiagnostics(r'''
+import 'a.dart' as p;
+const x = p.foo;
+//          ^^^
+// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'p'.
+''');
+  }
+
+  test_invalidNamedRead_static() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {}
+const x = C.foo;
+//          ^^^
+// [diag.undefinedStaticMemberReadNotFound] The class 'C' doesn't have a static member or constructor named 'foo'.
+''');
+  }
+
+  test_invalidNamedRead_unqualified() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = foo;
+//        ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+''');
+  }
+
+  test_invalidNamedRead_unqualified_binaryOperand() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = foo + 1;
+//        ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+''');
+  }
+
+  test_invalidType_functionInvocation() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Undefined f() => throw 0;
+// [diag.undefinedClass][column 1][length 9] Undefined class 'Undefined'.
+const x = f();
+//        ^^^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
+  }
+
+  test_invalidType_variable() async {
+    await resolveTestCodeWithDiagnostics(r'''
+Undefined v = throw 0;
+// [diag.undefinedClass][column 1][length 9] Undefined class 'Undefined'.
+const x = v;
+//        ^
+// [diag.constInitializedWithNonConstantValue] Const variables must be initialized with a constant value.
+''');
+  }
+
   test_missingConstInListLiteral() async {
     await resolveTestCodeWithDiagnostics(r'''
 const List L = [0];

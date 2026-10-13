@@ -72,7 +72,7 @@ void f() {
 //  ^
 // [diag.missingIdentifier] Expected an identifier.
 //    ^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unknown'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unknown'.
 }
 
 void g(int a, int b) {}
@@ -4043,7 +4043,7 @@ V1: MethodInvocation
 main() {
   foo(0);
 //^^^
-// [diag.undefinedFunction] The function 'foo' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
@@ -4088,7 +4088,7 @@ import 'dart:math' as math;
 main() {
   math.foo(0);
 //     ^^^
-// [diag.undefinedFunction] The function 'foo' isn't defined.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'math'.
 }
 ''');
 
@@ -4140,7 +4140,7 @@ V1: MethodInvocation
 main() {
   bar.foo(0);
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'bar'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'bar'.
 }
 ''');
 
@@ -4579,7 +4579,7 @@ class C {
   main() {
     foo(0);
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'C'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -4727,7 +4727,7 @@ class B extends A {
   main() {
     _foo(0);
 //  ^^^^
-// [diag.undefinedMethod] The method '_foo' isn't defined for the type 'B'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name '_foo'.
   }
 }
 ''');
@@ -10543,7 +10543,7 @@ V1: MethodInvocation
     var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?.foo()}) {}
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''');
 
     var node = result.findNode.receiverMethodInvocation('?.foo()');
@@ -10587,7 +10587,7 @@ typedef void F({a = b?.foo()});
 //                ^
 // [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 //                  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''');
 
     var node = result.findNode.receiverMethodInvocation('?.foo()');

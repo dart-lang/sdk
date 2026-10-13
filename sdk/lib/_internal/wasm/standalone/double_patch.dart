@@ -26,7 +26,7 @@ class double {
     if (parseResult.isNull) {
       return null;
     } else {
-      return tryParseResultGetDouble(parseResult).toDouble();
+      return tryParseResultGetDouble(parseResult!).toDouble();
     }
   }
 }

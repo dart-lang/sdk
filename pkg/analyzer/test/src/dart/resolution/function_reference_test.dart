@@ -689,7 +689,7 @@ V1: FunctionReference
 bar() {
   a.foo<int>;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -746,7 +746,7 @@ V1: FunctionReference
 bar() {
   a.b.foo<int>;
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 
@@ -1563,7 +1563,7 @@ extension on double {
 // [diag.unusedElement] The declaration 'bar' isn't referenced.
     foo<int>;
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'double'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -5505,7 +5505,7 @@ class A {
   bar() {
     foo<int>;
 //  ^^^
-// [diag.undefinedMethod] The method 'foo' isn't defined for the type 'A'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
   }
 }
 ''');
@@ -7303,7 +7303,7 @@ V1: MethodInvocation
 bar() {
   prefix.foo<int>;
 //^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'prefix'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'prefix'.
 }
 ''');
 
@@ -7601,7 +7601,7 @@ import 'a.dart' as prefix;
 bar() {
   prefix.a.foo<int>;
 //       ^
-// [diag.undefinedPrefixedName] The name 'a' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'a' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
 
@@ -7851,7 +7851,7 @@ V1: FunctionReference
 void bar() {
   foo<int>;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
@@ -8017,7 +8017,7 @@ import 'a.dart' as a;
 void bar() {
   a.foo<int>;
 //  ^^^
-// [diag.undefinedPrefixedName] The name 'foo' is being referenced through the prefix 'a', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'foo' isn't defined in the libraries imported with the prefix 'a'.
 }
 ''');
 

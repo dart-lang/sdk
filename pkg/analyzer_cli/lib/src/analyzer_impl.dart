@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
-import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -243,32 +242,5 @@ class AnalyzerImpl {
       }
     }
     return false;
-  }
-}
-
-/// This [InstrumentationService] prints out information comments to [outSink]
-/// and error messages to [errorSink].
-class StdInstrumentation extends NoopInstrumentationService {
-  @override
-  void logError(String message) {
-    errorSink.writeln(message);
-  }
-
-  @override
-  void logException(
-    dynamic exception, [
-    StackTrace? stackTrace,
-    List<InstrumentationServiceAttachment>? attachments = const [],
-  ]) {
-    errorSink.writeln(exception);
-    errorSink.writeln(stackTrace);
-  }
-
-  @override
-  void logInfo(String message, [Object? exception]) {
-    outSink.writeln(message);
-    if (exception != null) {
-      outSink.writeln(exception);
-    }
   }
 }

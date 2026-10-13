@@ -2585,7 +2585,7 @@ V1: BinaryExpression
 void f() {
   x + 0;
 //^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 }
 ''');
     var node = result.findNode.binaryOperatorInvocation('x + 0');

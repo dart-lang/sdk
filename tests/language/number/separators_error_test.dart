@@ -41,7 +41,7 @@ main() {
   // [cfe] Digit separators ('_') in a number literal can only be placed between two digits.
   // [cfe] Expected ';' after this.
   //    ^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'x00'.
 
   // Doubles.

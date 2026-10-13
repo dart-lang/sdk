@@ -102,6 +102,41 @@ var v = const [a + 1];
 ''');
   }
 
+  test_invalidNamedRead() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const x = [foo];
+//         ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+''');
+  }
+
+  test_invalidNamedRead_ifElement_false() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const c = false;
+const x = [if (c) foo else 0];
+//                ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+''');
+  }
+
+  test_invalidNamedRead_ifElement_true() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const c = true;
+const x = [if (c) foo else 0];
+//                ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+''');
+  }
+
+  test_invalidNamedRead_ifElement_unknown() async {
+    await resolveTestCodeWithDiagnostics(r'''
+const c = identical(0, 0.0);
+const x = [if (c) foo else 0];
+//                ^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
+''');
+  }
+
   test_nonConst_topVar() async {
     await resolveTestCodeWithDiagnostics('''
 final dynamic a = 0;

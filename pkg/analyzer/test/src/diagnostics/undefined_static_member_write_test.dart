@@ -730,6 +730,17 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_found_directAssignment_externalField() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  external static int x;
+}
+void f(int x) {
+  A.x = x;
+}
+''');
+  }
+
   test_found_directAssignment_inEnum() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 enum E {
@@ -956,6 +967,32 @@ V1: AssignmentExpression
   writeType: int
   element: <null>
   staticType: int
+''');
+  }
+
+  test_found_directAssignment_lateFinalField() async {
+    await resolveTestCodeWithDiagnostics(r'''
+abstract class A {
+  static late final int x;
+}
+
+void f() {
+  A.x = 0;
+  A.x += 0;
+  ++A.x;
+  A.x++;
+}
+''');
+  }
+
+  test_found_directAssignment_nullAware() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  static var x;
+}
+f() { A?.x = 1; }
+//     ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 ''');
   }
 

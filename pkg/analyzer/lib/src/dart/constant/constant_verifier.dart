@@ -710,6 +710,15 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     return result;
   }
 
+  /// Returns the nodes in [node] that aren't potentially constant, except
+  /// invalid named reads, which resolution has already reported.
+  List<AstNode> _notPotentiallyConstants(AstNode node) {
+    return getReportableNotPotentiallyConstants(
+      node,
+      featureSet: _currentLibrary.featureSet,
+    ).reportable;
+  }
+
   /// Reports an error to the [_diagnosticReporter].
   ///
   /// If the [error] isn't found in the list, use the given
@@ -718,7 +727,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     InvalidConstant error,
     DiagnosticCode? defaultDiagnosticCode,
   ) {
-    if (error.avoidReporting) {
+    if (error.avoidReporting || error.isInvalidNamedRead) {
       return;
     }
 
@@ -814,10 +823,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   void _reportNotPotentialConstants(AstNode node) {
-    var notPotentiallyConstants = getNotPotentiallyConstants(
-      node,
-      featureSet: _currentLibrary.featureSet,
-    );
+    var notPotentiallyConstants = _notPotentiallyConstants(node);
     if (notPotentiallyConstants.isEmpty) return;
 
     for (var notConst in notPotentiallyConstants) {
@@ -879,6 +885,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
       _evaluationEngine,
       _currentLibrary,
       _diagnosticReporter,
+      reportsInvalidNamedReads: false,
     );
     var result = _evaluationEngine.evaluateAndFormatErrorsInConstructorCall(
       _currentLibrary,
@@ -890,7 +897,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
     );
     switch (result) {
       case InvalidConstant():
-        if (!result.avoidReporting) {
+        if (!result.avoidReporting && !result.isInvalidNamedRead) {
           _diagnosticReporter.report(
             result.locatableDiagnostic.atOffset(
               offset: result.offset,
@@ -963,7 +970,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
             );
             // TODO(kallentu): Report the specific error we got from the
             // evaluator to make it clear to the user what's wrong.
-            if (result is! DartObjectImpl) {
+            if (result case InvalidConstant(isInvalidNamedRead: false)) {
               _diagnosticReporter.report(
                 diag.constConstructorWithFieldInitializedByNonConst
                     .withArguments(fieldName: variableDeclaration.name.lexeme)
@@ -998,10 +1005,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
             continue;
           }
 
-          var notPotentiallyConstants = getNotPotentiallyConstants(
-            initializer,
-            featureSet: _currentLibrary.featureSet,
-          );
+          var notPotentiallyConstants = _notPotentiallyConstants(initializer);
           if (notPotentiallyConstants.isNotEmpty) {
             _diagnosticReporter.report(
               diag.constConstructorWithFieldInitializedByNonConst
@@ -1353,10 +1357,7 @@ class _ConstLiteralVerifier {
 
   /// Returns whether the [node] is a potential constant.
   bool _reportNotPotentialConstants(AstNode node) {
-    var notPotentiallyConstants = getNotPotentiallyConstants(
-      node,
-      featureSet: verifier._currentLibrary.featureSet,
-    );
+    var notPotentiallyConstants = verifier._notPotentiallyConstants(node);
     if (notPotentiallyConstants.isEmpty) return true;
 
     for (var notConst in notPotentiallyConstants) {

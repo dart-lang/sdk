@@ -12,6 +12,6 @@ import 'dart:collection' as col;
 main() {
   col.foobar(1234567);
   //  ^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_FUNCTION
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_PREFIXED_NAME_READ
   // [cfe] Method not found: 'foobar'.
 }

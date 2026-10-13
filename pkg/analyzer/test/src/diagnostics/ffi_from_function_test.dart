@@ -54,7 +54,7 @@ int f(int x) => x;
 void main() {
   Pointer.fromFunction<Int32 Function(Int32)>(f, undefinedConst);
 //                                               ^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'undefinedConst'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'undefinedConst'.
 // [diag.mustBeASubtype] The type 'InvalidType' must be a subtype of 'Int32' for 'fromFunction'.
 // [diag.argumentMustBeAConstant] Argument 'exceptionalReturn' must be a constant.
 }
@@ -80,7 +80,7 @@ import 'dart:ffi';
 void main() {
   Pointer.fromFunction<Void Function()>(undefinedFn);
 //                                      ^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'undefinedFn'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'undefinedFn'.
 // [diag.mustBeASubtype] The type 'InvalidType' must be a subtype of 'Void Function()' for 'fromFunction'.
 }
 ''');

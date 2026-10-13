@@ -1114,7 +1114,7 @@ V1: PropertyAccess
     var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?.foo}) {}
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''');
 
     var node = result.findNode.singleReceiverPropertyExtraction;
@@ -1150,7 +1150,7 @@ typedef void F({a = b?.foo});
 //                ^
 // [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 //                  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''');
 
     var node = result.findNode.singleReceiverPropertyExtraction;
@@ -1184,7 +1184,7 @@ V1: PropertyAccess
     var result = await resolveTestCodeWithDiagnostics('''
 void f({a = b?..foo}) {}
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''');
 
     var node = result.findNode.singleFormalParameter;
@@ -4615,7 +4615,7 @@ V1: PropertyAccess
 void f() {
   (a).foo;
 // ^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 

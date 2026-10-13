@@ -34,6 +34,7 @@ class ThreadRegistry {
                            ValidationPolicy validate_frames);
 
   void ForEachThread(std::function<void(Thread* thread)> callback);
+  void AbandonRemainingTLABs(Scavenger* new_space);
   void ReleaseStoreBuffers();
   void AcquireMarkingStacks();
   void ReleaseMarkingStacks();

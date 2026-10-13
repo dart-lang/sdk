@@ -222,6 +222,16 @@ extension DartPatternExtension on DartPattern {
 }
 
 extension ExpressionExtension on Expression {
+  /// Whether this expression is a named read whose resolution failed, such as
+  /// an undefined name.
+  ///
+  /// Resolution reports every such read, at the name or at its root cause.
+  bool get isInvalidNamedRead {
+    var self = this;
+    return self is NameExpression &&
+        self.resolution is InvalidNamedReadResolution;
+  }
+
   /// Return the static type of this expression.
   ///
   /// This accessor should be used on expressions that are expected to

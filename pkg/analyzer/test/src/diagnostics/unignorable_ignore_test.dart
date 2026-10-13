@@ -40,7 +40,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 //                  ^^^^^^^^^^^^^^^^^^^^
 // [diag.unignorableIgnore] The diagnostic 'undefined_annotation' can't be ignored.
 @x int a = 0;
-// [diag.undefinedIdentifier][column 2][length 1] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound][column 2][length 1] Undefined name 'x'.
 ''');
   }
 
@@ -53,7 +53,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 //                  ^^^^^^^^^^^^^^^^^^^^
 // [diag.unignorableIgnore] The diagnostic 'undefined_annotation' can't be ignored.
 @x int a = 0;
-// [diag.undefinedIdentifier][column 2][length 1] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound][column 2][length 1] Undefined name 'x'.
 ''');
   }
 
@@ -66,7 +66,7 @@ class UnignorableIgnoreTest extends PubPackageResolutionTest
 //         ^^^^^^^^^^^^^^^^^^^^
 // [diag.unignorableIgnore] The diagnostic 'undefined_annotation' can't be ignored.
 @x int a = 0;
-// [diag.undefinedIdentifier][column 2][length 1] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound][column 2][length 1] Undefined name 'x'.
 ''');
   }
 

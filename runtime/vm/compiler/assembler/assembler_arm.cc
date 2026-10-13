@@ -3662,7 +3662,6 @@ void Assembler::TryAllocateObject(intptr_t cid,
     cmp(IP, Operand(instance_reg));
     // fail if heap end unsigned less than or equal to new heap top.
     b(failure, LS);
-    CheckAllocationCanary(instance_reg, temp_reg);
 
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the
@@ -3705,7 +3704,6 @@ void Assembler::TryAllocateArray(intptr_t cid,
     ldr(temp2, Address(THR, target::Thread::end_offset()));
     cmp(end_address, Operand(temp2));
     b(failure, CS);
-    CheckAllocationCanary(instance, temp2);
 
     // If this allocation is traced, program will jump to failure path
     // (i.e. the allocation stub) which will allocate the object and trace the

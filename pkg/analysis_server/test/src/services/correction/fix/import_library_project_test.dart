@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -618,6 +617,29 @@ void f() {
 ''');
   }
 
+  Future<void> test_prefixed_constant_prefixDefined() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+const value = 0;
+''');
+    newFile('$testPackageLibPath/other.dart', '');
+    await resolveTestCode('''
+import 'other.dart' as lib;
+
+void f() {
+  lib.value;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as lib;
+
+import 'other.dart' as lib;
+
+void f() {
+  lib.value;
+}
+''');
+  }
+
   Future<void> test_prefixed_extension_constructor() async {
     newFile('$testPackageLibPath/lib.dart', '''
 extension A on int {}
@@ -629,6 +651,29 @@ void f(int i) {
 ''');
     await assertHasFix('''
 import 'package:test/lib.dart' as prefix;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+  }
+
+  Future<void> test_prefixed_extension_constructor_prefixDefined() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension A on int {}
+''');
+    newFile('$testPackageLibPath/other.dart', '');
+    await resolveTestCode('''
+import 'other.dart' as prefix;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix;
+
+import 'other.dart' as prefix;
 
 void f(int i) {
   prefix.A(i);
@@ -668,6 +713,29 @@ void f(int i) {
 ''');
   }
 
+  Future<void> test_prefixed_extensionType_constructor_prefixDefined() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+extension type A(int _) {}
+''');
+    newFile('$testPackageLibPath/other.dart', '');
+    await resolveTestCode('''
+import 'other.dart' as prefix;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix;
+
+import 'other.dart' as prefix;
+
+void f(int i) {
+  prefix.A(i);
+}
+''');
+  }
+
   Future<void> test_prefixed_function() async {
     newFile('$testPackageLibPath/lib.dart', '''
 void foo() {}
@@ -682,6 +750,52 @@ import 'package:test/lib.dart' as prefix;
 
 void f() {
   prefix.foo();
+}
+''');
+  }
+
+  Future<void> test_prefixed_function_prefixDefined() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+void foo() {}
+''');
+    newFile('$testPackageLibPath/other.dart', '');
+    await resolveTestCode('''
+import 'other.dart' as prefix;
+
+void f() {
+  prefix.foo();
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix;
+
+import 'other.dart' as prefix;
+
+void f() {
+  prefix.foo();
+}
+''');
+  }
+
+  Future<void> test_prefixed_function_tearOff_prefixDefined() async {
+    newFile('$testPackageLibPath/lib.dart', '''
+void foo() {}
+''');
+    newFile('$testPackageLibPath/other.dart', '');
+    await resolveTestCode('''
+import 'other.dart' as prefix;
+
+void f() {
+  prefix.foo;
+}
+''');
+    await assertHasFix('''
+import 'package:test/lib.dart' as prefix;
+
+import 'other.dart' as prefix;
+
+void f() {
+  prefix.foo;
 }
 ''');
   }
@@ -1252,7 +1366,7 @@ import 'package:$foo/foo.dart';
 void f() {
   Test();
 }
-''', filter: (e) => e.diagnosticCode == diag.undefinedFunction);
+''', filter: (e) => e.offset == testCode.indexOf('Test()'));
   }
 
   Future<void> test_lib() async {

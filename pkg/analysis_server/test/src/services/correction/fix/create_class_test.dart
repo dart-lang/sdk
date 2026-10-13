@@ -477,7 +477,7 @@ class Test {
 }
 ''',
       filter: (e) {
-        return e.diagnosticCode == diag.undefinedFunction;
+        return e.diagnosticCode == diag.undefinedUnqualifiedNameReadNotFound;
       },
     );
   }
@@ -556,8 +556,7 @@ class MyAnnotation {
 @MyAnnotation(int, const [Test])
 void f() {}
 ''');
-    await assertHasFix(
-      '''
+    await assertHasFix('''
 class MyAnnotation {
   const MyAnnotation(a, b);
 }
@@ -566,11 +565,7 @@ void f() {}
 
 class Test {
 }
-''',
-      filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier;
-      },
-    );
+''');
     assertLinkedGroup(change.linkedEditGroups[0], ['Test])', 'Test {']);
   }
 

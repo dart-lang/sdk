@@ -16,7 +16,6 @@ void main() {
 
   const constColor = .blue;
   //                 ^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                  ^
   // [cfe] No type was provided to find the dot shorthand 'blue'.
@@ -29,7 +28,6 @@ void main() {
 
   const constInteger = .one;
   //                   ^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
   // [analyzer] COMPILE_TIME_ERROR.DOT_SHORTHAND_MISSING_CONTEXT
   //                    ^
   // [cfe] No type was provided to find the dot shorthand 'one'.

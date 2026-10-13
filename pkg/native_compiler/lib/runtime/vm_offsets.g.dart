@@ -987,7 +987,7 @@ final class Arm64VMOffsets extends VMOffsets {
   @override
   int get Page_card_table_offset => 0x20;
   @override
-  int get Page_survivor_end_offset => 0x48;
+  int get Page_survivor_end_offset => 0x40;
   @override
   int get CallSiteData_arguments_descriptor_offset => 0x10;
   @override
@@ -2062,7 +2062,7 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   @override
   int get Page_card_table_offset => 0x20;
   @override
-  int get Page_survivor_end_offset => 0x48;
+  int get Page_survivor_end_offset => 0x40;
   @override
   int get CallSiteData_arguments_descriptor_offset => 0x10;
   @override

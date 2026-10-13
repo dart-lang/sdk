@@ -815,7 +815,7 @@ V1: PrefixExpression
 void f() {
   ++x;
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 }
 ''');
 
@@ -1110,7 +1110,7 @@ V1: PrefixExpression
 void f() {
   ++int;
 //  ^^^
-// [diag.assignmentToType] Types can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The class 'int' can't be assigned to.
 }
 ''');
 

@@ -109,7 +109,6 @@ class ConstructorInvocationResolver {
           name: typeReference.name,
         ),
         name: selector.name2,
-        syntax: ReadSyntax.invocation,
         foundInstead: null,
       );
     }

@@ -252,7 +252,8 @@ void f(A a1) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier &&
+        return error.diagnosticCode ==
+                diag.undefinedUnqualifiedNameReadNotFound &&
             testCode.indexOf('E.') == error.offset;
       },
     );
@@ -264,7 +265,8 @@ void f(A a1) {
 }
 ''',
       filter: (error) {
-        return error.diagnosticCode == diag.undefinedIdentifier &&
+        return error.diagnosticCode ==
+                diag.undefinedUnqualifiedNameReadNotFound &&
             testCode.indexOf("a')") == error.offset;
       },
     );

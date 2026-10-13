@@ -204,7 +204,7 @@ V1: MethodInvocation
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f({a = b?[0]}) {}
 //          ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''');
 
     // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49101
@@ -249,7 +249,7 @@ typedef void F({a = b?[0]});
 //                ^
 // [diag.defaultValueInFunctionType] Parameters in a function type can't have default values.
 //                  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 ''');
 
     var node = result.findNode.receiverIndexExpression('[0]');
@@ -504,7 +504,7 @@ V1: IndexExpression
 void f(List<int> a) {
   a[b];
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'b'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'b'.
 }
 ''');
 
@@ -1131,7 +1131,7 @@ V1: IndexExpression
 void f() {
   a[0];
 //^
-// [diag.undefinedIdentifier] Undefined name 'a'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'a'.
 }
 ''');
 

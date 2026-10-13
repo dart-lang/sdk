@@ -376,7 +376,7 @@ f() async {
 ''',
       [
         // No lint
-        error(diag.undefinedIdentifier, 59, 3),
+        error(diag.undefinedUnqualifiedNameReadNotFound, 59, 3),
       ],
     );
   }

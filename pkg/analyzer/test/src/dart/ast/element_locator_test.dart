@@ -1256,7 +1256,7 @@ void foo() {}
 void f() {
   foo = 0;
 //^^^
-// [diag.assignmentToFunction] Functions can't be assigned a value.
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
 }
 ''');
     var node = result.findNode.directAssignment('foo = 0').target;
@@ -1413,7 +1413,7 @@ int get foo => 0;
 void f() {
   for (foo in <int>[]) {}
 //     ^^^
-// [diag.assignmentToFinal] 'foo' can't be used as a setter because it's final.
+// [diag.undefinedUnqualifiedNameWriteGetterOnly] There's a getter 'foo', but no setter.
 }
 ''');
     var node = result.findNode.singleForEachPartsWithIdentifier.target;
@@ -1578,7 +1578,7 @@ import 'a.dart' as p;
 void f() {
   p.value;
 //  ^^^^^
-// [diag.undefinedPrefixedName] The name 'value' is being referenced through the prefix 'p', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadSetterOnly] There's a setter 'value' in the libraries imported with the prefix 'p', but no getter.
 }
 ''');
     var node = result.findNode.importPrefixedNameExpression('p.value');
@@ -2029,7 +2029,7 @@ set foo(int _) {}
 void f() {
   foo;
 //^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadSetterOnly] There's a setter 'foo', but no getter.
 }
 ''');
     var node = result.findNode.singleUnqualifiedNameExpression;

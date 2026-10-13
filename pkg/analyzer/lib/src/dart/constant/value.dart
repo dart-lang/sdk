@@ -2493,6 +2493,15 @@ class InvalidConstant implements Constant {
   /// Whether the constant evaluation encounters an unresolved expression.
   final bool isUnresolved;
 
+  /// Whether this error is for a named read that resolution has already
+  /// reported as invalid, such as an undefined name.
+  ///
+  /// Diagnostics that say that the expression isn't constant would only
+  /// repeat that report, so the constant verifier doesn't report them. The
+  /// evaluator still reports them to its own diagnostic reporter, because
+  /// clients read them from [ElementAnnotation.constantEvaluationErrors].
+  final bool isInvalidNamedRead;
+
   /// Creates a duplicate instance of [other], with a different [entity].
   factory InvalidConstant.copyWithEntity({
     required InvalidConstant other,
@@ -2503,6 +2512,7 @@ class InvalidConstant implements Constant {
       locatableDiagnostic: other.locatableDiagnostic,
       avoidReporting: other.avoidReporting,
       isUnresolved: other.isUnresolved,
+      isInvalidNamedRead: other.isInvalidNamedRead,
       isRuntimeException: other.isRuntimeException,
     );
   }
@@ -2530,6 +2540,7 @@ class InvalidConstant implements Constant {
     required LocatableDiagnostic locatableDiagnostic,
     bool avoidReporting = false,
     bool isUnresolved = false,
+    bool isInvalidNamedRead = false,
     bool isRuntimeException = false,
   }) : this._(
          offset: entity.offset,
@@ -2537,6 +2548,7 @@ class InvalidConstant implements Constant {
          locatableDiagnostic: locatableDiagnostic,
          avoidReporting: avoidReporting,
          isUnresolved: isUnresolved,
+         isInvalidNamedRead: isInvalidNamedRead,
          isRuntimeException: isRuntimeException,
        );
 
@@ -2544,6 +2556,7 @@ class InvalidConstant implements Constant {
   factory InvalidConstant.genericError({
     required AstNode node,
     bool isUnresolved = false,
+    bool isInvalidNamedRead = false,
   }) {
     var parent = node.parent2;
     // The value of a named argument is in the argument list too.
@@ -2559,6 +2572,7 @@ class InvalidConstant implements Constant {
           entity: node,
           locatableDiagnostic: diag.constWithNonConstantArgument,
           isUnresolved: isUnresolved,
+          isInvalidNamedRead: isInvalidNamedRead,
         );
       }
     }
@@ -2566,6 +2580,7 @@ class InvalidConstant implements Constant {
       entity: node,
       locatableDiagnostic: diag.invalidConstant,
       isUnresolved: isUnresolved,
+      isInvalidNamedRead: isInvalidNamedRead,
     );
   }
 
@@ -2575,6 +2590,7 @@ class InvalidConstant implements Constant {
     required this.locatableDiagnostic,
     this.avoidReporting = false,
     this.isUnresolved = false,
+    this.isInvalidNamedRead = false,
     this.isRuntimeException = false,
   });
 }

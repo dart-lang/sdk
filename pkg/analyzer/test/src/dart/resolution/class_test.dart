@@ -1590,10 +1590,10 @@ class A {
 //^^^^
 // [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
 //              ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
     y;
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'y'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'y'.
   }
 }
 ''');
@@ -2225,7 +2225,7 @@ FieldDeclaration
 class A(int foo) {
   late var bar = foo;
 //               ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
@@ -2259,7 +2259,7 @@ FieldDeclaration
 class A(int foo) {
   static var bar = foo;
 //                 ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 

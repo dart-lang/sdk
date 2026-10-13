@@ -99,6 +99,8 @@ double intBitsToDouble(int value) {
   return value.toWasmI64().asWasmF64.toDouble();
 }
 
+external WasmExternRef get dummyExternRef;
+
 /// Whether to check bounds in [IndexErrorUtils.checkIndex],
 /// which are  used in list and typed data implementations.
 ///

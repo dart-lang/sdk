@@ -3583,10 +3583,10 @@ var a = new A();
 // Note: it doesn't matter that some of these refer to 'x'.
 var b = new B(x);  // allocations
 //            ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 var c1 = [x];      // list literals
 //        ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
 var c2 = const [];
 var d = <dynamic, dynamic>{'a': 'b'};     // map literals
 var e = new A()..x = 3; // cascades

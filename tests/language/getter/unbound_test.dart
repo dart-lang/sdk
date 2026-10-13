@@ -8,7 +8,7 @@ class A {
   foo() {
     return y;
     //     ^
-    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+    // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
     // [cfe] The getter 'y' isn't defined for the type 'A'.
   }
 }

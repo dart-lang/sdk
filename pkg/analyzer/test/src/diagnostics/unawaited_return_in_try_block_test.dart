@@ -150,7 +150,7 @@ void foo() {
 foo() async {
   return unknown;
 //       ^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unknown'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unknown'.
 }
 ''');
   }

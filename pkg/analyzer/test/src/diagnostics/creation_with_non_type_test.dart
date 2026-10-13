@@ -178,8 +178,8 @@ f() {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
   const UnresolvedClass.named();
-//      ^^^^^^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'UnresolvedClass'.
+//      ^^^^^^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'UnresolvedClass'.
 }
 ''');
   }
@@ -246,8 +246,8 @@ f() {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
   const unresolved.Class<int>();
-//      ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//      ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -257,8 +257,8 @@ f() {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
   const unresolved.Class<int>.named();
-//      ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//      ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -268,8 +268,8 @@ f() {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
   const unresolved.Class.named();
-//      ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//      ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -278,8 +278,8 @@ f() {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
   const unresolved.Class();
-//      ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//      ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -434,7 +434,7 @@ f() {
 f() {
   UnresolvedClass<int>();
 //^^^^^^^^^^^^^^^
-// [diag.undefinedFunction] The function 'UnresolvedClass' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'UnresolvedClass'.
 }
 ''');
   }
@@ -454,7 +454,7 @@ f() {
 f() {
   UnresolvedClass.named();
 //^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'UnresolvedClass'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'UnresolvedClass'.
 }
 ''');
   }
@@ -466,7 +466,7 @@ import 'test.dart' as prefix;
 f() {
   prefix.UnresolvedClass();
 //       ^^^^^^^^^^^^^^^
-// [diag.undefinedFunction] The function 'UnresolvedClass' isn't defined.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'UnresolvedClass' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
   }
@@ -478,7 +478,7 @@ import 'test.dart' as prefix;
 f() {
   prefix.UnresolvedClass<int>();
 //       ^^^^^^^^^^^^^^^
-// [diag.undefinedFunction] The function 'UnresolvedClass' isn't defined.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'UnresolvedClass' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
   }
@@ -502,7 +502,7 @@ import 'test.dart' as prefix;
 f() {
   prefix.UnresolvedClass.named();
 //       ^^^^^^^^^^^^^^^
-// [diag.undefinedPrefixedName] The name 'UnresolvedClass' is being referenced through the prefix 'prefix', but it isn't defined in any of the libraries imported using that prefix.
+// [diag.undefinedPrefixedNameReadNotFound] The name 'UnresolvedClass' isn't defined in the libraries imported with the prefix 'prefix'.
 }
 ''');
   }
@@ -512,7 +512,7 @@ f() {
 f() {
   UnresolvedClass();
 //^^^^^^^^^^^^^^^
-// [diag.undefinedFunction] The function 'UnresolvedClass' isn't defined.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'UnresolvedClass'.
 }
 ''');
   }
@@ -522,7 +522,7 @@ f() {
 f() {
   unresolved.Class<int>();
 //^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -532,7 +532,7 @@ f() {
 f() {
   unresolved.Class<int>.named();
 //^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -542,7 +542,7 @@ f() {
 f() {
   unresolved.Class.named();
 //^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -552,7 +552,7 @@ f() {
 f() {
   unresolved.Class();
 //^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -721,8 +721,8 @@ f() {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
   new UnresolvedClass.named();
-//    ^^^^^^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'UnresolvedClass'.
+//    ^^^^^^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'UnresolvedClass'.
 }
 ''');
   }
@@ -789,8 +789,8 @@ f() {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
   new unresolved.Class<int>();
-//    ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -800,8 +800,8 @@ f() {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
   new unresolved.Class<int>.named();
-//    ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -811,8 +811,8 @@ f() {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
   new unresolved.Class.named();
-//    ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }
@@ -821,8 +821,8 @@ f() {
     await resolveTestCodeWithDiagnostics(r'''
 f() {
   new unresolved.Class();
-//    ^^^^^^^^^^^^^^^^
-// [diag.undefinedIdentifier] Undefined name 'unresolved'.
+//    ^^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'unresolved'.
 }
 ''');
   }

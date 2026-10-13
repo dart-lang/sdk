@@ -19,11 +19,9 @@ class StackTrace {
 }
 
 final class _EmbedderStackTrace implements StackTrace {
-  WasmExternRef? _embedderStackTrace = WasmExternRef.nullRef;
+  final WasmExternRef _embedderStackTrace;
 
-  _EmbedderStackTrace(WasmExternRef? obj) {
-    _embedderStackTrace = obj;
-  }
+  _EmbedderStackTrace(this._embedderStackTrace);
 
   @override
   String toString() {

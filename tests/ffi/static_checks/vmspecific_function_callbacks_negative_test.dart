@@ -15,13 +15,13 @@ double testExceptionalReturn() {
   Pointer.fromFunction<Double Function()>(returnVoid, null);
   //                                      ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'returnVoid'.
   // [cfe] fromFunction expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.
   Pointer.fromFunction<Void Function()>(returnVoid, 0);
   //                                    ^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
-  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_UNQUALIFIED_NAME_READ
   // [cfe] Undefined name 'returnVoid'.
   // [cfe] fromFunction expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.
   Pointer.fromFunction<Double Function()>(testExceptionalReturn, "abc");

@@ -28,6 +28,34 @@ List<AstNode> getNotPotentiallyConstants(
   return collector.nodes;
 }
 
+/// Returns the nodes in [node] that aren't potentially constant, see
+/// [getNotPotentiallyConstants], with invalid named reads set apart.
+///
+/// An invalid named read, such as an undefined name, isn't potentially
+/// constant either, but resolution has already reported it. So, it is not in
+/// `reportable`, and only the first one is returned as
+/// `firstInvalidNamedRead`, for clients that need an error even when
+/// `reportable` is empty.
+({List<AstNode> reportable, Expression? firstInvalidNamedRead})
+getReportableNotPotentiallyConstants(
+  AstNode node, {
+  required FeatureSet featureSet,
+}) {
+  var reportable = <AstNode>[];
+  Expression? firstInvalidNamedRead;
+  for (var notConstant in getNotPotentiallyConstants(
+    node,
+    featureSet: featureSet,
+  )) {
+    if (notConstant is Expression && notConstant.isInvalidNamedRead) {
+      firstInvalidNamedRead ??= notConstant;
+    } else {
+      reportable.add(notConstant);
+    }
+  }
+  return (reportable: reportable, firstInvalidNamedRead: firstInvalidNamedRead);
+}
+
 /// Return `true` if the [node] is a constant type expression.
 bool isConstantTypeExpression(TypeAnnotation node) {
   return _ConstantTypeChecker(potentially: false).check(node);

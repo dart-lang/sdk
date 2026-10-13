@@ -35,17 +35,6 @@ import 'utils.dart';
 
 typedef TestCaseEvent = void Function(TestCase testCase);
 
-typedef CreateTest =
-    void Function(
-      Path filePath,
-      Path originTestPath, {
-      bool? hasSyntaxError,
-      bool? hasCompileError,
-      bool? hasRuntimeError,
-      bool? hasStaticWarning,
-      String? multitestKey,
-    });
-
 typedef VoidFunction = void Function();
 
 /// A TestSuite represents a collection of tests.  It creates a [TestCase]

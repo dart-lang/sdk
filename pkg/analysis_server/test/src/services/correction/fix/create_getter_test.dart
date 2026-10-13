@@ -1017,7 +1017,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1461,7 +1462,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1484,7 +1486,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1507,7 +1510,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1530,7 +1534,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1572,7 +1577,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1595,7 +1601,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1618,7 +1625,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1641,7 +1649,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 
@@ -1664,7 +1673,8 @@ class A {
 }
 ''',
       filter: (diagnostic) =>
-          diagnostic.diagnosticCode == diag.undefinedIdentifier,
+          diagnostic.diagnosticCode ==
+          diag.undefinedUnqualifiedNameReadNotFound,
     );
   }
 

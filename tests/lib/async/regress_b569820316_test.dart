@@ -18,6 +18,7 @@ void main() {
     await testErrorCompletionAfterAwait();
     await testSyncErrorCompletion();
     await testZoneErrorCallback();
+    await testZoneCallbackRegistration();
     asyncEnd();
   }();
 }
@@ -302,4 +303,42 @@ Future<void> testZoneErrorCallback() {
       'caught: intercepted: async boom',
     ], log);
   });
+}
+
+Future<void> testZoneCallbackRegistration() async {
+  int registerCallbackCount = 0;
+  int registerUnaryCallbackCount = 0;
+  int registerBinaryCallbackCount = 0;
+
+  final zone = Zone.current.fork(
+    specification: ZoneSpecification(
+      registerCallback: <R>(self, parent, zone, R Function() f) {
+        registerCallbackCount++;
+        return parent.registerCallback(zone, f);
+      },
+      registerUnaryCallback: <R, T>(self, parent, zone, R Function(T) f) {
+        registerUnaryCallbackCount++;
+        return parent.registerUnaryCallback(zone, f);
+      },
+      registerBinaryCallback:
+          <R, T1, T2>(self, parent, zone, R Function(T1, T2) f) {
+            registerBinaryCallbackCount++;
+            return parent.registerBinaryCallback(zone, f);
+          },
+    ),
+  );
+
+  await zone.run(() async {
+    await null;
+    await Future.value(1);
+    await Future.value(2);
+  });
+
+  // 3 microtasks scheduled in `zone` (`await null` and two `Future.value`
+  // completions), and at most 1 unary + 1 binary continuation callback
+  // registered once for the async closure (dart2js registers a single binary
+  // continuation callback; VM, dart2wasm, and DDC register 1 unary + 1 binary).
+  Expect.equals(3, registerCallbackCount);
+  Expect.isTrue(registerUnaryCallbackCount <= 1);
+  Expect.equals(1, registerBinaryCallbackCount);
 }

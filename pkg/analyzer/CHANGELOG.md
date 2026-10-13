@@ -1,5 +1,7 @@
 ## 14.6.0-dev
 
+* Added the `enabledExperiments` parameter to `AnalysisContextCollection`
+  to override experiments from analysis options files.
 * Fixed a regression in 14.2.0 through 14.5.0, where `analyzer: exclude:`
   patterns from an included options file, such as
   `include: package:my_lints/options.yaml`, were relative to the included
@@ -84,6 +86,69 @@
   such as `foo()` inside a class. Replace `undefined_getter` in `// ignore:`
   comments and in `analysis_options.yaml`, where it is still accepted, but
   has no effect.
+* Writes of instance members, such as `x.foo = v` and `x.foo += 1`, report
+  `undefined_instance_member_write` when neither the static type of the
+  receiver nor an applicable extension has a setter named `foo`. The message
+  says when there is only a getter, including a field of a record, a final
+  field, a method, or a private member of another library. This replaces `undefined_setter`, and
+  `assignment_to_final`, `assignment_to_final_no_setter`, and
+  `assignment_to_method` for instance members; these three are still
+  reported for unqualified names, such as `foo = v` inside a class. A
+  read-write operation, such as `x.foo += 1`, reports only the read when
+  both the read and the write fail. Replace `undefined_setter` in
+  `// ignore:` comments and in `analysis_options.yaml`, where it is still
+  accepted, but has no effect.
+* Names imported with a prefix, such as `p.foo`, report two new diagnostics
+  instead of `undefined_prefixed_name`:
+  * `undefined_prefixed_name_read`, for `p.foo`, `p.foo()`, and the read of
+    `p.foo += 1`, when no library imported with the prefix has a getter,
+    function, variable, or type named `foo`. This replaces
+    `undefined_function` for prefixed invocations. The message says when
+    there is only a setter, or a private declaration of an imported library.
+  * `undefined_prefixed_name_write`, for `p.foo = v`, when no library
+    imported with the prefix has a setter named `foo`. The message says when
+    there is only a getter, a final or constant variable, a function or a
+    type, or a private declaration of an imported library. Before, all of
+    these reported that `foo` isn't defined.
+
+  Replace `undefined_prefixed_name` with the new names in `// ignore:`
+  comments and in `analysis_options.yaml`, where it is still accepted, but
+  has no effect.
+* Names without a qualifier, such as `foo`, `foo()`, and `foo = v`, report
+  two new diagnostics:
+  * `undefined_unqualified_name_read`, for `foo`, `foo()`, `foo<int>`, and
+    the read of `foo += 1`, when no variable, getter, function, method, or
+    type named `foo` is in scope. This replaces `undefined_identifier` for
+    reads, `undefined_function`, and `undefined_method` for invocations
+    without a receiver. The message says when there is only a setter.
+  * `undefined_unqualified_name_write`, for `foo = v`, the write of
+    `foo += 1`, `for (foo in xs)`, and `(foo) = r`, when no setter or
+    variable named `foo` is in scope. This replaces `undefined_identifier`
+    for writes, and `assignment_to_const`, `assignment_to_final`,
+    `assignment_to_final_no_setter`, `assignment_to_function`,
+    `assignment_to_method`, and `assignment_to_type`. The message says when
+    there is only a getter, a final or constant variable, or a function,
+    method, or type.
+
+  An assignment to an erroneously constant instance field, or to an instance
+  field declared in an extension, no longer reports anything at the
+  assignment; the declaration already reports `const_instance_field` or
+  `extension_declares_instance_field`. A read-write operation, such as
+  `foo += 1`, reports only the read when both the read and the write fail.
+
+  Replace the removed names with the new names in `// ignore:` comments and
+  in `analysis_options.yaml`, where they are still accepted, but have no
+  effect.
+* A name in a constant expression whose read is already reported as invalid,
+  such as an undefined name in `const x = foo;`, `const y = [C.foo];`,
+  `const z = 'abc'.lenght;`, or `@A(p.foo)`, no longer also reports that the
+  expression isn't constant, for example
+  `const_initialized_with_non_constant_value`, `non_constant_list_element`,
+  `const_eval_property_access`, or `const_with_non_constant_argument`. The
+  same applies to the initializers of a constant constructor, such as
+  `const A() : f = foo;`, which no longer also reports `invalid_constant`
+  there, or `invalid_constant` at each invocation such as `const A()`.
+  `ElementAnnotation.constantEvaluationErrors` still includes these errors.
 
 ## 14.5.0
 

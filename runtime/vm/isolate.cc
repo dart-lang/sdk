@@ -2794,6 +2794,10 @@ void Isolate::VisitStackPointers(ObjectPointerVisitor* visitor,
   }
 }
 
+void IsolateGroup::AbandonRemainingTLABs(Scavenger* new_space) {
+  thread_registry()->AbandonRemainingTLABs(new_space);
+}
+
 void IsolateGroup::ReleaseStoreBuffers() {
   thread_registry()->ReleaseStoreBuffers();
 }

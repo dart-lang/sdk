@@ -310,6 +310,29 @@ V1: MethodInvocation
 ''');
   }
 
+  test_found_invocation_constructor() async {
+    await resolveTestCodeWithDiagnostics(r'''
+class C {
+  C.m();
+}
+C c = C.m();
+''');
+  }
+
+  test_found_invocation_functionTypeAlias_typeExtension() async {
+    await resolveTestCodeWithDiagnostics('''
+typedef Fn<T> = void Function(T);
+
+void bar() {
+  Fn.foo();
+}
+
+extension E on Type {
+  void foo() {}
+}
+''');
+  }
+
   test_found_invocation_getter() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -361,6 +384,17 @@ V1: FunctionExpressionInvocation
   element: <null>
   staticInvokeType: void Function()
   staticType: void
+''');
+  }
+
+  test_found_invocation_nullAware() async {
+    await resolveTestCodeWithDiagnostics('''
+class A {
+  static void m() {}
+}
+f() { A?.m(); }
+//     ^^
+// [diag.invalidNullAwareOperator] The receiver can't be null, so the null-aware operator '?.' is unnecessary.
 ''');
   }
 

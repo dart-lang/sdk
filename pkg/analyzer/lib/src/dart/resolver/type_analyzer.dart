@@ -1693,7 +1693,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       lookupFailureReporter.reportReadFailure(
         domain: InstanceLookupDomain(receiverType.unwrapTypeView()),
         name: nameToken,
-        syntax: ReadSyntax.reference,
         foundInstead: typePropertyResolver.getMemberForFailedRead(
           result: result,
           receiverType: receiverType.unwrapTypeView(),
@@ -5523,14 +5522,12 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           lookupFailureReporter.reportReadFailure(
             domain: DotShorthandLookupDomain.invalid(shorthandContext),
             name: head.name,
-            syntax: ReadSyntax.invocation,
             foundInstead: null,
           );
         case ValidDotShorthandContextResolutionImpl(:var lookupType):
           lookupFailureReporter.reportReadFailure(
             domain: DotShorthandLookupDomain.declaration(shorthandContext),
             name: head.name,
-            syntax: ReadSyntax.invocation,
             foundInstead:
                 element ??
                 lookupType.element.getMemberForFailedLookup(

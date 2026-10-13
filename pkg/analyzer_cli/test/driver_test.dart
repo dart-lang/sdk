@@ -13,7 +13,6 @@ import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:yaml/yaml.dart';
 
 import 'utils.dart';
 
@@ -217,30 +216,6 @@ class ExitCodesTest extends BaseTest {
 class LinterTest extends BaseTest {
   String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
-  Future<void> test_containsLintRuleEntry() async {
-    var options = _parseOptions('''
-linter:
-  rules:
-    - foo
-        ''');
-    expect(containsLintRuleEntry(options), true);
-    options = _parseOptions('''
-        ''');
-    expect(containsLintRuleEntry(options), false);
-    options = _parseOptions('''
-linter:
-  rules:
-    # - foo
-        ''');
-    expect(containsLintRuleEntry(options), true);
-    options = _parseOptions('''
-linter:
-  # rules:
-    # - foo
-        ''');
-    expect(containsLintRuleEntry(options), false);
-  }
-
   Future<void> test_noLints_lintsDisabled() async {
     await _runLinter_noLintsFlag();
     expect(analysisOptions.lint, isFalse);
@@ -265,11 +240,6 @@ linter:
       bulletToDash(outSink),
       contains('lint - Dependencies not sorted alphabetically.'),
     );
-  }
-
-  YamlMap _parseOptions(String src) {
-    var node = loadYamlNode(src);
-    return node is YamlMap ? node : YamlMap();
   }
 
   Future<void> _runLinter_noLintsFlag() async {
@@ -425,8 +395,8 @@ class OptionsTest extends BaseTest {
     // dead_code: error
     expect(stdout, contains('error - Dead code'));
 
-    // undefined_function: warning
-    expect(stdout, contains("warning - The function 'bar' isn't defined."));
+    // undefined_unqualified_name_read: warning
+    expect(stdout, contains("warning - Undefined name 'bar'."));
 
     expect(outSink.toString(), contains('1 error and 1 warning found.'));
   }

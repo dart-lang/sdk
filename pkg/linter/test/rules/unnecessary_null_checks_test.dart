@@ -352,7 +352,7 @@ f6(int? p) {
 ''',
       [
         // No lint
-        error(diag.undefinedFunction, 22, 1),
+        error(diag.undefinedUnqualifiedNameReadNotFound, 22, 1),
       ],
     );
   }

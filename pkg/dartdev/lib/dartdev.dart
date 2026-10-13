@@ -107,9 +107,9 @@ class DartdevRunner extends CommandRunner<int> {
   final bool? _stdoutHasTerminal;
 
   /// Overrides `io.Platform.environment` when reading the inherited
-  /// `DASH__SUPPRESS_ANALYTICS` and `DASH__TOOL` values, for testing.
-  ///
-  /// This does not affect `isBot()`.
+  /// `DASH__SUPPRESS_ANALYTICS` and `DASH__TOOL` values, when detecting
+  /// whether this is a bot, and when detecting the AI agent executing the
+  /// tool, for testing.
   final Map<String, String>? _environment;
 
   DartdevRunner(
@@ -213,10 +213,18 @@ class DartdevRunner extends CommandRunner<int> {
   Future<int> runCommand(ArgResults topLevelResults) async {
     final stopwatch = Stopwatch()..start();
 
-    // We don't want to run analytics when we're running in a CI environment
-    // unless we're explicitly testing analytics for dartdev.
-    final implicitlySuppressAnalytics = isBot() && !_isAnalyticsTest;
     final environment = _environment ?? io.Platform.environment;
+
+    // The name of the AI coding agent executing the tool, if any.
+    final agentName = AiAgent.detectAgentName(environment);
+
+    // We don't want to run analytics when we're running in a CI environment
+    // unless we're explicitly testing analytics for dartdev, or the tool is
+    // being run by an AI agent.
+    final implicitlySuppressAnalytics =
+        isBot(environment: environment) &&
+        !_isAnalyticsTest &&
+        agentName == null;
     final envSuppressAnalytics =
         environment[DashEnvVar.suppressAnalytics.name] == 'true';
     final suppressAnalytics =
@@ -255,6 +263,7 @@ class DartdevRunner extends CommandRunner<int> {
     // the consent message is shown on this run.
     _unifiedAnalytics ??= createUnifiedAnalytics(
       disableAnalytics: suppressAnalytics,
+      agent: agentName,
     );
 
     // If we have not printed the analytics notification to stdout, the user is

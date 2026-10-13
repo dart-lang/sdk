@@ -28,7 +28,7 @@ void makeObjectWithFinalizer<T>(
 
 /// Triggers garbage collection.
 // Defined in `dart:_internal`.
-// ignore: undefined_identifier
+// ignore: undefined_unqualified_name_read
 void triggerGc() => VMInternalsForTesting.collectAllGarbage();
 
 void Function(String) _namedPrint(String? name) {

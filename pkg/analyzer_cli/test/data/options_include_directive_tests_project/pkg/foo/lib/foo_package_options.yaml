@@ -2,7 +2,7 @@ analyzer:
   strong-mode: true
   errors:
     unused_local_variable: ignore
-    undefined_function: warning
+    undefined_unqualified_name_read: warning
     unnecessary_cast: error
   language:
     enableSuperMixins: true

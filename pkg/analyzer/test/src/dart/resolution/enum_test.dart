@@ -2256,10 +2256,10 @@ enum A/*(bool x, int y)*/ {
 //^^^^
 // [diag.primaryConstructorBodyWithoutDeclaration] A primary constructor body requires a primary constructor declaration.
 //              ^
-// [diag.undefinedIdentifier] Undefined name 'x'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'x'.
     y;
 //  ^
-// [diag.undefinedIdentifier] Undefined name 'y'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'y'.
   }
 }
 ''');
@@ -2471,14 +2471,12 @@ FieldDeclaration
   test_primaryInitializerScope_fieldInitializer_instance_late() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 enum A(int foo) {
-//   ^
-// [diag.constConstructorWithFieldInitializedByNonConst] Can't define the 'const' constructor because the field 'bar' is initialized with a non-constant value.
   v(0);
   late final bar = foo;
 //^^^^
 // [diag.lateFinalFieldWithConstConstructor] Can't have a late final field in a class with a generative const constructor.
 //                 ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 
@@ -2513,7 +2511,7 @@ enum A(int foo) {
   v(0);
   static var bar = foo;
 //                 ^^^
-// [diag.undefinedIdentifier] Undefined name 'foo'.
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'foo'.
 }
 ''');
 

@@ -136,7 +136,8 @@ void f() {
     expect(
       diagnostic.message.asString,
       'Undefined name \'x\'.\n'
-      'Try correcting the name to one that is defined, or defining the name.',
+      "Try importing the library that defines 'x', correcting the name to one "
+      'that is defined, or defining a setter or variable named \'x\'.',
     );
     expect(diagnostic.data, isNull);
   }
@@ -156,7 +157,8 @@ void f() {
     expect(
       diagnostic.message.asString,
       'Undefined name \'x\'.\n'
-      'Try correcting the name to one that is defined, or defining the name.',
+      "Try importing the library that defines 'x', correcting the name to one "
+      'that is defined, or defining a setter or variable named \'x\'.',
     );
     expect(diagnostic.data, isNull);
   }
@@ -189,7 +191,8 @@ void f() => x = 0;
       allOf(
         containsPair(
           'correctionMessage',
-          'Try correcting the name to one that is defined, or defining the name.',
+          "Try importing the library that defines 'x', correcting the name to one "
+              'that is defined, or defining a setter or variable named \'x\'.',
         ),
         containsPair('offset', 12),
         containsPair('length', 1),
@@ -336,7 +339,8 @@ void f() {
     expect(
       diagnostic.message.asString,
       'Undefined name \'x\'.\n'
-      'Try correcting the name to one that is defined, or defining the name.',
+      "Try importing the library that defines 'x', correcting the name to one "
+      'that is defined, or defining a setter or variable named \'x\'.',
     );
   }
 
@@ -770,7 +774,7 @@ void f(dynamic a) => a.foo();
       var diagnostic = diagnostics!.first;
       expect(
         diagnostic.message.asString,
-        contains("The function 'Bad' isn't defined"),
+        contains("Undefined name 'Bad'"),
       );
     }
 
