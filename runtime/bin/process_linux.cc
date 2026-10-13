@@ -138,6 +138,7 @@ class ExitCodeHandler {
     if (running_) {
       return;
     }
+    terminate_done_ = false;
     // Start thread that handles process exits when wait returns.
     Thread::Start("dart:io Process.start", ExitCodeHandlerEntry, 0);
     running_ = true;
@@ -158,10 +159,6 @@ class ExitCodeHandler {
       return;
     }
 
-    // Set terminate_done_ to false, so we can use it as a guard for our
-    // monitor.
-    running_ = false;
-
     // Wake up the [ExitCodeHandler] thread which is blocked on `wait()` (see
     // [ExitCodeHandlerEntry]).
     pid_t wakeup_pid = TEMP_FAILURE_RETRY(fork());
@@ -173,19 +170,18 @@ class ExitCodeHandler {
       FATAL("Failed to create exit-handler wakeup process: %d", errno);
     }
 
+    // Publish the wakeup process while holding the monitor so the handler
+    // cannot inspect it before its pid is recorded. Count it even when there
+    // are no Dart processes left, so the handler enters wait() to reap it.
+    waker_pid_ = wakeup_pid;
+    process_count_++;
     monitor_->Notify();
 
     while (!terminate_done_) {
       monitor_->Wait(Monitor::kNoTimeout);
     }
 
-    // The exit-handler thread normally reaps the wakeup process. If the thread
-    // observed running_ == false before entering wait(), reap it here instead.
-    int status = 0;
-    pid_t result = TEMP_FAILURE_RETRY(waitpid(wakeup_pid, &status, 0));
-    if (result < 0 && errno != ECHILD) {
-      FATAL("Failed to reap exit-handler wakeup process: %d", errno);
-    }
+    running_ = false;
   }
 
  private:
@@ -197,13 +193,8 @@ class ExitCodeHandler {
     while (true) {
       {
         MonitorLocker locker(monitor_);
-        while (running_ && process_count_ == 0) {
+        while (process_count_ == 0) {
           monitor_->Wait(Monitor::kNoTimeout);
-        }
-        if (!running_) {
-          terminate_done_ = true;
-          monitor_->Notify();
-          return;
         }
       }
 
@@ -236,6 +227,17 @@ class ExitCodeHandler {
             MonitorLocker locker(monitor_);
             process_count_--;
           }
+        } else {
+          MonitorLocker locker(monitor_);
+          if (pid == waker_pid_) {
+            // Only this thread reaps the wakeup process. Shutdown completes
+            // after it has been reaped, including when the handler was idle.
+            process_count_--;
+            waker_pid_ = -1;
+            terminate_done_ = true;
+            monitor_->Notify();
+            return;
+          }
         }
       } else if (pid < 0) {
         FATAL("Wait for process exit failed: %d", errno);
@@ -244,6 +246,7 @@ class ExitCodeHandler {
   }
 
   static bool terminate_done_;
+  static pid_t waker_pid_;
   static int process_count_;
   static bool running_;
   static Monitor* monitor_;
@@ -255,6 +258,7 @@ class ExitCodeHandler {
 bool ExitCodeHandler::running_ = false;
 int ExitCodeHandler::process_count_ = 0;
 bool ExitCodeHandler::terminate_done_ = false;
+pid_t ExitCodeHandler::waker_pid_ = -1;
 Monitor* ExitCodeHandler::monitor_ = nullptr;
 
 // Tries to find path relative to the current namespace unless it should be
@@ -1200,6 +1204,7 @@ void ExitCodeHandler::Init() {
   running_ = false;
   process_count_ = 0;
   terminate_done_ = false;
+  waker_pid_ = -1;
   ASSERT(ExitCodeHandler::monitor_ == nullptr);
   ExitCodeHandler::monitor_ = new Monitor();
 }

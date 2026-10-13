@@ -10,8 +10,22 @@ const int _prSetChildSubreaper = 36;
 typedef _PrctlNative = Int32 Function(Int32, IntPtr, IntPtr, IntPtr, IntPtr);
 typedef _Prctl = int Function(int, int, int, int, int);
 
-Future<void> main() async {
+Future<void> main(List<String> args) async {
   if (!Platform.isLinux) {
+    return;
+  }
+
+  if (args.isNotEmpty) {
+    // Reap the last tracked child before shutting down. Exercise both the
+    // transition to an idle handler and a handler already waiting on its
+    // monitor, which must wake up and reap the shutdown child itself.
+    final result = await Process.run("/bin/true", []);
+    if (result.exitCode != 0) {
+      throw StateError("Child failed: ${result.exitCode}");
+    }
+    if (args.single == "idle") {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
     return;
   }
 
@@ -27,6 +41,21 @@ Future<void> main() async {
   );
   try {
     final dart = _dartExecutable();
+    for (final mode in ["immediate", "idle"]) {
+      for (var iteration = 0; iteration < 10; iteration++) {
+        final result = await Process.run(dart, [
+          Platform.script.toFilePath(),
+          mode,
+        ]);
+        if (result.exitCode != 0) {
+          throw StateError(
+            "$mode shutdown failed: ${result.stdout}\n${result.stderr}",
+          );
+        }
+        await _expectNoZombieChildren();
+      }
+    }
+
     final packageDir = Directory.fromUri(tempDir.uri.resolve("package/"))
       ..createSync();
     final binDir = Directory.fromUri(packageDir.uri.resolve("bin/"))
@@ -78,15 +107,19 @@ executables:
     await stdout;
     await stderr;
 
-    for (var attempt = 0; attempt < 100; attempt++) {
-      final zombies = _zombieChildren();
-      if (zombies.isNotEmpty) {
-        throw StateError("Found zombie children: $zombies");
-      }
-      await Future<void>.delayed(const Duration(milliseconds: 1));
-    }
+    await _expectNoZombieChildren();
   } finally {
     tempDir.deleteSync(recursive: true);
+  }
+}
+
+Future<void> _expectNoZombieChildren() async {
+  for (var attempt = 0; attempt < 100; attempt++) {
+    final zombies = _zombieChildren();
+    if (zombies.isNotEmpty) {
+      throw StateError("Found zombie children: $zombies");
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 1));
   }
 }
 
