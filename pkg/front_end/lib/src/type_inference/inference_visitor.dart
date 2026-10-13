@@ -11411,7 +11411,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             new SharedTypeView(node.requiredType),
           );
         case InternalOrPattern():
-          // Coverage-ignore(suite): Not run.
           return analyzeLogicalOrPatternSchema(node.left, node.right);
         case InternalRecordPattern():
           return analyzeRecordPatternSchema(
@@ -12260,7 +12259,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     InvalidExpression? error =
         analysisResult.refutablePatternInIrrefutableContextError;
     if (error != null) {
-      // Coverage-ignore-block(suite): Not run.
       replacement = extern.createInvalidPattern(
         error: error,
         patternVariables: node.patternVariables,

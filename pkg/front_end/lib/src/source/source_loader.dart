@@ -1795,20 +1795,12 @@ severity: $severity
     ticker.logMs("Resolved $count constructors");
   }
 
-  List<DelayedDefaultValueCloner>? installTypedefTearOffs() {
-    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners;
+  void installTypedefTearOffs() {
     if (target.backendTarget.isTypedefTearOffLoweringEnabled) {
       for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-        List<DelayedDefaultValueCloner>? libraryDelayedDefaultValueCloners =
-            library.installTypedefTearOffs();
-        if (libraryDelayedDefaultValueCloners != null) {
-          (delayedDefaultValueCloners ??= []).addAll(
-            libraryDelayedDefaultValueCloners,
-          );
-        }
+        library.installTypedefTearOffs();
       }
     }
-    return delayedDefaultValueCloners;
   }
 
   void finishTypeParameters(
