@@ -13,12 +13,12 @@ Use this skill to find old, outdated issues in the `dart-lang/sdk` repository th
    - Use the GitHub CLI (`gh`) to search for the oldest open issues.
    - Use the label `area-devexp` to identify analysis server issues.
    - Also use label `type-bug` and any other label that the user gives you.
-   - **Exclude Labeled Issues**: Exclude issues already labeled `verified-by-an-agent` or `closed-by-an-agent` by adding `-label:verified-by-an-agent -label:closed-by-an-agent` to the search query.
+   - **Exclude Labeled Issues**: Exclude issues already labeled `verified-by-an-agent` or `closed-by-an-agent` by adding `-label:verified-by-an-agent -label:closed-by-an-agent` to the search query. These labels are the record of which issues have already been investigated; there is no separate tracking file.
    - Sort by creation date (`created-asc`) or last update (`updated-asc`) to find the most likely candidates for being outdated.
-   - Fetch at least 100–150 candidates. The tracking file (see below) already filters out most of the oldest issues, so 50 usually leaves only a handful. Alternating between `created-asc` and `updated-asc` across runs also helps surface new candidates.
+   - Fetch at least 100–150 candidates. Many candidates fail the guardrails in step 2, so 50 usually leaves only a handful. Alternating between `created-asc` and `updated-asc` across runs also helps surface new candidates.
    - Example command (with label): `gh issue list --repo dart-lang/sdk --search "label:area-devexp is:open label:type-bug -label:verified-by-an-agent -label:closed-by-an-agent sort:created-asc" --limit 150 | cat`
    - Example command (without label): `gh issue list --repo dart-lang/sdk --search "label:area-devexp is:open -label:verified-by-an-agent -label:closed-by-an-agent sort:created-asc" --limit 150 | cat`
-   - **Efficiency Filter**: Before investigating, read `references/investigated_issues.txt` (create it if it does not exist). Filter out and skip any candidate issue numbers that are already listed in this file.
+   - **Re-verify Old Verifications**: A `verified-by-an-agent` label only says that the issue reproduced when the comment was posted. Occasionally (for example, when the searches above return few candidates, or when the user asks), also look at labeled issues that haven't been updated for more than a year, using a date one year before today: `gh issue list --repo dart-lang/sdk --search "label:area-devexp is:open label:verified-by-an-agent -label:closed-by-an-agent updated:<YYYY-MM-DD sort:updated-asc" --limit 50 | cat`. Investigate them like any other candidate (step 2). If an issue still reproduces, post a short follow-up comment that names the current SDK and keep the label. If it no longer reproduces, treat it as a closure candidate (steps 3 and 5).
    - **Targeted Sweep for Removed/Deprecated Lints**: In addition to the age-sorted list, search directly for issues about lint rules that no longer exist. This is usually much more productive than working through the oldest issues. List the rules whose `state` is `removed` or `deprecated` in `pkg/linter/tool/machine/rules.json`, then search open issues by each rule name, e.g. `gh issue list --repo dart-lang/sdk --search "is:open label:area-devexp -label:closed-by-an-agent -label:verified-by-an-agent in:title <rule_name>" | cat`. See rationale 7 in `references/rationale_templates.md`.
 
 2. **Investigate Status**:
@@ -65,11 +65,7 @@ Use this skill to find old, outdated issues in the `dart-lang/sdk` repository th
 5. **Execute and Summarize**:
    - **For Approved Closure Candidates**: Use `gh issue close` with the `-c` flag to post the comment and close the issue. Apply the `closed-by-an-agent` label to the issue.
    - **For Approved Still-Valid Issues**: Use `gh issue comment <number> -b "<comment>"` to post the confirmation comment containing the minimal reproduction / test case. Apply the `verified-by-an-agent` label to the issue using `gh issue edit <number> --add-label "verified-by-an-agent"`.
-   - **Update Tracking File**: Append any investigated issue numbers that were determined to be STILL VALID (and thus left open) to `references/investigated_issues.txt`, one issue number per line. Do NOT track closed issues, as they are already filtered out by `is:open`.
-   - **Keep the Tracking File Clean**:
-     - Don't add a number that is already in the file. Remove duplicates when you find them.
-     - When a tracked issue is later fixed and closed (for example through step 6), remove its entry. It helps to do this in one sweep once the fixing CLs have landed, rather than editing the file once per issue.
-     - Edit the file with a file editing tool instead of an ad hoc shell command (`sed`, `>>`), and check the result with `git diff` before finishing.
+   - **Label Every Still-Valid Issue You Leave Open**: The label is how future runs know to skip an issue, so each investigated issue that stays open should get a confirmation comment and the `verified-by-an-agent` label. Don't apply the label without a comment: if the user decides not to post a comment for an issue, leave it unlabeled, and it may come up again on a later run.
    - Provide the user with a clean bulleted list of closed issues and updated/commented valid issues.
 
 6. **Optional: Fix It (only when the user asks)**:
