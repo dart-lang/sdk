@@ -104,8 +104,7 @@ abstract class ConstructorEncoding {
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   });
 
@@ -428,8 +427,7 @@ class RegularConstructorEncoding implements ConstructorEncoding {
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   }) {
     if (!_hasAddedDefaultValueCloners) {
@@ -437,27 +435,13 @@ class RegularConstructorEncoding implements ConstructorEncoding {
       // might be called more than once.
       delayedDefaultValueCloners.add(
         new DelayedDefaultValueCloner(
-          superTarget,
-          _constructor,
-          positionalSuperParameters: positionalSuperParameters ?? const <int>[],
-          namedSuperParameters: namedSuperParameters ?? const <String>[],
+          source: superTarget,
+          target: _constructor,
+          parameterMapping: parameterMapping,
           isOutlineNode: true,
           libraryBuilder: libraryBuilder,
         ),
       );
-      if (_constructorTearOff != null) {
-        delayedDefaultValueCloners.add(
-          new DelayedDefaultValueCloner(
-            superTarget,
-            _constructorTearOff,
-            positionalSuperParameters:
-                positionalSuperParameters ?? const <int>[],
-            namedSuperParameters: namedSuperParameters ?? const <String>[],
-            isOutlineNode: true,
-            libraryBuilder: libraryBuilder,
-          ),
-        );
-      }
       _hasAddedDefaultValueCloners = true;
     }
   }
@@ -826,8 +810,7 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   }) {
     throw new UnsupportedError(

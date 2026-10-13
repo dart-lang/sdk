@@ -5,7 +5,7 @@
 // functionFilter=dartFunction|runTest|JS_Trampoline
 // tableFilter=NoMatch
 // globalFilter=NoMatch
-// typeFilter=NoMatch
+// typeFilter=ImmutableArray
 
 import 'dart:_wasm';
 import 'dart:js_interop';
@@ -18,6 +18,12 @@ void main() {
 void runTest() {
   registerCallback(
     WasmFunction<WasmVoid Function()>.fromFunction(dartFunction),
+  );
+  registerCallbacks(
+    ImmutableWasmArray<WasmFunction<WasmVoid Function()>>.filled(
+      1,
+      WasmFunction.fromFunction(dartFunction),
+    ),
   );
   print(makeJsCallback(jsCallback1));
   print(makeJsCallback(jsCallback2));
@@ -37,6 +43,9 @@ WasmVoid dartFunction() {
 }
 
 @pragma('wasm:import', 'outside.registerCallback')
-external WasmVoid registerCallback(
-  WasmFuncRef /* WasmFunction<WasmVoid Function()> */ callback,
+external WasmVoid registerCallback(WasmFunction<WasmVoid Function()> callback);
+
+@pragma('wasm:import', 'outside.registerCallbacks')
+external WasmVoid registerCallbacks(
+  ImmutableWasmArray<WasmFunction<WasmVoid Function()>> callbacks,
 );

@@ -154,7 +154,7 @@ DelayedDefaultValueCloner buildConstructorTearOffProcedure({
 /// The [declarationConstructor] is the origin constructor and
 /// [implementationConstructor] is the augmentation constructor, if augmented,
 /// otherwise it is the [declarationConstructor].
-DelayedDefaultValueCloner buildTypedefTearOffProcedure({
+void buildTypedefTearOffProcedure({
   required Procedure tearOff,
   required Member declarationConstructor,
   required Member implementationConstructor,
@@ -212,7 +212,7 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure({
       );
     }
   }
-  DelayedDefaultValueCloner delayedDefaultValueCloner = _createParameters(
+  _createParameters(
     tearOff,
     implementationConstructor,
     function,
@@ -223,7 +223,6 @@ DelayedDefaultValueCloner buildTypedefTearOffProcedure({
   _createTearOffBody(tearOff, declarationConstructor, arguments);
   tearOff.function.fileOffset = tearOff.fileOffset;
   tearOff.function.fileEndOffset = tearOff.fileOffset;
-  return delayedDefaultValueCloner;
 }
 
 /// Creates the parameters for the redirecting factory [tearOff] based on the
@@ -259,14 +258,14 @@ FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters({
   return freshTypeParameters;
 }
 
-/// Creates the body for the redirecting factory [tearOff] with the [target]
-/// constructor and [typeArguments].
+/// Creates the body for the redirecting factory [tearOff] with the target
+/// [constructor] and [typeArguments].
 ///
 /// Returns the [DelayedDefaultValueCloner] object need to perform default value
 /// computation.
 DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
   Procedure tearOff,
-  Member target,
+  Member constructor,
   List<DartType> typeArguments,
   FreshTypeParameters freshTypeParameters,
   LibraryBuilder libraryBuilder,
@@ -274,10 +273,10 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
   int fileOffset = tearOff.fileOffset;
 
   List<TypeParameter> typeParameters;
-  if (target is Constructor) {
-    typeParameters = target.enclosingClass.typeParameters;
+  if (constructor is Constructor) {
+    typeParameters = constructor.enclosingClass.typeParameters;
   } else {
-    typeParameters = target.function!.typeParameters;
+    typeParameters = constructor.function!.typeParameters;
   }
 
   if (!freshTypeParameters.substitution.isEmpty) {
@@ -300,11 +299,11 @@ DelayedDefaultValueCloner buildRedirectingFactoryTearOffBody(
     }
   }
   Arguments arguments = _createArguments(tearOff, typeArguments, fileOffset);
-  _createTearOffBody(tearOff, target, arguments);
+  _createTearOffBody(tearOff, constructor, arguments);
   return new DelayedDefaultValueCloner(
-    target,
-    tearOff,
-    identicalSignatures: false,
+    source: constructor,
+    target: tearOff,
+    parameterMapping: const DirectParameterMapping(),
     libraryBuilder: libraryBuilder,
   );
 }
@@ -419,9 +418,9 @@ DelayedDefaultValueCloner _createParameters(
     ),
   );
   return new DelayedDefaultValueCloner(
-    constructor,
-    tearOff,
-    identicalSignatures: true,
+    source: constructor,
+    target: tearOff,
+    parameterMapping: const DirectParameterMapping(),
     libraryBuilder: libraryBuilder,
   );
 }

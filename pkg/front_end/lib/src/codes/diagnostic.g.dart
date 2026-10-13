@@ -12969,7 +12969,7 @@ Message _withArgumentsWasmConstantLaneOutOfRange({
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode wasmExportInvalidPragma = const MessageCode(
   "WasmExportInvalidPragma",
-  problemMessage: """The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions.""",
+  problemMessage: """The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

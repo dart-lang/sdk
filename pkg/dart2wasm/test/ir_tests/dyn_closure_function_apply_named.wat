@@ -61,7 +61,7 @@
     (i32.const 9)
     (i32.const 0)
     (i32.const 1)
-    (i32.const 146)
+    (i32.const 147)
     (global.get $"WasmArray<_Type>[0]")
     (struct.new $_InterfaceType)
     (array.new_fixed $Array<_Type> 2)

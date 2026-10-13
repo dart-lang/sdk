@@ -39,7 +39,7 @@
     (local $var0 (ref $_FunctionType))
     (local $var1 (ref $#Closure-0-1))
     (local $var2 (ref $H0))
-    i32.const 111
+    i32.const 112
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
       global.get $"globalH0Foo tear-off"

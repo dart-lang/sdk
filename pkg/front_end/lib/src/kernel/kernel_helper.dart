@@ -22,21 +22,12 @@ import 'external_ast_helper.dart' as extern;
 /// constructor.
 class DelayedDefaultValueCloner {
   /// The original constructor or procedure.
-  final Member original;
+  final Member _source;
 
   /// The synthesized constructor or procedure.
-  final Member synthesized;
+  final Member _target;
 
-  /// If `true`, the [_synthesized] is guaranteed to have the same parameters in
-  /// the same order as [_original]. Otherwise [_original] is only guaranteed to
-  /// be callable from [_synthesized], meaning that is has at most the same
-  /// number of positional parameters and a, possibly reordered, subset of the
-  /// named parameters.
-  final bool identicalSignatures;
-
-  final List<int?>? _positionalSuperParameters;
-
-  final List<String>? _namedSuperParameters;
+  final ParameterMapping _parameterMapping;
 
   bool isOutlineNode;
 
@@ -48,70 +39,19 @@ class DelayedDefaultValueCloner {
   /// isn't performed twice.
   bool _hasCloned = false;
 
-  new(
-    this.original,
-    this.synthesized, {
-    this.identicalSignatures = true,
-    List<int?>? positionalSuperParameters = null,
-    List<String>? namedSuperParameters = null,
+  new({
+    required this._source,
+    required this._target,
+    required this._parameterMapping,
     this.isOutlineNode = false,
     required LibraryBuilder libraryBuilder,
-  }) : _positionalSuperParameters = positionalSuperParameters,
-       _namedSuperParameters = namedSuperParameters,
-       _libraryBuilder = libraryBuilder,
-       // Check that [positionalSuperParameters] and [namedSuperParameters] are
-       // provided or omitted together.
-       assert(
-         (positionalSuperParameters == null) == (namedSuperParameters == null),
-       ),
-       assert(
-         positionalSuperParameters == null ||
-             () {
-               // Check that [positionalSuperParameters] is sorted if it's
-               // provided. The `null` values are allowed in-between the sorted
-               // values.
-               for (
-                 int i = -1, j = 0;
-                 j < positionalSuperParameters.length;
-                 j++
-               ) {
-                 int? currentValue = positionalSuperParameters[j];
-                 if (currentValue != null) {
-                   if (i == -1 ||
-                       positionalSuperParameters[i]! < currentValue) {
-                     i = j;
-                   } else {
-                     return false;
-                   }
-                 }
-               }
-               return true;
-             }(),
-       ),
-       assert(
-         namedSuperParameters == null ||
-             () {
-               // Check that [namedSuperParameters] are the subset of and in the
-               // same order as the named parameters of [_synthesized].
-               int superParameterIndex = 0;
-               for (
-                 int namedParameterIndex = 0;
-                 namedParameterIndex <
-                         synthesized.function!.namedParameters.length &&
-                     superParameterIndex < namedSuperParameters.length;
-                 namedParameterIndex++
-               ) {
-                 if (synthesized
-                         .function!
-                         .namedParameters[namedParameterIndex]
-                         .parameterName ==
-                     namedSuperParameters[superParameterIndex]) {
-                   ++superParameterIndex;
-                 }
-               }
-               return superParameterIndex == namedSuperParameters.length;
-             }(),
-       );
+  }) : _libraryBuilder = libraryBuilder;
+
+  /// The original constructor or procedure.
+  TreeNode get source => _source;
+
+  /// The synthesized constructor or procedure.
+  TreeNode get target => _target;
 
   void cloneDefaultValues(TypeEnvironment typeEnvironment) {
     if (_hasCloned) return;
@@ -126,151 +66,91 @@ class DelayedDefaultValueCloner {
     // can be less than that of the redirection target or, in errors cases, be
     // unrelated.
 
-    FunctionNode _original = original.function!;
-    FunctionNode _synthesized = synthesized.function!;
+    FunctionNode sourceFunctionNode = _source.function!;
+    FunctionNode targetFunctionNode = _target.function!;
 
-    if (identicalSignatures) {
-      assert(
-        _positionalSuperParameters != null ||
-            _synthesized.positionalParameters.length ==
-                _original.positionalParameters.length,
-      );
-      List<int?>? positionalSuperParameters = _positionalSuperParameters;
-      for (int i = 0; i < _original.positionalParameters.length; i++) {
-        if (positionalSuperParameters == null) {
-          _cloneDefaultValue(
-            _original.positionalParameters[i],
-            _synthesized.positionalParameters[i],
+    NamedParameterCache namedParameterCache = new NamedParameterCache(
+      sourceFunctionNode,
+    );
+    for (
+      int targetIndex = targetFunctionNode.requiredParameterCount;
+      targetIndex < targetFunctionNode.positionalParameters.length;
+      targetIndex++
+    ) {
+      PositionalParameter targetParameter =
+          targetFunctionNode.positionalParameters[targetIndex];
+      PositionalParameter? sourceParameter = _parameterMapping
+          .getPositionalSourceParameter(
+            source: sourceFunctionNode,
+            target: targetFunctionNode,
+            targetIndex: targetIndex,
           );
-        } else if (i < positionalSuperParameters.length) {
-          int? superParameterIndex = positionalSuperParameters[i];
-          if (superParameterIndex != null) {
-            PositionalParameter originalParameter =
-                _original.positionalParameters[i];
-            PositionalParameter synthesizedParameter =
-                _synthesized.positionalParameters[superParameterIndex];
-            _cloneDefaultValueForSuperParameters(
-              originalParameter,
-              synthesizedParameter,
-              typeEnvironment,
-              isOptional:
-                  superParameterIndex >= _synthesized.requiredParameterCount,
-            );
-          }
-        }
-      }
-
-      assert(
-        _namedSuperParameters != null ||
-            _synthesized.namedParameters.length ==
-                _original.namedParameters.length,
-      );
-      List<String>? namedSuperParameters = _namedSuperParameters;
-      int superParameterNameIndex = 0;
-      Map<String, int> originalNamedParameterIndices = {};
-      for (int i = 0; i < _original.namedParameters.length; i++) {
-        originalNamedParameterIndices[_original
-                .namedParameters[i]
-                .parameterName] =
-            i;
-      }
-      for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-        if (namedSuperParameters == null) {
-          _cloneDefaultValue(
-            _original.namedParameters[i],
-            _synthesized.namedParameters[i],
+      if (sourceParameter != null) {
+        if (_parameterMapping.checkTypes) {
+          _cloneDefaultValueForSuperParameters(
+            sourceParameter,
+            targetParameter,
+            typeEnvironment,
+            isOptional: true,
           );
-        } else if (superParameterNameIndex < namedSuperParameters.length &&
-            namedSuperParameters[superParameterNameIndex] ==
-                _synthesized.namedParameters[i].parameterName) {
-          String superParameterName =
-              namedSuperParameters[superParameterNameIndex];
-          int? originalNamedParameterIndex =
-              originalNamedParameterIndices[superParameterName];
-          if (originalNamedParameterIndex != null) {
-            NamedParameter originalParameter =
-                _original.namedParameters[originalNamedParameterIndex];
-            NamedParameter synthesizedParameter =
-                _synthesized.namedParameters[i];
-            _cloneDefaultValueForSuperParameters(
-              originalParameter,
-              synthesizedParameter,
-              typeEnvironment,
-              isOptional: !synthesizedParameter.isRequired,
-            );
-          } else {
-            // TODO(cstefantsova): Handle the erroneous case of missing names.
-          }
-          superParameterNameIndex++;
-        }
-      }
-    } else {
-      for (int i = 0; i < _synthesized.positionalParameters.length; i++) {
-        PositionalParameter synthesizedParameter =
-            _synthesized.positionalParameters[i];
-        if (i < _original.positionalParameters.length) {
-          if (i >= _synthesized.requiredParameterCount) {
-            if (i < _original.requiredParameterCount) {
-              // Coverage-ignore-block(suite): Not run.
-              // Error case: use `null` as initializer.
-              synthesizedParameter.defaultValue = extern.createNullLiteral(
-                fileOffset: TreeNode.noOffset,
-              )..parent = synthesizedParameter;
-              if (synthesizedParameter.type.nullability !=
-                  Nullability.nullable) {
-                synthesizedParameter.hasErroneousDefaultValue = true;
-              }
-            } else {
-              _cloneDefaultValue(
-                _original.positionalParameters[i],
-                synthesizedParameter,
-              );
-            }
-          }
         } else {
-          if (i >= _synthesized.requiredParameterCount) {
-            // Error case: use `null` as initializer.
-            synthesizedParameter.defaultValue = extern.createNullLiteral(
-              fileOffset: TreeNode.noOffset,
-            )..parent = synthesizedParameter;
-            if (synthesizedParameter.type.nullability != Nullability.nullable) {
-              // Coverage-ignore-block(suite): Not run.
-              synthesizedParameter.hasErroneousDefaultValue = true;
-            }
-          }
+          _cloneDefaultValue(sourceParameter, targetParameter);
+        }
+      } else
+      // TODO(johnniwinther): Why do we have an explicit `null` default value
+      // on super parameters without a declared defaultValue?
+      if (!targetParameter.hasDeclaredDefaultValue) {
+        // Error case: use `null` as default value.
+        targetParameter.defaultValue = extern.createNullLiteral(
+          fileOffset: TreeNode.noOffset,
+        )..parent = targetParameter;
+        if (targetParameter.type.nullability != Nullability.nullable) {
+          // Coverage-ignore-block(suite): Not run.
+          targetParameter.hasErroneousDefaultValue = true;
         }
       }
-      if (_synthesized.namedParameters.isNotEmpty) {
-        Map<String, NamedParameter> originalParameters = {};
-        for (int i = 0; i < _original.namedParameters.length; i++) {
-          originalParameters[_original.namedParameters[i].parameterName] =
-              _original.namedParameters[i];
+    }
+    for (
+      int targetIndex = 0;
+      targetIndex < targetFunctionNode.namedParameters.length;
+      targetIndex++
+    ) {
+      NamedParameter targetParameter =
+          targetFunctionNode.namedParameters[targetIndex];
+      if (targetParameter.isRequired) continue;
+      NamedParameter? sourceParameter = _parameterMapping
+          .getNamedSourceParameter(
+            source: sourceFunctionNode,
+            target: targetFunctionNode,
+            targetIndex: targetIndex,
+            namedParameterCache: namedParameterCache,
+          );
+      if (sourceParameter != null) {
+        if (_parameterMapping.checkTypes) {
+          _cloneDefaultValueForSuperParameters(
+            sourceParameter,
+            targetParameter,
+            typeEnvironment,
+            isOptional: !targetParameter.isRequired,
+          );
+        } else {
+          _cloneDefaultValue(sourceParameter, targetParameter);
         }
-        for (int i = 0; i < _synthesized.namedParameters.length; i++) {
-          NamedParameter synthesizedParameter = _synthesized.namedParameters[i];
-          NamedParameter? originalParameter =
-              originalParameters[synthesizedParameter.parameterName];
-          if (originalParameter != null) {
-            if (!originalParameter.isRequired &&
-                !synthesizedParameter.isRequired) {
-              _cloneDefaultValue(originalParameter, synthesizedParameter);
-            }
-          } else {
-            if (!synthesizedParameter.isRequired) {
-              // Error case: use `null` as initializer.
-              synthesizedParameter.defaultValue = extern.createNullLiteral(
-                fileOffset: TreeNode.noOffset,
-              )..parent = synthesizedParameter;
-              if (synthesizedParameter.type.nullability !=
-                  Nullability.nullable) {
-                synthesizedParameter.hasErroneousDefaultValue = true;
-              }
-            }
-          }
+      } else
+      // TODO(johnniwinther): Why do we have an explicit `null` default value
+      // on super parameters without a declared default value?
+      if (!targetParameter.hasDeclaredDefaultValue) {
+        // Error case: use `null` as default value.
+        targetParameter.defaultValue = extern.createNullLiteral(
+          fileOffset: TreeNode.noOffset,
+        )..parent = targetParameter;
+        if (targetParameter.type.nullability != Nullability.nullable) {
+          targetParameter.hasErroneousDefaultValue = true;
         }
       }
     }
     _hasCloned = true;
+    return;
   }
 
   void _cloneDefaultValue(
@@ -295,7 +175,7 @@ class DelayedDefaultValueCloner {
   }) {
     Expression? originalParameterDefaultValue = originalParameter.defaultValue;
     DartType? originalParameterDefaultValueType = originalParameterDefaultValue
-        ?.getStaticType(new StaticTypeContext(synthesized, typeEnvironment));
+        ?.getStaticType(new StaticTypeContext(_target, typeEnvironment));
     DartType synthesizedParameterType = synthesizedParameter.type;
     if (originalParameterDefaultValueType != null &&
         typeEnvironment.isSubtypeOf(
@@ -317,7 +197,7 @@ class DelayedDefaultValueCloner {
           ),
           synthesizedParameter.fileOffset,
           synthesizedParameter.parameterName.length,
-          synthesized.fileUri,
+          _target.fileUri,
         );
         synthesizedParameter.hasErroneousDefaultValue = true;
       }
@@ -326,8 +206,126 @@ class DelayedDefaultValueCloner {
 
   @override
   String toString() {
-    return "DelayedDefaultValueCloner(original=${original}, "
-        "synthesized=${synthesized})";
+    return "DelayedDefaultValueCloner(original=${_source}, "
+        "synthesized=${_target})";
+  }
+}
+
+class NamedParameterCache(final FunctionNode _function) {
+  late final Map<String, NamedParameter> _map = _computeMap();
+
+  Map<String, NamedParameter> _computeMap() {
+    Map<String, NamedParameter> map = {};
+    for (NamedParameter parameter in _function.namedParameters) {
+      map[parameter.parameterName] ??= parameter;
+    }
+    return map;
+  }
+
+  NamedParameter? operator [](String name) => _map[name];
+}
+
+/// Interface used by [DelayedDefaultValueCloner] to map target parameters to
+/// source parameters from which default values should be cloned.
+abstract class ParameterMapping {
+  /// Whether the type of the cloned default value should be checked against the
+  /// target parameter type.
+  ///
+  /// This is needed for super parameters where the super parameter can be
+  /// declared with a type that doesn't support the default value. For instance
+  ///
+  ///     class Super {
+  ///       new({num a = 3.14});
+  ///     }
+  ///     class Class {
+  ///       new({int super.a});
+  ///     }
+  ///
+  /// where the default value `3.14` is not valid for a parameter of type `int`.
+  bool get checkTypes;
+
+  /// Returns the [PositionalParameter] from [source] from which the default
+  /// value for the [targetIndex]th positional parameter from [target] should be
+  /// cloned, if any.
+  PositionalParameter? getPositionalSourceParameter({
+    required FunctionNode source,
+    required FunctionNode target,
+    required int targetIndex,
+  });
+
+  /// Returns the [NamedParameter] from [source] from which the default value
+  /// for the [targetIndex]th named parameter from [target] should be cloned, if
+  /// any.
+  ///
+  /// [namedParameterCache] can be used to lookup named parameters in [source]
+  /// by name.
+  NamedParameter? getNamedSourceParameter({
+    required FunctionNode source,
+    required FunctionNode target,
+    required int targetIndex,
+    required NamedParameterCache namedParameterCache,
+  });
+}
+
+class SuperParameterMapping(
+  final Map<int, int> positionalTargetToSourceMapping,
+  final Map<int, String> namedTargetToSourceMapping,
+) implements ParameterMapping {
+  @override
+  bool get checkTypes => true;
+
+  @override
+  NamedParameter? getNamedSourceParameter({
+    required FunctionNode source,
+    required FunctionNode target,
+    required int targetIndex,
+    required NamedParameterCache namedParameterCache,
+  }) {
+    String? sourceName = namedTargetToSourceMapping[targetIndex];
+    return sourceName != null ? namedParameterCache[sourceName] : null;
+  }
+
+  @override
+  PositionalParameter? getPositionalSourceParameter({
+    required FunctionNode source,
+    required FunctionNode target,
+    required int targetIndex,
+  }) {
+    int? sourceIndex = positionalTargetToSourceMapping[targetIndex];
+    return sourceIndex != null
+        ? source.positionalParameters[sourceIndex]
+        : null;
+  }
+}
+
+class const DirectParameterMapping() implements ParameterMapping {
+  @override
+  bool get checkTypes => false;
+
+  @override
+  NamedParameter? getNamedSourceParameter({
+    required FunctionNode source,
+    required FunctionNode target,
+    required int targetIndex,
+    required NamedParameterCache namedParameterCache,
+  }) {
+    NamedParameter? sourceParameter =
+        namedParameterCache[target.namedParameters[targetIndex].parameterName];
+    return sourceParameter != null && !sourceParameter.isRequired
+        ? sourceParameter
+        : null;
+  }
+
+  @override
+  PositionalParameter? getPositionalSourceParameter({
+    required FunctionNode source,
+    required FunctionNode target,
+    required int targetIndex,
+  }) {
+    return targetIndex >= source.requiredParameterCount &&
+            targetIndex < source.positionalParameters.length
+        ? source.positionalParameters[targetIndex]
+        : null;
   }
 }
 

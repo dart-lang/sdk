@@ -383,8 +383,14 @@ mixin _ConstructorDeclarationMixin
         superConstructorSignature.namedParameters;
 
     int superInitializingFormalIndex = -1;
-    List<int?>? positionalSuperParameters;
-    List<String>? namedSuperParameters;
+    // Mapping for positional parameters that need cloning of default values.
+    // Maps from positional indices in this constructor super constructor
+    // positional indices.
+    Map<int, int> positionalTargetToSourceMapping = {};
+    // Mapping for named parameters that need cloning of default values.
+    // Maps from named indices in this constructor to super constructor
+    // parameter names.
+    Map<int, String> namedTargetToSourceMapping = {};
 
     Supertype? supertype = hierarchy.getClassAsInstanceOf(
       classBuilder.cls,
@@ -397,6 +403,8 @@ mixin _ConstructorDeclarationMixin
           supertype.typeArguments,
         );
 
+    int positionalIndex = 0;
+    int namedIndex = 0;
     for (int formalIndex = 0; formalIndex < formals!.length; formalIndex++) {
       FormalParameterBuilder formal = formals![formalIndex];
       if (formal.isSuperInitializingFormal) {
@@ -417,9 +425,8 @@ mixin _ConstructorDeclarationMixin
             correspondingSuperFormalType = parameterInfo.type;
             if (!hasImmediatelyDeclaredInitializer &&
                 !formal.isRequiredPositional) {
-              (positionalSuperParameters ??= <int?>[]).add(formalIndex);
-            } else {
-              (positionalSuperParameters ??= <int?>[]).add(null);
+              positionalTargetToSourceMapping[positionalIndex] =
+                  superInitializingFormalIndex;
             }
           } else {
             assert(
@@ -442,7 +449,7 @@ mixin _ConstructorDeclarationMixin
             }
             correspondingSuperFormalType = parameterInfo.type;
             if (!hasImmediatelyDeclaredInitializer && !formal.isRequiredNamed) {
-              (namedSuperParameters ??= <String>[]).add(formal.name);
+              namedTargetToSourceMapping[namedIndex] = formal.name;
             }
           } else {
             // TODO(cstefantsova): Report an error.
@@ -459,15 +466,23 @@ mixin _ConstructorDeclarationMixin
         formal.variable.hasDeclaredDefaultValue =
             formal.hasDeclaredDefaultValue;
       }
+      if (formal.isNamed) {
+        namedIndex++;
+      } else {
+        positionalIndex++;
+      }
     }
 
-    if (positionalSuperParameters != null || namedSuperParameters != null) {
+    if (positionalTargetToSourceMapping.isNotEmpty ||
+        namedTargetToSourceMapping.isNotEmpty) {
       _addSuperParameterDefaultValueCloners(
         libraryBuilder: libraryBuilder,
         delayedDefaultValueCloners: delayedDefaultValueCloners,
         superTarget: superTarget,
-        positionalSuperParameters: positionalSuperParameters,
-        namedSuperParameters: namedSuperParameters,
+        parameterMapping: new SuperParameterMapping(
+          positionalTargetToSourceMapping,
+          namedTargetToSourceMapping,
+        ),
       );
     }
   }
@@ -475,8 +490,7 @@ mixin _ConstructorDeclarationMixin
   void _addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
+    required ParameterMapping parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   });
 
@@ -836,15 +850,13 @@ mixin _ConstructorEncodingMixin
   void _addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required List<int?>? positionalSuperParameters,
-    required List<String>? namedSuperParameters,
     required SourceLibraryBuilder libraryBuilder,
+    required ParameterMapping parameterMapping,
   }) {
     _encoding.addSuperParameterDefaultValueCloners(
       delayedDefaultValueCloners: delayedDefaultValueCloners,
       superTarget: superTarget,
-      positionalSuperParameters: positionalSuperParameters,
-      namedSuperParameters: namedSuperParameters,
+      parameterMapping: parameterMapping,
       libraryBuilder: libraryBuilder,
     );
   }

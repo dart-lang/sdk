@@ -1560,26 +1560,19 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     _pendingGenericFunctionTypeChecks.clear();
   }
 
-  List<DelayedDefaultValueCloner>? installTypedefTearOffs() {
-    List<DelayedDefaultValueCloner>? delayedDefaultValueCloners;
+  void installTypedefTearOffs() {
     Iterator<SourceTypeAliasBuilder> iterator = filteredMembersIterator(
       includeDuplicates: true,
     );
     while (iterator.moveNext()) {
       SourceTypeAliasBuilder declaration = iterator.current;
-      DelayedDefaultValueCloner? delayedDefaultValueCloner = declaration
-          .buildTypedefTearOffs(this, (Procedure procedure) {
-            procedure.isStatic = true;
-            if (!declaration.isDuplicate) {
-              library.addProcedure(procedure);
-            }
-          });
-      if (delayedDefaultValueCloner != null) {
-        (delayedDefaultValueCloners ??= []).add(delayedDefaultValueCloner);
-      }
+      declaration.buildTypedefTearOffs(this, (Procedure procedure) {
+        procedure.isStatic = true;
+        if (!declaration.isDuplicate) {
+          library.addProcedure(procedure);
+        }
+      });
     }
-
-    return delayedDefaultValueCloners;
   }
 }
 

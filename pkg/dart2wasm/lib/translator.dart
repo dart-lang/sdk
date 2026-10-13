@@ -1218,8 +1218,8 @@ class Translator with KernelNodes {
   ///
   /// Only Wasm types that Binaryen supports on the module boundary under
   /// `--closed-world` are allowed (primitives, abstract heap reference types,
-  /// and Wasm arrays of external storage types). No type or nullability
-  /// coercion is performed.
+  /// Wasm function types, and Wasm arrays of external storage types). No type
+  /// or nullability coercion is performed.
   w.ValueType translateExternalType(DartType type) {
     return translateExternalStorageType(type) as w.ValueType;
   }
@@ -1236,17 +1236,37 @@ class Translator with KernelNodes {
           return (builtin as w.RefType).withNullability(isNullable);
         }
         if (cls == wasmArrayClass || cls == immutableWasmArrayClass) {
-          final elementType = translateExternalStorageType(
-            type.typeArguments.single,
-          );
+          final dartElementType = type.typeArguments.single;
+          final elementType = translateExternalStorageType(dartElementType);
           return w.RefType.def(
             wasmArrayType(
               elementType,
-              '$elementType',
+              dartElementType.toText(defaultAstTextStrategy),
               mutable: cls == wasmArrayClass,
             ),
             nullable: isNullable,
           );
+        }
+        if (cls == wasmFunctionClass) {
+          final functionType = type.typeArguments.single as FunctionType;
+          assert(
+            !functionType.isPotentiallyNullable &&
+                functionType.typeParameters.isEmpty &&
+                functionType.namedParameters.isEmpty &&
+                functionType.requiredParameterCount ==
+                    functionType.positionalParameters.length,
+          );
+          final returnType = functionType.returnType;
+          final voidReturn =
+              returnType is InterfaceType &&
+              returnType.classNode == wasmVoidClass;
+          final inputs = [
+            for (final type in functionType.positionalParameters)
+              translateExternalType(type),
+          ];
+          final outputs = [if (!voidReturn) translateExternalType(returnType)];
+          final wasmType = typesBuilder.defineFunction(inputs, outputs);
+          return w.RefType.def(wasmType, nullable: isNullable);
         }
       }
     }
@@ -2163,17 +2183,16 @@ class Translator with KernelNodes {
     // require it (for now) to be an interface type.
     if (defaultType is! InterfaceType) return null;
 
+    // If code uses wasm types, use those precise types.
+    if (isWasmType(defaultType.classNode)) return null;
+
     final dartType = inferredType.dartType;
     if (dartType == null) return null;
     final targetClass = dartType.classNode;
     // TFA doesn't know how dart2wasm represents closures
     if (targetClass == closureClass) return null;
-    // The WasmFunction<>/WasmArray<>/WasmTable<> types need concrete type
-    // arguments.
-    if (targetClass == wasmFunctionClass) return null;
-    if (targetClass == wasmArrayClass) return null;
-    if (targetClass == immutableWasmArrayClass) return null;
-    if (targetClass == wasmTableClass) return null;
+    // Do not use inferred wasm types where original types were Dart types.
+    if (isWasmType(targetClass)) return null;
 
     // If the TFA inferred class is the same as the [defaultType] we prefer the
     // latter as it has the correct type arguments.
@@ -2609,9 +2628,14 @@ class Translator with KernelNodes {
         coreTypes,
         topLevelExternalMemoryGetter,
       );
+      final exportName = interopMemberNamer.getExportName(
+        topLevelExternalMemoryGetter,
+      );
 
+      final w.Memory memory;
       if (import != null) {
-        return mainModule.memories.import(
+        assert(exportName == null);
+        memory = mainModule.memories.import(
           import.moduleName,
           import.itemName,
           memoryType.shared,
@@ -2619,12 +2643,16 @@ class Translator with KernelNodes {
           memoryType.maxSize,
         );
       } else {
-        return mainModule.memories.define(
+        memory = mainModule.memories.define(
           memoryType.shared,
           memoryType.minSize,
           memoryType.maxSize,
         );
+        if (exportName != null) {
+          mainModule.exports.export(exportName, memory);
+        }
       }
+      return memory;
     });
   }
 
@@ -4006,7 +4034,7 @@ void instantiateDummyValue(
 abstract class _WasmImporter<T extends w.Exportable> {
   final Translator _translator;
   final String _exportPrefix;
-  final Map<T, Map<w.ModuleBuilder, T>> _map = {};
+  final Map<T, _ExportedWasmEntity<T>> _map = {};
 
   _WasmImporter(this._translator, this._exportPrefix);
 
@@ -4017,25 +4045,25 @@ abstract class _WasmImporter<T extends w.Exportable> {
     String importName,
   );
 
-  Iterable<T> get imports => _map.values.expand((v) => v.values);
+  Iterable<T> get imports => _map.values.expand((v) => v.imports.values);
 
   T get(T key, w.ModuleBuilder module) {
     final keyModuleBuilder = _translator.moduleToBuilder[key.enclosingModule]!;
     if (keyModuleBuilder == module) return key;
 
-    final innerMap = _map.putIfAbsent(key, () {
+    final exported = _map.putIfAbsent(key, () {
       final name = _translator.exportNamer.getName(
         '$_exportPrefix${_map.length}',
       );
       keyModuleBuilder.exports.export(name, key);
-      return {};
+      return _ExportedWasmEntity(name);
     });
-    return innerMap.putIfAbsent(module, () {
+    return exported.imports.putIfAbsent(module, () {
       return import(
         module,
         key,
         _translator.nameForModule(keyModuleBuilder),
-        key.exportedName,
+        exported.exportName,
       );
     });
   }
@@ -4043,6 +4071,13 @@ abstract class _WasmImporter<T extends w.Exportable> {
   bool has(T key) {
     return _map.containsKey(key);
   }
+}
+
+class _ExportedWasmEntity<T extends w.Exportable> {
+  final String exportName;
+  final Map<w.ModuleBuilder, T> imports = {};
+
+  _ExportedWasmEntity(this.exportName);
 }
 
 class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {

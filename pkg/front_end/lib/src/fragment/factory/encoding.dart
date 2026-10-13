@@ -237,7 +237,7 @@ class FactoryEncoding implements InferredTypeListener {
       return;
     }
     DartTypeList? typeArguments = redirectingFactoryTarget.typeArguments;
-    Member? target = redirectingFactoryTarget.target;
+    Member? redirectionTarget = redirectingFactoryTarget.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
       TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
           .createTypeInferrer(
@@ -258,11 +258,11 @@ class FactoryEncoding implements InferredTypeListener {
         );
       }
       if (targetBuilder is FunctionBuilder) {
-        target = targetBuilder.invokeTarget!;
+        redirectionTarget = targetBuilder.invokeTarget!;
       }
       // Coverage-ignore(suite): Not run.
       else if (targetBuilder is DillMemberBuilder) {
-        target = targetBuilder.invokeTarget!;
+        redirectionTarget = targetBuilder.invokeTarget!;
       } else {
         unhandled(
           "${targetBuilder.runtimeType}",
@@ -277,8 +277,8 @@ class FactoryEncoding implements InferredTypeListener {
         redirectingFactoryFunction: _procedure.function,
         fileUri: _fragment.fileUri,
         fileOffset: _fragment.fullNameOffset,
-        target: target,
-        targetType: target.function!.computeFunctionType(
+        target: redirectionTarget,
+        targetType: redirectionTarget.function!.computeFunctionType(
           Nullability.nonNullable,
         ),
       );
@@ -297,7 +297,7 @@ class FactoryEncoding implements InferredTypeListener {
 
       _procedure.function.registerFunctionBody(
         createRedirectingFactoryBody(
-          target,
+          redirectionTarget,
           typeArguments,
           _procedure.function,
         ),
@@ -306,22 +306,23 @@ class FactoryEncoding implements InferredTypeListener {
       //  scopeProviderInfo in the call below.
       _procedure.function.registerScopeProviderInfo(null);
       _procedure.function.redirectingFactoryTarget =
-          new RedirectingFactoryTarget(target, typeArguments);
+          new RedirectingFactoryTarget(redirectionTarget, typeArguments);
     }
 
     List<DartType>? tearOffTypeArguments = typeArguments;
     Set<Procedure> seenTargets = {};
-    while (target is Procedure && target.isRedirectingFactory) {
-      if (!seenTargets.add(target)) {
+    while (redirectionTarget is Procedure &&
+        redirectionTarget.isRedirectingFactory) {
+      if (!seenTargets.add(redirectionTarget)) {
         // Cyclic dependency.
-        target = null;
+        redirectionTarget = null;
         break;
       }
       RedirectingFactoryTarget redirectingFactoryTarget =
-          target.function.redirectingFactoryTarget!;
+          redirectionTarget.function.redirectingFactoryTarget!;
       if (tearOffTypeArguments != null) {
         Substitution substitution = Substitution.fromPairs(
-          target.function.typeParameters,
+          redirectionTarget.function.typeParameters,
           tearOffTypeArguments,
         );
         tearOffTypeArguments = redirectingFactoryTarget.typeArguments
@@ -331,19 +332,20 @@ class FactoryEncoding implements InferredTypeListener {
         // Coverage-ignore-block(suite): Not run.
         tearOffTypeArguments = redirectingFactoryTarget.typeArguments;
       }
-      target = redirectingFactoryTarget.target;
+      redirectionTarget = redirectingFactoryTarget.target;
     }
 
-    if (target is Constructor ||
-        target is Procedure &&
-            (target.isFactory || target.isExtensionTypeMember)) {
+    if (redirectionTarget is Constructor ||
+        redirectionTarget is Procedure &&
+            (redirectionTarget.isFactory ||
+                redirectionTarget.isExtensionTypeMember)) {
       // Coverage-ignore(suite): Not run.
       tearOffTypeArguments ??= [];
       if (_tearOff != null) {
         delayedDefaultValueCloners.add(
           buildRedirectingFactoryTearOffBody(
             _tearOff,
-            target!,
+            redirectionTarget!,
             tearOffTypeArguments,
             _tearOffTypeParameters!,
             libraryBuilder,
@@ -352,10 +354,10 @@ class FactoryEncoding implements InferredTypeListener {
       }
       delayedDefaultValueCloners.add(
         new DelayedDefaultValueCloner(
-          target!,
-          _procedure,
+          source: redirectionTarget!,
+          target: _procedure,
+          parameterMapping: const DirectParameterMapping(),
           libraryBuilder: libraryBuilder,
-          identicalSignatures: false,
           isOutlineNode: true,
         ),
       );

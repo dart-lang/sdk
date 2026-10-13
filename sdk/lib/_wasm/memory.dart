@@ -27,11 +27,14 @@ final class MemoryType {
 }
 
 /// Limits for the size of memories or tables in WebAssembly.
+@pragma("wasm:entry-point")
 final class Limits {
   /// The minimum size for the memory instance (in units of WebAssembly pages).
+  @pragma("wasm:entry-point")
   final int minimum;
 
   /// An optional maximum size for the instance (in units of WebAsembly pages).
+  @pragma("wasm:entry-point")
   final int? maximum;
 
   const Limits(this.minimum, [this.maximum]);
@@ -93,6 +96,15 @@ final class Limits {
 /// external Memory get additionalMemory;
 /// ```
 ///
+/// Defined memory instances can be exported by annotating the getter with the
+/// `wasm:export` pragma:
+///
+/// ```
+/// @pragma('wasm:memory-type', MemoryType(limits: Limits(1, 10)))
+/// @pragma('wasm:export', 'additionalMemory')
+/// external Memory get additionalMemory;
+/// ```
+///
 /// Memory instances can also be imported from the host environment by
 /// annotating such getter with the `wasm:import` pragma:
 ///
@@ -102,7 +114,8 @@ final class Limits {
 /// external Memory get mySecondMemory;
 /// ```
 ///
-/// To import a shared memory, set [MemoryType.shared] and specify a maximum:
+/// To import or define a shared memory, set [MemoryType.shared] and specify a
+/// maximum:
 ///
 /// ```
 /// @pragma('wasm:memory-type', MemoryType(limits: Limits(1, 10), shared: true))

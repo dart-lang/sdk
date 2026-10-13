@@ -1,11 +1,14 @@
 (module $M
+  (type $"ImmutableArray<WasmFunction<WasmVoid Function()>>" (array (field (ref $type0))))
   (type $#Closure-0-1 <...>)
   (type $#Top <...>)
   (type $#Vtable-0-1 <...>)
   (type $BoxedInt <...>)
   (type $JSExternWrapper <...>)
   (type $type0 <...>)
-  (func $"outside.registerCallback (import)" (import "outside" "registerCallback") (param (ref func)))
+  (type $type2 <...>)
+  (func $"outside.registerCallback (import)" (import "outside" "registerCallback") (param (ref $type0)))
+  (func $"outside.registerCallbacks (import)" (import "outside" "registerCallbacks") (param (ref $"ImmutableArray<WasmFunction<WasmVoid Function()>>")))
   (global $"\" instead.\"" (ref $JSExternWrapper) <...>)
   (global $"\"Hello\"" (ref $JSExternWrapper) <...>)
   (global $"\"Too few arguments passed. Expe<...>\"" (ref $JSExternWrapper) <...>)
@@ -34,7 +37,7 @@
       local.get $var4
       struct.get $#Closure-0-1 $vtable
       struct.get $#Vtable-0-1 $closureCallEntry-0-1
-      call_ref $type0
+      call_ref $type2
       drop
     end
     local.get $var5
@@ -51,13 +54,13 @@
       local.get $var4
       struct.get $#Closure-0-1 $vtable
       struct.get $#Vtable-0-1 $closureCallEntry-0-1
-      call_ref $type0
+      call_ref $type2
       drop
       ref.null noextern
       return
     end
     global.get $"\"Too few arguments passed. Expe<...>\""
-    i32.const 58
+    i32.const 59
     local.get $var5
     struct.new $BoxedInt
     global.get $"\" instead.\""
@@ -76,6 +79,9 @@
   (func $runTest
     ref.func $dartFunction
     call $"outside.registerCallback (import)"
+    ref.func $dartFunction
+    array.new_fixed $"ImmutableArray<WasmFunction<WasmVoid Function()>>" 1
+    call $"outside.registerCallbacks (import)"
     global.get $"jsCallback1 tear-off"
     call $makeJsCallback
     call $print
