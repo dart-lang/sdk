@@ -17431,6 +17431,36 @@ undefinedStaticMemberReadNotFoundDotShorthand = DiagnosticWithArguments(
 
 /// Parameters:
 /// String name: the name of the member
+/// String contextType: the name of the declaration that the context type of
+///                     the dot shorthand denotes
+/// String expectedKinds: the kinds of declarations that the lookup could have
+///                       found, such as 'static member or constructor'
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({
+    required String name,
+    required String contextType,
+    required String expectedKinds,
+  })
+>
+undefinedStaticMemberReadNotFoundDotShorthandConstant = DiagnosticWithArguments(
+  name: 'undefined_static_member_read',
+  problemMessage: "The context type '{1}' doesn't have a {2} named '{0}'.",
+  correctionMessage:
+      "Try correcting the name to the name of an existing static constant or "
+      "static method, or defining a static constant named '{0}'.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'undefined_static_member_read_not_found_dot_shorthand_constant',
+  withArguments:
+      _withArgumentsUndefinedStaticMemberReadNotFoundDotShorthandConstant,
+  expectedTypes: [
+    ExpectedType.string,
+    ExpectedType.string,
+    ExpectedType.string,
+  ],
+);
+
+/// Parameters:
+/// String name: the name of the member
 /// Uri libraryUri: the URI of the library that declares the private member
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name, required Uri libraryUri})
@@ -23511,6 +23541,18 @@ _withArgumentsUndefinedStaticMemberReadNotFoundDotShorthand({
 }) {
   return LocatableDiagnosticImpl(
     diag.undefinedStaticMemberReadNotFoundDotShorthand,
+    [name, contextType, expectedKinds],
+  );
+}
+
+LocatableDiagnostic
+_withArgumentsUndefinedStaticMemberReadNotFoundDotShorthandConstant({
+  required String name,
+  required String contextType,
+  required String expectedKinds,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.undefinedStaticMemberReadNotFoundDotShorthandConstant,
     [name, contextType, expectedKinds],
   );
 }

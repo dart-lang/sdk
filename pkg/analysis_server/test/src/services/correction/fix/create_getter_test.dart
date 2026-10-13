@@ -365,6 +365,14 @@ void f() {
 ''');
   }
 
+  Future<void> test_dotShorthand_constant() async {
+    await resolveTestCode('''
+class A {}
+const A v = .getter;
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_dotShorthand_extensionType() async {
     await resolveTestCode('''
 extension type A(int i) {

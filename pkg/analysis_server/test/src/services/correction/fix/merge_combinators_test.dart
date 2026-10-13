@@ -24,7 +24,7 @@ void main() {
 }
 
 @reflectiveTest
-class MergeCombinatorsParserErrorTest extends FixProcessorErrorCodeTest
+class MergeCombinatorsParserErrorTest extends FixProcessorTest
     with _MergeCombinatorTestMixin {
   @override
   DiagnosticCode get diagnosticCode => diag.multipleCombinators;
@@ -84,7 +84,7 @@ import 'other.dart' hide Stream, Future;
 }
 
 @reflectiveTest
-class MergeCombinatorsParserShowShowTest extends FixProcessorErrorCodeTest
+class MergeCombinatorsParserShowShowTest extends FixProcessorTest
     with _MergeCombinatorTestMixin {
   @override
   DiagnosticCode get diagnosticCode => diag.multipleCombinators;
@@ -787,10 +787,13 @@ import 'other.dart' show FutureOr, Completer, Timer;
   }
 }
 
-abstract class _MergeCombinatorTest extends FixProcessorErrorCodeTest
+abstract class _MergeCombinatorTest extends FixProcessorTest
     with _MergeCombinatorTestMixin {}
 
-mixin _MergeCombinatorTestMixin on FixProcessorErrorCodeTest {
+mixin _MergeCombinatorTestMixin on FixProcessorTest {
+  /// The diagnostic code being tested.
+  DiagnosticCode get diagnosticCode;
+
   bool diagnosticCodeFilter(Diagnostic d) {
     return d.diagnosticCode == diagnosticCode;
   }

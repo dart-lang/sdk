@@ -236,10 +236,17 @@ class BuildSettings {
   final bool isFlutterApp;
   final List<String> experiments;
 
+  /// Whether the compilers allow the deprecated JS interop libraries, such as
+  /// `dart:html`.
+  ///
+  /// If `null`, no flag is passed and the compiler default is used.
+  final bool? deprecatedJsInterop;
+
   const BuildSettings({
     this.appEntrypoint,
     this.canaryFeatures = false,
     this.isFlutterApp = true,
     this.experiments = const <String>[],
+    this.deprecatedJsInterop,
   });
 }

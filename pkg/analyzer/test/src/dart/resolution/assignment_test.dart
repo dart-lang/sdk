@@ -6042,9 +6042,6 @@ void f(A a) {
   (a).foo ??= () {};
 //    ^^^
 // [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'A' can't be assigned to.
-//            ^^^^^
-// [diag.deadCode] Dead code.
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 }
 ''');
 
@@ -6080,10 +6077,10 @@ IfNullAssignment
         rightBracket: }
     declaredFragment: <testLibraryFragment> null@null
       element: null@null
-        type: Never Function()
+        type: Null Function()
     correspondingParameter: <null>
-    staticType: Never Function()
-  staticType: void Function()
+    staticType: Null Function()
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -6111,15 +6108,15 @@ V1: AssignmentExpression
         rightBracket: }
     declaredFragment: <testLibraryFragment> null@null
       element: null@null
-        type: Never Function()
+        type: Null Function()
     correspondingParameter: <null>
-    staticType: Never Function()
+    staticType: Null Function()
   readElement: <testLibrary>::@class::A::@method::foo
   readType: void Function()
   writeElement: <testLibrary>::@class::A::@method::foo
   writeType: InvalidType
   element: <null>
-  staticType: void Function()
+  staticType: InvalidType
 ''');
   }
 
@@ -6164,7 +6161,7 @@ IfNullAssignment
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ParenthesizedExpression
@@ -6195,7 +6192,7 @@ V1: AssignmentExpression
     substitution: {T: int}
   writeType: InvalidType
   element: <null>
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 
@@ -10355,10 +10352,6 @@ class B extends A {
     x ??= 2;
 //  ^
 // [diag.undefinedUnqualifiedNameWriteWrongKind] The method 'x' can't be assigned to.
-//        ^^
-// [diag.deadCode] Dead code.
-//        ^
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
   }
 }
 ''');
@@ -10378,7 +10371,7 @@ IfNullAssignment
     literal: 2
     correspondingParameter: <null>
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: x
@@ -10394,7 +10387,7 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@class::B::@method::x
   writeType: InvalidType
   element: <null>
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 
@@ -11054,8 +11047,6 @@ void f() {
   foo += 0;
 //^^^
 // [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
-//    ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function(int)'.
 }
 ''');
 

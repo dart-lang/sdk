@@ -1086,6 +1086,7 @@ const List<DiagnosticCode> diagnosticCodeValues = [
   diag.undefinedStaticMemberReadNotFoundAnnotation,
   diag.undefinedStaticMemberReadNotFoundConstant,
   diag.undefinedStaticMemberReadNotFoundDotShorthand,
+  diag.undefinedStaticMemberReadNotFoundDotShorthandConstant,
   diag.undefinedStaticMemberReadPrivate,
   diag.undefinedStaticMemberReadPrivateDotShorthand,
   diag.undefinedStaticMemberReadSetterOnly,

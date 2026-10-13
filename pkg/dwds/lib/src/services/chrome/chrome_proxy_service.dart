@@ -186,15 +186,15 @@ final class ChromeProxyService extends ProxyService<ChromeAppInspector> {
   Future<void> _updateCompilerDependencies(String entrypoint) async {
     final loadStrategy = globalToolConfiguration.loadStrategy;
     final moduleFormat = loadStrategy.moduleFormat;
-    final canaryFeatures = loadStrategy.buildSettings.canaryFeatures;
-    final experiments = loadStrategy.buildSettings.experiments;
+    final buildSettings = loadStrategy.buildSettings;
 
     _logger.info('Initializing expression compiler for $entrypoint');
 
     final compilerOptions = CompilerOptions(
       moduleFormat: ModuleFormat.values.byName(moduleFormat),
-      canaryFeatures: canaryFeatures,
-      experiments: experiments,
+      canaryFeatures: buildSettings.canaryFeatures,
+      experiments: buildSettings.experiments,
+      deprecatedJsInterop: buildSettings.deprecatedJsInterop,
     );
 
     final compiler = _compiler;

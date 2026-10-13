@@ -9762,9 +9762,6 @@ void f() {
   foo ??= () {};
 //^^^
 // [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
-//        ^^^^^
-// [diag.deadCode] Dead code.
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 }
 ''');
     var element = result.findElement.topFunction('foo');

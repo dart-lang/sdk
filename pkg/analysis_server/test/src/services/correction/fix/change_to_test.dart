@@ -461,6 +461,19 @@ E e() {
 ''');
   }
 
+  Future<void> test_enum_constant_dotShorthand_constant() async {
+    await resolveTestCode('''
+enum E { ONE }
+
+const E e = .OEN;
+''');
+    await assertHasFix('''
+enum E { ONE }
+
+const E e = .ONE;
+''');
+  }
+
   Future<void> test_enum_getter() async {
     await resolveTestCode('''
 enum E { ONE }

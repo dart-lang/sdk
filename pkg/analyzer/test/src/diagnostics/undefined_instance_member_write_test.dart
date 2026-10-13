@@ -3685,8 +3685,6 @@ void f(C c) {
   c..foo += 1;
 //   ^^^
 // [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'C' can't be assigned to.
-//       ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function()'.
 }
 ''');
 
@@ -3780,6 +3778,57 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_wrongKind_cascadeIfNullAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  void foo() {}
+}
+
+void f(C c) {
+  c..foo ??= 0;
+//   ^^^
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'C' can't be assigned to.
+}
+''');
+
+    var node = result.findNode.singleIfNullAssignment;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: CascadePropertyAssignmentTarget
+    name: foo
+    read: ExecutableTearOffResolution
+      element: <testLibrary>::@class::C::@method::foo
+      type: void Function()
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@class::C::@method::foo
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <testLibrary>::@class::C::@method::foo
+  readType: void Function()
+  writeElement: <testLibrary>::@class::C::@method::foo
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_wrongKind_compoundAssignment() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -3856,8 +3905,6 @@ void f(C c) {
   (c).foo += 1;
 //    ^^^
 // [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'C' can't be assigned to.
-//        ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -4142,10 +4189,6 @@ void f(C c) {
   c.foo ??= 0;
 //  ^^^
 // [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'C' can't be assigned to.
-//          ^^
-// [diag.deadCode] Dead code.
-//          ^
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 }
 ''');
 
@@ -4171,7 +4214,7 @@ IfNullAssignment
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -4195,7 +4238,7 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@class::C::@method::foo
   writeType: InvalidType
   element: <null>
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 

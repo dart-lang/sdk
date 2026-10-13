@@ -460,6 +460,14 @@ void f() {
 ''');
   }
 
+  Future<void> test_dotShorthand_constant() async {
+    await resolveTestCode('''
+class A {}
+const A v = .test;
+''');
+    await assertNoFix();
+  }
+
   Future<void> test_dotShorthand_enum() async {
     await resolveTestCode('''
 enum A {

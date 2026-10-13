@@ -93,12 +93,16 @@ final class DotShorthandLookupDomain extends LookupDomain {
     // others are the messages of `StaticLookupDomain`.
     switch (foundInstead) {
       case _FoundNothing():
-        // Regardless of `position`, use the dot-shorthand diagnostic so that
-        // the message names the context type.
-        // TODO(scheglov): For `ReadPosition.constant`, report a new diagnostic
-        // that also suggests a static constant, like
-        // `undefinedStaticMemberReadNotFoundConstant`.
-        return diag.undefinedStaticMemberReadNotFoundDotShorthand.withArguments(
+        var code = switch (position) {
+          ReadPosition.annotation => throw StateError(
+            'A dot shorthand cannot be an annotation.',
+          ),
+          ReadPosition.constant =>
+            diag.undefinedStaticMemberReadNotFoundDotShorthandConstant,
+          ReadPosition.other =>
+            diag.undefinedStaticMemberReadNotFoundDotShorthand,
+        };
+        return code.withArguments(
           name: name,
           contextType: declaration.displayName,
           expectedKinds: StaticLookupDomain._expectedKindsOf(declaration),

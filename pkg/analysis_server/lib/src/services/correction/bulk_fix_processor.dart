@@ -118,6 +118,9 @@ class BulkFixProcessor {
     diag.undefinedStaticMemberReadNotFoundAnnotation: [DataDriven.new],
     diag.undefinedStaticMemberReadNotFoundConstant: [DataDriven.new],
     diag.undefinedStaticMemberReadNotFoundDotShorthand: [DataDriven.new],
+    diag.undefinedStaticMemberReadNotFoundDotShorthandConstant: [
+      DataDriven.new,
+    ],
     diag.undefinedStaticMemberWriteNotFound: [DataDriven.new],
     diag.undefinedUnqualifiedNameReadNotFound: [DataDriven.new],
     diag.undefinedUnqualifiedNameReadNotFoundAnnotation: [DataDriven.new],
@@ -177,6 +180,10 @@ class BulkFixProcessor {
   /// A map associating libraries to fixes with change counts.
   @visibleForTesting
   final ChangeMap changeMap = ChangeMap();
+
+  /// A set of `(path, producerRuntimeType, offset)` tuples that have already
+  /// had fixes applied in the current pass, to avoid applying duplicate fixes.
+  final Set<(String, Type, int)> _appliedFixLocations = {};
 
   /// A token used to signal that the caller is no longer interested in the
   /// results and processing can end early (in which case any results may be
@@ -900,6 +907,13 @@ class BulkFixProcessor {
     CorrectionProducer producer,
     String codeName,
   ) async {
+    var diagnostic = producer.diagnostic;
+    var fixLocation = diagnostic != null && producer is! DataDrivenFix
+        ? (context.path, producer.runtimeType, diagnostic.offset)
+        : null;
+    if (fixLocation != null && !_appliedFixLocations.add(fixLocation)) {
+      return;
+    }
     var oldCount = (builder as ChangeBuilderImpl).modificationCount;
     // Apply the producer, which might re-assign the `builder`.
     await _applyProducer(producer);
