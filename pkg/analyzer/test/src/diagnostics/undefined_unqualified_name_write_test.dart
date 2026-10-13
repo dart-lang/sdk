@@ -538,6 +538,96 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_final_directAssignment_extensionTypeInstanceField() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type X(int it) {
+  final foo = 0;
+//      ^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
+
+  void f() {
+    foo = 0;
+  }
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@extensionType::X::@getter::foo
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extensionType::X::@getter::foo
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_final_directAssignment_extensionTypeRepresentation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type X(int it) {
+  void f() {
+    it = 0;
+//  ^^
+// [diag.undefinedUnqualifiedNameWriteFinal] 'it' is final, so it can't be assigned to.
+  }
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: it
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@extensionType::X::@getter::it
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: it
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extensionType::X::@getter::it
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
   test_final_directAssignment_externalFinalVariable() async {
     await resolveTestCodeWithDiagnostics(r'''
 external final x;
