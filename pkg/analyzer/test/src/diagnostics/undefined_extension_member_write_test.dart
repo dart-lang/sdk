@@ -1577,8 +1577,6 @@ void f() {
   E(0).foo += 1;
 //     ^^^
 // [diag.undefinedExtensionMemberWriteWrongKind] The method 'foo' in the extension 'E' can't be assigned to.
-//         ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function()'.
 }
 ''');
 
@@ -1734,10 +1732,6 @@ void f() {
   E(0).foo ??= 1;
 //     ^^^
 // [diag.undefinedExtensionMemberWriteWrongKind] The method 'foo' in the extension 'E' can't be assigned to.
-//             ^^
-// [diag.deadCode] Dead code.
-//             ^
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 }
 ''');
 
@@ -1769,7 +1763,7 @@ IfNullAssignment
     literal: 1
     correspondingParameter: <null>
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: PropertyAccess
     target: ExtensionOverride
@@ -1801,7 +1795,7 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@extension::E::@method::foo
   writeType: InvalidType
   element: <null>
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 
@@ -1846,7 +1840,7 @@ IncrementOrDecrementExpression
   position: postfix
   element: <null>
   operatorResultType: dynamic
-  staticType: void Function()
+  staticType: InvalidType
 V1: PostfixExpression
   operand: PropertyAccess
     target: ExtensionOverride
@@ -1874,7 +1868,7 @@ V1: PostfixExpression
   writeElement: <testLibrary>::@extension::E::@method::foo
   writeType: InvalidType
   element: <null>
-  staticType: void Function()
+  staticType: InvalidType
 ''');
   }
 }

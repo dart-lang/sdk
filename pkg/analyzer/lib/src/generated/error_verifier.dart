@@ -30,6 +30,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
+import 'package:analyzer/src/dart/resolver/assignment_expression_resolver.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart'
@@ -1528,8 +1529,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       super.visitIfNullAssignment(node);
       return;
     }
-    if (target.read case ReadResolutionImpl(:var type)) {
-      _checkForDeadNullCoalesce(type, node.value);
+    if (target.read case var read?) {
+      _checkForDeadNullCoalesce(
+        AssignmentExpressionResolver.operatorReadType(read, target.write),
+        node.value,
+      );
     }
     if (target is UnqualifiedNameAssignmentTargetImpl) {
       var readElement = target.read?.element;

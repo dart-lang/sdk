@@ -2569,8 +2569,6 @@ void f() {
   C.foo += 1;
 //  ^^^
 // [diag.undefinedStaticMemberWriteWrongKind] The method 'foo' in the class 'C' can't be assigned to.
-//      ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function()'.
 }
 ''');
 
@@ -2692,10 +2690,6 @@ void f() {
   C.foo ??= 1;
 //  ^^^
 // [diag.undefinedStaticMemberWriteWrongKind] The method 'foo' in the class 'C' can't be assigned to.
-//          ^^
-// [diag.deadCode] Dead code.
-//          ^
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 }
 ''');
 
@@ -2718,7 +2712,7 @@ IfNullAssignment
     literal: 1
     correspondingParameter: <null>
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -2742,7 +2736,7 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@class::C::@method::foo
   writeType: InvalidType
   element: <null>
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 
