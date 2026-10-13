@@ -3773,6 +3773,18 @@ void Simulator::DecodeDPSimd1(Instr* instr) {
     return;
   }
 
+  // REV64 Vd.4S, Vn.4S: swaps the two 32-bit lanes in each 64-bit half.
+  if ((instr->InstructionBits() & 0xFFFFFC00) == 0x4EA00800) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    const int32_t res[4] = {get_vregisters(vn, 1), get_vregisters(vn, 0),
+                            get_vregisters(vn, 3), get_vregisters(vn, 2)};
+    for (int i = 0; i < 4; i++) {
+      set_vregisters(vd, i, res[i]);
+    }
+    return;
+  }
+
   // TBL Vd.16B, {Vn.16B}, Vm.16B: byte-wise table lookup.
   if ((instr->InstructionBits() & 0xFFE0FC00) == 0x4E000000) {
     const VRegister vd = instr->VdField();
