@@ -1218,8 +1218,8 @@ class Translator with KernelNodes {
   ///
   /// Only Wasm types that Binaryen supports on the module boundary under
   /// `--closed-world` are allowed (primitives, abstract heap reference types,
-  /// and Wasm arrays of external storage types). No type or nullability
-  /// coercion is performed.
+  /// Wasm function types, and Wasm arrays of external storage types). No type
+  /// or nullability coercion is performed.
   w.ValueType translateExternalType(DartType type) {
     return translateExternalStorageType(type) as w.ValueType;
   }
@@ -1236,17 +1236,37 @@ class Translator with KernelNodes {
           return (builtin as w.RefType).withNullability(isNullable);
         }
         if (cls == wasmArrayClass || cls == immutableWasmArrayClass) {
-          final elementType = translateExternalStorageType(
-            type.typeArguments.single,
-          );
+          final dartElementType = type.typeArguments.single;
+          final elementType = translateExternalStorageType(dartElementType);
           return w.RefType.def(
             wasmArrayType(
               elementType,
-              '$elementType',
+              dartElementType.toText(defaultAstTextStrategy),
               mutable: cls == wasmArrayClass,
             ),
             nullable: isNullable,
           );
+        }
+        if (cls == wasmFunctionClass) {
+          final functionType = type.typeArguments.single as FunctionType;
+          assert(
+            !functionType.isPotentiallyNullable &&
+                functionType.typeParameters.isEmpty &&
+                functionType.namedParameters.isEmpty &&
+                functionType.requiredParameterCount ==
+                    functionType.positionalParameters.length,
+          );
+          final returnType = functionType.returnType;
+          final voidReturn =
+              returnType is InterfaceType &&
+              returnType.classNode == wasmVoidClass;
+          final inputs = [
+            for (final type in functionType.positionalParameters)
+              translateExternalType(type),
+          ];
+          final outputs = [if (!voidReturn) translateExternalType(returnType)];
+          final wasmType = typesBuilder.defineFunction(inputs, outputs);
+          return w.RefType.def(wasmType, nullable: isNullable);
         }
       }
     }
@@ -2163,17 +2183,16 @@ class Translator with KernelNodes {
     // require it (for now) to be an interface type.
     if (defaultType is! InterfaceType) return null;
 
+    // If code uses wasm types, use those precise types.
+    if (isWasmType(defaultType.classNode)) return null;
+
     final dartType = inferredType.dartType;
     if (dartType == null) return null;
     final targetClass = dartType.classNode;
     // TFA doesn't know how dart2wasm represents closures
     if (targetClass == closureClass) return null;
-    // The WasmFunction<>/WasmArray<>/WasmTable<> types need concrete type
-    // arguments.
-    if (targetClass == wasmFunctionClass) return null;
-    if (targetClass == wasmArrayClass) return null;
-    if (targetClass == immutableWasmArrayClass) return null;
-    if (targetClass == wasmTableClass) return null;
+    // Do not use inferred wasm types where original types were Dart types.
+    if (isWasmType(targetClass)) return null;
 
     // If the TFA inferred class is the same as the [defaultType] we prefer the
     // latter as it has the correct type arguments.

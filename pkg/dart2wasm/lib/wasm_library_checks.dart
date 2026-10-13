@@ -414,6 +414,16 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
         util.hasWasmWeakExportPragma(coreTypes, member);
   }
 
+  bool _isValidExternalFunctionType(DartType type) {
+    return type is FunctionType &&
+        !type.isPotentiallyNullable &&
+        type.typeParameters.isEmpty &&
+        type.namedParameters.isEmpty &&
+        type.requiredParameterCount == type.positionalParameters.length &&
+        type.positionalParameters.every(_isValidExternalValueType) &&
+        _isValidExternalReturnType(type.returnType);
+  }
+
   bool _isValidExternalReturnType(DartType type) {
     return (type is InterfaceType &&
             type.classNode == wasmVoidClass &&
@@ -452,6 +462,9 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
     }
     if (cls == wasmArrayClass || cls == immutableWasmArrayClass) {
       return _isValidExternalStorageType(type.typeArguments.single);
+    }
+    if (cls == wasmFunctionClass) {
+      return _isValidExternalFunctionType(type.typeArguments.single);
     }
     return false;
   }

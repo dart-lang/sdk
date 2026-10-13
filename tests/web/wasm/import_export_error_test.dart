@@ -13,10 +13,16 @@ external WasmI32 validImport(
   WasmExternRef? b,
   WasmArray<WasmI8> c,
   ImmutableWasmArray<WasmAnyRef?> d,
+  WasmFunction<WasmVoid Function(WasmI32)> e,
+  ImmutableWasmArray<WasmFunction<WasmVoid Function()>> f,
 );
 
 @pragma('wasm:export', 'validExport')
-WasmVoid validExport(WasmF64 a, WasmFuncRef? b) => WasmVoid();
+WasmVoid validExport(
+  WasmF64 a,
+  WasmFuncRef? b,
+  WasmFunction<WasmI32 Function(WasmF64)>? c,
+) => WasmVoid();
 
 @pragma('wasm:weak-export', 'validWeakExport')
 WasmExternRef? validWeakExport() => WasmExternRef.nullRef;
@@ -137,6 +143,18 @@ external WasmVoid importInvalidParams(
   WasmArray<WasmI8?> e,
   //                 ^
   // [web] Type 'WasmArray<WasmI8?>' is not a valid Wasm parameter type for imported or exported functions.
+  WasmFunction<Function> f,
+  //                     ^
+  // [web] Type 'WasmFunction<Function>' is not a valid Wasm parameter type for imported or exported functions.
+  WasmFunction<void Function()> g,
+  //                            ^
+  // [web] Type 'WasmFunction<void Function()>' is not a valid Wasm parameter type for imported or exported functions.
+  WasmFunction<WasmVoid Function(int)> h,
+  //                                   ^
+  // [web] Type 'WasmFunction<WasmVoid Function(int)>' is not a valid Wasm parameter type for imported or exported functions.
+  WasmFunction<WasmVoid Function([WasmI32])> i,
+  //                                         ^
+  // [web] Type 'WasmFunction<WasmVoid Function([WasmI32])>' is not a valid Wasm parameter type for imported or exported functions.
 );
 
 // Invalid return types.
