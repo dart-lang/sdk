@@ -344,6 +344,80 @@ class SecurityConfiguration {
     });
   }
 
+  // A non-compliant peer must not be able to push a window size outside the
+  // RFC 7692 range (8..15) into the server's zlib context through the
+  // handshake. Before this was fixed the value flowed straight into
+  // `RawZLibFilter` and broke the connection with an opaque error.
+  void testServerIgnoresOutOfRangeWindowBits() {
+    asyncStart();
+    createServer().then((server) {
+      server.listen((request) {
+        WebSocketTransformer.upgrade(request).then((webSocket) {
+          webSocket.listen((message) {
+            webSocket.add(message);
+            webSocket.close();
+          });
+        });
+      });
+
+      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
+      var options = new CompressionOptions(serverMaxWindowBits: 99);
+      WebSocket.connect(url, compression: options)
+          .then((webSocket) {
+            var future = webSocket.listen((message) {
+              Expect.equals("Hello World", message);
+            }).asFuture();
+            webSocket.add("Hello World");
+            return future;
+          })
+          .then((_) {
+            server.close();
+            asyncEnd();
+          });
+    });
+  }
+
+  // The same, but for an out-of-range value sent by a non-compliant server to
+  // the client. Receiving the client's frame proves its deflate encoder was
+  // initialised with a valid window size instead of throwing.
+  void testClientIgnoresOutOfRangeWindowBits() {
+    asyncStart();
+    createServer().then((server) {
+      var gotFrame = false;
+      server.listen((request) {
+        var key = request.headers.value('Sec-WebSocket-Key');
+        var digest = sha1.convert("$key$WEB_SOCKET_GUID".codeUnits);
+        var accept = base64.encode(digest.bytes);
+        request.response
+          ..statusCode = HttpStatus.switchingProtocols
+          ..headers.add(HttpHeaders.connectionHeader, "Upgrade")
+          ..headers.add(HttpHeaders.upgradeHeader, "websocket")
+          ..headers.add("Sec-WebSocket-Accept", accept)
+          ..headers.add(
+            "Sec-WebSocket-Extensions",
+            "permessage-deflate; client_max_window_bits=99",
+          );
+        request.response.contentLength = 0;
+        request.response.detachSocket().then((socket) {
+          socket.listen((_) {
+            if (!gotFrame) {
+              gotFrame = true;
+              socket.destroy();
+              server.close();
+              asyncEnd();
+            }
+          }, onError: (_) {});
+        });
+      });
+
+      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
+      WebSocket.connect(url).then((webSocket) {
+        webSocket.listen((_) {}, onError: (_) {}, onDone: () {});
+        webSocket.add("Hello World");
+      });
+    });
+  }
+
   void runTests() {
     // No compression or takeover
     testCompressionSupport();
@@ -455,6 +529,9 @@ class SecurityConfiguration {
       serverMaxWindowBits: 8,
     );
     testClientRequestHeaders(compression);
+
+    testServerIgnoresOutOfRangeWindowBits();
+    testClientIgnoresOutOfRangeWindowBits();
   }
 }
 
