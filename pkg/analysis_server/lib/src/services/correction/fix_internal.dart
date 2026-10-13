@@ -916,6 +916,10 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     CreateGetter.new,
     CreateMethod.method,
   ],
+  diag.undefinedStaticMemberReadNotFoundDotShorthandConstant: [
+    ChangeTo.getterOrSetter,
+    CreateEnumConstant.new,
+  ],
   diag.undefinedStaticMemberWriteFinal: [MakeFieldNotFinal.new, AddLate.new],
   diag.undefinedStaticMemberWriteNotFound: [
     ChangeTo.getterOrSetter,
@@ -1341,6 +1345,7 @@ final _builtInNonLintMultiGenerators = {
     ImportLibrary.forTypeOrMember,
   ],
   diag.undefinedStaticMemberReadNotFoundDotShorthand: [DataDriven.new],
+  diag.undefinedStaticMemberReadNotFoundDotShorthandConstant: [DataDriven.new],
   diag.undefinedStaticMemberWriteNotFound: [
     DataDriven.new,
     ImportLibrary.forExtensionMember,

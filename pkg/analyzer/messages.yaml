@@ -20323,6 +20323,16 @@ CompileTimeErrorCode:
     problemMessage: "The context type '#contextType' doesn't have a #expectedKinds named '#name'."
     correctionMessage: "Try correcting the name to the name of an existing #expectedKinds, or defining a static member named '#name'."
     hasPublishedDocs: false
+  undefinedStaticMemberReadNotFoundDotShorthandConstant:
+    type: compileTimeError
+    parameters:
+      String name: the name of the member
+      String contextType: the name of the declaration that the context type of the dot shorthand denotes
+      String expectedKinds: the kinds of declarations that the lookup could have found, such as 'static member or constructor'
+    sharedName: undefinedStaticMemberRead
+    problemMessage: "The context type '#contextType' doesn't have a #expectedKinds named '#name'."
+    correctionMessage: "Try correcting the name to the name of an existing static constant or static method, or defining a static constant named '#name'."
+    hasPublishedDocs: false
   undefinedStaticMemberReadPrivate:
     type: compileTimeError
     parameters:

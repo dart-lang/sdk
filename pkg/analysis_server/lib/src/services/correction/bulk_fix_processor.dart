@@ -118,6 +118,9 @@ class BulkFixProcessor {
     diag.undefinedStaticMemberReadNotFoundAnnotation: [DataDriven.new],
     diag.undefinedStaticMemberReadNotFoundConstant: [DataDriven.new],
     diag.undefinedStaticMemberReadNotFoundDotShorthand: [DataDriven.new],
+    diag.undefinedStaticMemberReadNotFoundDotShorthandConstant: [
+      DataDriven.new,
+    ],
     diag.undefinedStaticMemberWriteNotFound: [DataDriven.new],
     diag.undefinedUnqualifiedNameReadNotFound: [DataDriven.new],
     diag.undefinedUnqualifiedNameReadNotFoundAnnotation: [DataDriven.new],
