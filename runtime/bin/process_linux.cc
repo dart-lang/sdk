@@ -737,8 +737,8 @@ class ProcessStarter {
 
   void SetChildOsErrorMessage() {
     char* error_message = DartUtils::ScopedCString(kErrorBufferSize);
-    Utils::StrError(errno, error_message, kErrorBufferSize);
-    *os_error_message_ = error_message;
+    *os_error_message_ =
+        Utils::StrError(errno, error_message, kErrorBufferSize);
   }
 
   void ReportChildError() {
