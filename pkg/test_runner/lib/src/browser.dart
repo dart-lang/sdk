@@ -762,6 +762,7 @@ String dart2wasmHtml(
       loadDeferredModules: (modules, handleWasmBytes) =>
         Promise.all(modules.map((m) => handleWasmBytes(m, fetch(m)))),
     });
+    window.appInstanceForTesting = appInstance;
     dartMainRunner(() => {
       appInstance.invokeMain();
     });

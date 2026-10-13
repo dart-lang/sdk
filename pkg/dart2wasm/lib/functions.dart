@@ -58,6 +58,19 @@ class FunctionCollector {
     // Register the names of any members that are exported from the program.
     final isStrongExport = interopNamer.registerExternalExportName(member);
     if (isStrongExport) {
+      if (member.isGetter) {
+        assert(
+          member.isStatic &&
+              member.isExternal &&
+              member.function.returnType ==
+                  InterfaceType(
+                    translator.wasmMemoryClass,
+                    Nullability.nonNullable,
+                  ),
+        );
+        translator.findMemory(member, translator.mainModule);
+        return;
+      }
       // Ensure any strong exports are enqueued for compilation.
       getFunction(member.reference);
     }

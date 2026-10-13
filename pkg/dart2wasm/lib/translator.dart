@@ -2628,9 +2628,14 @@ class Translator with KernelNodes {
         coreTypes,
         topLevelExternalMemoryGetter,
       );
+      final exportName = interopMemberNamer.getExportName(
+        topLevelExternalMemoryGetter,
+      );
 
+      final w.Memory memory;
       if (import != null) {
-        return mainModule.memories.import(
+        assert(exportName == null);
+        memory = mainModule.memories.import(
           import.moduleName,
           import.itemName,
           memoryType.shared,
@@ -2638,12 +2643,16 @@ class Translator with KernelNodes {
           memoryType.maxSize,
         );
       } else {
-        return mainModule.memories.define(
+        memory = mainModule.memories.define(
           memoryType.shared,
           memoryType.minSize,
           memoryType.maxSize,
         );
+        if (exportName != null) {
+          mainModule.exports.export(exportName, memory);
+        }
       }
+      return memory;
     });
   }
 
@@ -4025,7 +4034,7 @@ void instantiateDummyValue(
 abstract class _WasmImporter<T extends w.Exportable> {
   final Translator _translator;
   final String _exportPrefix;
-  final Map<T, Map<w.ModuleBuilder, T>> _map = {};
+  final Map<T, _ExportedWasmEntity<T>> _map = {};
 
   _WasmImporter(this._translator, this._exportPrefix);
 
@@ -4036,25 +4045,25 @@ abstract class _WasmImporter<T extends w.Exportable> {
     String importName,
   );
 
-  Iterable<T> get imports => _map.values.expand((v) => v.values);
+  Iterable<T> get imports => _map.values.expand((v) => v.imports.values);
 
   T get(T key, w.ModuleBuilder module) {
     final keyModuleBuilder = _translator.moduleToBuilder[key.enclosingModule]!;
     if (keyModuleBuilder == module) return key;
 
-    final innerMap = _map.putIfAbsent(key, () {
+    final exported = _map.putIfAbsent(key, () {
       final name = _translator.exportNamer.getName(
         '$_exportPrefix${_map.length}',
       );
       keyModuleBuilder.exports.export(name, key);
-      return {};
+      return _ExportedWasmEntity(name);
     });
-    return innerMap.putIfAbsent(module, () {
+    return exported.imports.putIfAbsent(module, () {
       return import(
         module,
         key,
         _translator.nameForModule(keyModuleBuilder),
-        key.exportedName,
+        exported.exportName,
       );
     });
   }
@@ -4062,6 +4071,13 @@ abstract class _WasmImporter<T extends w.Exportable> {
   bool has(T key) {
     return _map.containsKey(key);
   }
+}
+
+class _ExportedWasmEntity<T extends w.Exportable> {
+  final String exportName;
+  final Map<w.ModuleBuilder, T> imports = {};
+
+  _ExportedWasmEntity(this.exportName);
 }
 
 class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {

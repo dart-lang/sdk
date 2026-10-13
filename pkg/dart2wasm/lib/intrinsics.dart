@@ -1347,10 +1347,12 @@ class Intrinsifier {
   bool _isIntrinsicMemoryGetter(Member member) {
     if (member case Procedure(
       kind: ProcedureKind.Getter,
+      isStatic: true,
       isExternal: true,
       function: FunctionNode(returnType: final InterfaceType type),
     )) {
-      return type.classNode == translator.wasmMemoryClass;
+      return !type.isPotentiallyNullable &&
+          type.classNode == translator.wasmMemoryClass;
     }
 
     return false;

@@ -6,9 +6,9 @@
   (type $JavaScriptStack <...>)
   (tag $WebAssembly.JSTag (import "WebAssembly" "JSTag") (param externref))
   (tag $tag0 (param (ref $#Top) (ref $#Top)))
-  (global $"WasmArray<WasmI16>[717]" (ref $Array<WasmI16>) <...>)
+  (global $"WasmArray<WasmI16>[742]" (ref $Array<WasmI16>) <...>)
   (global $"WasmArray<WasmI32>[250]" (ref $Array<WasmI32>) <...>)
-  (global $"WasmArray<WasmI32>[717]" (ref $Array<WasmI32>) <...>)
+  (global $"WasmArray<WasmI32>[742]" (ref $Array<WasmI32>) <...>)
   (global $"\"Caught Error\"" (ref $JSExternWrapper) <...>)
   (global $"\"Caught JSAny\"" (ref $JSExternWrapper) <...>)
   (global $"\"Caught Object\"" (ref $JSExternWrapper) <...>)
@@ -39,7 +39,7 @@
           local.tee $var1
           struct.get $#Top $#classId
           local.tee $var0
-          i32.const 67
+          i32.const 68
           i32.eq
           if (result i32)
             i32.const 0
@@ -47,22 +47,22 @@
             block $label5 (result i32)
               i32.const -1
               global.get $"WasmArray<WasmI32>[250]"
-              i32.const 67
+              i32.const 68
               array.get $Array<WasmI32>
               local.get $var0
               i32.add
               local.tee $var0
-              i32.const 717
+              i32.const 742
               i32.ge_u
               br_if $label5
               drop
-              global.get $"WasmArray<WasmI32>[717]"
+              global.get $"WasmArray<WasmI32>[742]"
               local.get $var0
               array.get $Array<WasmI32>
-              i32.const 67
+              i32.const 68
               i32.eq
               if
-                global.get $"WasmArray<WasmI16>[717]"
+                global.get $"WasmArray<WasmI16>[742]"
                 local.get $var0
                 array.get_u $Array<WasmI16>
                 br $label5
@@ -168,12 +168,12 @@
             br $label2
           end
           local.get $var0
-          i32.const 105
+          i32.const 106
           i32.le_u
           if
             i32.const 1
             local.get $var0
-            i32.const 105
+            i32.const 106
             i32.eq
             br_if $label1
             drop
@@ -181,7 +181,7 @@
           end
           i32.const 1
           local.get $var0
-          i32.const 107
+          i32.const 108
           i32.eq
           br_if $label1
           drop

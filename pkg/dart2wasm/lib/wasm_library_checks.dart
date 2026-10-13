@@ -108,7 +108,7 @@ abstract class _BaseVerifier extends RecursiveVisitor with KernelNodes {
         getter.isExternal) {
       final type = getter.function.returnType;
 
-      if (type is InterfaceType) {
+      if (type is InterfaceType && !type.isPotentiallyNullable) {
         if (type.classNode == wasmMemoryClass) {
           return ExternType.memory;
         }
@@ -326,9 +326,8 @@ mixin _ImportExportVerifierMixin on _BaseVerifier {
 
     if (hasExport || hasWeakExport) {
       final isValidExport =
-          isMethod &&
-          node.isStatic &&
-          !node.isExternal &&
+          ((isMethod && node.isStatic && !node.isExternal) ||
+              (isMemory && hasExport)) &&
           !hasImport &&
           !(hasExport && hasWeakExport) &&
           (hasExport

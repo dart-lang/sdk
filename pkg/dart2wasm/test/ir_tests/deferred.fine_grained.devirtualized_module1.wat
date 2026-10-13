@@ -9,7 +9,7 @@
   (global $".FooBase(" (import "" "FooBase(") (ref extern))
   (global $"\")\"" (import "M" "global2") (ref $JSExternWrapper))
   (table $M.cross-module-funcs-0 (import "M" "cross-module-funcs-0") 18 funcref)
-  (table $M.dispatch0 (import "M" "dispatch0") 668 funcref)
+  (table $M.dispatch0 (import "M" "dispatch0") 672 funcref)
   (global $"\"Foo0.doitDispatch(\"" (ref $JSExternWrapper)
     (i32.const 66)
     (i32.const 0)
@@ -97,7 +97,7 @@
   (func $foo0
     call $"runtimeTrue implicit getter"
     if (result (ref $Object))
-      i32.const 112
+      i32.const 113
       i32.const 0
       struct.new $Object
     else
@@ -127,7 +127,7 @@
       i64.const 1
       local.get $var0
       struct.get $Object $#classId
-      i32.const 373
+      i32.const 376
       i32.add
       call_indirect $M.dispatch0 (param (ref $Object) i64)
       block $label2 (result (ref $Object))

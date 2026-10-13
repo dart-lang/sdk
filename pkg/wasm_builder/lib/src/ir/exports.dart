@@ -7,16 +7,12 @@ import 'module.dart';
 
 /// Any class which can be exported from a module.
 mixin Exportable {
-  late final String exportedName;
   Module get enclosingModule;
 
   Export buildExport(String name);
 
   /// All exports must have unique names.
-  Export export(String name) {
-    exportedName = name;
-    return buildExport(name);
-  }
+  Export export(String name) => buildExport(name);
 }
 
 /// Any export (function, table, memory or global).

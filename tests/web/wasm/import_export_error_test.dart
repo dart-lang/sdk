@@ -31,6 +31,10 @@ WasmExternRef? validWeakExport() => WasmExternRef.nullRef;
 @pragma('wasm:memory-type', MemoryType(limits: Limits(1)))
 external Memory get validImportedMemory;
 
+@pragma('wasm:export', 'exportedMem')
+@pragma('wasm:memory-type', MemoryType(limits: Limits(1)))
+external Memory get validExportedMemory;
+
 // Invalid `wasm:import` pragmas.
 @pragma('wasm:import')
 external WasmVoid importMissingArg();
@@ -66,36 +70,44 @@ WasmI32? importOnField;
 @pragma('wasm:export', 'extExport')
 external WasmVoid exportOnExternal();
 //                ^
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
 
+@pragma('wasm:weak-export', 'weakExportedMem')
+@pragma('wasm:memory-type', MemoryType(limits: Limits(1)))
+external Memory get weakExportOnMemoryGetter;
+//                  ^
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
+
+@pragma('wasm:import', 'env.mem')
 @pragma('wasm:export', 'exportedMem')
 @pragma('wasm:memory-type', MemoryType(limits: Limits(1)))
-external Memory get exportOnMemoryGetter;
+external Memory get importAndExportOnMemoryGetter;
 //                  ^
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions.
+// [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
 
 @pragma('wasm:export', 123)
 WasmVoid exportNonStringName() => WasmVoid();
 //       ^
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
 
 @pragma('wasm:export', 'nonMemGetter')
 WasmI32 get exportOnNonMemoryGetter => const WasmI32(0);
 //          ^
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
 
 @pragma('wasm:export', 'both1')
 @pragma('wasm:weak-export', 'both2')
 WasmVoid exportAndWeakExport() => WasmVoid();
 //       ^
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
 
 @pragma('wasm:import', 'env.both')
 @pragma('wasm:export', 'both')
 external WasmVoid importAndExport();
 //                ^
 // [web] The 'wasm:import' pragma is only allowed on external static functions or memory getters, and must specify a '<module>.<name>' argument.
-// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions.
+// [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
 
 class C {
   @pragma('wasm:import', 'env.instanceImport')
@@ -106,7 +118,7 @@ class C {
   @pragma('wasm:export', 'instanceExport')
   WasmVoid instanceExport() => WasmVoid();
   //       ^
-  // [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions.
+  // [web] The 'wasm:export' and 'wasm:weak-export' pragmas are only allowed on non-external static functions, and 'wasm:export' is also allowed on external memory getters.
 }
 
 // Invalid signatures (type, optional, or named parameters).
