@@ -4,6 +4,9 @@
   is set, the expression compiler worker is started with
   `--[no-]deprecated-js-interop`. This requires a Dart SDK that supports the
   flag.
+- Fix the extension backend and debug service intermittently failing to start
+  with "Address already in use" by letting the OS pick the port instead of
+  probing for one on `[::1]` first.
 
 ## 27.1.4
 

@@ -261,6 +261,183 @@ String get message => p.join('hello', 'world');
     );
   });
 
+  group('DDC library bundle format', () {
+    late Uri entrypointUri;
+    late String entrypoint;
+    late String mainModule;
+    late DartDevcFrontendServerClient ddcClient;
+
+    Future<void> startAndCompile() async {
+      entrypointUri = p.toUri(p.join(packageRoot, 'bin', 'main.dart'));
+      entrypoint = entrypointUri.toString();
+      mainModule = '${entrypointUri.path}.lib.js';
+      client = ddcClient = await DartDevcFrontendServerClient.start(
+        entrypoint,
+        p.join(packageRoot, 'out.dill'),
+        dartdevcModuleFormat: 'ddc',
+        canaryFeatures: true,
+        packagesJson: packagesJsonPath,
+      );
+      final result = await ddcClient.compile();
+      ddcClient.accept();
+      expect(
+        result.errorCount,
+        0,
+        reason: result.compilerOutputLines.join('\n'),
+      );
+    }
+
+    Future<void> editMain(String from, String to) async {
+      final file = File(entrypointUri.toFilePath());
+      await file.writeAsString(
+        (await file.readAsString()).replaceFirst(from, to),
+      );
+    }
+
+    // Compiles an expression at: `print(message);`
+    Future<CompileResult> compileExpression(
+      String expression, {
+      String? libraryUri,
+    }) => ddcClient.compileExpressionToJs(
+      expression: expression,
+      libraryUri: libraryUri ?? entrypoint,
+      scriptUri: libraryUri ?? entrypoint,
+      line: 4,
+      column: 3,
+      jsFrameValues: {},
+      jsModules: {},
+      moduleName: '',
+    );
+
+    test('provides debugger metadata and reloaded sources', () async {
+      await startAndCompile();
+      expect(utf8.decode(ddcClient.assetBytes(mainModule)!), contains('hello'));
+      expect(ddcClient.assetBytes('$mainModule.map'), isNotNull);
+      final metadata =
+          jsonDecode(utf8.decode(ddcClient.assetBytes('$mainModule.metadata')!))
+              as Map<String, dynamic>;
+      final mergedMetadata = const LineSplitter()
+          .convert(ddcClient.mergedMetadata)
+          .map(jsonDecode)
+          .toList();
+      expect(mergedMetadata, hasLength(greaterThan(1)));
+      expect(mergedMetadata, contains(equals(metadata)));
+
+      await editMain('hello', 'goodbye');
+      final result = await ddcClient.compile([entrypointUri]);
+      ddcClient.accept();
+      expect(result.errorCount, 0);
+      expect(
+        utf8.decode(ddcClient.assetBytes(mainModule)!),
+        contains('goodbye'),
+      );
+      expect(ddcClient.reloadedSources, [
+        {
+          'src': mainModule,
+          'module': metadata['name'],
+          'libraries': [entrypoint],
+        },
+      ]);
+    });
+
+    test('can hot restart after a rejected hot reload', () async {
+      await d.dir('a', [
+        d.dir('bin', [
+          d.file('main.dart', '''
+class A {
+  const A();
+}
+
+void main() {
+  print(const A());
+}
+'''),
+        ]),
+      ]).create();
+      await startAndCompile();
+
+      await editMain('const A();', 'A();');
+      await editMain('const A()', 'A()');
+      var result = await ddcClient.compile([entrypointUri]);
+      expect(result.errorCount, greaterThan(0));
+      expect(
+        result.compilerOutputLines,
+        contains(contains('Const class cannot become non-const')),
+      );
+      await ddcClient.reject();
+
+      // Rejected URIs are resent.
+      result = await ddcClient.recompileRestart([]);
+      ddcClient.accept();
+      expect(
+        result.errorCount,
+        0,
+        reason: result.compilerOutputLines.join('\n'),
+      );
+      expect(ddcClient.reloadedSources.map((entry) => entry['src']), [
+        mainModule,
+      ]);
+    });
+
+    test('can compile expressions to JS', () async {
+      await startAndCompile();
+
+      var result = await compileExpression('message.length');
+      expect(
+        result.errorCount,
+        0,
+        reason: result.compilerOutputLines.join('\n'),
+      );
+      expect(result.compiledExpression, contains('message'));
+
+      result = await compileExpression('notDefined');
+      expect(result.errorCount, greaterThan(0));
+      expect(result.compiledExpression, isNull);
+      expect(result.compilerOutputLines.join('\n'), contains('notDefined'));
+
+      // Fails before compiling.
+      result = await compileExpression(
+        '1',
+        libraryUri: 'package:a/missing.dart',
+      );
+      expect(result.errorCount, 1);
+      expect(result.compiledExpression, isNull);
+      expect(result.compilerOutputLines.join('\n'), isNotEmpty);
+    });
+
+    test(
+      'queues expression compile requests until a compile is accepted',
+      () async {
+        await startAndCompile();
+        await editMain('hello', 'goodbye');
+
+        final compile = ddcClient.compile([entrypointUri]);
+        var accepted = false;
+        final expressions =
+            Future.wait([
+              compileExpression('message'),
+              compileExpression('message.length'),
+            ]).then((results) {
+              expect(accepted, isTrue);
+              return results;
+            });
+        final result = await compile;
+        expect(result.errorCount, 0);
+        accepted = true;
+        ddcClient.accept();
+
+        for (final result in await expressions) {
+          expect(
+            result.errorCount,
+            0,
+            reason: result.compilerOutputLines.join('\n'),
+          );
+          expect(result.compiledExpression, isNotEmpty);
+        }
+      },
+    );
+  });
+
   test('can enable experiments', () async {
     await d.dir('a', [
       d.dir('bin', [

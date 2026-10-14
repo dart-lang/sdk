@@ -66,6 +66,14 @@ void f() {
 ''');
   }
 
+  test_braces_typeLiteral_typeArguments() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  print('hello ${List<int>}');
+}
+''');
+  }
+
   test_noBraces() async {
     await assertNoDiagnostics(r'''
 void f() {

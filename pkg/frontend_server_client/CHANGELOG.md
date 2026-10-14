@@ -1,3 +1,7 @@
+## 4.2.0-wip
+- Support the DDC library bundle format and allow Frontend Server-driven hot
+  reload, hot restart, and expression compilation.
+
 ## 4.1.0
 
 - Support running from standalone CLI executables and respect `sdkRoot` when
