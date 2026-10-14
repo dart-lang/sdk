@@ -48,8 +48,6 @@ abstract class ConstructorEncoding {
 
   void prependInitializer(Initializer initializer);
 
-  FunctionParameter? getTearOffParameter(int index);
-
   InternalVariable? get thisVariable;
 
   List<TypeParameter>? get thisTypeParameters;
@@ -104,7 +102,7 @@ abstract class ConstructorEncoding {
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required ParameterMapping parameterMapping,
+    required ParameterMapping<Constructor> parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   });
 
@@ -405,36 +403,20 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     loader.addNativeAnnotation(_constructor, nativeMethodName);
   }
 
-  @override
-  FunctionParameter? getTearOffParameter(int index) {
-    Procedure? constructorTearOff = _constructorTearOff;
-    if (constructorTearOff != null) {
-      if (index < constructorTearOff.function.positionalParameters.length) {
-        return constructorTearOff.function.positionalParameters[index];
-      } else {
-        index -= constructorTearOff.function.positionalParameters.length;
-        if (index < constructorTearOff.function.namedParameters.length) {
-          return constructorTearOff.function.namedParameters[index];
-        }
-      }
-    }
-    return null;
-  }
-
   bool _hasAddedDefaultValueCloners = false;
 
   @override
   void addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required ParameterMapping parameterMapping,
+    required ParameterMapping<Constructor> parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   }) {
     if (!_hasAddedDefaultValueCloners) {
       // If this constructor formals are part of a cyclic dependency this
       // might be called more than once.
       delayedDefaultValueCloners.add(
-        new DelayedDefaultValueCloner(
+        new DelayedDefaultValueCloner<Constructor>(
           source: superTarget,
           target: _constructor,
           parameterMapping: parameterMapping,
@@ -725,22 +707,6 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   void prependInitializer(Initializer initializer) {
     (_prependedInitializers ??= []).add(initializer);
     _initializers.insert(0, initializer);
-  }
-
-  @override
-  FunctionParameter? getTearOffParameter(int index) {
-    Procedure? constructorTearOff = _constructorTearOff;
-    if (constructorTearOff != null) {
-      if (index < constructorTearOff.function.positionalParameters.length) {
-        return constructorTearOff.function.positionalParameters[index];
-      } else {
-        index -= constructorTearOff.function.positionalParameters.length;
-        if (index < constructorTearOff.function.namedParameters.length) {
-          return constructorTearOff.function.namedParameters[index];
-        }
-      }
-    }
-    return null;
   }
 
   bool _hasBuiltBody = false;

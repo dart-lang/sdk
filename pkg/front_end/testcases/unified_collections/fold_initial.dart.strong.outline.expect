@@ -6,15 +6,15 @@ static method foldInitialElements() → void
   ;
 static method foldInitialSpread1() → void
   ;
-static method foldInitialSpread2([has-declared-initializer core::bool c]) → void
+static method foldInitialSpread2([core::bool c = false]) → void
   ;
-static method foldInitialSpread3([has-declared-initializer core::bool c]) → void
+static method foldInitialSpread3([core::bool c = false]) → void
   ;
-static method foldInitialSpread4([has-declared-initializer core::bool c]) → void
+static method foldInitialSpread4([core::bool c = false]) → void
   ;
-static method foldInitialSpread5([has-declared-initializer core::bool c]) → void
+static method foldInitialSpread5([core::bool c = false]) → void
   ;
-static method foldInitialSpread6([has-declared-initializer core::bool c]) → void
+static method foldInitialSpread6([core::bool c = false]) → void
   ;
 static method main() → dynamic
   ;

@@ -17,19 +17,19 @@ extension Extension on self::Class {
   method tearoff method3 = self::Extension|get#method3;
   static method staticMethod = self::Extension|staticMethod;
 }
-static extension-member method Extension|method0(lowered final self::Class #this, [dynamic a]) → dynamic
+static extension-member method Extension|method0(lowered final self::Class #this, [dynamic a = null]) → dynamic
   ;
 static extension-member method Extension|get#method0(lowered final self::Class #this) → ([dynamic]) → dynamic
   return ([dynamic a]) → dynamic => self::Extension|method0(#this, a);
-static extension-member method Extension|method1(lowered final self::Class #this, [has-declared-initializer dynamic a]) → dynamic
+static extension-member method Extension|method1(lowered final self::Class #this, [dynamic a = 42]) → dynamic
   ;
 static extension-member method Extension|get#method1(lowered final self::Class #this) → ([dynamic]) → dynamic
   return ([dynamic a]) → dynamic => self::Extension|method1(#this, a);
-static extension-member method Extension|method2(lowered final self::Class #this, {has-declared-initializer dynamic b}) → dynamic
+static extension-member method Extension|method2(lowered final self::Class #this, {dynamic b = 87}) → dynamic
   ;
 static extension-member method Extension|get#method2(lowered final self::Class #this) → ({b: dynamic}) → dynamic
   return ({dynamic b}) → dynamic => self::Extension|method2(#this, b: b);
-static extension-member method Extension|method3(lowered final self::Class #this, {has-declared-initializer dynamic c}) → dynamic
+static extension-member method Extension|method3(lowered final self::Class #this, {dynamic c = self::Extension|staticMethod}) → dynamic
   ;
 static extension-member method Extension|get#method3(lowered final self::Class #this) → ({c: dynamic}) → dynamic
   return ({dynamic c}) → dynamic => self::Extension|method3(#this, c: c);
@@ -39,3 +39,8 @@ static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticTearOff @ org-dartlang-testcase:///default_values.dart:11:16 -> StaticTearOffConstant(Extension|staticMethod)
+Extra constant evaluation: evaluated: 17, effectively constant: 1

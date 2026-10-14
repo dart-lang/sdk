@@ -490,7 +490,7 @@ mixin _ConstructorDeclarationMixin
   void _addSuperParameterDefaultValueCloners({
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
-    required ParameterMapping parameterMapping,
+    required ParameterMapping<Constructor> parameterMapping,
     required SourceLibraryBuilder libraryBuilder,
   });
 
@@ -808,11 +808,6 @@ mixin _ConstructorEncodingMixin
   }
 
   @override
-  FunctionParameter? getTearOffParameter(int index) {
-    return _encoding.getTearOffParameter(index);
-  }
-
-  @override
   void markAsErroneous() {
     _encoding.markAsErroneous();
   }
@@ -851,7 +846,7 @@ mixin _ConstructorEncodingMixin
     required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
     required Member superTarget,
     required SourceLibraryBuilder libraryBuilder,
-    required ParameterMapping parameterMapping,
+    required ParameterMapping<Constructor> parameterMapping,
   }) {
     _encoding.addSuperParameterDefaultValueCloners(
       delayedDefaultValueCloners: delayedDefaultValueCloners,
@@ -1579,10 +1574,6 @@ abstract class ConstructorFragmentDeclaration {
   List<TypeParameter>? get thisTypeParameters;
 
   void becomeNative(SourceLoader loader);
-
-  /// Returns the [Variable] for the tear off, if any, of the
-  /// [index]th formal parameter declared in the constructor.
-  FunctionParameter? getTearOffParameter(int index);
 
   LocalScope computeFormalParameterScope(LookupScope parent);
 

@@ -876,20 +876,6 @@ class FactoryEncoding implements InferredTypeListener {
   FunctionSignature get signature =>
       new FunctionNodeSignature(_procedure.function);
 
-  FunctionParameter? getTearOffParameter(int index) {
-    if (_tearOff != null) {
-      if (index < _tearOff.function.positionalParameters.length) {
-        return _tearOff.function.positionalParameters[index];
-      } else {
-        index -= _tearOff.function.positionalParameters.length;
-        if (index < _tearOff.function.namedParameters.length) {
-          return _tearOff.function.namedParameters[index];
-        }
-      }
-    }
-    return null;
-  }
-
   DartType get returnTypeContext => _procedure.function.returnType;
 }
 

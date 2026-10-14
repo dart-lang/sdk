@@ -1,7 +1,16 @@
 library;
 import self as self;
+import "dart:core" as core;
 
-static method method1([has-declared-initializer dynamic a, has-declared-initializer dynamic b]) → void
+static method method1([dynamic a = (0, 1), dynamic b = (const <core::String>[], {c: "foo"})]) → void
   ;
-static method method2({has-declared-initializer dynamic a, has-declared-initializer dynamic b}) → void
+static method method2({dynamic a = (0, 1), dynamic b = (const <core::String>[], {c: "foo"})}) → void
   ;
+
+
+Extra constant evaluation status:
+Evaluated: RecordLiteral @ org-dartlang-testcase:///structurally_constant.dart:5:19 -> RecordConstant(const (0, 1))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///structurally_constant.dart:5:31 -> RecordConstant(const (const <String>[], {c: "foo"}))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///structurally_constant.dart:10:19 -> RecordConstant(const (0, 1))
+Evaluated: RecordLiteral @ org-dartlang-testcase:///structurally_constant.dart:10:31 -> RecordConstant(const (const <String>[], {c: "foo"}))
+Extra constant evaluation: evaluated: 4, effectively constant: 4

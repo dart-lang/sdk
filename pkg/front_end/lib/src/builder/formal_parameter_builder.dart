@@ -26,7 +26,6 @@ import '../kernel/resolver.dart';
 import '../kernel/wildcard_lowering.dart';
 import '../source/fragment_factory.dart';
 import '../source/source_constructor_builder.dart';
-import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
@@ -488,37 +487,35 @@ class FormalParameterBuilder extends NamedBuilderImpl
     // buildOutlineExpressions to clear defaultValueToken to prevent
     // consuming too much memory.
     Token? defaultValueToken = _takeDefaultValueToken();
-    if (_needsDefaultValuesBuiltAsOutlineExpressions(memberBuilder)) {
-      if (defaultValueToken != null) {
-        BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
-          libraryBuilder,
-          declarationBuilder,
-          this,
-        );
-        assert(!defaultValueWasInferred);
-        Resolver resolver = libraryBuilder.loader.createResolver();
-        Expression defaultValue = resolver.buildParameterDefaultValue(
-          libraryBuilder: libraryBuilder,
-          bodyBuilderContext: bodyBuilderContext,
-          extensionScope: extensionScope,
-          scope: scope,
-          fileUri: fileUri,
-          defaultValueToken: defaultValueToken,
-          declaredType: variable.type,
-          hasDeclaredDefaultValue: hasDeclaredDefaultValue,
-        );
-        variable.setInferredDefaultValue(defaultValue);
-        if (defaultValue is InvalidExpression) {
-          variable.hasErroneousDefaultValue = true;
-        }
-      } else if (kind.isOptional) {
-        // As done by BodyBuilder.endFormalParameter.
-        variable.setInferredDefaultValue(
-          extern.createNullLiteral(fileOffset: fileOffset),
-        );
+    if (defaultValueToken != null) {
+      BodyBuilderContext bodyBuilderContext = new ParameterBodyBuilderContext(
+        libraryBuilder,
+        declarationBuilder,
+        this,
+      );
+      assert(!defaultValueWasInferred);
+      Resolver resolver = libraryBuilder.loader.createResolver();
+      Expression defaultValue = resolver.buildParameterDefaultValue(
+        libraryBuilder: libraryBuilder,
+        bodyBuilderContext: bodyBuilderContext,
+        extensionScope: extensionScope,
+        scope: scope,
+        fileUri: fileUri,
+        defaultValueToken: defaultValueToken,
+        declaredType: variable.type,
+        hasDeclaredDefaultValue: hasDeclaredDefaultValue,
+      );
+      variable.setInferredDefaultValue(defaultValue);
+      if (defaultValue is InvalidExpression) {
+        variable.hasErroneousDefaultValue = true;
       }
-      defaultValueWasInferred = true;
+    } else if (kind.isOptional) {
+      // As done by BodyBuilder.endFormalParameter.
+      variable.setInferredDefaultValue(
+        extern.createNullLiteral(fileOffset: fileOffset),
+      );
     }
+    defaultValueWasInferred = true;
   }
 
   /// Returns the [_defaultValueToken] field and without clearing it.
@@ -605,27 +602,6 @@ class FormalParameterBuilder extends NamedBuilderImpl
     Token? initializerToken = _defaultValueToken;
     _defaultValueToken = null;
     return initializerToken;
-  }
-
-  static bool _needsDefaultValuesBuiltAsOutlineExpressions(
-    SourceMemberBuilder memberBuilder,
-  ) {
-    // For modular compilation we need to include default values for optional
-    // and named parameters in several cases:
-    // * for const constructors to enable constant evaluation,
-    // * for instance methods because these might be needed to generated
-    //   noSuchMethod forwarders,
-    // * for generative constructors to support forwarding constructors
-    //   in mixin applications, and
-    // * for factories, to uphold the invariant that optional parameters always
-    //   have default values, even during modular compilation.
-    if (memberBuilder is SourceConstructorBuilder) {
-      return true;
-    } else if (memberBuilder is SourceFactoryBuilder) {
-      return true;
-    } else {
-      return memberBuilder.isClassInstanceMember;
-    }
   }
 }
 

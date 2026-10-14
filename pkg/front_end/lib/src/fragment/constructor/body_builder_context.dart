@@ -44,11 +44,6 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  FunctionParameter? getTearOffParameter(int index) {
-    return _declaration.getTearOffParameter(index);
-  }
-
-  @override
   TypeBuilder get returnTypeBuilder => _declaration.returnType;
 
   @override

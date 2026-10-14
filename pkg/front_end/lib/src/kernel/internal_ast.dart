@@ -1822,6 +1822,7 @@ sealed class InternalFunctionParameter extends InternalVariable
   @override
   bool get isAssignable => !isFinal;
 
+  // Coverage-ignore(suite): Not run.
   bool get hasErroneousDefaultValue => _astVariable.hasErroneousDefaultValue;
 
   void set hasErroneousDefaultValue(bool value) {
@@ -1840,6 +1841,7 @@ sealed class InternalFunctionParameter extends InternalVariable
     _defaultValue = value;
   }
 
+  // Coverage-ignore(suite): Not run.
   Expression? get inferredDefaultValue => _astVariable.defaultValue;
 
   void setInferredDefaultValue(Expression value) {
