@@ -4013,6 +4013,54 @@ DEFINE_EMIT(Simd32x4Shuffle, (VRegister result, VRegister value)) {
     case 0x93:  // wxyz
       __ vext(result, value, value, 12);
       break;
+    case 0xE5:  // yyzw
+      __ vmov(result, value);
+      __ vinss(result, 0, value, 1);
+      break;
+    case 0xE6:  // zyzw
+      __ vmov(result, value);
+      __ vinss(result, 0, value, 2);
+      break;
+    case 0xE7:  // wyzw
+      __ vmov(result, value);
+      __ vinss(result, 0, value, 3);
+      break;
+    case 0xE0:  // xxzw
+      __ vmov(result, value);
+      __ vinss(result, 1, value, 0);
+      break;
+    case 0xE8:  // xzzw
+      __ vmov(result, value);
+      __ vinss(result, 1, value, 2);
+      break;
+    case 0xEC:  // xwzw
+      __ vmov(result, value);
+      __ vinss(result, 1, value, 3);
+      break;
+    case 0xC4:  // xyxw
+      __ vmov(result, value);
+      __ vinss(result, 2, value, 0);
+      break;
+    case 0xD4:  // xyyw
+      __ vmov(result, value);
+      __ vinss(result, 2, value, 1);
+      break;
+    case 0xF4:  // xyww
+      __ vmov(result, value);
+      __ vinss(result, 2, value, 3);
+      break;
+    case 0x24:  // xyzx
+      __ vmov(result, value);
+      __ vinss(result, 3, value, 0);
+      break;
+    case 0x64:  // xyzy
+      __ vmov(result, value);
+      __ vinss(result, 3, value, 1);
+      break;
+    case 0xA4:  // xyzz
+      __ vmov(result, value);
+      __ vinss(result, 3, value, 2);
+      break;
     default:
       __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
       __ vtbl1(result, value, VTMP);
@@ -4028,6 +4076,10 @@ DEFINE_EMIT(Simd32x4ShuffleMix,
   switch (mask) {
     case 0x4E:  // zwxy
       __ vext(result, left, right, 8);
+      break;
+    case 0xE4:  // xyzw
+      __ vmov(result, left);
+      __ vinsd(result, 1, right, 1);
       break;
     default:
       __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
