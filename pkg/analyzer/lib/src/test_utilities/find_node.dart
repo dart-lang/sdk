@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 
-@ToBeDeprecated('Use FindNode2 instead.')
+@V1Ast('The V2 counterpart is FindNode2.')
 class FindNode extends _FindNodeBase {
   FindNode(super.content, super.unit);
 
@@ -1444,7 +1444,7 @@ abstract class _FindNodeBase {
   );
 }
 
-@ToBeDeprecated('Use _TypedNodeVisitor2 instead.')
+@V1Ast('The V2 counterpart is _TypedNodeVisitor2.')
 class _TypedNodeVisitor<T extends AstNode>
     extends GeneralizingAstVisitor<void> {
   final List<T> nodes = [];

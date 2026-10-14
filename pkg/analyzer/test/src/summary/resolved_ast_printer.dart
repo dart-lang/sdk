@@ -20,7 +20,7 @@ import '../../util/element_printer.dart';
 /// Prints AST as a tree, with properties and children.
 class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     implements
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         AstVisitor<void> {
   final TreeStringSink _sink;
   final ElementPrinter _elementPrinter;
@@ -69,7 +69,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     _sink.writeln('Annotation');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       _writeElement('element', node.element);
     });
   }
@@ -123,7 +123,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _sink.writeln('AssignmentExpression');
@@ -149,7 +149,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitBinaryExpression(BinaryExpression node) {
     _sink.writeln('BinaryExpression');
@@ -544,7 +544,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitConstructorName(ConstructorName node) {
     _sink.writeln('ConstructorName');
@@ -554,7 +554,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitConstructorReference(ConstructorReference node) {
     _sink.writeln('ConstructorReference');
@@ -665,7 +665,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitDotShorthandConstructorInvocation(
     covariant DotShorthandConstructorInvocationImpl node,
@@ -697,7 +697,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitDotShorthandInvocation(covariant DotShorthandInvocationImpl node) {
     _sink.writeln('DotShorthandInvocation');
@@ -749,7 +749,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitDotShorthandPropertyAccess(
     covariant DotShorthandPropertyAccessImpl node,
@@ -897,7 +897,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitExtensionOverride(ExtensionOverride node) {
     _sink.writeln('ExtensionOverride');
@@ -1059,7 +1059,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _sink.writeln('FunctionExpressionInvocation');
@@ -1083,7 +1083,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitFunctionReference(FunctionReference node) {
     _sink.writeln('FunctionReference');
@@ -1199,7 +1199,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitImplicitCallReference(ImplicitCallReference node) {
     _sink.writeln('ImplicitCallReference');
@@ -1315,7 +1315,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitIndexExpression(IndexExpression node) {
     _sink.writeln('IndexExpression');
@@ -1327,7 +1327,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     _sink.writeln('InstanceCreationExpression');
@@ -1589,7 +1589,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitMethodInvocation(MethodInvocation node) {
     _sink.writeln('MethodInvocation');
@@ -1849,7 +1849,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitPostfixExpression(PostfixExpression node) {
     _sink.writeln('PostfixExpression');
@@ -1867,7 +1867,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     _sink.writeln('PrefixedIdentifier');
@@ -1879,7 +1879,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitPrefixExpression(PrefixExpression node) {
     _sink.writeln('PrefixExpression');
@@ -1922,7 +1922,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitPropertyAccess(PropertyAccess node) {
     _sink.writeln('PropertyAccess');
@@ -2156,7 +2156,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _sink.writeln('SimpleIdentifier');
@@ -2216,7 +2216,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     });
   }
 
-  @ToBeDeprecated('Prints a V1 node.')
+  @V1Ast('Prints a V1 node.')
   @override
   void visitSuperExpression(SuperExpression node) {
     _sink.writeln('SuperExpression');
@@ -2535,10 +2535,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   void writeNodeWithV1Projection(AstNode node) {
     AstNode? v1;
     if (node case TopLevelDeclarationImpl declaration) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1CompilationUnitMember(declaration);
     } else if (node case ExpressionImpl expression) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1Expression(expression);
     }
 
@@ -2555,7 +2555,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   void _acceptInView(AstNode node) {
     switch (_view) {
       case _AstView.v1:
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         node.accept(this);
       case _AstView.v2:
         node.accept2(this);
@@ -2614,15 +2614,15 @@ Expected parent: (${parent.runtimeType}) $parent
 
   bool _isCorrespondingParameterValue(AstNode parent, Expression node) {
     return switch (parent) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       AssignmentExpression parent => identical(switch (_view) {
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         _AstView.v1 => parent.rightHandSide,
         _AstView.v2 => parent.rightHandSide2,
       }, node),
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       BinaryExpression parent => identical(switch (_view) {
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         _AstView.v1 => parent.rightOperand,
         _AstView.v2 => parent.rightOperand2,
       }, node),
@@ -2635,9 +2635,9 @@ Expected parent: (${parent.runtimeType}) $parent
       ),
       IndexAssignmentTarget(:var index) ||
       IndexExpression2(:var index) => identical(index, node),
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       IndexExpression parent => identical(switch (_view) {
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         _AstView.v1 => parent.index,
         _AstView.v2 => parent.index2,
       }, node),
@@ -2647,7 +2647,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   Iterable<SyntacticEntity> _viewChildEntities(AstNode node) {
     return switch (_view) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       _AstView.v1 => node.childEntities,
       _AstView.v2 => node.childEntities2,
     };
@@ -2655,7 +2655,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   AstNode? _viewParent(AstNode node) {
     return switch (_view) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       _AstView.v1 => node.parent,
       _AstView.v2 => node.parent2,
     };
@@ -2996,7 +2996,7 @@ Expected parent: (${parent.runtimeType}) $parent
   void _writeNamedChildEntities(AstNode node) {
     node as AstNodeImpl;
     if (_view == _AstView.v1) {
-      // ignore: analyzer_to_be_deprecated_use
+      // ignore: analyzer_v1_ast_use
       for (var entity in node.namedChildEntities) {
         _writeNamedChildEntity(node, entity);
       }
@@ -3007,7 +3007,7 @@ Expected parent: (${parent.runtimeType}) $parent
     var entities =
         !_includeInlineV1ChildEntities || node.astNodeApi == AstNodeApi.v2
         ? <ChildEntity>[]
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         : node.namedChildEntities.toList();
     var entitiesByName = {for (var entity in entities) entity.name: entity};
     var matchedV1Names = <String>{};

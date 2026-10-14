@@ -311,31 +311,30 @@ const LinterLintWithoutArguments analyzerPublicApiImplInPublicApi =
       expectedTypes: [],
     );
 
-/// Lint issued if an element annotated with `@ToBeDeprecated` is used from
-/// a declaration that is not itself annotated with `@ToBeDeprecated`.
+/// Lint issued if an element annotated with `@V1Ast` is used from
+/// a declaration that is not itself annotated with `@V1Ast`.
 ///
-/// `@ToBeDeprecated` marks the API, such as the V1 AST, that will become
-/// deprecated once its replacement is stable. Such API should be used only
-/// to implement other API that will be deprecated too, like
+/// `@V1Ast` marks the V1 AST API, which remains supported for clients, but
+/// should be used by the analyzer only to implement other V1 AST API, like
 /// `@Deprecated` with `deprecated_member_use_from_same_package`.
 ///
 /// Parameters:
 /// String name: the name of the used element
-/// String details: the message of the `@ToBeDeprecated` annotation, preceded
-///                 by a space; or empty if there is no message
+/// String details: the message of the `@V1Ast` annotation, preceded by a
+///                 space; or empty if there is no message
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String name, required String details})
 >
-analyzerToBeDeprecatedUse = LinterLintTemplate(
-  name: 'analyzer_to_be_deprecated_use',
+analyzerV1AstUse = LinterLintTemplate(
+  name: 'analyzer_v1_ast_use',
   problemMessage:
-      "'{0}' is to be deprecated, and should be used only by declarations that "
-      "are also to be deprecated.{1}",
+      "'{0}' is part of the V1 AST API, and should be used only from other V1 "
+      "AST API.{1}",
   correctionMessage:
-      "Try using the replacement, or annotating the enclosing declaration "
-      "with '@ToBeDeprecated'.",
-  uniqueName: 'analyzer_to_be_deprecated_use',
-  withArguments: _withArgumentsAnalyzerToBeDeprecatedUse,
+      "Try using the V2 counterpart, or annotating the enclosing declaration "
+      "with '@V1Ast'.",
+  uniqueName: 'analyzer_v1_ast_use',
+  withArguments: _withArgumentsAnalyzerV1AstUse,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
 
@@ -4200,14 +4199,11 @@ LocatableDiagnostic _withArgumentsAnalyzerPublicApiExportsNonPublicName({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsAnalyzerToBeDeprecatedUse({
+LocatableDiagnostic _withArgumentsAnalyzerV1AstUse({
   required String name,
   required String details,
 }) {
-  return LocatableDiagnosticImpl(diag.analyzerToBeDeprecatedUse, [
-    name,
-    details,
-  ]);
+  return LocatableDiagnosticImpl(diag.analyzerV1AstUse, [name, details]);
 }
 
 LocatableDiagnostic _withArgumentsAnnotateOverrides({required Object p0}) {

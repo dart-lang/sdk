@@ -20,7 +20,7 @@ export 'package:analyzer/src/dart/ast/constant_evaluator.dart';
 /// - Offsets that fall between the name and type/formal parameter list of a
 ///   declaration will return the declaration node and not the parameter list
 ///   node.
-@ToBeDeprecated('Use NodeLocator2 instead.')
+@V1Ast('The V2 counterpart is NodeLocator2.')
 class NodeLocator extends UnifyingAstVisitor<void> {
   /// The inclusive start offset of the range used to identify the node.
   final int _startOffset;
@@ -323,7 +323,7 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
 ///
 /// Completion test code coverage is 95%. The two basic blocks that are not
 /// executed cannot be executed. They are included for future reference.
-@ToBeDeprecated('Use ScopedNameFinder2 instead.')
+@V1Ast('The V2 counterpart is ScopedNameFinder2.')
 class ScopedNameFinder extends GeneralizingAstVisitor<void>
     with _ScopedNameFinderMixin {
   @override

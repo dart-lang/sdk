@@ -373,7 +373,7 @@ class LibraryAnalyzer {
       workspacePackage,
     );
 
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     _computeLintsV1(context, analysesToContextUnits);
 
     var nodeRegistry = RuleVisitorRegistryImpl2(
@@ -398,7 +398,7 @@ class LibraryAnalyzer {
     visitor.afterLibrary();
   }
 
-  @ToBeDeprecated('Use V2 node processors in _computeLints() instead.')
+  @V1Ast('The V2 counterpart is the V2 node processors in _computeLints().')
   void _computeLintsV1(
     RuleContextWithResolvedResults context,
     Map<FileAnalysis, RuleContextUnit> analysesToContextUnits,

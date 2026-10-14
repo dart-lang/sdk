@@ -4,7 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
@@ -21,20 +21,20 @@ void main() {
     defineReflectiveTests(FormalParameterIsExplicitlyTypedTest);
     defineReflectiveTests(HideClauseImplTest);
     defineReflectiveTests(ImplementsClauseImplTest);
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(IndexExpressionTest);
     defineReflectiveTests(InterpolationStringTest);
     defineReflectiveTests(MethodDeclarationTest);
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(MethodInvocationTest);
     defineReflectiveTests(NodeListTest);
     defineReflectiveTests(NormalFormalParameterTest);
     defineReflectiveTests(OnClauseImplTest);
     defineReflectiveTests(PreviousTokenTest);
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(PropertyAccessTest);
     defineReflectiveTests(ShowClauseImplTest);
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(SimpleIdentifierTest);
     defineReflectiveTests(SimpleStringLiteralTest);
     defineReflectiveTests(SpreadElementTest);
@@ -596,7 +596,7 @@ class C {}
 }
 
 @reflectiveTest
-@ToBeDeprecated('Tests V1 IndexExpression.')
+@V1Ast('Tests V1 IndexExpression.')
 class IndexExpressionTest extends ParserDiagnosticsTest {
   void test_inGetterContext_assignment_compound_left() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
@@ -1041,7 +1041,7 @@ class A {
 }
 
 @reflectiveTest
-@ToBeDeprecated('Tests V1 MethodInvocation.')
+@V1Ast('Tests V1 MethodInvocation.')
 class MethodInvocationTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -1319,7 +1319,7 @@ missing
 }
 
 @reflectiveTest
-@ToBeDeprecated('Tests V1 PropertyAccess.')
+@V1Ast('Tests V1 PropertyAccess.')
 class PropertyAccessTest extends ParserDiagnosticsTest {
   void test_isNullAware_cascade() {
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -1376,7 +1376,7 @@ import 'dart:core' show int Function();
 }
 
 @reflectiveTest
-@ToBeDeprecated('Tests V1 SimpleIdentifier.')
+@V1Ast('Tests V1 SimpleIdentifier.')
 class SimpleIdentifierTest extends ParserDiagnosticsTest {
   void test_inGetterContext() {
     for (_WrapperKind wrapper in _WrapperKind.values) {

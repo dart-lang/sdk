@@ -26,26 +26,25 @@ import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
 import '../util/element_usage_frontier_visitor.dart';
 
-const _desc =
-    'Use API that is to be deprecated only from API that is to be deprecated.';
+const _desc = 'Use V1 AST API only from other V1 AST API.';
 
-/// Reports uses of `@ToBeDeprecated` elements outside `@ToBeDeprecated`
-/// declarations.
+/// Reports uses of `@V1Ast` elements outside `@V1Ast` declarations.
 ///
-/// This is `deprecated_member_use_from_same_package` for the API that is not
-/// deprecated yet, such as the V1 AST while its V2 replacement is
-/// experimental. It keeps such API used only to implement other such API, so
-/// that it can be deprecated, and later removed, without migrating its users.
-class AnalyzerToBeDeprecatedUse extends AnalysisRule {
+/// This is `deprecated_member_use_from_same_package` for the V1 AST API, which
+/// is not deprecated, and remains supported for clients, while its V2
+/// counterpart is experimental. It keeps the V1 AST API used only to implement
+/// other V1 AST API, so that it can later be deprecated, and removed, without
+/// migrating the rest of the analyzer.
+class AnalyzerV1AstUse extends AnalysisRule {
   new()
     : super(
-        name: LintNames.analyzer_to_be_deprecated_use,
+        name: LintNames.analyzer_v1_ast_use,
         description: _desc,
         state: const RuleState.internal(),
       );
 
   @override
-  DiagnosticCode get diagnosticCode => diag.analyzerToBeDeprecatedUse;
+  DiagnosticCode get diagnosticCode => diag.analyzerV1AstUse;
 
   @override
   void registerNodeProcessors(
@@ -65,7 +64,7 @@ class _FrontierVisitor extends ElementUsageFrontierVisitor<String> {
   void visitComment(Comment node) {}
 
   /// A name in a combinator only selects what is imported or exported, it is
-  /// not a use. Exporting is how the API that is to be deprecated is provided.
+  /// not a use. Exporting is how the V1 AST API is provided.
   @override
   void visitHideCombinator(HideCombinator node) {}
 
@@ -74,7 +73,7 @@ class _FrontierVisitor extends ElementUsageFrontierVisitor<String> {
   void visitShowCombinator(ShowCombinator node) {}
 }
 
-class _ToBeDeprecatedElementUsageReporter extends ElementUsageReporter<String> {
+class _V1AstElementUsageReporter extends ElementUsageReporter<String> {
   final AnalysisRule _rule;
 
   new(this._rule);
@@ -95,23 +94,23 @@ class _ToBeDeprecatedElementUsageReporter extends ElementUsageReporter<String> {
   }
 }
 
-/// The elements annotated with `@ToBeDeprecated`.
+/// The elements annotated with `@V1Ast`.
 ///
 /// The annotation is recognized by the name of its class. The analyzer
 /// declares it in `package:analyzer/src/dart/ast/ast.dart`.
-class _ToBeDeprecatedElementUsageSet implements ElementUsageSet<String> {
+class _V1AstElementUsageSet implements ElementUsageSet<String> {
   const new();
 
   @override
   bool get reliesOnlyOnElementMetadata => true;
 
-  /// The message of the `@ToBeDeprecated` annotation of [element], or `null`
-  /// if [element] is not annotated with `@ToBeDeprecated`.
+  /// The message of the `@V1Ast` annotation of [element], or `null`
+  /// if [element] is not annotated with `@V1Ast`.
   @override
   String? getTagInfo(Element element, Metadata elementMetadata) {
     for (var annotation in elementMetadata.annotations) {
       if (annotation.element case ConstructorElement(
-        enclosingElement: InterfaceElement(name: 'ToBeDeprecated'),
+        enclosingElement: InterfaceElement(name: 'V1Ast'),
       )) {
         var value = annotation.computeConstantValue();
         return value?.getField('message')?.toStringValue() ?? '';
@@ -130,8 +129,8 @@ class _Visitor(final AnalysisRule _rule, final RuleContext _context)
         workspacePackage: _context.package,
         usagesAndReporters: [
           UsageSetAndReporter(
-            const _ToBeDeprecatedElementUsageSet(),
-            _ToBeDeprecatedElementUsageReporter(_rule),
+            const _V1AstElementUsageSet(),
+            _V1AstElementUsageReporter(_rule),
           ),
         ],
       ),

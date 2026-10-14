@@ -154,7 +154,7 @@ set s(int i) {}
 
 @reflectiveTest
 class ScopedNameFinderTest extends ParserDiagnosticsTest {
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   void test_constructorInvocation_views() {
     var code = '''
 void f(int parameter) {

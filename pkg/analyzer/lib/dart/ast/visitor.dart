@@ -24,7 +24,7 @@ library;
 import 'dart:collection';
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:meta/meta.dart';
 
 part 'visitor.g.dart';
@@ -52,7 +52,7 @@ part 'visitor.g.dart';
 ///     visitor.visitAllNodes(rootNode);
 ///
 /// Clients may extend this class.
-@ToBeDeprecated('There is no V2 replacement.')
+@V1Ast('There is no V2 counterpart.')
 class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   /// A queue holding the nodes that have not yet been visited in the order in
   /// which they ought to be visited.
@@ -99,7 +99,7 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
 /// 6. V2.visitIntegerLiteral
 ///
 /// Clients may not extend, implement or mix-in this class.
-@ToBeDeprecated('Use DelegatingAstVisitor2 instead')
+@V1Ast('The V2 counterpart is DelegatingAstVisitor2.')
 class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
   /// The delegates whose visit methods will be invoked.
   final Iterable<AstVisitor<T>> delegates;
@@ -150,9 +150,7 @@ class DelegatingAstVisitor2<T> extends UnifyingAstVisitor2<T> {
 
 /// A helper class used to implement the correct order of visits for a
 /// [BreadthFirstVisitor].
-@ToBeDeprecated(
-  'Used only by BreadthFirstVisitor, which has no V2 replacement.',
-)
+@V1Ast('Used only by BreadthFirstVisitor, which has no V2 counterpart.')
 class _BreadthFirstChildVisitor extends UnifyingAstVisitor<void> {
   /// The [BreadthFirstVisitor] being helped by this visitor.
   final BreadthFirstVisitor outerVisitor;

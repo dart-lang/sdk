@@ -127,7 +127,7 @@ class _ElementGenerator {
   void _replaceGeneratedFlags() {
     var declarations = unitResult
         .unit
-        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+        .declarations; // ignore: analyzer_v1_ast_use, unnecessary_ignore
     for (var declaration in declarations) {
       if (declaration is! ClassDeclarationImpl) {
         continue;
@@ -284,7 +284,7 @@ class _ElementGenerator {
   void _replaceStorageEnums() {
     var declarations = unitResult
         .unit
-        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+        .declarations; // ignore: analyzer_v1_ast_use, unnecessary_ignore
     for (var declaration in declarations) {
       if (declaration is EnumDeclarationImpl) {
         var name = declaration.declaredFragment!.element.name!;

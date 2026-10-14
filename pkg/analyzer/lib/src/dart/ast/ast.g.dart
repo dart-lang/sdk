@@ -20,7 +20,7 @@ part of 'ast.dart';
 /// - ThrowingAstVisitor which implements every visit method by throwing an
 ///   exception.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-@ToBeDeprecated('Use AstVisitor2 instead')
+@V1Ast('The V2 counterpart is AstVisitor2.')
 abstract class AstVisitor<R> {
   R? visitAdjacentStrings(AdjacentStrings node);
 

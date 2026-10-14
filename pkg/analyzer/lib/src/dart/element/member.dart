@@ -896,7 +896,7 @@ abstract class SubstitutedVariableElementImpl extends SubstitutedElementImpl
   VariableElementImpl get baseElement =>
       super.baseElement as VariableElementImpl;
 
-  @ToBeDeprecated('Use constantInitializer2 instead.')
+  @V1Ast('The V2 counterpart is constantInitializer2.')
   @override
   ExpressionImpl? get constantInitializer {
     return baseElement.constantInitializer;

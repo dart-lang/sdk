@@ -657,25 +657,24 @@ LinterLintCode:
       Such declarations are not meant to be members of the analyzer public API,
       so if they are either declared outside of `package:analyzer/src`, or
       marked with `@AnalyzerPublicApi(...)`, that is almost certainly a mistake.
-  analyzerToBeDeprecatedUse:
+  analyzerV1AstUse:
     type: lint
     parameters:
       String name: "the name of the used element"
-      String details: "the message of the `@ToBeDeprecated` annotation, preceded by a space; or empty if there is no message"
-    problemMessage: "'#name' is to be deprecated, and should be used only by declarations that are also to be deprecated.#details"
-    correctionMessage: "Try using the replacement, or annotating the enclosing declaration with '@ToBeDeprecated'."
+      String details: "the message of the `@V1Ast` annotation, preceded by a space; or empty if there is no message"
+    problemMessage: "'#name' is part of the V1 AST API, and should be used only from other V1 AST API.#details"
+    correctionMessage: "Try using the V2 counterpart, or annotating the enclosing declaration with '@V1Ast'."
     hasPublishedDocs: false
     state:
       internal: "3.14"
     categories: [publicInterface]
     deprecatedDetails: "For internal use only."
     comment: |-
-      Lint issued if an element annotated with `@ToBeDeprecated` is used from
-      a declaration that is not itself annotated with `@ToBeDeprecated`.
+      Lint issued if an element annotated with `@V1Ast` is used from
+      a declaration that is not itself annotated with `@V1Ast`.
 
-      `@ToBeDeprecated` marks the API, such as the V1 AST, that will become
-      deprecated once its replacement is stable. Such API should be used only
-      to implement other API that will be deprecated too, like
+      `@V1Ast` marks the V1 AST API, which remains supported for clients, but
+      should be used by the analyzer only to implement other V1 AST API, like
       `@Deprecated` with `deprecated_member_use_from_same_package`.
   annotateOverrides:
     type: lint

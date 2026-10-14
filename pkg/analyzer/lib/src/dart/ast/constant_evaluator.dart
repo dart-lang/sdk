@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 
 /// Instances of the class [ConstantEvaluator] evaluate constant expressions to
 /// produce their compile-time value.
@@ -94,7 +94,7 @@ import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
 /// indicate various conditions encountered during evaluation. These are
 /// documented with the static fields that define those values.
 @Deprecated('This has no uses in package:analyzer and not exhaustive.')
-@ToBeDeprecated('Use ConstantEvaluator2 instead.')
+@V1Ast('The V2 counterpart is ConstantEvaluator2.')
 class ConstantEvaluator extends GeneralizingAstVisitor<Object> {
   /// The value returned for expressions (or non-expression nodes) that are not
   /// compile-time constant expressions.

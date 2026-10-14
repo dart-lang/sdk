@@ -32,7 +32,7 @@ extension AstNodeExtension on AstNode {
 
   /// The [FunctionExpression] that encloses this node directly or `null` if
   /// there is another enclosing executable element.
-  @ToBeDeprecated('Use enclosingClosure2 instead.')
+  @V1Ast('The V2 counterpart is enclosingClosure2.')
   FunctionExpression? get enclosingClosure {
     for (var node in withAncestors) {
       switch (node) {
@@ -67,7 +67,7 @@ extension AstNodeExtension on AstNode {
   }
 
   /// The [ExecutableElement] of the enclosing executable [AstNode].
-  @ToBeDeprecated('Use enclosingExecutableElement2 instead.')
+  @V1Ast('The V2 counterpart is enclosingExecutableElement2.')
   ExecutableElement? get enclosingExecutableElement {
     for (var node in withAncestors) {
       if (node is FunctionDeclaration) {
@@ -103,7 +103,7 @@ extension AstNodeExtension on AstNode {
   }
 
   /// The [InstanceElement] of the enclosing executable [AstNode].
-  @ToBeDeprecated('Use enclosingInstanceElement2 instead.')
+  @V1Ast('The V2 counterpart is enclosingInstanceElement2.')
   InstanceElement? get enclosingInstanceElement {
     for (var node in withAncestors) {
       var element = node
@@ -131,7 +131,7 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
-  @ToBeDeprecated('Use enclosingInterfaceElement2 instead.')
+  @V1Ast('The V2 counterpart is enclosingInterfaceElement2.')
   InterfaceElement? get enclosingInterfaceElement =>
       enclosingInstanceElement.tryCast();
 
@@ -142,7 +142,7 @@ extension AstNodeExtension on AstNode {
   ///
   /// Name scopes are recorded during resolution, so this is `null` for
   /// unresolved nodes.
-  @ToBeDeprecated('Use enclosingNameScope2 instead.')
+  @V1Ast('The V2 counterpart is enclosingNameScope2.')
   Scope? get enclosingNameScope {
     for (var node in withAncestors) {
       if (node is AstNodeWithNameScopeMixin && node.nameScope != null) {
@@ -165,7 +165,7 @@ extension AstNodeExtension on AstNode {
     return null;
   }
 
-  @ToBeDeprecated('Use enclosingUnitChild2 instead.')
+  @V1Ast('The V2 counterpart is enclosingUnitChild2.')
   AstNode? get enclosingUnitChild {
     for (var node in withAncestors) {
       if (node.parent is CompilationUnit) {
@@ -185,7 +185,7 @@ extension AstNodeExtension on AstNode {
   }
 
   /// This node and all of its ancestors.
-  @ToBeDeprecated('Use withAncestors2 instead.')
+  @V1Ast('The V2 counterpart is withAncestors2.')
   Iterable<AstNode> get withAncestors sync* {
     AstNode? current = this;
     while (current != null) {
@@ -238,7 +238,7 @@ extension AstNodeNullableExtension on AstNode? {
 
 extension ExpressionExtension on Expression {
   /// Whether this expression is found in a [CommentReference].
-  @ToBeDeprecated('Use inCommentReference2 instead.')
+  @V1Ast('The V2 counterpart is inCommentReference2.')
   bool get inCommentReference =>
       parent is CommentReference ||
       parent?.parent is CommentReference ||

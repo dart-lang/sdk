@@ -9,7 +9,7 @@
 part of 'linter_visitor.dart';
 
 /// The AST visitor that runs handlers for nodes from the [_registry].
-@ToBeDeprecated('Use AnalysisRuleVisitor2 instead')
+@V1Ast('The V2 counterpart is AnalysisRuleVisitor2.')
 class AnalysisRuleVisitor implements AstVisitor<void> {
   final RuleVisitorRegistryImpl _registry;
 
@@ -2726,7 +2726,7 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   }
 }
 
-@ToBeDeprecated('Use RuleVisitorRegistryImpl2 instead')
+@V1Ast('The V2 counterpart is RuleVisitorRegistryImpl2.')
 class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final bool _enableTiming;
   final List<_AfterLibrarySubscription> _afterLibrary = [];

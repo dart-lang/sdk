@@ -215,7 +215,7 @@ class AstNodeImplGenerator {
   Future<void> _buildImplClasses(ResolvedUnitResult astUnitResult) async {
     var declarations = astUnitResult
         .unit
-        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+        .declarations; // ignore: analyzer_v1_ast_use, unnecessary_ignore
     for (var nodeImpl in declarations) {
       if (nodeImpl is ClassDeclarationImpl) {
         var implClass = await _buildImplClass(nodeImpl);
@@ -1411,8 +1411,8 @@ enum _AstVersionPolicy {
   v2MigrationSdk,
 
   /// Generates the dual tree views for publication while V2 is experimental;
-  /// V1 projection APIs are marked `@ToBeDeprecated` rather than directing
-  /// clients to experimental replacements.
+  /// V1 projection APIs are marked `@V1Ast`, which only names their V2
+  /// counterparts, rather than being deprecated in favor of experimental API.
   v2MigrationPublishExperimental,
 
   /// Generates the dual tree views once V2 is stable: V2 is the public
@@ -1437,7 +1437,7 @@ enum _AstVersionPolicy {
     return switch (this) {
       v1Only => throw StateError('No V1 migration annotations in $this.'),
       v2MigrationSdk => 'Deprecated',
-      v2MigrationPublishExperimental => 'ToBeDeprecated',
+      v2MigrationPublishExperimental => 'V1Ast',
       v2MigrationPublishStable => 'Deprecated',
       v2AliasesOnly => throw StateError(
         'No V1 migration annotations in $this.',
@@ -1456,12 +1456,13 @@ enum _AstVersionPolicy {
   }
 
   String v1AnnotationCode(String v2Name) {
-    var message = 'Use $v2Name instead.';
+    var deprecatedMessage = 'Use $v2Name instead.';
     return switch (this) {
       v1Only => throw StateError('No V1 migration annotations in $this.'),
-      v2MigrationSdk => "@Deprecated('$message')",
-      v2MigrationPublishExperimental => "@ToBeDeprecated('$message')",
-      v2MigrationPublishStable => "@Deprecated('$message')",
+      v2MigrationSdk => "@Deprecated('$deprecatedMessage')",
+      v2MigrationPublishExperimental =>
+        "@V1Ast('The V2 counterpart is $v2Name.')",
+      v2MigrationPublishStable => "@Deprecated('$deprecatedMessage')",
       v2AliasesOnly => throw StateError(
         'No V1 migration annotations in $this.',
       ),
@@ -1493,8 +1494,8 @@ enum _AstVersionPolicy {
           getter: getter,
           interfaceName: interfaceName,
           propertyName: v1Name,
-          annotationName: 'ToBeDeprecated',
-          annotationDisplay: '@ToBeDeprecated(...)',
+          annotationName: 'V1Ast',
+          annotationDisplay: '@V1Ast(...)',
           expected: false,
         );
       case v2MigrationPublishExperimental:

@@ -11781,7 +11781,7 @@ abstract class VariableElementImpl extends ElementImpl
   @trackedInternal
   Constant? evaluationResult;
 
-  @ToBeDeprecated('Use constantInitializer2 instead.')
+  @V1Ast('The V2 counterpart is constantInitializer2.')
   @override
   @trackedIncludedInId
   ExpressionImpl? get constantInitializer {
@@ -11966,7 +11966,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
   /// [offset].
   VariableFragmentImpl({required super.firstTokenOffset});
 
-  @ToBeDeprecated('Use constantInitializer2 instead.')
+  @V1Ast('The V2 counterpart is constantInitializer2.')
   ExpressionImpl? get constantInitializer {
     var initializer = constantInitializer2;
     return initializer == null

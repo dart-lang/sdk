@@ -355,7 +355,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
     ).writeNodeWithV1Projection(node);
 
     var unit = node is AstNodeImpl && node.astNodeApi == AstNodeApi.v1
-        // ignore: analyzer_to_be_deprecated_use
+        // ignore: analyzer_v1_ast_use
         ? node.thisOrAncestorOfType<CompilationUnitImpl>()
         : node.thisOrAncestorOfType2<CompilationUnitImpl>();
     if (unit != null) {
@@ -401,7 +401,7 @@ final class TestResolvedUnitResult {
 
   late final FindNode2 findNode = FindNode2(content, unit);
 
-  @ToBeDeprecated('Use findNode instead.')
+  @V1Ast('The V2 counterpart is findNode.')
   late final FindNode findNodeV1 = FindNode(content, unit);
 
   TestResolvedUnitResult(this.analysisResult);
@@ -476,7 +476,7 @@ extension ResolvedUnitResultExtension on ResolvedUnitResult {
     return FindNode2(content, unit);
   }
 
-  @ToBeDeprecated('Use findNode instead.')
+  @V1Ast('The V2 counterpart is findNode.')
   FindNode get findNodeV1 {
     return FindNode(content, unit);
   }
