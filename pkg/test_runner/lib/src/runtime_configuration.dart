@@ -375,6 +375,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
     switch (arch) {
       case Architecture.simarm:
       case Architecture.simarm64:
+      case Architecture.simarm64_arm64:
       case Architecture.simarm64c:
       case Architecture.simriscv32:
       case Architecture.simriscv64:
