@@ -156,10 +156,6 @@ namespace dart {
   V(TypedDataBase_length, 1)                                                   \
   V(TypedDataBase_setClampedRange, 5)                                          \
   V(TypedDataBase_memEquals, 5)                                                \
-  V(TypedData_GetFloat32, 2)                                                   \
-  V(TypedData_SetFloat32, 3)                                                   \
-  V(TypedData_GetFloat64, 2)                                                   \
-  V(TypedData_SetFloat64, 3)                                                   \
   V(TypedData_GetFloat32x4, 2)                                                 \
   V(TypedData_SetFloat32x4, 3)                                                 \
   V(TypedData_GetInt32x4, 2)                                                   \

@@ -864,23 +864,7 @@ abstract final class _TypedList extends _TypedListBase {
   external void _setFloat64x2(int offsetInBytes, Float64x2 value);
 
   // The _nativeGetX and _nativeSetX methods are only used as a fallback when
-  // unboxed double or SIMD values are unsupported by the flow graph compiler.
-
-  @pragma("vm:entry-point", "call")
-  @pragma("vm:exact-result-type", "dart:core#_Double")
-  @pragma("vm:external-name", "TypedData_GetFloat32")
-  external double _nativeGetFloat32(int offsetInBytes);
-  @pragma("vm:entry-point", "call")
-  @pragma("vm:external-name", "TypedData_SetFloat32")
-  external void _nativeSetFloat32(int offsetInBytes, double value);
-
-  @pragma("vm:entry-point", "call")
-  @pragma("vm:exact-result-type", "dart:core#_Double")
-  @pragma("vm:external-name", "TypedData_GetFloat64")
-  external double _nativeGetFloat64(int offsetInBytes);
-  @pragma("vm:entry-point", "call")
-  @pragma("vm:external-name", "TypedData_SetFloat64")
-  external void _nativeSetFloat64(int offsetInBytes, double value);
+  // unboxed SIMD values are unsupported by the flow graph compiler.
 
   @pragma("vm:entry-point", "call")
   @pragma("vm:exact-result-type", _Float32x4)

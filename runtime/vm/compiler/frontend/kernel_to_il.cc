@@ -867,10 +867,6 @@ static bool CanUnboxElements(classid_t cid) {
 const Function& TypedListGetNativeFunction(Thread* thread, classid_t cid) {
   auto& state = thread->compiler_state();
   switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
-    case kUnboxedFloat:
-      return state.TypedListGetFloat32();
-    case kUnboxedDouble:
-      return state.TypedListGetFloat64();
     case kUnboxedInt32x4:
       return state.TypedListGetInt32x4();
     case kUnboxedFloat32x4:
@@ -2100,10 +2096,6 @@ static const Function& TypedListSetNativeFunction(Thread* thread,
                                                   classid_t cid) {
   auto& state = thread->compiler_state();
   switch (RepresentationUtils::RepresentationOfArrayElement(cid)) {
-    case kUnboxedFloat:
-      return state.TypedListSetFloat32();
-    case kUnboxedDouble:
-      return state.TypedListSetFloat64();
     case kUnboxedInt32x4:
       return state.TypedListSetInt32x4();
     case kUnboxedFloat32x4:

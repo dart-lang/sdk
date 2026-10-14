@@ -117,8 +117,6 @@ const Function& CompilerState::StringBaseInterpolate() {
     return *typed_list_set_##Lower##_;                                         \
   }
 
-DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float32, float32)
-DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64, float64)
 DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float32x4, float32x4)
 DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Int32x4, int32x4)
 DEFINE_TYPED_LIST_NATIVE_FUNCTION_GETTER(Float64x2, float64x2)
