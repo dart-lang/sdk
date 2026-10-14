@@ -84,8 +84,8 @@ All CLs to the stable, beta, and dev branches must be reviewed
 ## GitHub-PR-Review
 
 All CLs imported from GitHub pull requests by Copybara (owned by the
-`copybara-worker-blackhole@google.com` service account and tagged with the
-`github-pr` hashtag) require two `Code-Review+1` votes before submitting.
+`copybara-worker-blackhole@google.com` service account) require two
+`Code-Review+1` votes before submitting.
 
 Gerrit normally requires approval from two trusted contributors, where
 uploading a change counts as the uploader's approval. Pull requests are uploaded
