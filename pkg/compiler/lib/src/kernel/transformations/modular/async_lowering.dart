@@ -3,8 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart';
+import 'package:kernel/type_environment.dart';
 
 class _FunctionData {
   final List<AwaitExpression> awaits = [];
@@ -32,8 +34,20 @@ class _FunctionData {
 class AsyncLowering {
   final List<_FunctionData> _functions = [];
   final CoreTypes _coreTypes;
+  final TypeEnvironment _typeEnvironment;
+  late final StatefulStaticTypeContext _typeContext =
+      StatefulStaticTypeContext.flat(_typeEnvironment);
 
-  AsyncLowering(this._coreTypes);
+  AsyncLowering(this._coreTypes, ClassHierarchy hierarchy)
+    : _typeEnvironment = TypeEnvironment(_coreTypes, hierarchy);
+
+  void enterMember(Member node) {
+    _typeContext.enterMember(node);
+  }
+
+  void exitMember(Member node) {
+    _typeContext.leaveMember(node);
+  }
 
   bool _shouldTryAsyncLowering(FunctionNode node) =>
       node.asyncMarker == AsyncMarker.Async &&
@@ -80,40 +94,31 @@ class AsyncLowering {
     );
   }
 
-  void _wrapReturns(_FunctionData functionData, FunctionNode node) {
-    final futureValueType = node.emittedValueType!;
-    for (final returnStatement in functionData.returnStatements) {
-      final expression = returnStatement.expression;
-      // Ensure the returned future has a runtime type (T) matching the
-      // function's return type by wrapping with Future.value<T>.
-      if (expression == null) continue;
-      final futureValueCall = StaticInvocation(
-        _coreTypes.futureValueFactory,
-        Arguments(
-          ExpressionList(expression),
-          types: DartTypeList(futureValueType),
-        ),
-      );
-      returnStatement.expression = futureValueCall;
-      futureValueCall.parent = returnStatement;
-    }
-  }
-
   void _transformDirectReturnAwaits(
     FunctionNode node,
     _FunctionData functionData,
   ) {
     // If every await is the direct child of a return statement then we can
     // do the following transformation:
-    // return await e; --> return e;
+    // return await e; --> return Future<T>.value(e);
+    final futureValueType = node.emittedValueType!;
     for (final awaitExpression in functionData.awaits) {
-      awaitExpression.replaceWith(awaitExpression.operand);
+      awaitExpression.replaceWith(
+        StaticInvocation(
+          _coreTypes.futureValueFactory,
+          Arguments(
+            ExpressionList(awaitExpression.operand),
+            types: DartTypeList(futureValueType),
+          ),
+        ),
+      );
     }
   }
 
   void _transformAsyncFunctionNode(FunctionNode node) {
     assert(_functions.isNotEmpty, 'Must be within a function scope.');
     final functionData = _functions.last;
+    if (!_canLowerReturns(node, functionData)) return;
     var isLowered = false;
     if (functionData.awaits.isEmpty) {
       // There are no awaits within this function so convert to a simple
@@ -149,9 +154,36 @@ class AsyncLowering {
       isLowered = true;
     }
     if (isLowered) {
-      _wrapReturns(functionData, node);
       _wrapBodySync(node);
     }
+  }
+
+  bool _canLowerReturns(FunctionNode node, _FunctionData functionData) {
+    DartType? futureType;
+    for (final returnStatement in functionData.returnStatements) {
+      final expression = returnStatement.expression;
+      if (expression == null || expression is AwaitExpression) continue;
+      futureType ??= InterfaceType(
+        _coreTypes.futureClass,
+        Nullability.nonNullable,
+        DartTypeList(node.emittedValueType!),
+      );
+      if (!_isDefinitelyNonFutureValue(expression, futureType)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _isDefinitelyNonFutureValue(Expression expression, DartType futureType) {
+    final exprType = expression.getStaticType(_typeContext);
+    if (exprType is NullType) return true;
+    if (exprType is TypeParameterType) return false;
+    return !_typeEnvironment.isSubtypeOf(
+          exprType,
+          _coreTypes.futureNullableRawType,
+        ) &&
+        !_typeEnvironment.isSubtypeOf(futureType, exprType);
   }
 
   void transformFunctionNodeAndExit(FunctionNode node) {

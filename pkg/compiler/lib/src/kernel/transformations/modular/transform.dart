@@ -44,13 +44,17 @@ class _ModularTransformer extends Transformer {
       _awaitLowering = AwaitLowering(coreTypes),
       _asyncLowering =
           (options?.features.simpleAsyncToFuture.isEnabled ?? false)
-          ? AsyncLowering(coreTypes)
+          ? AsyncLowering(coreTypes, hierarchy)
           : null;
 
   @override
   TreeNode defaultMember(Member node) {
     _currentMember = node;
-    return super.defaultMember(node);
+    _asyncLowering?.enterMember(node);
+    final result = super.defaultMember(node);
+    _asyncLowering?.exitMember(node);
+    _currentMember = null;
+    return result;
   }
 
   @override
@@ -96,15 +100,14 @@ class _ModularTransformer extends Transformer {
 
   @override
   TreeNode visitField(Field node) {
-    _currentMember = node;
     // Field initializers can contain late variable reads via record
     // destructuring. The following patten can result in the CFE using a late
     // local outside the scope of a function:
     // Object? foo = { for (final (String x,) in records) x: x };
     _lateLowering.enterScope();
-    node.transformChildren(this);
+    super.visitField(node);
     _lateLowering.exitScope();
-    return _lateLowering.transformField(node, _currentMember!);
+    return _lateLowering.transformField(node, node);
   }
 
   @override

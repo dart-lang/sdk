@@ -19,7 +19,7 @@ static method foo2(core::bool x) → asy::Future<core::int> /* emittedValueType=
 static method foo3(core::bool x) → asy::Future<core::int> /* emittedValueType= core::int */ /* originally async */ 
   return asy::Future::sync<core::int>(() → FutureOr<core::int> {
     if(x)
-      return asy::Future::value<core::int>(234);
+      return 234;
     return asy::Future::value<core::int>(asy::Future::value<core::int>(123));
   });
 static method main() → void {

@@ -125,6 +125,20 @@ Future<void> testSyncValueReturnWithoutAwait() {
   Future<List<int>> syncConst() async => const <int>[1, 2];
   Future<void> syncEmpty() async {}
 
+  // Multi-statement and mixed-return bodies exercise dart2js's `AsyncLowering`
+  // (`--simple-async-to-future`).
+  Future<int> syncLocalVar(int x) async {
+    final y = x + 1;
+    return y;
+  }
+
+  Future<int> syncMixedAwaitAndValue(bool doAwait) async {
+    if (doAwait) {
+      return await Future<int>.syncValue(10);
+    }
+    return 42;
+  }
+
   Future<int> syncValue() async {
     log.add('syncValue');
     return 42;
@@ -140,6 +154,8 @@ Future<void> testSyncValueReturnWithoutAwait() {
       syncLiteral();
       syncConst();
       syncEmpty();
+      syncLocalVar(41);
+      syncMixedAwaitAndValue(false);
       syncValue();
       syncFutureAsObject();
     },
@@ -154,12 +170,16 @@ Future<void> testSyncValueReturnWithoutAwait() {
   final fLiteral = syncLiteral();
   final fConst = syncConst();
   final fEmpty = syncEmpty();
+  final fLocalVar = syncLocalVar(41);
+  final fMixedValue = syncMixedAwaitAndValue(false);
   final f1 = syncValue();
   final f2 = syncFutureAsObject();
   scheduleMicrotask(() => log.add('microtask'));
   fLiteral.then((v) => log.add('thenLiteral: $v'));
   fConst.then((v) => log.add('thenConst: ${v.length}'));
   fEmpty.then((_) => log.add('thenEmpty'));
+  fLocalVar.then((v) => log.add('thenLocalVar: $v'));
+  fMixedValue.then((v) => log.add('thenMixedValue: $v'));
   f1.then((v) => log.add('then1: $v'));
   f2.then((v) => log.add('then2: ${identical(v, nullFuture)}'));
 
@@ -173,6 +193,8 @@ Future<void> testSyncValueReturnWithoutAwait() {
       'thenLiteral: 42',
       'thenConst: 2',
       'thenEmpty',
+      'thenLocalVar: 42',
+      'thenMixedValue: 42',
       'then1: 42',
       'then2: true',
     ], log);
