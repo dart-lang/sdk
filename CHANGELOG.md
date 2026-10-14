@@ -1,3 +1,9 @@
+## 3.13.6
+
+This is a patch release that:
+
+- Fixes an issue in dart2js codegen where a single Dart call was generating multiple calls in the compiled JS code. (issue [#64410])
+
 ## 3.13.5
 
 **Released on:** 2026-09-29
