@@ -23,7 +23,7 @@ class C extends core::Object {
   static factory fact({core::int? _inFactory = null}) → self::C
     ;
 }
-static method function({core::int? _parameter}) → void
+static method function({core::int? _parameter = null}) → void
   ;
 static method main() → dynamic
   ;

@@ -86,7 +86,7 @@ static extension-type-member method JsonList3|constructor#<T extends core::Objec
   ;
 static extension-type-member synthetic method JsonList3|constructor#_#new#tearOff<T extends core::Object? = dynamic>(core::List<core::Object?> _#wc5#formal) → self::JsonList3<self::JsonList3|constructor#_#new#tearOff::T%> /* erasure=core::List<core::Object?> */
   return self::JsonList3|constructor#<self::JsonList3|constructor#_#new#tearOff::T%>(_#wc5#formal);
-static extension-type-member method JsonList3|sublist<T extends core::Object? = dynamic>(lowered final self::JsonList3<self::JsonList3|sublist::T%> /* erasure=core::List<core::Object?> */ #this, core::int start, [core::int? end]) → core::List<self::JsonList3|sublist::T%>
+static extension-type-member method JsonList3|sublist<T extends core::Object? = dynamic>(lowered final self::JsonList3<self::JsonList3|sublist::T%> /* erasure=core::List<core::Object?> */ #this, core::int start, [core::int? end = null]) → core::List<self::JsonList3|sublist::T%>
   ;
 static extension-type-member method JsonList3|get#sublist<T extends core::Object? = dynamic>(lowered final self::JsonList3<self::JsonList3|get#sublist::T%> /* erasure=core::List<core::Object?> */ #this) → (core::int, [core::int?]) → core::List<self::JsonList3|get#sublist::T%>
   return (core::int start, [core::int? end]) → core::List<self::JsonList3|get#sublist::T%> => self::JsonList3|sublist<self::JsonList3|get#sublist::T%>(#this, start, end);

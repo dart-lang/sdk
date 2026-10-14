@@ -479,6 +479,7 @@ class _EnumToStringMethodDeclaration implements MethodDeclaration {
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     Name toStringName = new Name(
       _enumToStringName,

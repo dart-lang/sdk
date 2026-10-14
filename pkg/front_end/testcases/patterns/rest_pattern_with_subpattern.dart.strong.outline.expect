@@ -1,7 +1,7 @@
 library;
 import self as self;
 
-static method test(dynamic o, [dynamic expectedRest]) → dynamic
+static method test(dynamic o, [dynamic expectedRest = null]) → dynamic
   ;
 static method main() → dynamic
   ;

@@ -154,6 +154,7 @@ class SourceMethodBuilder extends SourceMemberBuilderImpl
           methodBuilder: this,
           annotatable: _invokeTarget,
           annotatableFileUri: _invokeTarget.fileUri,
+          delayedDefaultValueCloners: delayedDefaultValueCloners,
         );
       }
       hasBuiltOutlineExpressions = true;

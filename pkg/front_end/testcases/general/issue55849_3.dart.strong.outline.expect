@@ -24,7 +24,7 @@ class C extends core::Object /*hasConstConstructor*/  {
     ;
   method foo({self::A a = /*original=self::A::redir*/ const self::B::•()}) → dynamic
     ;
-  static method bar({has-declared-initializer self::A a}) → dynamic
+  static method bar({self::A a = /*original=self::A::redir*/ const self::B::•()}) → dynamic
     ;
 }
 extension E on self::C {
@@ -40,7 +40,7 @@ extension type ET(self::C c) {
   constructor named = self::ET|constructor#named;
   constructor tearoff named = self::ET|constructor#_#named#tearOff;
 }
-static extension-member method E|foo(lowered final self::C #this, {has-declared-initializer self::A a}) → dynamic
+static extension-member method E|foo(lowered final self::C #this, {self::A a = /*original=self::A::redir*/ const self::B::•()}) → dynamic
   ;
 static extension-member method E|get#foo(lowered final self::C #this) → ({a: self::A}) → dynamic
   return ({self::A a}) → dynamic => self::E|foo(#this, a: a);
@@ -52,11 +52,11 @@ static extension-type-member method ET|constructor#named(self::C c, {self::A a =
   ;
 static extension-type-member synthetic method ET|constructor#_#named#tearOff(self::C c, {has-declared-initializer self::A a}) → self::ET% /* erasure=self::C, declared=! */
   return self::ET|constructor#named(c, a: a);
-static extension-type-member method ET|foo(lowered final self::ET% /* erasure=self::C, declared=! */ #this, {has-declared-initializer self::A a}) → dynamic
+static extension-type-member method ET|foo(lowered final self::ET% /* erasure=self::C, declared=! */ #this, {self::A a = /*original=self::A::redir*/ const self::B::•()}) → dynamic
   ;
 static extension-type-member method ET|get#foo(lowered final self::ET% /* erasure=self::C, declared=! */ #this) → ({a: self::A}) → dynamic
   return ({self::A a}) → dynamic => self::ET|foo(#this, a: a);
-static method foo({has-declared-initializer self::A a}) → dynamic
+static method foo({self::A a = /*original=self::A::redir*/ const self::B::•()}) → dynamic
   ;
 
 
@@ -65,5 +65,9 @@ Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:19:26 -> InstanceConstant(const B{})
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:17:28 -> InstanceConstant(const B{})
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:21:20 -> InstanceConstant(const B{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:23:27 -> InstanceConstant(const B{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:27:20 -> InstanceConstant(const B{})
 Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:31:30 -> InstanceConstant(const B{})
-Extra constant evaluation: evaluated: 19, effectively constant: 5
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:33:20 -> InstanceConstant(const B{})
+Evaluated: RedirectingFactoryInvocation @ org-dartlang-testcase:///issue55849_3.dart:36:18 -> InstanceConstant(const B{})
+Extra constant evaluation: evaluated: 23, effectively constant: 9

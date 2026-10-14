@@ -2,6 +2,14 @@ library;
 //
 // Problems in library:
 //
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:5:37: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// topLevelOptionalPositional([int x = ""]) {}
+//                                     ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:6:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+// topLevelOptionalNamed({int x = ""}) {}
+//                                ^
+//
 // pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:11:33: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 //   A.optionalPositional([int x = ""]) {}
 //                                 ^
@@ -16,6 +24,22 @@ library;
 //
 // pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:17:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 //   void fooOptionalNamed({int x = ""}) {}
+//                                  ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:23:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void barOptionalPositional([int x = ""]) {}
+//                                       ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:24:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void barOptionalNamed({int x = ""}) {}
+//                                  ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:30:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void bazOptionalPositional([int x = ""]) {}
+//                                       ^
+//
+// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:31:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
+//   void bazOptionalNamed({int x = ""}) {}
 //                                  ^
 //
 // pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:39:42: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
@@ -85,30 +109,6 @@ library;
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   void foobarOptionalNamedImplicit({int x}) {}
 //                                         ^
-//
-// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:5:37: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// topLevelOptionalPositional([int x = ""]) {}
-//                                     ^
-//
-// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:6:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-// topLevelOptionalNamed({int x = ""}) {}
-//                                ^
-//
-// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:23:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//   void barOptionalPositional([int x = ""]) {}
-//                                       ^
-//
-// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:24:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//   void barOptionalNamed({int x = ""}) {}
-//                                  ^
-//
-// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:30:39: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//   void bazOptionalPositional([int x = ""]) {}
-//                                       ^
-//
-// pkg/front_end/testcases/general/erroneously_initialized_parameters.dart:31:34: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
-//   void bazOptionalNamed({int x = ""}) {}
-//                                  ^
 //
 import self as self;
 import "dart:core" as core;

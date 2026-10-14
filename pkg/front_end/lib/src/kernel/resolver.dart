@@ -70,8 +70,6 @@ class Resolver {
 
   final Benchmarker? _benchmarker;
 
-  late CloneVisitorNotMembers _simpleCloner = new CloneVisitorNotMembers();
-
   new({
     required ClassHierarchy classHierarchy,
     required CoreTypes coreTypes,
@@ -1452,62 +1450,6 @@ class Resolver {
       thisVariable: thisVariable,
       formals: bodyBuilderContext.formals,
     );
-    if (bodyBuilderContext.formals != null) {
-      // TODO(johnniwinther): Avoid the need for this.
-      int declaredParameterIndex = 0;
-      for (FormalParameterBuilder parameter in bodyBuilderContext.formals!) {
-        if (parameter.isExtensionThis) continue;
-        InternalExpression? defaultValue = parameter.variable.defaultValue;
-        bool inferDefaultValue;
-        if (parameter.isSuperInitializingFormal) {
-          // Super-parameters can inherit the default value from the super
-          // constructor so we only handle explicit default values here.
-          inferDefaultValue = parameter.hasImmediatelyDeclaredDefaultValue;
-        } else if (defaultValue != null) {
-          inferDefaultValue = true;
-        } else {
-          inferDefaultValue = parameter.isOptional;
-        }
-        if (inferDefaultValue) {
-          Expression? inferredDefaultValue;
-          if (!parameter.defaultValueWasInferred) {
-            // Coverage-ignore(suite): Not run.
-            defaultValue ??= intern.createNullLiteral(
-              // TODO(ahe): Should store: originParameter.fileOffset
-              // https://github.com/dart-lang/sdk/issues/32289
-              noLocation,
-            );
-            InternalFunctionParameter originParameter = parameter.variable;
-            inferredDefaultValue = context.typeInferrer
-                .inferParameterDefaultValue(
-                  fileUri: fileUri,
-                  defaultValue: defaultValue,
-                  declaredType: originParameter.type,
-                  hasDeclaredDefaultValue: parameter.hasDeclaredDefaultValue,
-                );
-            originParameter.setInferredDefaultValue(inferredDefaultValue);
-            if (inferredDefaultValue is InvalidExpression) {
-              originParameter.hasErroneousDefaultValue = true;
-            }
-            parameter.defaultValueWasInferred = true;
-          } else {
-            inferredDefaultValue = parameter.variable.inferredDefaultValue;
-          }
-          FunctionParameter? tearOffParameter = bodyBuilderContext
-              .getTearOffParameter(declaredParameterIndex);
-          if (tearOffParameter != null) {
-            Expression tearOffDefaultValue = _simpleCloner.cloneInContext(
-              inferredDefaultValue!,
-            );
-            tearOffParameter.defaultValue = tearOffDefaultValue
-              ..parent = tearOffParameter;
-            tearOffParameter.hasErroneousDefaultValue =
-                parameter.variable.hasErroneousDefaultValue;
-          }
-        }
-        declaredParameterIndex++;
-      }
-    }
 
     late List<InternalFunctionParameter>? parameters = [
       for (FormalParameterBuilder formal in bodyBuilderContext.formals ?? [])

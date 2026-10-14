@@ -1,7 +1,7 @@
 library;
 import self as self;
 
-static method foo({dynamic fisk}) → dynamic
+static method foo({dynamic fisk = null}) → dynamic
   ;
 static method caller(dynamic f) → dynamic
   ;

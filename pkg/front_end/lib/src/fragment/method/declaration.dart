@@ -18,6 +18,7 @@ import '../../kernel/body_builder_context.dart';
 import '../../kernel/hierarchy/class_member.dart';
 import '../../kernel/hierarchy/members_builder.dart';
 import '../../kernel/internal_ast.dart';
+import '../../kernel/kernel_helper.dart';
 import '../../kernel/type_algorithms.dart';
 import '../../source/name_scheme.dart';
 import '../../source/source_class_builder.dart';
@@ -57,6 +58,7 @@ abstract class MethodDeclaration {
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   });
 
   void buildOutlineNode({
@@ -156,6 +158,7 @@ class MethodDeclarationImpl
     required SourceMethodBuilder methodBuilder,
     required Annotatable annotatable,
     required Uri annotatableFileUri,
+    required List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   }) {
     _encoding.buildOutlineExpressions(
       classHierarchy: classHierarchy,
@@ -165,6 +168,7 @@ class MethodDeclarationImpl
       bodyBuilderContext: createBodyBuilderContext(methodBuilder),
       annotatable: annotatable,
       annotatableFileUri: annotatableFileUri,
+      delayedDefaultValueCloners: delayedDefaultValueCloners,
     );
   }
 
@@ -275,11 +279,6 @@ class MethodDeclarationImpl
   }
 
   @override
-  FunctionParameter? getTearOffParameter(int index) {
-    return _encoding.getTearOffParameter(index);
-  }
-
-  @override
   void registerFunctionBody({
     required Statement? body,
     required AsyncModifier asyncModifier,
@@ -338,6 +337,4 @@ abstract class MethodFragmentDeclaration {
   BodyBuilderContext createBodyBuilderContext(SourceMethodBuilder builder);
 
   LocalScope createFormalParameterScope(LookupScope typeParameterScope);
-
-  FunctionParameter? getTearOffParameter(int index);
 }

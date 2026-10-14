@@ -352,11 +352,6 @@ class FactoryDeclarationImpl
   }
 
   @override
-  FunctionParameter? getTearOffParameter(int index) {
-    return _encoding.getTearOffParameter(index);
-  }
-
-  @override
   void inferRedirectionTarget({
     required SourceLibraryBuilder libraryBuilder,
     required SourceFactoryBuilder factoryBuilder,
@@ -430,14 +425,6 @@ abstract class FactoryFragmentDeclaration {
   BodyBuilderContext createBodyBuilderContext(
     SourceFactoryBuilder factoryBuilder,
   );
-
-  /// If this is an extension instance method or constructor with lowering
-  /// enabled, the tear off parameter corresponding to the [index]th parameter
-  /// on the instance method or constructor is returned.
-  ///
-  /// This is used to update the default value for the closure parameter when
-  /// it has been computed for the original parameter.
-  FunctionParameter? getTearOffParameter(int index);
 
   void registerFunctionBody({
     required Statement? body,

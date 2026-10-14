@@ -20,12 +20,12 @@ import 'external_ast_helper.dart' as extern;
 /// created from the constructors in the superclass, and for tear off lowerings
 /// for redirecting factories, which are created from the effective target
 /// constructor.
-class DelayedDefaultValueCloner {
+class DelayedDefaultValueCloner<T extends TreeNode> {
   /// The original constructor or procedure.
   final Member _source;
 
   /// The synthesized constructor or procedure.
-  final Member _target;
+  final T _target;
 
   final ParameterMapping _parameterMapping;
 
@@ -67,10 +67,15 @@ class DelayedDefaultValueCloner {
     // unrelated.
 
     FunctionNode sourceFunctionNode = _source.function!;
-    FunctionNode targetFunctionNode = _target.function!;
+    FunctionNode targetFunctionNode = _parameterMapping.getTargetFunctionNode(
+      _target,
+    );
 
     NamedParameterCache namedParameterCache = new NamedParameterCache(
       sourceFunctionNode,
+    );
+    Uri? targetFileUri = _parameterMapping.getTargetFileUriForCheckingTypes(
+      target,
     );
     for (
       int targetIndex = targetFunctionNode.requiredParameterCount;
@@ -86,12 +91,12 @@ class DelayedDefaultValueCloner {
             targetIndex: targetIndex,
           );
       if (sourceParameter != null) {
-        if (_parameterMapping.checkTypes) {
+        if (targetFileUri != null) {
           _cloneDefaultValueForSuperParameters(
             sourceParameter,
             targetParameter,
             typeEnvironment,
-            isOptional: true,
+            targetFileUri: targetFileUri,
           );
         } else {
           _cloneDefaultValue(sourceParameter, targetParameter);
@@ -126,12 +131,12 @@ class DelayedDefaultValueCloner {
             namedParameterCache: namedParameterCache,
           );
       if (sourceParameter != null) {
-        if (_parameterMapping.checkTypes) {
+        if (targetFileUri != null) {
           _cloneDefaultValueForSuperParameters(
             sourceParameter,
             targetParameter,
             typeEnvironment,
-            isOptional: !targetParameter.isRequired,
+            targetFileUri: targetFileUri,
           );
         } else {
           _cloneDefaultValue(sourceParameter, targetParameter);
@@ -168,38 +173,39 @@ class DelayedDefaultValueCloner {
   }
 
   void _cloneDefaultValueForSuperParameters(
-    FunctionParameter originalParameter,
-    FunctionParameter synthesizedParameter,
+    FunctionParameter sourceParameter,
+    FunctionParameter targetParameter,
     TypeEnvironment typeEnvironment, {
-    required bool isOptional,
+    required Uri targetFileUri,
   }) {
-    Expression? originalParameterDefaultValue = originalParameter.defaultValue;
-    DartType? originalParameterDefaultValueType = originalParameterDefaultValue
-        ?.getStaticType(new StaticTypeContext(_target, typeEnvironment));
-    DartType synthesizedParameterType = synthesizedParameter.type;
-    if (originalParameterDefaultValueType != null &&
+    Expression? sourceDefaultValue = sourceParameter.defaultValue;
+    DartType? sourceDefaultValueType = sourceDefaultValue?.getStaticType(
+      new StaticTypeContext(_source, typeEnvironment),
+    );
+    DartType targetParameterType = targetParameter.type;
+    if (sourceDefaultValueType != null &&
         typeEnvironment.isSubtypeOf(
-          originalParameterDefaultValueType,
-          synthesizedParameterType,
+          sourceDefaultValueType,
+          targetParameterType,
         )) {
-      _cloneDefaultValue(originalParameter, synthesizedParameter);
-    } else if (originalParameterDefaultValue == null && isOptional) {
-      synthesizedParameter.defaultValue = extern.createNullLiteral(
+      _cloneDefaultValue(sourceParameter, targetParameter);
+    } else if (sourceDefaultValue == null) {
+      targetParameter.defaultValue = extern.createNullLiteral(
         fileOffset: TreeNode.noOffset,
-      )..parent = synthesizedParameter;
+      )..parent = targetParameter;
     } else {
-      synthesizedParameter.hasDeclaredDefaultValue = false;
-      if (synthesizedParameterType.isPotentiallyNonNullable) {
+      targetParameter.hasDeclaredDefaultValue = false;
+      if (targetParameterType.isPotentiallyNonNullable) {
         _libraryBuilder.addProblem(
           diag.optionalSuperParameterWithoutInitializer.withArguments(
-            superParameterType: synthesizedParameter.type,
-            superParameterName: synthesizedParameter.parameterName,
+            superParameterType: targetParameter.type,
+            superParameterName: targetParameter.parameterName,
           ),
-          synthesizedParameter.fileOffset,
-          synthesizedParameter.parameterName.length,
-          _target.fileUri,
+          targetParameter.fileOffset,
+          targetParameter.parameterName.length,
+          targetFileUri,
         );
-        synthesizedParameter.hasErroneousDefaultValue = true;
+        targetParameter.hasErroneousDefaultValue = true;
       }
     }
   }
@@ -227,11 +233,16 @@ class NamedParameterCache(final FunctionNode _function) {
 
 /// Interface used by [DelayedDefaultValueCloner] to map target parameters to
 /// source parameters from which default values should be cloned.
-abstract class ParameterMapping {
-  /// Whether the type of the cloned default value should be checked against the
-  /// target parameter type.
+abstract class ParameterMapping<T extends TreeNode> {
+  /// Returns the [FunctionNode] for the [target] which holds the target
+  /// parameters.
+  FunctionNode getTargetFunctionNode(T target);
+
+  /// Returns the [Uri] for the [target] if needed for checking the type of the
+  /// cloned default value against the target parameter type. If no check is
+  /// needed, `null` is returned.
   ///
-  /// This is needed for super parameters where the super parameter can be
+  /// The check is needed for super parameters where the super parameter can be
   /// declared with a type that doesn't support the default value. For instance
   ///
   ///     class Super {
@@ -242,7 +253,7 @@ abstract class ParameterMapping {
   ///     }
   ///
   /// where the default value `3.14` is not valid for a parameter of type `int`.
-  bool get checkTypes;
+  Uri? getTargetFileUriForCheckingTypes(T target);
 
   /// Returns the [PositionalParameter] from [source] from which the default
   /// value for the [targetIndex]th positional parameter from [target] should be
@@ -270,9 +281,12 @@ abstract class ParameterMapping {
 class SuperParameterMapping(
   final Map<int, int> positionalTargetToSourceMapping,
   final Map<int, String> namedTargetToSourceMapping,
-) implements ParameterMapping {
+) implements ParameterMapping<Constructor> {
   @override
-  bool get checkTypes => true;
+  FunctionNode getTargetFunctionNode(Constructor target) => target.function;
+
+  @override
+  Uri? getTargetFileUriForCheckingTypes(Constructor target) => target.fileUri;
 
   @override
   NamedParameter? getNamedSourceParameter({
@@ -298,9 +312,12 @@ class SuperParameterMapping(
   }
 }
 
-class const DirectParameterMapping() implements ParameterMapping {
+class const DirectParameterMapping() implements ParameterMapping<Member> {
   @override
-  bool get checkTypes => false;
+  FunctionNode getTargetFunctionNode(Member target) => target.function!;
+
+  @override
+  Uri? getTargetFileUriForCheckingTypes(Member target) => null;
 
   @override
   NamedParameter? getNamedSourceParameter({

@@ -539,6 +539,7 @@ class TypeInferrerImpl implements TypeInferrer {
           )
           .expression;
     } else {
+      // Coverage-ignore-block(suite): Not run.
       inferredDefaultValue = result.expression;
     }
     visitor.checkCleanState();
