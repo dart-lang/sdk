@@ -320,6 +320,23 @@ void BytecodeReaderHelper::ReadCode(const Function& function,
         ASSERT(local_function_id > 0);
       }
 
+      intptr_t depth = -1;
+      intptr_t index = -1;
+      if ((flags & ClosureCode::kHasAwaiterLinkFlag) != 0) {
+        depth = reader_.ReadUInt();
+        index = reader_.ReadUInt();
+        if (Utils::IsUint(8, depth) && Utils::IsUint(8, index)) {
+          closure.set_awaiter_link(
+              {static_cast<uint8_t>(depth), static_cast<uint8_t>(index)});
+        } else {
+          OS::PrintErr(
+              "Warning: @pragma('vm:awaiter-link') marked variable is visible "
+              "from the function %s but the link {%" Pd ", %" Pd
+              "} can't be encoded\n",
+              closure.ToFullyQualifiedCString(), depth, index);
+        }
+      }
+
       // Read closure bytecode and attach to closure function.
       closure_bytecode = ReadBytecode(pool);
 
@@ -1979,12 +1996,13 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       if (is_static) {
         if (is_shared) {
           function.AttachBytecode(
-              Object::implicit_shared_static_getter_bytecode());
+              Object::shared_implicit_shared_static_getter_bytecode());
         } else {
-          function.AttachBytecode(Object::implicit_static_getter_bytecode());
+          function.AttachBytecode(
+              Object::shared_implicit_static_getter_bytecode());
         }
       } else {
-        function.AttachBytecode(Object::implicit_getter_bytecode());
+        function.AttachBytecode(Object::shared_implicit_getter_bytecode());
       }
       functions_->SetAt(function_index_++, function);
     }
@@ -2011,12 +2029,13 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       if (is_static) {
         if (is_shared) {
           function.AttachBytecode(
-              Object::implicit_shared_static_setter_bytecode());
+              Object::shared_implicit_shared_static_setter_bytecode());
         } else {
-          function.AttachBytecode(Object::implicit_static_setter_bytecode());
+          function.AttachBytecode(
+              Object::shared_implicit_static_setter_bytecode());
         }
       } else {
-        function.AttachBytecode(Object::implicit_setter_bytecode());
+        function.AttachBytecode(Object::shared_implicit_setter_bytecode());
       }
       functions_->SetAt(function_index_++, function);
     }

@@ -89,8 +89,7 @@ class AsyncAwareStackUnwinder : public ValueObject {
         awaiter_frame_{Closure::Handle(zone_), Object::Handle(zone_)},
         encountered_async_catch_error_(encountered_async_catch_error),
         closure_(Closure::Handle(zone_)),
-        code_(Code::Handle(zone_)),
-        bytecode_(Bytecode::Handle(zone_)),
+        code_or_bytecode_(Object::Handle(zone_)),
         context_(Context::Handle(zone_)),
         function_(Function::Handle(zone_)),
         parent_function_(Function::Handle(zone_)),
@@ -100,10 +99,7 @@ class AsyncAwareStackUnwinder : public ValueObject {
         controller_(Object::Handle(zone_)),
         subscription_(Object::Handle(zone_)),
         stream_iterator_(Object::Handle(zone_)),
-        async_lib_(Library::Handle(zone_, Library::AsyncLibrary())),
-        null_closure_(Closure::Handle(zone_)),
-        null_code_(Code::Handle(zone_)),
-        null_bytecode_(Bytecode::Handle(zone_)) {
+        async_lib_(Library::Handle(zone_, Library::AsyncLibrary())) {
     if (encountered_async_catch_error_ != nullptr) {
       *encountered_async_catch_error_ = false;
     }
@@ -252,6 +248,9 @@ class AsyncAwareStackUnwinder : public ValueObject {
     Object& next;
   };
 
+  const Code& code() const { return Code::Cast(code_or_bytecode_); }
+  const Bytecode& bytecode() const { return Bytecode::Cast(code_or_bytecode_); }
+
   Zone* zone_;
   DartFrameIterator sync_frames_;
 
@@ -261,8 +260,7 @@ class AsyncAwareStackUnwinder : public ValueObject {
   bool* encountered_async_catch_error_;
 
   Closure& closure_;
-  Code& code_;
-  Bytecode& bytecode_;
+  Object& code_or_bytecode_;
   Context& context_;
   Function& function_;
   Function& parent_function_;
@@ -277,10 +275,6 @@ class AsyncAwareStackUnwinder : public ValueObject {
   const Library& async_lib_;
   Class* classes_[kUsedClassCount] = {};
   Field* fields_[kUsedFieldCount] = {};
-
-  const Closure& null_closure_;
-  const Code& null_code_;
-  const Bytecode& null_bytecode_;
 
   DISALLOW_COPY_AND_ASSIGN(AsyncAwareStackUnwinder);
 };
@@ -301,25 +295,25 @@ void AsyncAwareStackUnwinder::Unwind(
     const bool was_handled = HandleSynchronousFrame();
     if (!was_handled) {
       if (sync_frame_->is_interpreted()) {
-        bytecode_ = sync_frame_->LookupDartBytecode();
-        if (bytecode_.function() != Function::null()) {
-          const uword pc_offset = sync_frame_->pc() - bytecode_.PayloadStart();
-          handle_frame(
-              {sync_frame_, null_code_, bytecode_, pc_offset, null_closure_});
+        code_or_bytecode_ = sync_frame_->LookupDartBytecode();
+        if (!bytecode().IsSharedBytecodeStub()) {
+          const uword pc_offset = sync_frame_->pc() - bytecode().PayloadStart();
+          handle_frame({sync_frame_, code_or_bytecode_, pc_offset,
+                        Object::null_closure()});
         }
       } else {
-        code_ = sync_frame_->LookupDartCode();
-        const uword pc_offset = sync_frame_->pc() - code_.PayloadStart();
-        handle_frame(
-            {sync_frame_, code_, null_bytecode_, pc_offset, null_closure_});
+        code_or_bytecode_ = sync_frame_->LookupDartCode();
+        const uword pc_offset = sync_frame_->pc() - code().PayloadStart();
+        handle_frame({sync_frame_, code_or_bytecode_, pc_offset,
+                      Object::null_closure()});
       }
     }
     sync_frame_ = sync_frames_.NextFrame();
   }
 
   const StackTraceUtils::Frame gap_frame = {
-      nullptr, StubCode::AsynchronousGapMarker(), null_bytecode_,
-      /*pc_offset=*/0, null_closure_};
+      nullptr, StubCode::AsynchronousGapMarker(),
+      /*pc_offset=*/0, Object::null_closure()};
 
   // Traverse awaiter frames.
   bool any_async = false;
@@ -331,7 +325,6 @@ void AsyncAwareStackUnwinder::Unwind(
 
     any_async = true;
     uword pc_offset;
-    bytecode_ = Bytecode::null();
     if (awaiter_frame_.next.IsSuspendState()) {
       const uword pc = SuspendState::Cast(awaiter_frame_.next).pc();
       if (pc == 0) {
@@ -339,33 +332,44 @@ void AsyncAwareStackUnwinder::Unwind(
         continue;
       }
 
-      code_ = SuspendState::Cast(awaiter_frame_.next).GetCodeObject();
-      pc_offset = pc - code_.PayloadStart();
-
 #if defined(DART_DYNAMIC_MODULES)
       if (pc == StubCode::ResumeInterpreter().EntryPoint()) {
-        bytecode_ = Interpreter::Current()->GetSuspendedLocation(
+        code_or_bytecode_ = Interpreter::Current()->GetSuspendedLocation(
             SuspendState::Cast(awaiter_frame_.next), &pc_offset);
-        ASSERT(!bytecode_.IsNull());
-        code_ = Code::null();
+        ASSERT(!bytecode().IsNull());
+      } else {
+#endif  // defined(DART_DYNAMIC_MODULES)
+        code_or_bytecode_ =
+            SuspendState::Cast(awaiter_frame_.next).GetCodeObject();
+        pc_offset = pc - code().PayloadStart();
+#if defined(DART_DYNAMIC_MODULES)
       }
 #endif  // defined(DART_DYNAMIC_MODULES)
     } else {
       // This is an asynchronous continuation represented by a closure which
       // will handle successful completion. This function is not yet executing
       // so we have to use artificial marker offset (1).
+      pc_offset = StackTraceUtils::kFutureListenerPcOffset;
 #if defined(DART_DYNAMIC_MODULES)
+      // Interpreted implicit closure functions are implemented using a
+      // shared stub, so the target cannot be retrieved from the bytecode
+      // object alone. Instead, retrieve the parent function and act as if
+      // it is awaiting the value directly so the proper name is reported.
+      //
+      // This is done as a separate step because interpreted implicit closure
+      // functions can be created for compiled functions in the AOT runtime.
+      // This approach also mimics the way that StackFrame::ToCString() handles
+      // future listeners that are compiled implicit static methods.
+      if (function_.IsInterpreted() && function_.IsImplicitClosureFunction()) {
+        function_ = function_.parent_function();
+      }
       if (function_.IsInterpreted()) {
-        bytecode_ = function_.GetBytecode();
-        code_ = Code::null();
-        pc_offset = StackTraceUtils::kFutureListenerPcOffset;
+        code_or_bytecode_ = function_.GetBytecode();
+        ASSERT(!bytecode().IsSharedBytecodeStub());
       } else {
 #endif  // defined(DART_DYNAMIC_MODULES)
-        code_ = function_.EnsureHasCode();
-        RELEASE_ASSERT(!code_.IsNull());
-        pc_offset = (function_.entry_point() +
-                     StackTraceUtils::kFutureListenerPcOffset) -
-                    code_.PayloadStart();
+        code_or_bytecode_ = function_.EnsureHasCode();
+        RELEASE_ASSERT(!code().IsNull());
 #if defined(DART_DYNAMIC_MODULES)
       }
 #endif  // defined(DART_DYNAMIC_MODULES)
@@ -373,7 +377,7 @@ void AsyncAwareStackUnwinder::Unwind(
 
     handle_frame(gap_frame);
     handle_frame(
-        {nullptr, code_, bytecode_, pc_offset, awaiter_frame_.closure});
+        {nullptr, code_or_bytecode_, pc_offset, awaiter_frame_.closure});
   }
 
   if (any_async) {

@@ -719,6 +719,27 @@ void Object::InitVtables() {
   }
 }
 
+// V(Name, Instruction)
+#define FOR_EACH_SHARED_BYTECODE_STUB(V)                                       \
+  V(implicit_getter, VMInternal_ImplicitGetter)                                \
+  V(implicit_setter, VMInternal_ImplicitSetter)                                \
+  V(implicit_static_getter, VMInternal_ImplicitStaticGetter)                   \
+  V(implicit_shared_static_getter, VMInternal_ImplicitSharedStaticGetter)      \
+  V(implicit_static_setter, VMInternal_ImplicitStaticSetter)                   \
+  V(implicit_shared_static_setter, VMInternal_ImplicitSharedStaticSetter)      \
+  V(method_extractor_with_ita, VMInternal_MethodExtractorWithITA)              \
+  V(method_extractor_without_ita, VMInternal_MethodExtractorWithoutITA)        \
+  V(invoke_closure, VMInternal_InvokeClosure)                                  \
+  V(invoke_field, VMInternal_InvokeField)                                      \
+  V(nsm_dispatcher, VMInternal_NoSuchMethodDispatcher)                         \
+  V(dynamic_invocation_forwarder, VMInternal_ForwardDynamicInvocation)         \
+  V(implicit_static_closure, VMInternal_ImplicitStaticClosure)                 \
+  V(implicit_instance_closure, VMInternal_ImplicitInstanceClosure)             \
+  V(implicit_constructor_closure, VMInternal_ImplicitConstructorClosure)
+
+#define ROOTS_SHARED_BYTECODE_GETTER(Name) Roots::shared_##Name##_bytecode()
+#define OBJECT_SHARED_BYTECODE_GETTER(Name) Object::shared_##Name##_bytecode()
+
 void Object::Init(IsolateGroup* isolate_group) {
   Heap* heap = isolate_group->heap();
   Thread* thread = Thread::Current();
@@ -1155,58 +1176,15 @@ void Object::Init(IsolateGroup* isolate_group) {
   // VM isolate snapshot reader references it before Object::FinalizeVMIsolate.
 
 #if defined(DART_DYNAMIC_MODULES)
-  Roots::implicit_getter_bytecode().initRO(
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitGetter));
-  Roots::implicit_setter_bytecode().initRO(
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_ImplicitSetter));
-  Roots::implicit_static_getter_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitStaticGetter));
-  Roots::implicit_shared_static_getter_bytecode().initRO(
-      CreateVMInternalBytecode(
-          KernelBytecode::kVMInternal_ImplicitSharedStaticGetter));
-  Roots::implicit_static_setter_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitStaticSetter));
-  Roots::implicit_shared_static_setter_bytecode().initRO(
-      CreateVMInternalBytecode(
-          KernelBytecode::kVMInternal_ImplicitSharedStaticSetter));
-  Roots::method_extractor_with_ita_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_MethodExtractorWithITA));
-  Roots::method_extractor_without_ita_bytecode().initRO(
-      CreateVMInternalBytecode(
-          KernelBytecode::kVMInternal_MethodExtractorWithoutITA));
-  Roots::invoke_closure_bytecode().initRO(
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeClosure));
-  Roots::invoke_field_bytecode().initRO(
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeField));
-  Roots::nsm_dispatcher_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_NoSuchMethodDispatcher));
-  Roots::dynamic_invocation_forwarder_bytecode().initRO(
-      CreateVMInternalBytecode(
-          KernelBytecode::kVMInternal_ForwardDynamicInvocation));
-  Roots::implicit_static_closure_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitStaticClosure));
-  Roots::implicit_instance_closure_bytecode().initRO(CreateVMInternalBytecode(
-      KernelBytecode::kVMInternal_ImplicitInstanceClosure));
-  Roots::implicit_constructor_closure_bytecode().initRO(
-      CreateVMInternalBytecode(
-          KernelBytecode::kVMInternal_ImplicitConstructorClosure));
+#define INITIALIZE_SHARED_BYTECODE(Name, Instruction)                          \
+  ROOTS_SHARED_BYTECODE_GETTER(Name).initRO(                                   \
+      CreateVMInternalBytecode(KernelBytecode::k##Instruction));
 #else
-  Roots::implicit_getter_bytecode().initRO(Bytecode::null());
-  Roots::implicit_setter_bytecode().initRO(Bytecode::null());
-  Roots::implicit_static_getter_bytecode().initRO(Bytecode::null());
-  Roots::implicit_shared_static_getter_bytecode().initRO(Bytecode::null());
-  Roots::implicit_static_setter_bytecode().initRO(Bytecode::null());
-  Roots::implicit_shared_static_setter_bytecode().initRO(Bytecode::null());
-  Roots::method_extractor_with_ita_bytecode().initRO(Bytecode::null());
-  Roots::method_extractor_without_ita_bytecode().initRO(Bytecode::null());
-  Roots::invoke_closure_bytecode().initRO(Bytecode::null());
-  Roots::invoke_field_bytecode().initRO(Bytecode::null());
-  Roots::nsm_dispatcher_bytecode().initRO(Bytecode::null());
-  Roots::dynamic_invocation_forwarder_bytecode().initRO(Bytecode::null());
-  Roots::implicit_static_closure_bytecode().initRO(Bytecode::null());
-  Roots::implicit_instance_closure_bytecode().initRO(Bytecode::null());
-  Roots::implicit_constructor_closure_bytecode().initRO(Bytecode::null());
+#define INITIALIZE_SHARED_BYTECODE(Name, Instruction)                          \
+  ROOTS_SHARED_BYTECODE_GETTER(Name).initRO(Bytecode::null());
 #endif  // defined(DART_DYNAMIC_MODULES)
+  FOR_EACH_SHARED_BYTECODE_STUB(INITIALIZE_SHARED_BYTECODE)
+#undef INITIALIZE_SHARED_BYTECODE
 
   Roots::uninitialized_index().initRO(
       TypedData::New(kTypedDataUint32ArrayCid,
@@ -1292,32 +1270,11 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(Roots::synthetic_getter_parameter_types().IsArray());
   ASSERT(!Roots::synthetic_getter_parameter_names().IsSmi());
   ASSERT(Roots::synthetic_getter_parameter_names().IsArray());
-  ASSERT(!Roots::implicit_getter_bytecode().IsSmi());
-  ASSERT(Roots::implicit_getter_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_setter_bytecode().IsSmi());
-  ASSERT(Roots::implicit_setter_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_static_getter_bytecode().IsSmi());
-  ASSERT(Roots::implicit_static_getter_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_static_setter_bytecode().IsSmi());
-  ASSERT(Roots::implicit_static_setter_bytecode().IsBytecode());
-  ASSERT(!Roots::method_extractor_with_ita_bytecode().IsSmi());
-  ASSERT(Roots::method_extractor_with_ita_bytecode().IsBytecode());
-  ASSERT(!Roots::method_extractor_without_ita_bytecode().IsSmi());
-  ASSERT(Roots::method_extractor_without_ita_bytecode().IsBytecode());
-  ASSERT(!Roots::invoke_closure_bytecode().IsSmi());
-  ASSERT(Roots::invoke_closure_bytecode().IsBytecode());
-  ASSERT(!Roots::invoke_field_bytecode().IsSmi());
-  ASSERT(Roots::invoke_field_bytecode().IsBytecode());
-  ASSERT(!Roots::nsm_dispatcher_bytecode().IsSmi());
-  ASSERT(Roots::nsm_dispatcher_bytecode().IsBytecode());
-  ASSERT(!Roots::dynamic_invocation_forwarder_bytecode().IsSmi());
-  ASSERT(Roots::dynamic_invocation_forwarder_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_static_closure_bytecode().IsSmi());
-  ASSERT(Roots::implicit_static_closure_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_instance_closure_bytecode().IsSmi());
-  ASSERT(Roots::implicit_instance_closure_bytecode().IsBytecode());
-  ASSERT(!Roots::implicit_constructor_closure_bytecode().IsSmi());
-  ASSERT(Roots::implicit_constructor_closure_bytecode().IsBytecode());
+#define CHECK_SHARED_BYTECODE(Name, _)                                         \
+  ASSERT(!ROOTS_SHARED_BYTECODE_GETTER(Name).IsSmi());                         \
+  ASSERT(ROOTS_SHARED_BYTECODE_GETTER(Name).IsBytecode());
+  FOR_EACH_SHARED_BYTECODE_STUB(CHECK_SHARED_BYTECODE)
+#undef CHECK_SHARED_BYTECODE
   ASSERT(!Roots::uninitialized_index().IsSmi());
   ASSERT(Roots::uninitialized_index().IsTypedData());
   ASSERT(!Roots::uninitialized_data().IsSmi());
@@ -3796,10 +3753,10 @@ FunctionPtr Class::CreateInvocationDispatcher(
   if (attach_bytecode) {
     switch (kind) {
       case UntaggedFunction::kNoSuchMethodDispatcher:
-        invocation.AttachBytecode(Object::nsm_dispatcher_bytecode());
+        invocation.AttachBytecode(Object::shared_nsm_dispatcher_bytecode());
         break;
       case UntaggedFunction::kInvokeFieldDispatcher:
-        invocation.AttachBytecode(Object::invoke_field_bytecode());
+        invocation.AttachBytecode(Object::shared_invoke_field_bytecode());
         break;
       default:
         UNREACHABLE();
@@ -3874,9 +3831,11 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
     // extractor. So it is performed here to select a variant of the bytecode
     // method extractor.
     if (Closure::HasInstantiatorTypeArgumentsField(closure_function)) {
-      extractor.AttachBytecode(Object::method_extractor_with_ita_bytecode());
+      extractor.AttachBytecode(
+          Object::shared_method_extractor_with_ita_bytecode());
     } else {
-      extractor.AttachBytecode(Object::method_extractor_without_ita_bytecode());
+      extractor.AttachBytecode(
+          Object::shared_method_extractor_without_ita_bytecode());
     }
   }
 #endif  // defined(DART_DYNAMIC_MODULES)
@@ -4149,7 +4108,8 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
       is_declared_in_bytecode() && !thread->isolate_group()->modular_aot_mode();
 #endif
   if (attach_bytecode) {
-    forwarder.AttachBytecode(Object::dynamic_invocation_forwarder_bytecode());
+    forwarder.AttachBytecode(
+        Object::shared_dynamic_invocation_forwarder_bytecode());
   }
 #endif
   if (thread->isolate_group()->modular_aot_mode()) {
@@ -8155,7 +8115,9 @@ void Function::AttachBytecode(const Bytecode& value) const {
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
   ASSERT(!value.IsNull());
   // Finish setting up code before activating it.
-  value.set_function(*this);
+  if (!value.IsSharedBytecodeStub()) {
+    value.set_function(*this);
+  }
   ASSERT(untag()->ic_data_array_or_bytecode() == Object::null());
   untag()->set_ic_data_array_or_bytecode(value.ptr());
 
@@ -10859,13 +10821,13 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   if (attach_bytecode) {
     if (is_static()) {
       closure_function.AttachBytecode(
-          Object::implicit_static_closure_bytecode());
+          Object::shared_implicit_static_closure_bytecode());
     } else if (IsConstructor()) {
       closure_function.AttachBytecode(
-          Object::implicit_constructor_closure_bytecode());
+          Object::shared_implicit_constructor_closure_bytecode());
     } else {
       closure_function.AttachBytecode(
-          Object::implicit_instance_closure_bytecode());
+          Object::shared_implicit_instance_closure_bytecode());
     }
   }
 #endif
@@ -19145,63 +19107,52 @@ const char* Bytecode::ToCString() const {
                                                   QualifiedName());
 }
 
-static const char* BytecodeStubName(const Bytecode& bytecode) {
-  if (bytecode.ptr() == Object::implicit_getter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitGetter";
-  } else if (bytecode.ptr() == Object::implicit_setter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitSetter";
-  } else if (bytecode.ptr() ==
-             Object::implicit_static_getter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitStaticGetter";
-  } else if (bytecode.ptr() ==
-             Object::implicit_shared_static_getter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitSharedStaticGetter";
-  } else if (bytecode.ptr() ==
-             Object::implicit_static_setter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitStaticSetter";
-  } else if (bytecode.ptr() ==
-             Object::implicit_shared_static_setter_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_ImplicitSharedStaticSetter";
-  } else if (bytecode.ptr() ==
-             Object::method_extractor_with_ita_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_MethodExtractorWithITA";
-  } else if (bytecode.ptr() ==
-             Object::method_extractor_without_ita_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_MethodExtractorWithoutITA";
-  } else if (bytecode.ptr() == Object::invoke_closure_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_InvokeClosure";
-  } else if (bytecode.ptr() == Object::invoke_field_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_InvokeField";
+bool Bytecode::IsSharedBytecodeStub() const {
+#define CHECK_SHARED_BYTECODE(Name, _)                                         \
+  if (ptr() == OBJECT_SHARED_BYTECODE_GETTER(Name).ptr()) {                    \
+    return true;                                                               \
   }
+  FOR_EACH_SHARED_BYTECODE_STUB(CHECK_SHARED_BYTECODE)
+#undef CHECK_SHARED_BYTECODE
+  return false;
+}
+
+static const char* BytecodeStubName(const Bytecode& bytecode) {
+#define RETURN_SHARED_BYTECODE_STUB_NAME(Name, Instruction)                    \
+  if (bytecode.ptr() == OBJECT_SHARED_BYTECODE_GETTER(Name).ptr()) {           \
+    return "[Bytecode Stub] " #Instruction;                                    \
+  }
+  FOR_EACH_SHARED_BYTECODE_STUB(RETURN_SHARED_BYTECODE_STUB_NAME)
+#undef RETURN_SHARED_BYTECODE_STUB_NAME
   return "[unknown stub]";
 }
 
 const char* Bytecode::Name() const {
-  Zone* zone = Thread::Current()->zone();
-  const Function& fun = Function::Handle(zone, function());
-  if (fun.IsNull()) {
+  if (IsSharedBytecodeStub()) {
     return BytecodeStubName(*this);
   }
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
   const char* function_name = fun.UserVisibleNameCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
 const char* Bytecode::QualifiedName() const {
-  Zone* zone = Thread::Current()->zone();
-  const Function& fun = Function::Handle(zone, function());
-  if (fun.IsNull()) {
+  if (IsSharedBytecodeStub()) {
     return BytecodeStubName(*this);
   }
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
   const char* function_name = fun.QualifiedScrubbedNameCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
 const char* Bytecode::FullyQualifiedName() const {
-  Zone* zone = Thread::Current()->zone();
-  const Function& fun = Function::Handle(zone, function());
-  if (fun.IsNull()) {
+  if (IsSharedBytecodeStub()) {
     return BytecodeStubName(*this);
   }
+  Zone* zone = Thread::Current()->zone();
+  const Function& fun = Function::Handle(zone, function());
   const char* function_name = fun.ToFullyQualifiedCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
@@ -27015,7 +26966,9 @@ const char* StackTrace::ToCString() const {
         continue;
       }
 
-      const uword pc_offset = stack_trace.PcOffsetAtFrame(i);
+      uword pc_offset = stack_trace.PcOffsetAtFrame(i);
+      const bool is_future_listener =
+          pc_offset == StackTraceUtils::kFutureListenerPcOffset;
 
       // A visible frame ends any gap we might be in.
       in_gap = false;
@@ -27023,14 +26976,24 @@ const char* StackTrace::ToCString() const {
 #if defined(DART_DYNAMIC_MODULES)
       if (code_object.IsBytecode()) {
         const auto& bytecode = Bytecode::Cast(code_object);
-        function = bytecode.function();
+        // Shared bytecode stubs should never show up in stack traces, as
+        // they do not have a unique function to which they are attached.
+        // Usually the bytecode stub is being executed, and so the function
+        // that should be reported in the stack trace is also on the stack.
+        if (!bytecode.IsSharedBytecodeStub()) {
+          function = bytecode.function();
 
-        if (!function.IsNull() &&
-            (FLAG_show_invisible_frames || function.is_visible())) {
-          auto const pos =
-              bytecode.GetTokenIndexOfPC(bytecode.PayloadStart() + pc_offset);
-          PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
-          frame_index++;
+          if (FLAG_show_invisible_frames || function.is_visible()) {
+            auto const pos =
+                bytecode.GetTokenIndexOfPC(bytecode.PayloadStart() + pc_offset);
+            PrintSymbolicStackFrame(zone, &buffer, function, pos, frame_index);
+            frame_index++;
+          }
+        } else {
+          // One case where this is not true is for future listeners, in which
+          // case AsyncAwareStackUnwinder::Unwind substitutes the code or
+          // bytecode of the target function in place of the shared stub.
+          ASSERT(!is_future_listener);
         }
         continue;
       }
@@ -27045,10 +27008,15 @@ const char* StackTrace::ToCString() const {
       } else {
         function = Function::null();
       }
-      const uword pc = code.PayloadStart() + pc_offset;
-
-      const bool is_future_listener =
-          pc_offset == StackTraceUtils::kFutureListenerPcOffset;
+      uword pc = code.PayloadStart() + pc_offset;
+      if (is_future_listener) {
+        // Note that the value of pc does not make sense for closures registered
+        // as future listeners, since the pc_offset is a special marker. Uses of
+        // pc or pc_offset below should special case when is_future_listener is
+        // true, so both are set to invalid values to detect misuses.
+        pc = 0;
+        pc_offset = -code.PayloadStart();
+      }
 
 #if defined(DART_PRECOMPILED_RUNTIME)
       // When printing non-symbolic frames, we normally print call
@@ -27056,11 +27024,9 @@ const char* StackTrace::ToCString() const {
       // get an address within the preceding instruction.
       //
       // The one exception is a normal closure registered as a listener on a
-      // future. In this case, the returned pc_offset will be pointing to the
-      // entry pooint of the function, which will be invoked when the future
-      // completes. To make things more uniform stack unwinding code offets
-      // pc_offset by 1 for such cases.
-      const uword call_addr = pc - 1;
+      // future. In this case, the entry point of the closure is used as the
+      // call address.
+      const uword call_addr = is_future_listener ? code.EntryPoint() : pc - 1;
 
       if (T->isolate_group()->dwarf_stack_traces()) {
         if (have_footnote_callback) {

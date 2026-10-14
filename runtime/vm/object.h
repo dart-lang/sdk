@@ -552,21 +552,21 @@ class KNOWN_VTABLE_DISCRIMINATOR Object {
   V(ExceptionHandlers, empty_async_exception_handlers)                         \
   V(Array, synthetic_getter_parameter_types)                                   \
   V(Array, synthetic_getter_parameter_names)                                   \
-  V(Bytecode, implicit_getter_bytecode)                                        \
-  V(Bytecode, implicit_setter_bytecode)                                        \
-  V(Bytecode, implicit_static_getter_bytecode)                                 \
-  V(Bytecode, implicit_shared_static_getter_bytecode)                          \
-  V(Bytecode, implicit_static_setter_bytecode)                                 \
-  V(Bytecode, implicit_shared_static_setter_bytecode)                          \
-  V(Bytecode, method_extractor_with_ita_bytecode)                              \
-  V(Bytecode, method_extractor_without_ita_bytecode)                           \
-  V(Bytecode, invoke_closure_bytecode)                                         \
-  V(Bytecode, invoke_field_bytecode)                                           \
-  V(Bytecode, nsm_dispatcher_bytecode)                                         \
-  V(Bytecode, dynamic_invocation_forwarder_bytecode)                           \
-  V(Bytecode, implicit_static_closure_bytecode)                                \
-  V(Bytecode, implicit_instance_closure_bytecode)                              \
-  V(Bytecode, implicit_constructor_closure_bytecode)                           \
+  V(Bytecode, shared_implicit_getter_bytecode)                                 \
+  V(Bytecode, shared_implicit_setter_bytecode)                                 \
+  V(Bytecode, shared_implicit_static_getter_bytecode)                          \
+  V(Bytecode, shared_implicit_shared_static_getter_bytecode)                   \
+  V(Bytecode, shared_implicit_static_setter_bytecode)                          \
+  V(Bytecode, shared_implicit_shared_static_setter_bytecode)                   \
+  V(Bytecode, shared_method_extractor_with_ita_bytecode)                       \
+  V(Bytecode, shared_method_extractor_without_ita_bytecode)                    \
+  V(Bytecode, shared_invoke_closure_bytecode)                                  \
+  V(Bytecode, shared_invoke_field_bytecode)                                    \
+  V(Bytecode, shared_nsm_dispatcher_bytecode)                                  \
+  V(Bytecode, shared_dynamic_invocation_forwarder_bytecode)                    \
+  V(Bytecode, shared_implicit_static_closure_bytecode)                         \
+  V(Bytecode, shared_implicit_instance_closure_bytecode)                       \
+  V(Bytecode, shared_implicit_constructor_closure_bytecode)                    \
   V(Sentinel, sentinel)                                                        \
   V(Sentinel, unknown_constant)                                                \
   V(Sentinel, non_constant)                                                    \
@@ -7661,10 +7661,25 @@ class Bytecode : public Object {
     untag()->set_exception_handlers(handlers.ptr());
   }
 
-  FunctionPtr function() const { return untag()->function(); }
+  // Whether or not this bytecode is a stub that does not have a unique
+  // owning function, generally because it is a wrapper returning the
+  // result of one of the VMInternal_* instructions.
+  bool IsSharedBytecodeStub() const;
 
+  // The function to which this bytecode is attached, or null if this
+  // is a shared bytecode stub.
+  FunctionPtr function() const {
+    ASSERT_EQUAL(untag()->function() == Function::null(),
+                 IsSharedBytecodeStub());
+    return untag()->function();
+  }
+
+  // Sets the function to which this bytecode is attached.
+  // Assumes that this is not a shared bytecode stub.
   void set_function(const Function& function) const {
+    ASSERT(!IsSharedBytecodeStub());
     ASSERT(function.IsOld());
+    ASSERT(untag()->function() == Function::null());
     untag()->set_function(function.ptr());
   }
 

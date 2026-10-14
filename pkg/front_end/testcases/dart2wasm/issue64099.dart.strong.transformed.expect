@@ -6,9 +6,9 @@ import "dart:async" as asy;
 static method f(final core::int i) → asy::Future<core::bool> async /* emittedValueType= core::bool */ 
   return i.{core::int::isEven}{core::bool};
 static method getInt() → asy::Future<core::int> /* emittedValueType= core::int */ /* originally async */ 
-  return asy::Future::value<core::int>(42);
+  return asy::Future::syncValue<core::int>(42);
 static method getString() → asy::Future<core::String> /* emittedValueType= core::String */ /* originally async */ 
-  return asy::Future::value<core::String>("hello");
+  return asy::Future::syncValue<core::String>("hello");
 static method testOr(final core::int n) → asy::Future<core::bool> async /* emittedValueType= core::bool */ {
   core::bool :async_temporary_0;
   core::bool :async_temporary_1;

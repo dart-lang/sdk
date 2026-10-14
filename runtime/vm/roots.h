@@ -47,21 +47,21 @@ namespace dart {
   V(ExceptionHandlers, empty_async_exception_handlers)                         \
   V(Array, synthetic_getter_parameter_types)                                   \
   V(Array, synthetic_getter_parameter_names)                                   \
-  V(Bytecode, implicit_getter_bytecode)                                        \
-  V(Bytecode, implicit_setter_bytecode)                                        \
-  V(Bytecode, implicit_static_getter_bytecode)                                 \
-  V(Bytecode, implicit_shared_static_getter_bytecode)                          \
-  V(Bytecode, implicit_static_setter_bytecode)                                 \
-  V(Bytecode, implicit_shared_static_setter_bytecode)                          \
-  V(Bytecode, method_extractor_with_ita_bytecode)                              \
-  V(Bytecode, method_extractor_without_ita_bytecode)                           \
-  V(Bytecode, invoke_closure_bytecode)                                         \
-  V(Bytecode, invoke_field_bytecode)                                           \
-  V(Bytecode, nsm_dispatcher_bytecode)                                         \
-  V(Bytecode, dynamic_invocation_forwarder_bytecode)                           \
-  V(Bytecode, implicit_static_closure_bytecode)                                \
-  V(Bytecode, implicit_instance_closure_bytecode)                              \
-  V(Bytecode, implicit_constructor_closure_bytecode)                           \
+  V(Bytecode, shared_implicit_getter_bytecode)                                 \
+  V(Bytecode, shared_implicit_setter_bytecode)                                 \
+  V(Bytecode, shared_implicit_static_getter_bytecode)                          \
+  V(Bytecode, shared_implicit_shared_static_getter_bytecode)                   \
+  V(Bytecode, shared_implicit_static_setter_bytecode)                          \
+  V(Bytecode, shared_implicit_shared_static_setter_bytecode)                   \
+  V(Bytecode, shared_method_extractor_with_ita_bytecode)                       \
+  V(Bytecode, shared_method_extractor_without_ita_bytecode)                    \
+  V(Bytecode, shared_invoke_closure_bytecode)                                  \
+  V(Bytecode, shared_invoke_field_bytecode)                                    \
+  V(Bytecode, shared_nsm_dispatcher_bytecode)                                  \
+  V(Bytecode, shared_dynamic_invocation_forwarder_bytecode)                    \
+  V(Bytecode, shared_implicit_static_closure_bytecode)                         \
+  V(Bytecode, shared_implicit_instance_closure_bytecode)                       \
+  V(Bytecode, shared_implicit_constructor_closure_bytecode)                    \
   V(Sentinel, sentinel)                                                        \
   V(Sentinel, unknown_constant)                                                \
   V(Sentinel, non_constant)                                                    \

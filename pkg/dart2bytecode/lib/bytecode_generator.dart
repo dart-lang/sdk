@@ -41,7 +41,7 @@ import 'generics.dart'
         isInstantiatedInterfaceCall,
         isUncheckedCall;
 import 'local_variable_table.dart' show LocalVariableTable;
-import 'local_vars.dart' show LocalVariables;
+import 'local_vars.dart' show AwaiterLink, LocalVariables;
 import 'object_table.dart'
     show
         ObjectHandle,
@@ -1895,7 +1895,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     currentLoopDepth = 0;
     savedMaxSourcePositions = <int>[];
 
-    locals = new LocalVariables(node, options, staticTypeContext);
+    locals = new LocalVariables(node, options, staticTypeContext, coreTypes);
     locals.enterScope(node);
 
     final int startPosition;
@@ -2664,6 +2664,8 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     bool capturesOnlyFinalNotLateVars = locals.capturesOnlyFinalNotLateVars;
 
+    final AwaiterLink? awaiterLink = locals.awaiterLink;
+
     locals.leaveScope();
 
     assert(node.id != LocalFunctionId.invalid);
@@ -2673,6 +2675,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       finalizeSourcePositions(),
       finalizeLocalVariables(),
       finalizeRecordedCoverage(),
+      awaiterLink,
       capturesOnlyFinalNotLateVars,
       node.id.toInt(),
     );
