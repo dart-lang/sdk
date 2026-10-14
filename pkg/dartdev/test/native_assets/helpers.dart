@@ -259,6 +259,70 @@ Future<void> copyTestData(Uri sourceUri, Uri targetUri) async {
   }
 }
 
+const _nativePackagesForPathRewrite = [
+  'code_assets',
+  'data_assets',
+  'hooks',
+  'native_toolchain_c',
+  'record_use',
+];
+
+/// Copies the hook-related packages from `third_party/pkg/native/pkgs/` into
+/// [copyTargetUri] and rewrites their inter-package dependencies to local path
+/// dependencies.
+///
+/// Commands like `dart install` resolve dependencies from a temporary helper
+/// package, which causes `pub` to ignore `dependency_overrides` in non-root
+/// packages. Rewriting `dependencies` in both the test projects and these
+/// copied packages ensures `pub` resolves all of them from the local SDK
+/// checkout rather than querying pub.dev.
+Future<Map<String, Map<String, String>>> copyNativePackages(
+  Uri copyTargetUri,
+  Uri sdkRoot,
+) async {
+  final nativePackagePaths = {
+    for (final package in _nativePackagesForPathRewrite)
+      package: {
+        'path': copyTargetUri.resolve('native_pkgs/$package/').toFilePath(),
+      },
+  };
+  for (final package in _nativePackagesForPathRewrite) {
+    final sourceDirUri = sdkRoot.resolve(
+      'third_party/pkg/native/pkgs/$package/',
+    );
+    final targetDirUri = copyTargetUri.resolve('native_pkgs/$package/');
+    await copyDirectory(
+      Directory.fromUri(sourceDirUri.resolve('lib/')),
+      Directory.fromUri(targetDirUri.resolve('lib/')),
+    );
+    final pubspecSourceFile = File.fromUri(
+      sourceDirUri.resolve('pubspec.yaml'),
+    );
+    final sourceString = await pubspecSourceFile.readAsString();
+    final pubspec = YamlEditor(sourceString);
+    final pubspecRead = loadYamlNode(sourceString) as Map;
+    if (pubspecRead['resolution'] != null) {
+      pubspec.remove(['resolution']);
+    }
+    if (pubspecRead['dependencies']
+        case final Map<Object?, Object?> dependencies) {
+      for (final depName in dependencies.keys.cast<String>()) {
+        if (nativePackagePaths.containsKey(depName)) {
+          pubspec.update(
+            ['dependencies', depName],
+            nativePackagePaths[depName],
+          );
+        }
+      }
+    }
+    final targetPubspecFile = File.fromUri(
+      targetDirUri.resolve('pubspec.yaml'),
+    );
+    await targetPubspecFile.writeAsString(pubspec.toString());
+  }
+  return nativePackagePaths;
+}
+
 Future<void> copyTestProjects(
   Uri copyTargetUri,
   Logger logger,
@@ -300,20 +364,14 @@ Future<void> copyTestProjects(
     }
     await sourceFile.copy(targetUri.toFilePath());
   }
+  final nativePackagePaths = await copyNativePackages(copyTargetUri, sdkRoot);
   final dependencyOverrides = {
-    for (final package in [
-      'code_assets',
-      'data_assets',
-      'ffigen',
-      'hooks',
-      'native_toolchain_c',
-      'record_use',
-    ])
-      package: {
-        'path': sdkRoot
-            .resolve('third_party/pkg/native/pkgs/$package/')
-            .toFilePath(),
-      },
+    ...nativePackagePaths,
+    'ffigen': {
+      'path': sdkRoot
+          .resolve('third_party/pkg/native/pkgs/ffigen/')
+          .toFilePath(),
+    },
     for (final package in [
       '_fe_analyzer_shared',
       'analyzer', // package:analyzer depends on package:meta.
@@ -339,6 +397,19 @@ Future<void> copyTestProjects(
         pubspec.remove(['resolution']);
       }
       pubspec.update(['dependency_overrides'], dependencyOverrides);
+      if (!pubspecPath.toFilePath().contains('version_skew')) {
+        if (pubspecRead['dependencies']
+            case final Map<Object?, Object?> dependencies) {
+          for (final depName in dependencies.keys.cast<String>()) {
+            if (nativePackagePaths.containsKey(depName)) {
+              pubspec.update(
+                ['dependencies', depName],
+                nativePackagePaths[depName],
+              );
+            }
+          }
+        }
+      }
     } else {
       final userDefines = pubspecRead['hooks']?['user_defines'];
       if (userDefines is Map) {
