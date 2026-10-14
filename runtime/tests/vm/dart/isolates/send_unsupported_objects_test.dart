@@ -64,6 +64,8 @@ bool checkForRetainingPath(Object? e, List<String> list) {
   return list.every((s) => msg.contains(s));
 }
 
+spawnBody(_) => {};
+
 main() async {
   asyncStart();
 
@@ -102,10 +104,13 @@ main() async {
   }
 
   try {
-    await Isolate.spawn((_) {}, Locked());
+    await Isolate.spawn(spawnBody, Locked());
     Expect.fail('spawn should have failed');
   } catch (e) {
-    Expect.isTrue(e is ArgumentError && e.toString().contains("Locked"));
+    Expect.isTrue(
+      e is ArgumentError && e.toString().contains("Locked"),
+      "Got unexpected exception: $e",
+    );
   }
 
   runZoned(() {

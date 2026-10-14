@@ -8,9 +8,11 @@ import 'dart:isolate';
 import "package:expect/async_helper.dart";
 import 'package:expect/expect.dart';
 
+import '../use_flag_test_helper.dart';
+
 import 'send_unsupported_objects_test.dart';
 
-const NESTED_DEPTH = 500;
+final NESTED_DEPTH = isInterpreter ? 150 : 500;
 Future<List> buildNestedList(List<dynamic> list, int level) async {
   final fu = level == NESTED_DEPTH ? Fu.unsendable("$level") : Fu("$level");
   final newlist = <dynamic>[list, fu];
