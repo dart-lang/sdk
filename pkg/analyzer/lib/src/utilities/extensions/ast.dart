@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
@@ -258,6 +259,30 @@ extension ExtensionElementExtension on ExtensionElement {
 extension FieldDeclarationExtension on FieldDeclaration {
   Element get firstVariableElement =>
       fields.variables.first.declaredFragment!.element;
+}
+
+extension InterpolationExpressionExtension on InterpolationExpression {
+  static final _identifierPart = RegExp('[a-zA-Z0-9_]');
+
+  /// Whether the braces of this interpolation (`${...}`) could be removed if
+  /// its expression were written as [name], an identifier.
+  ///
+  /// Not if there are no braces to remove, if [name] contains a `$` (which
+  /// can't be interpolated without braces), or if the string continues with a
+  /// character that would then be taken as part of the identifier, as in
+  /// `'${x}y'`.
+  ///
+  /// [name] is passed in, rather than read from [expression], so that this
+  /// also works for a quick fix that is changing the expression at the same
+  /// time: what matters is the name the expression will have once the fix
+  /// has been applied, not the one it has now. (For example, removing
+  /// `self.` from `${self.x}` leaves `${x}`.)
+  bool canRemoveBracesAround(String name) {
+    var rightBracket = this.rightBracket;
+    if (rightBracket == null || name.contains(r'$')) return false;
+    var next = rightBracket.next;
+    return !(next is StringToken && next.lexeme.startsWith(_identifierPart));
+  }
 }
 
 extension TokenExtension on Token {
