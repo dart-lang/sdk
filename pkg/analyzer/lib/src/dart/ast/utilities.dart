@@ -314,6 +314,18 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
       _foundNode = node;
     }
   }
+
+  @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the declaration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitTopLevelSetterDeclaration(node);
+  }
 }
 
 /// Traverse the AST from initial child node to successive parents, building a
@@ -362,6 +374,14 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
     }
     immediateChild = node;
     parentOf(node)?.accept2(this);
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    var parameters = node.formalParameters;
+    if (!identical(immediateChild, parameters)) {
+      _addParameters(parameters.allFormalParameters);
+    }
   }
 }
 

@@ -122,4 +122,13 @@ void f(covariant int x) {}
 // [diag.extraneousModifier] Can't have modifier 'covariant' here.
 ''');
   }
+
+  test_topLevelSetter() async {
+    // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
+    await resolveTestCodeWithDiagnostics('''
+set foo(covariant int x) {}
+//      ^^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'covariant' here.
+''');
+  }
 }

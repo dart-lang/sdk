@@ -865,7 +865,7 @@ class C {
     var result = await resolveTestCodeWithDiagnostics(r'''
 set foo(int value) {}
 ''');
-    var setterDeclaration = result.findNode.functionDeclaration('foo');
+    var setterDeclaration = result.findNode.topLevelSetterDeclaration('foo');
     checkOffset<SetterFragment>(
       setterDeclaration,
       setterDeclaration.declaredFragment!,

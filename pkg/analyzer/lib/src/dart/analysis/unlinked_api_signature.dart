@@ -65,6 +65,13 @@ class _UnitApiSignatureComputer {
           );
           signature.addBool(declaration.isComplete);
           _addFunctionBodyModifiers(declaration.body);
+        case TopLevelSetterDeclarationImpl():
+          _addTokens(
+            declaration.beginToken,
+            declaration.formalParameters.endToken,
+          );
+          signature.addBool(declaration.isComplete);
+          _addFunctionBodyModifiers(declaration.body);
         case TopLevelVariableDeclarationImpl():
           _topLevelVariableDeclaration(declaration);
         case TypeAliasImpl():

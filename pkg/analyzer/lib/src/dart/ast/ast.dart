@@ -23394,7 +23394,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
 
   ExecutableFragmentImpl? _declaredFragment;
 
-  TopLevelGetterDeclarationImpl? _v1ProjectionOrigin;
+  FunctionDeclarationV1OriginImpl? _v1ProjectionOrigin;
 
   @generated
   FunctionDeclarationImpl({
@@ -23413,14 +23413,13 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   }
 
   @V1Ast()
-  FunctionDeclarationImpl.v1ProjectionFromGetter(
-    TopLevelGetterDeclarationImpl origin,
-  ) : augmentKeyword = origin.augmentKeyword,
+  FunctionDeclarationImpl.v1Projection(FunctionDeclarationV1OriginImpl origin)
+    : augmentKeyword = origin.augmentKeyword,
       externalKeyword = origin.externalKeyword,
       _returnType = origin.returnType,
-      propertyKeyword = origin.getKeyword,
+      propertyKeyword = origin._v1PropertyKeyword,
       name = origin.name,
-      _functionExpression = FunctionExpressionImpl.v1ProjectionFromGetter(
+      _functionExpression = FunctionExpressionImpl.v1ProjectionFromDeclaration(
         origin,
       ),
       _v1ProjectionOrigin = origin,
@@ -23433,8 +23432,8 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   ExecutableFragmentImpl? get declaredFragment => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.declaredFragment,
-    _ => _declaredFragment,
+    var origin? => origin.declaredFragment,
+    null => _declaredFragment,
   };
 
   set declaredFragment(ExecutableFragmentImpl? declaredFragment) {
@@ -23495,8 +23494,8 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   TypeAnnotationImpl? get returnType => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.returnType,
-    _ => _returnType,
+    var origin? => origin.returnType,
+    null => _returnType,
   };
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -23826,6 +23825,46 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
   }
 }
 
+/// A V2 declaration whose V1 projection is a [FunctionDeclarationImpl] with a
+/// synthetic [FunctionExpressionImpl].
+///
+/// The V1 [FunctionDeclaration] is a tagged union of top-level functions,
+/// getters, and setters, so this interface exposes the state that the V1
+/// projection nodes read from their V2 origin.
+sealed class FunctionDeclarationV1OriginImpl
+    implements TopLevelDeclarationImpl {
+  Token? get augmentKeyword;
+
+  FunctionBodyImpl get body;
+
+  ExecutableFragmentImpl? get declaredFragment;
+
+  Token? get externalKeyword;
+
+  Token get name;
+
+  TypeAnnotationImpl? get returnType;
+
+  @V1Ast()
+  FunctionDeclarationImpl get v1Projection;
+
+  /// The formal parameter list of the V1 [FunctionExpression].
+  @V1Ast()
+  FormalParameterListImpl? get _v1Parameters;
+
+  /// The cached V1 projection, or `null` if it hasn't been created yet.
+  @V1Ast()
+  FunctionDeclarationImpl? get _v1Projection;
+
+  /// The `get` or `set` keyword of the V1 [FunctionDeclaration].
+  @V1Ast()
+  Token? get _v1PropertyKeyword;
+
+  /// The type parameter list of the V1 [FunctionExpression].
+  @V1Ast()
+  TypeParameterListImpl? get _v1TypeParameters;
+}
+
 /// A function expression.
 ///
 ///     functionExpression ::=
@@ -23880,7 +23919,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   ExecutableFragmentImpl? _declaredFragment;
 
-  TopLevelGetterDeclarationImpl? _v1ProjectionOrigin;
+  FunctionDeclarationV1OriginImpl? _v1ProjectionOrigin;
 
   @generated
   FunctionExpressionImpl({
@@ -23896,10 +23935,10 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @V1Ast()
-  FunctionExpressionImpl.v1ProjectionFromGetter(
-    TopLevelGetterDeclarationImpl origin,
-  ) : _typeParameters = origin.recoveryTypeParameters,
-      _parameters = origin.recoveryFormalParameters,
+  FunctionExpressionImpl.v1ProjectionFromDeclaration(
+    FunctionDeclarationV1OriginImpl origin,
+  ) : _typeParameters = origin._v1TypeParameters,
+      _parameters = origin._v1Parameters,
       _body = origin.body,
       _v1ProjectionOrigin = origin {
     _attachV1Children();
@@ -23920,8 +23959,8 @@ final class FunctionExpressionImpl extends ExpressionImpl
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   FunctionBodyImpl get body => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.body,
-    _ => _body,
+    var origin? => origin.body,
+    null => _body,
   };
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -23934,8 +23973,8 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   ExecutableFragmentImpl? get declaredFragment => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.declaredFragment,
-    _ => _declaredFragment,
+    var origin? => origin.declaredFragment,
+    null => _declaredFragment,
   };
 
   set declaredFragment(ExecutableFragmentImpl? declaredFragment) {
@@ -23951,19 +23990,20 @@ final class FunctionExpressionImpl extends ExpressionImpl
     return body.endToken;
   }
 
-  /// A projection has no V2 parent to walk, and the body of a top-level
-  /// getter is never in a constant context.
+  /// A projection has no V2 parent to walk, and the body of a declaration is
+  /// never in a constant context.
   @override
   bool get inConstantContext => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl() => false,
-    _ => super.inConstantContext,
+    _? => false,
+    null => super.inConstantContext,
   };
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   FormalParameterListImpl? get parameters => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.recoveryFormalParameters,
-    _ => _parameters,
+    // ignore: analyzer_v1_ast_use
+    var origin? => origin._v1Parameters,
+    null => _parameters,
   };
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -23979,16 +24019,16 @@ final class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   TypeImpl? get staticType => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin =>
-      origin.declaredFragment?.element.type,
-    _ => super.staticType,
+    var origin? => origin.declaredFragment?.element.type,
+    null => super.staticType,
   };
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
   TypeParameterListImpl? get typeParameters => switch (_v1ProjectionOrigin) {
-    TopLevelGetterDeclarationImpl origin => origin.recoveryTypeParameters,
-    _ => _typeParameters,
+    // ignore: analyzer_v1_ast_use
+    var origin? => origin._v1TypeParameters,
+    null => _typeParameters,
   };
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -24044,8 +24084,8 @@ final class FunctionExpressionImpl extends ExpressionImpl
   @override
   AttemptedConstantEvaluationResult? computeConstantValue() =>
       switch (_v1ProjectionOrigin) {
-        TopLevelGetterDeclarationImpl() => null,
-        _ => super.computeConstantValue(),
+        _? => null,
+        null => super.computeConstantValue(),
       };
 
   @DoNotGenerate(reason: 'V1 projection objects are read-only')
@@ -53717,7 +53757,7 @@ abstract final class TopLevelGetterDeclaration
 )
 final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
-    implements TopLevelGetterDeclaration {
+    implements FunctionDeclarationV1OriginImpl, TopLevelGetterDeclaration {
   @generated
   @override
   final Token? augmentKeyword;
@@ -53749,6 +53789,8 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   @override
   GetterFragmentImpl? declaredFragment;
 
+  @V1Ast()
+  @override
   FunctionDeclarationImpl? _v1Projection;
 
   @generated
@@ -53835,8 +53877,9 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   }
 
   @V1Ast()
+  @override
   FunctionDeclarationImpl get v1Projection =>
-      _v1Projection ??= FunctionDeclarationImpl.v1ProjectionFromGetter(this);
+      _v1Projection ??= FunctionDeclarationImpl.v1Projection(this);
 
   @generated
   @override
@@ -53858,6 +53901,18 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     ..addNode('recoveryTypeParameters', recoveryTypeParameters)
     ..addNode('recoveryFormalParameters', recoveryFormalParameters)
     ..addNode('body', body);
+
+  @V1Ast()
+  @override
+  FormalParameterListImpl? get _v1Parameters => recoveryFormalParameters;
+
+  @V1Ast()
+  @override
+  Token get _v1PropertyKeyword => getKeyword;
+
+  @V1Ast()
+  @override
+  TypeParameterListImpl? get _v1TypeParameters => recoveryTypeParameters;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -54003,6 +54058,327 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
       if (recoveryFormalParameters._containsOffset(rangeOffset, rangeEnd)) {
         return recoveryFormalParameters;
       }
+    }
+    if (body._containsOffset(rangeOffset, rangeEnd)) {
+      return body;
+    }
+    return null;
+  }
+}
+
+/// A top-level setter declaration.
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class TopLevelSetterDeclaration
+    implements TopLevelDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if there is no `augment` keyword.
+  Token? get augmentKeyword;
+
+  /// The body of the setter.
+  FunctionBody get body;
+
+  @override
+  SetterFragment? get declaredFragment;
+
+  /// The `external` keyword, or `null` if this isn't an external setter.
+  Token? get externalKeyword;
+
+  /// The formal parameters of the setter.
+  ///
+  /// A valid setter declares exactly one required positional parameter. When
+  /// the written list doesn't, parser recovery keeps only the first written
+  /// parameter, or synthesizes one if none is written.
+  FormalParameterList get formalParameters;
+
+  /// Whether this declaration is complete for augmentation purposes.
+  ///
+  /// A setter declaration is complete if it is external or has a body.
+  bool get isComplete;
+
+  /// The name of the setter.
+  Token get name;
+
+  /// The return type of the setter, or `null` if no return type was declared.
+  TypeAnnotation? get returnType;
+
+  /// The `set` keyword.
+  Token get setKeyword;
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v2,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('externalKeyword'),
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('setKeyword'),
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('formalParameters'),
+    GenerateNodeProperty('body'),
+  ],
+)
+final class TopLevelSetterDeclarationImpl extends TopLevelDeclarationImpl
+    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
+    implements FunctionDeclarationV1OriginImpl, TopLevelSetterDeclaration {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? externalKeyword;
+
+  @generated
+  TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token setKeyword;
+
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  FormalParameterListImpl _formalParameters;
+
+  @generated
+  FunctionBodyImpl _body;
+
+  @override
+  SetterFragmentImpl? declaredFragment;
+
+  @V1Ast()
+  @override
+  FunctionDeclarationImpl? _v1Projection;
+
+  @generated
+  TopLevelSetterDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required this.externalKeyword,
+    required TypeAnnotationImpl? returnType,
+    required this.setKeyword,
+    required this.name,
+    required FormalParameterListImpl formalParameters,
+    required FunctionBodyImpl body,
+  }) : _returnType = returnType,
+       _formalParameters = formalParameters,
+       _body = body {
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(formalParameters);
+    _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  FunctionBodyImpl get body => _body;
+
+  @generated
+  set body(FunctionBodyImpl body) {
+    _body = _becomeParentOf2(body);
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return body.endToken;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    if (externalKeyword case var externalKeyword?) {
+      return externalKeyword;
+    }
+    if (returnType case var returnType?) {
+      return returnType.beginToken;
+    }
+    return setKeyword;
+  }
+
+  @generated
+  @override
+  FormalParameterListImpl get formalParameters => _formalParameters;
+
+  @generated
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf2(formalParameters);
+  }
+
+  @override
+  bool get isComplete => externalKeyword != null || body is! EmptyFunctionBody;
+
+  @generated
+  @override
+  TypeAnnotationImpl? get returnType => _returnType;
+
+  @generated
+  set returnType(TypeAnnotationImpl? returnType) {
+    _returnType = _becomeParentOf2(returnType);
+  }
+
+  @V1Ast()
+  @override
+  FunctionDeclarationImpl get v1Projection =>
+      _v1Projection ??= FunctionDeclarationImpl.v1Projection(this);
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities;
+
+  @generated
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('externalKeyword', externalKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('setKeyword', setKeyword)
+    ..addToken('name', name)
+    ..addNode('formalParameters', formalParameters)
+    ..addNode('body', body);
+
+  @V1Ast()
+  @override
+  FormalParameterListImpl get _v1Parameters => formalParameters;
+
+  @V1Ast()
+  @override
+  Token get _v1PropertyKeyword => setKeyword;
+
+  /// The parser doesn't build type parameters for top-level setters.
+  @V1Ast()
+  @override
+  TypeParameterListImpl? get _v1TypeParameters => null;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('TopLevelSetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitTopLevelSetterDeclaration(this);
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = null;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      throw UnsupportedError(
+        "Cannot remove required child 'formalParameters'.",
+      );
+    }
+    if (identical(body, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body'.");
+    }
+    super.removeChild(oldNode);
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    if (identical(returnType, oldNode)) {
+      returnType = newNode as TypeAnnotationImpl?;
+      return;
+    }
+    if (identical(formalParameters, oldNode)) {
+      formalParameters = newNode as FormalParameterListImpl;
+      return;
+    }
+    if (identical(body, oldNode)) {
+      body = newNode as FunctionBodyImpl;
+      return;
+    }
+    super.replaceChild(oldNode, newNode);
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    throw StateError('TopLevelSetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    _visitCommentAndAnnotations2(visitor);
+    returnType?.accept2(visitor);
+    formalParameters.accept2(visitor);
+    body.accept2(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  @experimental
+  void visitChildrenWithHooks(
+    AstVisitor2 visitor, {
+    void Function(TypeAnnotationImpl)? visitReturnType,
+    void Function(FormalParameterListImpl)? visitFormalParameters,
+    void Function(FunctionBodyImpl)? visitBody,
+  }) {
+    _visitCommentAndAnnotations2(visitor);
+    if (returnType case var returnType?) {
+      if (visitReturnType != null) {
+        visitReturnType(returnType);
+      } else {
+        returnType.accept2(visitor);
+      }
+    }
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
+    } else {
+      formalParameters.accept2(visitor);
+    }
+    if (visitBody != null) {
+      visitBody(body);
+    } else {
+      body.accept2(visitor);
+    }
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    throw StateError('TopLevelSetterDeclaration is not in the V1 AST view.');
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
     }
     if (body._containsOffset(rangeOffset, rangeEnd)) {
       return body;
@@ -56144,7 +56520,7 @@ enum V1Projection {
 
   @V1Ast()
   static CompilationUnitMemberImpl toV1CompilationUnitMember(AstNodeImpl node) {
-    if (node is TopLevelGetterDeclarationImpl) {
+    if (node is FunctionDeclarationV1OriginImpl) {
       return node.v1Projection;
     }
     return node as CompilationUnitMemberImpl;
@@ -56182,7 +56558,7 @@ enum V1Projection {
     ExtensionOverride2Impl() => node._v1Projection,
     CascadeSectionImpl() => _existingNode(node.body),
     CombinatorNameImpl() => node._v1Projection,
-    TopLevelGetterDeclarationImpl() => node._v1Projection,
+    FunctionDeclarationV1OriginImpl() => node._v1Projection,
     _ => node._astNodeApi == AstNodeApi.shared ? node : null,
   };
 
@@ -56223,7 +56599,7 @@ enum V1Projection {
       CascadeSectionImpl() => toV1Expression(root.body),
       ConstructorReference2Impl() => root.constructorName,
       ConstructorTypeReferenceImpl() => root.namedType,
-      TopLevelGetterDeclarationImpl() => root.v1Projection,
+      FunctionDeclarationV1OriginImpl() => root.v1Projection,
       AssignmentTargetImpl() => AssignmentExpressionImpl._v1LeftHandSide(root),
       StaticQualifierImpl() => root.v1Projection,
       SuperReferenceImpl() => root.v1Projection,

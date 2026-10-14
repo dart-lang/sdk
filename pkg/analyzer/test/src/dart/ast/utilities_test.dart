@@ -121,7 +121,7 @@ set s(int i) {}
 ''';
     var unit = parseTestCodeWithDiagnostics(source).unit;
     var node = _assertLocate(unit, source.indexOf('(int i)'));
-    expect(node, isFunctionDeclaration);
+    expect(node, isA<TopLevelSetterDeclaration>());
   }
 
   void test_startEndOffset() {
@@ -179,5 +179,28 @@ void f(int parameter) {
     expect(finder.locals, {'parameter', 'local'});
     expect(finder2.locals, finder.locals);
     expect(finder2.declaration, same(finder.declaration));
+  }
+
+  @V1Ast('Tests the V1 projection.')
+  void test_topLevelSetter_views() {
+    var code = '''
+set foo(int parameter) {
+  var local = 0;
+  new C();
+  var after = 1;
+}
+''';
+    var unit = parseTestCodeWithDiagnostics(code).unit;
+    var offset = code.indexOf('new C();');
+    var node = unit.nodeCovering(offset: offset, length: 7)!;
+    var node2 = unit.nodeCovering2(offset: offset, length: 7)!;
+
+    var finder = ScopedNameFinder(offset);
+    node.accept(finder);
+    var finder2 = ScopedNameFinder2(offset);
+    node2.accept2(finder2);
+
+    expect(finder.locals, {'parameter', 'local'});
+    expect(finder2.locals, finder.locals);
   }
 }

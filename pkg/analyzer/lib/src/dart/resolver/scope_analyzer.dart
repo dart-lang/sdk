@@ -878,6 +878,13 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    _scopeContext.visitTopLevelSetterDeclaration(node, visitor: this);
+  }
+
+  @override
   void visitTypeParameter(covariant TypeParameterImpl node) {
     var fragment = node.declaredFragment!;
 

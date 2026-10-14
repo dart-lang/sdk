@@ -47,24 +47,6 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    var element = node.declaredFragment!.element;
-    if (element.metadata.hasOverride) {
-      switch (element) {
-        case GetterElement():
-          _errorReporter.report(
-            diag.overrideOnNonOverridingGetter.at(node.name),
-          );
-        case SetterElement():
-          _errorReporter.report(
-            diag.overrideOnNonOverridingSetter.at(node.name),
-          );
-      }
-    }
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     var element = node.declaredFragment!.element;
     if (element.metadata.hasOverride && !_isOverride(element)) {
@@ -114,6 +96,15 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
       _errorReporter.report(diag.overrideOnNonOverridingGetter.at(node.name));
     }
     super.visitTopLevelGetterDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    var element = node.declaredFragment!.element;
+    if (element.metadata.hasOverride) {
+      _errorReporter.report(diag.overrideOnNonOverridingSetter.at(node.name));
+    }
+    super.visitTopLevelSetterDeclaration(node);
   }
 
   void _checkField(FieldElement fieldElement, Token errorNode) {

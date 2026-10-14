@@ -2555,6 +2555,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
+  @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    _runSubscriptions(node, _registry._forTopLevelSetterDeclaration);
+    node.visitChildren2(this);
+  }
+
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _runSubscriptions(node, _registry._forTopLevelVariableDeclaration);
@@ -4970,6 +4977,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<TopLevelGetterDeclaration>>
   _forTopLevelGetterDeclaration = [];
 
+  final List<_Subscription2<TopLevelSetterDeclaration>>
+  _forTopLevelSetterDeclaration = [];
+
   final List<_Subscription2<TopLevelVariableDeclaration>>
   _forTopLevelVariableDeclaration = [];
 
@@ -6633,6 +6643,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forTopLevelGetterDeclaration.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
+  void addTopLevelSetterDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forTopLevelSetterDeclaration.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

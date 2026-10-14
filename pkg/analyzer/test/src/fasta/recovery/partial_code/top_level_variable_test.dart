@@ -267,17 +267,25 @@ const set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -655,6 +663,22 @@ const a set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      returnType: NamedType
+        name: a
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: a
@@ -662,12 +686,6 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1079,17 +1097,34 @@ CompilationUnit
           VariableDeclaration
             name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: const
+        variables
+          VariableDeclaration
+            name: a
+          VariableDeclaration
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1499,17 +1534,34 @@ CompilationUnit
           VariableDeclaration
             name: b
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: const
+        variables
+          VariableDeclaration
+            name: a
+          VariableDeclaration
+            name: b
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1915,17 +1967,34 @@ CompilationUnit
           VariableDeclaration
             name: a
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: const
+        type: NamedType
+          name: int
+        variables
+          VariableDeclaration
+            name: a
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2363,17 +2432,36 @@ CompilationUnit
           VariableDeclaration
             name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: const
+        type: NamedType
+          name: int
+        variables
+          VariableDeclaration
+            name: a
+          VariableDeclaration
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2809,17 +2897,36 @@ CompilationUnit
           VariableDeclaration
             name: b
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: const
+        type: NamedType
+          name: int
+        variables
+          VariableDeclaration
+            name: a
+          VariableDeclaration
+            name: b
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3147,17 +3254,25 @@ final set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3535,6 +3650,22 @@ final a set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      returnType: NamedType
+        name: a
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: a
@@ -3542,12 +3673,6 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3949,17 +4074,34 @@ CompilationUnit
           VariableDeclaration
             name: a
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: final
+        type: NamedType
+          name: int
+        variables
+          VariableDeclaration
+            name: a
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -4327,6 +4469,22 @@ int set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      returnType: NamedType
+        name: int
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: int
@@ -4334,12 +4492,6 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -4728,17 +4880,33 @@ CompilationUnit
           VariableDeclaration
             name: a
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        type: NamedType
+          name: int
+        variables
+          VariableDeclaration
+            name: a
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -5087,17 +5255,25 @@ var set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -5478,6 +5654,22 @@ var a set a(b) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      returnType: NamedType
+        name: a
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: a
@@ -5485,12 +5677,6 @@ CompilationUnit
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -6409,17 +6595,35 @@ CompilationUnit
             initializer(v1): SimpleIdentifier
               token: b
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: a
+            equals: =
+            initializer: SimpleIdentifier
+              token: b
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b

@@ -802,24 +802,43 @@ CompilationUnit
           block: Block
             leftBracket: {
             rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: foo
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: v
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 499
+        semicolon: ;
+  declarations(v1)
+    FunctionDeclaration
+      name: main
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: foo
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: v
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
           parameter: RegularFormalParameter
             name: v
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 499
           semicolon: ;
 ''');

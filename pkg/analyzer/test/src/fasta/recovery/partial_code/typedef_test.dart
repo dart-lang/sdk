@@ -320,17 +320,32 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: T
+      equals: =
+      type: NamedType
+        name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -715,17 +730,32 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1134,17 +1164,32 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      equals: =
+      type: NamedType
+        name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1556,17 +1601,34 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      returnType: NamedType
+        name: T
+      name: <empty> <synthetic>
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b

@@ -103,6 +103,9 @@ class AnnotationVerifier {
     } else if (parent is TopLevelGetterDeclaration) {
       var type = parent.declaredFragment?.element.type;
       checkType(type?.returnType);
+    } else if (parent is TopLevelSetterDeclaration) {
+      var type = parent.declaredFragment?.element.type;
+      checkType(type?.returnType);
     } else if (parent case FieldDeclaration(:var fields)) {
       for (var field in fields.variables) {
         checkType(field.declaredFieldElement.type, errorNode: field);
@@ -236,6 +239,7 @@ class AnnotationVerifier {
       var isValidFunction =
           parameterList.parent2 is MethodDeclaration ||
           parameterList.parent2 is ConstructorDeclaration ||
+          parameterList.parent2 is TopLevelSetterDeclaration ||
           (parameterList.parent2 is FunctionExpression &&
               parameterList.parent2?.parent2 is FunctionDeclaration &&
               parameterList.parent2?.parent2?.parent2 is CompilationUnit);
@@ -531,6 +535,8 @@ class AnnotationVerifier {
         name = parent.name.lexeme;
       } else if (parent is MethodDeclaration) {
         name = parent.name.lexeme;
+      } else if (parent is TopLevelSetterDeclaration) {
+        name = parent.name.lexeme;
       }
       if (name != null) {
         var parameterName = undefinedParameter is SimpleStringLiteral
@@ -722,6 +728,9 @@ class AnnotationVerifier {
 
     if (parent is FunctionDeclarationImpl) {
       return checkParams(parent.functionExpression.parameters);
+    }
+    if (parent is TopLevelSetterDeclarationImpl) {
+      return checkParams(parent.formalParameters);
     }
     if (parent is MethodDeclarationImpl) {
       return checkParams(parent.parameters);

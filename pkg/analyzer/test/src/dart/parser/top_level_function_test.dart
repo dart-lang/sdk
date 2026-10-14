@@ -532,21 +532,28 @@ abstract set foo(int _) {}
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   propertyKeyword: set
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: _
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -567,21 +574,28 @@ abstract set foo(int _) {}
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   propertyKeyword: set
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: _
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -600,22 +614,30 @@ FunctionDeclaration
 augment set foo(int _) {}
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  augmentKeyword: augment
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   augmentKeyword: augment
   propertyKeyword: set
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: _
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -635,23 +657,32 @@ FunctionDeclaration
 augment set foo(int _) {}
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  returnType: NamedType
+    name: augment
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: augment
   propertyKeyword: set
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: _
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -670,22 +701,28 @@ FunctionDeclaration
 augment set foo(int _);
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  augmentKeyword: augment
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   augmentKeyword: augment
   propertyKeyword: set
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: _
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -702,23 +739,30 @@ FunctionDeclaration
 augment external set foo(int _);
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   augmentKeyword: augment
   externalKeyword: external
   propertyKeyword: set
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: _
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -735,21 +779,26 @@ FunctionDeclaration
 set foo(int _);
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   propertyKeyword: set
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: _
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -769,21 +818,26 @@ set foo(int _);
 // [diag.missingFunctionBody] A function body must be provided.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+        name: _
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   propertyKeyword: set
   name: foo
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: int
-          name: _
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -802,19 +856,26 @@ set foo {}
 // [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  setKeyword: set @0
+  name: foo @4
+  formalParameters: FormalParameterList
+    leftParenthesis: ( @8 <synthetic>
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: <empty> @8 <synthetic>
+    rightParenthesis: ) @8 <synthetic>
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @8
+      rightBracket: } @9
+V1: FunctionDeclaration
   propertyKeyword: set @0
   name: foo @4
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: ( @8 <synthetic>
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          name: <empty> @8 <synthetic>
-      rightParenthesis: ) @8 <synthetic>
-    parameters(v1): FormalParameterList
       leftParenthesis: ( @8 <synthetic>
       parameter: RegularFormalParameter
         name: <empty> @8 <synthetic>
@@ -833,19 +894,26 @@ set foo({a}) {}
 // [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  setKeyword: set @0
+  name: foo @4
+  formalParameters: FormalParameterList
+    leftParenthesis: ( @7
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: a @9
+    rightParenthesis: ) @11
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @13
+      rightBracket: } @14
+V1: FunctionDeclaration
   propertyKeyword: set @0
   name: foo @4
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: ( @7
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          name: a @9
-      rightParenthesis: ) @11
-    parameters(v1): FormalParameterList
       leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: a @9
@@ -864,19 +932,26 @@ set foo([a]) {}
 // [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  setKeyword: set @0
+  name: foo @4
+  formalParameters: FormalParameterList
+    leftParenthesis: ( @7
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: a @9
+    rightParenthesis: ) @11
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @13
+      rightBracket: } @14
+V1: FunctionDeclaration
   propertyKeyword: set @0
   name: foo @4
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: ( @7
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          name: a @9
-      rightParenthesis: ) @11
-    parameters(v1): FormalParameterList
       leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: a @9
@@ -895,19 +970,26 @@ set foo(a, b, c) {}
 // [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  setKeyword: set @0
+  name: foo @4
+  formalParameters: FormalParameterList
+    leftParenthesis: ( @7
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: a @8
+    rightParenthesis: ) @15
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @17
+      rightBracket: } @18
+V1: FunctionDeclaration
   propertyKeyword: set @0
   name: foo @4
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: ( @7
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          name: a @8
-      rightParenthesis: ) @15
-    parameters(v1): FormalParameterList
       leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: a @8
@@ -926,19 +1008,26 @@ set foo() {}
 // [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
-FunctionDeclaration
+TopLevelSetterDeclaration
+  setKeyword: set @0
+  name: foo @4
+  formalParameters: FormalParameterList
+    leftParenthesis: ( @7
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: <empty> @8 <synthetic>
+    rightParenthesis: ) @8
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: { @10
+      rightBracket: } @11
+V1: FunctionDeclaration
   propertyKeyword: set @0
   name: foo @4
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: ( @7
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          name: <empty> @8 <synthetic>
-      rightParenthesis: ) @8
-    parameters(v1): FormalParameterList
       leftParenthesis: ( @7
       parameter: RegularFormalParameter
         name: <empty> @8 <synthetic>

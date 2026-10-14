@@ -1044,6 +1044,8 @@ class FileState {
           topLevelDeclarations.add(declaration.name.lexeme);
         case TopLevelGetterDeclarationImpl():
           topLevelDeclarations.add(declaration.name.lexeme);
+        case TopLevelSetterDeclarationImpl():
+          topLevelDeclarations.add(declaration.name.lexeme);
         case TopLevelVariableDeclarationImpl():
           for (var variable in declaration.variables.variables) {
             topLevelDeclarations.add(variable.name.lexeme);

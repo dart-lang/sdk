@@ -3437,10 +3437,23 @@ class AstBuilder extends StackListener {
     var comment = _findComment(metadata, beginToken);
 
     if (getOrSet?.keyword == Keyword.SET) {
-      formalParameters = _ensureSetterFormalParameter(name, formalParameters);
-    }
-
-    if (getOrSet?.keyword == Keyword.GET) {
+      declarations.add(
+        TopLevelSetterDeclarationImpl(
+          comment: comment,
+          metadata: metadata,
+          augmentKeyword: augmentKeyword,
+          externalKeyword: externalKeyword,
+          returnType: returnType,
+          setKeyword: getOrSet!,
+          name: name,
+          formalParameters: _ensureSetterFormalParameter(
+            name,
+            formalParameters,
+          ),
+          body: body,
+        ),
+      );
+    } else if (getOrSet?.keyword == Keyword.GET) {
       declarations.add(
         TopLevelGetterDeclarationImpl(
           comment: comment,
@@ -3463,7 +3476,7 @@ class AstBuilder extends StackListener {
           augmentKeyword: augmentKeyword,
           externalKeyword: externalKeyword,
           returnType: returnType,
-          propertyKeyword: getOrSet,
+          propertyKeyword: null,
           name: name,
           functionExpression: FunctionExpressionImpl(
             typeParameters: typeParameters,
@@ -6466,7 +6479,7 @@ class AstBuilder extends StackListener {
     );
   }
 
-  FormalParameterListImpl? _ensureSetterFormalParameter(
+  FormalParameterListImpl _ensureSetterFormalParameter(
     Token setterName,
     FormalParameterListImpl? formalParameterList,
   ) {

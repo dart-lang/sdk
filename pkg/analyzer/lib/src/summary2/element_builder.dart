@@ -1777,49 +1777,24 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     var functionExpression = node.functionExpression;
     var body = functionExpression.body;
 
-    ExecutableFragmentImpl executableFragment;
-    if (node.isGetter) {
-      var getterFragment = GetterFragmentImpl(name: name2);
-      getterFragment.isAugmentation = node.augmentKeyword != null;
-      getterFragment.isOriginDeclaration = true;
-      getterFragment.isStatic = true;
+    var fragment = TopLevelFunctionFragmentImpl(name: name2);
+    fragment.isAugmentation = node.augmentKeyword != null;
+    fragment.isOriginDeclaration = true;
+    fragment.isStatic = true;
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
 
-      getterFragment.enclosingFragment = _libraryFragment;
-      executableFragment = getterFragment;
+    fragment.hasImplicitReturnType = node.returnType == null;
+    fragment.isAsynchronous = body.isAsynchronous;
+    fragment.isExternal = node.externalKeyword != null;
+    fragment.isGenerator = body.isGenerator;
+    fragment.isComplete = node.isComplete;
+    fragment.metadata = _buildMetadata(node.metadata);
 
-      _libraryBuilder.addTopFragment(_libraryFragment, getterFragment);
-    } else if (node.isSetter) {
-      var setterFragment = SetterFragmentImpl(name: name2);
-      setterFragment.isAugmentation = node.augmentKeyword != null;
-      setterFragment.isOriginDeclaration = true;
-      setterFragment.isStatic = true;
-
-      setterFragment.enclosingFragment = _libraryFragment;
-      executableFragment = setterFragment;
-
-      _libraryBuilder.addTopFragment(_libraryFragment, setterFragment);
-    } else {
-      var fragment = TopLevelFunctionFragmentImpl(name: name2);
-      fragment.isAugmentation = node.augmentKeyword != null;
-      fragment.isOriginDeclaration = true;
-      fragment.isStatic = true;
-      executableFragment = fragment;
-
-      _libraryBuilder.addTopFragment(_libraryFragment, fragment);
-    }
-
-    executableFragment.hasImplicitReturnType = node.returnType == null;
-    executableFragment.isAsynchronous = body.isAsynchronous;
-    executableFragment.isExternal = node.externalKeyword != null;
-    executableFragment.isGenerator = body.isGenerator;
-    executableFragment.isComplete = node.isComplete;
-    executableFragment.metadata = _buildMetadata(node.metadata);
-
-    node.declaredFragment = executableFragment;
-    _linker.setFragmentNode(executableFragment, node);
+    node.declaredFragment = fragment;
+    _linker.setFragmentNode(fragment, node);
 
     _buildExecutableElementChildren(
-      fragment: executableFragment,
+      fragment: fragment,
       formalParameters: functionExpression.parameters,
       typeParameters: functionExpression.typeParameters,
     );
@@ -2252,6 +2227,37 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       fragment: fragment,
       formalParameters: node.recoveryFormalParameters,
       typeParameters: node.recoveryTypeParameters,
+    );
+
+    node.returnType?.accept2(this);
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    var name2 = _getFragmentName(node.name);
+    var body = node.body;
+
+    var fragment = SetterFragmentImpl(name: name2);
+    fragment.isAugmentation = node.augmentKeyword != null;
+    fragment.isOriginDeclaration = true;
+    fragment.isStatic = true;
+    fragment.enclosingFragment = _libraryFragment;
+    fragment.hasImplicitReturnType = node.returnType == null;
+    fragment.isAsynchronous = body.isAsynchronous;
+    fragment.isExternal = node.externalKeyword != null;
+    fragment.isGenerator = body.isGenerator;
+    fragment.isComplete = node.isComplete;
+    fragment.metadata = _buildMetadata(node.metadata);
+
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
+    node.declaredFragment = fragment;
+    _linker.setFragmentNode(fragment, node);
+
+    _buildExecutableElementChildren(
+      fragment: fragment,
+      formalParameters: node.formalParameters,
     );
 
     node.returnType?.accept2(this);

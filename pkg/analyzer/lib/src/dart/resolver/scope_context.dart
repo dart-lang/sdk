@@ -454,6 +454,26 @@ class ScopeContext {
     });
   }
 
+  void visitTopLevelSetterDeclaration(
+    TopLevelSetterDeclarationImpl node, {
+    required AstVisitor2 visitor,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept2(visitor);
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.returnType?.accept2(visitor);
+      node.formalParameters.accept2(visitor);
+
+      withFormalParameterScope(fragment.formalParameters, () {
+        node.documentationComment?.accept2(visitor);
+        node.body.accept2(visitor);
+      });
+    });
+  }
+
   void visitVariableDeclarationList(
     VariableDeclarationListImpl node, {
     required AstVisitor2 visitor,

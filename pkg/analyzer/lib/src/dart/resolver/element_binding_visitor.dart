@@ -165,15 +165,10 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
             _libraryFragment.extensionTypes[extensionTypeIndex++],
           );
         case FunctionDeclarationImpl():
-          ExecutableFragmentImpl fragment;
-          if (declaration.isGetter) {
-            fragment = getters[getterIndex++];
-          } else if (declaration.isSetter) {
-            fragment = setters[setterIndex++];
-          } else {
-            fragment = _libraryFragment.functions[functionIndex++];
-          }
-          _bindFunctionDeclaration(declaration, fragment);
+          _bindFunctionDeclaration(
+            declaration,
+            _libraryFragment.functions[functionIndex++],
+          );
         case MixinDeclarationImpl():
           _bindMixinDeclaration(
             declaration,
@@ -191,6 +186,8 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
           );
         case TopLevelGetterDeclarationImpl():
           _bindTopLevelGetterDeclaration(declaration, getters[getterIndex++]);
+        case TopLevelSetterDeclarationImpl():
+          _bindTopLevelSetterDeclaration(declaration, setters[setterIndex++]);
         case TopLevelVariableDeclarationImpl():
           declaration.documentationComment?.accept2(this);
           declaration.variables.type?.accept2(this);
@@ -915,6 +912,22 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
       node.recoveryFormalParameters,
       fragment.formalParameters,
     );
+
+    _withElementHolder(ElementHolder(fragment), () {
+      node.body.accept2(this);
+    });
+  }
+
+  void _bindTopLevelSetterDeclaration(
+    TopLevelSetterDeclarationImpl node,
+    SetterFragmentImpl fragment,
+  ) {
+    node.declaredFragment = fragment;
+    _setOrCreateMetadataElements(fragment, node.metadata);
+
+    node.documentationComment?.accept2(this);
+    node.returnType?.accept2(this);
+    _bindFormalParameters(node.formalParameters, fragment.formalParameters);
 
     _withElementHolder(ElementHolder(fragment), () {
       node.body.accept2(this);

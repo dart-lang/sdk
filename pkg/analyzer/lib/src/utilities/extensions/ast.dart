@@ -59,7 +59,8 @@ extension AstNodeExtension on AstNode {
         case FunctionDeclaration() ||
             ConstructorDeclaration() ||
             MethodDeclaration() ||
-            TopLevelGetterDeclaration():
+            TopLevelGetterDeclaration() ||
+            TopLevelSetterDeclaration():
           break;
       }
     }
@@ -96,6 +97,9 @@ extension AstNodeExtension on AstNode {
         return node.declaredFragment?.element;
       }
       if (node is TopLevelGetterDeclaration) {
+        return node.declaredFragment?.element;
+      }
+      if (node is TopLevelSetterDeclaration) {
         return node.declaredFragment?.element;
       }
     }

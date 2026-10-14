@@ -2496,13 +2496,6 @@ void f() {
     _assertSource(code, node);
   }
 
-  void test_visitFunctionDeclaration_setter() {
-    var code = 'set foo(int _) {}';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    _assertSource(code, node);
-  }
-
   void test_visitFunctionDeclaration_typeParameters() {
     var code = 'void foo<T>() {}';
     var parseResult = parseTestCodeWithDiagnostics(code);
@@ -4572,6 +4565,13 @@ void f() {
     var code = 'get foo {}';
     var parseResult = parseTestCodeWithDiagnostics(code);
     var node = parseResult.findNode.singleTopLevelGetterDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelSetterDeclaration() {
+    var code = 'set foo(int _) {}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     _assertSource(code, node);
   }
 

@@ -203,6 +203,8 @@ class FindNode2 extends _FindNodeBase {
 
   TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
 
+  TopLevelSetterDeclaration get singleTopLevelSetterDeclaration => _single();
+
   UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
 
   UnqualifiedFunctionInvocation get singleUnqualifiedFunctionInvocation =>
@@ -302,6 +304,10 @@ class FindNode2 extends _FindNodeBase {
 
   TopLevelGetterDeclaration topLevelGetterDeclaration(String search) {
     return _node(search, (node) => node is TopLevelGetterDeclaration);
+  }
+
+  TopLevelSetterDeclaration topLevelSetterDeclaration(String search) {
+    return _node(search, (node) => node is TopLevelSetterDeclaration);
   }
 
   UnaryOperatorInvocation unaryOperatorInvocation(String search) {

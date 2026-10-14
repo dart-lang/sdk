@@ -2333,6 +2333,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    _sink.writeln('TopLevelSetterDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _sink.writeln('TopLevelVariableDeclaration');
     _sink.withIndent(() {

@@ -624,6 +624,15 @@ set aaa(A a) {
     expect(names, unorderedEquals(['A', 'B']));
   }
 
+  test_unit_setter_parameter() {
+    var names = _computeReferencedNames('''
+set aaa(A a) {
+  a;
+}
+''');
+    expect(names, unorderedEquals(['A']));
+  }
+
   test_unit_topLevelDeclarations() {
     var names = _computeReferencedNames('''
 class L1 {}

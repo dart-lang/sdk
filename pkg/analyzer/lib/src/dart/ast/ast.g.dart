@@ -916,6 +916,9 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node);
 
+  @experimental
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node);
+
   R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node);
 
   R? visitTryStatement(TryStatement node);

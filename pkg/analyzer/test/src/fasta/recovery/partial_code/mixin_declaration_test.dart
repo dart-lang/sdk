@@ -368,17 +368,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: extend
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -831,17 +850,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: extends
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1274,17 +1312,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1718,17 +1775,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2177,17 +2253,38 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2647,17 +2744,38 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3029,17 +3147,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3408,17 +3540,31 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3835,17 +3981,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -4279,17 +4444,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -4741,17 +4925,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: implements
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -5204,17 +5407,38 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -5674,17 +5898,38 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -6170,17 +6415,41 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -6679,17 +6948,41 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b

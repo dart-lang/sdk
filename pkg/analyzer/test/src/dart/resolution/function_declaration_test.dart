@@ -496,6 +496,164 @@ V1: FunctionDeclaration
 ''');
   }
 
+  test_setter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+set foo(int value) {
+  value;
+}
+''');
+
+    var node = result.findNode.singleTopLevelSetterDeclaration;
+    assertResolvedNodeText(node, r'''
+TopLevelSetterDeclaration
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: value
+        declaredFragment: <testLibraryFragment> value@12
+          element: isPublic
+            type: int
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression2: UnqualifiedNameExpression
+            name: value
+            resolution: VariableReadResolution
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              type: int
+            staticType: int
+          semicolon: ;
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@4
+    element: <testLibrary>::@setter::foo
+      type: void Function(int)
+V1: FunctionDeclaration
+  propertyKeyword: set
+  name: foo
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: value
+        declaredFragment: <testLibraryFragment> value@12
+          element: isPublic
+            type: int
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        statements
+          ExpressionStatement
+            expression: SimpleIdentifier
+              token: value
+              element: <testLibrary>::@setter::foo::@formalParameter::value
+              staticType: int
+            semicolon: ;
+        rightBracket: }
+    declaredFragment: <testLibraryFragment> foo@4
+      element: <testLibrary>::@setter::foo
+        type: void Function(int)
+    staticType: void Function(int)
+  declaredFragment: <testLibraryFragment> foo@4
+    element: <testLibrary>::@setter::foo
+      type: void Function(int)
+''');
+  }
+
+  test_setter_documentationComment_formalParameter() async {
+    var result = await resolveTestCodeWithDiagnostics('''
+/// [value]
+set foo(int value) {}
+''');
+
+    var node = result.findNode.singleTopLevelSetterDeclaration;
+    assertResolvedNodeText(node, r'''
+TopLevelSetterDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        components
+          CommentReferenceComponent
+            name: value
+            element: <testLibrary>::@setter::foo::@formalParameter::value
+        element: <testLibrary>::@setter::foo::@formalParameter::value
+    tokens
+      /// [value]
+  setKeyword: set
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: value
+        declaredFragment: <testLibraryFragment> value@24
+          element: isPublic
+            type: int
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@16
+    element: <testLibrary>::@setter::foo
+      type: void Function(int)
+V1: FunctionDeclaration
+  documentationComment: Comment
+    references
+      CommentReference
+        expression: SimpleIdentifier
+          token: value
+          element: <testLibrary>::@setter::foo::@formalParameter::value
+          staticType: null
+    tokens
+      /// [value]
+  propertyKeyword: set
+  name: foo
+  functionExpression: FunctionExpression
+    parameters: FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+        name: value
+        declaredFragment: <testLibraryFragment> value@24
+          element: isPublic
+            type: int
+      rightParenthesis: )
+    body: BlockFunctionBody
+      block: Block
+        leftBracket: {
+        rightBracket: }
+    declaredFragment: <testLibraryFragment> foo@16
+      element: <testLibrary>::@setter::foo
+        type: void Function(int)
+    staticType: void Function(int)
+  declaredFragment: <testLibraryFragment> foo@16
+    element: <testLibrary>::@setter::foo
+      type: void Function(int)
+''');
+  }
+
   test_syncGenerator_blockBody_return() async {
     var result = await resolveTestCodeWithDiagnostics('''
 Iterable<int> f() sync* {

@@ -2135,18 +2135,25 @@ external set p(v);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      externalKeyword: external
+      setKeyword: set
+      name: p
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: v
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       externalKeyword: external
       propertyKeyword: set
       name: p
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: v
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: v
@@ -2164,6 +2171,23 @@ external void set p(int v);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      externalKeyword: external
+      returnType: NamedType
+        name: void
+      setKeyword: set
+      name: p
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: v
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       externalKeyword: external
       returnType: NamedType
@@ -2172,14 +2196,6 @@ CompilationUnit
       name: p
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-              name: v
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -2199,17 +2215,25 @@ set p(v) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: p
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: v
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: p
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: v
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: v
@@ -2229,6 +2253,24 @@ void set p(int v) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      returnType: NamedType
+        name: void
+      setKeyword: set
+      name: p
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: v
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -2236,14 +2278,6 @@ CompilationUnit
       name: p
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: int
-              name: v
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -3850,6 +3884,25 @@ T set p(v) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelSetterDeclaration
+      documentationComment: Comment
+        tokens
+          /// Doc
+      returnType: NamedType
+        name: T
+      setKeyword: set
+      name: p
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: v
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       documentationComment: Comment
         tokens
@@ -3860,12 +3913,6 @@ CompilationUnit
       name: p
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: v
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: v

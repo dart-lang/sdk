@@ -244,25 +244,26 @@ class DuplicateDefinitionVerifier {
         case FunctionDeclarationImpl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
-            if (declaredFragment is SetterFragment) {
-              _checkDuplicateFragmentIdentifier(
-                definedSetters,
-                member.name,
-                fragment: declaredFragment,
-              );
-            } else {
-              _checkDuplicateFragmentIdentifier(
-                definedGetters,
-                member.name,
-                fragment: declaredFragment,
-              );
-            }
+            _checkDuplicateFragmentIdentifier(
+              definedGetters,
+              member.name,
+              fragment: declaredFragment,
+            );
           }
         case TopLevelGetterDeclarationImpl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(
               definedGetters,
+              member.name,
+              fragment: declaredFragment,
+            );
+          }
+        case TopLevelSetterDeclarationImpl():
+          var declaredFragment = member.declaredFragment!;
+          if (!declaredFragment.isAugmentation) {
+            _checkDuplicateFragmentIdentifier(
+              definedSetters,
               member.name,
               fragment: declaredFragment,
             );

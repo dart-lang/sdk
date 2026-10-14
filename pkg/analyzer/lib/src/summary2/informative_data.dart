@@ -595,14 +595,10 @@ class _InfoBuilder {
         mixinDeclarations.add(_buildMixin(declaration));
       } else if (declaration is TopLevelGetterDeclarationImpl) {
         topLevelGetters.add(_buildTopLevelGetter(declaration));
+      } else if (declaration is TopLevelSetterDeclarationImpl) {
+        topLevelSetters.add(_buildTopLevelSetter(declaration));
       } else if (declaration is FunctionDeclaration) {
-        if (declaration.isGetter) {
-          topLevelGetters.add(_buildTopLevelFunction(declaration));
-        } else if (declaration.isSetter) {
-          topLevelSetters.add(_buildTopLevelFunction(declaration));
-        } else {
-          topLevelFunctions.add(_buildTopLevelFunction(declaration));
-        }
+        topLevelFunctions.add(_buildTopLevelFunction(declaration));
       } else if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
           topLevelVariable.add(_buildTopLevelVariable(variable));
@@ -1145,6 +1141,24 @@ class _InfoBuilder {
         metadata: node.metadata,
         typeParameters: node.recoveryTypeParameters,
         formalParameters: node.recoveryFormalParameters,
+      ),
+    );
+  }
+
+  _InfoExecutableDeclaration _buildTopLevelSetter(
+    TopLevelSetterDeclarationImpl node,
+  ) {
+    return _InfoExecutableDeclaration(
+      firstTokenOffset: node.offset,
+      codeOffset: node.offset,
+      codeLength: node.length,
+      nameOffset: node.name.offsetIfNotEmpty,
+      documentationComment: _getDocumentationComment(node),
+      typeParameters: const [],
+      parameters: _buildFormalParameters(node.formalParameters),
+      constantOffsets: _buildConstantOffsets(
+        metadata: node.metadata,
+        formalParameters: node.formalParameters,
       ),
     );
   }

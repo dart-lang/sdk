@@ -371,17 +371,37 @@ CompilationUnit
           NamedType
             name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassTypeAlias
+      typedefKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -841,17 +861,37 @@ CompilationUnit
           NamedType
             name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassTypeAlias
+      typedefKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1310,17 +1350,37 @@ CompilationUnit
           NamedType
             name: C
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassTypeAlias
+      typedefKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with <synthetic>
+        mixinTypes
+          NamedType
+            name: C
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1778,17 +1838,37 @@ CompilationUnit
           NamedType
             name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassTypeAlias
+      typedefKeyword: class
+      name: A
+      equals: =
+      superclass: NamedType
+        name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2241,17 +2321,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extend
+        superclass: NamedType
+          name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2684,17 +2783,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3128,17 +3246,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3590,17 +3727,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: implements
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -4086,17 +4242,41 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -4595,17 +4775,41 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -5096,17 +5300,41 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -5605,17 +5833,41 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -6162,17 +6414,46 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -6737,17 +7018,46 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -7254,17 +7564,41 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: <empty> <synthetic>
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: B
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -7712,17 +8046,37 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -8169,17 +8523,37 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -8641,17 +9015,39 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -9124,17 +9520,39 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -9532,17 +9950,32 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -9924,17 +10357,32 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -10373,17 +10821,36 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: on
+        superclass: NamedType
+          name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
