@@ -1588,6 +1588,17 @@ class Assembler : public AssemblerBase {
                              (static_cast<int32_t>(vd) << kVdShift);
     Emit(encoding);
   }
+  // EXT Vd.16B, Vn.16B, Vm.16B, #index: places Vm after Vn and takes the 16
+  // bytes that start at byte `index`. For 32-bit lanes and index 4, that is
+  // n1, n2, n3, m0.
+  void vext(VRegister vd, VRegister vn, VRegister vm, int32_t index) {
+    ASSERT((index >= 0) && (index <= 15));
+    const int32_t encoding = 0x6E000000 | (index << 11) |
+                             (static_cast<int32_t>(vm) << kVmShift) |
+                             (static_cast<int32_t>(vn) << kVnShift) |
+                             (static_cast<int32_t>(vd) << kVdShift);
+    Emit(encoding);
+  }
   // UMINV Sd, Vn.4S: unsigned minimum across the four word lanes of Vn into the
   // 32-bit scalar in the low bits of Vd.
   void vuminv_4s(VRegister vd, VRegister vn) {

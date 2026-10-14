@@ -4004,6 +4004,15 @@ DEFINE_EMIT(Simd32x4Shuffle, (VRegister result, VRegister value)) {
     case 0xB1:  // yxwz
       __ vrev64_4s(result, value);
       break;
+    case 0x39:  // yzwx
+      __ vext(result, value, value, 4);
+      break;
+    case 0x4E:  // zwxy
+      __ vext(result, value, value, 8);
+      break;
+    case 0x93:  // wxyz
+      __ vext(result, value, value, 12);
+      break;
     default:
       __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
       __ vtbl1(result, value, VTMP);
@@ -4013,10 +4022,20 @@ DEFINE_EMIT(Simd32x4Shuffle, (VRegister result, VRegister value)) {
 
 DEFINE_EMIT(Simd32x4ShuffleMix,
             (VRegister result, VRegister left, VRegister right)) {
-  __ LoadQImmediate(VTMP, ShuffleTableIndices(instr->mask()));
-  __ vtbl1(result, left, VTMP);
-  __ vtbl1(VTMP, right, VTMP);
-  __ vinsd(result, 1, VTMP, 1);
+  const intptr_t mask = instr->mask();
+  // Each case comment lists the lanes that the result lanes x, y, z and w
+  // take. x and y come from `left`, z and w from `right`.
+  switch (mask) {
+    case 0x4E:  // zwxy
+      __ vext(result, left, right, 8);
+      break;
+    default:
+      __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
+      __ vtbl1(result, left, VTMP);
+      __ vtbl1(VTMP, right, VTMP);
+      __ vinsd(result, 1, VTMP, 1);
+      break;
+  }
 }
 
 DEFINE_EMIT(SimdBinaryOp, (VRegister result, VRegister left, VRegister right)) {
