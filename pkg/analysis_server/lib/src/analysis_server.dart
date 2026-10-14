@@ -590,6 +590,28 @@ abstract class AnalysisServer {
 
   path.Context get pathContext => resourceProvider.pathContext;
 
+  /// Whether the client prefers legacy refactors over self-describing refactors
+  /// that use Interactive Forms.
+  ///
+  /// The reason for this flag is to support versions of Dart-Code that do not
+  /// support Interactive Forms, but they do support prompting the user for
+  /// names for EXTRACT_METHOD and EXTRACT_WIDGET and injecting the response
+  /// into the command args.
+  ///
+  /// We don't need to prefer these for clients that don't support Interactive
+  /// Forms if they are _not_ injecting the names, because the behaviour would
+  /// be the same in both cases with no prompt (they would just get
+  /// server-computed names).
+  ///
+  bool get prefersLegacyRefactors =>
+      // TODO(dantup): When removing this (and the legacy version of the
+      //  refactors) once sufficient time has passed, we must add tests to
+      //  ensure that when a client doesn't support Interactive Forms, we
+      //  provide the new self-described version of the refactor using the
+      //  server-provided name (which is today handled by the legacy version).
+      editorClientCapabilities?.supportedInteractiveFormInputTypes.isEmpty ??
+      true;
+
   /// Whether or not the client supports showMessageRequest to show the user
   /// a message and allow them to respond by clicking buttons.
   ///
