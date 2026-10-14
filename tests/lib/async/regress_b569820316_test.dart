@@ -119,6 +119,12 @@ Future<void> testSyncValueReturnWithoutAwait() {
   // with the future as a value rather than chaining it.
   final nullFuture = Future<Object?>.syncValue(null);
 
+  // Simple async functions returning literal/constant/implicit-null to exercise
+  // dart2wasm's kernel recognition & lowering to `Future.syncValue`.
+  Future<int> syncLiteral() async => 42;
+  Future<List<int>> syncConst() async => const <int>[1, 2];
+  Future<void> syncEmpty() async {}
+
   Future<int> syncValue() async {
     log.add('syncValue');
     return 42;
@@ -131,6 +137,9 @@ Future<void> testSyncValueReturnWithoutAwait() {
 
   runZoned(
     () {
+      syncLiteral();
+      syncConst();
+      syncEmpty();
       syncValue();
       syncFutureAsObject();
     },
@@ -142,9 +151,15 @@ Future<void> testSyncValueReturnWithoutAwait() {
     ),
   );
 
+  final fLiteral = syncLiteral();
+  final fConst = syncConst();
+  final fEmpty = syncEmpty();
   final f1 = syncValue();
   final f2 = syncFutureAsObject();
   scheduleMicrotask(() => log.add('microtask'));
+  fLiteral.then((v) => log.add('thenLiteral: $v'));
+  fConst.then((v) => log.add('thenConst: ${v.length}'));
+  fEmpty.then((_) => log.add('thenEmpty'));
   f1.then((v) => log.add('then1: $v'));
   f2.then((v) => log.add('then2: ${identical(v, nullFuture)}'));
 
@@ -155,6 +170,9 @@ Future<void> testSyncValueReturnWithoutAwait() {
       'syncValue',
       'syncFutureAsObject',
       'microtask',
+      'thenLiteral: 42',
+      'thenConst: 2',
+      'thenEmpty',
       'then1: 42',
       'then2: true',
     ], log);
@@ -169,6 +187,7 @@ Future<void> testFutureChaining() {
   final completedFuture = Future<int>.value(42);
 
   Future<int> syncChain() async => completedFuture;
+  Future<int> syncConstChain() async => const _ConstFuture<int>(42);
 
   Future<int> asyncChain() async {
     await null;
@@ -176,8 +195,10 @@ Future<void> testFutureChaining() {
   }
 
   final f1 = syncChain();
+  final fConst = syncConstChain();
   final f2 = asyncChain();
   f1.then((v) => log.add('syncChain: $v'));
+  fConst.then((v) => log.add('syncConstChain: $v'));
   f2.then((v) => log.add('asyncChain: $v'));
 
   var n = 0;
@@ -190,6 +211,7 @@ Future<void> testFutureChaining() {
   Timer.run(() {
     Expect.listEquals([
       'syncChain: 42',
+      'syncConstChain: 42',
       '0',
       'asyncChain: 42',
       '1',
@@ -200,6 +222,20 @@ Future<void> testFutureChaining() {
     completer.complete();
   });
   return completer.future;
+}
+
+class _ConstFuture<T> implements Future<T> {
+  final T _value;
+  const _ConstFuture(this._value);
+
+  @override
+  Future<R> then<R>(
+    FutureOr<R> Function(T value) onValue, {
+    Function? onError,
+  }) => Future<T>.syncValue(_value).then(onValue, onError: onError);
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 Future<void> testErrorCompletionAfterAwait() {
