@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -413,10 +412,7 @@ class A {
 }
 
 @reflectiveTest
-class UnawaitedReturnInTryBlockTest extends FixProcessorErrorCodeTest {
-  @override
-  DiagnosticCode get diagnosticCode => diag.unawaitedReturnInTryBlock;
-
+class UnawaitedReturnInTryBlockTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.addAwait;
 

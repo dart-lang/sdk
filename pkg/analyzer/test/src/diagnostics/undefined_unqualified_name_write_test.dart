@@ -538,6 +538,96 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_final_directAssignment_extensionTypeInstanceField() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type X(int it) {
+  final foo = 0;
+//      ^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
+
+  void f() {
+    foo = 0;
+  }
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@extensionType::X::@getter::foo
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extensionType::X::@getter::foo
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_final_directAssignment_extensionTypeRepresentation() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type X(int it) {
+  void f() {
+    it = 0;
+//  ^^
+// [diag.undefinedUnqualifiedNameWriteFinal] 'it' is final, so it can't be assigned to.
+  }
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: UnqualifiedNameAssignmentTarget
+    name: it
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@extensionType::X::@getter::it
+  operator: =
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: SimpleIdentifier
+    token: it
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extensionType::X::@getter::it
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
   test_final_directAssignment_externalFinalVariable() async {
     await resolveTestCodeWithDiagnostics(r'''
 external final x;
@@ -1610,8 +1700,6 @@ void f() {
   foo += 1;
 //^^^
 // [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
-//    ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function()'.
 }
 ''');
 
@@ -1907,10 +1995,6 @@ void f() {
   foo ??= 0;
 //^^^
 // [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
-//        ^^
-// [diag.deadCode] Dead code.
-//        ^
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 }
 ''');
 
@@ -1929,7 +2013,7 @@ IfNullAssignment
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: SimpleIdentifier
     token: foo
@@ -1945,7 +2029,7 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@function::foo
   writeType: InvalidType
   element: <null>
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 
@@ -1957,8 +2041,6 @@ void f() {
   foo++;
 //^^^
 // [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
-//   ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function()'.
 }
 ''');
 
@@ -1977,7 +2059,7 @@ IncrementOrDecrementExpression
   position: postfix
   element: <null>
   operatorResultType: dynamic
-  staticType: void Function()
+  staticType: InvalidType
 V1: PostfixExpression
   operand: SimpleIdentifier
     token: foo
@@ -1989,7 +2071,49 @@ V1: PostfixExpression
   writeElement: <testLibrary>::@function::foo
   writeType: InvalidType
   element: <null>
-  staticType: void Function()
+  staticType: InvalidType
+''');
+  }
+
+  test_wrongKind_increment_prefix() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void foo() {}
+
+void f() {
+  ++foo;
+//  ^^^
+// [diag.undefinedUnqualifiedNameWriteWrongKind] The function 'foo' can't be assigned to.
+}
+''');
+
+    var node = result.findNode.singleIncrementOrDecrement;
+    assertResolvedNodeText(node, r'''
+IncrementOrDecrementExpression
+  operator: ++
+  target: UnqualifiedNameAssignmentTarget
+    name: foo
+    read: ExecutableTearOffResolution
+      element: <testLibrary>::@function::foo
+      type: void Function()
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@function::foo
+  operation: increment
+  position: prefix
+  element: <null>
+  operatorResultType: InvalidType
+  staticType: InvalidType
+V1: PrefixExpression
+  operator: ++
+  operand: SimpleIdentifier
+    token: foo
+    element: <null>
+    staticType: null
+  readElement: <testLibrary>::@function::foo
+  readType: void Function()
+  writeElement: <testLibrary>::@function::foo
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
 ''');
   }
 

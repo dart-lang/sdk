@@ -77,6 +77,252 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_extensionField_compoundAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  final int foo = 0;
+//          ^^^
+// [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
+}
+
+void f() {
+  0.foo += 1;
+}
+''');
+
+    var node = result.findNode.singleCompoundAssignment;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: IntegerLiteral
+      literal: 0
+      staticType: int
+    operator: .
+    name: foo
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extension::E::@getter::foo
+      invokeType: int Function()
+      type: int
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@extension::E::@getter::foo
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: IntegerLiteral
+      literal: 0
+      staticType: int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  readElement: <testLibrary>::@extension::E::@getter::foo
+  readType: int
+  writeElement: <testLibrary>::@extension::E::@getter::foo
+  writeType: InvalidType
+  element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  test_extensionField_directAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension E on int {
+  final int foo = 0;
+//          ^^^
+// [diag.extensionDeclaresInstanceField] Extensions can't declare instance fields.
+}
+
+void f() {
+  0.foo = 1;
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: IntegerLiteral
+      literal: 0
+      staticType: int
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@extension::E::@getter::foo
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: IntegerLiteral
+      literal: 0
+      staticType: int
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extension::E::@getter::foo
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
+  test_extensionTypeField_compoundAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type X(int it) {
+  final int foo = 0;
+//          ^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
+}
+
+void f(X x) {
+  x.foo += 1;
+}
+''');
+
+    var node = result.findNode.singleCompoundAssignment;
+    assertResolvedNodeText(node, r'''
+CompoundAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: X
+      staticType: X
+    operator: .
+    name: foo
+    read: GetterInvocationResolution
+      element: <testLibrary>::@extensionType::X::@getter::foo
+      invokeType: int Function()
+      type: int
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@extensionType::X::@getter::foo
+  operator: +=
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  binaryOperator: add
+  element: dart:core::@class::num::@method::+
+  operatorResultType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: X
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: +=
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: dart:core::@class::num::@method::+::@formalParameter::other
+    staticType: int
+  readElement: <testLibrary>::@extensionType::X::@getter::foo
+  readType: int
+  writeElement: <testLibrary>::@extensionType::X::@getter::foo
+  writeType: InvalidType
+  element: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
+  test_extensionTypeField_directAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+extension type X(int it) {
+  final int foo = 0;
+//          ^^^
+// [diag.extensionTypeDeclaresInstanceField] Extension types can't declare instance fields.
+}
+
+void f(X x) {
+  x.foo = 1;
+}
+''');
+
+    var node = result.findNode.singleDirectAssignment;
+    assertResolvedNodeText(node, r'''
+DirectAssignment
+  target: ReceiverPropertyAssignmentTarget
+    receiver: UnqualifiedNameExpression
+      name: x
+      resolution: VariableReadResolution
+        element: <testLibrary>::@function::f::@formalParameter::x
+        type: X
+      staticType: X
+    operator: .
+    name: foo
+    read: <null>
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@extensionType::X::@getter::foo
+  operator: =
+  value: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  staticType: int
+V1: AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: x
+      element: <testLibrary>::@function::f::@formalParameter::x
+      staticType: X
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 1
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: <testLibrary>::@extensionType::X::@getter::foo
+  writeType: InvalidType
+  element: <null>
+  staticType: int
+''');
+  }
+
   test_final_cascadeCompoundAssignment() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -3685,8 +3931,6 @@ void f(C c) {
   c..foo += 1;
 //   ^^^
 // [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'C' can't be assigned to.
-//       ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function()'.
 }
 ''');
 
@@ -3780,6 +4024,57 @@ V1: AssignmentExpression
 ''');
   }
 
+  test_wrongKind_cascadeIfNullAssignment() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+class C {
+  void foo() {}
+}
+
+void f(C c) {
+  c..foo ??= 0;
+//   ^^^
+// [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'C' can't be assigned to.
+}
+''');
+
+    var node = result.findNode.singleIfNullAssignment;
+    assertResolvedNodeText(node, r'''
+IfNullAssignment
+  target: CascadePropertyAssignmentTarget
+    name: foo
+    read: ExecutableTearOffResolution
+      element: <testLibrary>::@class::C::@method::foo
+      type: void Function()
+    write: InvalidNamedWriteResolution
+      recoveryElement: <testLibrary>::@class::C::@method::foo
+  operator: ??=
+  value: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  staticType: InvalidType
+V1: AssignmentExpression
+  leftHandSide: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: foo
+      element: <null>
+      staticType: null
+    staticType: null
+  operator: ??=
+  rightHandSide: IntegerLiteral
+    literal: 0
+    correspondingParameter: <null>
+    staticType: int
+  readElement: <testLibrary>::@class::C::@method::foo
+  readType: void Function()
+  writeElement: <testLibrary>::@class::C::@method::foo
+  writeType: InvalidType
+  element: <null>
+  staticType: InvalidType
+''');
+  }
+
   test_wrongKind_compoundAssignment() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class C {
@@ -3856,8 +4151,6 @@ void f(C c) {
   (c).foo += 1;
 //    ^^^
 // [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'C' can't be assigned to.
-//        ^^
-// [diag.undefinedOperator] The operator '+' isn't defined for the type 'void Function()'.
 }
 ''');
   }
@@ -4142,10 +4435,6 @@ void f(C c) {
   c.foo ??= 0;
 //  ^^^
 // [diag.undefinedInstanceMemberWriteWrongKind] The method 'foo' of the type 'C' can't be assigned to.
-//          ^^
-// [diag.deadCode] Dead code.
-//          ^
-// [diag.deadNullAwareExpression] The left operand can't be null, so the right operand is never executed.
 }
 ''');
 
@@ -4171,7 +4460,7 @@ IfNullAssignment
     literal: 0
     correspondingParameter: <null>
     staticType: int
-  staticType: Object
+  staticType: InvalidType
 V1: AssignmentExpression
   leftHandSide: PrefixedIdentifier
     prefix: SimpleIdentifier
@@ -4195,7 +4484,7 @@ V1: AssignmentExpression
   writeElement: <testLibrary>::@class::C::@method::foo
   writeType: InvalidType
   element: <null>
-  staticType: Object
+  staticType: InvalidType
 ''');
   }
 

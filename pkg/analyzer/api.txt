@@ -7132,6 +7132,20 @@ package:analyzer/source/timestamped_data.dart:
     new (constructor: TimestampedData<E> Function(int, E))
     data (getter: E)
     modificationTime (getter: int)
+package:analyzer/utilities/extensions/element.dart:
+  LibraryElement2Extension (extension on LibraryElement):
+    exportedExtensions (getter: Iterable<ExtensionElement>)
+package:analyzer/utilities/extensions/uri.dart:
+  UriExtension (extension on Uri):
+    isImplementation (getter: bool)
+    isSamePackageAs (method: bool Function(Uri))
+package:analyzer/workspace/workspace.dart:
+  WorkspacePackage (class extends Object, abstract):
+    new (constructor: WorkspacePackage Function())
+    canHavePublicApi (getter: bool)
+    root (getter: Folder)
+    contains (method: bool Function(Source))
+    isInTestDirectory (method: bool Function(File))
 package:analyzer/src/dart/analysis/experiments_impl.dart:
   ExperimentalFeature (class extends Object implements Feature, non-public):
     new (constructor: ExperimentalFeature Function({List<String> channels, required String documentation, required String enableString, required Version? experimentalReleaseVersion, required int index, required bool isEnabledByDefault, required bool isExpired, required Version? releaseVersion}))
@@ -7162,20 +7176,6 @@ package:analyzer/src/dart/resolver/scope.dart:
     getPrefixed2 (method: Element? Function(String, String))
 package:analyzer/src/workspace/workspace.dart:
   Workspace (non-public)
-package:analyzer/utilities/extensions/element.dart:
-  LibraryElement2Extension (extension on LibraryElement):
-    exportedExtensions (getter: Iterable<ExtensionElement>)
-package:analyzer/utilities/extensions/uri.dart:
-  UriExtension (extension on Uri):
-    isImplementation (getter: bool)
-    isSamePackageAs (method: bool Function(Uri))
-package:analyzer/workspace/workspace.dart:
-  WorkspacePackage (class extends Object, abstract):
-    new (constructor: WorkspacePackage Function())
-    canHavePublicApi (getter: bool)
-    root (getter: Folder)
-    contains (method: bool Function(Source))
-    isInTestDirectory (method: bool Function(File))
 dart:async:
   Future (referenced)
   Stream (referenced)

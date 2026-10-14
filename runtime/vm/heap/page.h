@@ -44,7 +44,7 @@ class Page {
   // object can be computed by masking the object with kPageMask.
   // This does not apply to image pages, whose address is chosen by the system
   // loader rather than the Dart VM.
-  static constexpr intptr_t kPageSize = 512 * KB;
+  static constexpr intptr_t kPageSize = 2 * MB;
   static constexpr intptr_t kPageSizeInWords = kPageSize / kWordSize;
   static constexpr intptr_t kPageMask = ~(kPageSize - 1);
 
@@ -342,7 +342,7 @@ class PageCache {
   // to fit a complete from-space into this cache. The standalone embedder sets
   // the semispace size to 16/32MB. This cache is in units of regular heap
   // pages, which are 512kB (Page::kPageSize).
-  static constexpr intptr_t kCapacity = 128 * kWordSize;
+  static constexpr intptr_t kCapacity = (4 * kWordSize * MB) / Page::kPageSize;
   Mutex mutex_;
   VirtualMemory* cache_[2][kCapacity] = {{nullptr}, {nullptr}};
   intptr_t size_[2] = {0, 0};

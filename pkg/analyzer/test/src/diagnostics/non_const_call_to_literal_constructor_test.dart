@@ -182,6 +182,19 @@ var a = A(new List.filled(1, ''));
 ''');
   }
 
+  test_class_secondaryConstructor_undefinedNameArgument() async {
+    await resolveTestCodeWithDiagnostics(r'''
+import 'package:meta/meta.dart';
+class A {
+  @literal
+  const A(Object? o);
+}
+var a = A(undefined);
+//        ^^^^^^^^^
+// [diag.undefinedUnqualifiedNameReadNotFound] Undefined name 'undefined'.
+''');
+  }
+
   test_class_secondaryConstructor_usingNew() async {
     await resolveTestCodeWithDiagnostics(r'''
 import 'package:meta/meta.dart';

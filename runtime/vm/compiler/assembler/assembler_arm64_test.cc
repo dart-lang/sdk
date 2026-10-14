@@ -2452,6 +2452,29 @@ ASSEMBLER_TEST_RUN(Tbl1, test) {
       "ret\n");
 }
 
+ASSEMBLER_TEST_GENERATE(Rev64S, assembler) {
+  __ fldrq(V1, Address(R0, 0));
+  __ vrev64_4s(V0, V1);
+  __ fstrq(V0, Address(R0, 16));
+  __ ret();
+}
+
+ASSEMBLER_TEST_RUN(Rev64S, test) {
+  typedef void (*Rev64SCode)(uint32_t* buffer) DART_UNUSED;
+  uint32_t buffer[8] = {0x01234567, 0x89ABCDEF, 0x76543210, 0xFEDCBA98,
+                        0x5A5A5A5A, 0x5A5A5A5A, 0x5A5A5A5A, 0x5A5A5A5A};
+  reinterpret_cast<Rev64SCode>(test->entry())(buffer);
+  EXPECT_EQ(0x89ABCDEFu, buffer[4]);
+  EXPECT_EQ(0x01234567u, buffer[5]);
+  EXPECT_EQ(0xFEDCBA98u, buffer[6]);
+  EXPECT_EQ(0x76543210u, buffer[7]);
+  EXPECT_DISASSEMBLY(
+      "fldrq v1, [r0]\n"
+      "vrev64s v0, v1\n"
+      "fstrq v0, [r0, #16]\n"
+      "ret\n");
+}
+
 // Comparisons, branching.
 ASSEMBLER_TEST_GENERATE(BranchALForward, assembler) {
   Label l;

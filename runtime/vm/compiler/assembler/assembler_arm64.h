@@ -1580,6 +1580,14 @@ class Assembler : public AssemblerBase {
                              (static_cast<int32_t>(vd) << kVdShift);
     Emit(encoding);
   }
+  // REV64 Vd.4S, Vn.4S: swaps the two 32-bit lanes in each 64-bit half, so
+  // the lanes n0, n1, n2, n3 of Vn become n1, n0, n3, n2.
+  void vrev64_4s(VRegister vd, VRegister vn) {
+    const int32_t encoding = 0x4EA00800 |
+                             (static_cast<int32_t>(vn) << kVnShift) |
+                             (static_cast<int32_t>(vd) << kVdShift);
+    Emit(encoding);
+  }
   // UMINV Sd, Vn.4S: unsigned minimum across the four word lanes of Vn into the
   // 32-bit scalar in the low bits of Vd.
   void vuminv_4s(VRegister vd, VRegister vn) {

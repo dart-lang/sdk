@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:cfg/ir/flow_graph.dart';
+import 'package:cfg/ir/functions.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/source_position.dart';
@@ -11,6 +12,7 @@ import 'package:cfg/ir/visitor.dart';
 import 'package:kernel/ast.dart' as ast;
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
+import '../intrinsics.dart';
 import '../reference_extensions.dart';
 import '../translator.dart';
 import 'ir_log.dart';
@@ -52,7 +54,7 @@ class CfgToWasm {
 
     for (final block in graph.preorder) {
       for (final instr in block) {
-        if (!_WasmInstructionLowerer.canHandle(instr)) {
+        if (!_WasmInstructionLowerer.canHandle(instr, translator)) {
           return false;
         }
       }
@@ -253,7 +255,7 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
   Translator get translator => gen.translator;
   w.InstructionsBuilder get b => gen.b;
 
-  static bool canHandle(Instruction instr) {
+  static bool canHandle(Instruction instr, Translator translator) {
     return switch (instr) {
       EntryBlock() => true,
       TargetBlock() => true,
@@ -287,8 +289,36 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
             op != BinaryIntOpcode.rem,
       UnaryIntOp(:final op) =>
         op == UnaryIntOpcode.neg || op == UnaryIntOpcode.bitNot,
+      DirectCall() => _canHandleDirectCall(instr, translator),
       _ => false,
     };
+  }
+
+  static bool _canHandleDirectCall(DirectCall instr, Translator translator) {
+    final target = instr.target;
+    // TODO(nshahan): Support getters, setters, generative constructors
+    // (paired with AllocateObject) and super calls.
+    if (target is! RegularFunction) return false;
+    final member = target.member as ast.Procedure;
+    if (member.isInstanceMember) return false;
+    // TODO(nshahan): Support generic calls (TypeArguments input).
+    if (target.hasFunctionTypeParameters) return false;
+    // TODO(nshahan): Support optional and named parameters.
+    final function = member.function;
+    final shape = instr.argumentsShape;
+    if (function.namedParameters.isNotEmpty ||
+        shape.named.isNotEmpty ||
+        shape.positional != function.positionalParameters.length) {
+      return false;
+    }
+    // TODO(nshahan): Support intrinsics and external effects (see
+    // `CodeGenerator.visitStaticInvocation`).
+    if (member.isExternal ||
+        member.hasExternalEffectPragma ||
+        StaticIntrinsic.fromProcedure(translator.coreTypes, member) != null) {
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -485,6 +515,41 @@ class _WasmInstructionLowerer extends DefaultInstructionVisitor<void> {
         throw UnimplementedError('UnaryIntOp ${instr.op}');
     }
 
+    b.local_set(resultLocal);
+  }
+
+  @override
+  void visitDirectCall(DirectCall instr) {
+    final reference = instr.target.member.reference;
+    final signature = translator.signatureForDirectCall(reference);
+    // TODO(nshahan): Needs adjustment when adding support for type arguments
+    // and optional/named parameters.
+    assert(signature.inputs.length == instr.inputCount);
+    for (int i = 0; i < instr.inputCount; ++i) {
+      final argLocal = gen.getLocal(instr.inputDefAt(i));
+      b.local_get(argLocal);
+      // Ensure the argument types match the expected funcction parameter types.
+      translator.convertType(b, argLocal.type, signature.inputs[i]);
+    }
+
+    final outputs = translator.callReference(reference, b);
+
+    // Nothing to do becase `callReference` already emitted `unreachable` after
+    // the call.
+    if (translator.synthesizeNoReturn(reference)) return;
+
+    if (!instr.hasUses) {
+      // Cleanup stack if results of the call are not used.
+      for (int i = 0; i < outputs.length; ++i) {
+        b.drop();
+      }
+      return;
+    }
+
+    // All non-setter invocations return a value.
+    assert(outputs.length == 1);
+    final resultLocal = gen.getLocal(instr);
+    translator.convertType(b, outputs.single, resultLocal.type);
     b.local_set(resultLocal);
   }
 

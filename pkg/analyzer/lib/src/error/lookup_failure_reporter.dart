@@ -308,14 +308,12 @@ final class InstanceLookupDomain extends LookupDomain {
           libraryUri: libraryUri,
         );
       case _FoundDeclaration(element: GetterElement(:var variable)):
-        if (variable.isConst) {
-          // An instance field can't be constant, and its declaration already
-          // reports that.
+        if (_isInvalidInstanceField(variable)) {
           return null;
-        } else if (variable.isFinal && !variable.isOriginGetterSetter) {
-          // A final field, declared in a field declaration, by a declaring
-          // formal parameter of a primary constructor, or as the
-          // representation field of an extension type.
+        } else if (variable is FieldElement &&
+            variable.isFinal &&
+            (variable.isOriginDeclaration ||
+                variable.isOriginDeclaringFormalParameter)) {
           return diag.undefinedInstanceMemberWriteFinal.withArguments(
             name: name,
             type: receiverType,
@@ -357,6 +355,49 @@ sealed class LookupDomain {
 
   /// Whether a failed lookup of [name] in this domain is not reported.
   bool _isIgnored(LibraryFragmentImpl libraryFragment, String name) {
+    return false;
+  }
+
+  /// Whether [variable] is an instance field whose declaration is itself an
+  /// error, so that a failed write to it is a follow-up and reports nothing.
+  ///
+  /// An instance field can't be constant, which reports
+  /// `const_instance_field`, and extensions and extension types can't declare
+  /// instance fields, which reports `extension_declares_instance_field` and
+  /// `extension_type_declares_instance_field`.
+  bool _isInvalidInstanceField(PropertyInducingElement variable) {
+    // A top-level variable can be constant.
+    if (variable is! FieldElement) {
+      return false;
+    }
+
+    // A static field can be constant, also in an extension.
+    if (variable.isStatic) {
+      return false;
+    }
+
+    // A field induced by a getter or setter stands for valid accessors, also
+    // in an extension.
+    if (!variable.isOriginDeclaration) {
+      return false;
+    }
+
+    // An instance field can't be constant.
+    if (variable.isConst) {
+      return true;
+    }
+
+    // An extension can't declare instance fields.
+    if (variable.enclosingElement is ExtensionElement) {
+      return true;
+    }
+
+    // An extension type can't declare instance fields, other than its
+    // representation field, which is a declaring formal parameter.
+    if (variable.enclosingElement is ExtensionTypeElement) {
+      return true;
+    }
+
     return false;
   }
 
@@ -777,13 +818,12 @@ final class SuperLookupDomain extends LookupDomain {
           libraryUri: libraryUri,
         );
       case _FoundDeclaration(element: GetterElement(:var variable)):
-        if (variable.isConst) {
-          // An instance field can't be constant, and its declaration already
-          // reports that.
+        if (_isInvalidInstanceField(variable)) {
           return null;
-        } else if (variable.isFinal && !variable.isOriginGetterSetter) {
-          // A final field, declared in a field declaration, or by a declaring
-          // formal parameter of a primary constructor.
+        } else if (variable is FieldElement &&
+            variable.isFinal &&
+            (variable.isOriginDeclaration ||
+                variable.isOriginDeclaringFormalParameter)) {
           return diag.undefinedSuperMemberWriteFinal.withArguments(
             name: name,
             type: type,
@@ -863,14 +903,7 @@ final class UnqualifiedLookupDomain extends LookupDomain {
         // Reported as an ambiguous import by the caller.
         return null;
       case _FoundDeclaration(element: GetterElement(:var variable)):
-        if (variable is FieldElement &&
-            !variable.isStatic &&
-            !variable.isOriginGetterSetter &&
-            (variable.isConst ||
-                variable.enclosingElement is ExtensionElement)) {
-          // A declared instance field can't be constant, and an extension
-          // can't declare instance fields; the declaration already reports
-          // that.
+        if (_isInvalidInstanceField(variable)) {
           return null;
         } else if (variable.isConst) {
           return diag.undefinedUnqualifiedNameWriteConst.withArguments(

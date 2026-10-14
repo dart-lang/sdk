@@ -4001,6 +4001,9 @@ DEFINE_EMIT(Simd32x4Shuffle, (VRegister result, VRegister value)) {
     case 0xFF:  // wwww
       __ vdups(result, value, 3);
       break;
+    case 0xB1:  // yxwz
+      __ vrev64_4s(result, value);
+      break;
     default:
       __ LoadQImmediate(VTMP, ShuffleTableIndices(mask));
       __ vtbl1(result, value, VTMP);

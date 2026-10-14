@@ -1725,19 +1725,6 @@ package:analyzer_plugin/protocol/protocol_generated.dart:
     fromJson (constructor: WatchEventType Function(JsonDecoder, String, Object?, {ClientUriConverter? clientUriConverter}))
     toJson (method: String Function({ClientUriConverter? clientUriConverter}))
     toString (method: String Function())
-package:analyzer_plugin/src/protocol/protocol_internal.dart:
-  HasToJson (non-public)
-  JsonDecoder (non-public)
-  RequestParams (non-public)
-  ResponseResult (non-public)
-package:analyzer_plugin/src/utilities/client_uri_converter.dart:
-  ClientUriConverter (non-public)
-package:analyzer_plugin/src/utilities/completion/completion_target.dart:
-  CompletionTarget (non-public)
-package:analyzer_plugin/src/utilities/completion/element_suggestion_builder.dart:
-  ElementSuggestionBuilder (non-public)
-package:analyzer_plugin/src/utilities/completion/optype.dart:
-  OpType (non-public)
 package:analyzer_plugin/starter.dart:
   ServerPluginStarter (class extends Object, abstract):
     new (constructor: ServerPluginStarter Function(ServerPlugin))
@@ -2176,6 +2163,19 @@ package:analyzer_plugin/utilities/subscriptions/subscription_manager.dart:
     hasSubscriptionForFile (method: bool Function(String, AnalysisService))
     servicesForFile (method: List<AnalysisService> Function(String))
     setSubscriptions (method: Map<String, List<AnalysisService>> Function(Map<AnalysisService, List<String>>))
+package:analyzer_plugin/src/protocol/protocol_internal.dart:
+  HasToJson (non-public)
+  JsonDecoder (non-public)
+  RequestParams (non-public)
+  ResponseResult (non-public)
+package:analyzer_plugin/src/utilities/client_uri_converter.dart:
+  ClientUriConverter (non-public)
+package:analyzer_plugin/src/utilities/completion/completion_target.dart:
+  CompletionTarget (non-public)
+package:analyzer_plugin/src/utilities/completion/element_suggestion_builder.dart:
+  ElementSuggestionBuilder (non-public)
+package:analyzer_plugin/src/utilities/completion/optype.dart:
+  OpType (non-public)
 dart:async:
   Future (referenced)
   FutureOr (referenced)

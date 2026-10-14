@@ -119,6 +119,35 @@ void testWatchTruncateFile() {
   fileHandle.truncateSync(1);
 }
 
+void testWatchSetLastModifiedFile() {
+  final dir = Directory.systemTemp.createTempSync('dart_file_system_watcher');
+  final file = File(join(dir.path, 'file'));
+  file.createSync();
+  final time = file.lastModifiedSync().add(const Duration(seconds: 1));
+
+  final watcher = dir.watch();
+
+  asyncStart();
+  late final StreamSubscription<FileSystemEvent> sub;
+  sub = watcher.listen(
+    (event) {
+      if (event is FileSystemModifyEvent && event.path.endsWith('file')) {
+        Expect.isFalse(event.isDirectory);
+        Expect.equals(Platform.isWindows, event.contentChanged);
+        sub.cancel();
+        asyncEnd();
+        dir.deleteSync(recursive: true);
+      }
+    },
+    onError: (Object e) {
+      dir.deleteSync(recursive: true);
+      throw e;
+    },
+  );
+
+  file.setLastModifiedSync(time);
+}
+
 void testWatchMoveFile() {
   // Mac OS doesn't report move events.
   if (Platform.isMacOS) return;
@@ -564,6 +593,7 @@ void main() {
   testWatchModifyFile();
   testWatchMoveFile();
   testWatchTruncateFile();
+  testWatchSetLastModifiedFile();
   testWatchDeleteFile();
   testWatchDeleteDir();
   testWatchOnlyModifyFile();

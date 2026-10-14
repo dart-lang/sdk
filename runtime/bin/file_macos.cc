@@ -62,8 +62,8 @@ void File::Close() {
     if (err != 0) {
       const int kBufferSize = 1024;
       char error_message[kBufferSize];
-      Utils::StrError(errno, error_message, kBufferSize);
-      Syslog::PrintErr("%s\n", error_message);
+      Syslog::PrintErr("%s\n",
+                       Utils::StrError(errno, error_message, kBufferSize));
     }
   }
   handle_->set_fd(kClosedFd);

@@ -808,6 +808,12 @@ class Translator with KernelNodes {
   ///
   /// When performing a direct call it may inline the target if allowed and
   /// beneficial.
+  ///
+  /// Arguments must already be pushed to the stack, matching the inputs of
+  /// [signatureForDirectCall].
+  ///
+  /// Returns the types of the values that the emitted code leaves on the
+  /// stack.
   List<w.ValueType> callReference(
     Reference reference,
     w.InstructionsBuilder b,

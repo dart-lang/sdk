@@ -5,6 +5,7 @@
 #include "vm/flags.h"
 
 #include "platform/assert.h"
+#include "vm/heap/page.h"
 #include "vm/isolate.h"
 #include "vm/json_stream.h"
 #include "vm/os.h"
@@ -557,6 +558,13 @@ char* Flags::CheckFlags() {
   }
   if (FLAG_compactor_tasks < 0) {
     return Utils::StrDup("Invalid compactor_tasks");
+  }
+
+  if (FLAG_new_gen_semi_initial_size * MB < Page::kPageSize) {
+    return Utils::StrDup("Invalid new_gen_semi_initial_size");
+  }
+  if (FLAG_new_gen_semi_max_size * MB < Page::kPageSize) {
+    return Utils::StrDup("Invalid new_gen_semi_max_size");
   }
 
   return nullptr;
