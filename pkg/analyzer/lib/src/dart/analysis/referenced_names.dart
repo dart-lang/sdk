@@ -336,6 +336,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {

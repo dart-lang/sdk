@@ -899,7 +899,7 @@ CompilationUnit
                   sections
                     CascadeSection
                       operator: ..
-                      body: ParsedCascadeName
+                      body: CascadePropertyExtraction
                         name: <empty> <synthetic>
                   cascadeSections
                     PropertyAccess
@@ -2454,7 +2454,7 @@ CascadeExpression
       operator: ..
       body: ParsedValueArguments
         operand: ParsedNameAccess
-          operand: ParsedCascadeName
+          operand: CascadePropertyExtraction
             name: b
           operator: .
           name: <empty> <synthetic>

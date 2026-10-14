@@ -107,19 +107,6 @@ class AstRewriter {
     Scope nameScope,
     ParsedExpressionImpl node,
   ) {
-    if (node is ParsedCascadeNameImpl) {
-      var expression = CascadePropertyExtractionImpl(name: node.name);
-      node.replaceWith(expression);
-      return RewrittenParsedExpression._(expression);
-    }
-    if (node is ParsedDotShorthandNameImpl) {
-      var expression = DotShorthandNameExpressionImpl(
-        period: node.period,
-        name: node.name,
-      );
-      node.replaceWith(expression);
-      return RewrittenParsedExpression._(expression);
-    }
     if (node is ParsedValueArgumentsImpl &&
         node.cascadeInvocationParts != null) {
       return PreparedCascadeInvocation(node);
@@ -628,8 +615,6 @@ class AstRewriter {
         lookup,
         hasSelector: hasSelector || !identical(node, root),
       );
-    } else if (node is ParsedCascadeNameImpl) {
-      receiver = CascadePropertyExtractionImpl(name: node.name);
     } else {
       // Nested call syntax and ordinary expressions use their own visitors,
       // including constructor and extension-override selection.

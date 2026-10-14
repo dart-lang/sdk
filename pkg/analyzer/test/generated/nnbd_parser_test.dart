@@ -470,7 +470,7 @@ Block
               rightBracket: ]
           CascadeSection
             operator: ?..
-            body: ParsedCascadeName
+            body: CascadePropertyExtraction
               name: x
         cascadeSections
           IndexExpression
@@ -547,7 +547,7 @@ Block
         sections
           CascadeSection
             operator: ?..
-            body: ParsedCascadeName
+            body: CascadePropertyExtraction
               name: x27
         cascadeSections
           PropertyAccess

@@ -683,14 +683,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitParsedCascadeName(covariant ParsedCascadeNameImpl node) =>
-      _visitParsedExpression(node);
-
-  @override
-  void visitParsedDotShorthandName(covariant ParsedDotShorthandNameImpl node) =>
-      _visitParsedExpression(node);
-
-  @override
   void visitParsedNameAccess(covariant ParsedNameAccessImpl node) =>
       _visitParsedExpression(node);
 

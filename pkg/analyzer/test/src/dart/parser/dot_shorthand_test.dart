@@ -60,7 +60,7 @@ ParsedDotShorthandExpression
       operand: ParsedNameAccess
         operand: NullAssertionExpression
           operand: ReceiverIndexExpression
-            receiver: ParsedDotShorthandName
+            receiver: DotShorthandNameExpression
               period: .
               name: values
             leftBracket: [
@@ -116,7 +116,7 @@ ParsedDotShorthandExpression
   expression: ParsedValueArguments
     operand: ParsedNameAccess
       operand: ParsedTypeArguments
-        operand: ParsedDotShorthandName
+        operand: DotShorthandNameExpression
           period: .
           name: identity
         typeArguments: TypeArgumentList
@@ -290,7 +290,7 @@ ParsedValueArguments
     operand: ParenthesizedExpression
       leftParenthesis: (
       expression2: ParsedDotShorthandExpression
-        expression: ParsedDotShorthandName
+        expression: DotShorthandNameExpression
           period: .
           name: value
       rightParenthesis: )
@@ -328,7 +328,7 @@ void main() {
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ParsedDotShorthandExpression
-  expression: ParsedDotShorthandName
+  expression: DotShorthandNameExpression
     period: .
     name: a
 V1: DotShorthandPropertyAccess

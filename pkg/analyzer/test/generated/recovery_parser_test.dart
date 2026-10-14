@@ -1256,7 +1256,7 @@ var v = .;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ParsedDotShorthandExpression
-  expression: ParsedDotShorthandName
+  expression: DotShorthandNameExpression
     period: .
     name: <empty> <synthetic>
 V1: DotShorthandPropertyAccess

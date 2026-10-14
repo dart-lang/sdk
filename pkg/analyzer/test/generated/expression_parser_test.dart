@@ -83,7 +83,7 @@ CascadeExpression
     CascadeSection
       operator: ..
       body: ParsedTypeArguments
-        operand: ParsedCascadeName
+        operand: CascadePropertyExtraction
           name: b
         typeArguments: TypeArgumentList
           leftBracket: <
@@ -121,7 +121,7 @@ CascadeExpression
     CascadeSection
       operator: ..
       body: ParsedNameAccess
-        operand: ParsedCascadeName
+        operand: CascadePropertyExtraction
           name: b
         operator: .
         name: this
@@ -1495,7 +1495,7 @@ CascadeExpression
   sections
     CascadeSection
       operator: ..
-      body: ParsedCascadeName
+      body: CascadePropertyExtraction
         name: a
   cascadeSections
     PropertyAccess
@@ -1654,7 +1654,7 @@ CascadeExpression
   sections
     CascadeSection
       operator: ..
-      body: ParsedCascadeName
+      body: CascadePropertyExtraction
         name: as
   cascadeSections
     PropertyAccess
