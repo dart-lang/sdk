@@ -61,6 +61,7 @@ http_launch_test: Skip
 io/addlatexhash_test: Skip
 io/issue_46436_test: SkipByDesign # Uses mirrors.
 io/print_test: SkipByDesign # Attempts to spawn dart using Platform.executable
+io/process_exit_handler_zombie_test: SkipByDesign # Spawns this runtime to execute Dart source.
 io/socket_sigpipe_test: SkipByDesign # Spawns server process using Platform.executable
 
 [ $sanitizer == asan ]
@@ -82,6 +83,7 @@ io/https_nonblocking_trust_evaluation_test: SkipByDesign
 
 [ $simulator ]
 io/http_big_header_test: SkipSlow # Issue 52110
+io/process_exit_handler_zombie_test: SkipByDesign # Uses native libc functions through FFI.
 io/socket_sigpipe_test: SkipByDesign # Test uses ffi
 
 [ $compiler != dartk && $runtime != dart_precompiled && $runtime != vm ]
