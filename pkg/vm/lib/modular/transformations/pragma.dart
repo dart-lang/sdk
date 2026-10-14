@@ -22,6 +22,7 @@ const vmFfiNative = "vm:ffi:native";
 const vmSharedPragmaName = "vm:shared";
 const vmDeeplyImmutablePragmaName = "vm:deeply-immutable";
 const vmInvisiblePragmaName = "vm:invisible";
+const vmAwaiterLinkPragmaName = "vm:awaiter-link";
 
 // Pragmas recognized by dart2wasm
 const wasmEntryPointPragmaName = "wasm:entry-point";
@@ -296,7 +297,7 @@ class ConstantPragmaAnnotationParser implements PragmaAnnotationParser {
 
 /// Helper methods for accessing pragmas.
 /// Should be used on kernel AST nodes only after all constants are evaluated.
-extension AnnotatblePragmaHelpers on Annotatable {
+extension AnnotatablePragmaHelpers on Annotatable {
   /// Returns true if this node is annotated with pragma [pragmaName].
   bool hasPragma(String pragmaName, CoreTypes coreTypes) {
     for (final annotation in annotations) {
@@ -354,4 +355,10 @@ extension FunctionDeclarationPragmaHelpers on FunctionDeclaration {
   /// Returns true if this local function is annotated with 'vm:invisible' pragma.
   bool isInvisible(CoreTypes coreTypes) =>
       variable.hasPragma(vmInvisiblePragmaName, coreTypes);
+}
+
+extension VariablePragmaHelpers on Variable {
+  /// Returns true if this variable is annotated with 'vm:awaiter-link' pragma.
+  bool isAwaiterLink(CoreTypes coreTypes) =>
+      hasPragma(vmAwaiterLinkPragmaName, coreTypes);
 }
