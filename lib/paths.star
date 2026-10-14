@@ -129,6 +129,8 @@ _DDC_PATHS = _WEB_PATHS + [
     "utils/dartdevc/.+",
     # testing
     "pkg/(js|modular_test|sourcemap_testing)/.+",
+    # DWDS integration tests run on the DDC builders.
+    "pkg/(dwds|dwds_test_common)/.+",
 ]
 
 _ANALYZER_PATHS = _STANDARD_PATHS + [
