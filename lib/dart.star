@@ -240,6 +240,7 @@ def _builder(
                 experiment_percentage = experiment_percentage,
                 experiments = experiments,
                 rbe = rbe,
+                siso = siso,
                 location_filters = location_filters,
             )
         else:
