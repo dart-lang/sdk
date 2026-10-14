@@ -1941,46 +1941,58 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
   StackTraceUtils::CollectFrames(
       thread, /*skip_frames=*/0,
       [&](const StackTraceUtils::Frame& frame) {
-        if (frame.code.IsNull() && frame.bytecode.IsNull()) {
-          return;
-        }
+        if (frame.code_or_bytecode.IsNull()) return;
 
         if (frame.frame != nullptr) {  // Synchronous portion of the stack.
           if (FLAG_trace_debugger_stacktrace) {
             // StackFrame::ToCString() prepends two spaces in its output.
             OS::PrintErr("%s\n", frame.frame->ToCString());
           }
-          if (!frame.bytecode.IsNull()) {
+          if (frame.HasBytecode()) {
             function = frame.frame->LookupDartFunction();
             stack_trace->AppendBytecodeFrame(frame.frame, function,
-                                             frame.bytecode);
+                                             frame.bytecode());
           } else {
-            stack_trace->AppendCodeFrames(frame.frame, frame.code);
+            stack_trace->AppendCodeFrames(frame.frame, frame.code());
           }
         } else {
           has_async = true;
 
-          if (frame.code.ptr() == StubCode::AsynchronousGapMarker().ptr()) {
+          if (frame.HasCode() &&
+              frame.code().ptr() == StubCode::AsynchronousGapMarker().ptr()) {
             stack_trace->AddAsyncSuspension();
             return;
           }
 
+          uword pc_offset = frame.pc_offset;
+          // Closures listening to futures are invoked with the result of the
+          // future when it completes, so async awaiter frames for future
+          // listeners have a "return address" of the entry point.
+          const bool is_future_listener =
+              pc_offset == StackTraceUtils::kFutureListenerPcOffset;
           uword start = 0;
           const Object* obj = nullptr;
           const char* name = nullptr;
-          if (!frame.bytecode.IsNull()) {
-            function = frame.bytecode.function();
-            start = frame.bytecode.PayloadStart();
-            obj = &frame.bytecode;
+          if (frame.HasBytecode()) {
+            function = frame.bytecode().function();
+            start = frame.bytecode().PayloadStart();
+            if (is_future_listener) {
+              // All bytecode methods use the payload start as the entry point.
+              pc_offset = 0;
+            }
+            obj = &frame.bytecode();
             if (FLAG_trace_debugger_stacktrace) {
-              name = frame.bytecode.FullyQualifiedName();
+              name = frame.bytecode().FullyQualifiedName();
             }
           } else {
-            function = frame.code.function();
-            start = frame.code.PayloadStart();
-            obj = &frame.code;
+            function = frame.code().function();
+            start = frame.code().PayloadStart();
+            if (is_future_listener) {
+              pc_offset = frame.code().EntryPoint() - start;
+            }
+            obj = &frame.code();
             if (FLAG_trace_debugger_stacktrace) {
-              name = frame.code.QualifiedName(
+              name = frame.code().QualifiedName(
                   NameFormattingParams(Object::kInternalName));
             }
           }
@@ -1991,7 +2003,7 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
           const uword absolute_pc = start + frame.pc_offset;
           if (FLAG_trace_debugger_stacktrace) {
             OS::PrintErr("  async awaiter: %s+%#" Px "\n", name,
-                         frame.pc_offset);
+                         absolute_pc - start);
           }
           stack_trace->AddAsyncAwaiterFrame(absolute_pc, function, *obj,
                                             frame.closure);

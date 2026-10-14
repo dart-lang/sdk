@@ -1979,12 +1979,13 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       if (is_static) {
         if (is_shared) {
           function.AttachBytecode(
-              Object::implicit_shared_static_getter_bytecode());
+              Object::shared_implicit_shared_static_getter_bytecode());
         } else {
-          function.AttachBytecode(Object::implicit_static_getter_bytecode());
+          function.AttachBytecode(
+              Object::shared_implicit_static_getter_bytecode());
         }
       } else {
-        function.AttachBytecode(Object::implicit_getter_bytecode());
+        function.AttachBytecode(Object::shared_implicit_getter_bytecode());
       }
       functions_->SetAt(function_index_++, function);
     }
@@ -2011,12 +2012,13 @@ void BytecodeReaderHelper::ReadFieldDeclarations(const Class& cls,
       if (is_static) {
         if (is_shared) {
           function.AttachBytecode(
-              Object::implicit_shared_static_setter_bytecode());
+              Object::shared_implicit_shared_static_setter_bytecode());
         } else {
-          function.AttachBytecode(Object::implicit_static_setter_bytecode());
+          function.AttachBytecode(
+              Object::shared_implicit_static_setter_bytecode());
         }
       } else {
-        function.AttachBytecode(Object::implicit_setter_bytecode());
+        function.AttachBytecode(Object::shared_implicit_setter_bytecode());
       }
       functions_->SetAt(function_index_++, function);
     }
