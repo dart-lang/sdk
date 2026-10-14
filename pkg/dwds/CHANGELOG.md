@@ -1,5 +1,8 @@
-## 27.2.0-wip
+## 27.2.0
 
+- `package:dwds` is now developed in and published from the Dart SDK
+  repository at
+  [pkg/dwds](https://github.com/dart-lang/sdk/tree/main/pkg/dwds).
 - Add `deprecatedJsInterop` to `BuildSettings` and `CompilerOptions`. When it
   is set, the expression compiler worker is started with
   `--[no-]deprecated-js-interop`. This requires a Dart SDK that supports the
