@@ -52,21 +52,24 @@ def _flutter_recipe(name):
         use_bbagent = True,
     )
 
-def _with_rbe(rbe, properties):
-    """Decorates the properties to setup RBE.
+def _with_rbe_and_siso(rbe, siso, properties):
+    """Decorates the properties to setup RBE/SISO.
 
-       Enables/disables RBE via the $dart/build property.
+       Enables/disables RBE/SISO via the $dart/build property.
 
     Args:
         rbe: Opt-in (True), opt-out (False) or default (None).
+        siso: Opt-in (True), opt-out (False) or default (None).
         properties: The properties object to set $build/goma on (if opted-in).
 
     Returns:
-        A copy of the properties with RBE related properties set if applicable.
+        A copy of the properties with RBE/SISO related properties set if applicable.
     """
     updated_properties = dict(properties)
     if rbe == False:
         updated_properties = union({"$dart/build": {"disable_rbe": True}}, properties)
+    if siso == True:
+        updated_properties = union({"$dart/build": {"use_siso": True}}, properties)
     return updated_properties
 
 def _try_builder(
@@ -81,6 +84,7 @@ def _try_builder(
         experiment_percentage = None,
         experiments = None,
         rbe = None,
+        siso = None,
         location_filters = None,
         properties = None,
         on_cq = False):
@@ -98,6 +102,7 @@ def _try_builder(
         experiment_percentage: What experiment percentage to use.
         experiments: Experiments to run on this builder, with percentages.
         rbe: Whether to use RBE.
+        siso: Whether to use SISO.
         location_filters: Locations that trigger this tryjob.
         properties: Extra properties to set for builds.
         on_cq: Whether the build is added to the default set of CQ tryjobs.
@@ -116,7 +121,7 @@ def _try_builder(
     if dimensions["pool"] in ["luci.flutter.prod", "luci.flutter.staging"]:
         dimensions.pop("host_class")
     properties = defaults.properties(properties)
-    builder_properties = _with_rbe(rbe, properties)
+    builder_properties = _with_rbe_and_siso(rbe, siso, properties)
     builder = name + "-try"
     caches = caches if caches != None else defaults.caches(dimensions["os"])
     luci.builder(
@@ -159,6 +164,7 @@ def _builder(
         experiments = None,
         expiration_timeout = None,
         rbe = None,
+        siso = None,
         notifies = "dart",
         priority = priority.normal,
         properties = None,
@@ -187,6 +193,7 @@ def _builder(
         experiments: Experiments to run on this builder, with percentages.
         expiration_timeout: How long builds should wait for a bot to run on.
         rbe: Whether to use RBE or not.
+        siso: Whether to use SISO or not.
         notifies: Which luci notifier group to notify (default: "dart").
         priority: What swarming priority this builder gets (default: NORMAL).
         properties: Extra properties to set for builds.
@@ -236,8 +243,9 @@ def _builder(
                 location_filters = location_filters,
             )
         else:
-            builder_properties = _with_rbe(
+            builder_properties = _with_rbe_and_siso(
                 rbe if service_account == accounts.try_builder else False,
+                siso if service_account == accounts.try_builder else False,
                 properties,
             )
             builder = name + "-" + channel if channel else name

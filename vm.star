@@ -126,12 +126,14 @@ _nightly_builder(
     "vm-linux-debug-arm64",
     category = "vm|jit|linux|da",
     dimensions = [arm64],
+    siso = True,
 )
 _vm_builder(
     "vm-linux-release-arm64",
     category = "vm|jit|linux|ra",
     dimensions = [arm64],
     location_filters = paths.to_location_filters(paths.arm64),
+    siso = True,
 )
 _vm_builder(
     "vm-mac-debug-x64",
@@ -227,11 +229,13 @@ _nightly_builder(
     "vm-aot-linux-debug-arm64",
     category = "vm|aot|linux|da",
     dimensions = [arm64],
+    siso = True,
 )
 _vm_builder(
     "vm-aot-linux-release-arm64",
     category = "vm|aot|linux|ra",
     dimensions = [arm64],
+    siso = True,
 )
 _nightly_builder(
     "vm-aot-mac-debug-x64",
@@ -530,22 +534,26 @@ _nightly_misc_builder(
     "vm-asan-linux-release-arm64",
     category = "sanitizer|linux|a",
     dimensions = [arm64],
+    siso = True,
 )
 _nightly_misc_builder(
     "vm-msan-linux-release-arm64",
     category = "sanitizer|linux|m",
     dimensions = [arm64],
+    siso = True,
 )
 _nightly_misc_builder(
     "vm-tsan-linux-release-arm64",
     category = "sanitizer|linux|t",
     dimensions = [arm64],
     properties = [slow_shards],
+    siso = True,
 )
 _nightly_misc_builder(
     "vm-ubsan-linux-release-arm64",
     category = "sanitizer|linux|u",
     dimensions = [arm64],
+    siso = True,
 )
 _nightly_misc_builder(
     "vm-asan-mac-release-arm64",
