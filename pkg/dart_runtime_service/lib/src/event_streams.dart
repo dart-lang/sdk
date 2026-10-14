@@ -209,7 +209,6 @@ class EventStreamManager implements EventStreamMethods {
   final streamListeners = <String, List<Client>>{};
 
   final _logger = Logger('$EventStreamManager');
-  final _streamSubscriptionMutex = Mutex();
 
   /// Send `streamNotify` notifications to clients subscribed to `streamId`.
   ///
@@ -303,59 +302,50 @@ class EventStreamManager implements EventStreamMethods {
     required Map<String, Object?> params,
   }) async {
     assert(streamId.isNotEmpty);
-    // Weakly guard stream subscriptions so concurrent `streamListen` requests
-    // can execute in parallel without blocking on backend round-trips, while
-    // preventing `streamCancel` (which uses a strong guard) from racing with
-    // in-flight subscriptions.
-    await _streamSubscriptionMutex.runGuardedWeak(() async {
-      var listeners = streamListeners[streamId];
-      if (listeners != null && listeners.contains(client)) {
-        RpcException.streamAlreadySubscribed.throwException();
-      }
+    final listeners = streamListeners.putIfAbsent(streamId, () => []);
+    if (listeners.contains(client)) {
+      RpcException.streamAlreadySubscribed.throwException();
+    }
+    listeners.add(client);
 
-      // Tell the backend to start sending events for this stream if this is the
-      // first listener.
-      if (listeners == null || listeners.isEmpty) {
-        final success = await _backend.onStreamListen(
-          streamId: streamId,
-          params: params,
+    // Tell the backend to start sending events for this stream if this is the
+    // first listener.
+    if (listeners.length == 1) {
+      final success = await _backend.onStreamListen(
+        streamId: streamId,
+        params: params,
+      );
+      if (!success) {
+        client.logger.warning(
+          'Attempted to subscribe to an invalid stream ID: $streamId.',
         );
-        if (!success) {
-          client.logger.warning(
-            'Attempted to subscribe to an invalid stream ID: $streamId.',
-          );
-          RpcException.invalidParams.throwExceptionWithDetails(
-            details: "streamListen: invalid 'streamId' parameter: $streamId",
-          );
+        streamListeners.remove(streamId);
+        RpcException.invalidParams.throwExceptionWithDetails(
+          details: "streamListen: invalid 'streamId' parameter: $streamId",
+        );
+      }
+    }
+    _backend.onClientSubscribe(client, streamId);
+    if (streamId == EventStreams.kService) {
+      // Send all previously registered service extensions when a client
+      // subscribes to the Service stream.
+      for (final c in clients) {
+        if (c == client) {
+          continue;
         }
-        listeners = streamListeners.putIfAbsent(streamId, () => []);
-      }
-      if (listeners.contains(client)) {
-        RpcException.streamAlreadySubscribed.throwException();
-      }
-      listeners.add(client);
-      _backend.onClientSubscribe(client, streamId);
-      if (streamId == EventStreams.kService) {
-        // Send all previously registered service extensions when a client
-        // subscribes to the Service stream.
-        for (final c in clients) {
-          if (c == client) {
-            continue;
-          }
-          final namespace = clients.keyOf(c);
-          if (namespace == null) {
-            continue;
-          }
-          for (final (:service, :alias) in c.services.toList()) {
-            ServiceRegisteredEvent(
-              service: service,
-              namespace: namespace,
-              alias: alias,
-            ).sendToClient(client);
-          }
+        final namespace = clients.keyOf(c);
+        if (namespace == null) {
+          continue;
+        }
+        for (final (:service, :alias) in c.services.toList()) {
+          ServiceRegisteredEvent(
+            service: service,
+            namespace: namespace,
+            alias: alias,
+          ).sendToClient(client);
         }
       }
-    });
+    }
   }
 
   /// Unsubscribes `client` from a stream.
@@ -365,20 +355,18 @@ class EventStreamManager implements EventStreamMethods {
     required String streamId,
   }) async {
     assert(streamId.isNotEmpty);
-    await _streamSubscriptionMutex.runGuarded(() async {
-      final listeners = streamListeners[streamId];
-      if (listeners == null || !listeners.contains(client)) {
-        RpcException.streamNotSubscribed.throwException();
-      }
+    final listeners = streamListeners[streamId];
+    if (listeners == null || !listeners.contains(client)) {
+      RpcException.streamNotSubscribed.throwException();
+    }
 
-      listeners.remove(client);
-      _backend.onClientUnsubscribe(client, streamId);
-      // Tell the backend to stop sending events for this stream if there's no
-      // more listeners.
-      if (listeners.isEmpty) {
-        await _backend.onStreamCancel(streamId: streamId);
-      }
-    });
+    listeners.remove(client);
+    _backend.onClientUnsubscribe(client, streamId);
+    // Tell the backend to stop sending events for this stream if there's no
+    // more listeners.
+    if (listeners.isEmpty) {
+      await _backend.onStreamCancel(streamId: streamId);
+    }
   }
 
   /// Cleanup stream subscriptions for `client` when it has disconnected.

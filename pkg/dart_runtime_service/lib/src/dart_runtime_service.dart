@@ -201,10 +201,6 @@ class DartRuntimeService {
         return;
       }
       await backend.onServiceReady(this);
-    } catch (_) {
-      _initializedCompleter.complete();
-      await shutdown();
-      rethrow;
     } finally {
       if (!_initializedCompleter.isCompleted) {
         _initializedCompleter.complete();
@@ -342,12 +338,7 @@ class DartRuntimeService {
       port: server.port,
       path: authCode != null ? '/$authCode' : '',
     );
-    try {
-      await backend.onServerStarted(httpUri: httpUri, wsUri: uri);
-    } catch (_) {
-      await _shutdownServerLocked();
-      rethrow;
-    }
+    await backend.onServerStarted(httpUri: httpUri, wsUri: uri);
     _logger.info(
       'Dart Runtime Service HTTP server started successfully and is '
       'listening at $uri.',
