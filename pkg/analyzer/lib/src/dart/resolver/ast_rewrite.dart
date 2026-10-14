@@ -39,8 +39,6 @@ class AstRewriter {
   ) {
     AssignmentTargetImpl target;
     switch (node) {
-      case ParsedUnqualifiedNameAssignmentTargetImpl(:var name):
-        target = UnqualifiedNameAssignmentTargetImpl(name: name);
       case ParsedNameAccessAssignmentTargetImpl(
         :var operand,
         :var operator,

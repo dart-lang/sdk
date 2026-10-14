@@ -414,11 +414,11 @@ void f() {
     var node = parseResult.findNode.singleExpressionStatement.expression2;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: x
   operator: =
   value: DirectAssignment
-    target: ParsedUnqualifiedNameAssignmentTarget
+    target: UnqualifiedNameAssignmentTarget
       name: y
     operator: =
     value: IntegerLiteral
@@ -1657,7 +1657,7 @@ ConditionalExpression
     token: b
   question: ?
   thenExpression2: DirectAssignment
-    target: ParsedUnqualifiedNameAssignmentTarget
+    target: UnqualifiedNameAssignmentTarget
       name: c
     operator: =
     value: BooleanLiteral
@@ -1707,7 +1707,7 @@ ConditionalExpression
       token: x
   question: ?
   thenExpression2: DirectAssignment
-    target: ParsedUnqualifiedNameAssignmentTarget
+    target: UnqualifiedNameAssignmentTarget
       name: c
     operator: =
     value: BooleanLiteral

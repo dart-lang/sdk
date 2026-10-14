@@ -40884,8 +40884,6 @@ sealed class ParsedAssignmentTargetImpl extends AssignmentTargetImpl
 
   @ToBeDeprecated('Part of the V1 projection.')
   ExpressionImpl get v1Projection => _v1Projection ??= switch (this) {
-    ParsedUnqualifiedNameAssignmentTargetImpl(:var name) =>
-      SimpleIdentifierImpl.v1Projection(token: name),
     ParsedNameAccessAssignmentTargetImpl(
       :var operand,
       :var operator,
@@ -41854,107 +41852,6 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ParsedUnqualifiedName implements ParsedExpression {
   Token get name;
-}
-
-/// An unqualified name in an assignment destination.
-@experimental
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ParsedUnqualifiedNameAssignmentTarget
-    implements ParsedAssignmentTarget {
-  Token get name;
-}
-
-@GenerateNodeImpl(
-  api: AstNodeApi.v2,
-  childEntitiesOrder: [GenerateNodeProperty('name')],
-)
-final class ParsedUnqualifiedNameAssignmentTargetImpl
-    extends ParsedAssignmentTargetImpl
-    implements ParsedUnqualifiedNameAssignmentTarget {
-  @generated
-  @override
-  final Token name;
-
-  @generated
-  ParsedUnqualifiedNameAssignmentTargetImpl({required this.name});
-
-  @generated
-  @override
-  Token get beginToken {
-    return name;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return name;
-  }
-
-  @generated
-  @override
-  AstNodeApi get _astNodeApi => AstNodeApi.v2;
-
-  @generated
-  @ToBeDeprecated('Use _childEntities2 instead.')
-  @override
-  ChildEntities get _childEntities {
-    throw StateError(
-      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
-    );
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities2 => ChildEntities()..addToken('name', name);
-
-  @generated
-  @ToBeDeprecated('Use accept2 instead.')
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    throw StateError(
-      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
-    );
-  }
-
-  @generated
-  @experimental
-  @override
-  E? accept2<E>(AstVisitor2<E> visitor) =>
-      visitor.visitParsedUnqualifiedNameAssignmentTarget(this);
-
-  @generated
-  @ToBeDeprecated('Use visitChildren2 instead.')
-  @override
-  void visitChildren(AstVisitor visitor) {
-    throw StateError(
-      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
-    );
-  }
-
-  @generated
-  @experimental
-  @override
-  void visitChildren2(AstVisitor2 visitor) {}
-
-  /// Visits the children of this node.
-  @generated
-  @experimental
-  void visitChildrenWithHooks(AstVisitor2 visitor) {}
-
-  @generated
-  @ToBeDeprecated('Use _childContainingRange2 instead.')
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    throw StateError(
-      'ParsedUnqualifiedNameAssignmentTarget is not in the V1 AST view.',
-    );
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    return null;
-  }
 }
 
 @GenerateNodeImpl(

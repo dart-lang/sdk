@@ -472,7 +472,6 @@ package:analyzer/analysis_rule/rule_visitor_registry.dart:
     addParsedNameAccessAssignmentTarget (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addParsedTypeArguments (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addParsedUnqualifiedName (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
-    addParsedUnqualifiedNameAssignmentTarget (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addParsedValueArguments (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>), experimental)
     addPartDirective (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
     addPartOfDirective (method: void Function(AbstractAnalysisRule, AstVisitor2<dynamic>))
@@ -1261,7 +1260,6 @@ package:analyzer/dart/ast/ast.dart:
     visitParsedNameAccessAssignmentTarget (method: R? Function(ParsedNameAccessAssignmentTarget), experimental)
     visitParsedTypeArguments (method: R? Function(ParsedTypeArguments), experimental)
     visitParsedUnqualifiedName (method: R? Function(ParsedUnqualifiedName), experimental)
-    visitParsedUnqualifiedNameAssignmentTarget (method: R? Function(ParsedUnqualifiedNameAssignmentTarget), experimental)
     visitParsedValueArguments (method: R? Function(ParsedValueArguments), experimental)
     visitPartDirective (method: R? Function(PartDirective))
     visitPartOfDirective (method: R? Function(PartOfDirective))
@@ -2355,7 +2353,7 @@ package:analyzer/dart/ast/ast.dart:
     leftParenthesis (getter: Token)
     pattern (getter: DartPattern)
     rightParenthesis (getter: Token)
-  ParsedAssignmentTarget (class extends Object implements AssignmentTarget, sealed (immediate subtypes: ParsedAssignmentTargetImpl, ParsedNameAccessAssignmentTarget, ParsedUnqualifiedNameAssignmentTarget), experimental)
+  ParsedAssignmentTarget (class extends Object implements AssignmentTarget, sealed (immediate subtypes: ParsedAssignmentTargetImpl, ParsedNameAccessAssignmentTarget), experimental)
   ParsedCascadeName (class extends Object implements ParsedExpression, abstract, final, experimental):
     name (getter: Token)
   ParsedDotShorthandExpression (class extends Object implements Expression, abstract, final, experimental):
@@ -2376,8 +2374,6 @@ package:analyzer/dart/ast/ast.dart:
     operand (getter: Expression)
     typeArguments (getter: TypeArgumentList)
   ParsedUnqualifiedName (class extends Object implements ParsedExpression, abstract, final, experimental):
-    name (getter: Token)
-  ParsedUnqualifiedNameAssignmentTarget (class extends Object implements ParsedAssignmentTarget, abstract, final, experimental):
     name (getter: Token)
   ParsedValueArguments (class extends Object implements ParsedExpression, abstract, final, experimental):
     argumentList (getter: ArgumentList)
@@ -3736,7 +3732,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitParsedNameAccessAssignmentTarget (method: R? Function(ParsedNameAccessAssignmentTarget), experimental)
     visitParsedTypeArguments (method: R? Function(ParsedTypeArguments), experimental)
     visitParsedUnqualifiedName (method: R? Function(ParsedUnqualifiedName), experimental)
-    visitParsedUnqualifiedNameAssignmentTarget (method: R? Function(ParsedUnqualifiedNameAssignmentTarget), experimental)
     visitParsedValueArguments (method: R? Function(ParsedValueArguments), experimental)
     visitPartDirective (method: R? Function(PartDirective))
     visitPartOfDirective (method: R? Function(PartOfDirective))
@@ -4150,7 +4145,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitParsedNameAccessAssignmentTarget (method: R? Function(ParsedNameAccessAssignmentTarget), experimental)
     visitParsedTypeArguments (method: R? Function(ParsedTypeArguments), experimental)
     visitParsedUnqualifiedName (method: R? Function(ParsedUnqualifiedName), experimental)
-    visitParsedUnqualifiedNameAssignmentTarget (method: R? Function(ParsedUnqualifiedNameAssignmentTarget), experimental)
     visitParsedValueArguments (method: R? Function(ParsedValueArguments), experimental)
     visitPartDirective (method: R? Function(PartDirective))
     visitPartOfDirective (method: R? Function(PartOfDirective))
@@ -4564,7 +4558,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitParsedNameAccessAssignmentTarget (method: R? Function(ParsedNameAccessAssignmentTarget), experimental)
     visitParsedTypeArguments (method: R? Function(ParsedTypeArguments), experimental)
     visitParsedUnqualifiedName (method: R? Function(ParsedUnqualifiedName), experimental)
-    visitParsedUnqualifiedNameAssignmentTarget (method: R? Function(ParsedUnqualifiedNameAssignmentTarget), experimental)
     visitParsedValueArguments (method: R? Function(ParsedValueArguments), experimental)
     visitPartDirective (method: R? Function(PartDirective))
     visitPartOfDirective (method: R? Function(PartOfDirective))
@@ -4980,7 +4973,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitParsedNameAccessAssignmentTarget (method: T? Function(ParsedNameAccessAssignmentTarget), experimental)
     visitParsedTypeArguments (method: T? Function(ParsedTypeArguments), experimental)
     visitParsedUnqualifiedName (method: T? Function(ParsedUnqualifiedName), experimental)
-    visitParsedUnqualifiedNameAssignmentTarget (method: T? Function(ParsedUnqualifiedNameAssignmentTarget), experimental)
     visitParsedValueArguments (method: T? Function(ParsedValueArguments), experimental)
     visitPartDirective (method: T? Function(PartDirective))
     visitPartOfDirective (method: T? Function(PartOfDirective))
@@ -5396,7 +5388,6 @@ package:analyzer/dart/ast/visitor.dart:
     visitParsedNameAccessAssignmentTarget (method: R? Function(ParsedNameAccessAssignmentTarget), experimental)
     visitParsedTypeArguments (method: R? Function(ParsedTypeArguments), experimental)
     visitParsedUnqualifiedName (method: R? Function(ParsedUnqualifiedName), experimental)
-    visitParsedUnqualifiedNameAssignmentTarget (method: R? Function(ParsedUnqualifiedNameAssignmentTarget), experimental)
     visitParsedValueArguments (method: R? Function(ParsedValueArguments), experimental)
     visitPartDirective (method: R? Function(PartDirective))
     visitPartOfDirective (method: R? Function(PartOfDirective))

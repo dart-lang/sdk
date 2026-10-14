@@ -750,7 +750,7 @@ CompilationUnit
                 semicolon: ;
               ExpressionStatement
                 expression2: DirectAssignment
-                  target: ParsedUnqualifiedNameAssignmentTarget
+                  target: UnqualifiedNameAssignmentTarget
                     name: x
                   operator: =
                   value: ParsedUnqualifiedName

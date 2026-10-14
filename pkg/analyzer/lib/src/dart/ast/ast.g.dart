@@ -799,11 +799,6 @@ abstract class AstVisitor2<R> {
   R? visitParsedUnqualifiedName(ParsedUnqualifiedName node);
 
   @experimental
-  R? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  );
-
-  @experimental
   R? visitParsedValueArguments(ParsedValueArguments node);
 
   R? visitPartDirective(PartDirective node);

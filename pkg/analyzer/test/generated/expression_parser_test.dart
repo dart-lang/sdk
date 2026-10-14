@@ -200,7 +200,7 @@ CompilationUnit
             name: v
             equals: =
             initializer2: DirectAssignment
-              target: ParsedUnqualifiedNameAssignmentTarget
+              target: UnqualifiedNameAssignmentTarget
                 name: n
               operator: =
               value: ListLiteral
@@ -2456,7 +2456,7 @@ var v = x = y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: x
   operator: =
   value: ParsedUnqualifiedName
@@ -3213,7 +3213,7 @@ var v = x = y;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: x
   operator: =
   value: ParsedUnqualifiedName
@@ -3355,7 +3355,7 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: IncrementOrDecrementExpression
-      target: ParsedUnqualifiedNameAssignmentTarget
+      target: UnqualifiedNameAssignmentTarget
         name: i
       operator: ++
       operation: increment
@@ -3400,7 +3400,7 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: IncrementOrDecrementExpression
-      target: ParsedUnqualifiedNameAssignmentTarget
+      target: UnqualifiedNameAssignmentTarget
         name: i
       operator: ++
       operation: increment
@@ -3470,7 +3470,7 @@ FunctionExpression
   body: ExpressionFunctionBody
     functionDefinition: =>
     expression2: IncrementOrDecrementExpression
-      target: ParsedUnqualifiedNameAssignmentTarget
+      target: UnqualifiedNameAssignmentTarget
         name: i
       operator: ++
       operation: increment
@@ -4397,7 +4397,7 @@ var v = i--;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: i
   operator: --
   operation: decrement
@@ -4416,7 +4416,7 @@ var v = i++;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 IncrementOrDecrementExpression
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: i
   operator: ++
   operation: increment
@@ -6264,7 +6264,7 @@ var v = --x;
     assertParsedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: --
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: x
   operation: decrement
   position: prefix
@@ -6366,7 +6366,7 @@ var v = ++x;
     assertParsedNodeText(node, r'''
 IncrementOrDecrementExpression
   operator: ++
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: x
   operation: increment
   position: prefix

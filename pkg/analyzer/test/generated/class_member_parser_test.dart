@@ -2862,7 +2862,7 @@ CompilationUnit
                 statements
                   ExpressionStatement
                     expression2: CompoundAssignment
-                      target: ParsedUnqualifiedNameAssignmentTarget
+                      target: UnqualifiedNameAssignmentTarget
                         name: x
                       operator: >>>=
                       value: ParsedUnqualifiedName

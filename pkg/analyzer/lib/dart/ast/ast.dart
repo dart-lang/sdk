@@ -300,7 +300,6 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ParsedNameAccessAssignmentTarget,
         ParsedTypeArguments,
         ParsedUnqualifiedName,
-        ParsedUnqualifiedNameAssignmentTarget,
         ParsedValueArguments,
         PartDirective,
         PartOfDirective,

@@ -721,8 +721,6 @@ class AstBuilder extends StackListener {
         ):
           // The parser already reported a field outside its declaring class.
           fieldName = name;
-        case ParsedUnqualifiedNameAssignmentTargetImpl(:var name):
-          fieldName = name;
         default:
           return null;
       }
@@ -6764,7 +6762,10 @@ class AstBuilder extends StackListener {
           name: expression.name,
         );
       case ParsedUnqualifiedNameImpl():
-        return ParsedUnqualifiedNameAssignmentTargetImpl(name: expression.name);
+        // Unlike a read, a target `x` is the same node kind whatever `x`
+        // names. Scope analysis records its lookup, and type analysis its
+        // resolution, but neither changes the node kind.
+        return UnqualifiedNameAssignmentTargetImpl(name: expression.name);
       case ReceiverIndexExpressionImpl():
         return ReceiverIndexAssignmentTargetImpl(
           receiver: expression.receiver,

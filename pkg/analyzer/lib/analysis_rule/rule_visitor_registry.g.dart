@@ -998,12 +998,6 @@ abstract class RuleVisitorRegistry2 {
   void addParsedUnqualifiedName(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
-  void addParsedUnqualifiedNameAssignmentTarget(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
-  @experimental
   void addParsedValueArguments(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addPartDirective(AbstractAnalysisRule rule, AstVisitor2 visitor);

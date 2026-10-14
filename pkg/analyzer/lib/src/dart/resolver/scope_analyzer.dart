@@ -702,13 +702,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       _visitParsedExpression(node);
 
   @override
-  void visitParsedUnqualifiedNameAssignmentTarget(
-    covariant ParsedUnqualifiedNameAssignmentTargetImpl node,
-  ) {
-    _astRewriter.parsedAssignmentTarget(nameScope, node).accept2(this);
-  }
-
-  @override
   void visitParsedValueArguments(covariant ParsedValueArgumentsImpl node) =>
       _visitParsedExpression(node);
 

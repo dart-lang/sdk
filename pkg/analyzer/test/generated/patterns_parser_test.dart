@@ -7945,7 +7945,7 @@ void f() {
     var node = parseResult.findNode.directAssignment('v2 =');
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: v2
   operator: =
   value: PatternAssignment
