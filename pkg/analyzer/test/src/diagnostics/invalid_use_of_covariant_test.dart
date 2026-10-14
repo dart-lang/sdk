@@ -123,8 +123,17 @@ void f(covariant int x) {}
 ''');
   }
 
+  test_topLevelGetter() async {
+    await resolveTestCodeWithDiagnostics('''
+int get foo(covariant int x) => 0;
+//         ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+//          ^^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'covariant' here.
+''');
+  }
+
   test_topLevelSetter() async {
-    // INVALID_USE_OF_COVARIANT is not reported here; it would be redundant.
     await resolveTestCodeWithDiagnostics('''
 set foo(covariant int x) {}
 //      ^^^^^^^^^

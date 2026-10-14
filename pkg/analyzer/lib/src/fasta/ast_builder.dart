@@ -3437,6 +3437,8 @@ class AstBuilder extends StackListener {
     var comment = _findComment(metadata, beginToken);
 
     if (getOrSet?.keyword == Keyword.SET) {
+      // The parser doesn't build type parameters for top-level setters.
+      assert(typeParameters == null);
       declarations.add(
         TopLevelSetterDeclarationImpl(
           comment: comment,
@@ -3454,6 +3456,8 @@ class AstBuilder extends StackListener {
         ),
       );
     } else if (getOrSet?.keyword == Keyword.GET) {
+      // The parser doesn't build type parameters for top-level getters.
+      assert(typeParameters == null);
       declarations.add(
         TopLevelGetterDeclarationImpl(
           comment: comment,
@@ -3463,7 +3467,6 @@ class AstBuilder extends StackListener {
           returnType: returnType,
           getKeyword: getOrSet!,
           name: name,
-          recoveryTypeParameters: typeParameters,
           recoveryFormalParameters: formalParameters,
           body: body,
         ),

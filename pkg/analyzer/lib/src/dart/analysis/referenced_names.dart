@@ -156,6 +156,15 @@ class _LocalNameScope {
     return scope;
   }
 
+  factory _LocalNameScope.forTopLevelGetter(
+    _LocalNameScope enclosing,
+    TopLevelGetterDeclarationImpl node,
+  ) {
+    _LocalNameScope scope = _LocalNameScope(enclosing);
+    scope.addFormalParameters(node.recoveryFormalParameters);
+    return scope;
+  }
+
   factory _LocalNameScope.forTopLevelSetter(
     _LocalNameScope enclosing,
     TopLevelSetterDeclarationImpl node,
@@ -516,6 +525,19 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   void visitSuperFormalParameter(SuperFormalParameter node) {
     names.add(node.name.lexeme);
     super.visitSuperFormalParameter(node);
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(
+    covariant TopLevelGetterDeclarationImpl node,
+  ) {
+    _LocalNameScope outerScope = localScope;
+    try {
+      localScope = _LocalNameScope.forTopLevelGetter(localScope, node);
+      super.visitTopLevelGetterDeclaration(node);
+    } finally {
+      localScope = outerScope;
+    }
   }
 
   @override

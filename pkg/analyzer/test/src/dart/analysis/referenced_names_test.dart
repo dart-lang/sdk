@@ -615,6 +615,15 @@ A get aaa {
     expect(names, unorderedEquals(['A', 'B']));
   }
 
+  test_unit_getter_recoveryFormalParameters() {
+    var names = _computeReferencedNames('''
+A get aaa(B b) => b;
+//       ^
+// [diag.getterWithParameters] Getters must be declared without a parameter list.
+''');
+    expect(names, unorderedEquals(['A', 'B']));
+  }
+
   test_unit_setter() {
     var names = _computeReferencedNames('''
 set aaa(A a) {

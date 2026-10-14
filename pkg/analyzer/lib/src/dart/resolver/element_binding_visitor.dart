@@ -907,7 +907,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
 
     node.documentationComment?.accept2(this);
     node.returnType?.accept2(this);
-    _bindTypeParameters(node.recoveryTypeParameters, fragment.typeParameters);
     _bindFormalParameters(
       node.recoveryFormalParameters,
       fragment.formalParameters,

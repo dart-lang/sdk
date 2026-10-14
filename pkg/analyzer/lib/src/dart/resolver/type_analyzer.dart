@@ -4661,7 +4661,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       node.documentationComment?.accept2(this);
       node.metadata.accept2(this);
       node.returnType?.accept2(this);
-      node.recoveryTypeParameters?.accept2(this);
       node.recoveryFormalParameters?.accept2(this);
 
       var enterOffset = node.body.offset;

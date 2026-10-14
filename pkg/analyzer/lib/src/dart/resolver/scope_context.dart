@@ -444,7 +444,6 @@ class ScopeContext {
     withTypeParameterScope(element.typeParameters, () {
       node.nameScope = nameScope;
       node.returnType?.accept2(visitor);
-      node.recoveryTypeParameters?.accept2(visitor);
       node.recoveryFormalParameters?.accept2(visitor);
 
       withFormalParameterScope(fragment.formalParameters, () {

@@ -2349,23 +2349,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       node: node,
       nameToken: node.name,
     );
-    // _checkForAugmentationTypeParameters(
-    //   fragment: declaredFragment,
-    //   firstTypeParameters: element.firstFragment.typeParameters,
-    //   nameOrKeywordToken: node.name,
-    //   typeParameterList: node.recoveryTypeParameters,
-    // );
     _checkForAugmentationReturnTypeMismatch(
       fragment: declaredFragment,
       returnTypeNode: node.returnType,
       errorEntity: node.returnType ?? node.name,
     );
-    // if (node.recoveryFormalParameters case var parameters?) {
-    //   _checkForAugmentationFormalParameters(
-    //     executableFragment: declaredFragment,
-    //     formalParameterList: parameters,
-    //   );
-    // }
 
     _withEnclosingExecutable(
       element,
@@ -8381,9 +8369,10 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
 
-    if (parent is TopLevelSetterDeclaration) {
+    if (parent is TopLevelGetterDeclaration ||
+        parent is TopLevelSetterDeclaration) {
       // `EXTRANEOUS_MODIFIER` is reported by the parser, for library-level
-      // setters.
+      // getters and setters.
       return;
     }
 

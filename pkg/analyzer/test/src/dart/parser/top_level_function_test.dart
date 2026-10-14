@@ -454,6 +454,64 @@ V1: FunctionDeclaration
 ''');
   }
 
+  test_getter_typeParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+int get foo<T> => 0;
+//         ^
+// [diag.missingFunctionBody] A function body must be provided.
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//          ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
+//           ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//             ^^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                ^
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//                 ^
+// [diag.unexpectedToken] Unexpected text ';'.
+''');
+
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations2
+    TopLevelGetterDeclaration
+      returnType: NamedType
+        name: int
+      getKeyword: get
+      name: foo
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: T
+      semicolon: ; <synthetic>
+  declarations(v1)
+    FunctionDeclaration
+      returnType: NamedType
+        name: int
+      propertyKeyword: get
+      name: foo
+      functionExpression: FunctionExpression
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: T
+      semicolon: ; <synthetic>
+''');
+  }
+
   test_recovery_body_issue56355() {
     // https://github.com/dart-lang/sdk/issues/56355
     var parseResult = parseTestCodeWithDiagnostics(r'''
@@ -1036,6 +1094,103 @@ V1: FunctionDeclaration
       block: Block
         leftBracket: { @10
         rightBracket: } @11
+''');
+  }
+
+  test_setter_typeParameters() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+set foo<T>(T _) {}
+//  ^^^
+// [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
+//     ^
+// [diag.missingFunctionBody] A function body must be provided.
+// [diag.expectedExecutable] Expected a method, getter, setter or operator declaration.
+//      ^
+// [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [diag.expectedToken] Expected to find ';'.
+//       ^
+// [diag.topLevelOperator] Operators must be declared within a class.
+''');
+
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: foo
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: <empty> <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: T
+      semicolon: ; <synthetic>
+    FunctionDeclaration
+      name: #synthetic_function_9 <synthetic>
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: T
+              name: _
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: T
+            name: _
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
+  declarations(v1)
+    FunctionDeclaration
+      propertyKeyword: set
+      name: foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: ( <synthetic>
+          parameter: RegularFormalParameter
+            name: <empty> <synthetic>
+          rightParenthesis: ) <synthetic>
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: T
+      semicolon: ; <synthetic>
+    FunctionDeclaration
+      name: #synthetic_function_9 <synthetic>
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: T
+            name: _
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            rightBracket: }
 ''');
   }
 }

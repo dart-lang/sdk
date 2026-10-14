@@ -53743,11 +53743,6 @@ abstract final class TopLevelGetterDeclaration
     GenerateNodeProperty('getKeyword'),
     GenerateNodeProperty('name'),
     GenerateNodeProperty(
-      'recoveryTypeParameters',
-      withOverride: false,
-      type: _TypeLiteral<TypeParameterList?>,
-    ),
-    GenerateNodeProperty(
       'recoveryFormalParameters',
       withOverride: false,
       type: _TypeLiteral<FormalParameterList?>,
@@ -53778,9 +53773,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   final Token name;
 
   @generated
-  TypeParameterListImpl? _recoveryTypeParameters;
-
-  @generated
   FormalParameterListImpl? _recoveryFormalParameters;
 
   @generated
@@ -53802,15 +53794,12 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     required TypeAnnotationImpl? returnType,
     required this.getKeyword,
     required this.name,
-    required TypeParameterListImpl? recoveryTypeParameters,
     required FormalParameterListImpl? recoveryFormalParameters,
     required FunctionBodyImpl body,
   }) : _returnType = returnType,
-       _recoveryTypeParameters = recoveryTypeParameters,
        _recoveryFormalParameters = recoveryFormalParameters,
        _body = body {
     _becomeParentOf2(returnType);
-    _becomeParentOf2(recoveryTypeParameters);
     _becomeParentOf2(recoveryFormalParameters);
     _becomeParentOf2(body);
   }
@@ -53860,14 +53849,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   }
 
   @generated
-  TypeParameterListImpl? get recoveryTypeParameters => _recoveryTypeParameters;
-
-  @generated
-  set recoveryTypeParameters(TypeParameterListImpl? recoveryTypeParameters) {
-    _recoveryTypeParameters = _becomeParentOf2(recoveryTypeParameters);
-  }
-
-  @generated
   @override
   TypeAnnotationImpl? get returnType => _returnType;
 
@@ -53898,7 +53879,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     ..addNode('returnType', returnType)
     ..addToken('getKeyword', getKeyword)
     ..addToken('name', name)
-    ..addNode('recoveryTypeParameters', recoveryTypeParameters)
     ..addNode('recoveryFormalParameters', recoveryFormalParameters)
     ..addNode('body', body);
 
@@ -53910,9 +53890,11 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   @override
   Token get _v1PropertyKeyword => getKeyword;
 
+  /// The parser doesn't build type parameters for top-level getters and
+  /// setters.
   @V1Ast()
   @override
-  TypeParameterListImpl? get _v1TypeParameters => recoveryTypeParameters;
+  TypeParameterListImpl? get _v1TypeParameters => null;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -53934,10 +53916,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
       returnType = null;
       return;
     }
-    if (identical(recoveryTypeParameters, oldNode)) {
-      recoveryTypeParameters = null;
-      return;
-    }
     if (identical(recoveryFormalParameters, oldNode)) {
       recoveryFormalParameters = null;
       return;
@@ -53953,10 +53931,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
     if (identical(returnType, oldNode)) {
       returnType = newNode as TypeAnnotationImpl?;
-      return;
-    }
-    if (identical(recoveryTypeParameters, oldNode)) {
-      recoveryTypeParameters = newNode as TypeParameterListImpl?;
       return;
     }
     if (identical(recoveryFormalParameters, oldNode)) {
@@ -53983,7 +53957,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   void visitChildren2(AstVisitor2 visitor) {
     _visitCommentAndAnnotations2(visitor);
     returnType?.accept2(visitor);
-    recoveryTypeParameters?.accept2(visitor);
     recoveryFormalParameters?.accept2(visitor);
     body.accept2(visitor);
   }
@@ -53998,7 +53971,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(TypeAnnotationImpl)? visitReturnType,
-    void Function(TypeParameterListImpl)? visitRecoveryTypeParameters,
     void Function(FormalParameterListImpl)? visitRecoveryFormalParameters,
     void Function(FunctionBodyImpl)? visitBody,
   }) {
@@ -54008,13 +53980,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
         visitReturnType(returnType);
       } else {
         returnType.accept2(visitor);
-      }
-    }
-    if (recoveryTypeParameters case var recoveryTypeParameters?) {
-      if (visitRecoveryTypeParameters != null) {
-        visitRecoveryTypeParameters(recoveryTypeParameters);
-      } else {
-        recoveryTypeParameters.accept2(visitor);
       }
     }
     if (recoveryFormalParameters case var recoveryFormalParameters?) {
@@ -54047,11 +54012,6 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
     if (returnType case var returnType?) {
       if (returnType._containsOffset(rangeOffset, rangeEnd)) {
         return returnType;
-      }
-    }
-    if (recoveryTypeParameters case var recoveryTypeParameters?) {
-      if (recoveryTypeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return recoveryTypeParameters;
       }
     }
     if (recoveryFormalParameters case var recoveryFormalParameters?) {
@@ -54255,7 +54215,8 @@ final class TopLevelSetterDeclarationImpl extends TopLevelDeclarationImpl
   @override
   Token get _v1PropertyKeyword => setKeyword;
 
-  /// The parser doesn't build type parameters for top-level setters.
+  /// The parser doesn't build type parameters for top-level getters and
+  /// setters.
   @V1Ast()
   @override
   TypeParameterListImpl? get _v1TypeParameters => null;

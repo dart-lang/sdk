@@ -1135,11 +1135,10 @@ class _InfoBuilder {
       codeLength: node.length,
       nameOffset: node.name.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
-      typeParameters: _buildTypeParameters(node.recoveryTypeParameters),
+      typeParameters: const [],
       parameters: _buildFormalParameters(node.recoveryFormalParameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
-        typeParameters: node.recoveryTypeParameters,
         formalParameters: node.recoveryFormalParameters,
       ),
     );

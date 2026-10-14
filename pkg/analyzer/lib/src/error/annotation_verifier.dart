@@ -235,10 +235,13 @@ class AnnotationVerifier {
       var parameterList = parent.parentFormalParameterList2;
 
       // This annotation is only valid on method declarations, constructor
-      // declarations, and top-level function declarations.
+      // declarations, and top-level function declarations. An optional
+      // parameter of a top-level getter or setter is a parser recovery
+      // result, and the parser has already reported it.
       var isValidFunction =
           parameterList.parent2 is MethodDeclaration ||
           parameterList.parent2 is ConstructorDeclaration ||
+          parameterList.parent2 is TopLevelGetterDeclaration ||
           parameterList.parent2 is TopLevelSetterDeclaration ||
           (parameterList.parent2 is FunctionExpression &&
               parameterList.parent2?.parent2 is FunctionDeclaration &&

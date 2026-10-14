@@ -2226,7 +2226,6 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     _buildExecutableElementChildren(
       fragment: fragment,
       formalParameters: node.recoveryFormalParameters,
-      typeParameters: node.recoveryTypeParameters,
     );
 
     node.returnType?.accept2(this);
