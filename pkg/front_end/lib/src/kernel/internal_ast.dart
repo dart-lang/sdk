@@ -3563,10 +3563,14 @@ class SuperIndexSet extends InternalExpression {
   /// The value expression of the operation.
   final InternalExpression value;
 
+  /// If `true`, the expression is only needed for effect and not for its value.
+  final bool forEffect;
+
   new({
     required this.setter,
     required this.index,
     required this.value,
+    required this.forEffect,
     required super.fileOffset,
   });
 
