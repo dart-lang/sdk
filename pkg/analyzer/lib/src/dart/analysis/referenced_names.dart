@@ -336,6 +336,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitDotShorthandNameExpression(DotShorthandNameExpression node) {
+    names.add(node.name.lexeme);
+  }
+
+  @override
   void visitExtensionTypeDeclaration(
     covariant ExtensionTypeDeclarationImpl node,
   ) {
@@ -459,13 +464,6 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
 
   @override
   void visitParsedUnqualifiedName(ParsedUnqualifiedName node) {
-    _addIfNotShadowed(node.name, hasImportPrefix: false);
-  }
-
-  @override
-  void visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
     _addIfNotShadowed(node.name, hasImportPrefix: false);
   }
 

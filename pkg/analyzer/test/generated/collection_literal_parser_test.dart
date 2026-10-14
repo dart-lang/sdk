@@ -141,7 +141,7 @@ ListLiteral
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: x
             operation: increment
             position: prefix
@@ -557,7 +557,7 @@ SetOrMapLiteral
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: DirectAssignment
-          target: ParsedUnqualifiedNameAssignmentTarget
+          target: UnqualifiedNameAssignmentTarget
             name: x
           operator: =
           value: IntegerLiteral
@@ -586,7 +586,7 @@ SetOrMapLiteral
         updaters2
           IncrementOrDecrementExpression
             operator: ++
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: x
             operation: increment
             position: prefix

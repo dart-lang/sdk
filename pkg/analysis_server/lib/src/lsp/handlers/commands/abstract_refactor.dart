@@ -18,8 +18,6 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 
-final _manager = LspRefactorManager._();
-
 /// A base class for the legacy refactoring commands (EXTRACT_WIDGET, etc.) that
 /// need to create [Refactoring]s from client-supplied arguments.
 abstract class AbstractRefactorCommandHandler
@@ -30,7 +28,9 @@ abstract class AbstractRefactorCommandHandler
   @override
   String get commandName => 'Perform Refactor';
 
-  LspRefactorManager get manager => _manager;
+  /// The (singleton) [LspRefactorManager] used for cancelling refactors when
+  /// another is started.
+  LspRefactorManager get manager => LspRefactorManager.instance;
 
   FutureOr<ErrorOr<void>> execute(
     MessageInfo message,
@@ -251,6 +251,10 @@ abstract class AbstractRefactorCommandHandler
 
 /// Manages a running refactor to help ensure only one refactor runs at a time.
 class LspRefactorManager {
+  /// A singleton [LspRefactorManager] used for cancelling refactors when
+  /// another is started.
+  static final instance = LspRefactorManager._();
+
   /// The cancellation token for the current in-progress refactor (or null).
   CancelableToken? _currentRefactoringCancellationToken;
 

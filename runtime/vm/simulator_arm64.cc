@@ -3785,6 +3785,26 @@ void Simulator::DecodeDPSimd1(Instr* instr) {
     return;
   }
 
+  // EXT Vd.16B, Vn.16B, Vm.16B, #index: the 16 bytes that start at byte
+  // `index` of Vn followed by Vm.
+  if ((instr->InstructionBits() & 0xFFE08400) == 0x6E000000) {
+    const VRegister vd = instr->VdField();
+    const VRegister vn = instr->VnField();
+    const VRegister vm = instr->VmField();
+    const int index = instr->Bits(11, 4);
+    int64_t in_bits[4] = {get_vregisterd(vn, 0), get_vregisterd(vn, 1),
+                          get_vregisterd(vm, 0), get_vregisterd(vm, 1)};
+    const uint8_t* in = reinterpret_cast<const uint8_t*>(&in_bits[0]);
+    int64_t result_bits[2];
+    uint8_t* result = reinterpret_cast<uint8_t*>(&result_bits[0]);
+    for (int i = 0; i < 16; i++) {
+      result[i] = in[index + i];
+    }
+    set_vregisterd(vd, 0, result_bits[0]);
+    set_vregisterd(vd, 1, result_bits[1]);
+    return;
+  }
+
   // TBL Vd.16B, {Vn.16B}, Vm.16B: byte-wise table lookup.
   if ((instr->InstructionBits() & 0xFFE0FC00) == 0x4E000000) {
     const VRegister vd = instr->VdField();

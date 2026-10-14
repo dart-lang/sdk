@@ -1351,7 +1351,7 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
@@ -1401,7 +1401,7 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
@@ -1435,7 +1435,7 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: IncrementOrDecrementExpression
-          target: ParsedUnqualifiedNameAssignmentTarget
+          target: UnqualifiedNameAssignmentTarget
             name: i
           operator: --
           operation: decrement
@@ -1461,7 +1461,7 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
@@ -1495,7 +1495,7 @@ Block
       leftParenthesis: (
       forLoopParts: ForPartsWithExpression
         initialization2: IncrementOrDecrementExpression
-          target: ParsedUnqualifiedNameAssignmentTarget
+          target: UnqualifiedNameAssignmentTarget
             name: i
           operator: --
           operation: decrement
@@ -1521,7 +1521,7 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
@@ -1817,7 +1817,7 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
@@ -1875,7 +1875,7 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
@@ -1941,13 +1941,13 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
             position: postfix
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: j
             operator: --
             operation: decrement
@@ -2017,13 +2017,13 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
             position: postfix
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: j
             operator: --
             operation: decrement
@@ -2072,7 +2072,7 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
@@ -2117,7 +2117,7 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
@@ -2154,7 +2154,7 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment
@@ -2191,7 +2191,7 @@ Block
         rightSeparator: ;
         updaters2
           IncrementOrDecrementExpression
-            target: ParsedUnqualifiedNameAssignmentTarget
+            target: UnqualifiedNameAssignmentTarget
               name: i
             operator: ++
             operation: increment

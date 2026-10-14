@@ -2940,15 +2940,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
-  R? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @experimental
-  @override
   R? visitParsedValueArguments(ParsedValueArguments node) {
     node.visitChildren2(this);
     return null;
@@ -4529,12 +4520,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
-  R? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) => null;
-
-  @experimental
-  @override
   R? visitParsedValueArguments(ParsedValueArguments node) => null;
 
   @override
@@ -5946,12 +5931,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitParsedUnqualifiedName(ParsedUnqualifiedName node) => _throw(node);
-
-  @experimental
-  @override
-  R? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) => _throw(node);
 
   @experimental
   @override
@@ -9052,17 +9031,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
-  T? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitParsedUnqualifiedNameAssignmentTarget(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @experimental
-  @override
   T? visitParsedValueArguments(ParsedValueArguments node) {
     stopwatch.start();
     T? result = _baseVisitor.visitParsedValueArguments(node);
@@ -10852,12 +10820,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitParsedUnqualifiedName(ParsedUnqualifiedName node) => visitNode(node);
-
-  @experimental
-  @override
-  R? visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) => visitNode(node);
 
   @experimental
   @override

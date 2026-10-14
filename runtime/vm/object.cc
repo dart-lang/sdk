@@ -737,8 +737,8 @@ void Object::InitVtables() {
   V(implicit_instance_closure, VMInternal_ImplicitInstanceClosure)             \
   V(implicit_constructor_closure, VMInternal_ImplicitConstructorClosure)
 
-#define ROOTS_SHARED_BYTECODE_GETTER(Name) Roots::shared_##Name##_bytecode()
-#define OBJECT_SHARED_BYTECODE_GETTER(Name) Object::shared_##Name##_bytecode()
+#define ROOTS_SHARED_BYTECODE_GETTER(Name) Roots::Name##_bytecode()
+#define OBJECT_SHARED_BYTECODE_GETTER(Name) Object::Name##_bytecode()
 
 void Object::Init(IsolateGroup* isolate_group) {
   Heap* heap = isolate_group->heap();
@@ -3753,10 +3753,10 @@ FunctionPtr Class::CreateInvocationDispatcher(
   if (attach_bytecode) {
     switch (kind) {
       case UntaggedFunction::kNoSuchMethodDispatcher:
-        invocation.AttachBytecode(Object::shared_nsm_dispatcher_bytecode());
+        invocation.AttachBytecode(Object::nsm_dispatcher_bytecode());
         break;
       case UntaggedFunction::kInvokeFieldDispatcher:
-        invocation.AttachBytecode(Object::shared_invoke_field_bytecode());
+        invocation.AttachBytecode(Object::invoke_field_bytecode());
         break;
       default:
         UNREACHABLE();
@@ -3831,11 +3831,9 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
     // extractor. So it is performed here to select a variant of the bytecode
     // method extractor.
     if (Closure::HasInstantiatorTypeArgumentsField(closure_function)) {
-      extractor.AttachBytecode(
-          Object::shared_method_extractor_with_ita_bytecode());
+      extractor.AttachBytecode(Object::method_extractor_with_ita_bytecode());
     } else {
-      extractor.AttachBytecode(
-          Object::shared_method_extractor_without_ita_bytecode());
+      extractor.AttachBytecode(Object::method_extractor_without_ita_bytecode());
     }
   }
 #endif  // defined(DART_DYNAMIC_MODULES)
@@ -4108,8 +4106,7 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
       is_declared_in_bytecode() && !thread->isolate_group()->modular_aot_mode();
 #endif
   if (attach_bytecode) {
-    forwarder.AttachBytecode(
-        Object::shared_dynamic_invocation_forwarder_bytecode());
+    forwarder.AttachBytecode(Object::dynamic_invocation_forwarder_bytecode());
   }
 #endif
   if (thread->isolate_group()->modular_aot_mode()) {
@@ -10821,13 +10818,13 @@ FunctionPtr Function::ImplicitClosureFunction() const {
   if (attach_bytecode) {
     if (is_static()) {
       closure_function.AttachBytecode(
-          Object::shared_implicit_static_closure_bytecode());
+          Object::implicit_static_closure_bytecode());
     } else if (IsConstructor()) {
       closure_function.AttachBytecode(
-          Object::shared_implicit_constructor_closure_bytecode());
+          Object::implicit_constructor_closure_bytecode());
     } else {
       closure_function.AttachBytecode(
-          Object::shared_implicit_instance_closure_bytecode());
+          Object::implicit_instance_closure_bytecode());
     }
   }
 #endif

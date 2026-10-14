@@ -721,8 +721,6 @@ class AstBuilder extends StackListener {
         ):
           // The parser already reported a field outside its declaring class.
           fieldName = name;
-        case ParsedUnqualifiedNameAssignmentTargetImpl(:var name):
-          fieldName = name;
         default:
           return null;
       }
@@ -891,7 +889,10 @@ class AstBuilder extends StackListener {
           ),
         );
       } else {
-        push(ParsedCascadeNameImpl(name: identifierOrInvoke.name));
+        // `..foo` without arguments always reads a member of the cascade
+        // target; neither scope nor type analysis changes the node kind,
+        // unlike `..foo()` below.
+        push(CascadePropertyExtractionImpl(name: identifierOrInvoke.name));
       }
     } else if (identifierOrInvoke is ParsedValueArgumentsImpl) {
       var operand = identifierOrInvoke.operand;
@@ -936,7 +937,7 @@ class AstBuilder extends StackListener {
           ),
         );
       } else {
-        push(ParsedCascadeNameImpl(name: name));
+        push(CascadePropertyExtractionImpl(name: name));
       }
     }
   }
@@ -1474,7 +1475,7 @@ class AstBuilder extends StackListener {
           argumentList: dotShorthand.argumentList,
         ),
       );
-    } else if (dotShorthand is ParsedDotShorthandNameImpl) {
+    } else if (dotShorthand is DotShorthandNameExpressionImpl) {
       push(
         DotShorthandConstructorInvocation2Impl(
           constKeyword: token,
@@ -4151,7 +4152,11 @@ class AstBuilder extends StackListener {
 
     var operand = pop() as ExpressionImpl;
     if (operand is ParsedUnqualifiedNameImpl) {
-      push(ParsedDotShorthandNameImpl(period: periodToken, name: operand.name));
+      // `.foo` without arguments always reads from the context type; neither
+      // scope nor type analysis changes the node kind, unlike `.foo()` below.
+      push(
+        DotShorthandNameExpressionImpl(period: periodToken, name: operand.name),
+      );
     } else if (operand is ParsedValueArgumentsImpl) {
       var function = operand.operand;
       var types = function is ParsedTypeArgumentsImpl ? function : null;
@@ -6608,7 +6613,6 @@ class AstBuilder extends StackListener {
     return switch (expression) {
       ParsedUnqualifiedNameImpl() ||
       ParsedNameAccessImpl() ||
-      ParsedCascadeNameImpl() ||
       ReceiverPropertyExtractionImpl() ||
       CascadePropertyExtractionImpl() ||
       ReceiverIndexExpressionImpl() ||
@@ -6737,8 +6741,6 @@ class AstBuilder extends StackListener {
         return InvalidSuperAssignmentTargetImpl(
           superReference: expression.superReference,
         );
-      case ParsedCascadeNameImpl():
-        return CascadePropertyAssignmentTargetImpl(name: expression.name);
       case ParsedNameAccessImpl():
         var operand = expression.operand;
         // Preserve namespace and type-application interpretation for targets.
@@ -6760,7 +6762,10 @@ class AstBuilder extends StackListener {
           name: expression.name,
         );
       case ParsedUnqualifiedNameImpl():
-        return ParsedUnqualifiedNameAssignmentTargetImpl(name: expression.name);
+        // Unlike a read, a target `x` is the same node kind whatever `x`
+        // names. Scope analysis records its lookup, and type analysis its
+        // resolution, but neither changes the node kind.
+        return UnqualifiedNameAssignmentTargetImpl(name: expression.name);
       case ReceiverIndexExpressionImpl():
         return ReceiverIndexAssignmentTargetImpl(
           receiver: expression.receiver,

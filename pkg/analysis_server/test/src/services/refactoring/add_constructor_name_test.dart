@@ -2,9 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/refactor_command_handler_mixin.dart';
 import 'package:analysis_server/src/services/refactoring/add_constructor_name.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -25,6 +28,96 @@ void main() {
 @reflectiveTest
 class AddConstructorNameInClassTest extends _AddConstructorNameTest
     with InteractiveFormsTestMixin {
+  Future<void> test_cancelsInProgress() async {
+    var originalSource = '''
+class C^() {}
+
+void f() {
+  C();
+}
+''';
+    var expected = '''
+>>>>>>>>>> lib/main.dart
+class C.name() {}
+
+void f() {
+  C.name();
+}
+''';
+
+    addTestSource(originalSource);
+
+    await initializeServer();
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+
+    // Respond to any applyEdit requests from the server with successful
+    // responses and capturing the last edit.
+    late WorkspaceEdit edit;
+    requestsFromServer.listen((request) {
+      if (request.method == Method.workspace_applyEdit) {
+        var params = ApplyWorkspaceEditParams.fromJson(
+          request.params as Map<String, Object?>,
+        );
+        edit = params.edit;
+        respondTo(request, ApplyWorkspaceEditResult(applied: true));
+      }
+    });
+
+    // Send two requests together.
+    var req1 = executeCommand(action.command!);
+    var req2 = executeCommand(action.command!);
+
+    // Expect the first will have been cancelled by the second.
+    await expectLater(
+      req1,
+      throwsA(
+        isResponseError(
+          ErrorCodes.RequestCancelled,
+          message: 'Another workspace/executeCommand request for a refactor was started',
+        ),
+      ),
+    );
+    await req2;
+
+    // Ensure applying the changes will give us the expected content.
+    verifyEdit(edit, expected);
+  }
+
+  Future<void> test_contentModified() async {
+    var originalSource = '''
+class C^() {}
+
+void f() {
+  C();
+}
+''';
+    addTestSource(originalSource);
+
+    await initializeServer();
+    await openFile(mainFileUri, testCode.code);
+    var action = await expectCodeActionWithTitle(refactoringTitle);
+
+    // Use a Completer to control when the refactor handler starts computing.
+    var completer = Completer<void>();
+    RefactorCommandHandlerMixin.delayAfterResolveForTests = completer.future;
+    try {
+      // Send an edit request immediately after the refactor request.
+      var req1 = executeCommand(action.command!);
+      var req2 = replaceFile(100, mainFileUri, '// new test content');
+      completer.complete();
+
+      // Expect the first to fail because of the modified content.
+      await expectLater(
+        req1,
+        throwsA(isResponseError(ErrorCodes.ContentModified)),
+      );
+      await req2;
+    } finally {
+      // Ensure we never leave an incomplete future if anything above throws.
+      RefactorCommandHandlerMixin.delayAfterResolveForTests = null;
+    }
+  }
+
   Future<void> test_inBody_factory_named_onKeyword() async {
     var originalSource = '''
 class C {

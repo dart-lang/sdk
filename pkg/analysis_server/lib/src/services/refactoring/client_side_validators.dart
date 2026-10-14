@@ -44,6 +44,14 @@ class ClientSideValidators {
     return _lowerCamelCase('Import prefix');
   }
 
+  /// Validators for method names.
+  ///
+  /// These are based approximately on the Dart version in
+  /// [validateMethodName].
+  List<StringValidator> get methodName {
+    return _lowerCamelCase('Method name', allowBuiltIn: true);
+  }
+
   List<StringValidator> _lowerCamelCase(
     String desc, {
     bool allowBuiltIn = false,

@@ -2235,18 +2235,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
-  void visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
-    _runSubscriptions(
-      node,
-      _registry._forParsedUnqualifiedNameAssignmentTarget,
-    );
-    node.visitChildren2(this);
-  }
-
-  @experimental
-  @override
   void visitParsedValueArguments(ParsedValueArguments node) {
     _runSubscriptions(node, _registry._forParsedValueArguments);
     node.visitChildren2(this);
@@ -4857,9 +4845,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ParsedTypeArguments>> _forParsedTypeArguments = [];
 
-  final List<_Subscription2<ParsedUnqualifiedNameAssignmentTarget>>
-  _forParsedUnqualifiedNameAssignmentTarget = [];
-
   final List<_Subscription2<ParsedUnqualifiedName>> _forParsedUnqualifiedName =
       [];
 
@@ -6250,17 +6235,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   ) {
     _hasNodeProcessors = true;
     _forParsedUnqualifiedName.add(
-      _Subscription2(rule, visitor, _getTimer(rule)),
-    );
-  }
-
-  @override
-  void addParsedUnqualifiedNameAssignmentTarget(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  ) {
-    _hasNodeProcessors = true;
-    _forParsedUnqualifiedNameAssignmentTarget.add(
       _Subscription2(rule, visitor, _getTimer(rule)),
     );
   }

@@ -1776,14 +1776,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
-    _sink.writeln('ParsedUnqualifiedNameAssignmentTarget');
-    _sink.withIndent(() => _writeNamedChildEntities(node));
-  }
-
-  @override
   void visitParsedValueArguments(ParsedValueArguments node) {
     _sink.writeln('ParsedValueArguments');
     _sink.withIndent(() => _writeNamedChildEntities(node));

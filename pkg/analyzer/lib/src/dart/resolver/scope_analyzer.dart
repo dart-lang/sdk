@@ -683,14 +683,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitParsedCascadeName(covariant ParsedCascadeNameImpl node) =>
-      _visitParsedExpression(node);
-
-  @override
-  void visitParsedDotShorthandName(covariant ParsedDotShorthandNameImpl node) =>
-      _visitParsedExpression(node);
-
-  @override
   void visitParsedNameAccess(covariant ParsedNameAccessImpl node) =>
       _visitParsedExpression(node);
 
@@ -708,13 +700,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   @override
   void visitParsedUnqualifiedName(covariant ParsedUnqualifiedNameImpl node) =>
       _visitParsedExpression(node);
-
-  @override
-  void visitParsedUnqualifiedNameAssignmentTarget(
-    covariant ParsedUnqualifiedNameAssignmentTargetImpl node,
-  ) {
-    _astRewriter.parsedAssignmentTarget(nameScope, node).accept2(this);
-  }
 
   @override
   void visitParsedValueArguments(covariant ParsedValueArgumentsImpl node) =>

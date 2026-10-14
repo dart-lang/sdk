@@ -1306,13 +1306,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
-    _visitToken(node.name);
-  }
-
-  @override
   void visitParsedValueArguments(ParsedValueArguments node) {
     _visitParsedExpression(node);
   }

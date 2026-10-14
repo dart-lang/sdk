@@ -1593,7 +1593,7 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedUnqualifiedNameAssignmentTarget
+                  target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
                   operation: increment
@@ -1658,7 +1658,7 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedUnqualifiedNameAssignmentTarget
+                  target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
                   operation: increment
@@ -1709,7 +1709,7 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedUnqualifiedNameAssignmentTarget
+                  target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
                   operation: increment
@@ -1767,7 +1767,7 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedUnqualifiedNameAssignmentTarget
+                  target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
                   operation: increment
@@ -1828,7 +1828,7 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedUnqualifiedNameAssignmentTarget
+                  target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
                   operation: increment
@@ -1889,7 +1889,7 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedUnqualifiedNameAssignmentTarget
+                  target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
                   operation: increment
@@ -1950,7 +1950,7 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedUnqualifiedNameAssignmentTarget
+                  target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
                   operation: increment
@@ -2021,7 +2021,7 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedUnqualifiedNameAssignmentTarget
+                  target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
                   operation: increment
@@ -2091,7 +2091,7 @@ CompilationUnit
                   token: <empty> <synthetic>
                 equals: = <synthetic>
                 expression2: IncrementOrDecrementExpression
-                  target: ParsedUnqualifiedNameAssignmentTarget
+                  target: UnqualifiedNameAssignmentTarget
                     name: f
                   operator: ++
                   operation: increment

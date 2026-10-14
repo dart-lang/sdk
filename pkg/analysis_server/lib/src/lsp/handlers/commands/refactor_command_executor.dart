@@ -7,6 +7,7 @@ import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
+import 'package:analysis_server/src/lsp/handlers/commands/abstract_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/refactor_command_handler_mixin.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/simple_edit_handler.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
@@ -31,6 +32,10 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
 
   new(super.server, this.commandName, this.generator);
 
+  /// The (singleton) [LspRefactorManager] used for cancelling refactors when
+  /// another is started.
+  LspRefactorManager get manager => LspRefactorManager.instance;
+
   @override
   bool get requiresTrustedCaller => false;
 
@@ -43,7 +48,14 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
     RefactoringContext context,
     List<Object?> arguments,
     CancellationToken cancellationToken,
+    int? docVersion,
   ) async {
+    // If the token we were given is not cancelable, wrap it with one that
+    // is for the rest of this request as a future refactor may need to
+    // cancel this request.
+    var cancelableToken = cancellationToken.asCancelable();
+    manager.begin(cancelableToken);
+
     try {
       // ignore: unawaited_futures
       progress.begin('Refactoring…');
@@ -53,9 +65,11 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
         clientCapabilities,
         context,
         arguments,
-        cancellationToken,
+        cancelableToken,
+        docVersion,
       );
     } finally {
+      manager.end(cancelableToken);
       // ignore: unawaited_futures
       progress.end();
     }
@@ -70,6 +84,7 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
     RefactoringContext context,
     List<Object?> arguments,
     CancellationToken cancellationToken,
+    int? docVersion,
   ) async {
     var producer = generator(context);
     var builder = ChangeBuilder(
@@ -77,6 +92,10 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
       defaultEol: context.utils.endOfLine,
     );
     var status = await producer.compute(arguments, builder);
+
+    if (cancellationToken.isCancellationRequested) {
+      return cancelled(cancellationToken);
+    }
 
     if (status is ComputeStatusFailure) {
       var reason = status.reason ?? 'Cannot compute the change. No details.';
@@ -110,6 +129,10 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
         UserPromptActions.cancel,
       ], cancellationToken);
 
+      if (cancellationToken.isCancellationRequested) {
+        return cancelled(cancellationToken);
+      }
+
       // Unless they choose to refactor anyway, abort.
       if (userChoice != UserPromptActions.refactorAnyway) {
         return success(null);
@@ -119,6 +142,12 @@ class RefactorCommandExecutor extends SimpleEditCommandHandler<AnalysisServer>
     var edits = builder.sourceChange.edits;
     if (edits.isEmpty) {
       return success(null);
+    }
+
+    // If the file changed while we were validating and preparing the change,
+    // we should fail to avoid sending bad edits.
+    if (fileHasBeenModified(unit.path, docVersion)) {
+      return fileModifiedError;
     }
 
     var fileEdits = <FileEditInformation>[];

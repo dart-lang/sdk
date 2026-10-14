@@ -2250,13 +2250,6 @@ abstract class _OffsetsAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitParsedUnqualifiedNameAssignmentTarget(
-    ParsedUnqualifiedNameAssignmentTarget node,
-  ) {
-    _tokenOrNull(node.name);
-  }
-
-  @override
   void visitReceiverIndexAssignmentTarget(ReceiverIndexAssignmentTarget node) {
     _tokenOrNull(node.leftBracket);
     _tokenOrNull(node.rightBracket);

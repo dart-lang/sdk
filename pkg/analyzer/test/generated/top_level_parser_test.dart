@@ -5027,7 +5027,7 @@ CompilationUnit
                 statements
                   ExpressionStatement
                     expression2: DirectAssignment
-                      target: ParsedUnqualifiedNameAssignmentTarget
+                      target: UnqualifiedNameAssignmentTarget
                         name: f
                       operator: =
                       value: ParsedUnqualifiedName
@@ -5062,7 +5062,7 @@ CompilationUnit
             body: ExpressionFunctionBody
               functionDefinition: =>
               expression2: DirectAssignment
-                target: ParsedUnqualifiedNameAssignmentTarget
+                target: UnqualifiedNameAssignmentTarget
                   name: f
                 operator: =
                 value: BinaryOperatorInvocation

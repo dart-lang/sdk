@@ -2174,7 +2174,7 @@ var x = f()..m<a, b>;
     var node = parseResult.findNode.singleCascadeExpression.sections[0].body;
     assertParsedNodeText(node, r'''
 ParsedTypeArguments
-  operand: ParsedCascadeName
+  operand: CascadePropertyExtraction
     name: m
   typeArguments: TypeArgumentList
     leftBracket: <

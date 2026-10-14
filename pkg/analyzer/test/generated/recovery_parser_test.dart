@@ -267,11 +267,11 @@ var v = = y = 0;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: <empty> <synthetic>
   operator: =
   value: DirectAssignment
-    target: ParsedUnqualifiedNameAssignmentTarget
+    target: UnqualifiedNameAssignmentTarget
       name: y
     operator: =
     value: IntegerLiteral
@@ -298,11 +298,11 @@ var v = x = = 0;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: x
   operator: =
   value: DirectAssignment
-    target: ParsedUnqualifiedNameAssignmentTarget
+    target: UnqualifiedNameAssignmentTarget
       name: <empty> <synthetic>
     operator: =
     value: IntegerLiteral
@@ -329,11 +329,11 @@ var v = x = y =;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: x
   operator: =
   value: DirectAssignment
-    target: ParsedUnqualifiedNameAssignmentTarget
+    target: UnqualifiedNameAssignmentTarget
       name: y
     operator: =
     value: ParsedUnqualifiedName
@@ -360,7 +360,7 @@ var v = = 0;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: <empty> <synthetic>
   operator: =
   value: IntegerLiteral
@@ -383,7 +383,7 @@ var v = x =;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 DirectAssignment
-  target: ParsedUnqualifiedNameAssignmentTarget
+  target: UnqualifiedNameAssignmentTarget
     name: x
   operator: =
   value: ParsedUnqualifiedName
@@ -1256,7 +1256,7 @@ var v = .;
     var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
     assertParsedNodeText(node, r'''
 ParsedDotShorthandExpression
-  expression: ParsedDotShorthandName
+  expression: DotShorthandNameExpression
     period: .
     name: <empty> <synthetic>
 V1: DotShorthandPropertyAccess
