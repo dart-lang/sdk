@@ -5789,6 +5789,7 @@ thisNotPromoted:
   problemMessage: "'this' can't be promoted."
   correctionMessage: "See #documentationUrl"
   script: |
+    // @dart=3.14
     extension on int? {
       bool extension_explicit_this() {
         if (this == null) return false;

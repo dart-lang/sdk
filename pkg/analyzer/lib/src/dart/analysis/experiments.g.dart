@@ -789,7 +789,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.this_promotion,
     documentation: 'Type promotion for `this`.',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.15.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -980,7 +980,7 @@ class IsEnabledByDefault {
   static const bool test_experiment = false;
 
   /// Default state of the experiment "this-promotion"
-  static const bool this_promotion = false;
+  static const bool this_promotion = true;
 
   /// Default state of the experiment "triple-shift"
   static const bool triple_shift = true;

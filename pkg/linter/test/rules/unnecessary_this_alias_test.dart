@@ -39,7 +39,7 @@ class D extends C {}
 
   test_noDiagnostic_experimentDisabled() async {
     await assertNoDiagnostics(r'''
-// @dart=3.13
+// @dart=3.14
 class C {
   void m() {
     var self = this;

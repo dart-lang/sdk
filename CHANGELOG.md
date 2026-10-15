@@ -2,6 +2,67 @@
 
 **Released on:** Unreleased
 
+### Language
+
+Dart 3.15 allows [`this` to be type promoted][this-promotion-issue], just like
+a local variable. To use this feature, set your package's
+[SDK constraint][language version] lower bound to 3.15 or greater
+(`sdk: '^3.15.0'`).
+
+#### Type promotion of `this`
+
+Previously, a type test or null check on `this` had no effect on its static
+type, so code that wanted to take advantage of one had to copy `this` into a
+local variable first:
+
+```dart
+class Shape {
+  void describe() {
+    var self = this;
+    if (self is Circle) print('radius ${self.radius}');
+  }
+}
+
+class Circle extends Shape {
+  final double radius;
+  Circle(this.radius);
+}
+
+extension on int? {
+  bool get isEvenOrNull {
+    var self = this;
+    if (self == null) return true;
+    return self.isEven;
+  }
+}
+```
+
+Now `this` is promoted directly, and so is an implicit `this` in a member
+access:
+
+```dart
+class Shape {
+  void describe() {
+    if (this is Circle) print('radius $radius');
+  }
+}
+
+extension on int? {
+  bool get isEvenOrNull {
+    if (this == null) return true;
+    return isEven;
+  }
+}
+```
+
+The new [`unnecessary_this_alias`][unnecessary_this_alias] lint flags local
+variables that only exist to work around the old behavior, and `dart fix` can
+remove them.
+
+[this-promotion-issue]: https://github.com/dart-lang/language/issues/1397
+[language version]: https://dart.dev/to/language-version
+[unnecessary_this_alias]: https://dart.dev/lints/unnecessary_this_alias
+
 ## 3.14.0
 
 **Released on:** Unreleased

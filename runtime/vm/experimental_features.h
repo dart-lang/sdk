@@ -12,6 +12,7 @@
 namespace dart {
 
 enum class ExperimentalFeature {
+  this_promotion,
   record_use,
   primary_constructors,
   private_named_parameters,

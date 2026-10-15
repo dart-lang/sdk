@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // This test validates integration of "why not promoted" when the user tries to
-// promote `this`.
+// promote `this`, prior to the language feature `this-promotion`.
+
+// @dart=3.14
 
 // TODO(paulberry): once we support adding "why not promoted" information to
 // errors that aren't related to null safety, test references to `this` in
