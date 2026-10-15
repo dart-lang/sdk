@@ -1987,7 +1987,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           }
         }
       }
-      parameters.accept2(this);
       for (var parameter in formalParameters) {
         var element = parameter.declaredFragment?.element;
         if (element != null) {
@@ -2020,6 +2019,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           }
         }
       }
+      // Visit after declaring the parameters, because the formal parameter
+      // list may contain expressions.
+      parameters.accept2(this);
     }
 
     TypeImpl returnedType;
