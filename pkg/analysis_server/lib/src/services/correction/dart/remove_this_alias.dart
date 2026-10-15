@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
@@ -89,7 +90,13 @@ class RemoveThisAlias extends ResolvedCorrectionProducer {
             reference,
             element,
           )) {
-            builder.addDeletion(range.startEnd(target, parent.period));
+            _deletePropertyTarget(
+              builder,
+              target: target,
+              operator: parent.period,
+              access: parent,
+              propertyName: parent.identifier,
+            );
             continue;
           }
         } else if (parent is PropertyAccess &&
@@ -102,7 +109,13 @@ class RemoveThisAlias extends ResolvedCorrectionProducer {
             reference,
             element,
           )) {
-            builder.addDeletion(range.startEnd(target, parent.operator));
+            _deletePropertyTarget(
+              builder,
+              target: target,
+              operator: parent.operator,
+              access: parent,
+              propertyName: parent.propertyName,
+            );
             continue;
           }
         }
@@ -144,6 +157,36 @@ class RemoveThisAlias extends ResolvedCorrectionProducer {
     }
 
     return false;
+  }
+
+  /// Deletes the [target] of a property [access], along with the [operator]
+  /// that follows it, so that the [propertyName] is accessed through an
+  /// implicit `this`.
+  ///
+  /// If that leaves [propertyName] on its own inside a `${...}` string
+  /// interpolation, and the braces are no longer needed, they're deleted too
+  /// (turning `${self.x}` into `$x` rather than `${x}`). The decision is the
+  /// same one that the `unnecessary_brace_in_string_interps` lint makes, so
+  /// that the lint has nothing left to report.
+  void _deletePropertyTarget(
+    DartFileEditBuilder builder, {
+    required Expression target,
+    required Token operator,
+    required Expression access,
+    required SimpleIdentifier propertyName,
+  }) {
+    var interpolation = access.parent;
+    if (interpolation is InterpolationExpression &&
+        interpolation.expression == access &&
+        interpolation.canRemoveBracesAround(propertyName.name)) {
+      builder.addSimpleReplacement(
+        range.startEnd(interpolation.leftBracket, operator),
+        r'$',
+      );
+      builder.addDeletion(range.token(interpolation.rightBracket!));
+      return;
+    }
+    builder.addDeletion(range.startEnd(target, operator));
   }
 
   /// Resolve the [name] in the scope of the [node].
