@@ -768,8 +768,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addForStatement(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addFunctionDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
-
   void addFunctionExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental

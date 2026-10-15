@@ -9301,8 +9301,8 @@ final class CompilationUnitImpl extends AstNodeImpl
     // nested inside the method declaration.
     //
     // Nodes whose type mixes in `FlowAnalysisRootImpl` but that didn't actually
-    // act as a flow analysis root (e.g. a local variable declaration, or a
-    // local function declaration) have a null log, so they are skipped.
+    // act as a flow analysis root (e.g. a local variable declaration) have a
+    // null log, so they are skipped.
     AstNode? node = nodeCovering2(offset: offset);
     while (node != null) {
       if (node is FlowAnalysisRootImpl) {
@@ -20231,10 +20231,8 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
 /// (whose region covers the initializer), and annotations.
 ///
 /// Note that a node whose type mixes in [FlowAnalysisRootImpl] doesn't
-/// necessarily act as a flow analysis root; for example a [FunctionDeclaration]
-/// is a flow analysis root only if it's not a local function, and a
-/// [VariableDeclaration] is a flow analysis root only if it declares a top
-/// level variable or a field. [flowAnalysisLog] is `null` in the cases where
+/// necessarily act as a flow analysis root; for example a [VariableDeclaration]
+/// is a flow analysis root only if it declares a top level variable or a field. [flowAnalysisLog] is `null` in the cases where
 /// the node isn't a flow analysis root.
 ///
 /// Note also that flow analysis roots may nest: for example the metadata of a
@@ -23389,6 +23387,8 @@ abstract final class FunctionDeclaration implements CompilationUnitMember {
 }
 
 @GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
     GenerateNodeProperty('externalKeyword'),
@@ -23398,8 +23398,9 @@ abstract final class FunctionDeclaration implements CompilationUnitMember {
     GenerateNodeProperty('functionExpression'),
   ],
 )
+@V1Ast('The V2 counterparts implement FunctionDeclarationV1OriginImpl.')
 final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
-    with AstNodeWithNameScopeMixin, FlowAnalysisRootImpl
+    with AstNodeWithNameScopeMixin
     implements FunctionDeclaration {
   @generated
   @override
@@ -23417,37 +23418,14 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   @override
   final Token name;
 
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
-  TypeAnnotationImpl? _returnType;
-
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @generated
   FunctionExpressionImpl _functionExpression;
 
-  ExecutableFragmentImpl? _declaredFragment;
+  final FunctionDeclarationV1OriginImpl _v1ProjectionOrigin;
 
-  FunctionDeclarationV1OriginImpl? _v1ProjectionOrigin;
-
-  @generated
-  FunctionDeclarationImpl({
-    required super.comment,
-    required super.metadata,
-    required this.augmentKeyword,
-    required this.externalKeyword,
-    required TypeAnnotationImpl? returnType,
-    required this.propertyKeyword,
-    required this.name,
-    required FunctionExpressionImpl functionExpression,
-  }) : _returnType = returnType,
-       _functionExpression = functionExpression {
-    _becomeParentOf12(returnType);
-    _becomeParentOf12(functionExpression);
-  }
-
-  @V1Ast()
   FunctionDeclarationImpl.v1Projection(FunctionDeclarationV1OriginImpl origin)
     : augmentKeyword = origin.augmentKeyword,
       externalKeyword = origin.externalKeyword,
-      _returnType = origin.returnType,
       propertyKeyword = origin._v1PropertyKeyword,
       name = origin.name,
       _functionExpression = FunctionExpressionImpl.v1ProjectionFromDeclaration(
@@ -23458,23 +23436,15 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
         comment: origin.documentationComment,
         metadata: origin.metadata.toList(),
       ) {
-    _attachV1Children();
+    _becomeParentOf1(origin.returnType);
+    _becomeParentOf1(_functionExpression);
   }
 
   @override
-  ExecutableFragmentImpl? get declaredFragment => switch (_v1ProjectionOrigin) {
-    var origin? => origin.declaredFragment,
-    null => _declaredFragment,
-  };
+  ExecutableFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
 
-  set declaredFragment(ExecutableFragmentImpl? declaredFragment) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _declaredFragment = declaredFragment;
-  }
-
-  @DoNotGenerate(reason: 'The function expression is manually stored')
+  @generated
   @override
   Token get endToken {
     return functionExpression.endToken;
@@ -23498,16 +23468,13 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     return name;
   }
 
-  @DoNotGenerate(reason: 'V1 projections use a projected function expression')
+  @generated
   @override
   FunctionExpressionImpl get functionExpression => _functionExpression;
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @generated
   set functionExpression(FunctionExpressionImpl functionExpression) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _functionExpression = _becomeParentOf12(functionExpression);
+    _functionExpression = _becomeParentOf1(functionExpression);
   }
 
   @override
@@ -23523,38 +23490,20 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
   bool get isSetter => propertyKeyword?.keyword == Keyword.SET;
 
   @override
-  Scope? get nameScope => switch (_v1ProjectionOrigin) {
-    var origin? => origin.nameScope,
-    null => super.nameScope,
-  };
+  Scope? get nameScope => _v1ProjectionOrigin.nameScope;
 
   @override
   set nameScope(Scope? nameScope) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    super.nameScope = nameScope;
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
   @override
-  TypeAnnotationImpl? get returnType => switch (_v1ProjectionOrigin) {
-    var origin? => origin.returnType,
-    null => _returnType,
-  };
+  TypeAnnotationImpl? get returnType => _v1ProjectionOrigin.returnType;
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
-  set returnType(TypeAnnotationImpl? returnType) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    _returnType = _becomeParentOf12(returnType);
-  }
-
-  @DoNotGenerate(reason: 'Some instances are V1 projection objects')
+  @generated
   @override
-  AstNodeApi get _astNodeApi =>
-      _v1ProjectionOrigin == null ? AstNodeApi.shared : AstNodeApi.v1;
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
 
   @generated
   @V1Ast('The V2 counterpart is _childEntities2.')
@@ -23567,73 +23516,36 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     ..addToken('name', name)
     ..addNode('functionExpression', functionExpression);
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
   @override
-  ChildEntities get _childEntities2 {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('FunctionDeclaration is not in the V2 AST view.');
-    }
-    return super._childEntities2
-      ..addToken('augmentKeyword', augmentKeyword)
-      ..addToken('externalKeyword', externalKeyword)
-      ..addNode('returnType', returnType)
-      ..addToken('propertyKeyword', propertyKeyword)
-      ..addToken('name', name)
-      ..addNode('functionExpression', functionExpression);
-  }
+  ChildEntities get _childEntities2 => super._childEntities2;
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionDeclaration(this);
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @experimental
   @override
   E? accept2<E>(AstVisitor2<E> visitor) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('FunctionDeclaration is not in the V2 AST view.');
-    }
-    return visitor.visitFunctionDeclaration(this);
+    throw StateError('FunctionDeclaration is not in the V2 AST view.');
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    if (identical(returnType, oldNode)) {
-      returnType = null;
-      return;
-    }
-    if (identical(functionExpression, oldNode)) {
-      throw UnsupportedError(
-        "Cannot remove required child 'functionExpression'.",
-      );
-    }
-    super.removeChild(oldNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects are read-only')
+  @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (_v1ProjectionOrigin != null) {
-      throw UnsupportedError('A V1 projection cannot be mutated.');
-    }
-    if (identical(returnType, oldNode)) {
-      returnType = newNode as TypeAnnotationImpl?;
-      return;
-    }
-    if (identical(functionExpression, oldNode)) {
-      functionExpression = newNode as FunctionExpressionImpl;
-      return;
-    }
-    super.replaceChild(oldNode, newNode);
+    throw UnsupportedError('A V1 projection cannot be mutated.');
   }
 
   @override
-  String toSource() => _v1ProjectionOrigin?.toSource() ?? super.toSource();
+  String toSource() => _v1ProjectionOrigin.toSource();
 
   @generated
   @V1Ast('The V2 counterpart is visitChildren2.')
@@ -23644,52 +23556,11 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     functionExpression.accept(visitor);
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('FunctionDeclaration is not in the V2 AST view.');
-    }
-    _visitCommentAndAnnotations2(visitor);
-    returnType?.accept2(visitor);
-    functionExpression.accept2(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
-  @experimental
-  void visitChildrenWithHooks(
-    AstVisitor2 visitor, {
-    void Function(TypeAnnotationImpl)? visitReturnType,
-    void Function(FunctionExpressionImpl)? visitFunctionExpression,
-  }) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('FunctionDeclaration is not in the V2 AST view.');
-    }
-    _visitCommentAndAnnotations2(visitor);
-    if (returnType case var returnType?) {
-      if (visitReturnType != null) {
-        visitReturnType(returnType);
-      } else {
-        returnType.accept2(visitor);
-      }
-    }
-    if (visitFunctionExpression != null) {
-      visitFunctionExpression(functionExpression);
-    } else {
-      functionExpression.accept2(visitor);
-    }
-  }
-
-  @V1Ast()
-  void _attachV1Children() {
-    _becomeParentOf1(returnType);
-    _becomeParentOf1(functionExpression);
+    throw StateError('FunctionDeclaration is not in the V2 AST view.');
   }
 
   @generated
@@ -23710,24 +23581,10 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
     return null;
   }
 
-  @DoNotGenerate(reason: 'V1 projection objects reject the V2 tree API')
+  @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (_v1ProjectionOrigin != null) {
-      throw StateError('FunctionDeclaration is not in the V2 AST view.');
-    }
-    if (super._childContainingRange2(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (returnType case var returnType?) {
-      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
-        return returnType;
-      }
-    }
-    if (functionExpression._containsOffset(rangeOffset, rangeEnd)) {
-      return functionExpression;
-    }
-    return null;
+    throw StateError('FunctionDeclaration is not in the V2 AST view.');
   }
 }
 

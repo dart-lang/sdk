@@ -1755,12 +1755,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _runSubscriptions(node, _registry._forFunctionDeclaration);
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitFunctionExpression(FunctionExpression node) {
     _runSubscriptions(node, _registry._forFunctionExpression);
     node.visitChildren2(this);
@@ -4696,8 +4690,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ForStatement>> _forForStatement = [];
 
-  final List<_Subscription2<FunctionDeclaration>> _forFunctionDeclaration = [];
-
   final List<_Subscription2<FunctionExpression>> _forFunctionExpression = [];
 
   final List<_Subscription2<FunctionInstantiation>> _forFunctionInstantiation =
@@ -5714,12 +5706,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addForStatement(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forForStatement.add(_Subscription2(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addFunctionDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor) {
-    _hasNodeProcessors = true;
-    _forFunctionDeclaration.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

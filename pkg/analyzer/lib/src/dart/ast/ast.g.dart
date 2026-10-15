@@ -614,8 +614,6 @@ abstract class AstVisitor2<R> {
 
   R? visitForStatement(ForStatement node);
 
-  R? visitFunctionDeclaration(FunctionDeclaration node);
-
   R? visitFunctionExpression(FunctionExpression node);
 
   @experimental

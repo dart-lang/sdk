@@ -366,6 +366,21 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
       node.statements;
 
   @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    if (parentOf(node) is! FunctionDeclarationStatement) {
+      _declarationNode = node;
+    } else {
+      visitNode(node);
+    }
+  }
+
+  @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    _referenceIsWithinLocalFunction = true;
+    visitNode(node);
+  }
+
+  @override
   void visitNode(AstNode node) {
     immediateChild = node;
     parentOf(node)?.accept(this);
@@ -483,19 +498,6 @@ mixin _ScopedNameFinderMixin {
 
   void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
     _addVariables(node.variables.variables);
-    visitNode(node);
-  }
-
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (parentOf(node) is! FunctionDeclarationStatement) {
-      _declarationNode = node;
-    } else {
-      visitNode(node);
-    }
-  }
-
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    _referenceIsWithinLocalFunction = true;
     visitNode(node);
   }
 
