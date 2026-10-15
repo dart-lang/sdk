@@ -176,15 +176,14 @@ abstract class AnalysisServer {
   /// The optional [ByteStore] to use as [byteStore].
   final ByteStore? providedByteStore;
 
-  late ByteStore byteStore;
-
-  late FileContentCache fileContentCache;
+  late final ByteStore byteStore;
 
   final UnlinkedUnitStore unlinkedUnitStore = UnlinkedUnitStoreImpl();
 
   late final analysis.AnalysisDriverScheduler analysisDriverScheduler;
 
-  late StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
+  @protected
+  StreamSubscription<Object?>? analysisDriverSchedulerEventsSubscription;
 
   /// The DiagnosticServer for this AnalysisServer. If available, it can be used
   /// to start an http diagnostics server or return the port for an existing
@@ -245,9 +244,7 @@ abstract class AnalysisServer {
 
   /// The [ClientUriConverter] to use to convert between URIs/Paths when
   /// communicating with the client.
-  late ClientUriConverter _uriConverter = ClientUriConverter.noop(
-    resourceProvider.pathContext,
-  );
+  ClientUriConverter _uriConverter;
 
   /// The next modification stamp for a changed file in the [resourceProvider].
   ///
@@ -343,6 +340,9 @@ abstract class AnalysisServer {
   }) : resourceProvider = OverlayResourceProvider(
          TimingResourceProvider(baseResourceProvider),
        ),
+       _uriConverter = ClientUriConverter.noop(
+         baseResourceProvider.pathContext,
+       ),
        pubApi = PubApi(
          instrumentationService,
          sessionLogger,
@@ -355,9 +355,7 @@ abstract class AnalysisServer {
              SchedulerTrackingListener(analyticsManager, performanceLogger),
        ) {
     messageScheduler.server = this;
-    // Set the default URI converter. This uses the resource providers path
-    // context (unlike the initialized value) which allows tests to override it.
-    uriConverter = ClientUriConverter.noop(baseResourceProvider.pathContext);
+    notificationManager.uriConverter = _uriConverter;
 
     // We can only spawn processes (eg. to run pub commands) when backed by
     // a real file system, otherwise we may try to run commands in folders that
@@ -419,7 +417,6 @@ abstract class AnalysisServer {
     }
 
     byteStore = createByteStore(resourceProvider);
-    fileContentCache = FileContentCache(resourceProvider);
 
     analysisDriverScheduler = analysis.AnalysisDriverScheduler(
       analysisPerformanceLogger,
@@ -432,7 +429,7 @@ abstract class AnalysisServer {
       options.packagesFile,
       options.enabledExperiments,
       byteStore,
-      fileContentCache,
+      FileContentCache(resourceProvider),
       unlinkedUnitStore,
       analysisPerformanceLogger,
       analysisDriverScheduler,
