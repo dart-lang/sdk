@@ -770,11 +770,6 @@ abstract class RuleVisitorRegistry2 {
 
   void addFunctionDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addFunctionDeclarationStatement(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  );
-
   void addFunctionExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
@@ -899,6 +894,12 @@ abstract class RuleVisitorRegistry2 {
   void addListLiteral(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addListPattern(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addLocalFunctionDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
 
   @experimental
   void addLogicalAnd(AbstractAnalysisRule rule, AstVisitor2 visitor);

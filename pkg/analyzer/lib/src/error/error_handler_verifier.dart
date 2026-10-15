@@ -427,6 +427,12 @@ class _ReturnStatementVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    // Do not visit within [node]. We have no interest in return statements
+    // within.
+  }
+
+  @override
   void visitReturnStatement(ReturnStatement node) {
     _returnTypeVerifier.verifyReturnStatement(node);
     super.visitReturnStatement(node);

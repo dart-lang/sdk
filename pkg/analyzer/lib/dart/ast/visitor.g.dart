@@ -2473,12 +2473,6 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   }
 
   @override
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    node.visitChildren2(this);
-    return null;
-  }
-
-  @override
   R? visitFunctionExpression(FunctionExpression node) {
     node.visitChildren2(this);
     return null;
@@ -2721,6 +2715,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitListPattern(ListPattern node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4273,10 +4274,6 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   R? visitFunctionDeclaration(FunctionDeclaration node) => null;
 
   @override
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
-      null;
-
-  @override
   R? visitFunctionExpression(FunctionExpression node) => null;
 
   @experimental
@@ -4416,6 +4413,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitListPattern(ListPattern node) => null;
+
+  @experimental
+  @override
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node) => null;
 
   @experimental
   @override
@@ -5695,10 +5696,6 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitFunctionDeclaration(FunctionDeclaration node) => _throw(node);
 
   @override
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
-      _throw(node);
-
-  @override
   R? visitFunctionExpression(FunctionExpression node) => _throw(node);
 
   @experimental
@@ -5838,6 +5835,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitListPattern(ListPattern node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node) =>
+      _throw(node);
 
   @experimental
   @override
@@ -8452,14 +8454,6 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   }
 
   @override
-  T? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitFunctionDeclarationStatement(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitFunctionExpression(FunctionExpression node) {
     stopwatch.start();
     T? result = _baseVisitor.visitFunctionExpression(node);
@@ -8778,6 +8772,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
   T? visitListPattern(ListPattern node) {
     stopwatch.start();
     T? result = _baseVisitor.visitListPattern(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLocalFunctionDeclaration(node);
     stopwatch.stop();
     return result;
   }
@@ -10601,10 +10604,6 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitFunctionDeclaration(FunctionDeclaration node) => visitNode(node);
 
   @override
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node) =>
-      visitNode(node);
-
-  @override
   R? visitFunctionExpression(FunctionExpression node) => visitNode(node);
 
   @experimental
@@ -10746,6 +10745,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitListPattern(ListPattern node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node) =>
+      visitNode(node);
 
   @experimental
   @override

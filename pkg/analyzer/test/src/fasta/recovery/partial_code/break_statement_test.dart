@@ -546,6 +546,21 @@ CompilationUnit
               label: LabelReference
                 name: int
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            BreakStatement
+              breakKeyword: break
+              label: LabelReference
+                name: int
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 name: f
@@ -609,6 +624,21 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            BreakStatement
+              breakKeyword: break
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -1492,6 +1522,23 @@ CompilationUnit
               label: LabelReference
                 name: a
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            BreakStatement
+              breakKeyword: break
+              label: LabelReference
+                name: a
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -1558,6 +1605,23 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            BreakStatement
+              breakKeyword: break
+              label: LabelReference
+                name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             BreakStatement
               breakKeyword: break
               label: LabelReference

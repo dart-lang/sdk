@@ -1339,11 +1339,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       return expression;
     }
 
-    // Don't rewrite function declarations.
-    if (expression.parent2 is FunctionDeclaration) {
-      return expression;
-    }
-
     var staticType = expression.staticType;
     if (staticType is! FunctionTypeImpl || staticType.typeParameters.isEmpty) {
       return expression;
@@ -3206,69 +3201,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-    var functionType = element.type;
-
-    _withEnclosingExecutableElement(element, () {
-      checkUnreachableNode(node);
-      node.documentationComment?.accept2(this);
-      node.metadata.accept2(this);
-      node.returnType?.accept2(this);
-
-      // Use typeParameters or parameters for the offset if available, because
-      // they will be visited before the body, and may contain expressions.
-      var enterOffset =
-          (node.functionExpression.typeParameters ??
-                  node.functionExpression.parameters ??
-                  node.functionExpression.body)
-              .offset;
-      flowAnalysis.flow!.functionExpression_begin(node, offset: enterOffset);
-      flowAnalysis.executableDeclaration_enter(
-        node,
-        element.formalParameters,
-        isClosure: true,
-        offset: enterOffset,
-      );
-
-      // node.functionExpression isn't a real expression, so visit it directly
-      // rather than going through `analyzeExpression`.
-      inferenceLogWriter?.setExpressionVisitCodePath(
-        node.functionExpression,
-        ExpressionVisitCodePath.analyzeExpression,
-      );
-      pushRewrite(node.functionExpression);
-      // Stack: (functionExpression)
-      node.functionExpression.resolveExpression(this, functionType);
-      popRewrite();
-      elementResolver.visitFunctionDeclaration(node);
-
-      checkForBodyMayCompleteNormally(
-        body: node.functionExpression.body,
-        errorNode: node.name,
-      );
-      var exitOffset = node.functionExpression.body.flowEndOffset;
-      flowAnalysis.executableDeclaration_exit(
-        node.functionExpression.body,
-        true,
-        offset: exitOffset,
-      );
-      flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    });
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    inferenceLogWriter?.enterStatement(node);
-    checkUnreachableNode(node);
-    node.visitChildren2(this);
-    _recordMayCompleteNormally(node);
-    inferenceLogWriter?.exitStatement(node);
-  }
-
-  @override
   void visitFunctionExpression(
     covariant FunctionExpressionImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -3621,6 +3553,47 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     _typedLiteralResolver.resolveListLiteral(node, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    inferenceLogWriter?.enterStatement(node);
+    checkUnreachableNode(node);
+    var element = node.declaredFragment!.element;
+
+    _withEnclosingExecutableElement(element, () {
+      node.documentationComment?.accept2(this);
+      node.metadata.accept2(this);
+      node.returnType?.accept2(this);
+
+      // Use the type parameters or formal parameters for the offset, because
+      // they are visited before the body, and may contain expressions.
+      var enterOffset = (node.typeParameters ?? node.formalParameters).offset;
+      flowAnalysis.flow!.functionExpression_begin(node, offset: enterOffset);
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        element.formalParameters,
+        isClosure: true,
+        offset: enterOffset,
+      );
+
+      _functionExpressionResolver.resolveLocalFunction(node);
+
+      checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
+      var exitOffset = node.body.flowEndOffset;
+      flowAnalysis.executableDeclaration_exit(
+        node.body,
+        true,
+        offset: exitOffset,
+      );
+      flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    });
+
+    _recordMayCompleteNormally(node);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override

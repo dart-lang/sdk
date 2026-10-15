@@ -89,12 +89,9 @@ class DuplicateDefinitionVerifier {
         for (var variable in statement.variables.variables) {
           scope.add(variable.name, node: variable);
         }
-      } else if (statement is FunctionDeclarationStatementImpl) {
+      } else if (statement is LocalFunctionDeclarationImpl) {
         if (!_isWildCardFunction(statement)) {
-          scope.add(
-            statement.functionDeclaration.name,
-            node: statement.functionDeclaration,
-          );
+          scope.add(statement.name, node: statement);
         }
       } else if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
@@ -351,8 +348,8 @@ class DuplicateDefinitionVerifier {
     }
   }
 
-  bool _isWildCardFunction(FunctionDeclarationStatement statement) =>
-      statement.functionDeclaration.name.lexeme == '_' &&
+  bool _isWildCardFunction(LocalFunctionDeclaration statement) =>
+      statement.name.lexeme == '_' &&
       _currentLibrary.hasWildcardVariablesFeatureEnabled;
 }
 

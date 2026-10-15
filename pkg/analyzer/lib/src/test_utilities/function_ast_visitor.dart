@@ -13,14 +13,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   final void Function(DeclaredVariablePattern)? declaredVariablePattern;
   final void Function(ForElement)? forElement;
   final void Function(ForStatement)? forStatement;
-  final void Function(FunctionDeclaration)? functionDeclaration;
-  final void Function(FunctionDeclarationStatement)?
-  functionDeclarationStatement;
-  final void Function(FunctionExpression, bool)? functionExpression;
+  final void Function(FunctionExpression)? functionExpression;
   final void Function(GuardedPattern)? guardedPattern;
   final void Function(IfElement)? ifElement;
   final void Function(IfStatement)? ifStatement;
   final void Function(Label)? label;
+  final void Function(LocalFunctionDeclaration)? localFunctionDeclaration;
   final void Function(MethodDeclaration)? methodDeclaration;
   final void Function(PatternAssignment)? patternAssignment;
   final void Function(PatternVariableDeclaration)? patternVariableDeclaration;
@@ -29,6 +27,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   final void Function(SwitchExpression)? switchExpression;
   final void Function(SwitchExpressionCase)? switchExpressionCase;
   final void Function(SwitchPatternCase)? switchPatternCase;
+  final void Function(TopLevelFunctionDeclaration)? topLevelFunctionDeclaration;
   final void Function(TypeParameter)? typeParameter;
   final void Function(UnqualifiedFunctionInvocation)?
   unqualifiedFunctionInvocation;
@@ -41,13 +40,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
     this.declaredVariablePattern,
     this.forElement,
     this.forStatement,
-    this.functionDeclaration,
-    this.functionDeclarationStatement,
     this.functionExpression,
     this.guardedPattern,
     this.ifElement,
     this.ifStatement,
     this.label,
+    this.localFunctionDeclaration,
     this.methodDeclaration,
     this.patternAssignment,
     this.patternVariableDeclaration,
@@ -55,6 +53,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
     this.switchExpression,
     this.switchExpressionCase,
     this.switchPatternCase,
+    this.topLevelFunctionDeclaration,
     this.typeParameter,
     this.unqualifiedFunctionInvocation,
     this.variableDeclaration,
@@ -103,27 +102,8 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    functionDeclaration?.call(node);
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    if (functionDeclarationStatement != null) {
-      functionDeclarationStatement!(node);
-    }
-    super.visitFunctionDeclarationStatement(node);
-  }
-
-  @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (functionExpression != null) {
-      var local =
-          node.parent2 is! FunctionDeclaration ||
-          node.parent2!.parent2 is FunctionDeclarationStatement;
-      functionExpression!(node, local);
-    }
+    functionExpression?.call(node);
     super.visitFunctionExpression(node);
   }
 
@@ -151,6 +131,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
       label!(node);
     }
     super.visitLabel(node);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    localFunctionDeclaration?.call(node);
+    super.visitLocalFunctionDeclaration(node);
   }
 
   @override
@@ -195,6 +181,12 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   void visitSwitchPatternCase(SwitchPatternCase node) {
     switchPatternCase?.call(node);
     super.visitSwitchPatternCase(node);
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    topLevelFunctionDeclaration?.call(node);
+    super.visitTopLevelFunctionDeclaration(node);
   }
 
   @override

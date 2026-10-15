@@ -968,26 +968,34 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalFunctionDeclaration
+              name: g
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                requiredPositionalFormalParameters
+                  RegularFormalParameter
+                    name: y
+                rightParenthesis: )
+              body: ExpressionFunctionBody
+                functionDefinition: =>
+                expression2: ParsedUnqualifiedName
+                  name: y
+                expression(v1): SimpleIdentifier
+                  token: y
+                semicolon: ;
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 name: g
                 functionExpression: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
-                    requiredPositionalFormalParameters
-                      RegularFormalParameter
-                        name: y
-                    rightParenthesis: )
-                  parameters(v1): FormalParameterList
-                    leftParenthesis: (
                     parameter: RegularFormalParameter
                       name: y
                     rightParenthesis: )
                   body: ExpressionFunctionBody
                     functionDefinition: =>
-                    expression2: ParsedUnqualifiedName
-                      name: y
-                    expression(v1): SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: y
                     semicolon: ;
           rightBracket: } <synthetic>

@@ -443,36 +443,30 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
-  functionDeclaration: FunctionDeclaration
-    returnType: NamedType
-      name: void
-      element: <null>
-      type: void
-    name: g
-    functionExpression: FunctionExpression
-      parameters: FormalParameterList
-        leftParenthesis: (
-        rightParenthesis: )
-      body: BlockFunctionBody
-        block: Block
-          leftBracket: {
-          statements2
-            ReturnStatement
-              returnKeyword: return
-              semicolon: ;
-              mayCompleteNormally: false
-          rightBracket: }
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: g
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ReturnStatement
+          returnKeyword: return
+          semicolon: ;
           mayCompleteNormally: false
-      declaredFragment: <testLibraryFragment> g@18
-        element: g@18
-          type: void Function()
-      staticType: void Function()
-    declaredFragment: <testLibraryFragment> g@18
-      element: g@18
-        type: void Function()
+      rightBracket: }
+      mayCompleteNormally: false
+  declaredFragment: <testLibraryFragment> g@18
+    element: g@18
+      type: void Function()
   mayCompleteNormally: true
 ''');
   }

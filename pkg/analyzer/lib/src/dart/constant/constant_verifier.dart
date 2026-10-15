@@ -320,6 +320,14 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    super.visitLocalFunctionDeclaration(node);
+    _validateDefaultValues(node.formalParameters);
+  }
+
+  @override
   void visitMapPattern(MapPattern node) {
     node.typeArguments?.accept2(this);
 

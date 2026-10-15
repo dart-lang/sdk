@@ -70,18 +70,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    var element = node.declaredFragment!.element;
-    // TODO(pq): ask the FunctionElement once implemented
-    if (_wildCardVariablesEnabled &&
-        element is LocalFunctionElement &&
-        element.name == '_') {
-      _diagnosticReporter.report(diag.deadCode.at(node));
-    }
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var libraryImport = node.libraryImport;
     if (libraryImport != null) {
@@ -102,6 +90,16 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
     _withLabelTracker(node.labels, () {
       super.visitLabeledStatement(node);
     });
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    var element = node.declaredFragment!.element;
+    // TODO(pq): ask the FunctionElement once implemented
+    if (_wildCardVariablesEnabled && element.name == '_') {
+      _diagnosticReporter.report(diag.deadCode.at(node));
+    }
+    super.visitLocalFunctionDeclaration(node);
   }
 
   @override
@@ -255,8 +253,8 @@ class NullSafetyDeadCodeVerifier {
       // So, technically the code interval ends at the end of [node].
       // But we trim it to the last statement for presentation purposes.
       if (node != firstDeadNode) {
-        if (node is FunctionDeclaration) {
-          node = node.functionExpression.body;
+        if (node is LocalFunctionDeclaration) {
+          node = node.body;
         }
         if (node is TopLevelFunctionDeclaration) {
           node = node.body;

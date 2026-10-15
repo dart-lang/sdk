@@ -88,10 +88,11 @@ extension on ReturnStatement {
 extension on FunctionBody {
   DartType? get returnType => switch (parent2) {
     MethodDeclaration(:var declaredFragment) ||
-    FunctionDeclaration(:var declaredFragment) ||
     FunctionExpression(
       :var declaredFragment,
     ) => declaredFragment?.element.returnType,
+    LocalFunctionDeclaration(:var declaredFragment) =>
+      declaredFragment?.element.returnType,
     TopLevelFunctionDeclaration(:var declaredFragment) =>
       declaredFragment?.element.returnType,
     TopLevelGetterDeclaration(:var declaredFragment) =>

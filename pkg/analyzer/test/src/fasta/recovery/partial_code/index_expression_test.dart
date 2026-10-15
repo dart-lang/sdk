@@ -1105,6 +1105,27 @@ CompilationUnit
                   token: x
                 rightBracket: ] <synthetic>
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ExpressionStatement
+              expression: IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -1188,6 +1209,27 @@ CompilationUnit
                   name: x
                 rightBracket: ] <synthetic>
               expression(v1): IndexExpression
+                target: SimpleIdentifier
+                  token: intList
+                leftBracket: [
+                index: SimpleIdentifier
+                  token: x
+                rightBracket: ] <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ExpressionStatement
+              expression: IndexExpression
                 target: SimpleIdentifier
                   token: intList
                 leftBracket: [

@@ -748,11 +748,6 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    _visitNode(node.functionDeclaration);
-  }
-
-  @override
   void visitFunctionExpression(FunctionExpression node) {
     _visitNode(node.typeParameters);
     _visitNode(node.parameters);
@@ -1051,6 +1046,16 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('[');
     _visitNodeList(node.elements, separator: ', ');
     sink.write(']');
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitNode(node.returnType, suffix: ' ');
+    _visitToken(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.formalParameters);
+    _visitFunctionBody(node.body);
   }
 
   @override

@@ -1392,13 +1392,28 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalFunctionDeclaration
+              metadata
+                Annotation
+                  atSign: @
+                  expression: ParsedUnqualifiedName
+                    name: int
+                  name: SimpleIdentifier
+                    token: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 metadata
                   Annotation
                     atSign: @
-                    expression: ParsedUnqualifiedName
-                      name: int
                     name: SimpleIdentifier
                       token: int
                 name: f
@@ -1461,13 +1476,30 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalFunctionDeclaration
+              metadata
+                Annotation
+                  atSign: @
+                  expression: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  name: SimpleIdentifier
+                    token: <empty> <synthetic>
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 metadata
                   Annotation
                     atSign: @
-                    expression: ParsedUnqualifiedName
-                      name: <empty> <synthetic>
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 returnType: NamedType

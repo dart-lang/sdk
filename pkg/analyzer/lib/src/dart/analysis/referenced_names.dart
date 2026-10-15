@@ -68,8 +68,8 @@ class _LocalNameScope {
   factory _LocalNameScope.forBlock(_LocalNameScope enclosing, Block node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     for (Statement statement in node.statements2) {
-      if (statement is FunctionDeclarationStatement) {
-        scope.add(statement.functionDeclaration.name);
+      if (statement is LocalFunctionDeclaration) {
+        scope.add(statement.name);
       } else if (statement is VariableDeclarationStatement) {
         scope.addVariableNames(statement.variables);
       }
@@ -127,22 +127,22 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forFunction(
-    _LocalNameScope enclosing,
-    FunctionDeclaration node,
-  ) {
-    _LocalNameScope scope = _LocalNameScope(enclosing);
-    scope.addTypeParameters(node.functionExpression.typeParameters);
-    scope.addFormalParameters(node.functionExpression.parameters);
-    return scope;
-  }
-
   factory _LocalNameScope.forFunctionTypeAlias(
     _LocalNameScope enclosing,
     FunctionTypeAlias node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
+    return scope;
+  }
+
+  factory _LocalNameScope.forLocalFunction(
+    _LocalNameScope enclosing,
+    LocalFunctionDeclaration node,
+  ) {
+    _LocalNameScope scope = _LocalNameScope(enclosing);
+    scope.addTypeParameters(node.typeParameters);
+    scope.addFormalParameters(node.formalParameters);
     return scope;
   }
 
@@ -384,17 +384,6 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _LocalNameScope outerScope = localScope;
-    try {
-      localScope = _LocalNameScope.forFunction(localScope, node);
-      super.visitFunctionDeclaration(node);
-    } finally {
-      localScope = outerScope;
-    }
-  }
-
-  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     _LocalNameScope outerScope = localScope;
     try {
@@ -437,6 +426,17 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
       IncrementOrDecrementOperation.decrement => '-',
     });
     node.visitChildren2(this);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    _LocalNameScope outerScope = localScope;
+    try {
+      localScope = _LocalNameScope.forLocalFunction(localScope, node);
+      super.visitLocalFunctionDeclaration(node);
+    } finally {
+      localScope = outerScope;
+    }
   }
 
   @override

@@ -750,7 +750,18 @@ CompilationUnit
                   token: <empty> <synthetic>
                 rightSeparator: ; <synthetic>
               rightParenthesis: )
-              body2: FunctionDeclarationStatement
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -839,7 +850,18 @@ CompilationUnit
                   token: <empty> <synthetic>
                 rightSeparator: ; <synthetic>
               rightParenthesis: )
-              body2: FunctionDeclarationStatement
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void
@@ -6584,6 +6606,29 @@ CompilationUnit
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -6667,6 +6712,29 @@ CompilationUnit
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ForStatement
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForPartsWithExpression
+                leftSeparator: ; <synthetic>
+                rightSeparator: ; <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
             FunctionDeclarationStatement
@@ -9184,7 +9252,18 @@ CompilationUnit
                 leftSeparator: ;
                 rightSeparator: ;
               rightParenthesis: )
-              body2: FunctionDeclarationStatement
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -9273,7 +9352,18 @@ CompilationUnit
                 leftSeparator: ;
                 rightSeparator: ;
               rightParenthesis: )
-              body2: FunctionDeclarationStatement
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void

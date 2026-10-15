@@ -2486,24 +2486,15 @@ class AstBuilder extends StackListener {
     var returnType = pop() as TypeAnnotationImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var metadata = pop(NullValues.Metadata) as List<AnnotationImpl>?;
-    var functionExpression = FunctionExpressionImpl(
-      typeParameters: typeParameters,
-      parameters: parameters,
-      body: body,
-    );
-    var functionDeclaration = FunctionDeclarationImpl(
-      comment: null,
-      metadata: metadata,
-      augmentKeyword: null,
-      externalKeyword: null,
-      returnType: returnType,
-      propertyKeyword: null,
-      name: name,
-      functionExpression: functionExpression,
-    );
     push(
-      FunctionDeclarationStatementImpl(
-        functionDeclaration: functionDeclaration,
+      LocalFunctionDeclarationImpl(
+        comment: null,
+        metadata: metadata,
+        returnType: returnType,
+        name: name,
+        typeParameters: typeParameters,
+        formalParameters: parameters,
+        body: body,
       ),
     );
   }

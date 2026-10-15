@@ -126,7 +126,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         result = node;
       }
     } else if (fragment is LocalFunctionFragment) {
-      if (node is FunctionDeclaration && _hasOffset(node.name)) {
+      if (node is LocalFunctionDeclaration && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is LocalVariableFragment) {

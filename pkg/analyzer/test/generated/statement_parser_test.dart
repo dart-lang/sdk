@@ -2427,6 +2427,35 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: int
+            name: p
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+          binaryOperator: multiply
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+        semicolon: ;
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: NamedType
@@ -2435,14 +2464,6 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: int
-                name: p
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
-            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: int
@@ -2450,14 +2471,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryOperatorInvocation
-              leftOperand: ParsedUnqualifiedName
-                name: p
-              operator: *
-              rightOperand: IntegerLiteral
-                literal: 2
-              binaryOperator: multiply
-            expression(v1): BinaryExpression
+            expression: BinaryExpression
               leftOperand: SimpleIdentifier
                 token: p
               operator: *
@@ -2479,6 +2493,41 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalFunctionDeclaration
+      returnType: NamedType
+        name: E
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: E
+            name: p
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+          binaryOperator: multiply
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+        semicolon: ;
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: NamedType
@@ -2493,14 +2542,6 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: E
-                name: p
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
-            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: E
@@ -2508,14 +2549,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryOperatorInvocation
-              leftOperand: ParsedUnqualifiedName
-                name: p
-              operator: *
-              rightOperand: IntegerLiteral
-                literal: 2
-              binaryOperator: multiply
-            expression(v1): BinaryExpression
+            expression: BinaryExpression
               leftOperand: SimpleIdentifier
                 token: p
               operator: *
@@ -2537,6 +2571,39 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalFunctionDeclaration
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: E
+            name: p
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: BinaryOperatorInvocation
+          leftOperand: ParsedUnqualifiedName
+            name: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+          binaryOperator: multiply
+        expression(v1): BinaryExpression
+          leftOperand: SimpleIdentifier
+            token: p
+          operator: *
+          rightOperand: IntegerLiteral
+            literal: 2
+        semicolon: ;
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         name: f
@@ -2549,14 +2616,6 @@ Block
             rightBracket: >
           parameters: FormalParameterList
             leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: E
-                name: p
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
-            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: E
@@ -2564,14 +2623,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: BinaryOperatorInvocation
-              leftOperand: ParsedUnqualifiedName
-                name: p
-              operator: *
-              rightOperand: IntegerLiteral
-                literal: 2
-              binaryOperator: multiply
-            expression(v1): BinaryExpression
+            expression: BinaryExpression
               leftOperand: SimpleIdentifier
                 token: p
               operator: *
@@ -3136,6 +3188,16 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         name: f
@@ -3162,23 +3224,30 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: void
+            name: g
+            functionTypedSuffix: FunctionTypedFormalParameterSuffix
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         name: f
         functionExpression: FunctionExpression
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: void
-                name: g
-                functionTypedSuffix: FunctionTypedFormalParameterSuffix
-                  formalParameters: FormalParameterList
-                    leftParenthesis: (
-                    rightParenthesis: )
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -3374,6 +3443,39 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalFunctionDeclaration
+      returnType: GenericFunctionType
+        returnType: NamedType
+          name: int
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+          rightParenthesis: )
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: String
+            name: s
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: NullLiteral
+          literal: null
+        semicolon: ;
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: GenericFunctionType
@@ -3381,13 +3483,6 @@ Block
             name: int
           functionKeyword: Function
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: int
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -3397,14 +3492,6 @@ Block
         functionExpression: FunctionExpression
           parameters: FormalParameterList
             leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: String
-                name: s
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
-            leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
                 name: String
@@ -3412,7 +3499,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: NullLiteral
+            expression: NullLiteral
               literal: null
             semicolon: ;
   rightBracket: }
@@ -4025,6 +4112,66 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalFunctionDeclaration
+      returnType: GenericFunctionType
+        returnType: NamedType
+          name: void
+        functionKeyword: Function
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: A
+          rightBracket: >
+        parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                importPrefix: ImportPrefixReference
+                  name: core
+                  period: .
+                name: List
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      importPrefix: ImportPrefixReference
+                        name: core
+                        period: .
+                      name: int
+                  rightBracket: >
+              name: x
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: core
+                period: .
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    importPrefix: ImportPrefixReference
+                      name: core
+                      period: .
+                    name: int
+                rightBracket: >
+            name: x
+          rightParenthesis: )
+      name: m
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: NullLiteral
+          literal: null
+        semicolon: ;
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: GenericFunctionType
@@ -4038,26 +4185,6 @@ Block
                 name: A
             rightBracket: >
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  importPrefix: ImportPrefixReference
-                    name: core
-                    period: .
-                  name: List
-                  typeArguments: TypeArgumentList
-                    leftBracket: <
-                    arguments
-                      NamedType
-                        importPrefix: ImportPrefixReference
-                          name: core
-                          period: .
-                        name: int
-                    rightBracket: >
-                name: x
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -4083,7 +4210,7 @@ Block
             rightParenthesis: )
           body: ExpressionFunctionBody
             functionDefinition: =>
-            expression2: NullLiteral
+            expression: NullLiteral
               literal: null
             semicolon: ;
   rightBracket: }
@@ -4120,6 +4247,27 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalFunctionDeclaration
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: a
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         name: f
@@ -4131,14 +4279,6 @@ Block
                 name: E
             rightBracket: >
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                name: a
-              RegularFormalParameter
-                name: b
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: a
@@ -4164,6 +4304,23 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalFunctionDeclaration
+      returnType: NamedType
+        name: int
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: a
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: NamedType
@@ -4171,14 +4328,6 @@ Block
         name: f
         functionExpression: FunctionExpression
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                name: a
-              RegularFormalParameter
-                name: b
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: a
@@ -4204,6 +4353,29 @@ void f() {
 Block
   leftBracket: {
   statements2
+    LocalFunctionDeclaration
+      returnType: NamedType
+        name: int
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: a
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  statements(v1)
     FunctionDeclarationStatement
       functionDeclaration: FunctionDeclaration
         returnType: NamedType
@@ -4217,14 +4389,6 @@ Block
                 name: E
             rightBracket: >
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                name: a
-              RegularFormalParameter
-                name: b
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               name: a

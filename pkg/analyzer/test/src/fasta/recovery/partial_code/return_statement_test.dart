@@ -587,6 +587,23 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ReturnStatement
+              returnKeyword: return
+              expression: SimpleIdentifier
+                token: a
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -658,6 +675,23 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: a
               expression(v1): SimpleIdentifier
+                token: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ReturnStatement
+              returnKeyword: return
+              expression: SimpleIdentifier
                 token: a
               semicolon: ; <synthetic>
             FunctionDeclarationStatement

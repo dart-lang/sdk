@@ -2330,9 +2330,9 @@ library l;
 class C { m() { @Foo f() {} } }
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+LocalFunctionDeclaration
   metadata
     Annotation
       atSign: @
@@ -2341,14 +2341,13 @@ FunctionDeclaration
       name: SimpleIdentifier
         token: Foo
   name: f
-  functionExpression: FunctionExpression
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
 ''');
   }
 

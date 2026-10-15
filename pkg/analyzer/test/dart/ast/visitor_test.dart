@@ -51,7 +51,12 @@ A f(p) {
     expect(nodes[2], findNode.classDeclaration('class B'));
     // The V1 projection of the top-level function `f`.
     expect(nodes[3], parseResult.unit.declarations[2]);
-    expect(nodes[24], findNode.functionDeclarationStatement('num q'));
+    // The V1 projection of the local function `q`.
+    var classB = parseResult.unit.declarations[1] as ClassDeclaration;
+    var method = (classB.body as BlockClassBody).members.single;
+    method as MethodDeclaration;
+    var block = (method.body as BlockFunctionBody).block;
+    expect(nodes[24], block.statements[0]);
     expect(nodes[50], findNode.integerLiteral('3'));
   }
 }

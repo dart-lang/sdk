@@ -917,20 +917,6 @@ void f() {
     );
   }
 
-  void test_functionDeclarationStatement() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-void f() {
-  void g() {}
-  void h() {}
-}
-''');
-    _assertReplacementForChildren<FunctionDeclarationStatement>(
-      destination: parseResult.findNode.functionDeclarationStatement('g()'),
-      source: parseResult.findNode.functionDeclarationStatement('h()'),
-      childAccessors: [(node) => node.functionDeclaration],
-    );
-  }
-
   void test_functionExpression() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var f = <T>(int a) {
@@ -1211,6 +1197,25 @@ void f() {
       destination: parseResult.findNode.listLiteral('<int>'),
       source: parseResult.findNode.listLiteral('<double>'),
       childAccessors: [(node) => node.typeArguments!],
+    );
+  }
+
+  void test_localFunctionDeclaration() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+void f() {
+  int g<T>(int a) => 0;
+  double h<U>(double b) => 1;
+}
+''');
+    _assertReplacementForChildren<LocalFunctionDeclaration>(
+      destination: parseResult.findNode.localFunctionDeclaration('g<T>'),
+      source: parseResult.findNode.localFunctionDeclaration('h<U>'),
+      childAccessors: [
+        (node) => node.returnType!,
+        (node) => node.typeParameters!,
+        (node) => node.formalParameters,
+        (node) => node.body,
+      ],
     );
   }
 

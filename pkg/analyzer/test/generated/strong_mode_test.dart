@@ -453,9 +453,8 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       "test2",
     );
 
-    FunctionDeclaration inner =
-        (statements[0] as FunctionDeclarationStatement).functionDeclaration;
-    var body0 = inner.functionExpression.body as BlockFunctionBody;
+    var inner = statements[0] as LocalFunctionDeclaration;
+    var body0 = inner.body as BlockFunctionBody;
     var return0 = body0.block.statements2[0] as ReturnStatement;
     Expression anon0 = return0.expression2!;
     var type0 = anon0.staticType as FunctionType;

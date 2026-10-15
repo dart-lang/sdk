@@ -2845,29 +2845,25 @@ void f() {
 }
 ''');
 
-    var node = parseResult
-        .findNode
-        .singleFunctionDeclarationStatement
-        .functionDeclaration;
+    var node = parseResult.findNode.singleLocalFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+LocalFunctionDeclaration
   returnType: NamedType
     name: void
   name: g
-  functionExpression: FunctionExpression
-    typeParameters: TypeParameterList
-      leftBracket: <
-      typeParameters
-        TypeParameter
-          name: T
-      rightBracket: >
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
 ''');
   }
 }

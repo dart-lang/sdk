@@ -53,10 +53,9 @@ extension AstNodeExtension on AstNode {
   FunctionExpression? get enclosingClosure2 {
     for (var node in withAncestors2) {
       switch (node) {
-        case FunctionExpression(parent2: var parent)
-            when parent is! FunctionDeclaration:
+        case FunctionExpression():
           return node;
-        case FunctionDeclaration() ||
+        case LocalFunctionDeclaration() ||
             ConstructorDeclaration() ||
             MethodDeclaration() ||
             TopLevelFunctionDeclaration() ||
@@ -88,7 +87,7 @@ extension AstNodeExtension on AstNode {
   /// The [ExecutableElement] of the enclosing executable [AstNode].
   ExecutableElement? get enclosingExecutableElement2 {
     for (var node in withAncestors2) {
-      if (node is FunctionDeclaration) {
+      if (node is LocalFunctionDeclaration) {
         return node.declaredFragment?.element;
       }
       if (node is ConstructorDeclaration) {

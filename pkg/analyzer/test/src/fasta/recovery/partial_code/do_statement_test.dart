@@ -721,6 +721,29 @@ CompilationUnit
                 token: a
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -805,6 +828,29 @@ CompilationUnit
               condition2: ParsedUnqualifiedName
                 name: a
               condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -1906,7 +1952,18 @@ CompilationUnit
           statements2
             DoStatement
               doKeyword: do
-              body2: FunctionDeclarationStatement
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -1989,7 +2046,18 @@ CompilationUnit
           statements2
             DoStatement
               doKeyword: do
-              body2: FunctionDeclarationStatement
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void
@@ -3145,6 +3213,18 @@ CompilationUnit
               body2: Block
                 leftBracket: {
                 statements2
+                  LocalFunctionDeclaration
+                    returnType: NamedType
+                      name: int
+                    name: f
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+                statements(v1)
                   FunctionDeclarationStatement
                     functionDeclaration: FunctionDeclaration
                       returnType: NamedType
@@ -3237,6 +3317,18 @@ CompilationUnit
               body2: Block
                 leftBracket: {
                 statements2
+                  LocalFunctionDeclaration
+                    returnType: NamedType
+                      name: void
+                    name: f
+                    formalParameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+                statements(v1)
                   FunctionDeclarationStatement
                     functionDeclaration: FunctionDeclaration
                       returnType: NamedType
@@ -5630,6 +5722,29 @@ CompilationUnit
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -5716,6 +5831,29 @@ CompilationUnit
               condition2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while <synthetic>
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -6828,6 +6966,29 @@ CompilationUnit
                 token: a
               rightParenthesis: )
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -6910,6 +7071,29 @@ CompilationUnit
               condition2: ParsedUnqualifiedName
                 name: a
               condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: (
+              condition: SimpleIdentifier
                 token: a
               rightParenthesis: )
               semicolon: ; <synthetic>
@@ -8048,6 +8232,29 @@ CompilationUnit
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -8133,6 +8340,29 @@ CompilationUnit
               condition2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            DoStatement
+              doKeyword: do
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              whileKeyword: while
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>

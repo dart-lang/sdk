@@ -1761,12 +1761,6 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    _runSubscriptions(node, _registry._forFunctionDeclarationStatement);
-    node.visitChildren2(this);
-  }
-
-  @override
   void visitFunctionExpression(FunctionExpression node) {
     _runSubscriptions(node, _registry._forFunctionExpression);
     node.visitChildren2(this);
@@ -2017,6 +2011,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   @override
   void visitListPattern(ListPattern node) {
     _runSubscriptions(node, _registry._forListPattern);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    _runSubscriptions(node, _registry._forLocalFunctionDeclaration);
     node.visitChildren2(this);
   }
 
@@ -4697,9 +4698,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<FunctionDeclaration>> _forFunctionDeclaration = [];
 
-  final List<_Subscription2<FunctionDeclarationStatement>>
-  _forFunctionDeclarationStatement = [];
-
   final List<_Subscription2<FunctionExpression>> _forFunctionExpression = [];
 
   final List<_Subscription2<FunctionInstantiation>> _forFunctionInstantiation =
@@ -4787,6 +4785,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<ListLiteral>> _forListLiteral = [];
 
   final List<_Subscription2<ListPattern>> _forListPattern = [];
+
+  final List<_Subscription2<LocalFunctionDeclaration>>
+  _forLocalFunctionDeclaration = [];
 
   final List<_Subscription2<LogicalAnd>> _forLogicalAnd = [];
 
@@ -5722,17 +5723,6 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addFunctionDeclarationStatement(
-    AbstractAnalysisRule rule,
-    AstVisitor2 visitor,
-  ) {
-    _hasNodeProcessors = true;
-    _forFunctionDeclarationStatement.add(
-      _Subscription2(rule, visitor, _getTimer(rule)),
-    );
-  }
-
-  @override
   void addFunctionExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forFunctionExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
@@ -6022,6 +6012,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addListPattern(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forListPattern.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addLocalFunctionDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forLocalFunctionDeclaration.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

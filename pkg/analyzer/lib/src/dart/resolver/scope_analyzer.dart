@@ -506,17 +506,6 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var element = node.declaredFragment!.element as LocalFunctionElementImpl;
-
-    _withEnclosingClosure(element, () {
-      _scopeContext.visitFunctionDeclaration(node, visitor: this);
-    });
-
-    element.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
-  }
-
-  @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     var element = node.declaredFragment!.element;
     var closure = element.tryCast<LocalFunctionElementImpl>();
@@ -641,6 +630,19 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       _setElementAnnotations(node.metadata, element.metadata.annotations);
     }
     super.visitLibraryDirective(node);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+
+    _withEnclosingClosure(element, () {
+      _scopeContext.visitLocalFunctionDeclaration(node, visitor: this);
+    });
+
+    element.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
   }
 
   @override
@@ -1002,9 +1004,8 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     for (var statement in statements) {
       statement = statement.unlabeled2;
       switch (statement) {
-        case FunctionDeclarationStatementImpl():
-          var declaration = statement.functionDeclaration;
-          var element = declaration.declaredFragment!.element;
+        case LocalFunctionDeclarationImpl():
+          var element = statement.declaredFragment!.element;
           scope.add(element);
         case PatternVariableDeclarationStatementImpl():
           var declaration = statement.declaration;
@@ -1479,7 +1480,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   /// We always build local elements for [VariableDeclarationStatement]s and
-  /// [FunctionDeclarationStatement]s in blocks, because invalid code might try
+  /// [LocalFunctionDeclaration]s in blocks, because invalid code might try
   /// to use forward references.
 
   /// Associate each of the annotation [nodes] with the corresponding

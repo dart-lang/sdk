@@ -2187,6 +2187,33 @@ CompilationUnit
                 expression(v1): SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -2284,6 +2311,33 @@ CompilationUnit
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ForStatement
+              awaitKeyword: await
+              forKeyword: for
+              leftParenthesis: ( <synthetic>
+              forLoopParts: ForEachPartsWithIdentifier
+                identifier: SimpleIdentifier
+                  token: <empty> <synthetic>
+                inKeyword: in <synthetic>
+                iterable: SimpleIdentifier
+                  token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              body: ExpressionStatement
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
             FunctionDeclarationStatement
@@ -4871,7 +4925,18 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: b
               rightParenthesis: ) <synthetic>
-              body2: FunctionDeclarationStatement
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -4962,7 +5027,18 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: b
               rightParenthesis: ) <synthetic>
-              body2: FunctionDeclarationStatement
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void
@@ -10073,7 +10149,18 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: b
               rightParenthesis: ) <synthetic>
-              body2: FunctionDeclarationStatement
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -10158,7 +10245,18 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: b
               rightParenthesis: ) <synthetic>
-              body2: FunctionDeclarationStatement
+              body2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              body(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void

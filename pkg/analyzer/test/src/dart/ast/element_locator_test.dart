@@ -275,8 +275,11 @@ void f() {
 // [diag.unusedElement] The declaration 'g' isn't referenced.
 }
 ''');
-    var node = result.findNode.functionDeclaration('g');
-    var element = ElementLocator.locate(node);
+    var function = result.unit.declarations.single as FunctionDeclaration;
+    var body = function.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements.single;
+    statement as FunctionDeclarationStatement;
+    var element = ElementLocator.locate(statement.functionDeclaration);
     _assertElement(element, r'''
 g@17
 ''');
@@ -1420,21 +1423,6 @@ void f() {
     expect(ElementLocatorV2.locate(node), isNull);
   }
 
-  test_locate_FunctionDeclaration_local() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-void f() {
-  int g() => 3;
-//    ^
-// [diag.unusedElement] The declaration 'g' isn't referenced.
-}
-''');
-    var node = result.findNode.functionDeclaration('g');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-g@17
-''');
-  }
-
   test_locate_Identifier_className() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
@@ -1613,6 +1601,21 @@ library foo;
     var element = ElementLocatorV2.locate(result.unit);
     _assertElement(element, r'''
 <testLibrary>
+''');
+  }
+
+  test_locate_LocalFunctionDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+void f() {
+  int g() => 3;
+//    ^
+// [diag.unusedElement] The declaration 'g' isn't referenced.
+}
+''');
+    var node = result.findNode.localFunctionDeclaration('g');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+g@17
 ''');
   }
 

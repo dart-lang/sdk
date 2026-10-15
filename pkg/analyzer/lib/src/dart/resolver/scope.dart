@@ -34,8 +34,8 @@ class BlockScope {
         for (int j = 0; j < variableCount; j++) {
           yield variables[j].declaredFragment!.element;
         }
-      } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.declaredFragment!.element;
+      } else if (statement is LocalFunctionDeclaration) {
+        yield statement.declaredFragment!.element;
       }
     }
   }

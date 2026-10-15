@@ -1839,6 +1839,25 @@ CompilationUnit
                 token: a
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -1915,6 +1934,25 @@ CompilationUnit
               condition2: ParsedUnqualifiedName
                 name: a
               condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -2933,6 +2971,25 @@ CompilationUnit
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -3009,6 +3066,25 @@ CompilationUnit
               condition2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -5181,6 +5257,28 @@ CompilationUnit
                 token: b
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
+                token: b
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -5265,6 +5363,28 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -6385,6 +6505,28 @@ CompilationUnit
                 token: b
               rightParenthesis: )
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
+                token: b
+              rightParenthesis: )
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -6467,6 +6609,28 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: )
               semicolon: ; <synthetic>
@@ -7597,6 +7761,28 @@ CompilationUnit
                 token: b
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
+                token: b
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -7681,6 +7867,28 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>

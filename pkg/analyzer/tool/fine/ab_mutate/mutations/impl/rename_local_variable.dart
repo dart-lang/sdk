@@ -91,10 +91,13 @@ class RenameLocalVariableMutation extends Mutation {
     var bodies = <FunctionBody>[];
     unit.visitChildren2(
       FunctionAstVisitor(
-        functionDeclaration: (node) {
-          bodies.add(node.functionExpression.body);
+        localFunctionDeclaration: (node) {
+          bodies.add(node.body);
         },
         methodDeclaration: (node) {
+          bodies.add(node.body);
+        },
+        topLevelFunctionDeclaration: (node) {
           bodies.add(node.body);
         },
       ),

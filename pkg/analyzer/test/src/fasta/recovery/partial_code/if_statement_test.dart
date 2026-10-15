@@ -619,7 +619,18 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement2: FunctionDeclarationStatement
+              thenStatement2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              thenStatement(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -694,7 +705,18 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement2: FunctionDeclarationStatement
+              thenStatement2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              thenStatement(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void
@@ -1671,7 +1693,18 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement2: FunctionDeclarationStatement
+              thenStatement2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: int
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              thenStatement(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -1747,7 +1780,18 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement2: FunctionDeclarationStatement
+              thenStatement2: LocalFunctionDeclaration
+                returnType: NamedType
+                  name: void
+                name: f
+                formalParameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              thenStatement(v1): FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void

@@ -127,9 +127,9 @@ class FindElement extends _FindElementBase {
 
     unit.accept2(
       FunctionAstVisitor(
-        functionDeclarationStatement: (node) {
-          var element = node.functionDeclaration.declaredFragment?.element;
-          if (element is LocalFunctionElement && element.name == name) {
+        localFunctionDeclaration: (node) {
+          var element = node.declaredFragment?.element;
+          if (element != null && element.name == name) {
             if (result != null) {
               throw StateError('Not unique: $name');
             }
@@ -235,11 +235,13 @@ class FindElement extends _FindElementBase {
 
     unit.accept2(
       FunctionAstVisitor(
-        functionExpression: (node, local) {
-          if (local) {
-            var functionElement = node.declaredFragment!.element;
-            findIn(functionElement.formalParameters);
-          }
+        functionExpression: (node) {
+          var functionElement = node.declaredFragment!.element;
+          findIn(functionElement.formalParameters);
+        },
+        localFunctionDeclaration: (node) {
+          var functionElement = node.declaredFragment!.element;
+          findIn(functionElement.formalParameters);
         },
       ),
     );

@@ -271,74 +271,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var expression = node.functionExpression;
-    var fragment = node.declaredFragment as LocalFunctionFragmentImpl;
-
-    fragment.setCodeRange(node.offset, node.length);
-
-    var body = expression.body;
-    if (node.externalKeyword != null || body is NativeFunctionBody) {
-      fragment.isExternal = true;
-    }
-
-    fragment.isComplete = node.isComplete;
-    fragment.isAsynchronous = body.isAsynchronous;
-    fragment.isGenerator = body.isGenerator;
-    if (node.returnType == null) {
-      fragment.hasImplicitReturnType = true;
-    }
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    var holder = ElementHolder(fragment);
-    _withElementHolder(holder, () {
-      node.returnType?.accept2(this);
-
-      expression.typeParameters?.accept2(this);
-      fragment.typeParameters = holder.typeParameters;
-      for (var typeParameter in fragment.typeParameters) {
-        TypeParameterElementImpl(firstFragment: typeParameter);
-      }
-
-      expression.parameters?.accept2(this);
-      fragment.formalParameters = holder.formalParameters;
-      for (var formalParameter in fragment.formalParameters) {
-        formalParameter.initElement();
-      }
-
-      expression.body.accept2(this);
-    });
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(
-    covariant FunctionDeclarationStatementImpl node,
-  ) {
-    var functionNode = node.functionDeclaration;
-    var nameToken = functionNode.name;
-
-    var fragment = LocalFunctionFragmentImpl(
-      name: nameToken.nameIfNotEmpty,
-      firstTokenOffset: node.offset,
-    );
-    fragment.nameOffset = nameToken.offsetIfNotEmpty;
-    functionNode.declaredFragment = fragment;
-    functionNode.functionExpression.declaredFragment = fragment;
-
-    _elementHolder.enclose(fragment);
-
-    super.visitFunctionDeclarationStatement(node);
-  }
-
-  @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    if (node.parent2 is FunctionDeclaration) {
-      // Handled in visitFunctionDeclaration.
-      super.visitFunctionExpression(node);
-      return;
-    }
-
     var fragment = LocalFunctionFragmentImpl(
       name: null,
       firstTokenOffset: node.offset,
@@ -417,6 +350,56 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
       _setElementAnnotations(node.metadata, element.metadata.annotations);
     }
     super.visitLibraryDirective(node);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    var nameToken = node.name;
+    var fragment = LocalFunctionFragmentImpl(
+      name: nameToken.nameIfNotEmpty,
+      firstTokenOffset: node.offset,
+    );
+    fragment.nameOffset = nameToken.offsetIfNotEmpty;
+    node.declaredFragment = fragment;
+
+    _elementHolder.enclose(fragment);
+
+    fragment.setCodeRange(node.offset, node.length);
+
+    var body = node.body;
+    if (body is NativeFunctionBody) {
+      fragment.isExternal = true;
+    }
+
+    fragment.isComplete = body is! EmptyFunctionBody;
+    fragment.isAsynchronous = body.isAsynchronous;
+    fragment.isGenerator = body.isGenerator;
+    if (node.returnType == null) {
+      fragment.hasImplicitReturnType = true;
+    }
+
+    _setOrCreateMetadataElements(fragment, node.metadata);
+
+    var holder = ElementHolder(fragment);
+    _withElementHolder(holder, () {
+      node.returnType?.accept2(this);
+
+      node.typeParameters?.accept2(this);
+      fragment.typeParameters = holder.typeParameters;
+      for (var typeParameter in fragment.typeParameters) {
+        TypeParameterElementImpl(firstFragment: typeParameter);
+      }
+
+      node.formalParameters.accept2(this);
+      fragment.formalParameters = holder.formalParameters;
+      for (var formalParameter in fragment.formalParameters) {
+        formalParameter.initElement();
+      }
+
+      body.accept2(this);
+    });
   }
 
   @override

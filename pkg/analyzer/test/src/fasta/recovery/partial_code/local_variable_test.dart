@@ -686,6 +686,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -747,6 +759,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -1769,6 +1793,25 @@ CompilationUnit
                   VariableDeclaration
                     name: int
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: a
+                variables
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 name: f
@@ -1835,6 +1878,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2854,6 +2916,25 @@ CompilationUnit
                   VariableDeclaration
                     name: int
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 name: f
@@ -2922,6 +3003,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3958,6 +4060,27 @@ CompilationUnit
                   VariableDeclaration
                     name: b
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: b
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -4028,6 +4151,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: b
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5054,6 +5198,27 @@ CompilationUnit
                   VariableDeclaration
                     name: a
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -5124,6 +5289,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6205,6 +6391,27 @@ CompilationUnit
                   VariableDeclaration
                     name: int
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 name: f
@@ -6275,6 +6482,29 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7373,6 +7603,29 @@ CompilationUnit
                   VariableDeclaration
                     name: b
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: b
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -7445,6 +7698,29 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: b
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -8467,6 +8743,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -8528,6 +8816,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -9481,6 +9781,25 @@ CompilationUnit
                   VariableDeclaration
                     name: int
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                type: NamedType
+                  name: a
+                variables
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 name: f
@@ -9547,6 +9866,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10549,6 +10887,27 @@ CompilationUnit
                   VariableDeclaration
                     name: a
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -10619,6 +10978,27 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -11581,6 +11961,24 @@ CompilationUnit
                   VariableDeclaration
                     name: int
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 name: f
@@ -11650,6 +12048,22 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: int
               expression(v1): SimpleIdentifier
+                token: int
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ExpressionStatement
+              expression: SimpleIdentifier
                 token: int
               semicolon: ; <synthetic>
             FunctionDeclarationStatement
@@ -12605,6 +13019,26 @@ CompilationUnit
                   VariableDeclaration
                     name: a
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -12674,6 +13108,26 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -13660,6 +14114,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -13721,6 +14187,18 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -14678,6 +15156,25 @@ CompilationUnit
                   VariableDeclaration
                     name: int
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                type: NamedType
+                  name: a
+                variables
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 name: f
@@ -14744,6 +15241,25 @@ CompilationUnit
         block: Block
           leftBracket: {
           statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16927,6 +17443,28 @@ CompilationUnit
                     initializer(v1): SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
+                      token: b
+              semicolon: ; <synthetic>
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -17008,6 +17546,28 @@ CompilationUnit
                     initializer2: ParsedUnqualifiedName
                       name: b
                     initializer(v1): SimpleIdentifier
+                      token: b
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
             FunctionDeclarationStatement

@@ -1507,6 +1507,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    _sink.writeln('LocalFunctionDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+      _writeMayCompleteNormally(node);
+    });
+  }
+
+  @override
   void visitLogicalAnd(LogicalAnd node) {
     _sink.writeln('LogicalAnd');
     _sink.withIndent(() {
@@ -3411,6 +3421,9 @@ Expected parent: (${parent.runtimeType}) $parent
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     } else if (parametersParent is PrimaryConstructorDeclaration) {
+      var declaredFragment = parametersParent.declaredFragment!;
+      return declaredFragment.formalParameters;
+    } else if (parametersParent is LocalFunctionDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
     } else if (parametersParent

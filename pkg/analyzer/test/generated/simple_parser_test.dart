@@ -2813,39 +2813,19 @@ void f() {
 ''');
     var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, '''
-FunctionDeclarationStatement
-  functionDeclaration: FunctionDeclaration
-    returnType: GenericFunctionType
-      functionKeyword: Function
-      typeParameters: TypeParameterList
-        leftBracket: <
-        typeParameters
-          TypeParameter
-            name: A
-        rightBracket: >
-      parameters: FormalParameterList
-        leftParenthesis: (
-        requiredPositionalFormalParameters
-          RegularFormalParameter
-            type: NamedType
-              importPrefix: ImportPrefixReference
-                name: core
-                period: .
-              name: List
-              typeArguments: TypeArgumentList
-                leftBracket: <
-                arguments
-                  NamedType
-                    importPrefix: ImportPrefixReference
-                      name: core
-                      period: .
-                    name: int
-                rightBracket: >
-            name: x
-        rightParenthesis: )
-      parameters(v1): FormalParameterList
-        leftParenthesis: (
-        parameter: RegularFormalParameter
+LocalFunctionDeclaration
+  returnType: GenericFunctionType
+    functionKeyword: Function
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: A
+      rightBracket: >
+    parameters: FormalParameterList
+      leftParenthesis: (
+      requiredPositionalFormalParameters
+        RegularFormalParameter
           type: NamedType
             importPrefix: ImportPrefixReference
               name: core
@@ -2861,17 +2841,35 @@ FunctionDeclarationStatement
                   name: int
               rightBracket: >
           name: x
-        rightParenthesis: )
-    name: m
-    functionExpression: FunctionExpression
-      parameters: FormalParameterList
-        leftParenthesis: (
-        rightParenthesis: )
-      body: ExpressionFunctionBody
-        functionDefinition: =>
-        expression2: NullLiteral
-          literal: null
-        semicolon: ;
+      rightParenthesis: )
+    parameters(v1): FormalParameterList
+      leftParenthesis: (
+      parameter: RegularFormalParameter
+        type: NamedType
+          importPrefix: ImportPrefixReference
+            name: core
+            period: .
+          name: List
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                importPrefix: ImportPrefixReference
+                  name: core
+                  period: .
+                name: int
+            rightBracket: >
+        name: x
+      rightParenthesis: )
+  name: m
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+    semicolon: ;
 ''');
   }
 

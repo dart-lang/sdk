@@ -211,21 +211,8 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    var enclosingExecOld = _enclosingExec;
-    try {
-      _enclosingExec = node.declaredFragment?.element;
-      super.visitFunctionDeclaration(node);
-    } finally {
-      _enclosingExec = enclosingExecOld;
-    }
-  }
-
-  @override
   void visitFunctionExpression(FunctionExpression node) {
-    if (node.parent2 is! FunctionDeclaration) {
-      usedElements.addElement(node.declaredFragment?.element);
-    }
+    usedElements.addElement(node.declaredFragment?.element);
     super.visitFunctionExpression(node);
   }
 
@@ -279,6 +266,17 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
       node.type.accept2(this);
     } finally {
       _insideIsExpression = insideIsExpressionOld;
+    }
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    var enclosingExecOld = _enclosingExec;
+    try {
+      _enclosingExec = node.declaredFragment?.element;
+      super.visitLocalFunctionDeclaration(node);
+    } finally {
+      _enclosingExec = enclosingExecOld;
     }
   }
 
@@ -825,16 +823,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    var declaredElement = node.declaredFragment?.element;
-    if (declaredElement is LocalFunctionElement) {
-      _visitLocalFunctionElement(declaredElement);
-    }
-
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     var declaredElement = node.declaredFragment!.element;
     _visitTypeAliasElement(declaredElement);
@@ -848,6 +836,16 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     _visitTypeAliasElement(declaredElement);
 
     super.visitGenericTypeAlias(node);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement != null) {
+      _visitLocalFunctionElement(declaredElement);
+    }
+
+    super.visitLocalFunctionDeclaration(node);
   }
 
   @override

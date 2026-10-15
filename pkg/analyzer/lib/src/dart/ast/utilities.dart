@@ -243,7 +243,7 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
     if (_startOffset == _endOffset && _startOffset == node.name.end) {
@@ -251,7 +251,7 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
       return;
     }
 
-    super.visitFunctionDeclaration(node);
+    super.visitLocalFunctionDeclaration(node);
   }
 
   @override
@@ -389,6 +389,16 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   @override
   List<Statement> switchMemberStatementsOf(SwitchMember node) =>
       node.statements2;
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    var parameters = node.formalParameters;
+    if (!identical(immediateChild, parameters)) {
+      _addParameters(parameters.allFormalParameters);
+    }
+    _referenceIsWithinLocalFunction = true;
+    visitNode(node);
+  }
 
   @override
   void visitNode(AstNode node) {
@@ -551,6 +561,9 @@ mixin _ScopedNameFinderMixin {
       } else if (statement is FunctionDeclarationStatement &&
           !_referenceIsWithinLocalFunction) {
         _addToScope(statement.functionDeclaration.name);
+      } else if (statement is LocalFunctionDeclaration &&
+          !_referenceIsWithinLocalFunction) {
+        _addToScope(statement.name);
       }
     }
   }
