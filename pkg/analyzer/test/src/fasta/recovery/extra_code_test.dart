@@ -196,6 +196,133 @@ a() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            ExpressionStatement
+              expression2: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: b
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    NamedArgument
+                      name: c
+                      colon: :
+                      argumentExpression2: ParsedValueArguments
+                        operand: ParsedUnqualifiedName
+                          name: c
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments2
+                            NamedArgument
+                              name: d
+                              colon: :
+                              argumentExpression2: ParsedValueArguments
+                                operand: ParsedUnqualifiedName
+                                  name: d
+                                argumentList: ArgumentList
+                                  leftParenthesis: (
+                                  arguments2
+                                    NamedArgument
+                                      name: e
+                                      colon: :
+                                      argumentExpression2: NullLiteral
+                                        literal: null
+                                    ParsedUnqualifiedName
+                                      name: f
+                                  arguments(v1)
+                                    NamedArgument
+                                      name: e
+                                      colon: :
+                                      argumentExpression: NullLiteral
+                                        literal: null
+                                    SimpleIdentifier
+                                      token: f
+                                  rightParenthesis: )
+                              argumentExpression(v1): MethodInvocation
+                                methodName: SimpleIdentifier
+                                  token: d
+                                argumentList: ArgumentList
+                                  leftParenthesis: (
+                                  arguments
+                                    NamedArgument
+                                      name: e
+                                      colon: :
+                                      argumentExpression: NullLiteral
+                                        literal: null
+                                    SimpleIdentifier
+                                      token: f
+                                  rightParenthesis: )
+                          rightParenthesis: )
+                      argumentExpression(v1): MethodInvocation
+                        methodName: SimpleIdentifier
+                          token: c
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments
+                            NamedArgument
+                              name: d
+                              colon: :
+                              argumentExpression: MethodInvocation
+                                methodName: SimpleIdentifier
+                                  token: d
+                                argumentList: ArgumentList
+                                  leftParenthesis: (
+                                  arguments
+                                    NamedArgument
+                                      name: e
+                                      colon: :
+                                      argumentExpression: NullLiteral
+                                        literal: null
+                                    SimpleIdentifier
+                                      token: f
+                                  rightParenthesis: )
+                          rightParenthesis: )
+                  rightParenthesis: )
+              expression(v1): MethodInvocation
+                methodName: SimpleIdentifier
+                  token: b
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    NamedArgument
+                      name: c
+                      colon: :
+                      argumentExpression: MethodInvocation
+                        methodName: SimpleIdentifier
+                          token: c
+                        argumentList: ArgumentList
+                          leftParenthesis: (
+                          arguments
+                            NamedArgument
+                              name: d
+                              colon: :
+                              argumentExpression: MethodInvocation
+                                methodName: SimpleIdentifier
+                                  token: d
+                                argumentList: ArgumentList
+                                  leftParenthesis: (
+                                  arguments
+                                    NamedArgument
+                                      name: e
+                                      colon: :
+                                      argumentExpression: NullLiteral
+                                        literal: null
+                                    SimpleIdentifier
+                                      token: f
+                                  rightParenthesis: )
+                          rightParenthesis: )
+                  rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: a
       functionExpression: FunctionExpression
@@ -207,87 +334,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: ParsedValueArguments
-                  operand: ParsedUnqualifiedName
-                    name: b
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    arguments2
-                      NamedArgument
-                        name: c
-                        colon: :
-                        argumentExpression2: ParsedValueArguments
-                          operand: ParsedUnqualifiedName
-                            name: c
-                          argumentList: ArgumentList
-                            leftParenthesis: (
-                            arguments2
-                              NamedArgument
-                                name: d
-                                colon: :
-                                argumentExpression2: ParsedValueArguments
-                                  operand: ParsedUnqualifiedName
-                                    name: d
-                                  argumentList: ArgumentList
-                                    leftParenthesis: (
-                                    arguments2
-                                      NamedArgument
-                                        name: e
-                                        colon: :
-                                        argumentExpression2: NullLiteral
-                                          literal: null
-                                      ParsedUnqualifiedName
-                                        name: f
-                                    arguments(v1)
-                                      NamedArgument
-                                        name: e
-                                        colon: :
-                                        argumentExpression: NullLiteral
-                                          literal: null
-                                      SimpleIdentifier
-                                        token: f
-                                    rightParenthesis: )
-                                argumentExpression(v1): MethodInvocation
-                                  methodName: SimpleIdentifier
-                                    token: d
-                                  argumentList: ArgumentList
-                                    leftParenthesis: (
-                                    arguments
-                                      NamedArgument
-                                        name: e
-                                        colon: :
-                                        argumentExpression: NullLiteral
-                                          literal: null
-                                      SimpleIdentifier
-                                        token: f
-                                    rightParenthesis: )
-                            rightParenthesis: )
-                        argumentExpression(v1): MethodInvocation
-                          methodName: SimpleIdentifier
-                            token: c
-                          argumentList: ArgumentList
-                            leftParenthesis: (
-                            arguments
-                              NamedArgument
-                                name: d
-                                colon: :
-                                argumentExpression: MethodInvocation
-                                  methodName: SimpleIdentifier
-                                    token: d
-                                  argumentList: ArgumentList
-                                    leftParenthesis: (
-                                    arguments
-                                      NamedArgument
-                                        name: e
-                                        colon: :
-                                        argumentExpression: NullLiteral
-                                          literal: null
-                                      SimpleIdentifier
-                                        token: f
-                                    rightParenthesis: )
-                            rightParenthesis: )
-                    rightParenthesis: )
-                expression(v1): MethodInvocation
+                expression: MethodInvocation
                   methodName: SimpleIdentifier
                     token: b
                   argumentList: ArgumentList
@@ -338,16 +385,53 @@ f(x) {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: x
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            WhileStatement
+              whileKeyword: while
+              leftParenthesis: (
+              condition2: BinaryOperatorInvocation
+                leftOperand: BinaryOperatorInvocation
+                  leftOperand: IntegerLiteral
+                    literal: 1
+                  operator: <
+                  rightOperand: ParsedUnqualifiedName
+                    name: x
+                  binaryOperator: lessThan
+                operator: <
+                rightOperand: IntegerLiteral
+                  literal: 3
+                binaryOperator: lessThan
+              condition(v1): BinaryExpression
+                leftOperand: BinaryExpression
+                  leftOperand: IntegerLiteral
+                    literal: 1
+                  operator: <
+                  rightOperand: SimpleIdentifier
+                    token: x
+                operator: <
+                rightOperand: IntegerLiteral
+                  literal: 3
+              rightParenthesis: )
+              body: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: x
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: x
@@ -359,19 +443,7 @@ CompilationUnit
               WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
-                condition2: BinaryOperatorInvocation
-                  leftOperand: BinaryOperatorInvocation
-                    leftOperand: IntegerLiteral
-                      literal: 1
-                    operator: <
-                    rightOperand: ParsedUnqualifiedName
-                      name: x
-                    binaryOperator: lessThan
-                  operator: <
-                  rightOperand: IntegerLiteral
-                    literal: 3
-                  binaryOperator: lessThan
-                condition(v1): BinaryExpression
+                condition: BinaryExpression
                   leftOperand: BinaryExpression
                     leftOperand: IntegerLiteral
                       literal: 1
@@ -701,16 +773,15 @@ const int get foo => 499;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: main
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: {
-            rightBracket: }
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
     TopLevelGetterDeclaration
       returnType: NamedType
         name: int
@@ -756,6 +827,28 @@ const int foo() => 499;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: int
+      name: foo
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 499
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -776,7 +869,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 499
           semicolon: ;
 ''');
@@ -792,16 +885,15 @@ const set foo(v) => 499;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: main
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: {
-            rightBracket: }
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
     TopLevelSetterDeclaration
       setKeyword: set
       name: foo
@@ -859,6 +951,24 @@ String void bar() { }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: String
+      semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: bar
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -980,6 +1090,16 @@ foo() {};
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: foo
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: foo
       functionExpression: FunctionExpression
@@ -1034,6 +1154,16 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: foo
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: foo
       functionExpression: FunctionExpression
@@ -1100,6 +1230,25 @@ bar() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: foo
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+    TopLevelFunctionDeclaration
+      name: bar
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: foo
       functionExpression: FunctionExpression

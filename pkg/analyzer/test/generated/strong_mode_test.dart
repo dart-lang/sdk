@@ -4526,7 +4526,43 @@ T f<T>(T x) => null;
 
     var node = result.findNode.functionDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@4
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@9
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@2
+    element: <testLibrary>::@function::f
+      type: T Function<T>(T)
+V1: FunctionDeclaration
   returnType: NamedType
     name: T
     element: #E0 T
@@ -4543,19 +4579,6 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: T
-            element: #E0 T
-            type: T
-          name: x
-          declaredFragment: <testLibraryFragment> x@9
-            element: isPublic
-              type: T
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
-      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -4568,7 +4591,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: NullLiteral
+      expression: NullLiteral
         literal: null
         staticType: Null
       semicolon: ;
@@ -4591,7 +4614,48 @@ T f<T extends num>(T x) => null;
 
     var node = result.findNode.functionDeclaration('f<T');
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        declaredFragment: <testLibraryFragment> T@4
+          defaultType: num
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@21
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@2
+    element: <testLibrary>::@function::f
+      type: T Function<T extends num>(T)
+V1: FunctionDeclaration
   returnType: NamedType
     name: T
     element: #E0 T
@@ -4613,19 +4677,6 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: T
-            element: #E0 T
-            type: T
-          name: x
-          declaredFragment: <testLibraryFragment> x@21
-            element: isPublic
-              type: T
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
-      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -4638,7 +4689,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: NullLiteral
+      expression: NullLiteral
         literal: null
         staticType: Null
       semicolon: ;

@@ -2933,6 +2933,57 @@ main() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            ExpressionStatement
+              expression2: CallInvocation
+                receiver: ReceiverIndexExpression
+                  receiver: ParsedUnqualifiedName
+                    name: factories
+                  leftBracket: [
+                  index: ParsedUnqualifiedName
+                    name: C
+                  rightBracket: ]
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: num
+                    NamedType
+                      name: int
+                  rightBracket: >
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              expression(v1): FunctionExpressionInvocation
+                function: IndexExpression
+                  target: SimpleIdentifier
+                    token: factories
+                  leftBracket: [
+                  index: SimpleIdentifier
+                    token: C
+                  rightBracket: ]
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: num
+                    NamedType
+                      name: int
+                  rightBracket: >
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -2944,26 +2995,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: CallInvocation
-                  receiver: ReceiverIndexExpression
-                    receiver: ParsedUnqualifiedName
-                      name: factories
-                    leftBracket: [
-                    index: ParsedUnqualifiedName
-                      name: C
-                    rightBracket: ]
-                  typeArguments: TypeArgumentList
-                    leftBracket: <
-                    arguments
-                      NamedType
-                        name: num
-                      NamedType
-                        name: int
-                    rightBracket: >
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    rightParenthesis: )
-                expression(v1): FunctionExpressionInvocation
+                expression: FunctionExpressionInvocation
                   function: IndexExpression
                     target: SimpleIdentifier
                       token: factories
@@ -2997,6 +3029,64 @@ main() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            ExpressionStatement
+              expression2: CallInvocation
+                receiver: ParsedValueArguments
+                  operand: ParsedUnqualifiedName
+                    name: factories
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      ParsedUnqualifiedName
+                        name: C
+                    arguments(v1)
+                      SimpleIdentifier
+                        token: C
+                    rightParenthesis: )
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: num
+                    NamedType
+                      name: int
+                  rightBracket: >
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              expression(v1): FunctionExpressionInvocation
+                function: MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: factories
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      SimpleIdentifier
+                        token: C
+                    rightParenthesis: )
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: num
+                    NamedType
+                      name: int
+                  rightBracket: >
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -3008,31 +3098,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: CallInvocation
-                  receiver: ParsedValueArguments
-                    operand: ParsedUnqualifiedName
-                      name: factories
-                    argumentList: ArgumentList
-                      leftParenthesis: (
-                      arguments2
-                        ParsedUnqualifiedName
-                          name: C
-                      arguments(v1)
-                        SimpleIdentifier
-                          token: C
-                      rightParenthesis: )
-                  typeArguments: TypeArgumentList
-                    leftBracket: <
-                    arguments
-                      NamedType
-                        name: num
-                      NamedType
-                        name: int
-                    rightBracket: >
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    rightParenthesis: )
-                expression(v1): FunctionExpressionInvocation
+                expression: FunctionExpressionInvocation
                   function: MethodInvocation
                     methodName: SimpleIdentifier
                       token: factories
@@ -5540,6 +5606,47 @@ CompilationUnit
             initializer(v1): SimpleIdentifier
               token: a
       semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: $
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: b
+              expression(v1): SimpleIdentifier
+                token: b
+              semicolon: ; <synthetic>
+          rightBracket: }
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        type: NamedType
+          name: c
+        variables
+          VariableDeclaration
+            name: $this
+      semicolon: ; <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: d
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: v
+            equals: =
+            initializer: SimpleIdentifier
+              token: a
+      semicolon: ; <synthetic>
     FunctionDeclaration
       name: $
       functionExpression: FunctionExpression
@@ -5551,9 +5658,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: ParsedUnqualifiedName
-                  name: b
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: b
                 semicolon: ; <synthetic>
             rightBracket: }
@@ -5599,6 +5704,39 @@ CompilationUnit
             name: v
             equals: =
             initializer2: ListLiteral
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: html
+                rightBracket: >
+              leftBracket: [ <synthetic>
+              rightBracket: ] <synthetic>
+      semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: $void
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: <empty> <synthetic>
+          TypeParameter
+            name: html
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: var
+        variables
+          VariableDeclaration
+            name: v
+            equals: =
+            initializer: ListLiteral
               typeArguments: TypeArgumentList
                 leftBracket: <
                 arguments

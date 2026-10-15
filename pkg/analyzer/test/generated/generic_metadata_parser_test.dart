@@ -388,6 +388,29 @@ CompilationUnit
           VariableDeclaration
             name: B
       semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: #synthetic_function_11 <synthetic>
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: B
+      semicolon: ; <synthetic>
     FunctionDeclaration
       name: #synthetic_function_11 <synthetic>
       functionExpression: FunctionExpression
@@ -435,6 +458,23 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: ctor
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: ctor
       functionExpression: FunctionExpression

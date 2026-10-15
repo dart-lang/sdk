@@ -79,6 +79,76 @@ CompilationUnit
             declaredFragment: <testLibraryFragment> v2@36
         rightBracket: }
       declaredFragment: <testLibraryFragment> A@30
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+        element: <null>
+        type: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            ExpressionStatement
+              expression2: ReceiverPropertyExtraction
+                receiver: StaticQualifier
+                  name: A
+                  element: <testLibrary>::@enum::A
+                operator: .
+                name: v2
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@enum::A::@getter::v2
+                  invokeType: A Function()
+                  type: A
+                staticType: A
+              expression(v1): PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: A
+                  element: <testLibrary>::@enum::A
+                  staticType: null
+                period: .
+                identifier: SimpleIdentifier
+                  token: v2
+                  element: <testLibrary>::@enum::A::@getter::v2
+                  staticType: A
+                element: <testLibrary>::@enum::A::@getter::v2
+                staticType: A
+              semicolon: ;
+          rightBracket: }
+      declaredFragment: <testLibraryFragment> f@47
+        element: <testLibrary>::@function::f
+          type: void Function()
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v1
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v1@11
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@5
+    EnumDeclaration
+      augmentKeyword: augment
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v2
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v2@36
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@30
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -94,18 +164,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: ReceiverPropertyExtraction
-                  receiver: StaticQualifier
-                    name: A
-                    element: <testLibrary>::@enum::A
-                  operator: .
-                  name: v2
-                  resolution: GetterInvocationResolution
-                    element: <testLibrary>::@enum::A::@getter::v2
-                    invokeType: A Function()
-                    type: A
-                  staticType: A
-                expression(v1): PrefixedIdentifier
+                expression: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: A
                     element: <testLibrary>::@enum::A
@@ -208,6 +267,104 @@ CompilationUnit
             declaredFragment: <testLibraryFragment> v2@87
         rightBracket: }
       declaredFragment: <testLibraryFragment> A@81
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+        element: <null>
+        type: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            ExpressionStatement
+              expression2: ReceiverPropertyExtraction
+                receiver: StaticQualifier
+                  name: A
+                  element: <testLibrary>::@enum::A
+                operator: .
+                name: values
+                resolution: GetterInvocationResolution
+                  element: <testLibrary>::@enum::A::@getter::values
+                  invokeType: List<A> Function()
+                  type: List<A>
+                staticType: List<A>
+              expression(v1): PrefixedIdentifier
+                prefix: SimpleIdentifier
+                  token: A
+                  element: <testLibrary>::@enum::A
+                  staticType: null
+                period: .
+                identifier: SimpleIdentifier
+                  token: values
+                  element: <testLibrary>::@enum::A::@getter::values
+                  staticType: List<A>
+                element: <testLibrary>::@enum::A::@getter::values
+                staticType: List<A>
+              semicolon: ;
+          rightBracket: }
+      declaredFragment: <testLibraryFragment> f@98
+        element: <testLibrary>::@function::f
+          type: void Function()
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v1
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v1@11
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@5
+    EnumDeclaration
+      augmentKeyword: augment
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        semicolon: ;
+        members
+          MethodDeclaration
+            modifierKeyword: static
+            returnType: NamedType
+              name: int
+              element: dart:core::@class::int
+              type: int
+            propertyKeyword: get
+            name: values
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: IntegerLiteral
+                literal: 0
+                staticType: int
+              semicolon: ;
+            declaredFragment: <testLibraryFragment> values@52
+              element: <testLibrary>::@enum::A::@getter::values#1
+                type: int Function()
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@30
+    EnumDeclaration
+      augmentKeyword: augment
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: v2
+            constructorElement: <testLibrary>::@enum::A::@constructor::new
+            declaredFragment: <testLibraryFragment> v2@87
+        rightBracket: }
+      declaredFragment: <testLibraryFragment> A@81
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -223,18 +380,7 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: ReceiverPropertyExtraction
-                  receiver: StaticQualifier
-                    name: A
-                    element: <testLibrary>::@enum::A
-                  operator: .
-                  name: values
-                  resolution: GetterInvocationResolution
-                    element: <testLibrary>::@enum::A::@getter::values
-                    invokeType: List<A> Function()
-                    type: List<A>
-                  staticType: List<A>
-                expression(v1): PrefixedIdentifier
+                expression: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: A
                     element: <testLibrary>::@enum::A

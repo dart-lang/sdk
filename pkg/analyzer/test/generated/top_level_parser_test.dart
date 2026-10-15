@@ -1384,6 +1384,33 @@ f() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            ExpressionStatement
+              expression2: StringInterpolation
+                elements
+                  InterpolationString
+                    contents: "
+                  InterpolationExpression
+                    leftBracket: ${
+                    expression2: ParsedUnqualifiedName
+                      name: n
+                    expression(v1): SimpleIdentifier
+                      token: n
+                    rightBracket: }
+                  InterpolationString
+                    contents: "
+                stringValue: null
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1395,15 +1422,13 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: StringInterpolation
+                expression: StringInterpolation
                   elements
                     InterpolationString
                       contents: "
                     InterpolationExpression
                       leftBracket: ${
-                      expression2: ParsedUnqualifiedName
-                        name: n
-                      expression(v1): SimpleIdentifier
+                      expression: SimpleIdentifier
                         token: n
                       rightBracket: }
                     InterpolationString
@@ -1595,6 +1620,17 @@ f() => 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: IntegerLiteral
+          literal: 0
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1603,7 +1639,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: IntegerLiteral
+          expression: IntegerLiteral
             literal: 0
           semicolon: ;
 ''');
@@ -1638,6 +1674,15 @@ external f();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      externalKeyword: external
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       externalKeyword: external
       name: f
@@ -1658,6 +1703,17 @@ external int f();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      externalKeyword: external
+      returnType: NamedType
+        name: int
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       externalKeyword: external
       returnType: NamedType
@@ -1680,6 +1736,22 @@ f<E>() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1708,6 +1780,29 @@ f<@a E>() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: a
+                name: SimpleIdentifier
+                  token: a
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1718,8 +1813,6 @@ CompilationUnit
               metadata
                 Annotation
                   atSign: @
-                  expression: ParsedUnqualifiedName
-                    name: a
                   name: SimpleIdentifier
                     token: a
               name: E
@@ -1742,6 +1835,24 @@ E f<E>() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: E
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: E
@@ -1771,6 +1882,29 @@ void f<T>(T t) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            type: NamedType
+              name: T
+            name: t
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1783,14 +1917,6 @@ CompilationUnit
               name: T
           rightBracket: >
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: T
-              name: t
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1812,7 +1938,7 @@ void Function<A>(core.List<core.int> x) f() => null;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       returnType: GenericFunctionType
         returnType: NamedType
           name: void
@@ -1863,13 +1989,53 @@ CompilationUnit
             name: x
           rightParenthesis: )
       name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: NullLiteral
+          literal: null
+        semicolon: ;
+  declarations(v1)
+    FunctionDeclaration
+      returnType: GenericFunctionType
+        returnType: NamedType
+          name: void
+        functionKeyword: Function
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: A
+          rightBracket: >
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: core
+                period: .
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    importPrefix: ImportPrefixReference
+                      name: core
+                      period: .
+                    name: int
+                rightBracket: >
+            name: x
+          rightParenthesis: )
+      name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: NullLiteral
+          expression: NullLiteral
             literal: null
           semicolon: ;
 ''');
@@ -1883,7 +2049,7 @@ Function<A>(core.List<core.int> x) f() => null;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       returnType: GenericFunctionType
         functionKeyword: Function
         typeParameters: TypeParameterList
@@ -1932,13 +2098,51 @@ CompilationUnit
             name: x
           rightParenthesis: )
       name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: NullLiteral
+          literal: null
+        semicolon: ;
+  declarations(v1)
+    FunctionDeclaration
+      returnType: GenericFunctionType
+        functionKeyword: Function
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: A
+          rightBracket: >
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: core
+                period: .
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    importPrefix: ImportPrefixReference
+                      name: core
+                      period: .
+                    name: int
+                rightBracket: >
+            name: x
+          rightParenthesis: )
+      name: f
       functionExpression: FunctionExpression
         parameters: FormalParameterList
           leftParenthesis: (
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: NullLiteral
+          expression: NullLiteral
             literal: null
           semicolon: ;
 ''');
@@ -1952,6 +2156,16 @@ f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1973,6 +2187,18 @@ int f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: int
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: int
@@ -1996,6 +2222,18 @@ void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -3570,6 +3808,21 @@ T f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      documentationComment: Comment
+        tokens
+          /// Doc
+      returnType: NamedType
+        name: T
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       documentationComment: Comment
         tokens
@@ -3597,6 +3850,27 @@ T f<E>() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      documentationComment: Comment
+        tokens
+          /// Doc
+      returnType: NamedType
+        name: T
+      name: f
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       documentationComment: Comment
         tokens
@@ -3669,23 +3943,50 @@ T f(@A a, @B(2) Foo b, {@C.foo(3) c: 0, @d.E.bar(4, 5) x: 0}) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       returnType: NamedType
         name: T
       name: f
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              metadata
-                Annotation
-                  atSign: @
-                  expression: ParsedUnqualifiedName
-                    name: A
-                  name: SimpleIdentifier
-                    token: A
-              name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            metadata
+              Annotation
+                atSign: @
+                expression: ParsedUnqualifiedName
+                  name: A
+                name: SimpleIdentifier
+                  token: A
+            name: a
+          RegularFormalParameter
+            metadata
+              Annotation
+                atSign: @
+                expression: ConstructorInvocation
+                  constructorReference: ConstructorReference2
+                    typeReference: ConstructorTypeReference
+                      name: B
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments2
+                      IntegerLiteral
+                        literal: 2
+                    rightParenthesis: )
+                name: SimpleIdentifier
+                  token: B
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    IntegerLiteral
+                      literal: 2
+                  rightParenthesis: )
+            type: NamedType
+              name: Foo
+            name: b
+        delimitedFormalParameters: DelimitedFormalParameters
+          leftDelimiter: {
+          formalParameters
             RegularFormalParameter
               metadata
                 Annotation
@@ -3693,108 +3994,90 @@ CompilationUnit
                   expression: ConstructorInvocation
                     constructorReference: ConstructorReference2
                       typeReference: ConstructorTypeReference
-                        name: B
+                        importPrefix: ImportPrefixReference
+                          name: C
+                          period: .
+                        name: foo
                     argumentList: ArgumentList
                       leftParenthesis: (
                       arguments2
                         IntegerLiteral
-                          literal: 2
+                          literal: 3
                       rightParenthesis: )
-                  name: SimpleIdentifier
-                    token: B
+                  name: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: C
+                    period: .
+                    identifier: SimpleIdentifier
+                      token: foo
                   arguments: ArgumentList
                     leftParenthesis: (
                     arguments
                       IntegerLiteral
-                        literal: 2
+                        literal: 3
                     rightParenthesis: )
-              type: NamedType
-                name: Foo
-              name: b
-          delimitedFormalParameters: DelimitedFormalParameters
-            leftDelimiter: {
-            formalParameters
-              RegularFormalParameter
-                metadata
-                  Annotation
-                    atSign: @
-                    expression: ConstructorInvocation
-                      constructorReference: ConstructorReference2
-                        typeReference: ConstructorTypeReference
-                          importPrefix: ImportPrefixReference
-                            name: C
-                            period: .
-                          name: foo
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        arguments2
-                          IntegerLiteral
-                            literal: 3
-                        rightParenthesis: )
-                    name: PrefixedIdentifier
-                      prefix: SimpleIdentifier
-                        token: C
-                      period: .
-                      identifier: SimpleIdentifier
-                        token: foo
-                    arguments: ArgumentList
-                      leftParenthesis: (
-                      arguments
-                        IntegerLiteral
-                          literal: 3
-                      rightParenthesis: )
-                name: c
-                defaultClause: FormalParameterDefaultClause
-                  separator: :
-                  value2: IntegerLiteral
-                    literal: 0
-              RegularFormalParameter
-                metadata
-                  Annotation
-                    atSign: @
-                    expression: ConstructorInvocation
-                      constructorReference: ConstructorReference2
-                        typeReference: ConstructorTypeReference
-                          importPrefix: ImportPrefixReference
-                            name: d
-                            period: .
-                          name: E
-                        selector: ConstructorSelector
+              name: c
+              defaultClause: FormalParameterDefaultClause
+                separator: :
+                value2: IntegerLiteral
+                  literal: 0
+            RegularFormalParameter
+              metadata
+                Annotation
+                  atSign: @
+                  expression: ConstructorInvocation
+                    constructorReference: ConstructorReference2
+                      typeReference: ConstructorTypeReference
+                        importPrefix: ImportPrefixReference
+                          name: d
                           period: .
-                          name2: bar
-                      argumentList: ArgumentList
-                        leftParenthesis: (
-                        arguments2
-                          IntegerLiteral
-                            literal: 4
-                          IntegerLiteral
-                            literal: 5
-                        rightParenthesis: )
-                    name: PrefixedIdentifier
-                      prefix: SimpleIdentifier
-                        token: d
-                      period: .
-                      identifier: SimpleIdentifier
-                        token: E
-                    period: .
-                    constructorName: SimpleIdentifier
-                      token: bar
-                    arguments: ArgumentList
+                        name: E
+                      selector: ConstructorSelector
+                        period: .
+                        name2: bar
+                    argumentList: ArgumentList
                       leftParenthesis: (
-                      arguments
+                      arguments2
                         IntegerLiteral
                           literal: 4
                         IntegerLiteral
                           literal: 5
                       rightParenthesis: )
-                name: x
-                defaultClause: FormalParameterDefaultClause
-                  separator: :
-                  value2: IntegerLiteral
-                    literal: 0
-            rightDelimiter: }
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
+                  name: PrefixedIdentifier
+                    prefix: SimpleIdentifier
+                      token: d
+                    period: .
+                    identifier: SimpleIdentifier
+                      token: E
+                  period: .
+                  constructorName: SimpleIdentifier
+                    token: bar
+                  arguments: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      IntegerLiteral
+                        literal: 4
+                      IntegerLiteral
+                        literal: 5
+                    rightParenthesis: )
+              name: x
+              defaultClause: FormalParameterDefaultClause
+                separator: :
+                value2: IntegerLiteral
+                  literal: 0
+          rightDelimiter: }
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    FunctionDeclaration
+      returnType: NamedType
+        name: T
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             metadata

@@ -1635,6 +1635,42 @@ void f() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: get
+              expression(v1): SimpleIdentifier
+                token: get
+              semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: x
+              expression(v1): SimpleIdentifier
+                token: x
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              statements
+                ReturnStatement
+                  returnKeyword: return
+                  expression2: ParsedUnqualifiedName
+                    name: _x
+                  expression(v1): SimpleIdentifier
+                    token: _x
+                  semicolon: ;
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1648,15 +1684,11 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: ParsedUnqualifiedName
-                  name: get
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: get
                 semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedUnqualifiedName
-                  name: x
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: x
                 semicolon: ; <synthetic>
               Block
@@ -1664,9 +1696,7 @@ CompilationUnit
                 statements
                   ReturnStatement
                     returnKeyword: return
-                    expression2: ParsedUnqualifiedName
-                      name: _x
-                    expression(v1): SimpleIdentifier
+                    expression: SimpleIdentifier
                       token: _x
                     semicolon: ;
                 rightBracket: }
@@ -2464,7 +2494,18 @@ main() => super;
 
     var node = result.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  name: main
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: InvalidSuperExpression
+      superReference: SuperReference
+        superKeyword: super
+    semicolon: ;
+V1: FunctionDeclaration
   name: main
   functionExpression: FunctionExpression
     parameters: FormalParameterList
@@ -2472,10 +2513,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: InvalidSuperExpression
-        superReference: SuperReference
-          superKeyword: super
-      expression(v1): SuperExpression
+      expression: SuperExpression
         superKeyword: super
       semicolon: ;
 ''');
@@ -2490,7 +2528,22 @@ main() {super;}
 
     var node = result.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  name: main
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ExpressionStatement
+          expression2: InvalidSuperExpression
+            superReference: SuperReference
+              superKeyword: super
+          semicolon: ;
+      rightBracket: }
+V1: FunctionDeclaration
   name: main
   functionExpression: FunctionExpression
     parameters: FormalParameterList
@@ -2501,10 +2554,7 @@ FunctionDeclaration
         leftBracket: {
         statements
           ExpressionStatement
-            expression2: InvalidSuperExpression
-              superReference: SuperReference
-                superKeyword: super
-            expression(v1): SuperExpression
+            expression: SuperExpression
               superKeyword: super
             semicolon: ;
         rightBracket: }
@@ -2649,7 +2699,24 @@ void f { return x;}
 
     var node = result.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements
+        ReturnStatement
+          returnKeyword: return
+          expression2: ParsedUnqualifiedName
+            name: x
+          semicolon: ;
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: f
@@ -2663,9 +2730,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression2: ParsedUnqualifiedName
-              name: x
-            expression(v1): SimpleIdentifier
+            expression: SimpleIdentifier
               token: x
             semicolon: ;
         rightBracket: }
@@ -2681,7 +2746,19 @@ void f => x;
 
     var node = result.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: ( <synthetic>
+    rightParenthesis: ) <synthetic>
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: ParsedUnqualifiedName
+      name: x
+    semicolon: ;
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: f
@@ -2691,9 +2768,7 @@ FunctionDeclaration
       rightParenthesis: ) <synthetic>
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: ParsedUnqualifiedName
-        name: x
-      expression(v1): SimpleIdentifier
+      expression: SimpleIdentifier
         token: x
       semicolon: ;
 ''');

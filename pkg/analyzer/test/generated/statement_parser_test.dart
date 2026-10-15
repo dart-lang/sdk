@@ -88,6 +88,33 @@ foo Future<List<int>> bar() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: foo
+      name: Future
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: List
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: bar
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: foo
@@ -129,6 +156,31 @@ main() { C<@Foo T> v; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                    rightBracket: >
+                variables
+                  VariableDeclaration
+                    name: v
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -167,6 +219,31 @@ main() { C<@Foo.bar(1) T> v; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                    rightBracket: >
+                variables
+                  VariableDeclaration
+                    name: v
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -212,6 +289,153 @@ main() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: C
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: T
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: F
+                        functionKeyword: Function
+                        typeParameters: TypeParameterList
+                          leftBracket: <
+                          typeParameters
+                            TypeParameter
+                              name: G
+                          rightBracket: >
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          requiredPositionalFormalParameters
+                            RegularFormalParameter
+                              type: NamedType
+                                name: int
+                            RegularFormalParameter
+                              type: NamedType
+                                name: String
+                          delimitedFormalParameters: DelimitedFormalParameters
+                            leftDelimiter: {
+                            formalParameters
+                              RegularFormalParameter
+                                type: NamedType
+                                  name: Bar
+                                name: b
+                            rightDelimiter: }
+                          rightParenthesis: )
+                        parameters(v1): FormalParameterList
+                          leftParenthesis: (
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: int
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: String
+                          leftDelimiter: {
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: Bar
+                            name: b
+                          rightDelimiter: }
+                          rightParenthesis: )
+                      GenericFunctionType
+                        returnType: NamedType
+                          name: void
+                        functionKeyword: Function
+                        typeParameters: TypeParameterList
+                          leftBracket: <
+                          typeParameters
+                            TypeParameter
+                              name: H
+                          rightBracket: >
+                        parameters: FormalParameterList
+                          leftParenthesis: (
+                          requiredPositionalFormalParameters
+                            RegularFormalParameter
+                              type: NamedType
+                                name: int
+                              name: i
+                          delimitedFormalParameters: DelimitedFormalParameters
+                            leftDelimiter: [
+                            formalParameters
+                              RegularFormalParameter
+                                type: NamedType
+                                  name: String
+                                name: j
+                              RegularFormalParameter
+                                type: NamedType
+                                  name: K
+                            rightDelimiter: ]
+                          rightParenthesis: )
+                        parameters(v1): FormalParameterList
+                          leftParenthesis: (
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: int
+                            name: i
+                          leftDelimiter: [
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: String
+                            name: j
+                          parameter: RegularFormalParameter
+                            type: NamedType
+                              name: K
+                          rightDelimiter: ]
+                          rightParenthesis: )
+                      NamedType
+                        name: A
+                        typeArguments: TypeArgumentList
+                          leftBracket: <
+                          arguments
+                            NamedType
+                              name: B
+                              typeArguments: TypeArgumentList
+                                leftBracket: <
+                                arguments
+                                  NamedType
+                                    name: C
+                                rightBracket: >
+                          rightBracket: >
+                      NamedType
+                        name: W
+                        typeArguments: TypeArgumentList
+                          leftBracket: <
+                          arguments
+                            NamedType
+                              name: X
+                              typeArguments: TypeArgumentList
+                                leftBracket: <
+                                arguments
+                                  NamedType
+                                    name: Y
+                                    typeArguments: TypeArgumentList
+                                      leftBracket: <
+                                      arguments
+                                        NamedType
+                                          name: Z
+                                      rightBracket: >
+                                rightBracket: >
+                          rightBracket: >
+                    rightBracket: >
+                variables
+                  VariableDeclaration
+                    name: v
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -243,24 +467,6 @@ CompilationUnit
                             rightBracket: >
                           parameters: FormalParameterList
                             leftParenthesis: (
-                            requiredPositionalFormalParameters
-                              RegularFormalParameter
-                                type: NamedType
-                                  name: int
-                              RegularFormalParameter
-                                type: NamedType
-                                  name: String
-                            delimitedFormalParameters: DelimitedFormalParameters
-                              leftDelimiter: {
-                              formalParameters
-                                RegularFormalParameter
-                                  type: NamedType
-                                    name: Bar
-                                  name: b
-                              rightDelimiter: }
-                            rightParenthesis: )
-                          parameters(v1): FormalParameterList
-                            leftParenthesis: (
                             parameter: RegularFormalParameter
                               type: NamedType
                                 name: int
@@ -285,25 +491,6 @@ CompilationUnit
                                 name: H
                             rightBracket: >
                           parameters: FormalParameterList
-                            leftParenthesis: (
-                            requiredPositionalFormalParameters
-                              RegularFormalParameter
-                                type: NamedType
-                                  name: int
-                                name: i
-                            delimitedFormalParameters: DelimitedFormalParameters
-                              leftDelimiter: [
-                              formalParameters
-                                RegularFormalParameter
-                                  type: NamedType
-                                    name: String
-                                  name: j
-                                RegularFormalParameter
-                                  type: NamedType
-                                    name: K
-                              rightDelimiter: ]
-                            rightParenthesis: )
-                          parameters(v1): FormalParameterList
                             leftParenthesis: (
                             parameter: RegularFormalParameter
                               type: NamedType
@@ -711,6 +898,28 @@ main() { else return 0; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            ReturnStatement
+              returnKeyword: return
+              expression2: IntegerLiteral
+                literal: 0
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression
@@ -722,14 +931,12 @@ CompilationUnit
             leftBracket: {
             statements
               ExpressionStatement
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               ReturnStatement
                 returnKeyword: return
-                expression2: IntegerLiteral
+                expression: IntegerLiteral
                   literal: 0
                 semicolon: ;
             rightBracket: }
@@ -4504,6 +4711,35 @@ main() { try {} catch (int e) { } }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: int
+                  comma: , <synthetic>
+                  stackTraceParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: main
       functionExpression: FunctionExpression

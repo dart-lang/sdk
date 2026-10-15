@@ -29,7 +29,40 @@ Stream<int> f() async* {
 
     var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: Stream
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: dart:async::@class::Stream
+    type: Stream<int>
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    keyword: async
+    star: *
+    block: Block
+      leftBracket: {
+      statements
+        ReturnStatement
+          returnKeyword: return
+          expression2: IntegerLiteral
+            literal: 0
+            staticType: int
+          semicolon: ;
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> f@34
+    element: <testLibrary>::@function::f
+      type: Stream<int> Function()
+V1: FunctionDeclaration
   returnType: NamedType
     name: Stream
     typeArguments: TypeArgumentList
@@ -55,7 +88,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression2: IntegerLiteral
+            expression: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -81,7 +114,35 @@ Stream<int> f() async* => 0;
 
     var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: Stream
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: dart:async::@class::Stream
+    type: Stream<int>
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    keyword: async
+    star: *
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@34
+    element: <testLibrary>::@function::f
+      type: Stream<int> Function()
+V1: FunctionDeclaration
   returnType: NamedType
     name: Stream
     typeArguments: TypeArgumentList
@@ -103,7 +164,7 @@ FunctionDeclaration
       keyword: async
       star: *
       functionDefinition: =>
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -180,7 +241,44 @@ void m<T extends List<T>>() {}
 
     var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: List
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: T
+                element: #E0 T
+                type: T
+            rightBracket: >
+          element: dart:core::@class::List
+          type: List<T>
+        declaredFragment: <testLibraryFragment> T@7
+          defaultType: List<dynamic>
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> m@5
+    element: <testLibrary>::@function::m
+      type: void Function<T extends List<T>>()
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
     element: <null>
@@ -232,7 +330,36 @@ void m<T extends num>() {}
 
     var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: m
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        declaredFragment: <testLibraryFragment> T@7
+          defaultType: num
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> m@5
+    element: <testLibrary>::@function::m
+      type: void Function<T extends num>()
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
     element: <null>
@@ -665,7 +792,40 @@ Iterable<int> f() sync* {
 
     var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: Iterable
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: dart:core::@class::Iterable
+    type: Iterable<int>
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    keyword: sync
+    star: *
+    block: Block
+      leftBracket: {
+      statements
+        ReturnStatement
+          returnKeyword: return
+          expression2: IntegerLiteral
+            literal: 0
+            staticType: int
+          semicolon: ;
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> f@14
+    element: <testLibrary>::@function::f
+      type: Iterable<int> Function()
+V1: FunctionDeclaration
   returnType: NamedType
     name: Iterable
     typeArguments: TypeArgumentList
@@ -691,7 +851,7 @@ FunctionDeclaration
         statements
           ReturnStatement
             returnKeyword: return
-            expression2: IntegerLiteral
+            expression: IntegerLiteral
               literal: 0
               staticType: int
             semicolon: ;
@@ -715,7 +875,35 @@ Iterable<int> f() sync* => 0;
 
     var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: Iterable
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+          element: dart:core::@class::int
+          type: int
+      rightBracket: >
+    element: dart:core::@class::Iterable
+    type: Iterable<int>
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    keyword: sync
+    star: *
+    functionDefinition: =>
+    expression2: IntegerLiteral
+      literal: 0
+      staticType: int
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@14
+    element: <testLibrary>::@function::f
+      type: Iterable<int> Function()
+V1: FunctionDeclaration
   returnType: NamedType
     name: Iterable
     typeArguments: TypeArgumentList
@@ -737,7 +925,7 @@ FunctionDeclaration
       keyword: sync
       star: *
       functionDefinition: =>
-      expression2: IntegerLiteral
+      expression: IntegerLiteral
         literal: 0
         staticType: int
       semicolon: ;
@@ -759,7 +947,19 @@ _() {}
 
     var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  name: _
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> _@0
+    element: <testLibrary>::@function::_
+      type: dynamic Function()
+V1: FunctionDeclaration
   name: _
   functionExpression: FunctionExpression
     parameters: FormalParameterList
@@ -789,7 +989,19 @@ _() {}
 
     var node = result.findNode.singleFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  name: _
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> _@16
+    element: <testLibrary>::@function::_
+      type: dynamic Function()
+V1: FunctionDeclaration
   name: _
   functionExpression: FunctionExpression
     parameters: FormalParameterList

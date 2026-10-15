@@ -24,7 +24,18 @@ abstract void foo() {}
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: foo
@@ -48,7 +59,18 @@ abstract void foo() {}
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: foo
@@ -70,7 +92,19 @@ augment void foo() {}
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void
@@ -96,7 +130,18 @@ augment void foo() {}
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: foo
@@ -118,7 +163,17 @@ augment void foo();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  augmentKeyword: augment
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   augmentKeyword: augment
   returnType: NamedType
     name: void
@@ -139,7 +194,18 @@ augment external void foo();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   augmentKeyword: augment
   externalKeyword: external
   returnType: NamedType
@@ -161,7 +227,16 @@ void foo();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: foo
@@ -184,7 +259,16 @@ void foo();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   returnType: NamedType
     name: void
   name: foo
@@ -206,7 +290,18 @@ external augment void foo();
 
     var node = parseResult.findNode.singleFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  returnType: NamedType
+    name: void
+  name: foo
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+V1: FunctionDeclaration
   augmentKeyword: augment
   externalKeyword: external
   returnType: NamedType
@@ -529,7 +624,45 @@ void get() {
       withTokenPreviousNext: true,
       withOffsets: true,
       r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: T0 void @0
+      next: T1 |get|
+  name: T1 get @5
+    previous: T0 |void|
+    next: T2 |(|
+  formalParameters: FormalParameterList
+    leftParenthesis: T2 ( @8
+      previous: T1 |get|
+      next: T3 |)|
+    rightParenthesis: T3 ) @9
+      previous: T2 |(|
+      next: T4 |{|
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: T4 { @11
+        previous: T3 |)|
+        next: T5 |http|
+      statements
+        ExpressionStatement
+          expression2: ParsedNameAccess
+            operand: ParsedUnqualifiedName
+              name: T5 http @15
+                previous: T4 |{|
+                next: T6 |.|
+            operator: T6 . @19
+              previous: T5 |http|
+              next: T7 |Response|
+            name: T7 Response @20
+              previous: T6 |.|
+              next: T8 |;|
+          semicolon: T8 ; @46 <synthetic>
+            previous: T7 |Response|
+            next: T9 |}|
+      rightBracket: T9 } @46
+        previous: T8 |;|
+        next: T10 ||
+V1: FunctionDeclaration
   returnType: NamedType
     name: T0 void @0
       next: T1 |get|
@@ -551,18 +684,7 @@ FunctionDeclaration
           next: T5 |http|
         statements
           ExpressionStatement
-            expression2: ParsedNameAccess
-              operand: ParsedUnqualifiedName
-                name: T5 http @15
-                  previous: T4 |{|
-                  next: T6 |.|
-              operator: T6 . @19
-                previous: T5 |http|
-                next: T7 |Response|
-              name: T7 Response @20
-                previous: T6 |.|
-                next: T8 |;|
-            expression(v1): PrefixedIdentifier
+            expression: PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: T5 http @15
                   previous: T4 |{|
@@ -1135,28 +1257,20 @@ CompilationUnit
           VariableDeclaration
             name: T
       semicolon: ; <synthetic>
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: #synthetic_function_9 <synthetic>
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: T
-              name: _
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
-          parameter: RegularFormalParameter
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
             type: NamedType
               name: T
             name: _
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: {
-            rightBracket: }
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
   declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
