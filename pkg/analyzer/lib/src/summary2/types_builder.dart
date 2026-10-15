@@ -163,8 +163,8 @@ class TypesBuilder {
       _extensionTypeDeclaration(node);
     } else if (node is FieldFormalParameterImpl) {
       _fieldFormalParameter(node);
-    } else if (node is FunctionDeclarationImpl) {
-      _functionDeclaration(node);
+    } else if (node is TopLevelFunctionDeclarationImpl) {
+      _topLevelFunctionDeclaration(node);
     } else if (node is TopLevelGetterDeclarationImpl) {
       _topLevelGetterDeclaration(node);
     } else if (node is TopLevelSetterDeclarationImpl) {
@@ -257,13 +257,6 @@ class TypesBuilder {
     return node.allFormalParameters.asImpl.map((parameter) {
       return parameter.declaredFragment!.element;
     }).toFixedList();
-  }
-
-  void _functionDeclaration(FunctionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    if (fragment.previousFragment == null) {
-      fragment.element.returnType = node.returnType?.type ?? _dynamicType;
-    }
   }
 
   void _functionTypeAlias(FunctionTypeAliasImpl node) {
@@ -443,6 +436,13 @@ class TypesBuilder {
       fragment.element.type = type;
     } else {
       fragment.element.type = node.type?.type ?? _dynamicType;
+    }
+  }
+
+  void _topLevelFunctionDeclaration(TopLevelFunctionDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
+    if (fragment.previousFragment == null) {
+      fragment.element.returnType = node.returnType?.type ?? _dynamicType;
     }
   }
 

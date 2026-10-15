@@ -73,11 +73,11 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
           );
         }
         member.body.members.forEach(appendClassMemberName);
-      case FunctionDeclarationImpl():
-        appendName(names.topLevelNames, member.name);
       case MixinDeclarationImpl():
         appendName(names.topLevelNames, member.name);
         member.body.members.forEach(appendClassMemberName);
+      case TopLevelFunctionDeclarationImpl():
+        appendName(names.topLevelNames, member.name);
       case TopLevelVariableDeclarationImpl():
         for (var variable in member.variables.variables) {
           appendName(names.topLevelNames, variable.name);

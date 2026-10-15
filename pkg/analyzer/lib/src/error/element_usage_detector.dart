@@ -958,24 +958,18 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   static bool _isLocalParameter(Element? element, AstNode? node) {
     if (element is FormalParameterElement) {
       var definingFunction = element.enclosingElement;
-
+      if (definingFunction == null) {
+        return false;
+      }
       for (; node != null; node = node.parent2) {
-        if (node is ConstructorDeclaration) {
-          if (node.declaredFragment?.element == definingFunction) {
-            return true;
-          }
-        } else if (node is FunctionExpression) {
-          if (node.declaredFragment?.element == definingFunction) {
-            return true;
-          }
-        } else if (node is MethodDeclaration) {
-          if (node.declaredFragment?.element == definingFunction) {
-            return true;
-          }
-        } else if (node is PrimaryConstructorBody) {
-          if (node.declaration?.declaredFragment?.element == definingFunction) {
-            return true;
-          }
+        var declaredElement = switch (node) {
+          PrimaryConstructorBody() =>
+            node.declaration?.declaredFragment?.element,
+          FragmentDeclaringNode() => node.declaredFragment?.element,
+          _ => null,
+        };
+        if (declaredElement == definingFunction) {
+          return true;
         }
       }
     }

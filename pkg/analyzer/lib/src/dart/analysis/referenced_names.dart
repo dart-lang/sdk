@@ -156,6 +156,16 @@ class _LocalNameScope {
     return scope;
   }
 
+  factory _LocalNameScope.forTopLevelFunction(
+    _LocalNameScope enclosing,
+    TopLevelFunctionDeclarationImpl node,
+  ) {
+    _LocalNameScope scope = _LocalNameScope(enclosing);
+    scope.addTypeParameters(node.typeParameters);
+    scope.addFormalParameters(node.formalParameters);
+    return scope;
+  }
+
   factory _LocalNameScope.forTopLevelGetter(
     _LocalNameScope enclosing,
     TopLevelGetterDeclarationImpl node,
@@ -186,9 +196,9 @@ class _LocalNameScope {
           scope.add(declaration.name);
         case ExtensionTypeDeclarationImpl():
           scope.add(declaration.namePart.typeName);
-        case FunctionDeclarationImpl():
-          scope.add(declaration.name);
         case MixinDeclarationImpl():
+          scope.add(declaration.name);
+        case TopLevelFunctionDeclarationImpl():
           scope.add(declaration.name);
         case TopLevelVariableDeclarationImpl():
           scope.addVariableNames(declaration.variables);
@@ -525,6 +535,19 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   void visitSuperFormalParameter(SuperFormalParameter node) {
     names.add(node.name.lexeme);
     super.visitSuperFormalParameter(node);
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    _LocalNameScope outerScope = localScope;
+    try {
+      localScope = _LocalNameScope.forTopLevelFunction(localScope, node);
+      super.visitTopLevelFunctionDeclaration(node);
+    } finally {
+      localScope = outerScope;
+    }
   }
 
   @override

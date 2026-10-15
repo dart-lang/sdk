@@ -1097,6 +1097,52 @@ f() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+            ExpressionStatement
+              expression2: ParsedValueArguments
+                operand: ParsedUnqualifiedName
+                  name: catch
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    ParsedUnqualifiedName
+                      name: e
+                  arguments(v1)
+                    SimpleIdentifier
+                      token: e
+                  rightParenthesis: )
+              expression(v1): MethodInvocation
+                methodName: SimpleIdentifier
+                  token: catch
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    SimpleIdentifier
+                      token: e
+                  rightParenthesis: )
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1117,19 +1163,7 @@ CompilationUnit
                   leftBracket: {
                   rightBracket: }
               ExpressionStatement
-                expression2: ParsedValueArguments
-                  operand: ParsedUnqualifiedName
-                    name: catch
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    arguments2
-                      ParsedUnqualifiedName
-                        name: e
-                    arguments(v1)
-                      SimpleIdentifier
-                        token: e
-                    rightParenthesis: )
-                expression(v1): MethodInvocation
+                expression: MethodInvocation
                   methodName: SimpleIdentifier
                     token: catch
                   argumentList: ArgumentList
@@ -1162,6 +1196,37 @@ f() {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: {
+                rightBracket: }
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: on
+                variables
+                  VariableDeclaration
+                    name: String
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression

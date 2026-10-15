@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class CreateFileInTestDirectoryTest extends FixProcessorTest {
+class CreateFileInTestDirectoryTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createFile;
 
@@ -45,7 +46,7 @@ import 'a/bb/my_lib.dart';
 }
 
 @reflectiveTest
-class CreateFileTest extends FixProcessorTest {
+class CreateFileTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createFile;
 

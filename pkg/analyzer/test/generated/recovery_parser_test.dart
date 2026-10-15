@@ -1794,6 +1794,16 @@ C() : {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1820,6 +1830,28 @@ C() : x(3) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: x
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: <empty> <synthetic>
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1834,12 +1866,6 @@ CompilationUnit
       name: x
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: <empty> <synthetic>
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: <empty> <synthetic>
@@ -1865,6 +1891,25 @@ C() : this {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: this
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1907,6 +1952,34 @@ C() : this.g {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: this
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: g
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1959,6 +2032,25 @@ C() : this. {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: this
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -1995,6 +2087,25 @@ C() : x {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: C
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
+    TopLevelFunctionDeclaration
+      name: x
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: C
       functionExpression: FunctionExpression
@@ -2074,6 +2185,226 @@ Map<Symbol, convertStringToSymbolMap(Map<String, dynamic> map) {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: Map
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: Symbol
+          TypeParameter
+            name: convertStringToSymbolMap
+        rightBracket: > <synthetic>
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: BinaryOperatorInvocation
+                leftOperand: ParsedUnqualifiedName
+                  name: map
+                operator: ==
+                rightOperand: NullLiteral
+                  literal: null
+                binaryOperator: equal
+              expression(v1): BinaryExpression
+                leftOperand: SimpleIdentifier
+                  token: map
+                operator: ==
+                rightOperand: NullLiteral
+                  literal: null
+              rightParenthesis: )
+              thenStatement: ReturnStatement
+                returnKeyword: return
+                expression2: NullLiteral
+                  literal: null
+                semicolon: ;
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: Map
+                  typeArguments: TypeArgumentList
+                    leftBracket: <
+                    arguments
+                      NamedType
+                        name: Symbol
+                      NamedType
+                        name: dynamic
+                    rightBracket: >
+                variables
+                  VariableDeclaration
+                    name: result
+                    equals: =
+                    initializer2: ConstructorInvocation
+                      keyword: new
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: Map
+                          typeArguments: TypeArgumentList
+                            leftBracket: <
+                            arguments
+                              NamedType
+                                name: Symbol
+                              NamedType
+                                name: dynamic
+                            rightBracket: >
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                    initializer(v1): InstanceCreationExpression
+                      keyword: new
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: Map
+                          typeArguments: TypeArgumentList
+                            leftBracket: <
+                            arguments
+                              NamedType
+                                name: Symbol
+                              NamedType
+                                name: dynamic
+                            rightBracket: >
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+              semicolon: ;
+            ExpressionStatement
+              expression2: ParsedValueArguments
+                operand: ParsedNameAccess
+                  operand: ParsedUnqualifiedName
+                    name: map
+                  operator: .
+                  name: forEach
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        requiredPositionalFormalParameters
+                          RegularFormalParameter
+                            name: name
+                          RegularFormalParameter
+                            name: value
+                        rightParenthesis: )
+                      parameters(v1): FormalParameterList
+                        leftParenthesis: (
+                        parameter: RegularFormalParameter
+                          name: name
+                        parameter: RegularFormalParameter
+                          name: value
+                        rightParenthesis: )
+                      body: BlockFunctionBody
+                        block: Block
+                          leftBracket: {
+                          statements
+                            ExpressionStatement
+                              expression2: DirectAssignment
+                                target: ReceiverIndexAssignmentTarget
+                                  receiver: ParsedUnqualifiedName
+                                    name: result
+                                  leftBracket: [
+                                  index: ConstructorInvocation
+                                    keyword: new
+                                    constructorReference: ConstructorReference2
+                                      typeReference: ConstructorTypeReference
+                                        name: Symbol
+                                    argumentList: ArgumentList
+                                      leftParenthesis: (
+                                      arguments2
+                                        ParsedUnqualifiedName
+                                          name: name
+                                      arguments(v1)
+                                        SimpleIdentifier
+                                          token: name
+                                      rightParenthesis: )
+                                  rightBracket: ]
+                                operator: =
+                                value: ParsedUnqualifiedName
+                                  name: value
+                              expression(v1): AssignmentExpression
+                                leftHandSide: IndexExpression
+                                  target: SimpleIdentifier
+                                    token: result
+                                  leftBracket: [
+                                  index: InstanceCreationExpression
+                                    keyword: new
+                                    constructorName: ConstructorName
+                                      type: NamedType
+                                        name: Symbol
+                                    argumentList: ArgumentList
+                                      leftParenthesis: (
+                                      arguments
+                                        SimpleIdentifier
+                                          token: name
+                                      rightParenthesis: )
+                                  rightBracket: ]
+                                operator: =
+                                rightHandSide: SimpleIdentifier
+                                  token: value
+                              semicolon: ;
+                          rightBracket: }
+                  rightParenthesis: )
+              expression(v1): MethodInvocation
+                target: SimpleIdentifier
+                  token: map
+                operator: .
+                methodName: SimpleIdentifier
+                  token: forEach
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    FunctionExpression
+                      parameters: FormalParameterList
+                        leftParenthesis: (
+                        parameter: RegularFormalParameter
+                          name: name
+                        parameter: RegularFormalParameter
+                          name: value
+                        rightParenthesis: )
+                      body: BlockFunctionBody
+                        block: Block
+                          leftBracket: {
+                          statements
+                            ExpressionStatement
+                              expression: AssignmentExpression
+                                leftHandSide: IndexExpression
+                                  target: SimpleIdentifier
+                                    token: result
+                                  leftBracket: [
+                                  index: InstanceCreationExpression
+                                    keyword: new
+                                    constructorName: ConstructorName
+                                      type: NamedType
+                                        name: Symbol
+                                    argumentList: ArgumentList
+                                      leftParenthesis: (
+                                      arguments
+                                        SimpleIdentifier
+                                          token: name
+                                      rightParenthesis: )
+                                  rightBracket: ]
+                                operator: =
+                                rightHandSide: SimpleIdentifier
+                                  token: value
+                              semicolon: ;
+                          rightBracket: }
+                  rightParenthesis: )
+              semicolon: ;
+            ReturnStatement
+              returnKeyword: return
+              expression2: ParsedUnqualifiedName
+                name: result
+              expression(v1): SimpleIdentifier
+                token: result
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: Map
       functionExpression: FunctionExpression
@@ -2095,14 +2426,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: BinaryOperatorInvocation
-                  leftOperand: ParsedUnqualifiedName
-                    name: map
-                  operator: ==
-                  rightOperand: NullLiteral
-                    literal: null
-                  binaryOperator: equal
-                expression(v1): BinaryExpression
+                expression: BinaryExpression
                   leftOperand: SimpleIdentifier
                     token: map
                   operator: ==
@@ -2111,7 +2435,7 @@ CompilationUnit
                 rightParenthesis: )
                 thenStatement: ReturnStatement
                   returnKeyword: return
-                  expression2: NullLiteral
+                  expression: NullLiteral
                     literal: null
                   semicolon: ;
               VariableDeclarationStatement
@@ -2130,23 +2454,7 @@ CompilationUnit
                     VariableDeclaration
                       name: result
                       equals: =
-                      initializer2: ConstructorInvocation
-                        keyword: new
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: Map
-                            typeArguments: TypeArgumentList
-                              leftBracket: <
-                              arguments
-                                NamedType
-                                  name: Symbol
-                                NamedType
-                                  name: dynamic
-                              rightBracket: >
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          rightParenthesis: )
-                      initializer(v1): InstanceCreationExpression
+                      initializer: InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -2164,83 +2472,7 @@ CompilationUnit
                           rightParenthesis: )
                 semicolon: ;
               ExpressionStatement
-                expression2: ParsedValueArguments
-                  operand: ParsedNameAccess
-                    operand: ParsedUnqualifiedName
-                      name: map
-                    operator: .
-                    name: forEach
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    arguments2
-                      FunctionExpression
-                        parameters: FormalParameterList
-                          leftParenthesis: (
-                          requiredPositionalFormalParameters
-                            RegularFormalParameter
-                              name: name
-                            RegularFormalParameter
-                              name: value
-                          rightParenthesis: )
-                        parameters(v1): FormalParameterList
-                          leftParenthesis: (
-                          parameter: RegularFormalParameter
-                            name: name
-                          parameter: RegularFormalParameter
-                            name: value
-                          rightParenthesis: )
-                        body: BlockFunctionBody
-                          block: Block
-                            leftBracket: {
-                            statements
-                              ExpressionStatement
-                                expression2: DirectAssignment
-                                  target: ReceiverIndexAssignmentTarget
-                                    receiver: ParsedUnqualifiedName
-                                      name: result
-                                    leftBracket: [
-                                    index: ConstructorInvocation
-                                      keyword: new
-                                      constructorReference: ConstructorReference2
-                                        typeReference: ConstructorTypeReference
-                                          name: Symbol
-                                      argumentList: ArgumentList
-                                        leftParenthesis: (
-                                        arguments2
-                                          ParsedUnqualifiedName
-                                            name: name
-                                        arguments(v1)
-                                          SimpleIdentifier
-                                            token: name
-                                        rightParenthesis: )
-                                    rightBracket: ]
-                                  operator: =
-                                  value: ParsedUnqualifiedName
-                                    name: value
-                                expression(v1): AssignmentExpression
-                                  leftHandSide: IndexExpression
-                                    target: SimpleIdentifier
-                                      token: result
-                                    leftBracket: [
-                                    index: InstanceCreationExpression
-                                      keyword: new
-                                      constructorName: ConstructorName
-                                        type: NamedType
-                                          name: Symbol
-                                      argumentList: ArgumentList
-                                        leftParenthesis: (
-                                        arguments
-                                          SimpleIdentifier
-                                            token: name
-                                        rightParenthesis: )
-                                    rightBracket: ]
-                                  operator: =
-                                  rightHandSide: SimpleIdentifier
-                                    token: value
-                                semicolon: ;
-                            rightBracket: }
-                    rightParenthesis: )
-                expression(v1): MethodInvocation
+                expression: MethodInvocation
                   target: SimpleIdentifier
                     token: map
                   operator: .
@@ -2288,9 +2520,7 @@ CompilationUnit
                 semicolon: ;
               ReturnStatement
                 returnKeyword: return
-                expression2: ParsedUnqualifiedName
-                  name: result
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: result
                 semicolon: ;
             rightBracket: }
@@ -2305,6 +2535,14 @@ foo();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: foo
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: foo
       functionExpression: FunctionExpression
@@ -2327,6 +2565,14 @@ foo();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: foo
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: foo
       functionExpression: FunctionExpression
@@ -2958,6 +3204,17 @@ f() sync {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        keyword: sync
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -3355,6 +3612,16 @@ do() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: do
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: do
       functionExpression: FunctionExpression

@@ -122,7 +122,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class RemoveThisAliasTest extends FixProcessorLintTest {
+class RemoveThisAliasTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeThisAlias;
 

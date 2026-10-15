@@ -26,6 +26,32 @@ f() { if (a assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: AssertStatement
+                assertKeyword: assert
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -39,15 +65,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: AssertStatement
                   assertKeyword: assert
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -65,6 +89,28 @@ f() { if (a {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -78,9 +124,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: Block
@@ -102,6 +146,28 @@ f() { if (a break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -115,9 +181,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: BreakStatement
@@ -139,6 +203,28 @@ f() { if (a continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -152,9 +238,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: ContinueStatement
@@ -174,6 +258,36 @@ f() { if (a do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: DoStatement
+                doKeyword: do
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -187,9 +301,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: DoStatement
@@ -199,7 +311,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -220,6 +332,31 @@ f() { if (a }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -233,15 +370,11 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -258,6 +391,41 @@ f() { if (a for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -271,9 +439,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: ForStatement
@@ -284,9 +450,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedUnqualifiedName
-                      name: y
-                    iterable(v1): SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -306,6 +470,34 @@ f() { if (a if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -319,15 +511,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -347,6 +537,33 @@ f() { if (a l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: LabeledStatement
+                labels
+                  Label
+                    name: l
+                    colon: :
+                statement: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -360,9 +577,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: LabeledStatement
@@ -387,6 +602,38 @@ f() { if (a int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: int
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -400,9 +647,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: FunctionDeclarationStatement
@@ -432,6 +677,38 @@ f() { if (a void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: void
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -445,9 +722,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: FunctionDeclarationStatement
@@ -477,6 +752,32 @@ f() { if (a var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -490,9 +791,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: VariableDeclarationStatement
@@ -516,6 +815,28 @@ f() { if (a return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: ReturnStatement
+                returnKeyword: return
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -529,9 +850,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: ReturnStatement
@@ -551,6 +870,35 @@ f() { if (a switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: SwitchStatement
+                switchKeyword: switch
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -564,17 +912,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: ParsedUnqualifiedName
-                    name: x
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -593,6 +937,34 @@ f() { if (a try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -606,9 +978,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: TryStatement
@@ -634,6 +1004,34 @@ f() { if (a while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: a
+              expression(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              thenStatement: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -647,15 +1045,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: a
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: a
                 rightParenthesis: ) <synthetic>
                 thenStatement: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -676,6 +1072,32 @@ f() { if assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: AssertStatement
+                assertKeyword: assert
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -689,15 +1111,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: AssertStatement
                   assertKeyword: assert
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -716,6 +1136,28 @@ f() { if {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: Block
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -729,9 +1171,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: Block
@@ -753,6 +1193,28 @@ f() { if break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -766,9 +1228,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: BreakStatement
@@ -790,6 +1250,28 @@ f() { if continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -803,9 +1285,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ContinueStatement
@@ -826,6 +1306,36 @@ f() { if do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: DoStatement
+                doKeyword: do
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -839,9 +1349,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: DoStatement
@@ -851,7 +1359,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -872,6 +1380,31 @@ f() { if }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -885,15 +1418,11 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -911,6 +1440,41 @@ f() { if for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -924,9 +1488,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ForStatement
@@ -937,9 +1499,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedUnqualifiedName
-                      name: y
-                    iterable(v1): SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -960,6 +1520,34 @@ f() { if if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -973,15 +1561,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -1002,6 +1588,33 @@ f() { if l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: LabeledStatement
+                labels
+                  Label
+                    name: l
+                    colon: :
+                statement: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1015,9 +1628,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: LabeledStatement
@@ -1043,6 +1654,38 @@ f() { if int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: int
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1056,9 +1699,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: FunctionDeclarationStatement
@@ -1089,6 +1730,38 @@ f() { if void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: FunctionDeclarationStatement
+                functionDeclaration: FunctionDeclaration
+                  returnType: NamedType
+                    name: void
+                  name: f
+                  functionExpression: FunctionExpression
+                    parameters: FormalParameterList
+                      leftParenthesis: (
+                      rightParenthesis: )
+                    body: BlockFunctionBody
+                      block: Block
+                        leftBracket: {
+                        rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1102,9 +1775,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: FunctionDeclarationStatement
@@ -1135,6 +1806,32 @@ f() { if var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1148,9 +1845,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: VariableDeclarationStatement
@@ -1175,6 +1870,28 @@ f() { if return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: ReturnStatement
+                returnKeyword: return
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1188,9 +1905,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ReturnStatement
@@ -1211,6 +1926,35 @@ f() { if switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: SwitchStatement
+                switchKeyword: switch
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                leftBracket: {
+                rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1224,17 +1968,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: SwitchStatement
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: ParsedUnqualifiedName
-                    name: x
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
@@ -1254,6 +1994,34 @@ f() { if try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1267,9 +2035,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: TryStatement
@@ -1296,6 +2062,34 @@ f() { if while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: ( <synthetic>
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1309,15 +2103,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: ( <synthetic>
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block
@@ -1337,6 +2129,41 @@ f() { if ( assert (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: CallInvocation
+                receiver: ParsedUnqualifiedName
+                  name: assert
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments2
+                    BooleanLiteral
+                      literal: true
+                  rightParenthesis: )
+              expression(v1): FunctionExpressionInvocation
+                function: SimpleIdentifier
+                  token: assert
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    BooleanLiteral
+                      literal: true
+                  rightParenthesis: )
+              rightParenthesis: ) <synthetic>
+              thenStatement: EmptyStatement
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1350,16 +2177,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: CallInvocation
-                  receiver: ParsedUnqualifiedName
-                    name: assert
-                  argumentList: ArgumentList
-                    leftParenthesis: (
-                    arguments2
-                      BooleanLiteral
-                        literal: true
-                    rightParenthesis: )
-                expression(v1): FunctionExpressionInvocation
+                expression: FunctionExpressionInvocation
                   function: SimpleIdentifier
                     token: assert
                   argumentList: ArgumentList
@@ -1388,6 +2206,31 @@ f() { if ( {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: SetOrMapLiteral
+                leftBracket: {
+                rightBracket: }
+                isMap: false
+              rightParenthesis: ) <synthetic>
+              thenStatement: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1401,15 +2244,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SetOrMapLiteral
+                expression: SetOrMapLiteral
                   leftBracket: {
                   rightBracket: }
                   isMap: false
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1429,6 +2270,28 @@ f() { if ( break; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: BreakStatement
+                breakKeyword: break
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1442,9 +2305,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: BreakStatement
@@ -1467,6 +2328,28 @@ f() { if ( continue; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: ContinueStatement
+                continueKeyword: continue
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1480,9 +2363,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ContinueStatement
@@ -1504,6 +2385,36 @@ f() { if ( do {} while (true); }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: DoStatement
+                doKeyword: do
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1517,9 +2428,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: DoStatement
@@ -1529,7 +2438,7 @@ CompilationUnit
                     rightBracket: }
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   semicolon: ;
@@ -1550,6 +2459,31 @@ f() { if ( }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1563,15 +2497,11 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1590,6 +2520,41 @@ f() { if ( for (var x in y) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: ForStatement
+                forKeyword: for
+                leftParenthesis: (
+                forLoopParts: ForEachPartsWithDeclaration
+                  loopVariable: DeclaredIdentifier
+                    keyword: var
+                    name: x
+                  inKeyword: in
+                  iterable2: ParsedUnqualifiedName
+                    name: y
+                  iterable(v1): SimpleIdentifier
+                    token: y
+                rightParenthesis: )
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1603,9 +2568,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: ForStatement
@@ -1616,9 +2579,7 @@ CompilationUnit
                       keyword: var
                       name: x
                     inKeyword: in
-                    iterable2: ParsedUnqualifiedName
-                      name: y
-                    iterable(v1): SimpleIdentifier
+                    iterable: SimpleIdentifier
                       token: y
                   rightParenthesis: )
                   body: Block
@@ -1640,6 +2601,34 @@ f() { if ( if (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: IfStatement
+                ifKeyword: if
+                leftParenthesis: (
+                expression2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                thenStatement: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1653,15 +2642,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: IfStatement
                   ifKeyword: if
                   leftParenthesis: (
-                  expression2: BooleanLiteral
+                  expression: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   thenStatement: Block
@@ -1685,6 +2672,40 @@ f() { if ( l: {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: l
+              expression(v1): SimpleIdentifier
+                token: l
+              rightParenthesis: ) <synthetic>
+              thenStatement: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+            ExpressionStatement
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            Block
+              leftBracket: {
+              rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1698,21 +2719,15 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: l
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: l
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
               ExpressionStatement
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 semicolon: ; <synthetic>
               Block
@@ -1737,6 +2752,35 @@ f() { if ( int f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: FunctionExpression
+                parameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              rightParenthesis: ) <synthetic>
+              thenStatement: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1750,7 +2794,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: FunctionExpression
+                expression: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -1760,9 +2804,7 @@ CompilationUnit
                       rightBracket: }
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1784,6 +2826,35 @@ f() { if ( void f() {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: FunctionExpression
+                parameters: FormalParameterList
+                  leftParenthesis: (
+                  rightParenthesis: )
+                body: BlockFunctionBody
+                  block: Block
+                    leftBracket: {
+                    rightBracket: }
+              rightParenthesis: ) <synthetic>
+              thenStatement: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1797,7 +2868,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: FunctionExpression
+                expression: FunctionExpression
                   parameters: FormalParameterList
                     leftParenthesis: (
                     rightParenthesis: )
@@ -1807,9 +2878,7 @@ CompilationUnit
                       rightBracket: }
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1828,6 +2897,32 @@ f() { if ( var x; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  keyword: var
+                  variables
+                    VariableDeclaration
+                      name: x
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1841,9 +2936,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: VariableDeclarationStatement
@@ -1870,6 +2963,27 @@ f() { if ( return; }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: EmptyStatement
+                semicolon: ;
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1883,9 +2997,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: EmptyStatement
@@ -1907,6 +3019,37 @@ f() { if ( switch (x) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: SwitchExpression
+                switchKeyword: switch
+                leftParenthesis: (
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+                rightParenthesis: )
+                leftBracket: {
+                rightBracket: }
+              rightParenthesis: ) <synthetic>
+              thenStatement: ExpressionStatement
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+                semicolon: ; <synthetic>
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1920,21 +3063,17 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: SwitchExpression
+                expression: SwitchExpression
                   switchKeyword: switch
                   leftParenthesis: (
-                  expression2: ParsedUnqualifiedName
-                    name: x
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                   rightParenthesis: )
                   leftBracket: {
                   rightBracket: }
                 rightParenthesis: ) <synthetic>
                 thenStatement: ExpressionStatement
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                   semicolon: ; <synthetic>
             rightBracket: }
@@ -1953,6 +3092,34 @@ f() { if ( try {} finally {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1966,9 +3133,7 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: TryStatement
@@ -1996,6 +3161,34 @@ f() { if ( while (true) {} }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            IfStatement
+              ifKeyword: if
+              leftParenthesis: (
+              expression2: ParsedUnqualifiedName
+                name: <empty> <synthetic>
+              expression(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              thenStatement: WhileStatement
+                whileKeyword: while
+                leftParenthesis: (
+                condition2: BooleanLiteral
+                  literal: true
+                rightParenthesis: )
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2009,15 +3202,13 @@ CompilationUnit
               IfStatement
                 ifKeyword: if
                 leftParenthesis: (
-                expression2: ParsedUnqualifiedName
-                  name: <empty> <synthetic>
-                expression(v1): SimpleIdentifier
+                expression: SimpleIdentifier
                   token: <empty> <synthetic>
                 rightParenthesis: ) <synthetic>
                 thenStatement: WhileStatement
                   whileKeyword: while
                   leftParenthesis: (
-                  condition2: BooleanLiteral
+                  condition: BooleanLiteral
                     literal: true
                   rightParenthesis: )
                   body: Block

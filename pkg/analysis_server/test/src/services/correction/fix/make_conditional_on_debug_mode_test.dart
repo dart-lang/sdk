@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class MakeConditionalOnDebugModeTest extends FixProcessorLintTest {
+class MakeConditionalOnDebugModeTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 
@@ -53,7 +54,7 @@ void f() {
 
 @reflectiveTest
 class MakeConditionalOnDebugModeWithoutFlutterTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.makeConditionalOnDebugMode;
 

@@ -192,18 +192,6 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    node.metadata.accept2(this);
-    node.functionExpression.accept2(this);
-  }
-
-  @override
-  void visitFunctionExpression(FunctionExpression node) {
-    node.typeParameters?.accept2(this);
-    node.parameters?.accept2(this);
-  }
-
-  @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
@@ -297,6 +285,15 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
     if (node.functionTypedSuffix case var functionTypedSuffix?) {
       functionTypedSuffix.formalParameters.accept2(this);
     }
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    node.metadata.accept2(this);
+    node.typeParameters?.accept2(this);
+    node.formalParameters.accept2(this);
   }
 
   @override

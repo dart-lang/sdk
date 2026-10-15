@@ -917,24 +917,6 @@ void f() {
     );
   }
 
-  void test_functionDeclaration() {
-    var parseResult = parseTestCodeWithDiagnostics(r'''
-@myA1
-@myA2
-int f() => 0;
-double g() => 0;
-''');
-    _assertAnnotatedNode(parseResult.findNode.functionDeclaration('f()'));
-    _assertReplacementForChildren<FunctionDeclaration>(
-      destination: parseResult.findNode.functionDeclaration('f()'),
-      source: parseResult.findNode.functionDeclaration('g()'),
-      childAccessors: [
-        (node) => node.functionExpression,
-        (node) => node.returnType!,
-      ],
-    );
-  }
-
   void test_functionDeclarationStatement() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {
@@ -951,17 +933,17 @@ void f() {
 
   void test_functionExpression() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-void f<T>(int a) {
+var f = <T>(int a) {
   0;
-}
-void g<U>(double b) {
+};
+var g = <U>(double b) {
   1;
-}
+};
 ''');
-    var destination = parseResult.findNode.functionExpression('T>');
+    var destination = parseResult.findNode.functionExpression('<T>');
     _assertReplacementForChildren<FunctionExpression>(
       destination: destination,
-      source: parseResult.findNode.functionExpression('U>'),
+      source: parseResult.findNode.functionExpression('<U>'),
       childAccessors: [
         (node) => node.body,
         (node) => node.parameters!,
@@ -1847,6 +1829,25 @@ void f() {
       destination: parseResult.findNode.throw_('throw 0'),
       source: parseResult.findNode.throw_('throw 1'),
       childAccessors: [(node) => node.expression2],
+    );
+  }
+
+  void test_topLevelFunctionDeclaration() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+@myA1
+@myA2
+int f() => 0;
+double g() => 0;
+''');
+    _assertAnnotatedNode(parseResult.findNode.topLevelFunctionDeclaration('f()'));
+    _assertReplacementForChildren<TopLevelFunctionDeclaration>(
+      destination: parseResult.findNode.topLevelFunctionDeclaration('f()'),
+      source: parseResult.findNode.topLevelFunctionDeclaration('g()'),
+      childAccessors: [
+        (node) => node.returnType!,
+        (node) => node.formalParameters,
+        (node) => node.body,
+      ],
     );
   }
 

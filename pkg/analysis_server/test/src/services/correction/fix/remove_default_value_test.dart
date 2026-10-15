@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveDefaultValueTest extends FixProcessorTest {
+class RemoveDefaultValueTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeDefaultValue;
 

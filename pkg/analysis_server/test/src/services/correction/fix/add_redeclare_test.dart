@@ -56,7 +56,7 @@ extension type E(C c) implements C {
 }
 
 @reflectiveTest
-class AddRedeclareTest extends FixProcessorLintTest {
+class AddRedeclareTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 

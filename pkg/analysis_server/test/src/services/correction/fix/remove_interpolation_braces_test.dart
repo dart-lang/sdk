@@ -37,7 +37,7 @@ void f() {
 }
 
 @reflectiveTest
-class RemoveInterpolationBracesTest extends FixProcessorLintTest {
+class RemoveInterpolationBracesTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeInterpolationBraces;
 

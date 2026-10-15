@@ -75,7 +75,8 @@ enum E2 {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryConstInEnumConstructorTest extends FixProcessorLintTest {
+class RemoveUnnecessaryConstInEnumConstructorTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryConst;
 
@@ -118,7 +119,7 @@ enum E(final int i) {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryConstTest extends FixProcessorLintTest {
+class RemoveUnnecessaryConstTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryConst;
 

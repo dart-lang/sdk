@@ -316,6 +316,18 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    // Names do not have AstNodes but offsets at the end should be treated as
+    // part of the declaration (not parameter list).
+    if (_startOffset == _endOffset && _startOffset == node.name.end) {
+      _foundNode = node;
+      return;
+    }
+
+    super.visitTopLevelFunctionDeclaration(node);
+  }
+
+  @override
   void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
@@ -377,7 +389,17 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    _declarationNode = node;
+    var parameters = node.formalParameters;
+    if (!identical(immediateChild, parameters)) {
+      _addParameters(parameters.allFormalParameters);
+    }
+  }
+
+  @override
   void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    _declarationNode = node;
     var parameters = node.formalParameters;
     if (!identical(immediateChild, parameters)) {
       _addParameters(parameters.allFormalParameters);
@@ -386,7 +408,7 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
 }
 
 mixin _ScopedNameFinderMixin {
-  Declaration? _declarationNode;
+  AnnotatedNode? _declarationNode;
 
   AstNode? immediateChild;
 
@@ -394,7 +416,7 @@ mixin _ScopedNameFinderMixin {
 
   bool _referenceIsWithinLocalFunction = false;
 
-  Declaration? get declaration => _declarationNode;
+  AnnotatedNode? get declaration => _declarationNode;
 
   Set<String> get locals => _locals;
 

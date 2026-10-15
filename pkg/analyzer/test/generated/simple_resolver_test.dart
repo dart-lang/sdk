@@ -1078,7 +1078,7 @@ const A = null;
     var annotations = result.findElement.topFunction('f').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var fDeclaration = result.findNode.functionDeclaration('f<A>');
+    var fDeclaration = result.findNode.topLevelFunctionDeclaration('f<A>');
     var node = fDeclaration.metadata[0];
     assertResolvedNodeText(node, r'''
 Annotation

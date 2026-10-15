@@ -111,7 +111,7 @@ void g({int a = 0, int b = 1, int c = 2}) {}
 }
 
 @reflectiveTest
-class RemoveArgumentTest extends FixProcessorLintTest {
+class RemoveArgumentTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeArgument;
 

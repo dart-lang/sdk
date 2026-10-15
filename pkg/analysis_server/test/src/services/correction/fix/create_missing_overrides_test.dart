@@ -19,7 +19,8 @@ void main() {
 
 /// Tests for NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_*.
 @reflectiveTest
-class CreateMissingOverridesInheritsAbstractClassTest extends FixProcessorTest {
+class CreateMissingOverridesInheritsAbstractClassTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createMissingOverrides;
 
@@ -1042,7 +1043,8 @@ class B extends A {
 
 /// Tests for MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_*.
 @reflectiveTest
-class CreateMissingOverridesMustBeOverriddenClassTest extends FixProcessorTest {
+class CreateMissingOverridesMustBeOverriddenClassTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addMetaPackageDep => true;
 

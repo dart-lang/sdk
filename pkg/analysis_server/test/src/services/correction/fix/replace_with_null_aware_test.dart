@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithNullAwareTest extends FixProcessorTest {
+class ReplaceWithNullAwareTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNullAware;
 
@@ -117,7 +117,8 @@ void f(List<int>? l) {
 }
 
 @reflectiveTest
-class UncheckedMethodInvocationOfNullableValueTest extends FixProcessorTest {
+class UncheckedMethodInvocationOfNullableValueTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNullAware;
 
@@ -148,7 +149,8 @@ class C {
 }
 
 @reflectiveTest
-class UncheckedPropertyAccessOfNullableValueTest extends FixProcessorTest {
+class UncheckedPropertyAccessOfNullableValueTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNullAware;
 

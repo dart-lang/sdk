@@ -29,7 +29,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddTypeAnnotationTest extends FixProcessorTest {
+class AddTypeAnnotationTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addTypeAnnotation;
 
@@ -107,7 +107,7 @@ class A {
 }
 
 @reflectiveTest
-class AlwaysSpecifyTypesLintTest extends FixProcessorLintTest {
+class AlwaysSpecifyTypesLintTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addTypeAnnotation;
 
@@ -431,7 +431,8 @@ void f() {
 }
 
 @reflectiveTest
-class PreferTypingUninitializedVariablesLintTest extends FixProcessorLintTest {
+class PreferTypingUninitializedVariablesLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addTypeAnnotation;
 
@@ -605,7 +606,8 @@ int f() {
 }
 
 @reflectiveTest
-class RepresentationFieldModifierTest extends FixProcessorTest {
+class RepresentationFieldModifierTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addTypeAnnotation;
 
@@ -665,7 +667,8 @@ T g<T>(T d) => d;
 }
 
 @reflectiveTest
-class SpecifyNonObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
+class SpecifyNonObviousLocalVariableTypesLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addTypeAnnotation;
 
@@ -847,7 +850,8 @@ String a = '', b = '';
 }
 
 @reflectiveTest
-class TypeAnnotatePublicAPIsLintTest extends FixProcessorLintTest {
+class TypeAnnotatePublicAPIsLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addTypeAnnotation;
 

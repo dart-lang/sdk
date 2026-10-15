@@ -54,7 +54,7 @@ var f = () => () {
 }
 
 @reflectiveTest
-class ConvertIntoExpressionBodyTest extends FixProcessorLintTest {
+class ConvertIntoExpressionBodyTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertIntoExpressionBody;
 

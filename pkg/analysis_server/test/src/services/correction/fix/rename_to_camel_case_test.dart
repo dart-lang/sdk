@@ -49,7 +49,7 @@ void f() {
 
 @reflectiveTest
 class RenameToCamelCaseTest_constantIdentifiedNames
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.renameToCamelCase;
 
@@ -85,7 +85,7 @@ void f() {
 
 @reflectiveTest
 class RenameToCamelCaseTest_notConstantIdentifiedNames
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.renameToCamelCase;
 

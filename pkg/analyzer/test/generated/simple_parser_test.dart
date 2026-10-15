@@ -1744,8 +1744,7 @@ ClassDeclaration
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {}
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 BlockFunctionBody
   block: Block
@@ -1758,8 +1757,7 @@ BlockFunctionBody
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async {}
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 BlockFunctionBody
   keyword: async
@@ -1773,8 +1771,7 @@ BlockFunctionBody
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async* {}
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 BlockFunctionBody
   keyword: async
@@ -1789,8 +1786,7 @@ BlockFunctionBody
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() sync* {}
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 BlockFunctionBody
   keyword: sync
@@ -1809,6 +1805,16 @@ void f() ;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1833,6 +1839,16 @@ void f() ;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -1850,8 +1866,7 @@ CompilationUnit
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() => y;
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 ExpressionFunctionBody
   functionDefinition: =>
@@ -1867,8 +1882,7 @@ ExpressionFunctionBody
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async => y;
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 ExpressionFunctionBody
   keyword: async
@@ -2243,6 +2257,47 @@ f() => C<E>.n();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ParsedValueArguments
+          operand: ParsedNameAccess
+            operand: ParsedTypeArguments
+              operand: ParsedUnqualifiedName
+                name: C
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+            operator: .
+            name: n
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        expression(v1): InstanceCreationExpression
+          constructorName: ConstructorName
+            type: NamedType
+              name: C
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+            period: .
+            name: SimpleIdentifier
+              token: n
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2251,23 +2306,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ParsedValueArguments
-            operand: ParsedNameAccess
-              operand: ParsedTypeArguments
-                operand: ParsedUnqualifiedName
-                  name: C
-                typeArguments: TypeArgumentList
-                  leftBracket: <
-                  arguments
-                    NamedType
-                      name: E
-                  rightBracket: >
-              operator: .
-              name: n
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
                 name: C
@@ -2295,6 +2334,60 @@ f() => C<E>.n<B>();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ParsedValueArguments
+          operand: ParsedTypeArguments
+            operand: ParsedNameAccess
+              operand: ParsedTypeArguments
+                operand: ParsedUnqualifiedName
+                  name: C
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      name: E
+                  rightBracket: >
+              operator: .
+              name: n
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: B
+              rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        expression(v1): MethodInvocation
+          target: FunctionReference
+            function: SimpleIdentifier
+              token: C
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: E
+              rightBracket: >
+          operator: .
+          methodName: SimpleIdentifier
+            token: n
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: B
+            rightBracket: >
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2303,30 +2396,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ParsedValueArguments
-            operand: ParsedTypeArguments
-              operand: ParsedNameAccess
-                operand: ParsedTypeArguments
-                  operand: ParsedUnqualifiedName
-                    name: C
-                  typeArguments: TypeArgumentList
-                    leftBracket: <
-                    arguments
-                      NamedType
-                        name: E
-                    rightBracket: >
-                operator: .
-                name: n
-              typeArguments: TypeArgumentList
-                leftBracket: <
-                arguments
-                  NamedType
-                    name: B
-                rightBracket: >
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
-          expression(v1): MethodInvocation
+          expression: MethodInvocation
             target: FunctionReference
               function: SimpleIdentifier
                 token: C
@@ -2360,6 +2430,53 @@ f() => p.C<E>.n();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: ExpressionFunctionBody
+        functionDefinition: =>
+        expression2: ParsedValueArguments
+          operand: ParsedNameAccess
+            operand: ParsedTypeArguments
+              operand: ParsedNameAccess
+                operand: ParsedUnqualifiedName
+                  name: p
+                operator: .
+                name: C
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+            operator: .
+            name: n
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        expression(v1): InstanceCreationExpression
+          constructorName: ConstructorName
+            type: NamedType
+              importPrefix: ImportPrefixReference
+                name: p
+                period: .
+              name: C
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+            period: .
+            name: SimpleIdentifier
+              token: n
+          argumentList: ArgumentList
+            leftParenthesis: (
+            rightParenthesis: )
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -2368,26 +2485,7 @@ CompilationUnit
           rightParenthesis: )
         body: ExpressionFunctionBody
           functionDefinition: =>
-          expression2: ParsedValueArguments
-            operand: ParsedNameAccess
-              operand: ParsedTypeArguments
-                operand: ParsedNameAccess
-                  operand: ParsedUnqualifiedName
-                    name: p
-                  operator: .
-                  name: C
-                typeArguments: TypeArgumentList
-                  leftBracket: <
-                  arguments
-                    NamedType
-                      name: E
-                  rightBracket: >
-              operator: .
-              name: n
-            argumentList: ArgumentList
-              leftParenthesis: (
-              rightParenthesis: )
-          expression(v1): InstanceCreationExpression
+          expression: InstanceCreationExpression
             constructorName: ConstructorName
               type: NamedType
                 importPrefix: ImportPrefixReference
@@ -2437,6 +2535,94 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: main
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          statements
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                variables
+                  VariableDeclaration
+                    name: c
+                    equals: =
+                    initializer2: ParsedValueArguments
+                      operand: ParsedTypeArguments
+                        operand: ParsedUnqualifiedName
+                          name: C
+                        typeArguments: TypeArgumentList
+                          leftBracket: <
+                          arguments
+                            NamedType
+                              name: int
+                            GenericFunctionType
+                              returnType: NamedType
+                                name: int
+                              functionKeyword: Function
+                              parameters: FormalParameterList
+                                leftParenthesis: (
+                                requiredPositionalFormalParameters
+                                  RegularFormalParameter
+                                    type: NamedType
+                                      name: String
+                                rightParenthesis: )
+                              parameters(v1): FormalParameterList
+                                leftParenthesis: (
+                                parameter: RegularFormalParameter
+                                  type: NamedType
+                                    name: String
+                                rightParenthesis: )
+                          rightBracket: >
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                    initializer(v1): MethodInvocation
+                      methodName: SimpleIdentifier
+                        token: C
+                      typeArguments: TypeArgumentList
+                        leftBracket: <
+                        arguments
+                          NamedType
+                            name: int
+                          GenericFunctionType
+                            returnType: NamedType
+                              name: int
+                            functionKeyword: Function
+                            parameters: FormalParameterList
+                              leftParenthesis: (
+                              parameter: RegularFormalParameter
+                                type: NamedType
+                                  name: String
+                              rightParenthesis: )
+                        rightBracket: >
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+              semicolon: ;
+          rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: T
+            TypeParameter
+              name: S
+          rightBracket: >
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       returnType: NamedType
         name: void
@@ -2456,37 +2642,7 @@ CompilationUnit
                     VariableDeclaration
                       name: c
                       equals: =
-                      initializer2: ParsedValueArguments
-                        operand: ParsedTypeArguments
-                          operand: ParsedUnqualifiedName
-                            name: C
-                          typeArguments: TypeArgumentList
-                            leftBracket: <
-                            arguments
-                              NamedType
-                                name: int
-                              GenericFunctionType
-                                returnType: NamedType
-                                  name: int
-                                functionKeyword: Function
-                                parameters: FormalParameterList
-                                  leftParenthesis: (
-                                  requiredPositionalFormalParameters
-                                    RegularFormalParameter
-                                      type: NamedType
-                                        name: String
-                                  rightParenthesis: )
-                                parameters(v1): FormalParameterList
-                                  leftParenthesis: (
-                                  parameter: RegularFormalParameter
-                                    type: NamedType
-                                      name: String
-                                  rightParenthesis: )
-                            rightBracket: >
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          rightParenthesis: )
-                      initializer(v1): MethodInvocation
+                      initializer: MethodInvocation
                         methodName: SimpleIdentifier
                           token: C
                         typeArguments: TypeArgumentList
@@ -2537,6 +2693,20 @@ library <myLibId>;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelFunctionDeclaration
+      name: library
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: myLibId
+        rightBracket: >
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: EmptyFunctionBody
+        semicolon: ;
+  declarations(v1)
     FunctionDeclaration
       name: library
       functionExpression: FunctionExpression

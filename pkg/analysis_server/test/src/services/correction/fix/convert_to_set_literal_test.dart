@@ -33,7 +33,7 @@ var s1 = <int>{};
 }
 
 @reflectiveTest
-class ConvertToSetLiteralTest extends FixProcessorLintTest {
+class ConvertToSetLiteralTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToSetLiteral;
 

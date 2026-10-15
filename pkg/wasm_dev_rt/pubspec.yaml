@@ -1,0 +1,8 @@
+name: wasm_dev_rt
+description: Runtime for the Wasm dev compiler.
+publish_to: none
+
+environment:
+  sdk: ^3.15.0-0
+
+resolution: workspace

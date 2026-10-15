@@ -21,7 +21,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddMissingHashOrEqualsTest extends FixProcessorLintTest {
+class AddMissingHashOrEqualsTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.createMethod;
 
@@ -93,7 +93,7 @@ class C {
 }
 
 @reflectiveTest
-class CreateMethodMixinTest extends FixProcessorTest {
+class CreateMethodMixinTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createMethod;
 
@@ -270,7 +270,8 @@ mixin M {
 }
 
 @reflectiveTest
-class CreateMethodTearoffMixinTest extends FixProcessorTest {
+class CreateMethodTearoffMixinTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createMethodTearoff;
 
@@ -422,7 +423,7 @@ mixin M {
 }
 
 @reflectiveTest
-class CreateMethodTearoffTest extends FixProcessorTest {
+class CreateMethodTearoffTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createMethodTearoff;
 
@@ -1030,7 +1031,7 @@ class C<S> {
 }
 
 @reflectiveTest
-class CreateMethodTest extends FixProcessorTest {
+class CreateMethodTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createMethod;
 

@@ -2453,20 +2453,6 @@ void f () {
     _assertSource(code, node);
   }
 
-  void test_visitFunctionDeclaration_augment() {
-    var code = 'augment void f() {}';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitFunctionDeclaration_external() {
-    var code = 'external void f();';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    _assertSource(code, node);
-  }
-
   void test_visitFunctionDeclaration_local_blockBody() {
     var code = 'void foo() {}';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -2486,27 +2472,6 @@ void f() {
 }
 ''');
     var node = parseResult.findNode.functionDeclaration(code);
-    _assertSource(code, node);
-  }
-
-  void test_visitFunctionDeclaration_normal() {
-    var code = 'void foo() {}';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitFunctionDeclaration_typeParameters() {
-    var code = 'void foo<T>() {}';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    _assertSource(code, node);
-  }
-
-  void test_visitFunctionDeclaration_withMetadata() {
-    var code = '@deprecated void f() {}';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
     _assertSource(code, node);
   }
 
@@ -4558,6 +4523,41 @@ void f() {
 }
 ''');
     var node = parseResult.findNode.singleThrowExpression;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelFunctionDeclaration_augment() {
+    var code = 'augment void f() {}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelFunctionDeclaration_external() {
+    var code = 'external void f();';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelFunctionDeclaration_normal() {
+    var code = 'void foo() {}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelFunctionDeclaration_typeParameters() {
+    var code = 'void foo<T>() {}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelFunctionDeclaration_withMetadata() {
+    var code = '@deprecated void f() {}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     _assertSource(code, node);
   }
 

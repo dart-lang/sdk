@@ -105,7 +105,7 @@ void f(List<String> a, List<String> b) {
 }
 
 @reflectiveTest
-class ConvertForEachToForLoopTest extends FixProcessorLintTest {
+class ConvertForEachToForLoopTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertForEachToForLoop;
 

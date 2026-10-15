@@ -1192,9 +1192,8 @@ class NormalFormalParameterTest extends ParserDiagnosticsTest {
     var result = parseTestCodeWithDiagnostics('''
 void f(int i) {}
 ''');
-    var function = result.unit.declarations2[0] as FunctionDeclaration;
-    var parameters = function.functionExpression.parameters;
-    var parameter = parameters!.allFormalParameters[0];
+    var function = result.unit.declarations2[0] as TopLevelFunctionDeclaration;
+    var parameter = function.formalParameters.allFormalParameters[0];
     expect(parameter.sortedCommentAndAnnotations, isEmpty);
   }
 }

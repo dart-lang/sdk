@@ -45,7 +45,7 @@ f2(Iterable<int> i) {
 }
 
 @reflectiveTest
-class ConvertToForElementTest extends FixProcessorLintTest {
+class ConvertToForElementTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToForElement;
 

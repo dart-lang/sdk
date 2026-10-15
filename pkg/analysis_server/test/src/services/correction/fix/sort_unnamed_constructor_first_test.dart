@@ -84,7 +84,8 @@ enum B {
 }
 
 @reflectiveTest
-class SortUnnamedConstructorFirstTest extends FixProcessorLintTest {
+class SortUnnamedConstructorFirstTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.sortUnnamedConstructorFirst;
 

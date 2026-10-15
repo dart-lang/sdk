@@ -164,11 +164,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
             declaration,
             _libraryFragment.extensionTypes[extensionTypeIndex++],
           );
-        case FunctionDeclarationImpl():
-          _bindFunctionDeclaration(
-            declaration,
-            _libraryFragment.functions[functionIndex++],
-          );
         case MixinDeclarationImpl():
           _bindMixinDeclaration(
             declaration,
@@ -183,6 +178,11 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
           _bindGenericTypeAlias(
             declaration,
             _libraryFragment.typeAliases[typedefIndex++],
+          );
+        case TopLevelFunctionDeclarationImpl():
+          _bindTopLevelFunctionDeclaration(
+            declaration,
+            _libraryFragment.functions[functionIndex++],
           );
         case TopLevelGetterDeclarationImpl():
           _bindTopLevelGetterDeclaration(declaration, getters[getterIndex++]);
@@ -334,7 +334,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     if (node.parent2 is FunctionDeclaration) {
-      // Handled in visitFunctionDeclaration / _bindFunctionDeclaration
+      // Handled in visitFunctionDeclaration.
       super.visitFunctionExpression(node);
       return;
     }
@@ -775,26 +775,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     }
   }
 
-  void _bindFunctionDeclaration(
-    FunctionDeclarationImpl node,
-    ExecutableFragmentImpl fragment,
-  ) {
-    node.declaredFragment = fragment;
-    var expression = node.functionExpression;
-    expression.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-
-    node.documentationComment?.accept2(this);
-    node.returnType?.accept2(this);
-    _bindTypeParameters(expression.typeParameters, fragment.typeParameters);
-    _bindFormalParameters(expression.parameters, fragment.formalParameters);
-
-    _withElementHolder(ElementHolder(fragment), () {
-      expression.body.accept2(this);
-    });
-  }
-
   void _bindFunctionTypeAlias(
     FunctionTypeAliasImpl node,
     TypeAliasFragmentImpl fragment,
@@ -896,6 +876,23 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
     node.implementsClause?.accept2(this);
 
     _bindMembers(node.body.members, memberFragments);
+  }
+
+  void _bindTopLevelFunctionDeclaration(
+    TopLevelFunctionDeclarationImpl node,
+    TopLevelFunctionFragmentImpl fragment,
+  ) {
+    node.declaredFragment = fragment;
+    _setOrCreateMetadataElements(fragment, node.metadata);
+
+    node.documentationComment?.accept2(this);
+    node.returnType?.accept2(this);
+    _bindTypeParameters(node.typeParameters, fragment.typeParameters);
+    _bindFormalParameters(node.formalParameters, fragment.formalParameters);
+
+    _withElementHolder(ElementHolder(fragment), () {
+      node.body.accept2(this);
+    });
   }
 
   void _bindTopLevelGetterDeclaration(

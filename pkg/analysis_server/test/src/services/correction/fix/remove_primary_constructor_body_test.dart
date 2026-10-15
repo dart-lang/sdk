@@ -39,7 +39,8 @@ class B(final int i) {
 }
 
 @reflectiveTest
-class RemovePrimaryConstructorBodyTest extends FixProcessorLintTest {
+class RemovePrimaryConstructorBodyTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removePrimaryConstructorBody;
 

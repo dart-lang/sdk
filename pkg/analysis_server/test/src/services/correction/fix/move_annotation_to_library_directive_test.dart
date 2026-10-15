@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class MoveAnnotationToLibraryDirectiveTest extends FixProcessorLintTest {
+class MoveAnnotationToLibraryDirectiveTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 

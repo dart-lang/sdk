@@ -294,7 +294,7 @@ abstract class FixInFileProcessorTest extends SingleUnitTest {
   }
 }
 
-abstract class FixPriorityTest extends FixProcessorTest {
+abstract class FixPriorityTest extends FixProcessorForBuiltInDiagnosticTest {
   /// Priority tests compare the relative priority of fixes of several kinds,
   /// so there is no single [kind] under test.
   @override
@@ -313,32 +313,9 @@ abstract class FixPriorityTest extends FixProcessorTest {
   }
 }
 
-/// A base class defining support for writing fix processor tests that are
-/// specific to fixes associated with lints that use the FixKind.
-abstract class FixProcessorLintTest extends FixProcessorTest {
-  /// The lint code being tested.
-  String get lintCode;
-
-  /// A filter that filters by [name], for use in [assertHasFix].
-  DiagnosticFilter lintNameFilter(String name) {
-    return (e) {
-      return e.diagnosticCode is LintCode &&
-          e.diagnosticCode.lowerCaseName == name;
-    };
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    createAnalysisOptionsFile(
-      experimentalFeatures: experimentalFeatures,
-      lints: [lintCode],
-    );
-  }
-}
-
-/// A base class defining support for writing fix processor tests.
-abstract class FixProcessorTest extends SingleUnitTest {
+/// A base class defining support for writing fix processor tests for built-in
+/// diagnostics (first-party errors, warnings, and lint rules).
+abstract class FixProcessorForBuiltInDiagnosticTest extends SingleUnitTest {
   /// The source change associated with the fix that was found.
   late SourceChange change;
 
@@ -729,6 +706,32 @@ abstract class FixProcessorTest extends SingleUnitTest {
       for (var search in searchStrings)
         Position(testFile.path, _resultCode.indexOf(search)),
     ];
+  }
+}
+
+/// A base class defining support for writing fix processor tests that are
+/// specific to fixes associated with built-in lint rules that use the
+/// specified [FixKind].
+abstract class FixProcessorForBuiltInLintRuleTest
+    extends FixProcessorForBuiltInDiagnosticTest {
+  /// The lint code being tested.
+  String get lintCode;
+
+  /// A filter that filters by [name], for use in [assertHasFix].
+  DiagnosticFilter lintNameFilter(String name) {
+    return (e) {
+      return e.diagnosticCode is LintCode &&
+          e.diagnosticCode.lowerCaseName == name;
+    };
+  }
+
+  @override
+  void setUp() {
+    super.setUp();
+    createAnalysisOptionsFile(
+      experimentalFeatures: experimentalFeatures,
+      lints: [lintCode],
+    );
   }
 }
 

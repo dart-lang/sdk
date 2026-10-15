@@ -66,7 +66,7 @@ double math() => pi;
 }
 
 @reflectiveTest
-class SortCombinatorsTest extends FixProcessorLintTest {
+class SortCombinatorsTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.sortCombinators;
 

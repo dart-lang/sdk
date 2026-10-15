@@ -781,36 +781,24 @@ Foo(dynamic a, dynamic b) : x = a is int, y = b is int?;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: Foo
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: a
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
-          parameter: RegularFormalParameter
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: RegularFormalParameter
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: { <synthetic>
-            rightBracket: } <synthetic>
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -838,6 +826,48 @@ CompilationUnit
                 name: int
                 question: ?
       semicolon: ;
+  declarations(v1)
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: a
+              isOperator: is
+              type: NamedType
+                name: int
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: b
+              isOperator: is
+              type: NamedType
+                name: int
+                question: ?
+      semicolon: ;
 ''');
   }
 
@@ -854,36 +884,24 @@ Foo(dynamic a, dynamic b) : x = a is int?, y = b is int;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: Foo
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: a
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
-          parameter: RegularFormalParameter
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: RegularFormalParameter
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: { <synthetic>
-            rightBracket: } <synthetic>
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -906,6 +924,48 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: b
               expression(v1): SimpleIdentifier
+                token: b
+              isOperator: is
+              type: NamedType
+                name: int
+      semicolon: ;
+  declarations(v1)
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: a
+              isOperator: is
+              type: NamedType
+                name: int
+                question: ?
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -931,36 +991,24 @@ Foo(dynamic a, dynamic b) : x = a is int, y = b is int? {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: Foo
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: a
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
-          parameter: RegularFormalParameter
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: RegularFormalParameter
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: { <synthetic>
-            rightBracket: } <synthetic>
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -982,6 +1030,48 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: b
               expression(v1): SimpleIdentifier
+                token: b
+              isOperator: is
+              type: NamedType
+                name: int
+                question: ?
+      semicolon: ; <synthetic>
+  declarations(v1)
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: a
+              isOperator: is
+              type: NamedType
+                name: int
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
                 token: b
               isOperator: is
               type: NamedType
@@ -1008,36 +1098,24 @@ Foo(dynamic a, dynamic b) : x = a is int?, y = b is int {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: Foo
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: a
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
-          parameter: RegularFormalParameter
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: RegularFormalParameter
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: { <synthetic>
-            rightBracket: } <synthetic>
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -1065,6 +1143,48 @@ CompilationUnit
               type: NamedType
                 name: int
       semicolon: ; <synthetic>
+  declarations(v1)
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: a
+              isOperator: is
+              type: NamedType
+                name: int
+                question: ?
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: IsExpression
+              expression: SimpleIdentifier
+                token: b
+              isOperator: is
+              type: NamedType
+                name: int
+      semicolon: ; <synthetic>
 ''');
   }
 
@@ -1081,36 +1201,24 @@ Foo(dynamic a, dynamic b) : x = a as int, y = b as int?;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: Foo
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: a
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
-          parameter: RegularFormalParameter
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: RegularFormalParameter
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: { <synthetic>
-            rightBracket: } <synthetic>
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -1138,6 +1246,48 @@ CompilationUnit
                 name: int
                 question: ?
       semicolon: ;
+  declarations(v1)
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: a
+              asOperator: as
+              type: NamedType
+                name: int
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: b
+              asOperator: as
+              type: NamedType
+                name: int
+                question: ?
+      semicolon: ;
 ''');
   }
 
@@ -1154,36 +1304,24 @@ Foo(dynamic a, dynamic b) : x = a as int?, y = b as int;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: Foo
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: a
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
-          parameter: RegularFormalParameter
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: RegularFormalParameter
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: { <synthetic>
-            rightBracket: } <synthetic>
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -1206,6 +1344,48 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: b
               expression(v1): SimpleIdentifier
+                token: b
+              asOperator: as
+              type: NamedType
+                name: int
+      semicolon: ;
+  declarations(v1)
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: a
+              asOperator: as
+              type: NamedType
+                name: int
+                question: ?
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1231,36 +1411,24 @@ Foo(dynamic a, dynamic b) : x = a as int, y = b as int? {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: Foo
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: a
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
-          parameter: RegularFormalParameter
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: RegularFormalParameter
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: { <synthetic>
-            rightBracket: } <synthetic>
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -1282,6 +1450,48 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: b
               expression(v1): SimpleIdentifier
+                token: b
+              asOperator: as
+              type: NamedType
+                name: int
+                question: ?
+      semicolon: ; <synthetic>
+  declarations(v1)
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: a
+              asOperator: as
+              type: NamedType
+                name: int
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType
@@ -1308,36 +1518,24 @@ Foo(dynamic a, dynamic b) : x = a as int?, y = b as int {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionDeclaration
+    TopLevelFunctionDeclaration
       name: Foo
-      functionExpression: FunctionExpression
-        parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: a
-            RegularFormalParameter
-              type: NamedType
-                name: dynamic
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
-          leftParenthesis: (
-          parameter: RegularFormalParameter
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: a
-          parameter: RegularFormalParameter
+          RegularFormalParameter
             type: NamedType
               name: dynamic
             name: b
-          rightParenthesis: )
-        body: BlockFunctionBody
-          block: Block
-            leftBracket: { <synthetic>
-            rightBracket: } <synthetic>
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: { <synthetic>
+          rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -1360,6 +1558,48 @@ CompilationUnit
               expression2: ParsedUnqualifiedName
                 name: b
               expression(v1): SimpleIdentifier
+                token: b
+              asOperator: as
+              type: NamedType
+                name: int
+      semicolon: ; <synthetic>
+  declarations(v1)
+    FunctionDeclaration
+      name: Foo
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: dynamic
+            name: b
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: { <synthetic>
+            rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: x
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
+                token: a
+              asOperator: as
+              type: NamedType
+                name: int
+                question: ?
+          VariableDeclaration
+            name: y
+            equals: =
+            initializer: AsExpression
+              expression: SimpleIdentifier
                 token: b
               asOperator: as
               type: NamedType

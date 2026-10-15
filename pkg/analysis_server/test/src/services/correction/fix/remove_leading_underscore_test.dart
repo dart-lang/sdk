@@ -45,7 +45,7 @@ void f() {
 
 @reflectiveTest
 class RemoveLeadingUnderscoreForLibraryPrefixesTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeLeadingUnderscore;
 
@@ -73,7 +73,7 @@ _core.int i = 2;
 import 'dart:core' as _core;
 part 'other.dart';
 ''');
-    await assertHasFixForTarget('''
+    await assertHasFix('''
 part of 'test.dart';
 core.int i = 2;
 ''', target: otherPath);
@@ -82,7 +82,7 @@ core.int i = 2;
 
 @reflectiveTest
 class RemoveLeadingUnderscoreForLocalVariablesTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeLeadingUnderscore;
 

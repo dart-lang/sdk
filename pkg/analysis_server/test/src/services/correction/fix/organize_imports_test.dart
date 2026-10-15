@@ -105,7 +105,8 @@ Future? a;
 }
 
 @reflectiveTest
-class OrganizeImportsDirectivesOrderingTest extends FixProcessorLintTest {
+class OrganizeImportsDirectivesOrderingTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.organizeImports;
 

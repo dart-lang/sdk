@@ -520,6 +520,14 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    super.visitTopLevelFunctionDeclaration(node);
+    _validateDefaultValues(node.formalParameters);
+  }
+
+  @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer2;

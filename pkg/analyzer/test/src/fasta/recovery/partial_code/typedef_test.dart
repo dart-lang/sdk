@@ -180,6 +180,23 @@ CompilationUnit
       type: NamedType
         name: int
       semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: T
+      equals: =
+      type: NamedType
+        name: int
+      semicolon: ; <synthetic>
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -203,6 +220,23 @@ typedef T = void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: T
+      equals: =
+      type: NamedType
+        name: void
+      semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -281,6 +315,23 @@ typedef T = mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: T
+      equals: =
+      type: NamedType
+        name: mixin
+      semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: M
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: T
@@ -1017,6 +1068,23 @@ CompilationUnit
       type: NamedType
         name: int
       semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      equals: =
+      type: NamedType
+        name: int
+      semicolon: ; <synthetic>
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1042,6 +1110,23 @@ typedef = void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      equals: =
+      type: NamedType
+        name: void
+      semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -1124,6 +1209,23 @@ typedef = mixin M {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      equals: =
+      type: NamedType
+        name: mixin
+      semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: M
+      formalParameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: <empty> <synthetic>
@@ -1450,6 +1552,25 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      returnType: NamedType
+        name: T
+      name: int
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
     FunctionDeclaration
       name: f
       functionExpression: FunctionExpression
@@ -1475,6 +1596,25 @@ typedef T void f() {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      name: T
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
+    TopLevelFunctionDeclaration
+      returnType: NamedType
+        name: void
+      name: f
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       name: T

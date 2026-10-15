@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceColonWithEqualsDeprecatedTest extends FixProcessorTest {
+class ReplaceColonWithEqualsDeprecatedTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceColonWithEquals;
 
@@ -64,7 +65,8 @@ void f(int a, [int b = 0]) {}
 }
 
 @reflectiveTest
-class ReplaceColonWithEqualsObsoleteTest extends FixProcessorTest {
+class ReplaceColonWithEqualsObsoleteTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceColonWithEquals;
 

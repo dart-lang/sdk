@@ -2324,6 +2324,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    _sink.writeln('TopLevelFunctionDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
     _sink.writeln('TopLevelGetterDeclaration');
     _sink.withIndent(() {
@@ -3376,8 +3385,8 @@ Expected parent: (${parent.runtimeType}) $parent
 
   /// Every [FormalParameter] declares an element, and this element must be
   /// in the list of formal parameter elements of some declaration, e.g. of
-  /// [ConstructorDeclaration], [MethodDeclaration], or a local
-  /// [FunctionDeclaration].
+  /// [ConstructorDeclaration], [MethodDeclaration], a local
+  /// [FunctionDeclaration], or a [TopLevelFunctionDeclaration].
   static List<FormalParameterFragment> _expectedFormalParameterElements(
     FormalParameter node,
   ) {
@@ -3404,6 +3413,12 @@ Expected parent: (${parent.runtimeType}) $parent
     } else if (parametersParent is PrimaryConstructorDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
+    } else if (parametersParent
+        case TopLevelDeclaration() &&
+            FragmentDeclaringNode(
+              declaredFragment: ExecutableFragment fragment,
+            )) {
+      return fragment.formalParameters;
     }
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',

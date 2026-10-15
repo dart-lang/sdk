@@ -61,7 +61,8 @@ void f(Object c) {
 }
 
 @reflectiveTest
-class AddConst_InvalidCasePatternsTest extends FixProcessorLintTest {
+class AddConst_InvalidCasePatternsTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addConst;
 
@@ -154,7 +155,8 @@ void f(Object o) {
 }
 
 @reflectiveTest
-class AddConst_NonConstGenerativeEnumConstructorTest extends FixProcessorTest {
+class AddConst_NonConstGenerativeEnumConstructorTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addConst;
 
@@ -194,7 +196,8 @@ enum E {
 }
 
 @reflectiveTest
-class AddConst_PatternExpressionMustBeValidConst extends FixProcessorTest {
+class AddConst_PatternExpressionMustBeValidConst
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addConst;
 
@@ -592,7 +595,7 @@ class A {
 
 @reflectiveTest
 class AddConst_PreferConstConstructorsInImmutablesTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 
@@ -693,7 +696,8 @@ class A {
 }
 
 @reflectiveTest
-class AddConst_PreferConstConstructorsTest extends FixProcessorLintTest {
+class AddConst_PreferConstConstructorsTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addConst;
 
@@ -896,7 +900,7 @@ void f() {
 
 @reflectiveTest
 class AddConst_PreferConstLiteralsToCreateImmutablesTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addMetaPackageDep => true;
 

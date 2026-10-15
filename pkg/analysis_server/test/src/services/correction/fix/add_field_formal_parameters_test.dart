@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddFieldFormalNamedParametersTest extends FixProcessorTest {
+class AddFieldFormalNamedParametersTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addFlutterPackageDep => true;
 
@@ -621,7 +622,8 @@ class A {
 }
 
 @reflectiveTest
-class AddFieldFormalParametersTest extends FixProcessorTest {
+class AddFieldFormalParametersTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addFlutterPackageDep => true;
 

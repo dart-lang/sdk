@@ -10,6 +10,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(ClassNameValidatorsTest);
     defineReflectiveTests(ConstructorNameValidatorsTest);
     defineReflectiveTests(ImportPrefixValidatorsTest);
     defineReflectiveTests(MethodNameValidatorsTest);
@@ -61,6 +62,98 @@ abstract class AbstractClientSideValidatorsTest {
       default:
         throw UnimplementedError('Validator $validator is not supported');
     }
+  }
+}
+
+@reflectiveTest
+class ClassNameValidatorsTest extends AbstractClientSideValidatorsTest {
+  void test_doesNotStartNumber() {
+    var validator = findValidator(
+      validators.className,
+      'Class name must not begin with a number.',
+    );
+    // Errors
+    expectError(validator, '1Foo');
+    // Valid
+    expectValid(validator, r'$Foo');
+    expectValid(validator, '_Foo');
+    expectValid(validator, 'Foo');
+  }
+
+  void test_keyword() {
+    var validator = findValidator(
+      validators.className,
+      'Class name must not be a keyword.',
+    );
+    // Errors
+    expectError(validator, 'new');
+    expectError(validator, 'catch');
+    // Valid
+    expectValid(validator, 'Foo');
+    expectValid(validator, 'newish');
+    expectValid(validator, 'anew');
+  }
+
+  void test_keyword_builtIn() {
+    var validator = findValidator(
+      validators.className,
+      'Class name must not be a built-in identifier.',
+    );
+    // Errors (built-ins are not allowed for class names)
+    expectError(validator, 'abstract');
+    expectError(validator, 'async');
+    // Valid
+    expectValid(validator, 'Foo');
+    expectValid(validator, 'abstracted');
+    expectValid(validator, 'fabstract');
+  }
+
+  void test_onlyAlphaNumericUnderscoreDollar() {
+    var validator = findValidator(
+      validators.className,
+      'Class name must only include letters, digits, underscores and dollars.',
+    );
+    // Errors
+    expectError(validator, 'Foo£');
+    expectError(validator, 'catch!');
+    // Valid
+    expectValid(validator, r'Foo123$_');
+  }
+
+  void test_startsUppercaseOrUnderscore() {
+    var validator = findValidator(
+      validators.className,
+      'Class name should begin with an uppercase letter or underscore.',
+    );
+    // Warnings
+    expectWarning(validator, 'foo');
+    expectWarning(validator, r'$foo');
+    expectWarning(validator, '1foo');
+    // Valid
+    expectValid(validator, 'Foo');
+    expectValid(validator, '_Foo');
+  }
+
+  void test_unsupported_noRegexEngine() {
+    var validators = ClientSideValidators(
+      LspClientCapabilities(ClientCapabilities()),
+    );
+    expect(validators.className, isEmpty);
+  }
+
+  void test_unsupported_otherRegexEngine() {
+    var validators = ClientSideValidators(
+      LspClientCapabilities(
+        ClientCapabilities(
+          general: GeneralClientCapabilities(
+            regularExpressions: RegularExpressionsClientCapabilities(
+              engine: 'NOT ECMAScript', // Unsupported
+            ),
+          ),
+        ),
+      ),
+    );
+    expect(validators.className, isEmpty);
   }
 }
 

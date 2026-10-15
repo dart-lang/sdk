@@ -19,7 +19,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddMissingSwitchCasesTest_SwitchExpression extends FixProcessorTest {
+class AddMissingSwitchCasesTest_SwitchExpression
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addMissingSwitchCases;
 
@@ -542,7 +543,8 @@ int f(A a) => switch (a) {
 }
 
 @reflectiveTest
-class AddMissingSwitchCasesTest_SwitchStatement extends FixProcessorTest {
+class AddMissingSwitchCasesTest_SwitchStatement
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addMissingSwitchCases;
 

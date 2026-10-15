@@ -49,7 +49,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class AddOverrideTest extends FixProcessorLintTest {
+class AddOverrideTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addOverride;
 

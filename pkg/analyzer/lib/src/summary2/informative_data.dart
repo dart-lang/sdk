@@ -593,12 +593,12 @@ class _InfoBuilder {
         extensionTypes.add(_buildExtensionType(declaration));
       } else if (declaration is MixinDeclarationImpl) {
         mixinDeclarations.add(_buildMixin(declaration));
+      } else if (declaration is TopLevelFunctionDeclarationImpl) {
+        topLevelFunctions.add(_buildTopLevelFunction(declaration));
       } else if (declaration is TopLevelGetterDeclarationImpl) {
         topLevelGetters.add(_buildTopLevelGetter(declaration));
       } else if (declaration is TopLevelSetterDeclarationImpl) {
         topLevelSetters.add(_buildTopLevelSetter(declaration));
-      } else if (declaration is FunctionDeclaration) {
-        topLevelFunctions.add(_buildTopLevelFunction(declaration));
       } else if (declaration is TopLevelVariableDeclaration) {
         for (var variable in declaration.variables.variables) {
           topLevelVariable.add(_buildTopLevelVariable(variable));
@@ -1107,21 +1107,21 @@ class _InfoBuilder {
     );
   }
 
-  _InfoExecutableDeclaration _buildTopLevelFunction(FunctionDeclaration node) {
+  _InfoExecutableDeclaration _buildTopLevelFunction(
+    TopLevelFunctionDeclarationImpl node,
+  ) {
     return _InfoExecutableDeclaration(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
       codeLength: node.length,
       nameOffset: node.name.offsetIfNotEmpty,
       documentationComment: _getDocumentationComment(node),
-      typeParameters: _buildTypeParameters(
-        node.functionExpression.typeParameters,
-      ),
-      parameters: _buildFormalParameters(node.functionExpression.parameters),
+      typeParameters: _buildTypeParameters(node.typeParameters),
+      parameters: _buildFormalParameters(node.formalParameters),
       constantOffsets: _buildConstantOffsets(
         metadata: node.metadata,
-        typeParameters: node.functionExpression.typeParameters,
-        formalParameters: node.functionExpression.parameters,
+        typeParameters: node.typeParameters,
+        formalParameters: node.formalParameters,
       ),
     );
   }

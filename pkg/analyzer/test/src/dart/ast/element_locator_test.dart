@@ -286,7 +286,7 @@ g@17
     var result = await resolveTestCodeWithDiagnostics(r'''
 int f() => 3;
 ''');
-    var node = result.findNode.functionDeclaration('f');
+    var node = result.unit.declarations.single;
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@function::f
@@ -1435,17 +1435,6 @@ g@17
 ''');
   }
 
-  test_locate_FunctionDeclaration_topLevel() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-int f() => 3;
-''');
-    var node = result.findNode.functionDeclaration('f');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@function::f
-''');
-  }
-
   test_locate_Identifier_className() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 class A {}
@@ -2008,6 +1997,17 @@ import 'foo.dart';
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 package:test/foo.dart
+''');
+  }
+
+  test_locate_TopLevelFunctionDeclaration() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+int f() => 3;
+''');
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@function::f
 ''');
   }
 

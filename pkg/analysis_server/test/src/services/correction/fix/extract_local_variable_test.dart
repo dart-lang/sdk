@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ExtractLocalVariableTest extends FixProcessorTest {
+class ExtractLocalVariableTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.extractLocalVariable;
 

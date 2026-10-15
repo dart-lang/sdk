@@ -49,7 +49,8 @@ A f(p) {
     expect(nodes, hasLength(51));
     expect(nodes[0], parseResult.unit);
     expect(nodes[2], findNode.classDeclaration('class B'));
-    expect(nodes[3], findNode.functionDeclaration('A f'));
+    // The V1 projection of the top-level function `f`.
+    expect(nodes[3], parseResult.unit.declarations[2]);
     expect(nodes[24], findNode.functionDeclarationStatement('num q'));
     expect(nodes[50], findNode.integerLiteral('3'));
   }

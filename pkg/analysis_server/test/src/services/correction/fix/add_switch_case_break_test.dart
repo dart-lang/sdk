@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddSwitchCaseBreakMultiTest extends FixProcessorTest {
+class AddSwitchCaseBreakMultiTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addSwitchCaseBreakMulti;
 
@@ -55,7 +55,7 @@ void f(Object? x) {
 }
 
 @reflectiveTest
-class AddSwitchCaseBreakTest extends FixProcessorTest {
+class AddSwitchCaseBreakTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addSwitchCaseBreak;
 

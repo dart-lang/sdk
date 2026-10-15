@@ -72,7 +72,7 @@ E foo(E e) {
 }
 
 @reflectiveTest
-class AddTypeNameTest extends FixProcessorTest {
+class AddTypeNameTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addTypeName;
 

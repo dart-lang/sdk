@@ -47,7 +47,7 @@ void foo(bool x, bool y) {
 }
 
 @reflectiveTest
-class AddCurlyBracesTest extends FixProcessorLintTest {
+class AddCurlyBracesTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addCurlyBraces;
 

@@ -20,7 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class ImportLibrarySdkDocTest extends FixProcessorTest {
+class ImportLibrarySdkDocTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkDoc;
 
@@ -98,7 +98,8 @@ void f() {}
 }
 
 @reflectiveTest
-class ImportLibrarySdkPrefixedTest extends FixProcessorTest {
+class ImportLibrarySdkPrefixedTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkPrefixed;
 
@@ -121,7 +122,8 @@ void f() {
 }
 
 @reflectiveTest
-class ImportLibrarySdkPrefixedWithShowTest extends FixProcessorTest {
+class ImportLibrarySdkPrefixedWithShowTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkPrefixedShow;
 
@@ -198,7 +200,7 @@ void f() {}
 }
 
 @reflectiveTest
-class ImportLibrarySdkTest extends FixProcessorTest {
+class ImportLibrarySdkTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdk;
 
@@ -503,7 +505,8 @@ const x = pi;
 }
 
 @reflectiveTest
-class ImportLibrarySdkWithShowTest extends FixProcessorTest {
+class ImportLibrarySdkWithShowTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibrarySdkShow;
 

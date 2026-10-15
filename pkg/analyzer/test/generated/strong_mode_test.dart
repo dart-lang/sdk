@@ -156,11 +156,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
    ''');
 
     void check(String name, Asserter<InterfaceType> typeTest) {
-      FunctionDeclaration test = AstFinder.getTopLevelFunction(
+      TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
         result.unit,
         name,
       );
-      var body = test.functionExpression.body;
+      var body = test.body;
       Expression returnExp;
       if (body is ExpressionFunctionBody) {
         returnExp = body.expression2;
@@ -441,11 +441,11 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
 
     Asserter<InterfaceType> assertListOfInt = _isListOf(_isInt);
 
-    FunctionDeclaration test1 = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test1 = AstFinder.getTopLevelFunction(
       result.unit,
       "test1",
     );
-    var body = test1.functionExpression.body as ExpressionFunctionBody;
+    var body = test1.body as ExpressionFunctionBody;
     assertListOfInt(body.expression2.staticType as InterfaceType);
 
     List<Statement> statements = AstFinder.getStatementsInTopLevelFunction(
@@ -3856,11 +3856,11 @@ V1: MethodInvocation
     String test() => f((l) => l.length);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     _isString(body.expression2.typeOrThrow);
     var invoke = body.expression2 as UnqualifiedFunctionInvocation;
     var function = invoke.argumentList.arguments2[0] as FunctionExpression;
@@ -3888,11 +3888,11 @@ V1: MethodInvocation
 // [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Never'.
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
@@ -3919,11 +3919,11 @@ V1: MethodInvocation
     A<num, num> test() => new B(3);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
@@ -3953,11 +3953,11 @@ V1: MethodInvocation
 // [diag.argumentTypeNotAssignable] The argument type 'int' can't be assigned to the parameter type 'Never'.
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
@@ -3985,11 +3985,11 @@ V1: MethodInvocation
     A<int, num> test() => new B();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     DartType type = body.expression2.typeOrThrow;
 
     Element elementB = AstFinder.getClass(
@@ -4019,11 +4019,11 @@ V1: MethodInvocation
     Contra1<A<int, String>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
@@ -4053,11 +4053,11 @@ V1: MethodInvocation
     Contra1<A<num, num>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
@@ -4088,11 +4088,11 @@ V1: MethodInvocation
     Contra1<A<int, double>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
@@ -4123,11 +4123,11 @@ V1: MethodInvocation
     Contra1<A<int, num>> test() => mkA();
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
 
@@ -4228,11 +4228,11 @@ class B<T2, U2> {
     Func1<num, String> test() => f(42);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var invoke = body.expression2 as UnqualifiedFunctionInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isNum, _isString))(
       (invoke.resolution as StaticInvocationResolution).invokeType,
@@ -4250,11 +4250,11 @@ class B<T2, U2> {
     Func1<String, num> test() => f(42);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var invoke = body.expression2 as UnqualifiedFunctionInvocation;
     _isFunction2Of(_isNum, _isFunction2Of(_isString, _isNum))(
       (invoke.resolution as StaticInvocationResolution).invokeType,
@@ -4273,11 +4273,11 @@ class B<T2, U2> {
     dynamic test() => f(42, (num x) => x);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.normalParameterTypes[0];
     _isInt(type);
@@ -4295,11 +4295,11 @@ class B<T2, U2> {
     dynamic test() => f(42, (num x) => x);
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var functionType = body.expression2.staticType as FunctionType;
     DartType type = functionType.returnType;
     _isInt(type);
@@ -4319,11 +4319,11 @@ class B<T2, U2> {
     num test() => g(f(3));
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var call = body.expression2 as UnqualifiedFunctionInvocation;
     _isNum(call.typeOrThrow);
     _isFunction2Of(_isFunction2Of(_isNum, _isString), _isNum)(
@@ -4345,11 +4345,11 @@ class B<T2, U2> {
     num test() => g(f(3));
    ''');
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     var call = body.expression2 as UnqualifiedFunctionInvocation;
     _isNum(call.typeOrThrow);
     _isFunction2Of(_isFunction2Of(_isString, _isNum), _isNum)(
@@ -4439,11 +4439,11 @@ $code
 """;
     var result = await resolveTestCodeWithDiagnostics(fullCode);
 
-    FunctionDeclaration test = AstFinder.getTopLevelFunction(
+    TopLevelFunctionDeclaration test = AstFinder.getTopLevelFunction(
       result.unit,
       "test",
     );
-    var body = test.functionExpression.body as ExpressionFunctionBody;
+    var body = test.body as ExpressionFunctionBody;
     return _TestInvocation(body.expression2);
   }
 }
@@ -4524,9 +4524,45 @@ T f<T>(T x) => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
 ''');
 
-    var node = result.findNode.functionDeclaration('f<T>');
+    var node = result.findNode.topLevelFunctionDeclaration('f<T>');
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@4
+          defaultType: dynamic
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@9
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@2
+    element: <testLibrary>::@function::f
+      type: T Function<T>(T)
+V1: FunctionDeclaration
   returnType: NamedType
     name: T
     element: #E0 T
@@ -4543,19 +4579,6 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: T
-            element: #E0 T
-            type: T
-          name: x
-          declaredFragment: <testLibraryFragment> x@9
-            element: isPublic
-              type: T
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
-      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -4568,7 +4591,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: NullLiteral
+      expression: NullLiteral
         literal: null
         staticType: Null
       semicolon: ;
@@ -4589,9 +4612,50 @@ T f<T extends num>(T x) => null;
 // [diag.returnOfInvalidTypeFromFunction] A value of type 'Null' can't be returned from the function 'f' because it has a return type of 'T'.
 ''');
 
-    var node = result.findNode.functionDeclaration('f<T');
+    var node = result.findNode.topLevelFunctionDeclaration('f<T');
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  returnType: NamedType
+    name: T
+    element: #E0 T
+    type: T
+  name: f
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        declaredFragment: <testLibraryFragment> T@4
+          defaultType: num
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        type: NamedType
+          name: T
+          element: #E0 T
+          type: T
+        name: x
+        declaredFragment: <testLibraryFragment> x@21
+          element: isPublic
+            type: T
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: NullLiteral
+      literal: null
+      staticType: Null
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> f@2
+    element: <testLibrary>::@function::f
+      type: T Function<T extends num>(T)
+V1: FunctionDeclaration
   returnType: NamedType
     name: T
     element: #E0 T
@@ -4613,19 +4677,6 @@ FunctionDeclaration
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          type: NamedType
-            name: T
-            element: #E0 T
-            type: T
-          name: x
-          declaredFragment: <testLibraryFragment> x@21
-            element: isPublic
-              type: T
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
-      leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
           name: T
@@ -4638,7 +4689,7 @@ FunctionDeclaration
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: NullLiteral
+      expression: NullLiteral
         literal: null
         staticType: Null
       semicolon: ;

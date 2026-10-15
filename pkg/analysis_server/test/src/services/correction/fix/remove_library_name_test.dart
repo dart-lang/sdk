@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveLibraryNameTest extends FixProcessorLintTest {
+class RemoveLibraryNameTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeLibraryName;
 

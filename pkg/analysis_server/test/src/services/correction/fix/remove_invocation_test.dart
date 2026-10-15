@@ -31,7 +31,7 @@ var s = '${1}${2}';
 }
 
 @reflectiveTest
-class RemoveInvocationTest extends FixProcessorLintTest {
+class RemoveInvocationTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeInvocation;
 

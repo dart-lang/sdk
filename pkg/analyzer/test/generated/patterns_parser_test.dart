@@ -3404,46 +3404,49 @@ f() {
     var parseResult = parseTestCodeWithDiagnostics('''
 f(x) => switch(x) {} + () => 0;
 ''');
-    var node = parseResult.findNode.functionDeclaration('f');
+    var node = parseResult.findNode.topLevelFunctionDeclaration('f');
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+TopLevelFunctionDeclaration
+  name: f
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    requiredPositionalFormalParameters
+      RegularFormalParameter
+        name: x
+    rightParenthesis: )
+  body: ExpressionFunctionBody
+    functionDefinition: =>
+    expression2: BinaryOperatorInvocation
+      leftOperand: SwitchExpression
+        switchKeyword: switch
+        leftParenthesis: (
+        expression2: ParsedUnqualifiedName
+          name: x
+        rightParenthesis: )
+        leftBracket: {
+        rightBracket: }
+      operator: +
+      rightOperand: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: ExpressionFunctionBody
+          functionDefinition: =>
+          expression2: IntegerLiteral
+            literal: 0
+      binaryOperator: add
+    semicolon: ;
+V1: FunctionDeclaration
   name: f
   functionExpression: FunctionExpression
     parameters: FormalParameterList
-      leftParenthesis: (
-      requiredPositionalFormalParameters
-        RegularFormalParameter
-          name: x
-      rightParenthesis: )
-    parameters(v1): FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         name: x
       rightParenthesis: )
     body: ExpressionFunctionBody
       functionDefinition: =>
-      expression2: BinaryOperatorInvocation
-        leftOperand: SwitchExpression
-          switchKeyword: switch
-          leftParenthesis: (
-          expression2: ParsedUnqualifiedName
-            name: x
-          expression(v1): SimpleIdentifier
-            token: x
-          rightParenthesis: )
-          leftBracket: {
-          rightBracket: }
-        operator: +
-        rightOperand: FunctionExpression
-          parameters: FormalParameterList
-            leftParenthesis: (
-            rightParenthesis: )
-          body: ExpressionFunctionBody
-            functionDefinition: =>
-            expression2: IntegerLiteral
-              literal: 0
-        binaryOperator: add
-      expression(v1): BinaryExpression
+      expression: BinaryExpression
         leftOperand: SwitchExpression
           switchKeyword: switch
           leftParenthesis: (
@@ -12107,10 +12110,7 @@ SwitchExpression
     var parseResult = parseTestCodeWithDiagnostics('''
 void f(condition, when, otherwise) => condition as bool ? when : otherwise;
 ''');
-    var node = parseResult.findNode
-        .functionDeclaration('=>')
-        .functionExpression
-        .body;
+    var node = parseResult.findNode.topLevelFunctionDeclaration('=>').body;
     assertParsedNodeText(node, r'''
 ExpressionFunctionBody
   functionDefinition: =>

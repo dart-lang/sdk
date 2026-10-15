@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceBooleanWithBoolMultiTest extends FixProcessorTest {
+class ReplaceBooleanWithBoolMultiTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceBooleanWithBoolMulti;
 
@@ -38,7 +39,7 @@ void f() {
 }
 
 @reflectiveTest
-class ReplaceBooleanWithBoolTest extends FixProcessorTest {
+class ReplaceBooleanWithBoolTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceBooleanWithBool;
 

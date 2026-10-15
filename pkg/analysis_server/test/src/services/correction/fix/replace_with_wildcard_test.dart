@@ -52,7 +52,7 @@ int f2(Object? x) {
 }
 
 @reflectiveTest
-class ReplaceWithWildcardTest extends FixProcessorTest {
+class ReplaceWithWildcardTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithWildcard;
 

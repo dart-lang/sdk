@@ -400,12 +400,13 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         );
 
         // Extract Widget
-        if (ExtractWidgetRefactoring(
-          server.searchEngine,
-          unitResult,
-          offset,
-          length,
-        ).isAvailable()) {
+        if (server.prefersLegacyRefactors &&
+            ExtractWidgetRefactoring(
+              server.searchEngine,
+              unitResult,
+              offset,
+              length,
+            ).isAvailable()) {
           refactorActions.add(
             createRefactor(
               CodeActionKind.RefactorExtract,

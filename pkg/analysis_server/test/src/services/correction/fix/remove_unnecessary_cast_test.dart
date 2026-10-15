@@ -40,7 +40,8 @@ void f(Object p) {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryCastMultiTest extends FixProcessorTest {
+class RemoveUnnecessaryCastMultiTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryCastMulti;
 
@@ -73,7 +74,7 @@ void f(Object p, Object q) {
 }
 
 @reflectiveTest
-class RemoveUnnecessaryCastTest extends FixProcessorTest {
+class RemoveUnnecessaryCastTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnnecessaryCast;
 

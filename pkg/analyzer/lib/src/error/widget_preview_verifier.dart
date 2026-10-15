@@ -61,7 +61,7 @@ class WidgetPreviewVerifier {
         isFactory: parent.factoryKeyword != null,
         parameters: parent.parameters,
       ),
-      FunctionDeclaration() => _isValidFunctionPreviewApplication(
+      TopLevelFunctionDeclaration() => _isValidFunctionPreviewApplication(
         declaration: parent,
       ),
       MethodDeclaration() => _isValidMethodPreviewApplication(
@@ -169,24 +169,19 @@ class WidgetPreviewVerifier {
   ///
   /// Function preview applications are valid if:
   ///   - The function name is public
-  ///   - The function is not a nested function
   ///   - The function is not external
   ///   - The function returns a subtype of `Widget` or `WidgetBuilder`
   ///   - The function does not have any required arguments
   bool _isValidFunctionPreviewApplication({
-    required FunctionDeclaration declaration,
+    required TopLevelFunctionDeclaration declaration,
   }) {
-    if (declaration case FunctionDeclaration(
+    if (declaration case TopLevelFunctionDeclaration(
       :var name,
       :var externalKeyword,
       :NamedType returnType,
-      functionExpression: FunctionExpression(
-        parameters: FormalParameterList(:var allFormalParameters),
-      ),
+      formalParameters: FormalParameterList(:var allFormalParameters),
     )) {
       return !_isPrivateContext(name: name.lexeme, node: declaration) &&
-          // Check for nested function.
-          declaration.parent2 is! FunctionDeclarationStatement &&
           externalKeyword == null &&
           returnType.isValidWidgetPreviewReturnType &&
           !_hasRequiredParameters(allFormalParameters);

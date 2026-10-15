@@ -163,7 +163,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddFinalTest extends FixProcessorLintTest {
+class AddFinalTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.ADD_FINAL;
 
@@ -396,7 +396,8 @@ things like getting the right indentation for nested code.
 If we were adding a fix for a non-lint diagnostic, then there would be a couple
 of minor differences. First, we'd register the correction producer using the
 diagnostic's error code. Second, the test class would be a subclass of
-`FixProcessorTest` and wouldn't specify the name of the lint.
+`FixProcessorForBuiltInDiagnosticTest` and wouldn't specify the name of the
+lint.
 
 ### Multi-fix producers
 

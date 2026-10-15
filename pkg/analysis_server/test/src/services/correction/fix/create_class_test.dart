@@ -21,7 +21,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateClassLowercaseTest extends FixProcessorTest {
+class CreateClassLowercaseTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createClassLowercase;
 
@@ -151,7 +151,8 @@ class _newName {
 }
 
 @reflectiveTest
-class CreateClassLowercaseWithTest extends FixProcessorTest {
+class CreateClassLowercaseWithTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createClassLowercaseWith;
 
@@ -287,7 +288,7 @@ class Class with MyMixin {}
 }
 
 @reflectiveTest
-class CreateClassUppercaseTest extends FixProcessorTest {
+class CreateClassUppercaseTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createClassUppercase;
 
@@ -639,7 +640,8 @@ class Foo {
 }
 
 @reflectiveTest
-class CreateClassUppercaseWithTest extends FixProcessorTest {
+class CreateClassUppercaseWithTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createClassUppercaseWith;
 

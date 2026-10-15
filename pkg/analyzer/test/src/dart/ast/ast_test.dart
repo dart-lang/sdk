@@ -1854,7 +1854,7 @@ class C<S^, T> {}
     var node = await coveringNode('''
 void f^() {}
 ''');
-    node as FunctionDeclaration;
+    node as TopLevelFunctionDeclaration;
   }
 
   Future<void> test_between_identifierAndPeriod() async {
@@ -1895,7 +1895,7 @@ void f() async^{}
     var node = await coveringNode('''
 void f^() {}
 ''');
-    node as FunctionDeclaration;
+    node as TopLevelFunctionDeclaration;
   }
 
   Future<void> test_between_nameAndParameters_method() async {
@@ -1968,7 +1968,7 @@ class A^B {}
     var node = await coveringNode('''
 void f^f() {}
 ''');
-    node as FunctionDeclaration;
+    node as TopLevelFunctionDeclaration;
   }
 
   Future<void> test_inName_method() async {

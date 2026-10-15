@@ -19,7 +19,8 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveLexemeAvoidFinalParameters extends FixProcessorLintTest {
+class RemoveLexemeAvoidFinalParameters
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeLexeme;
 
@@ -191,7 +192,7 @@ class C {
 }
 
 @reflectiveTest
-class RemoveLexemeMultiTest extends FixProcessorTest {
+class RemoveLexemeMultiTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeLexemeMulti;
 
@@ -221,7 +222,7 @@ augment class A {}
 }
 
 @reflectiveTest
-class RemoveLexemeTest extends FixProcessorTest {
+class RemoveLexemeTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeLexeme;
 
@@ -857,7 +858,8 @@ class C {}
 }
 
 @reflectiveTest
-class RemoveLexemeVarWithNoTypeAnnotationTest extends FixProcessorLintTest {
+class RemoveLexemeVarWithNoTypeAnnotationTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeLexeme;
 

@@ -322,8 +322,8 @@ void test10(Foo? foo, int? a, int b) => foo?[a]![b];
 ''');
 
     void assertTestType(int index, String expected) {
-      var function = result.findNode.functionDeclaration('test$index(');
-      var body = function.functionExpression.body as ExpressionFunctionBody;
+      var function = result.findNode.topLevelFunctionDeclaration('test$index(');
+      var body = function.body as ExpressionFunctionBody;
       assertType(body.expression2, expected);
     }
 

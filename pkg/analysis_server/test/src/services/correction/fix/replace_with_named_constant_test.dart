@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithNamedConstantTest extends FixProcessorLintTest {
+class ReplaceWithNamedConstantTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.useNamedConstants;
 

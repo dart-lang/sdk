@@ -83,7 +83,7 @@ void f() {
 }
 
 @reflectiveTest
-class RemoveBreakTest extends FixProcessorLintTest {
+class RemoveBreakTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   List<Feature> get experimentalFeatures => [];
 

@@ -2550,6 +2550,13 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
 
   @experimental
   @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    _runSubscriptions(node, _registry._forTopLevelFunctionDeclaration);
+    node.visitChildren2(this);
+  }
+
+  @experimental
+  @override
   void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
     _runSubscriptions(node, _registry._forTopLevelGetterDeclaration);
     node.visitChildren2(this);
@@ -4974,6 +4981,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<ThrowExpression>> _forThrowExpression = [];
 
+  final List<_Subscription2<TopLevelFunctionDeclaration>>
+  _forTopLevelFunctionDeclaration = [];
+
   final List<_Subscription2<TopLevelGetterDeclaration>>
   _forTopLevelGetterDeclaration = [];
 
@@ -6634,6 +6644,17 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   void addThrowExpression(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
     _forThrowExpression.add(_Subscription2(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
+  void addTopLevelFunctionDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  ) {
+    _hasNodeProcessors = true;
+    _forTopLevelFunctionDeclaration.add(
+      _Subscription2(rule, visitor, _getTimer(rule)),
+    );
   }
 
   @override

@@ -286,7 +286,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
         return 0;
       }
       for (var declaration in unit.declarations2) {
-        if (declaration is FunctionDeclaration) {
+        if (declaration is TopLevelFunctionDeclaration) {
           if (declaration.name.lexeme == name) {
             return declaration.offset;
           }

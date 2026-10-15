@@ -33,7 +33,7 @@ const b = 1;
 }
 
 @reflectiveTest
-class ReplaceFinalWithConstTest extends FixProcessorLintTest {
+class ReplaceFinalWithConstTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceFinalWithConst;
 

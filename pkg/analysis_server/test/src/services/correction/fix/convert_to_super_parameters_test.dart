@@ -46,7 +46,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class ConvertToSuperParametersTest extends FixProcessorLintTest {
+class ConvertToSuperParametersTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToSuperParameters;
 

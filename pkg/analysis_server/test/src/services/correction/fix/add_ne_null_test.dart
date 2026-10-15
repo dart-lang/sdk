@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddNeNullMultiTest extends FixProcessorTest {
+class AddNeNullMultiTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addNeNullMulti;
 
@@ -60,7 +60,7 @@ f(String? p, String? q) {
 }
 
 @reflectiveTest
-class AddNeNullTest extends FixProcessorTest {
+class AddNeNullTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addNeNull;
 
