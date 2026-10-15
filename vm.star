@@ -512,6 +512,7 @@ _nightly_misc_builder(
     "iso-stress-linux-arm64",
     category = "iso-stress|arm64",
     dimensions = [arm64],
+    siso = True,
 )
 
 _nightly_misc_builder(

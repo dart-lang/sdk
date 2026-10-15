@@ -62,6 +62,7 @@ _pkg_builder(
     "pkg-linux-release-arm64",
     category = "pkg|la",
     dimensions = [arm64],
+    siso = True,
 )
 _pkg_builder(
     "pkg-mac-release",
