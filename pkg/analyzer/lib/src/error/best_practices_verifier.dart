@@ -521,7 +521,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     }
     try {
       // Return types are inferred only on non-recursive local functions.
-      if (node.parent2 is CompilationUnit && !node.isSetter) {
+      if (node.parent2 is CompilationUnit) {
         _checkStrictInferenceReturnType(
           node.returnType,
           node,
@@ -934,6 +934,31 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         );
       }
       super.visitTopLevelGetterDeclaration(node);
+    } finally {
+      _elementUsageFrontierDetector.popElement();
+      _inDoNotStoreMember = wasInDoNotStoreMember;
+    }
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    var wasInDoNotStoreMember = _inDoNotStoreMember;
+    var element = node.declaredFragment!.element;
+    _elementUsageFrontierDetector.pushElement(element);
+    if (element.metadata.hasDoNotStore) {
+      _inDoNotStoreMember = true;
+    }
+    try {
+      _checkStrictInferenceInParameters(node.formalParameters, body: node.body);
+      if (node.body case ExpressionFunctionBodyImpl body) {
+        _checkForUnnecessarySetLiteralWithReturnType(
+          body,
+          node.returnType?.type,
+        );
+      }
+      super.visitTopLevelSetterDeclaration(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
       _inDoNotStoreMember = wasInDoNotStoreMember;
@@ -1400,7 +1425,8 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         (e) =>
             e is FunctionDeclaration ||
             e is MethodDeclaration ||
-            e is TopLevelGetterDeclaration,
+            e is TopLevelGetterDeclaration ||
+            e is TopLevelSetterDeclaration,
       );
 
       var parentElement = parent

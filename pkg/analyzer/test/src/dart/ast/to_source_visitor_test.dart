@@ -88,7 +88,7 @@ int Function(int) f(C c) => c<int>;
     _assertSource('c', result.findNode.singleImplicitCallTearOff);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_functionReference_explicitTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T value) => value;
@@ -97,7 +97,7 @@ const g = f<int>;
     _assertSource('f<int>', result.findNodeV1.singleFunctionReference);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_functionReference_implicitTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 T f<T>(T value) => value;
@@ -106,7 +106,7 @@ const int Function(int) g = f;
     _assertSource('f', result.findNodeV1.singleFunctionReference);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_implicitCallReference_explicitTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
@@ -117,7 +117,7 @@ int Function(int) f(C c) => c<int>;
     _assertSource('c<int>', result.findNodeV1.singleImplicitCallReference);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_implicitCallReference_implicitTypeArguments() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
@@ -128,7 +128,7 @@ int Function(int) f(C c) => c;
     _assertSource('c', result.findNodeV1.singleImplicitCallReference);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_implicitCallReference_nonGeneric() async {
     var result = await resolveTestCodeWithDiagnostics('''
 class C {
@@ -179,7 +179,7 @@ var x = math.pi;
     );
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_prefixedIdentifier() async {
     var result = await resolveTestCodeWithDiagnostics('''
 import 'dart:math' as math;
@@ -188,7 +188,7 @@ var x = math.pi;
     _assertSource('math.pi', result.findNodeV1.singlePrefixedIdentifier);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_propertyAccess() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var x = (0).isEven;
@@ -206,7 +206,7 @@ var x = (0).isEven;
     );
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_simpleIdentifier() async {
     var result = await resolveTestCodeWithDiagnostics('''
 var foo = 0;
@@ -342,7 +342,7 @@ class ToSourceVisitorTest extends ParserDiagnosticsTest {
     _assertSource(code, node);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   void test_toSource_ConstructorName_v1Projection() {
     var code = 'prefix.A.foo';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -355,7 +355,7 @@ final x = new $code();
     expect(node.toSource(), code);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   void test_toSource_dotShorthandInvocation_v1Projection() {
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = .foo<int>(0, 1);
@@ -364,7 +364,7 @@ final x = .foo<int>(0, 1);
     expect(node.toSource(), '.foo<int>(0, 1)');
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   void test_toSource_dotShorthandInvocation_v1Projection_withSelector() {
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = .foo<int>(0, 1).bar;
@@ -373,7 +373,7 @@ final x = .foo<int>(0, 1).bar;
     expect(node.toSource(), '.foo<int>(0, 1)');
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   void test_toSource_dotShorthandPropertyAccess_v1Projection() {
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = .foo;
@@ -382,7 +382,7 @@ final x = .foo;
     expect(node.toSource(), '.foo');
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   void test_toSource_dotShorthandPropertyAccess_v1Projection_withSelector() {
     var parseResult = parseTestCodeWithDiagnostics('''
 final x = .foo.bar;
@@ -391,7 +391,7 @@ final x = .foo.bar;
     expect(node.toSource(), '.foo');
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   void test_toSource_InstanceCreationExpression_v1Projection() {
     var code = 'new prefix.A.foo()';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -2496,13 +2496,6 @@ void f() {
     _assertSource(code, node);
   }
 
-  void test_visitFunctionDeclaration_setter() {
-    var code = 'set foo(int _) {}';
-    var parseResult = parseTestCodeWithDiagnostics(code);
-    var node = parseResult.findNode.singleFunctionDeclaration;
-    _assertSource(code, node);
-  }
-
   void test_visitFunctionDeclaration_typeParameters() {
     var code = 'void foo<T>() {}';
     var parseResult = parseTestCodeWithDiagnostics(code);
@@ -4572,6 +4565,13 @@ void f() {
     var code = 'get foo {}';
     var parseResult = parseTestCodeWithDiagnostics(code);
     var node = parseResult.findNode.singleTopLevelGetterDeclaration;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelSetterDeclaration() {
+    var code = 'set foo(int _) {}';
+    var parseResult = parseTestCodeWithDiagnostics(code);
+    var node = parseResult.findNode.singleTopLevelSetterDeclaration;
     _assertSource(code, node);
   }
 

@@ -397,6 +397,17 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    var enclosingExecOld = _enclosingExec;
+    try {
+      _enclosingExec = node.declaredFragment?.element;
+      super.visitTopLevelSetterDeclaration(node);
+    } finally {
+      _enclosingExec = enclosingExecOld;
+    }
+  }
+
+  @override
   void visitUnaryOperatorInvocation(UnaryOperatorInvocation node) {
     usedElements.addMember(node.element);
     super.visitUnaryOperatorInvocation(node);
@@ -807,8 +818,6 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     var declaredElement = node.declaredFragment?.element;
     if (declaredElement is LocalFunctionElement) {
       _visitLocalFunctionElement(declaredElement);
-    } else if (declaredElement is PropertyAccessorElement) {
-      _visitPropertyAccessorElement(declaredElement);
     } else if (declaredElement is TopLevelFunctionElement) {
       _visitTopLevelFunctionElement(declaredElement);
     }
@@ -928,6 +937,16 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
     }
 
     super.visitTopLevelGetterDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement != null) {
+      _visitPropertyAccessorElement(declaredElement);
+    }
+
+    super.visitTopLevelSetterDeclaration(node);
   }
 
   @override

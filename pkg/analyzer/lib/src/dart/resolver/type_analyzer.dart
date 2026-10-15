@@ -1464,6 +1464,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           node is FunctionDeclaration ||
           node is MixinDeclaration ||
           node is TopLevelGetterDeclaration ||
+          node is TopLevelSetterDeclaration ||
           node is TopLevelVariableDeclaration;
     }
 
@@ -3252,12 +3253,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       popRewrite();
       elementResolver.visitFunctionDeclaration(node);
 
-      if (!node.isSetter) {
-        checkForBodyMayCompleteNormally(
-          body: node.functionExpression.body,
-          errorNode: node.name,
-        );
-      }
+      checkForBodyMayCompleteNormally(
+        body: node.functionExpression.body,
+        errorNode: node.name,
+      );
       var exitOffset = node.functionExpression.body.flowEndOffset;
       flowAnalysis.executableDeclaration_exit(
         node.functionExpression.body,
@@ -4662,7 +4661,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       node.documentationComment?.accept2(this);
       node.metadata.accept2(this);
       node.returnType?.accept2(this);
-      node.recoveryTypeParameters?.accept2(this);
       node.recoveryFormalParameters?.accept2(this);
 
       var enterOffset = node.body.offset;
@@ -4681,6 +4679,47 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       node.body.resolve(this, returnType is DynamicType ? null : returnType);
 
       checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
+      flowAnalysis.executableDeclaration_exit(
+        node.body,
+        false,
+        offset: node.body.flowEndOffset,
+      );
+      flowAnalysis.flowAnalysisRoot_exit();
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    });
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+    var returnType = element.returnType;
+
+    _withEnclosingExecutableElement(element, () {
+      checkUnreachableNode(node);
+      node.documentationComment?.accept2(this);
+      node.metadata.accept2(this);
+      node.returnType?.accept2(this);
+
+      // Use the formal parameters for the offset, because they are visited
+      // before the body, and may contain expressions.
+      var enterOffset = node.formalParameters.offset;
+      flowAnalysis.flowAnalysisRoot_enter(
+        node,
+        element.formalParameters,
+        offset: enterOffset,
+      );
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        element.formalParameters,
+        isClosure: false,
+        offset: enterOffset,
+      );
+
+      node.formalParameters.accept2(this);
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
+
       flowAnalysis.executableDeclaration_exit(
         node.body,
         false,

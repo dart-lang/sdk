@@ -6422,6 +6422,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     CachedExpression? valueCache;
     Expression? returnedValue;
     if (node.forEffect) {
+      // The value of the assignment isn't used, so there's no need to cache
+      // the value expression.
     } else if (extern.isPureExpression(value)) {
       returnedValue = extern.clonePureExpression(value);
     } else {
@@ -6433,7 +6435,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = extern.createVariableGet(valueCache.variable);
     }
 
-    // The inferred type is that inferred type of the value expression and not
+    // The inferred type is the inferred type of the value expression and not
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 
@@ -6479,9 +6481,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType typeContext,
   ) {
     ObjectAccessTarget indexSetTarget = thisType!.classNode.isMixinDeclaration
-        ?
-          // Coverage-ignore(suite): Not run.
-          new ObjectAccessTarget.interfaceMember(
+        ? new ObjectAccessTarget.interfaceMember(
             thisType!,
             node.setter,
             hasNonObjectMemberAccess: true,
@@ -6490,6 +6490,18 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     DartType indexType = indexSetTarget.getIndexKeyType(this);
     DartType valueType = indexSetTarget.getIndexSetValueType(this);
+
+    // When `forEffect` is `true`, report assignability errors as argument
+    // errors.
+    // TODO(paulberry): report assignability errors consistently for all index
+    // operations (see https://github.com/dart-lang/sdk/issues/64561).
+    Template<
+      Message Function({
+        required DartType actualType,
+        required DartType expectedType,
+      })
+    >?
+    errorTemplate = node.forEffect ? diag.argumentTypeNotAssignable : null;
 
     ExpressionInferenceResult indexResult = inferExpression(
       node.index,
@@ -6500,11 +6512,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression index = ensureAssignableResult(
       indexType,
       indexResult,
+      errorTemplate: errorTemplate,
       assignedNode: node.index,
     ).expression;
 
     CachedExpression? indexCache;
-    if (!extern.isPureExpression(index)) {
+    if (!node.forEffect && !extern.isPureExpression(index)) {
       indexCache = extern.createCachedExpression(
         expression: index,
         type: indexResult.inferredType,
@@ -6520,13 +6533,26 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     valueResult = ensureAssignableResult(
       valueType,
       valueResult,
+      errorTemplate: errorTemplate,
       assignedNode: node.value,
     );
     Expression value = valueResult.expression;
 
+    // The inferred type is the inferred type of the value expression and not
+    // the type of the value parameter.
+    DartType inferredType = valueResult.inferredType;
+
+    assert(
+      indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
+      'Unexpected index set target $indexSetTarget.',
+    );
+
     CachedExpression? valueCache;
-    Expression returnedValue;
-    if (extern.isPureExpression(value)) {
+    Expression? returnedValue;
+    if (node.forEffect) {
+      // The value of the assignment isn't used, so there's no need to cache
+      // the value expression.
+    } else if (extern.isPureExpression(value)) {
       returnedValue = extern.clonePureExpression(value);
     } else {
       valueCache = extern.createCachedExpression(
@@ -6537,21 +6563,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = extern.createVariableGet(valueCache.variable);
     }
 
-    // The inferred type is that inferred type of the value expression and not
-    // the type of the value parameter.
-    DartType inferredType = valueResult.inferredType;
-
-    assert(
-      indexSetTarget.isInstanceMember || indexSetTarget.isSuperMember,
-      'Unexpected index set target $indexSetTarget.',
-    );
-    Expression assignment = new SuperMethodInvocation(
-      new ThisExpression(),
+    Expression assignment = extern.createSuperMethodInvocation(
+      // TODO(paulberry): use `_createThisExpression` in value context too.
+      // See https://github.com/dart-lang/sdk/issues/64593.
+      node.forEffect
+          ? _createThisExpression(node.fileOffset)
+          : new ThisExpression(),
       indexSetName,
+      indexSetTarget.classMember as Procedure,
       new Arguments(new ExpressionList(index, value))
         ..fileOffset = node.fileOffset,
-      indexSetTarget.classMember as Procedure,
-    )..fileOffset = node.fileOffset;
+      fileOffset: node.fileOffset,
+    );
+
+    if (node.forEffect) {
+      return new ExpressionInferenceResult(inferredType, assignment);
+    }
 
     CachedExpression assignmentCache = extern.createCachedExpression(
       expression: assignment,
@@ -6559,7 +6586,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
     Expression replacement = extern.createLet(
       cache: assignmentCache,
-      body: returnedValue,
+      body: returnedValue!,
     );
     if (valueCache != null) {
       replacement = extern.createLet(cache: valueCache, body: replacement);
@@ -6780,7 +6807,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       returnedValue = extern.createVariableGet(valueCache.variable);
     }
 
-    // The inferred type is that inferred type of the value expression and not
+    // The inferred type is the inferred type of the value expression and not
     // the type of the value parameter.
     DartType inferredType = valueResult.inferredType;
 

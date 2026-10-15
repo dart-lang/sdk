@@ -8,48 +8,48 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(AnalyzerToBeDeprecatedUseTest);
+    defineReflectiveTests(AnalyzerV1AstUseTest);
   });
 }
 
 @reflectiveTest
-class AnalyzerToBeDeprecatedUseTest extends LintRuleTest {
+class AnalyzerV1AstUseTest extends LintRuleTest {
   @override
-  String get lintRule => 'analyzer_to_be_deprecated_use';
+  String get lintRule => 'analyzer_v1_ast_use';
 
   @override
   void setUp() {
     super.setUp();
-    newFile('$testPackageLibPath/to_be_deprecated.dart', r'''
-class ToBeDeprecated {
+    newFile('$testPackageLibPath/v1_ast.dart', r'''
+class V1Ast {
   final String message;
-  const ToBeDeprecated([this.message = '']);
+  const V1Ast([this.message = '']);
 }
 ''');
   }
 
-  test_class_insideToBeDeprecatedClass() async {
+  test_class_insideV1AstClass() async {
     await assertNoDiagnostics(r'''
-import 'to_be_deprecated.dart';
+import 'v1_ast.dart';
 
-@ToBeDeprecated('Use B instead.')
+@V1Ast('The V2 counterpart is B.')
 class A {}
 
-@ToBeDeprecated()
+@V1Ast()
 class C {
   void foo(A a) {}
 }
 ''');
   }
 
-  test_class_insideToBeDeprecatedLibrary() async {
+  test_class_insideV1AstLibrary() async {
     await assertNoDiagnostics(r'''
-@ToBeDeprecated()
+@V1Ast()
 library;
 
-import 'to_be_deprecated.dart';
+import 'v1_ast.dart';
 
-@ToBeDeprecated('Use B instead.')
+@V1Ast('The V2 counterpart is B.')
 class A {}
 
 void foo(A a) {}
@@ -59,34 +59,34 @@ void foo(A a) {}
   test_class_isExpression() async {
     await assertDiagnostics(
       r'''
-import 'to_be_deprecated.dart';
+import 'v1_ast.dart';
 
-@ToBeDeprecated('Use B instead.')
+@V1Ast('The V2 counterpart is B.')
 class A {}
 
 bool foo(Object o) => o is A;
 ''',
-      [lint(106, 1)],
+      [lint(97, 1)],
     );
   }
 
   test_class_typeAnnotation() async {
     await assertDiagnostics(
       r'''
-import 'to_be_deprecated.dart';
+import 'v1_ast.dart';
 
-@ToBeDeprecated('Use B instead.')
+@V1Ast('The V2 counterpart is B.')
 class A {}
 
 void foo(A a) {}
 ''',
       [
         lint(
-          88,
+          79,
           1,
           messageContainsAll: [
-            "'A' is to be deprecated",
-            RegExp(r'to be deprecated\. Use B instead\.$'),
+            "'A' is part of the V1 AST API",
+            RegExp(r'V1 AST API\. The V2 counterpart is B\.$'),
           ],
         ),
       ],
@@ -95,9 +95,9 @@ void foo(A a) {}
 
   test_commentReference() async {
     await assertNoDiagnostics(r'''
-import 'to_be_deprecated.dart';
+import 'v1_ast.dart';
 
-@ToBeDeprecated('Use B instead.')
+@V1Ast('The V2 counterpart is B.')
 class A {}
 
 /// Unlike [A].
@@ -107,9 +107,9 @@ void foo() {}
 
   test_exportDirective_show() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import 'to_be_deprecated.dart';
+import 'v1_ast.dart';
 
-@ToBeDeprecated('Use B instead.')
+@V1Ast('The V2 counterpart is B.')
 class A {}
 ''');
     await assertNoDiagnostics(r'''
@@ -120,28 +120,28 @@ export 'a.dart' show A;
   test_getter() async {
     await assertDiagnostics(
       r'''
-import 'to_be_deprecated.dart';
+import 'v1_ast.dart';
 
 class A {
-  @ToBeDeprecated('Use bar instead.')
+  @V1Ast('The V2 counterpart is bar.')
   int get foo => 0;
 }
 
 int f(A a) => a.foo;
 ''',
-      [lint(120, 3)],
+      [lint(111, 3)],
     );
   }
 
-  test_getter_insideToBeDeprecatedMethod() async {
+  test_getter_insideV1AstMethod() async {
     await assertNoDiagnostics(r'''
-import 'to_be_deprecated.dart';
+import 'v1_ast.dart';
 
 class A {
-  @ToBeDeprecated('Use bar instead.')
+  @V1Ast('The V2 counterpart is bar.')
   int get foo => 0;
 
-  @ToBeDeprecated()
+  @V1Ast()
   int baz() => foo;
 }
 ''');
@@ -149,9 +149,9 @@ class A {
 
   test_importDirective_show() async {
     newFile('$testPackageLibPath/a.dart', r'''
-import 'to_be_deprecated.dart';
+import 'v1_ast.dart';
 
-@ToBeDeprecated('Use B instead.')
+@V1Ast('The V2 counterpart is B.')
 class A {}
 ''');
     await assertDiagnostics(
@@ -164,7 +164,7 @@ void foo(A a) {}
     );
   }
 
-  test_notToBeDeprecated() async {
+  test_notV1Ast() async {
     await assertNoDiagnostics(r'''
 class A {
   int get foo => 0;
@@ -177,9 +177,9 @@ int f(A a) => a.foo;
   test_topLevelFunction() async {
     await assertDiagnostics(
       r'''
-import 'to_be_deprecated.dart';
+import 'v1_ast.dart';
 
-@ToBeDeprecated()
+@V1Ast()
 void foo() {}
 
 void bar() {
@@ -188,10 +188,10 @@ void bar() {
 ''',
       [
         lint(
-          81,
+          62,
           3,
           messageContainsAll: [
-            RegExp(r"^'foo' is to be deprecated, .* to be deprecated\.$"),
+            RegExp(r"^'foo' is part of the V1 AST API, .* V1 AST API\.$"),
           ],
         ),
       ],

@@ -16,7 +16,7 @@ import '../resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     defineReflectiveTests(ElementLocatorTest);
     defineReflectiveTests(ElementLocatorV2Test);
     defineReflectiveTests(UpdateNodeTextExpectations);
@@ -24,7 +24,7 @@ main() {
 }
 
 @reflectiveTest
-@ToBeDeprecated('Use ElementLocatorV2Test instead.')
+@V1Ast('The V2 counterpart is ElementLocatorV2Test.')
 class ElementLocatorTest extends PubPackageResolutionTest {
   test_locate_AssignedVariablePattern() async {
     var result = await resolveTestCodeWithDiagnostics(r'''

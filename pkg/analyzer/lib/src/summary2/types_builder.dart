@@ -167,6 +167,8 @@ class TypesBuilder {
       _functionDeclaration(node);
     } else if (node is TopLevelGetterDeclarationImpl) {
       _topLevelGetterDeclaration(node);
+    } else if (node is TopLevelSetterDeclarationImpl) {
+      _topLevelSetterDeclaration(node);
     } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
     } else if (node is RegularFormalParameterImpl) {
@@ -259,20 +261,8 @@ class TypesBuilder {
 
   void _functionDeclaration(FunctionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
     if (fragment.previousFragment == null) {
-      var returnType = node.returnType?.type;
-      if (returnType == null) {
-        if (node.isSetter) {
-          returnType = _voidType;
-        } else {
-          returnType = _dynamicType;
-        }
-      }
-
-      element.returnType = returnType;
-      _setSyntheticVariableType(element);
+      fragment.element.returnType = node.returnType?.type ?? _dynamicType;
     }
   }
 
@@ -462,6 +452,16 @@ class TypesBuilder {
 
     if (fragment.previousFragment == null) {
       element.returnType = node.returnType?.type ?? _dynamicType;
+      _setSyntheticVariableType(element);
+    }
+  }
+
+  void _topLevelSetterDeclaration(TopLevelSetterDeclarationImpl node) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    if (fragment.previousFragment == null) {
+      element.returnType = node.returnType?.type ?? _voidType;
       _setSyntheticVariableType(element);
     }
   }

@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -77,7 +77,7 @@ extension ArgumentExtension on Argument {
   }
 }
 
-@ToBeDeprecated('Use AstNodeExtension2 instead.')
+@V1Ast('The V2 counterpart is AstNodeExtension2.')
 extension AstNodeExtension on AstNode? {
   /// Returns the instance creation expression that surrounds this node, if any,
   /// and otherwise `null`.
@@ -549,7 +549,7 @@ extension ElementAnnotationExtension on ElementAnnotation {
   }
 }
 
-@ToBeDeprecated('Use ConstructorInvocationExtension instead.')
+@V1Ast('The V2 counterpart is ConstructorInvocationExtension.')
 extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   /// The named expression representing the `builder` argument, or `null` if
   /// there is none.

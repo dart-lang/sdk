@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show ToBeDeprecated;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -4231,7 +4231,7 @@ V1: PropertyAccess
 ''');
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_realTarget_views() async {
     var result = await resolveTestCode(r'''
 void f(int? x) {

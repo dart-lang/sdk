@@ -378,17 +378,25 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -834,17 +842,25 @@ CompilationUnit
           lib
       semicolon: ; <synthetic>
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1330,17 +1346,25 @@ CompilationUnit
           <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1818,17 +1842,25 @@ CompilationUnit
           a
       semicolon: ; <synthetic>
   declarations2
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b

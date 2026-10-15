@@ -344,11 +344,6 @@ class DefaultTypesBuilder {
           node.declaredFragment!,
           node.functionExpression.typeParameters,
         );
-      case TopLevelGetterDeclarationImpl():
-        return _FragmentTypeParameters(
-          node.declaredFragment!,
-          node.recoveryTypeParameters,
-        );
       case FunctionExpressionImpl():
         return _FragmentTypeParameters(
           node.declaredFragment!,

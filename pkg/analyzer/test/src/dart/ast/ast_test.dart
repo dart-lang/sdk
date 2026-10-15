@@ -287,7 +287,7 @@ class C {
     assertIsConst(result, "C()]", false);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_typeArgumentsAfterConstructorName_v1Projection() async {
     var result = await resolveTestCode('''
 void f() {
@@ -309,7 +309,7 @@ class C<E> {
     expect(node?.parent, isA<InstanceCreationExpressionImpl>());
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1Projection() async {
     var result = await resolveTestCode('''
 var x = C<int>.named(0);
@@ -581,7 +581,7 @@ var x = throw 42;
     expect(result, isNull);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1_constantReference_importPrefixed() async {
     newFile('$testPackageLibPath/a.dart', 'const a = 42;');
     var unitResult = await resolveTestCode('''
@@ -597,7 +597,7 @@ const x = p.a;
     expect(result.value!.toIntValue(), 42);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1_extensionOverride() async {
     var unitResult = await resolveTestCode('''
 extension E on int {
@@ -610,7 +610,7 @@ var x = E(0).foo;
     expect(node.computeConstantValue(), isNull);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1_prefixedIdentifier_assignmentTarget() async {
     newFile('$testPackageLibPath/a.dart', r'''
 var a = 0;
@@ -626,7 +626,7 @@ void f() {
     expect(node.computeConstantValue(), isNull);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1_simpleIdentifier_propertyName() async {
     var unitResult = await resolveTestCode('''
 class A {
@@ -640,7 +640,7 @@ var x = A.foo;
     expect(node.identifier.computeConstantValue(), isNull);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1_superExpression() async {
     var unitResult = await resolveTestCode('''
 class A {
@@ -699,7 +699,7 @@ var x = const C(0);
     expect(context?.$2?.lexeme, 'const');
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_constantContext_constructorInvocation_v1Projection() {
     parse('''
 class C {
@@ -1270,7 +1270,7 @@ final x = const (0, (1, 2));
     assertInContext('(1, 2)', true);
   }
 
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_inConstantContext_topLevelGetter_v1Projection() {
     parse('''
 int get foo => 0;
@@ -1283,7 +1283,7 @@ int get foo => 0;
 
 @reflectiveTest
 class ForEachPartsImplTest extends PubPackageResolutionTest {
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_iterable_constructorInvocation_astViews() async {
     var result = await resolveTestCode('''
 class C {}
@@ -2046,7 +2046,7 @@ class C { void call() {} }  Function f = C^();
 
 @reflectiveTest
 class ReceiverPropertyExtractionImplTest extends PubPackageResolutionTest {
-  @ToBeDeprecated('Tests the V1 projection.')
+  @V1Ast('Tests the V1 projection.')
   test_v1Projection_recordReceiver_parent() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void f((int,) r) {

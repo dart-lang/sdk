@@ -341,6 +341,14 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    _scopeContext.visitTopLevelSetterDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     node.visitChildren2(this);
   }

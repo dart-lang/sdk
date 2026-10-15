@@ -25,7 +25,7 @@ part of 'visitor.dart';
 /// invoked and will cause the children of the visited node to not be visited.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated()
+@V1Ast()
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const GeneralizingAstVisitor();
@@ -788,7 +788,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 /// visited.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated('Use RecursiveAstVisitor2 instead')
+@V1Ast('The V2 counterpart is RecursiveAstVisitor2.')
 class RecursiveAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const RecursiveAstVisitor();
@@ -3258,6 +3258,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
+  @override
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
   @override
   R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     node.visitChildren2(this);
@@ -3379,7 +3386,7 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 /// a whole structure) and that only need to visit a small number of node types.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated('Use SimpleAstVisitor2 instead')
+@V1Ast('The V2 counterpart is SimpleAstVisitor2.')
 class SimpleAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const SimpleAstVisitor();
@@ -4691,6 +4698,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) => null;
 
+  @experimental
+  @override
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) => null;
+
   @override
   R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => null;
 
@@ -4761,7 +4772,7 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 /// want to catch when any other visit methods have been invoked.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated('Use ThrowingAstVisitor2 instead')
+@V1Ast('The V2 counterpart is ThrowingAstVisitor2.')
 class ThrowingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const ThrowingAstVisitor();
@@ -6110,6 +6121,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) =>
       _throw(node);
 
+  @experimental
+  @override
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) =>
+      _throw(node);
+
   @override
   R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
       _throw(node);
@@ -6186,7 +6202,7 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 /// An AST visitor that captures visit call timings.
 ///
 /// Clients may not extend, implement or mix-in this class.
-@ToBeDeprecated('Use TimedAstVisitor2 instead')
+@V1Ast('The V2 counterpart is TimedAstVisitor2.')
 class TimedAstVisitor<T> implements AstVisitor<T> {
   /// The base visitor whose visit methods will be timed.
   final AstVisitor<T> _baseVisitor;
@@ -9449,6 +9465,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
+  @override
+  T? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitTopLevelSetterDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
   @override
   T? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     stopwatch.start();
@@ -9611,7 +9636,7 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 /// visited.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated('Use UnifyingAstVisitor2 instead')
+@V1Ast('The V2 counterpart is UnifyingAstVisitor2.')
 class UnifyingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const UnifyingAstVisitor();
@@ -11002,6 +11027,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @experimental
   @override
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) =>
+      visitNode(node);
+
+  @experimental
+  @override
+  R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) =>
       visitNode(node);
 
   @override

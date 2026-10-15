@@ -83,7 +83,7 @@ class StringSearchUtilGenerator {
     List<MethodDeclarationImpl> result = [];
     var declarations = resolvedUnit
         .unit
-        .declarations; // ignore: analyzer_to_be_deprecated_use, unnecessary_ignore
+        .declarations; // ignore: analyzer_v1_ast_use, unnecessary_ignore
     for (var nodeImpl in declarations) {
       if (nodeImpl is ClassDeclarationImpl) {
         for (var member in nodeImpl.body.members) {

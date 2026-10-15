@@ -222,7 +222,7 @@ class TestCodePosition {
   TestCodePosition(this.lineInfo, this.offset);
 
   AstNode? findNode(ParsedUnitResult unitResult) {
-    // ignore: analyzer_to_be_deprecated_use
+    // ignore: analyzer_v1_ast_use
     return unitResult.unit.nodeCovering(offset: offset);
   }
 }

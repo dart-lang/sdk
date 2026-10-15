@@ -72,13 +72,15 @@ class SwapTopLevelFunctionsMutation extends Mutation {
     return mutations;
   }
 
-  /// The top-level functions and getters of [unit], with their names.
+  /// The top-level functions, getters, and setters of [unit], with their
+  /// names.
   static List<(AnnotatedNode, Token)> _functions(CompilationUnit unit) {
     return [
       for (var declaration in unit.declarations2)
         if (declaration
             case FunctionDeclaration(:var name) ||
-                TopLevelGetterDeclaration(:var name))
+                TopLevelGetterDeclaration(:var name) ||
+                TopLevelSetterDeclaration(:var name))
           (declaration, name),
     ];
   }

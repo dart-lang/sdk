@@ -548,6 +548,7 @@ class MemberDuplicateDefinitionVerifier {
         case ClassTypeAliasImpl():
         case FunctionDeclarationImpl():
         case TopLevelGetterDeclarationImpl():
+        case TopLevelSetterDeclarationImpl():
         case FunctionTypeAliasImpl():
         case GenericTypeAliasImpl():
         case TopLevelVariableDeclarationImpl():
@@ -576,6 +577,7 @@ class MemberDuplicateDefinitionVerifier {
         case ClassTypeAliasImpl():
         case FunctionDeclarationImpl():
         case TopLevelGetterDeclarationImpl():
+        case TopLevelSetterDeclarationImpl():
         case FunctionTypeAliasImpl():
         case GenericTypeAliasImpl():
         case TopLevelVariableDeclarationImpl():

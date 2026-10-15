@@ -120,8 +120,8 @@ enum _AstVersionPolicy {
   v2MigrationSdk,
 
   /// Generates the dual tree views for publication while V2 is experimental;
-  /// V1 projection APIs are marked `@ToBeDeprecated` rather than directing
-  /// clients to experimental replacements.
+  /// V1 projection APIs are marked `@V1Ast`, which only names their V2
+  /// counterparts, rather than being deprecated in favor of experimental API.
   v2MigrationPublishExperimental,
 
   /// Generates the dual tree views once V2 is stable: V2 is the public
@@ -160,7 +160,7 @@ enum _AstVersionPolicy {
       v2MigrationSdk ||
       v2MigrationPublishStable => "@Deprecated('Use $v2Name instead')",
       v2MigrationPublishExperimental =>
-        "@ToBeDeprecated('Use $v2Name instead')",
+        "@V1Ast('The V2 counterpart is $v2Name.')",
     };
   }
 }
@@ -321,7 +321,7 @@ part of 'visitor.dart';
 /// invoked and will cause the children of the visited node to not be visited.
 ///
 /// Clients may extend this class.
-@ToBeDeprecated()
+@V1Ast()
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
   const GeneralizingAstVisitor();

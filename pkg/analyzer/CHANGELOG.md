@@ -9,136 +9,72 @@
   patterns are again relative to the folder of the `analysis_options.yaml`
   file at the start of the `include:` chain.
   See https://github.com/dart-lang/sdk/issues/64549.
-* Replaced the `undefined_super_member` diagnostic, which was reported for
-  getters, methods, setters, and operators, with three diagnostics, as
-  proposed in https://github.com/dart-lang/sdk/issues/64411:
-  * `undefined_super_member_read`, for `super.foo` and `super.foo()`, when no
-    superclass has a method, getter, or field that can be read. The message
-    says when a superclass has only a setter, or a private member of another
-    library.
-  * `undefined_super_member_write`, for `super.foo = v`, when no superclass
-    has a setter. The message says when a superclass has only a getter, a
-    final field, a method, or a private member of another library.
+* Failed name and member lookups are reported by which lookup failed, and
+  whether a read or a write was required, instead of by the kind of
+  declaration guessed from the syntax, as proposed in
+  https://github.com/dart-lang/sdk/issues/64411. Each lookup has two new
+  diagnostics, one for reads, such as `foo`, `foo()`, and the read of
+  `foo += 1`, and one for writes, such as `foo = v` and the write of
+  `foo += 1`:
+  * `undefined_unqualified_name_read` and `undefined_unqualified_name_write`,
+    for names without a qualifier, such as `foo`, `foo<int>`, `@foo`,
+    `for (foo in xs)`, and `(foo) = r`.
+  * `undefined_prefixed_name_read` and `undefined_prefixed_name_write`, for
+    names imported with a prefix, such as `p.foo`.
+  * `undefined_static_member_read` and `undefined_static_member_write`, for
+    static members of a class, enum, mixin, extension type, or extension, such
+    as `C.foo`, and for dot shorthands, such as `.foo` and `.foo()`.
+  * `undefined_instance_member_read` and `undefined_instance_member_write`,
+    for members of the static type of the receiver and its applicable
+    extensions, such as `x.foo`, and for the field `foo` of an object pattern
+    `C(foo: _)`.
+  * `undefined_extension_member_read` and `undefined_extension_member_write`,
+    for extension overrides, such as `E(x).foo`.
+  * `undefined_super_member_read` and `undefined_super_member_write`, for
+    `super.foo`.
   * `undefined_super_operator`, for `super + v`, `-super`, `super[i]`, and
-    `super[i] = v`.
+    `super[i] = v`, which was a variant of `undefined_super_member`.
 
-  Replace `undefined_super_member` with the new names in `// ignore:`
-  comments and in `analysis_options.yaml`, where the old name is still
-  accepted, but has no effect.
-* Members of the interfaces that a class or mixin implements are no longer
-  considered to be in a superclass. For example, `super.foo()` in
-  `mixin M implements A` now reports `undefined_super_member_read` instead of
-  `abstract_super_member_reference`, when only `A` has `foo`.
-* Extension overrides, such as `E(x).foo`, report two new diagnostics
-  instead of `undefined_extension_getter`, `undefined_extension_method`, and
-  `undefined_extension_setter`:
-  * `undefined_extension_member_read`, for `E(x).foo` and `E(x).foo()`, when
-    the extension doesn't declare a method or getter. The message says when
-    the extension declares only a setter.
-  * `undefined_extension_member_write`, for `E(x).foo = v`, when the
-    extension doesn't declare a setter. The message says when the extension
-    declares only a getter, or a method.
+  A read fails when there is no method, getter, field, variable, function, or
+  type with the name; a write fails when there is no setter or assignable
+  variable. The message says what was found instead: only a setter, for a
+  read; only a getter, a final or constant variable or field, a function, a
+  method, or a type, for a write; or a private declaration of another
+  library, for every lookup except unqualified names. Undefined names in
+  annotations and constant expressions get corrections that suggest only
+  what is valid there, and a dot shorthand names its context type.
 
-  A private member of an extension declared in another library is no longer
-  found through an extension override, such as `E(x)._foo`, and the message
-  says that it is private.
+  These diagnostics replace `undefined_identifier`, `undefined_function`,
+  `undefined_prefixed_name`, `undefined_getter`, `undefined_method`,
+  `undefined_setter`, `undefined_enum_constant`,
+  `dot_shorthand_undefined_member`, `undefined_extension_getter`,
+  `undefined_extension_method`, `undefined_extension_setter`,
+  `undefined_super_member`, `assignment_to_const`, `assignment_to_final`,
+  `assignment_to_final_no_setter`, `assignment_to_function`,
+  `assignment_to_method`, `assignment_to_type`, and `private_setter`, which
+  are no longer reported. Replace them with the new names in `// ignore:`
+  comments and in `analysis_options.yaml`, where the old names are still
+  accepted, but have no effect.
 
-  Use the new names in `// ignore:` comments and in `analysis_options.yaml`
-  for extension overrides.
-* Static member accesses, such as `C.foo` and `E.foo`, report two new
-  diagnostics:
-  * `undefined_static_member_read`, for `C.foo` and `C.foo()`, when the
-    class, enum, mixin, extension type, or extension doesn't declare a static
-    method, getter, or field, or an enum value. The message says when it
-    declares only a setter or a private member in another library, or when
-    the qualifier is a function type alias, which has no static members.
-  * `undefined_static_member_write`, for `C.foo = v`, when the target doesn't
-    declare a static setter. The message says when it declares only a getter,
-    a final or constant field, a method, or a private member in another
-    library.
-
-  These replace `undefined_enum_constant`, `undefined_extension_getter`,
-  `undefined_extension_method`, `undefined_extension_setter`, and
-  `private_setter` entirely, as well as `undefined_getter`,
-  `undefined_setter`, and `undefined_method` for static members. A private
-  static member of an extension declared in another library, such as
-  `E._foo`, is no longer found.
-
-  Replace the removed names with the new names in `// ignore:` comments and
-  in `analysis_options.yaml`, where the old names are still accepted but have
-  no effect.
-* Dot shorthands, such as `.foo` and `.foo()`, report
-  `undefined_static_member_read` instead of `dot_shorthand_undefined_member`,
-  with a message that names the context type. A dot shorthand whose context
-  type has no static members, such as a function type, or is a private class
-  of another library, reports it too, instead of
-  `dot_shorthand_missing_context`, which is now reported only when there is
-  no context type. Replace `dot_shorthand_undefined_member` in `// ignore:`
-  comments and in `analysis_options.yaml`.
-* Reads of instance members, such as `x.foo`, `x.foo()`, `x.foo += 1`, and
-  the field `foo` of an object pattern `C(foo: _)`, report
-  `undefined_instance_member_read` when neither the static type of the
-  receiver nor an applicable extension has a method, getter, or field named
-  `foo`. The message says when there is only a setter, or a private member
-  of another library, including a member of an extension. This replaces
-  `undefined_getter`, and `undefined_method` for invocations with a receiver;
-  `undefined_method` is still reported for invocations without a receiver,
-  such as `foo()` inside a class. Replace `undefined_getter` in `// ignore:`
-  comments and in `analysis_options.yaml`, where it is still accepted, but
-  has no effect.
-* Writes of instance members, such as `x.foo = v` and `x.foo += 1`, report
-  `undefined_instance_member_write` when neither the static type of the
-  receiver nor an applicable extension has a setter named `foo`. The message
-  says when there is only a getter, including a field of a record, a final
-  field, a method, or a private member of another library. This replaces `undefined_setter`, and
-  `assignment_to_final`, `assignment_to_final_no_setter`, and
-  `assignment_to_method` for instance members; these three are still
-  reported for unqualified names, such as `foo = v` inside a class. A
-  read-write operation, such as `x.foo += 1`, reports only the read when
-  both the read and the write fail. Replace `undefined_setter` in
-  `// ignore:` comments and in `analysis_options.yaml`, where it is still
-  accepted, but has no effect.
-* Names imported with a prefix, such as `p.foo`, report two new diagnostics
-  instead of `undefined_prefixed_name`:
-  * `undefined_prefixed_name_read`, for `p.foo`, `p.foo()`, and the read of
-    `p.foo += 1`, when no library imported with the prefix has a getter,
-    function, variable, or type named `foo`. This replaces
-    `undefined_function` for prefixed invocations. The message says when
-    there is only a setter, or a private declaration of an imported library.
-  * `undefined_prefixed_name_write`, for `p.foo = v`, when no library
-    imported with the prefix has a setter named `foo`. The message says when
-    there is only a getter, a final or constant variable, a function or a
-    type, or a private declaration of an imported library. Before, all of
-    these reported that `foo` isn't defined.
-
-  Replace `undefined_prefixed_name` with the new names in `// ignore:`
-  comments and in `analysis_options.yaml`, where it is still accepted, but
-  has no effect.
-* Names without a qualifier, such as `foo`, `foo()`, and `foo = v`, report
-  two new diagnostics:
-  * `undefined_unqualified_name_read`, for `foo`, `foo()`, `foo<int>`, and
-    the read of `foo += 1`, when no variable, getter, function, method, or
-    type named `foo` is in scope. This replaces `undefined_identifier` for
-    reads, `undefined_function`, and `undefined_method` for invocations
-    without a receiver. The message says when there is only a setter.
-  * `undefined_unqualified_name_write`, for `foo = v`, the write of
-    `foo += 1`, `for (foo in xs)`, and `(foo) = r`, when no setter or
-    variable named `foo` is in scope. This replaces `undefined_identifier`
-    for writes, and `assignment_to_const`, `assignment_to_final`,
-    `assignment_to_final_no_setter`, `assignment_to_function`,
-    `assignment_to_method`, and `assignment_to_type`. The message says when
-    there is only a getter, a final or constant variable, or a function,
-    method, or type.
-
-  An assignment to an erroneously constant instance field, or to an instance
-  field declared in an extension, no longer reports anything at the
-  assignment; the declaration already reports `const_instance_field` or
-  `extension_declares_instance_field`. A read-write operation, such as
-  `foo += 1`, reports only the read when both the read and the write fail.
-
-  Replace the removed names with the new names in `// ignore:` comments and
-  in `analysis_options.yaml`, where they are still accepted, but have no
-  effect.
+  Other behavior changes:
+  * A read-write operation, such as `foo += 1`, `x.foo += 1`,
+    `super.foo ??= v`, `super.foo++`, or `super[i] += 1`, reports only the
+    read when both the read and the write fail.
+  * Members of the interfaces that a class or mixin implements are no longer
+    considered to be in a superclass. For example, `super.foo()` in
+    `mixin M implements A` now reports `undefined_super_member_read` instead
+    of `abstract_super_member_reference`, when only `A` has `foo`.
+  * A private member of an extension declared in another library is no
+    longer found, either through an extension override, such as `E(x)._foo`,
+    or as a static member, such as `E._foo`.
+  * A dot shorthand whose context type has no static members, such as a
+    function type, or is a private class of another library, reports
+    `undefined_static_member_read` instead of `dot_shorthand_missing_context`,
+    which is now reported only when there is no context type.
+  * An assignment to an erroneously constant instance field, or to an
+    instance field declared in an extension, no longer reports anything at
+    the assignment; the declaration already reports `const_instance_field` or
+    `extension_declares_instance_field`.
 * A name in a constant expression whose read is already reported as invalid,
   such as an undefined name in `const x = foo;`, `const y = [C.foo];`,
   `const z = 'abc'.lenght;`, or `@A(p.foo)`, no longer also reports that the

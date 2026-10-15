@@ -369,6 +369,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ThrowExpression,
         TopLevelDeclaration,
         TopLevelGetterDeclaration,
+        TopLevelSetterDeclaration,
         TopLevelVariableDeclaration,
         TryStatement,
         TypeAlias,

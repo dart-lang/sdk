@@ -8,7 +8,6 @@ import 'dart:io';
 
 import 'package:args/args.dart';
 import 'package:dart_runtime_service/dart_runtime_service.dart';
-import 'package:dds/dds.dart' show DartDevelopmentServiceException;
 import 'package:logging/logging.dart';
 
 import 'arg_parser.dart';
@@ -23,7 +22,6 @@ const _errorState = 'error';
 const _ddsUriKey = 'ddsUri';
 const _errorKey = 'error';
 const _stacktraceKey = 'stacktrace';
-const _ddsExceptionDetailsKey = 'ddsExceptionDetails';
 
 const _devToolsUriKey = 'devToolsUri';
 const _dtdKey = 'dtd';
@@ -59,11 +57,6 @@ Future<void> runDartDevelopmentServiceFromCLI(List<String> args) async {
       DartDevelopmentServiceOptions.disableServiceAuthCodesFlag,
       abbr: 'd',
       help: 'Disables authentication codes.',
-      negatable: false,
-    )
-    ..addFlag(
-      DartDevelopmentServiceOptions.disableServiceOriginCheckFlag,
-      help: 'Disables the HTTP/WebSocket origin check.',
       negatable: false,
     )
     ..addFlag(
@@ -156,9 +149,6 @@ ${parser.usage}''');
   final disableServiceAuthCodes =
       argResults[DartDevelopmentServiceOptions.disableServiceAuthCodesFlag]
           as bool;
-  final disableServiceOriginCheck =
-      argResults[DartDevelopmentServiceOptions.disableServiceOriginCheckFlag]
-          as bool;
   final enableLogging = argResults[_enableLoggingFlag] as bool;
   final enableServicePortFallback =
       argResults[DartDevelopmentServiceOptions.enableServicePortFallbackFlag]
@@ -202,7 +192,6 @@ ${parser.usage}''');
       ),
       config: DartRuntimeServiceOptions(
         disableAuthCodes: disableServiceAuthCodes,
-        disableOriginCheck: disableServiceOriginCheck,
         enableLogging: enableLogging,
         enableServicePortFallback: enableServicePortFallback,
         host: bindAddress,
@@ -228,21 +217,8 @@ ${parser.usage}''');
     // Always close stderr to notify tooling that DDS has finished writing
     // launch details.
     await stderr.close();
-  } on DartRuntimeServiceFailedToStartException catch (e, st) {
-    _writeErrorResponse(
-      DartDevelopmentServiceException.connectionIssue(e.message),
-      st,
-    );
-    await stderr.close();
-    await ddsService?.shutdown();
-    exit(1);
   } catch (e, st) {
-    _writeErrorResponse(
-      e is DartDevelopmentServiceException
-          ? e
-          : DartDevelopmentServiceException.failedToStart('$e'),
-      st,
-    );
+    _writeErrorResponse(e, st);
     await stderr.close();
     await ddsService?.shutdown();
     exit(1);
@@ -255,8 +231,6 @@ void _writeErrorResponse(Object error, [StackTrace? stackTrace]) {
       _errorKey: '$error',
       _stateKey: _errorState,
       if (stackTrace != null) _stacktraceKey: '$stackTrace',
-      if (error is DartDevelopmentServiceException)
-        _ddsExceptionDetailsKey: error.toJson(),
     }),
   );
 }

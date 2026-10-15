@@ -146,6 +146,10 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         if (_hasOffset(node.name)) {
           result = node;
         }
+      } else if (node is TopLevelSetterDeclarationImpl) {
+        if (_hasOffset(node.name)) {
+          result = node;
+        }
       } else if (node is FunctionDeclaration) {
         if (_hasOffset(node.name)) {
           result = node;
@@ -338,8 +342,8 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
     if (declaration == null) {
       return null;
     }
-    if (!useV2 && declaration is TopLevelGetterDeclarationImpl) {
-      // ignore: analyzer_to_be_deprecated_use
+    if (!useV2 && declaration is FunctionDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
       declaration = V1Projection.toV1CompilationUnitMember(declaration);
     }
 
@@ -497,8 +501,8 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
     if (declaration == null) {
       return null;
     }
-    if (!useV2 && declaration is TopLevelGetterDeclarationImpl) {
-      // ignore: analyzer_to_be_deprecated_use
+    if (!useV2 && declaration is FunctionDeclarationV1OriginImpl) {
+      // ignore: analyzer_v1_ast_use
       declaration = V1Projection.toV1CompilationUnitMember(declaration);
     }
 

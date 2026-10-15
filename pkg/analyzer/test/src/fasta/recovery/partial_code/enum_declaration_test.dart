@@ -834,17 +834,35 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1304,17 +1322,37 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -1763,17 +1801,37 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2151,17 +2209,32 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -2984,17 +3057,32 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: {
         rightBracket: }
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumBody
+        leftBracket: {
+        rightBracket: }
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3374,17 +3462,32 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b
@@ -3796,17 +3899,35 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
+    TopLevelSetterDeclaration
+      setKeyword: set
+      name: a
+      formalParameters: FormalParameterList
+        leftParenthesis: (
+        requiredPositionalFormalParameters
+          RegularFormalParameter
+            name: b
+        rightParenthesis: )
+      body: BlockFunctionBody
+        block: Block
+          leftBracket: {
+          rightBracket: }
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
     FunctionDeclaration
       propertyKeyword: set
       name: a
       functionExpression: FunctionExpression
         parameters: FormalParameterList
-          leftParenthesis: (
-          requiredPositionalFormalParameters
-            RegularFormalParameter
-              name: b
-          rightParenthesis: )
-        parameters(v1): FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: b

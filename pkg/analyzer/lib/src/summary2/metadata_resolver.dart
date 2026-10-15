@@ -304,8 +304,15 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
     covariant TopLevelGetterDeclarationImpl node,
   ) {
     node.metadata.accept2(this);
-    node.recoveryTypeParameters?.accept2(this);
     node.recoveryFormalParameters?.accept2(this);
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    node.metadata.accept2(this);
+    node.formalParameters.accept2(this);
   }
 
   @override

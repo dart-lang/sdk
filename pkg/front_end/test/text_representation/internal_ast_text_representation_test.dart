@@ -2925,6 +2925,7 @@ void _testSuperIndexSet() {
       setter: setter,
       index: new InternalIntLiteral(0, '0', fileOffset: TreeNode.noOffset),
       value: new InternalIntLiteral(1, '1', fileOffset: TreeNode.noOffset),
+      forEffect: false,
       fileOffset: TreeNode.noOffset,
     ),
     '''

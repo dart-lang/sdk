@@ -1712,6 +1712,18 @@ class ToSourceVisitor implements AstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.augmentKeyword, suffix: ' ');
+    _visitToken(node.externalKeyword, suffix: ' ');
+    _visitNode(node.returnType, suffix: ' ');
+    _visitToken(node.setKeyword, suffix: ' ');
+    _visitToken(node.name);
+    _visitNode(node.formalParameters);
+    _visitFunctionBody(node.body);
+  }
+
+  @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.augmentKeyword, suffix: ' ');

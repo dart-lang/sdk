@@ -1426,13 +1426,15 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       element,
       () {
         TypeAnnotation? returnType = node.returnType;
-        if (node.isSetter) {
-          _checkForNonVoidReturnTypeForSetter(returnType);
-        }
         _checkForTypeAnnotationDeferredClass(returnType);
         _returnTypeVerifier.verifyReturnType(returnType);
         _checkForMainFunction1(declaredFragment, node.name);
-        _checkForMainFunction2(node);
+        if (node.parent2 is CompilationUnit) {
+          _checkForMainFunction2(
+            nameToken: node.name,
+            parameterList: node.functionExpression.parameters,
+          );
+        }
         _checkForExternalMethodWithBody(
           externalKeyword: node.externalKeyword,
           body: node.functionExpression.body,
@@ -2347,23 +2349,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       node: node,
       nameToken: node.name,
     );
-    // _checkForAugmentationTypeParameters(
-    //   fragment: declaredFragment,
-    //   firstTypeParameters: element.firstFragment.typeParameters,
-    //   nameOrKeywordToken: node.name,
-    //   typeParameterList: node.recoveryTypeParameters,
-    // );
     _checkForAugmentationReturnTypeMismatch(
       fragment: declaredFragment,
       returnTypeNode: node.returnType,
       errorEntity: node.returnType ?? node.name,
     );
-    // if (node.recoveryFormalParameters case var parameters?) {
-    //   _checkForAugmentationFormalParameters(
-    //     executableFragment: declaredFragment,
-    //     formalParameterList: parameters,
-    //   );
-    // }
 
     _withEnclosingExecutable(
       element,
@@ -2377,6 +2367,66 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
           body: node.body,
         );
         super.visitTopLevelGetterDeclaration(node);
+      },
+      isAsynchronous: declaredFragment.isAsynchronous,
+      isGenerator: declaredFragment.isGenerator,
+    );
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(
+    covariant TopLevelSetterDeclarationImpl node,
+  ) {
+    var declaredFragment = node.declaredFragment!;
+    var element = declaredFragment.element;
+
+    var hasConstVariableAugmentation =
+        _checkForConstVariableAugmentationByAccessor(
+          fragment: declaredFragment,
+          errorToken: node.name,
+        );
+    if (!hasConstVariableAugmentation) {
+      _checkAugmentationWithoutDeclaration(
+        declaredFragment,
+        node.augmentKeyword,
+      );
+      _checkForFunctionAlreadyComplete(
+        fragment: declaredFragment,
+        augmentKeyword: node.augmentKeyword,
+      );
+    }
+    _checkForFunctionBodyCompleteness(
+      fragment: declaredFragment,
+      node: node,
+      nameToken: node.name,
+    );
+    _checkForAugmentationReturnTypeMismatch(
+      fragment: declaredFragment,
+      returnTypeNode: node.returnType,
+      errorEntity: node.returnType ?? node.name,
+    );
+    _checkForAugmentationFormalParameters(
+      executableFragment: declaredFragment,
+      formalParameterList: node.formalParameters,
+    );
+
+    _withEnclosingExecutable(
+      element,
+      () {
+        var returnType = node.returnType;
+        _checkForNonVoidReturnTypeForSetter(returnType);
+        _checkForTypeAnnotationDeferredClass(returnType);
+        _returnTypeVerifier.verifyReturnType(returnType);
+        _checkForMainFunction1(declaredFragment, node.name);
+        _checkForMainFunction2(
+          nameToken: node.name,
+          parameterList: node.formalParameters,
+        );
+        _checkForExternalMethodWithBody(
+          externalKeyword: node.externalKeyword,
+          body: node.body,
+        );
+        super.visitTopLevelSetterDeclaration(node);
       },
       isAsynchronous: declaredFragment.isAsynchronous,
       isGenerator: declaredFragment.isGenerator,
@@ -5768,6 +5818,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
             FunctionDeclaration(:var functionExpression) =>
               functionExpression.body,
             TopLevelGetterDeclaration(:var body) => body,
+            TopLevelSetterDeclaration(:var body) => body,
             _ => throw StateError('Unexpected node type: ${node.runtimeType}'),
           };
           var errorToken = (body as EmptyFunctionBody).semicolon;
@@ -6170,16 +6221,16 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     }
   }
 
-  void _checkForMainFunction2(FunctionDeclarationImpl functionDeclaration) {
-    if (functionDeclaration.name.lexeme != 'main') {
+  /// Checks the formal parameters of the top-level declaration named
+  /// [nameToken], if it is `main`.
+  void _checkForMainFunction2({
+    required Token nameToken,
+    required FormalParameterListImpl? parameterList,
+  }) {
+    if (nameToken.lexeme != 'main') {
       return;
     }
 
-    if (functionDeclaration.parent2 is! CompilationUnit) {
-      return;
-    }
-
-    var parameterList = functionDeclaration.functionExpression.parameters;
     if (parameterList == null) {
       return;
     }
@@ -6192,15 +6243,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
     if (requiredPositional.length > 2) {
       diagnosticReporter.report(
-        diag.mainHasTooManyRequiredPositionalParameters.at(
-          functionDeclaration.name,
-        ),
+        diag.mainHasTooManyRequiredPositionalParameters.at(nameToken),
       );
     }
 
     if (parameters.any((e) => e.isRequiredNamed)) {
       diagnosticReporter.report(
-        diag.mainHasRequiredNamedParameters.at(functionDeclaration.name),
+        diag.mainHasRequiredNamedParameters.at(nameToken),
       );
     }
 
@@ -8320,6 +8369,13 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
 
+    if (parent is TopLevelGetterDeclaration ||
+        parent is TopLevelSetterDeclaration) {
+      // `EXTRANEOUS_MODIFIER` is reported by the parser, for library-level
+      // getters and setters.
+      return;
+    }
+
     var parameters = node.allFormalParameters;
     int length = parameters.length;
     for (int i = 0; i < length; i++) {
@@ -8373,6 +8429,15 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
         }
         return true;
       } else if (parent is TopLevelGetterDeclarationImpl) {
+        if (parent.augmentKeyword != null) {
+          return false;
+        } else if (parent.externalKeyword != null) {
+          return false;
+        } else if (parent.body is NativeFunctionBody) {
+          return false;
+        }
+        return true;
+      } else if (parent is TopLevelSetterDeclarationImpl) {
         if (parent.augmentKeyword != null) {
           return false;
         } else if (parent.externalKeyword != null) {

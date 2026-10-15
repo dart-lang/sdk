@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 /// An object used to locate the [Element] associated with a given V1 [AstNode].
-@ToBeDeprecated('Use ElementLocatorV2 instead')
+@V1Ast('The V2 counterpart is ElementLocatorV2.')
 class ElementLocator {
   /// Return the element associated with the given [node], or `null` if there
   /// is no element associated with the node.
@@ -35,7 +35,7 @@ class ElementLocatorV2 {
 }
 
 /// V1 visitor that maps nodes to elements.
-@ToBeDeprecated('Use _ElementMapperV2 instead.')
+@V1Ast('The V2 counterpart is _ElementMapperV2.')
 class _ElementMapper extends GeneralizingAstVisitor<Element> {
   @override
   Element? visitAnnotation(Annotation node) {

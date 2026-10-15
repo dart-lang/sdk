@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/element_usage_detector.dart';
 /// The "usage frontier" of a set of elements is defined as the locations in
 /// source code where elements that are _not_ in the set make use of elements
 /// that _are_ in the set.
-@ToBeDeprecated('Use ElementUsageFrontierDetector instead')
+@V1Ast('The V2 counterpart is ElementUsageFrontierDetector.')
 class ElementUsageFrontierDetector<TagInfo extends Object>
     extends ElementUsageDetector<TagInfo> {
   /// Stack corresponding to elements being visited that might be in ith

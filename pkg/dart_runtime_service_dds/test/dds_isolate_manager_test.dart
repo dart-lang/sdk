@@ -16,7 +16,6 @@ import 'package:vm_service/vm_service.dart' as vm;
 final class FakeVmService extends Fake implements vm.VmService {
   final isolates = <String, vm.Isolate>{};
   final resumedIsolates = <String>[];
-  Completer<void>? resumeCompleter;
 
   @override
   Future<vm.VM> getVM() async => vm.VM(
@@ -42,9 +41,6 @@ final class FakeVmService extends Fake implements vm.VmService {
     String? step,
   }) async {
     resumedIsolates.add(isolateId);
-    if (resumeCompleter case final completer?) {
-      await completer.future;
-    }
     if (isolates[isolateId] case final isolate?) {
       isolate.pauseEvent = vm.Event(
         kind: vm.EventKind.kResume,
@@ -255,7 +251,6 @@ void main() {
 
         // Client1 disconnects
         manager.handleClientDisconnected(client1);
-        await pumpEventQueue();
 
         // Now isolate should resume automatically since blocking client is gone
         expect(fakeVmService.resumedIsolates, contains('isolates/2'));
@@ -472,130 +467,9 @@ void main() {
         oldName: 'client1',
         newName: 'client1_renamed',
       );
-      await pumpEventQueue();
 
       // Now isolate should resume since client1's permissions are cleared
       expect(fakeVmService.resumedIsolates, contains('isolates/name_change'));
     });
-
-    test('serializes concurrent resume requests via mutex', () async {
-      final client = createTestClient(name: 'client');
-      final isolate = vm.Isolate(
-        id: 'isolates/concurrent',
-        name: 'main',
-        number: '12',
-        pauseEvent: vm.Event(
-          kind: vm.EventKind.kPauseBreakpoint,
-          timestamp: DateTime.now().millisecondsSinceEpoch,
-        ),
-      );
-      fakeVmService.isolates['isolates/concurrent'] = isolate;
-      await manager.initializeIsolates();
-
-      final completer = Completer<void>();
-      fakeVmService.resumeCompleter = completer;
-
-      final firstResume = manager.resume(
-        json_rpc.Parameters('resume', const <String, Object?>{
-          'isolateId': 'isolates/concurrent',
-          'step': 'Into',
-        }),
-        client,
-      );
-      final secondResume = manager.resume(
-        json_rpc.Parameters('resume', const <String, Object?>{
-          'isolateId': 'isolates/concurrent',
-        }),
-        client,
-      );
-
-      await pumpEventQueue();
-      // Only the first resume should have reached the VM service while blocked.
-      expect(fakeVmService.resumedIsolates, ['isolates/concurrent']);
-
-      fakeVmService.resumeCompleter = null;
-      completer.complete();
-
-      await Future.wait([firstResume, secondResume]);
-      expect(fakeVmService.resumedIsolates, [
-        'isolates/concurrent',
-        'isolates/concurrent',
-      ]);
-    });
-
-    test(
-      'serializes readyToResume with handleIsolateEvent via mutex',
-      () async {
-        final client = createTestClient(name: 'client');
-        final isolate = vm.Isolate(
-          id: 'isolates/race',
-          name: 'main',
-          number: '13',
-          pauseEvent: vm.Event(
-            kind: vm.EventKind.kPauseStart,
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-          ),
-        );
-        fakeVmService.isolates['isolates/race'] = isolate;
-        await manager.initializeIsolates();
-        await pumpEventQueue();
-
-        final completer = Completer<void>();
-        fakeVmService.resumeCompleter = completer;
-
-        final readyFuture = manager.readyToResume(
-          json_rpc.Parameters('readyToResume', const <String, Object?>{
-            'isolateId': 'isolates/race',
-          }),
-          client,
-        );
-
-        await pumpEventQueue();
-        expect(fakeVmService.resumedIsolates, ['isolates/race']);
-
-        // Dispatch a kResume followed by kPauseExit event while readyToResume
-        // is still in-flight awaiting the VM response.
-        manager.handleIsolateEvent(
-          vm.Event(
-            kind: vm.EventKind.kResume,
-            isolate: vm.IsolateRef(
-              id: 'isolates/race',
-              name: 'main',
-              number: '13',
-            ),
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-          ),
-        );
-        manager.handleIsolateEvent(
-          vm.Event(
-            kind: vm.EventKind.kPauseExit,
-            isolate: vm.IsolateRef(
-              id: 'isolates/race',
-              name: 'main',
-              number: '13',
-            ),
-            timestamp: DateTime.now().millisecondsSinceEpoch,
-          ),
-        );
-
-        await pumpEventQueue();
-        // State transition events must remain queued behind the in-flight
-        // readyToResume operation.
-        expect(
-          manager.ddsIsolates['isolates/race']?.state,
-          IsolateState.pauseStart,
-        );
-
-        fakeVmService.resumeCompleter = null;
-        completer.complete();
-        await readyFuture;
-        await pumpEventQueue();
-
-        expect(
-          manager.ddsIsolates['isolates/race']?.state,
-          IsolateState.pauseExit,
-        );
-      },
-    );
   });
 }
