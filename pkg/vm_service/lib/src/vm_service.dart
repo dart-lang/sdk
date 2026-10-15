@@ -2045,19 +2045,34 @@ class VmService {
     final request = _outstandingRequests.remove(json['id']);
     if (request == null) {
       _log.severe('unmatched request response: ${jsonEncode(json)}');
-    } else if (json['error'] case Map error) {
-      request.completeError(RPCError.parse(request.method, error));
-    } else {
-      final result = json['result'] as Map<String, dynamic>;
-      final type = result['type'];
-      if (type == 'Sentinel') {
-        request.completeError(SentinelException.parse(request.method, result));
-      } else if (_typeFactories[type] == null) {
-        request.complete(Response.parse(result));
+      return;
+    }
+    try {
+      if (json['error'] case Map error) {
+        request.completeError(RPCError.parse(request.method, error));
       } else {
-        final returnTypes = _methodReturnTypes[request.method] ?? <String>[];
-        request.complete(createServiceObject(result, returnTypes));
+        final result = json['result'] as Map<String, dynamic>;
+        final type = result['type'];
+        if (type == 'Sentinel') {
+          request.completeError(
+            SentinelException.parse(request.method, result),
+          );
+        } else if (_typeFactories[type] == null) {
+          request.complete(Response.parse(result));
+        } else {
+          // Methods without known return types (e.g., private RPCs or service
+          // extensions invoked via `callMethod`) may return a `null` instance
+          // (an `@Instance` with kind `Null`). Expect an `InstanceRef` so that
+          // `null` instances aren't replaced with `null`, which would cause
+          // completing the request to throw and the response to be dropped.
+          final returnTypes = _methodReturnTypes[request.method] ??
+              const <String>['InstanceRef'];
+          request.complete(createServiceObject(result, returnTypes));
+        }
       }
+    } catch (e, st) {
+      _log.severe('Failed to process response: $json, $e\n$st');
+      request.completeError(e);
     }
   }
 

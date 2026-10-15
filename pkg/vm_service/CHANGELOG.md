@@ -1,4 +1,7 @@
 ## 15.3.1-wip
+- Fix issue where requests for RPCs without a known return type (e.g., private
+  RPCs or service extensions invoked via `callMethod`) would never complete if
+  the response was a `null` instance.
 
 ## 15.3.0
 - Add support for WebSocket profiling.

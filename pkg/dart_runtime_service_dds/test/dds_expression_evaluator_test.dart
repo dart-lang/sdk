@@ -13,6 +13,18 @@ import 'package:vm_service/vm_service.dart' as vm;
 import 'package:vm_service/vm_service_io.dart';
 import 'package:web_socket_channel/io.dart';
 
+/// Kernel bytes which cause the mock VM's `_evaluateCompiledExpression` to
+/// return a `null` instance.
+const nullResultKernelBytes = 'null_result_kernel_bytes';
+
+/// Kernel bytes which cause the mock VM's `_evaluateCompiledExpression` to
+/// return an expired [vm.Sentinel].
+const sentinelResultKernelBytes = 'sentinel_result_kernel_bytes';
+
+/// An expression which the test `compileExpression` service compiles to
+/// [sentinelResultKernelBytes].
+const sentinelResultExpression = 'expiredObject';
+
 class MockVmService {
   MockVmService._(this.server, this.port);
 
@@ -81,11 +93,23 @@ class MockVmService {
       peer.registerMethod('_evaluateCompiledExpression', (
         json_rpc.Parameters params,
       ) {
-        return vm.InstanceRef(
-          id: 'objects/3',
-          kind: vm.InstanceKind.kString,
-          valueAsString: 'compiled:${params['kernelBytes'].asString}',
-        ).toJson();
+        final kernelBytes = params['kernelBytes'].asString;
+        return switch (kernelBytes) {
+          nullResultKernelBytes => vm.InstanceRef(
+            id: 'objects/null',
+            kind: vm.InstanceKind.kNull,
+            valueAsString: 'null',
+          ).toJson(),
+          sentinelResultKernelBytes => vm.Sentinel(
+            kind: vm.SentinelKind.kExpired,
+            valueAsString: '<expired>',
+          ).toJson(),
+          _ => vm.InstanceRef(
+            id: 'objects/3',
+            kind: vm.InstanceKind.kString,
+            valueAsString: 'compiled:$kernelBytes',
+          ).toJson(),
+        };
       });
 
       peer.listen();
@@ -180,5 +204,60 @@ void main() {
         );
       },
     );
+
+    group('with a registered compileExpression service', () {
+      setUp(() async {
+        await ddsClient.registerService(
+          'compileExpression',
+          'ExternalCompiler',
+        );
+        ddsClient.registerServiceCallback('compileExpression', (params) async {
+          return <String, Object?>{
+            'result': <String, Object?>{
+              'kernelBytes': params['expression'] == sentinelResultExpression
+                  ? sentinelResultKernelBytes
+                  : nullResultKernelBytes,
+            },
+          };
+        });
+      });
+
+      final isNullInstanceRef = isA<vm.InstanceRef>().having(
+        (r) => r.kind,
+        'kind',
+        vm.InstanceKind.kNull,
+      );
+
+      test('evaluate completes when the result is null', () async {
+        expect(
+          await ddsClient.evaluate('isolates/1', 'targets/1', 'voidMethod()'),
+          isNullInstanceRef,
+        );
+      });
+
+      test('evaluateInFrame completes when the result is null', () async {
+        expect(
+          await ddsClient.evaluateInFrame('isolates/1', 0, 'voidMethod()'),
+          isNullInstanceRef,
+        );
+      });
+
+      test('evaluate returns Sentinel results', () async {
+        await expectLater(
+          ddsClient.evaluate(
+            'isolates/1',
+            'targets/1',
+            sentinelResultExpression,
+          ),
+          throwsA(
+            isA<vm.SentinelException>().having(
+              (e) => e.sentinel.kind,
+              'sentinel.kind',
+              vm.SentinelKind.kExpired,
+            ),
+          ),
+        );
+      });
+    });
   });
 }
