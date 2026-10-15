@@ -41,6 +41,45 @@ Map<String, Object?> _createHttpProfileRequestFromProfileMap(
   };
 }
 
+/// Creates a Map conforming to the `WebSocketConnection` type from an
+/// element of dart:developer's WebSocket profiling data.
+Map<String, Object?> _createWebSocketConnectionFromProfileMap(
+  Map<String, Object?> connectionProfile, {
+  required bool ref,
+}) {
+  final json = <String, Object?>{
+    'type': '${ref ? '@' : ''}WebSocketConnection',
+    'id': connectionProfile['id']!,
+    'isolateId': connectionProfile['isolateId']!,
+    'uri': connectionProfile['uri']!,
+    'state': connectionProfile['state']!,
+  };
+
+  if (ref) {
+    return json;
+  }
+
+  json.addAll(<String, Object?>{
+    'protocol': connectionProfile['protocol'],
+    'connectTimestamp': connectionProfile['connectTimestamp'],
+    'openTimestamp': connectionProfile['openTimestamp'],
+    'closeTimestamp': connectionProfile['closeTimestamp'],
+    'bytesSent': connectionProfile['bytesSent'],
+    'bytesReceived': connectionProfile['bytesReceived'],
+    'framesSent': connectionProfile['framesSent'],
+    'framesReceived': connectionProfile['framesReceived'],
+    'pingCount': connectionProfile['pingCount'],
+    'pongCount': connectionProfile['pongCount'],
+    'closeCode': connectionProfile['closeCode'],
+    'closeReason': connectionProfile['closeReason'],
+    'error': connectionProfile['error'],
+    'events': connectionProfile['events'],
+    'lastUpdated': connectionProfile['lastUpdated'],
+  });
+
+  return json;
+}
+
 @pragma('vm:entry-point', !bool.fromEnvironment("dart.vm.product"))
 abstract class _NetworkProfiling {
   // Http relative RPCs
@@ -199,7 +238,21 @@ String _getWebSocketProfile(Map<String, String> parameters) {
   return json.encode({
     'type': 'WebSocketProfile',
     'timestamp': DateTime.now().microsecondsSinceEpoch,
-    'connections': WebSocketProfiler.serializeConnections(updatedSince),
+    'connections': [
+      ...WebSocketProfiler.serializeConnections(updatedSince),
+      ...getWebSocketProfilingData()
+          .where(
+            (Map<String, Object?> p) =>
+                updatedSince == null ||
+                (p['_lastUpdateTime'] as int) >= updatedSince,
+          )
+          .map(
+            (p) => _createWebSocketConnectionFromProfileMap(
+              p.cast<String, Object?>(),
+              ref: true,
+            ),
+          ),
+    ],
   });
 }
 
@@ -209,7 +262,22 @@ String _getWebSocketConnection(Map<String, String> parameters) {
     throw _missingArgument('id');
   }
 
-  final connection = WebSocketProfiler.getConnection(id)?.toJson(ref: false);
+  Map<String, Object?>? connection;
+
+  if (id.startsWith('from_package/')) {
+    final profileMap = getWebSocketProfilingData().elementAtOrNull(
+      int.parse(id.substring('from_package/'.length)) - 1,
+    );
+
+    connection = profileMap == null
+        ? null
+        : _createWebSocketConnectionFromProfileMap(
+            profileMap.cast<String, Object?>(),
+            ref: false,
+          );
+  } else {
+    connection = WebSocketProfiler.getConnection(id)?.toJson(ref: false);
+  }
 
   if (connection == null) {
     throw "Unable to find connection with id: '$id'";
