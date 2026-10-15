@@ -122,7 +122,7 @@ class C([int x = 0]) {
       r'''
 void f([int x = 0]) {}
 ''',
-      ['FunctionDeclarationImpl'],
+      ['TopLevelFunctionDeclarationImpl'],
     );
   }
 }

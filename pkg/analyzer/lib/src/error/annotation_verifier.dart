@@ -11,7 +11,6 @@ import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
 import 'package:meta/meta_meta.dart';
@@ -100,6 +99,9 @@ class AnnotationVerifier {
       if (type is FunctionType) {
         checkType(type.returnType);
       }
+    } else if (parent is TopLevelFunctionDeclaration) {
+      var type = parent.declaredFragment?.element.type;
+      checkType(type?.returnType);
     } else if (parent is TopLevelGetterDeclaration) {
       var type = parent.declaredFragment?.element.type;
       checkType(type?.returnType);
@@ -241,11 +243,9 @@ class AnnotationVerifier {
       var isValidFunction =
           parameterList.parent2 is MethodDeclaration ||
           parameterList.parent2 is ConstructorDeclaration ||
+          parameterList.parent2 is TopLevelFunctionDeclaration ||
           parameterList.parent2 is TopLevelGetterDeclaration ||
-          parameterList.parent2 is TopLevelSetterDeclaration ||
-          (parameterList.parent2 is FunctionExpression &&
-              parameterList.parent2?.parent2 is FunctionDeclaration &&
-              parameterList.parent2?.parent2?.parent2 is CompilationUnit);
+          parameterList.parent2 is TopLevelSetterDeclaration;
 
       if (parent.isOptional && isValidFunction) return;
     }
@@ -334,10 +334,7 @@ class AnnotationVerifier {
   /// `@internal` annotation.
   void _checkInternal(Annotation node) {
     var parent = node.parent2;
-    var parentElement = parent
-        .tryCast<Declaration>()
-        ?.declaredFragment
-        ?.element;
+    var parentElement = _declaredElement(parent);
     var parentElementIsPrivate = parentElement?.isPrivate ?? false;
     if (parent is TopLevelVariableDeclaration) {
       for (var variable in parent.variables.variables) {
@@ -538,6 +535,8 @@ class AnnotationVerifier {
         name = parent.name.lexeme;
       } else if (parent is MethodDeclaration) {
         name = parent.name.lexeme;
+      } else if (parent is TopLevelFunctionDeclaration) {
+        name = parent.name.lexeme;
       } else if (parent is TopLevelSetterDeclaration) {
         name = parent.name.lexeme;
       }
@@ -563,7 +562,7 @@ class AnnotationVerifier {
   /// `visibleForOverride`) annotation.
   void _checkVisibility(Annotation node, ElementAnnotation element) {
     var parent = node.parent2;
-    if (parent is! Declaration) {
+    if (parent is! Declaration && parent is! TopLevelDeclaration) {
       // This is reported by `_checkKinds`.
       return;
     }
@@ -605,7 +604,7 @@ class AnnotationVerifier {
       if (parent is PrimaryConstructorBody) {
         declaredElement = parent.declaration?.declaredFragment?.element;
       } else {
-        declaredElement = parent.declaredFragment?.element;
+        declaredElement = _declaredElement(parent);
       }
 
       if (declaredElement != null) {
@@ -675,6 +674,17 @@ class AnnotationVerifier {
     reportError();
   }
 
+  /// The element declared by [node], if [node] is a V1 [Declaration] or a V2
+  /// [TopLevelDeclaration] that declares a fragment.
+  Element? _declaredElement(AstNode node) {
+    return switch (node) {
+      Declaration(:var declaredFragment) => declaredFragment?.element,
+      TopLevelDeclaration() && FragmentDeclaringNode(:var declaredFragment) =>
+        declaredFragment?.element,
+      _ => null,
+    };
+  }
+
   /// Returns an expression (for error-reporting purposes) associated with a
   /// `@useResult` `unless` argument, if the associated parameter is undefined.
   Expression? _findUndefinedUseResultParameter(
@@ -731,6 +741,9 @@ class AnnotationVerifier {
 
     if (parent is FunctionDeclarationImpl) {
       return checkParams(parent.functionExpression.parameters);
+    }
+    if (parent is TopLevelFunctionDeclarationImpl) {
+      return checkParams(parent.formalParameters);
     }
     if (parent is TopLevelSetterDeclarationImpl) {
       return checkParams(parent.formalParameters);

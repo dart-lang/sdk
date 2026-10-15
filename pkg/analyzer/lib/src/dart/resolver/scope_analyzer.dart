@@ -507,16 +507,13 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var element = node.declaredFragment!.element;
-    var closure = element.tryCast<LocalFunctionElementImpl>();
+    var element = node.declaredFragment!.element as LocalFunctionElementImpl;
 
-    _withEnclosingClosure(closure, () {
+    _withEnclosingClosure(element, () {
       _scopeContext.visitFunctionDeclaration(node, visitor: this);
     });
 
-    if (element is LocalFunctionElementImpl) {
-      element.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
-    }
+    element.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
   }
 
   @override
@@ -868,6 +865,13 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
         }
       });
     });
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    _scopeContext.visitTopLevelFunctionDeclaration(node, visitor: this);
   }
 
   @override

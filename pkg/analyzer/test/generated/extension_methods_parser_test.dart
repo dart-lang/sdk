@@ -285,7 +285,7 @@ void late() {
 }
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType

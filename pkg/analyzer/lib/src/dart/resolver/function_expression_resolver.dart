@@ -212,8 +212,7 @@ class FunctionExpressionResolver {
     var parent = node.parent2;
     if (parent is FunctionDeclaration) {
       // Local function without declared return type.
-      return parent.parent2 is FunctionDeclarationStatement &&
-          parent.returnType == null;
+      return parent.returnType == null;
     } else {
       // Pure function expression.
       return true;

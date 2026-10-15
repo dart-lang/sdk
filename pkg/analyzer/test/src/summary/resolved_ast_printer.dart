@@ -1032,11 +1032,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (_view == _AstView.v2 && _isTopLevelFunction(node)) {
-      _writeTopLevelFunctionDeclaration(node);
-      return;
-    }
-
     _sink.writeln('FunctionDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2329,6 +2324,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    _sink.writeln('TopLevelFunctionDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
   void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
     _sink.writeln('TopLevelGetterDeclaration');
     _sink.withIndent(() {
@@ -2554,15 +2558,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
     } else if (node case ExpressionImpl expression) {
       // ignore: analyzer_v1_ast_use
       v1 = V1Projection.toV1Expression(expression);
-    }
-
-    // TODO(scheglov): Remove when top-level functions are parsed as
-    // TopLevelFunctionDeclaration, which has a distinct V1 projection.
-    if (node is FunctionDeclaration && _isTopLevelFunction(node)) {
-      _withInlineV1ChildEntities(false, () => writeNode(node));
-      _sink.writeWithIndent('V1: ');
-      _withView(_AstView.v1, () => _acceptInView(node));
-      return;
     }
 
     if (v1 == null || identical(v1, node)) {
@@ -3057,8 +3052,7 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          (!_sameChildEntityValue(entity2.value, entity.value) ||
-              _hasTopLevelFunction(entity2.value))) {
+          !_sameChildEntityValue(entity2.value, entity.value)) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3338,43 +3332,6 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
-  /// Writes a top-level [node] as it will be printed once top-level functions
-  /// are parsed as `TopLevelFunctionDeclaration`.
-  ///
-  /// The properties of the [FunctionExpression] are written as properties of
-  /// the declaration itself, and the V1 view is not written inline, because
-  /// `TopLevelFunctionDeclaration` has a distinct V1 projection.
-  // TODO(scheglov): Remove when top-level functions are parsed as
-  // TopLevelFunctionDeclaration.
-  void _writeTopLevelFunctionDeclaration(FunctionDeclaration node) {
-    node as FunctionDeclarationImpl;
-    _sink.writeln('TopLevelFunctionDeclaration');
-    _sink.withIndent(() {
-      for (var entity in node.namedChildEntities2) {
-        if (entity.name != 'functionExpression') {
-          _writeNamedChildEntity(node, entity);
-          continue;
-        }
-        var functionExpression = node.functionExpression;
-        if (functionExpression.typeParameters case var typeParameters?) {
-          _writeNamedChildEntity(
-            functionExpression,
-            ChildEntity('typeParameters', typeParameters),
-          );
-        }
-        _writeNamedChildEntity(
-          functionExpression,
-          ChildEntity('formalParameters', functionExpression.parameters!),
-        );
-        _writeNamedChildEntity(
-          functionExpression,
-          ChildEntity('body', functionExpression.body),
-        );
-      }
-      _writeDeclaredFragment(node.declaredFragment);
-    });
-  }
-
   void _writeType(String name, DartType? type) {
     if (_withResolution) {
       _elementPrinter.writeNamedType(name, type);
@@ -3428,8 +3385,8 @@ Expected parent: (${parent.runtimeType}) $parent
 
   /// Every [FormalParameter] declares an element, and this element must be
   /// in the list of formal parameter elements of some declaration, e.g. of
-  /// [ConstructorDeclaration], [MethodDeclaration], or a local
-  /// [FunctionDeclaration].
+  /// [ConstructorDeclaration], [MethodDeclaration], a local
+  /// [FunctionDeclaration], or a [TopLevelFunctionDeclaration].
   static List<FormalParameterFragment> _expectedFormalParameterElements(
     FormalParameter node,
   ) {
@@ -3456,30 +3413,16 @@ Expected parent: (${parent.runtimeType}) $parent
     } else if (parametersParent is PrimaryConstructorDeclaration) {
       var declaredFragment = parametersParent.declaredFragment!;
       return declaredFragment.formalParameters;
+    } else if (parametersParent
+        case TopLevelDeclaration() &&
+            FragmentDeclaringNode(
+              declaredFragment: ExecutableFragment fragment,
+            )) {
+      return fragment.formalParameters;
     }
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
-  }
-
-  /// Whether [value] is a list of nodes that includes a top-level function.
-  ///
-  /// Such a list is printed as if it already had a distinct V1 projection.
-  // TODO(scheglov): Remove when top-level functions are parsed as
-  // TopLevelFunctionDeclaration.
-  static bool _hasTopLevelFunction(Object value) {
-    return value is List<AstNode> &&
-        value.any(
-          (node) => node is FunctionDeclaration && _isTopLevelFunction(node),
-        );
-  }
-
-  /// Whether [node] is a top-level function, which will be parsed as
-  /// `TopLevelFunctionDeclaration` with a distinct V1 projection.
-  // TODO(scheglov): Remove when top-level functions are parsed as
-  // TopLevelFunctionDeclaration.
-  static bool _isTopLevelFunction(FunctionDeclaration node) {
-    return node.propertyKeyword == null && node.parent2 is CompilationUnit;
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

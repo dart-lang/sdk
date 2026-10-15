@@ -48,16 +48,15 @@ class _UnitApiSignatureComputer {
           _addExtension(declaration);
         case ExtensionTypeDeclarationImpl():
           _addNode(declaration);
-        case FunctionDeclarationImpl():
-          var functionExpression = declaration.functionExpression;
-          _addTokens(
-            declaration.beginToken,
-            functionExpression.parameters?.endToken ?? declaration.name,
-          );
-          signature.addBool(declaration.isComplete);
-          _addFunctionBodyModifiers(functionExpression.body);
         case MixinDeclarationImpl():
           _addMixin(declaration);
+        case TopLevelFunctionDeclarationImpl():
+          _addTokens(
+            declaration.beginToken,
+            declaration.formalParameters.endToken,
+          );
+          signature.addBool(declaration.isComplete);
+          _addFunctionBodyModifiers(declaration.body);
         case TopLevelGetterDeclarationImpl():
           _addTokens(
             declaration.beginToken,

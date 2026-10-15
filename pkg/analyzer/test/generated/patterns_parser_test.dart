@@ -3404,7 +3404,7 @@ f() {
     var parseResult = parseTestCodeWithDiagnostics('''
 f(x) => switch(x) {} + () => 0;
 ''');
-    var node = parseResult.findNode.functionDeclaration('f');
+    var node = parseResult.findNode.topLevelFunctionDeclaration('f');
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   name: f
@@ -12110,10 +12110,7 @@ SwitchExpression
     var parseResult = parseTestCodeWithDiagnostics('''
 void f(condition, when, otherwise) => condition as bool ? when : otherwise;
 ''');
-    var node = parseResult.findNode
-        .functionDeclaration('=>')
-        .functionExpression
-        .body;
+    var node = parseResult.findNode.topLevelFunctionDeclaration('=>').body;
     assertParsedNodeText(node, r'''
 ExpressionFunctionBody
   functionDefinition: =>

@@ -3253,6 +3253,13 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
     node.visitChildren2(this);
     return null;
@@ -4696,6 +4703,10 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 
   @experimental
   @override
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) => null;
+
+  @experimental
+  @override
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) => null;
 
   @experimental
@@ -6115,6 +6126,11 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitThrowExpression(ThrowExpression node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) =>
+      _throw(node);
 
   @experimental
   @override
@@ -9458,6 +9474,15 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   @experimental
   @override
+  T? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitTopLevelFunctionDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
   T? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitTopLevelGetterDeclaration(node);
@@ -11023,6 +11048,11 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
 
   @override
   R? visitThrowExpression(ThrowExpression node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) =>
+      visitNode(node);
 
   @experimental
   @override

@@ -78,7 +78,7 @@ class SwapTopLevelFunctionsMutation extends Mutation {
     return [
       for (var declaration in unit.declarations2)
         if (declaration
-            case FunctionDeclaration(:var name) ||
+            case TopLevelFunctionDeclaration(:var name) ||
                 TopLevelGetterDeclaration(:var name) ||
                 TopLevelSetterDeclaration(:var name))
           (declaration, name),

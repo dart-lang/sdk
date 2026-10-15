@@ -110,20 +110,20 @@ class AstFinder {
     CompilationUnit unit,
     String functionName,
   ) {
-    FunctionDeclaration function = getTopLevelFunction(unit, functionName);
-    var body = function.functionExpression.body as BlockFunctionBody;
+    var function = getTopLevelFunction(unit, functionName);
+    var body = function.body as BlockFunctionBody;
     return body.block.statements;
   }
 
   /// Return the declaration of the top-level function with the given
   /// [functionName] in the given compilation [unit].
-  static FunctionDeclaration getTopLevelFunction(
+  static TopLevelFunctionDeclaration getTopLevelFunction(
     CompilationUnit unit,
     String functionName,
   ) {
     NodeList<AnnotatedNode> unitMembers = unit.declarations2;
     for (AnnotatedNode unitMember in unitMembers) {
-      if (unitMember is FunctionDeclaration) {
+      if (unitMember is TopLevelFunctionDeclaration) {
         if (unitMember.name.lexeme == functionName) {
           return unitMember;
         }

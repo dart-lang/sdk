@@ -546,7 +546,7 @@ class MemberDuplicateDefinitionVerifier {
         case MixinDeclarationImpl():
           _checkMixin(node);
         case ClassTypeAliasImpl():
-        case FunctionDeclarationImpl():
+        case TopLevelFunctionDeclarationImpl():
         case TopLevelGetterDeclarationImpl():
         case TopLevelSetterDeclarationImpl():
         case FunctionTypeAliasImpl():
@@ -575,7 +575,7 @@ class MemberDuplicateDefinitionVerifier {
           var fragment = declaration.declaredFragment!;
           _checkClassStatic(fragment, declaration.body.members);
         case ClassTypeAliasImpl():
-        case FunctionDeclarationImpl():
+        case TopLevelFunctionDeclarationImpl():
         case TopLevelGetterDeclarationImpl():
         case TopLevelSetterDeclarationImpl():
         case FunctionTypeAliasImpl():

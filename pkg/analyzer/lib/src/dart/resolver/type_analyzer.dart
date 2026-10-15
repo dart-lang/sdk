@@ -1461,8 +1461,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           node is EnumDeclaration ||
           node is ExtensionDeclaration ||
           node is ExtensionTypeDeclaration ||
-          node is FunctionDeclaration ||
           node is MixinDeclaration ||
+          node is TopLevelFunctionDeclaration ||
           node is TopLevelGetterDeclaration ||
           node is TopLevelSetterDeclaration ||
           node is TopLevelVariableDeclaration;
@@ -3207,7 +3207,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    bool isLocal = node.parent2 is FunctionDeclarationStatement;
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var functionType = element.type;
@@ -3225,19 +3224,11 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
                   node.functionExpression.parameters ??
                   node.functionExpression.body)
               .offset;
-      if (isLocal) {
-        flowAnalysis.flow!.functionExpression_begin(node, offset: enterOffset);
-      } else {
-        flowAnalysis.flowAnalysisRoot_enter(
-          node,
-          element.formalParameters,
-          offset: enterOffset,
-        );
-      }
+      flowAnalysis.flow!.functionExpression_begin(node, offset: enterOffset);
       flowAnalysis.executableDeclaration_enter(
         node,
         element.formalParameters,
-        isClosure: isLocal,
+        isClosure: true,
         offset: enterOffset,
       );
 
@@ -3260,14 +3251,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       var exitOffset = node.functionExpression.body.flowEndOffset;
       flowAnalysis.executableDeclaration_exit(
         node.functionExpression.body,
-        isLocal,
+        true,
         offset: exitOffset,
       );
-      if (isLocal) {
-        flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
-      } else {
-        flowAnalysis.flowAnalysisRoot_exit();
-      }
+      flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
       nullSafetyDeadCodeVerifier.flowEnd(node);
     });
   }
@@ -4647,6 +4634,49 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     // `TypeAnalyzer.analyzeExpression` calls it when the static type of the
     // expression is `Never`.
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+    var returnType = element.returnType;
+
+    _withEnclosingExecutableElement(element, () {
+      checkUnreachableNode(node);
+      node.documentationComment?.accept2(this);
+      node.metadata.accept2(this);
+      node.returnType?.accept2(this);
+
+      // Use the type parameters or formal parameters for the offset, because
+      // they are visited before the body, and may contain expressions.
+      var enterOffset = (node.typeParameters ?? node.formalParameters).offset;
+      flowAnalysis.flowAnalysisRoot_enter(
+        node,
+        element.formalParameters,
+        offset: enterOffset,
+      );
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        element.formalParameters,
+        isClosure: false,
+        offset: enterOffset,
+      );
+
+      node.typeParameters?.accept2(this);
+      node.formalParameters.accept2(this);
+      node.body.resolve(this, returnType is DynamicType ? null : returnType);
+
+      checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
+      flowAnalysis.executableDeclaration_exit(
+        node.body,
+        false,
+        offset: node.body.flowEndOffset,
+      );
+      flowAnalysis.flowAnalysisRoot_exit();
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    });
   }
 
   @override

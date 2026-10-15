@@ -2492,7 +2492,7 @@ main() => super;
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   name: main
@@ -2526,7 +2526,7 @@ main() {super;}
 // [diag.missingAssignableSelector] Missing selector such as '.identifier' or '[0]'.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   name: main
@@ -2697,7 +2697,7 @@ void f { return x;}
 // [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -2744,7 +2744,7 @@ void f => x;
 // [diag.missingFunctionParameters] Functions must have an explicit list of parameters.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType

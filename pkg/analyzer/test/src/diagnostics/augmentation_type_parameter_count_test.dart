@@ -941,7 +941,7 @@ augment void f<T>();
 //             ^
 // [diag.augmentationTypeParameterCount] The augmentation must have the same number of type parameters as the declaration.
 ''');
-    var node = result.findNode.functionDeclaration('augment void f');
+    var node = result.findNode.topLevelFunctionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   augmentKeyword: augment
@@ -1002,7 +1002,7 @@ V1: FunctionDeclaration
 void f<T>() {}
 augment void f<T>();
 ''');
-    var node = result.findNode.functionDeclaration('augment void f');
+    var node = result.findNode.topLevelFunctionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   augmentKeyword: augment
@@ -1069,7 +1069,7 @@ void g() {
   f<int>();
 }
 ''');
-    var node = result.findNode.functionDeclaration('augment void f');
+    var node = result.findNode.topLevelFunctionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   augmentKeyword: augment

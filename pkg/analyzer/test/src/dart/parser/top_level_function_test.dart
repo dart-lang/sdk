@@ -22,7 +22,7 @@ abstract void foo() {}
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -57,7 +57,7 @@ abstract void foo() {}
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -90,7 +90,7 @@ V1: FunctionDeclaration
 augment void foo() {}
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   augmentKeyword: augment
@@ -128,7 +128,7 @@ augment void foo() {}
 // [diag.expectedToken][column 1][length 7] Expected to find ';'.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -161,7 +161,7 @@ V1: FunctionDeclaration
 augment void foo();
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   augmentKeyword: augment
@@ -192,7 +192,7 @@ V1: FunctionDeclaration
 augment external void foo();
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   augmentKeyword: augment
@@ -225,7 +225,7 @@ V1: FunctionDeclaration
 void foo();
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -257,7 +257,7 @@ void foo();
 // [diag.missingFunctionBody] A function body must be provided.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -288,7 +288,7 @@ external augment void foo();
 // [diag.modifierOutOfOrder] The modifier 'augment' should be before the modifier 'external'.
 ''');
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   augmentKeyword: augment
@@ -618,7 +618,7 @@ void get() {
 ''');
 
     // Note, there is a cycle that should not be there.
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(
       node,
       withTokenPreviousNext: true,

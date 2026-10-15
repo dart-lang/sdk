@@ -186,7 +186,7 @@ ClassDeclaration
       featureSet: _disabledFeatureSet,
     );
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -237,7 +237,7 @@ V1: FunctionDeclaration
       featureSet: _enabledFeatureSet,
     );
 
-    var node = parseResult.findNode.singleFunctionDeclaration;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType

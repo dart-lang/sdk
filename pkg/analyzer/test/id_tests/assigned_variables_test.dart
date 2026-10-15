@@ -57,7 +57,7 @@ class _AssignedVariablesDataComputer extends DataComputer<_Data> {
 class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  Declaration? _currentDeclaration;
+  AstNode? _currentDeclaration;
 
   AssignedVariablesForTesting<AstNode, PromotableElementImpl>?
   _currentAssignedVariables;
@@ -99,10 +99,10 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
     _handlePossibleTopLevelDeclaration(
       node,
-      () => super.visitFunctionDeclaration(node),
+      () => super.visitTopLevelFunctionDeclaration(node),
     );
   }
 
@@ -122,7 +122,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
     void Function() callback,
   ) {
     if (_currentDeclaration == null) {
-      _currentDeclaration = node as Declaration;
+      _currentDeclaration = node;
       _currentAssignedVariables = _flowResult.assignedVariables[node];
       callback();
       _currentDeclaration = null;

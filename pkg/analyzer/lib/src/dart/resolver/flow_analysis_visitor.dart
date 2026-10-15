@@ -1184,9 +1184,6 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    if (node.parent2 is CompilationUnit) {
-      throw StateError('Should not visit top level declarations');
-    }
     assignedVariables.beginNode();
     var element = node.declaredFragment!.element;
     _declareParameters(element.formalParameters);

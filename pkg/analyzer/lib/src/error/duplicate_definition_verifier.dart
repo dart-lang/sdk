@@ -241,7 +241,7 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case FunctionDeclarationImpl():
+        case TopLevelFunctionDeclarationImpl():
           var declaredFragment = member.declaredFragment!;
           if (!declaredFragment.isAugmentation) {
             _checkDuplicateFragmentIdentifier(

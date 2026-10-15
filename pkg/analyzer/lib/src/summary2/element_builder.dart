@@ -1770,39 +1770,6 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var nameToken = node.name;
-    var name2 = _getFragmentName(nameToken);
-
-    var functionExpression = node.functionExpression;
-    var body = functionExpression.body;
-
-    var fragment = TopLevelFunctionFragmentImpl(name: name2);
-    fragment.isAugmentation = node.augmentKeyword != null;
-    fragment.isOriginDeclaration = true;
-    fragment.isStatic = true;
-    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
-
-    fragment.hasImplicitReturnType = node.returnType == null;
-    fragment.isAsynchronous = body.isAsynchronous;
-    fragment.isExternal = node.externalKeyword != null;
-    fragment.isGenerator = body.isGenerator;
-    fragment.isComplete = node.isComplete;
-    fragment.metadata = _buildMetadata(node.metadata);
-
-    node.declaredFragment = fragment;
-    _linker.setFragmentNode(fragment, node);
-
-    _buildExecutableElementChildren(
-      fragment: fragment,
-      formalParameters: functionExpression.parameters,
-      typeParameters: functionExpression.typeParameters,
-    );
-
-    node.returnType?.accept2(this);
-  }
-
-  @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     var nameToken = node.name;
     var name2 = _getFragmentName(nameToken);
@@ -2198,6 +2165,38 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
     _buildFunctionTypedParameterSuffix(fragment, node.functionTypedSuffix);
 
     node.type?.accept2(this);
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    var name2 = _getFragmentName(node.name);
+    var body = node.body;
+
+    var fragment = TopLevelFunctionFragmentImpl(name: name2);
+    fragment.isAugmentation = node.augmentKeyword != null;
+    fragment.isOriginDeclaration = true;
+    fragment.isStatic = true;
+    _libraryBuilder.addTopFragment(_libraryFragment, fragment);
+
+    fragment.hasImplicitReturnType = node.returnType == null;
+    fragment.isAsynchronous = body.isAsynchronous;
+    fragment.isExternal = node.externalKeyword != null;
+    fragment.isGenerator = body.isGenerator;
+    fragment.isComplete = node.isComplete;
+    fragment.metadata = _buildMetadata(node.metadata);
+
+    node.declaredFragment = fragment;
+    _linker.setFragmentNode(fragment, node);
+
+    _buildExecutableElementChildren(
+      fragment: fragment,
+      formalParameters: node.formalParameters,
+      typeParameters: node.typeParameters,
+    );
+
+    node.returnType?.accept2(this);
   }
 
   @override

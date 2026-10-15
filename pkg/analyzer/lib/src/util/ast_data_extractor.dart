@@ -189,14 +189,6 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.parent2 is CompilationUnit) {
-      computeForMember(node, createMemberId(node));
-    }
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
   void visitIfElement(IfElement node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitIfElement(node);
@@ -263,6 +255,12 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   void visitSwitchExpressionCase(SwitchExpressionCase node) {
     computeForNode(node, computeDefaultNodeId(node));
     super.visitSwitchExpressionCase(node);
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    computeForMember(node, createMemberId(node));
+    super.visitTopLevelFunctionDeclaration(node);
   }
 
   @override

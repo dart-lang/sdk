@@ -172,12 +172,6 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    _scopeContext.visitFunctionDeclaration(node, visitor: this);
-    nodesToBuildType.addDeclaration(node);
-  }
-
-  @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     _scopeContext.visitFunctionTypeAlias(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
@@ -330,6 +324,14 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     _visitFormalParameter(node);
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    _scopeContext.visitTopLevelFunctionDeclaration(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override

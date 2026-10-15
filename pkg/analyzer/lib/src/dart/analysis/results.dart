@@ -122,7 +122,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
         }
       }
     } else if (fragment is TopLevelFunctionFragment) {
-      if (node is FunctionDeclaration && _hasOffset(node.name)) {
+      if (node is TopLevelFunctionDeclaration && _hasOffset(node.name)) {
         result = node;
       }
     } else if (fragment is LocalFunctionFragment) {
@@ -147,10 +147,6 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
           result = node;
         }
       } else if (node is TopLevelSetterDeclarationImpl) {
-        if (_hasOffset(node.name)) {
-          result = node;
-        }
-      } else if (node is FunctionDeclaration) {
         if (_hasOffset(node.name)) {
           result = node;
         }

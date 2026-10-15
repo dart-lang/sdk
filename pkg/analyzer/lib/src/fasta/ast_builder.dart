@@ -3473,19 +3473,17 @@ class AstBuilder extends StackListener {
       );
     } else {
       declarations.add(
-        FunctionDeclarationImpl(
+        TopLevelFunctionDeclarationImpl(
           comment: comment,
           metadata: metadata,
           augmentKeyword: augmentKeyword,
           externalKeyword: externalKeyword,
           returnType: returnType,
-          propertyKeyword: null,
           name: name,
-          functionExpression: FunctionExpressionImpl(
-            typeParameters: typeParameters,
-            parameters: formalParameters,
-            body: body,
-          ),
+          typeParameters: typeParameters,
+          // The parser synthesizes formal parameters if they are missing.
+          formalParameters: formalParameters!,
+          body: body,
         ),
       );
     }

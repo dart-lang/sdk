@@ -397,9 +397,9 @@ void f((int x)) {}
 //     ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var function = result.findNode.functionDeclaration('f(');
+    var function = result.findNode.topLevelFunctionDeclaration('f(');
     var parameter =
-        function.functionExpression.parameters!.allFormalParameters[0]
+        function.formalParameters.allFormalParameters[0]
             as RegularFormalParameter;
     expect(parameter.name!.isSynthetic, true);
     checkOffsetInRange<FormalParameterFragment>(
@@ -414,9 +414,9 @@ void f(void (int x)) {}
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var function = result.findNode.functionDeclaration('f(');
+    var function = result.findNode.topLevelFunctionDeclaration('f(');
     var parameter =
-        function.functionExpression.parameters!.allFormalParameters[0]
+        function.formalParameters.allFormalParameters[0]
             as RegularFormalParameter;
     expect(parameter.name!.isSynthetic, true);
     checkOffsetInRange<FormalParameterFragment>(
@@ -950,9 +950,8 @@ class C extends B {
     var result = await resolveTestCodeWithDiagnostics(r'''
 void foo() {}
 ''');
-    var topLevelFunctionDeclaration = result.findNode.functionDeclaration(
-      'foo',
-    );
+    var topLevelFunctionDeclaration = result.findNode
+        .topLevelFunctionDeclaration('foo');
     checkOffset<TopLevelFunctionFragment>(
       topLevelFunctionDeclaration,
       topLevelFunctionDeclaration.declaredFragment!,

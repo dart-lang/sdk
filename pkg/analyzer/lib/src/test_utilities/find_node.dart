@@ -201,6 +201,9 @@ class FindNode2 extends _FindNodeBase {
 
   SuperReference get singleSuperReference => _single();
 
+  TopLevelFunctionDeclaration get singleTopLevelFunctionDeclaration =>
+      _single();
+
   TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
 
   TopLevelSetterDeclaration get singleTopLevelSetterDeclaration => _single();
@@ -300,6 +303,10 @@ class FindNode2 extends _FindNodeBase {
 
   SuperReference superReference(String search) {
     return _node(search, (node) => node is SuperReference);
+  }
+
+  TopLevelFunctionDeclaration topLevelFunctionDeclaration(String search) {
+    return _node(search, (node) => node is TopLevelFunctionDeclaration);
   }
 
   TopLevelGetterDeclaration topLevelGetterDeclaration(String search) {

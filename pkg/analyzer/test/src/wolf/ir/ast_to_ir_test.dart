@@ -71,7 +71,7 @@ class C {
 }
 test(C c, int other) => c $op other;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.binaryOperatorInvocation('c $op other')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('c $op')]!,
@@ -95,7 +95,7 @@ class C {
 }
 test(List<C> list, int other) => list.first $op= other;
 ''');
-    analyze(unitResult, unitResult.findNode.singleFunctionDeclaration);
+    analyze(unitResult, unitResult.findNode.singleTopLevelFunctionDeclaration);
     var assignment = unitResult.findNode.compoundAssignment(
       'list.first $op= other',
     );
@@ -165,7 +165,7 @@ test(List<C> list, int other) => list.first $op= other;
     var result = await resolveTestCodeWithDiagnostics('''
 test() => 'foo' " " 'bar';
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.adjacentStrings('foo')]
       ..containsSubrange(astNodes[result.findNode.stringLiteral('foo')]!)
       ..containsSubrange(astNodes[result.findNode.stringLiteral('" "')]!)
@@ -190,7 +190,7 @@ class C {
 }
 test(C? c) => c?[hook(123, 'index')] += hook(789, 'value');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     var assignment = result.findNode.compoundAssignment('?[');
     check(astNodes)[assignment]
       ..containsSubrange(astNodes[assignment.target]!)
@@ -238,7 +238,7 @@ class C {
 }
 test(C? c) => c?[hook(123, 'index')] ??= hook(456, '456');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     var assignment = result.findNode.ifNullAssignment('?[');
     check(astNodes)[assignment]
       ..containsSubrange(astNodes[assignment.target]!)
@@ -290,7 +290,7 @@ class C {
 }
 test(C c, int index, int value) => c[index] = value;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var assignment = result.findNode.directAssignment('[index] = value');
     check(astNodes)[assignment]
       ..containsSubrange(astNodes[assignment.target]!)
@@ -322,7 +322,7 @@ class C {
 }
 test(C? c) => c?[hook(123, 'index')] = hook(456, 'value');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     var assignment = result.findNode.directAssignment('?[');
     check(astNodes)[assignment]
       ..containsSubrange(astNodes[assignment.target]!)
@@ -367,7 +367,7 @@ test() {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.compoundAssignment('i +=')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
@@ -383,7 +383,7 @@ test() {
   return i += 456;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.compoundAssignment('i +=')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
@@ -401,7 +401,7 @@ test(int? i) {
   return j;
 }
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.ifNullAssignment('j ??=')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('j ??=')]!,
@@ -425,7 +425,7 @@ test(int? i) {
   return j ??= hook(123, '123');
 }
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.ifNullAssignment('j ??=')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('j ??=')]!,
@@ -449,7 +449,7 @@ test() {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.directAssignment('i =')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
@@ -465,7 +465,7 @@ test() {
   return i = 123;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.directAssignment('i =')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
@@ -485,7 +485,7 @@ test(int i) {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.compoundAssignment('i +=')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
@@ -498,7 +498,7 @@ test(int i) {
     var result = await resolveTestCodeWithDiagnostics('''
 test(int i) => i += 456;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.compoundAssignment('i +=')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('i +=')]!,
@@ -515,7 +515,7 @@ test(int? i) {
   return i;
 }
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.ifNullAssignment('i ??=')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('i ??=')]!,
@@ -536,7 +536,7 @@ test(int? i) {
 external int? hook(int? x, String s);
 test(int? i) => i ??= hook(123, '123');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.ifNullAssignment('i ??=')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('i ??=')]!,
@@ -559,7 +559,7 @@ test(int i) {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.directAssignment('i =')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
@@ -572,7 +572,7 @@ test(int i) {
     var result = await resolveTestCodeWithDiagnostics('''
 test(int i) => i = 123;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.directAssignment('i =')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameAssignmentTarget('i =')]!,
@@ -587,7 +587,7 @@ test(int i) => i = 123;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List? l) => l?.length -= 2;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var assignment = result.findNode.compoundAssignment('l?.length -= 2');
     check(astNodes)[assignment]
       ..containsSubrange(
@@ -609,7 +609,7 @@ class C {
 }
 test(C? c) => c?.p ??= hook(123, '123');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     var assignment = result.findNode.ifNullAssignment(
       "c?.p ??= hook(123, '123')",
     );
@@ -645,7 +645,7 @@ test(C? c) => c?.p ??= hook(123, '123');
     var result = await resolveTestCodeWithDiagnostics('''
 test(List? l) => l?.length = 3;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var assignment = result.findNode.directAssignment('l?.length = 3');
     check(astNodes)[assignment]
       ..containsSubrange(
@@ -663,7 +663,7 @@ test(List? l) => l?.length = 3;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List l) => l.length -= 2;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var assignment = result.findNode.compoundAssignment('l.length -= 2');
     check(astNodes)[assignment]
       ..containsSubrange(
@@ -684,7 +684,7 @@ class C {
 }
 test(C c) => c.p ??= hook(123, '123');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     var assignment = result.findNode.ifNullAssignment(
       "c.p ??= hook(123, '123')",
     );
@@ -719,7 +719,7 @@ test(C c) => c.p ??= hook(123, '123');
     var result = await resolveTestCodeWithDiagnostics('''
 test(List l) => l.length = 3;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var assignment = result.findNode.directAssignment('l.length = 3');
     check(astNodes)[assignment]
       ..containsSubrange(
@@ -736,7 +736,7 @@ test(List l) => l.length = 3;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List l) => (l).length -= 2;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var assignment = result.findNode.compoundAssignment('(l).length -= 2');
     check(astNodes)[assignment]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!)
@@ -755,7 +755,7 @@ class C {
 }
 test(C c) => (c).p ??= hook(123, '123');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     var assignment = result.findNode.ifNullAssignment(
       "(c).p ??= hook(123, '123')",
     );
@@ -788,7 +788,7 @@ test(C c) => (c).p ??= hook(123, '123');
     var result = await resolveTestCodeWithDiagnostics('''
 test(List l) => (l).length = 3;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var assignment = result.findNode.directAssignment('(l).length = 3');
     check(astNodes)[assignment]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(l)')]!)
@@ -808,7 +808,7 @@ class C {
 }
 test(C? c) => (c)?.p += hook(2, 'rhs');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     var value = 3;
     _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(value, 'get'));
     _callHandlers['C.p='] = binaryFunction<Instance, int>(
@@ -834,7 +834,7 @@ class C {
 }
 test(C? c) => (c)?.p ??= hook(2, 'rhs');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     int? value;
     _callHandlers['C.p'] = unaryFunction<Instance>((c) => hook(value, 'get'));
     _callHandlers['C.p='] = binaryFunction<Instance, int>(
@@ -859,7 +859,7 @@ class C {
 }
 test(C? c) => (c)?.p = hook(2, 'rhs');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     int? value;
     _callHandlers['C.p='] = binaryFunction<Instance, int>(
       (c, newValue) => hook(value = newValue, 'set=$newValue'),
@@ -957,7 +957,7 @@ extension E on List {
     var result = await resolveTestCodeWithDiagnostics('''
 test(Future f) async => await f;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.awaitExpression('await')].containsSubrange(
       astNodes[result.findNode.unqualifiedNameExpression('f;')]!,
     );
@@ -976,7 +976,7 @@ test(Future f) async => await f;
 external bool hook(bool b, String s);
 test(bool x, bool y) => hook(x, 'x') && hook(y, 'y');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.logicalAnd("hook(x, 'x') && hook(y, 'y')")]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedFunctionInvocation(
@@ -1016,7 +1016,7 @@ test(bool x, bool y) => hook(x, 'x') && hook(y, 'y');
     var result = await resolveTestCodeWithDiagnostics('''
 test(Object? x, Object? y) => x == y;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.binaryOperatorInvocation('x == y')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('x ==')]!,
@@ -1040,7 +1040,7 @@ test(Object? x, Object? y) => x == y;
 external Object? hook(Object? x, String s);
 test(Object? x, Object? y) => hook(x, 'x') ?? hook(y, 'y');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.ifNull("hook(x, 'x') ?? hook(y, 'y')")]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedFunctionInvocation(
@@ -1084,7 +1084,7 @@ test(Object? x, Object? y) => hook(x, 'x') ?? hook(y, 'y');
     var result = await resolveTestCodeWithDiagnostics('''
 test(Object? x, Object? y) => x != y;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.binaryOperatorInvocation('x != y')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('x !=')]!,
@@ -1104,7 +1104,7 @@ test(Object? x, Object? y) => x != y;
 external bool hook(bool b, String s);
 test(bool x, bool y) => hook(x, 'x') || hook(y, 'y');
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.logicalOr("hook(x, 'x') || hook(y, 'y')")]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedFunctionInvocation(
@@ -1148,7 +1148,7 @@ test(int i) {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.block('123')]
       ..containsSubrange(
         astNodes[result.findNode.expressionStatement('i = 123')]!,
@@ -1168,7 +1168,7 @@ test() {
   return 123;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.blockFunctionBody('123')].containsSubrange(
       astNodes[result.findNode.block('123')]!,
     );
@@ -1179,7 +1179,7 @@ test() {
     var result = await resolveTestCodeWithDiagnostics('''
 test() => true;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.booleanLiteral('true'));
     check(runInterpreter(result, [])).equals(true);
   }
@@ -1193,7 +1193,7 @@ test(int count, List<int> result) {
   } while (count > 0);
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.breakStatement('break'));
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
@@ -1209,7 +1209,7 @@ test(int count, List<int> result) {
   }
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.breakStatement('break'));
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
@@ -1225,7 +1225,7 @@ test(int count, List<int> result) {
   }
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.breakStatement('break'));
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
@@ -1236,7 +1236,7 @@ test(int count, List<int> result) {
     var result = await resolveTestCodeWithDiagnostics('''
 test(bool b) => b ? 1 : 2;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.conditionalExpression('b ? 1 : 2')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('b ?')]!,
@@ -1256,7 +1256,7 @@ test(int count, List<int> result) {
   } while (count > 0);
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.continueStatement('continue'));
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
@@ -1272,7 +1272,7 @@ test(int count, List<int> result) {
   }
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.continueStatement('continue'));
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
@@ -1288,7 +1288,7 @@ test(int count, List<int> result) {
   }
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.continueStatement('continue'));
     var values = <int>[];
     check(runInterpreter(result, [5, makeList(result, values)])).equals(null);
@@ -1303,7 +1303,7 @@ test(int count, List<int> result) {
   } while (count > 0);
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.doStatement('do')]
       ..containsSubrange(astNodes[result.findNode.block('result.add')]!)
       ..containsSubrange(
@@ -1322,7 +1322,7 @@ test(int count, List<int> result) {
     var result = await resolveTestCodeWithDiagnostics('''
 test() => 1.5;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.doubleLiteral('1.5'));
     check(runInterpreter(result, [])).equals(1.5);
   }
@@ -1331,7 +1331,7 @@ test() => 1.5;
     var result = await resolveTestCodeWithDiagnostics('''
 test() => 0;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.expressionFunctionBody('0')]
         .containsSubrange(astNodes[result.findNode.integerLiteral('0')]!);
   }
@@ -1343,7 +1343,7 @@ test(int i) {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(
       astNodes,
     )[result.findNode.expressionStatement('i = 123')].containsSubrange(
@@ -1360,7 +1360,7 @@ test(int count, List<int> result) {
   }
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.forStatement('for')]
       ..containsSubrange(
         astNodes[result.findNode.variableDeclarationList('var i = 0')]!,
@@ -1385,7 +1385,7 @@ test(bool b) {
   return result;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.ifStatement('if')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('b /*test*/')]!,
@@ -1403,7 +1403,7 @@ test(bool b) {
   }
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.ifStatement('if')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('b /*test*/')]!,
@@ -1425,7 +1425,7 @@ test(bool b) {
   return result;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.ifStatement('if')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('b /*test*/')]!,
@@ -1446,7 +1446,7 @@ test(bool b) {
   }
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.ifStatement('if')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('b /*test*/')]!,
@@ -1461,7 +1461,7 @@ test(bool b) {
     var result = await resolveTestCodeWithDiagnostics('''
 test() => 123;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.integerLiteral('123'));
     check(runInterpreter(result, [])).equals(123);
   }
@@ -1470,7 +1470,7 @@ test() => 123;
     var result = await resolveTestCodeWithDiagnostics('''
 test(Object? o) => o is! String;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.isExpression('is')].containsSubrange(
       astNodes[result.findNode.unqualifiedNameExpression('o is')]!,
     );
@@ -1482,7 +1482,7 @@ test(Object? o) => o is! String;
     var result = await resolveTestCodeWithDiagnostics('''
 test(Object? o) => o is String;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.isExpression('is')].containsSubrange(
       astNodes[result.findNode.unqualifiedNameExpression('o is')]!,
     );
@@ -1494,7 +1494,7 @@ test(Object? o) => o is String;
     var result = await resolveTestCodeWithDiagnostics('''
 test(Object? x, Object? y) => identical(x, y);
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.unqualifiedFunctionInvocation(
         'identical(x, y)',
       )]
@@ -1516,7 +1516,7 @@ test(Object? x, Object? y) => identical(x, y);
 external bool identical(Object? x, Object? y);
 test(Object? x, Object? y) => identical(x, y); // invocation
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.unqualifiedFunctionInvocation(
         'identical(x, y)',
       )]
@@ -1542,7 +1542,7 @@ test(Object? x, Object? y) => identical(x, y); // invocation
     var result = await resolveTestCodeWithDiagnostics('''
 test(String s1, String s2) => s1.contains(s2);
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.receiverMethodInvocation('s1.contains(s2)')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('s1.contains')]!,
@@ -1581,7 +1581,7 @@ class C {
 external String f();
 test(String? s) => s?.contains(f());
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.receiverMethodInvocation(
         's?.contains(f())',
       )]
@@ -1617,7 +1617,7 @@ test(String? s) => s?.contains(f());
 external String f();
 test(String? s) => (s)?.contains(f());
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.singleReceiverMethodInvocation]
       ..containsSubrange(astNodes[result.findNode.parenthesized('(s)')]!)
       ..containsSubrange(
@@ -1641,7 +1641,7 @@ test(String? s) => (s)?.contains(f());
     var result = await resolveTestCodeWithDiagnostics('''
 test(String s) => int.parse(s);
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.receiverMethodInvocation('int.parse(s)')]
         .containsSubrange(
           astNodes[result.findNode.unqualifiedNameExpression('s);')]!,
@@ -1679,7 +1679,7 @@ class C {
 external int f();
 test() => f(); // invocation
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes).containsNode(
       result.findNode.unqualifiedFunctionInvocation('f(); // invocation'),
     );
@@ -1692,7 +1692,7 @@ test() => f(); // invocation
 external int f(int x, {required int y});
 test(int x, int y) => f(x, y: y); // invocation
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.unqualifiedFunctionInvocation('f(x, y: y)')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('x, y')]!,
@@ -1718,7 +1718,7 @@ test(int x, int y) => f(x, y: y); // invocation
 external int f(int x, int y);
 test(int x, int y) => f(x, y); // invocation
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.unqualifiedFunctionInvocation('f(x, y)')]
       ..containsSubrange(
         astNodes[result.findNode.unqualifiedNameExpression('x, y')]!,
@@ -1737,7 +1737,7 @@ test(int x, int y) => f(x, y); // invocation
 external int f({required int x, required int y});
 test(int x, int y) => f(y: y, x: x);
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes)[result.findNode.unqualifiedFunctionInvocation(
         'f(y: y, x: x)',
       )]
@@ -1763,7 +1763,7 @@ test(int x, int y) => f(y: y, x: x);
 external f<T, U>();
 test() => f<int, String>();
 ''');
-    analyze(result, result.findNode.functionDeclaration('test'));
+    analyze(result, result.findNode.topLevelFunctionDeclaration('test'));
     check(astNodes).containsNode(
       result.findNode.unqualifiedFunctionInvocation('f<int, String>()'),
     );
@@ -1784,7 +1784,7 @@ test() => f<int, String>();
     var result = await resolveTestCodeWithDiagnostics('''
 test(int i, int j) => i;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(runInterpreter(result, [123, 456])).equals(123);
   }
 
@@ -1792,7 +1792,7 @@ test(int i, int j) => i;
     var result = await resolveTestCodeWithDiagnostics('''
 test(int i, int j) => j;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(runInterpreter(result, [123, 456])).equals(456);
   }
 
@@ -1800,7 +1800,7 @@ test(int i, int j) => j;
     var result = await resolveTestCodeWithDiagnostics('''
 test() {}
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(runInterpreter(result, [])).equals(null);
   }
 
@@ -1808,7 +1808,7 @@ test() {}
     var result = await resolveTestCodeWithDiagnostics('''
 test() => null;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.nullLiteral('null'));
     check(runInterpreter(result, [])).equals(null);
   }
@@ -1817,7 +1817,7 @@ test() => null;
     var result = await resolveTestCodeWithDiagnostics('''
 test(int i) => (i);
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.parenthesized('(i)')].containsSubrange(
       astNodes[result.findNode.unqualifiedNameExpression('i);')]!,
     );
@@ -1828,7 +1828,7 @@ test(int i) => (i);
     var result = await resolveTestCodeWithDiagnostics('''
 test(List<Object?>? list) => (list?.first).hashCode;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(runInterpreter(result, [null])).equals(null.hashCode);
     check(
       runInterpreter(result, [
@@ -1841,7 +1841,7 @@ test(List<Object?>? list) => (list?.first).hashCode;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List? l) => l?.length--;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('l?.length--');
     check(astNodes)[update]
       ..containsSubrange(astNodes[update.target]!)
@@ -1858,7 +1858,7 @@ test(List? l) => l?.length--;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List l) => l.length--;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('l.length--');
     check(astNodes)[update]
       ..containsSubrange(astNodes[update.target]!)
@@ -1874,7 +1874,7 @@ test(List l) => l.length--;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List l) => (l).length--;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('(l).length--');
     check(astNodes)[update]
       ..containsSubrange(astNodes[update.target]!)
@@ -1906,7 +1906,7 @@ test() {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('i++');
     check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [])).equals(124);
@@ -1919,7 +1919,7 @@ test() {
   return i++;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('i++');
     check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [])).equals(123);
@@ -1932,7 +1932,7 @@ test(int i) {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('i++');
     check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [123])).equals(124);
@@ -1942,7 +1942,7 @@ test(int i) {
     var result = await resolveTestCodeWithDiagnostics('''
 test(int i) => i++;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('i++');
     check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [123])).equals(123);
@@ -1952,7 +1952,7 @@ test(int i) => i++;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List? l) => --l?.length;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('--l?.length');
     check(astNodes)[update]
       ..containsSubrange(astNodes[update.target]!)
@@ -1969,7 +1969,7 @@ test(List? l) => --l?.length;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List l) => --l.length;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('--l.length');
     check(astNodes)[update]
       ..containsSubrange(astNodes[update.target]!)
@@ -1985,7 +1985,7 @@ test(List l) => --l.length;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List l) => --(l).length;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('--(l).length');
     check(astNodes)[update]
       ..containsSubrange(astNodes[update.target]!)
@@ -2017,7 +2017,7 @@ test() {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('++i');
     check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [])).equals(124);
@@ -2030,7 +2030,7 @@ test() {
   return ++i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('++i');
     check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [])).equals(124);
@@ -2043,7 +2043,7 @@ test(int i) {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('++i');
     check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [123])).equals(124);
@@ -2053,7 +2053,7 @@ test(int i) {
     var result = await resolveTestCodeWithDiagnostics('''
 test(int i) => ++i;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     var update = result.findNode.incrementOrDecrement('++i');
     check(astNodes)[update].containsSubrange(astNodes[update.target]!);
     check(runInterpreter(result, [123])).equals(124);
@@ -2063,7 +2063,7 @@ test(int i) => ++i;
     var result = await resolveTestCodeWithDiagnostics('''
 test(bool b) => !b;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.logicalNot('!b')].containsSubrange(
       astNodes[result.findNode.unqualifiedNameExpression('b;')]!,
     );
@@ -2075,7 +2075,7 @@ test(bool b) => !b;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List<Object?>? list) => list?.first.hashCode;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(runInterpreter(result, [null])).equals(null);
     check(
       runInterpreter(result, [
@@ -2088,7 +2088,7 @@ test(List<Object?>? list) => list?.first.hashCode;
     var result = await resolveTestCodeWithDiagnostics('''
 test(List<Object?>? list) => list?.first?.hashCode;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(
           astNodes,
           because: 'both null checks should use the same block',
@@ -2107,7 +2107,7 @@ test(List<Object?>? list) => list?.first?.hashCode;
     var result = await resolveTestCodeWithDiagnostics('''
 test(String? s) => (s)?.length;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.singleReceiverPropertyExtraction]
         .containsSubrange(astNodes[result.findNode.parenthesized('(s)')]!);
     check(runInterpreter(result, [null])).equals(null);
@@ -2118,7 +2118,7 @@ test(String? s) => (s)?.length;
     var result = await resolveTestCodeWithDiagnostics('''
 test(String? s) => s?.length;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(
       astNodes,
     )[result.findNode.receiverPropertyExtraction('s?.length')].containsSubrange(
@@ -2132,7 +2132,7 @@ test(String? s) => s?.length;
     var result = await resolveTestCodeWithDiagnostics('''
 test(int i) => i.isEven;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(
       astNodes,
     )[result.findNode.receiverPropertyExtraction('i.isEven')].containsSubrange(
@@ -2146,7 +2146,7 @@ test(int i) => i.isEven;
     var result = await resolveTestCodeWithDiagnostics('''
 test() => 'foo'.length;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.receiverPropertyExtraction("'foo'.length")]
         .containsSubrange(astNodes[result.findNode.stringLiteral("'foo'")]!);
     check(runInterpreter(result, [])).equals(3);
@@ -2172,7 +2172,7 @@ test() {
   return 1; // ignore: dead_code
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.returnStatement('return;'));
     check(runInterpreter(result, [])).equals(null);
   }
@@ -2184,7 +2184,7 @@ test() {
   return 1; // ignore: dead_code
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.returnStatement('return 123')]
         .containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [])).equals(123);
@@ -2197,7 +2197,7 @@ test() {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(
       astNodes,
     ).containsNode(result.findNode.unqualifiedNameExpression('i;'));
@@ -2208,7 +2208,7 @@ test() {
     var result = await resolveTestCodeWithDiagnostics('''
 test(int i) => i;
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(
       astNodes,
     ).containsNode(result.findNode.unqualifiedNameExpression('i;'));
@@ -2219,7 +2219,7 @@ test(int i) => i;
     var result = await resolveTestCodeWithDiagnostics(r'''
 test(int x) => 'x = ${x}';
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.stringInterpolation('x =')]
       ..containsSubrange(astNodes[result.findNode.interpolationString('x =')]!)
       ..containsSubrange(
@@ -2232,7 +2232,7 @@ test(int x) => 'x = ${x}';
     var result = await resolveTestCodeWithDiagnostics(r'''
 test(int x) => 'x = $x';
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.stringInterpolation('x =')]
       ..containsSubrange(astNodes[result.findNode.interpolationString('x =')]!)
       ..containsSubrange(
@@ -2245,7 +2245,7 @@ test(int x) => 'x = $x';
     var result = await resolveTestCodeWithDiagnostics(r'''
 test() => 'foo';
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes).containsNode(result.findNode.stringLiteral('foo'));
     check(runInterpreter(result, [])).equals('foo');
   }
@@ -2269,7 +2269,7 @@ test() {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.variableDeclarationList('int i = 123')]
         .containsSubrange(astNodes[result.findNode.integerLiteral('123')]!);
     check(runInterpreter(result, [])).identicalTo(123);
@@ -2282,7 +2282,7 @@ test() {
   return 123;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.variableDeclarationList('int i')].not(
       .it()..instructions.any(.it()..opcode.equals(Opcode.writeLocal)),
     );
@@ -2296,7 +2296,7 @@ test() {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(
       astNodes,
     ).containsNode(result.findNode.variableDeclarationList('int? i'));
@@ -2312,7 +2312,7 @@ test() {
 // [diag.notAssignedPotentiallyNonNullableLocalVariable] The non-nullable local variable 'i' must be assigned before it can be used.
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.variableDeclarationList('int i')].not(
       .it()..instructions.any(.it()..opcode.equals(Opcode.writeLocal)),
     );
@@ -2331,7 +2331,7 @@ test() {
   return i;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.variableDeclarationList('int i = 123')]
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
@@ -2345,7 +2345,7 @@ test() {
   return j;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.variableDeclarationList('int i = 123')]
       ..containsSubrange(astNodes[result.findNode.integerLiteral('123')]!)
       ..containsSubrange(astNodes[result.findNode.integerLiteral('456')]!);
@@ -2358,7 +2358,7 @@ test() {
   int i = 123; // ignore: unused_local_variable
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.variableDeclarationStatement('int i = 123')]
         .containsSubrange(
           astNodes[result.findNode.variableDeclarationList('int i = 123')]!,
@@ -2374,7 +2374,7 @@ test(int count, List<int> result) {
   }
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.whileStatement('while')]
       ..containsSubrange(
         astNodes[result.findNode.binaryOperatorInvocation('count-- > 0')]!,
@@ -2391,7 +2391,7 @@ test(Object? o) sync* {
   yield o;
 }
 ''');
-    analyze(result, result.findNode.singleFunctionDeclaration);
+    analyze(result, result.findNode.singleTopLevelFunctionDeclaration);
     check(astNodes)[result.findNode.yieldStatement('yield')].containsSubrange(
       astNodes[result.findNode.unqualifiedNameExpression('o;')]!,
     );
@@ -2446,13 +2446,13 @@ class AstToIRTestBase extends PubPackageResolutionTest {
   late final CodedIRContainer ir;
   late final Scopes scopes;
 
-  void analyze(TestResolvedUnitResult result, Declaration declaration) {
+  void analyze(TestResolvedUnitResult result, AnnotatedNode declaration) {
     switch (declaration) {
-      case FunctionDeclaration():
+      case TopLevelFunctionDeclaration():
         var declaredElement = declaration.declaredFragment!.element;
         ir = astToIR(
           declaredElement,
-          declaration.functionExpression.body,
+          declaration.body,
           typeProvider: result.typeProvider,
           typeSystem: result.typeSystem,
           inheritanceManager: result.inheritanceManager,

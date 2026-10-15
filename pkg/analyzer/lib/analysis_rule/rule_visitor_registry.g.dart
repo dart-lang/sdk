@@ -1156,6 +1156,12 @@ abstract class RuleVisitorRegistry2 {
   void addThrowExpression(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
+  void addTopLevelFunctionDeclaration(
+    AbstractAnalysisRule rule,
+    AstVisitor2 visitor,
+  );
+
+  @experimental
   void addTopLevelGetterDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,

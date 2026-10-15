@@ -243,6 +243,26 @@ import 'package:meta/meta.dart';
 ''');
   }
 
+  void test_privateTopLevelGetter() async {
+    await resolveFileWithDiagnostics(testPackageLibSrcFile, r'''
+import 'package:meta/meta.dart';
+@internal int get _g => 0;
+// [diag.invalidInternalAnnotation][column 2][length 8] Only public elements in a package's private API can be annotated as being internal.
+//                ^^
+// [diag.unusedElement] The declaration '_g' isn't referenced.
+''');
+  }
+
+  void test_privateTopLevelSetter() async {
+    await resolveFileWithDiagnostics(testPackageLibSrcFile, r'''
+import 'package:meta/meta.dart';
+@internal set _s(int _) {}
+// [diag.invalidInternalAnnotation][column 2][length 8] Only public elements in a package's private API can be annotated as being internal.
+//            ^^
+// [diag.unusedElement] The declaration '_s' isn't referenced.
+''');
+  }
+
   void test_privateTopLevelVariable() async {
     await resolveFileWithDiagnostics(testPackageLibSrcFile, r'''
 import 'package:meta/meta.dart';

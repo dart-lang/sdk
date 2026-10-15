@@ -520,14 +520,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       _inDoNotStoreMember = true;
     }
     try {
-      // Return types are inferred only on non-recursive local functions.
-      if (node.parent2 is CompilationUnit) {
-        _checkStrictInferenceReturnType(
-          node.returnType,
-          node,
-          node.name.lexeme,
-        );
-      }
       _checkStrictInferenceInParameters(
         node.functionExpression.parameters,
         body: node.functionExpression.body,
@@ -908,6 +900,32 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
       super.visitSuperFormalParameter(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
+    }
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(
+    covariant TopLevelFunctionDeclarationImpl node,
+  ) {
+    var wasInDoNotStoreMember = _inDoNotStoreMember;
+    var element = node.declaredFragment!.element;
+    _elementUsageFrontierDetector.pushElement(element);
+    if (element.metadata.hasDoNotStore) {
+      _inDoNotStoreMember = true;
+    }
+    try {
+      _checkStrictInferenceReturnType(node.returnType, node, node.name.lexeme);
+      _checkStrictInferenceInParameters(node.formalParameters, body: node.body);
+      if (node.body case ExpressionFunctionBodyImpl body) {
+        _checkForUnnecessarySetLiteralWithReturnType(
+          body,
+          node.returnType?.type,
+        );
+      }
+      super.visitTopLevelFunctionDeclaration(node);
+    } finally {
+      _elementUsageFrontierDetector.popElement();
+      _inDoNotStoreMember = wasInDoNotStoreMember;
     }
   }
 
@@ -1425,6 +1443,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         (e) =>
             e is FunctionDeclaration ||
             e is MethodDeclaration ||
+            e is TopLevelFunctionDeclaration ||
             e is TopLevelGetterDeclaration ||
             e is TopLevelSetterDeclaration,
       );
@@ -1619,7 +1638,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
 
     switch (reportNode) {
       case MethodDeclaration(:var name) ||
-          FunctionDeclaration(:var name) ||
+          TopLevelFunctionDeclaration(:var name) ||
           TopLevelGetterDeclaration(:var name):
         _diagnosticReporter.report(
           diag.inferenceFailureOnFunctionReturnType

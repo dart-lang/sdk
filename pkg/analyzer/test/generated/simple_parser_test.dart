@@ -1744,8 +1744,7 @@ ClassDeclaration
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() {}
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 BlockFunctionBody
   block: Block
@@ -1758,8 +1757,7 @@ BlockFunctionBody
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async {}
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 BlockFunctionBody
   keyword: async
@@ -1773,8 +1771,7 @@ BlockFunctionBody
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async* {}
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 BlockFunctionBody
   keyword: async
@@ -1789,8 +1786,7 @@ BlockFunctionBody
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() sync* {}
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 BlockFunctionBody
   keyword: sync
@@ -1870,8 +1866,7 @@ CompilationUnit
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() => y;
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 ExpressionFunctionBody
   functionDefinition: =>
@@ -1887,8 +1882,7 @@ ExpressionFunctionBody
     var parseResult = parseTestCodeWithDiagnostics(r'''
 void f() async => y;
 ''');
-    var node =
-        parseResult.findNode.singleFunctionDeclaration.functionExpression.body;
+    var node = parseResult.findNode.singleTopLevelFunctionDeclaration.body;
     assertParsedNodeText(node, r'''
 ExpressionFunctionBody
   keyword: async

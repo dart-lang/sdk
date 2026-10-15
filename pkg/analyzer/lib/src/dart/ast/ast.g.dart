@@ -914,6 +914,9 @@ abstract class AstVisitor2<R> {
   R? visitThrowExpression(ThrowExpression node);
 
   @experimental
+  R? visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node);
+
+  @experimental
   R? visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node);
 
   @experimental

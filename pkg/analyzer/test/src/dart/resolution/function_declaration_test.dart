@@ -27,7 +27,7 @@ Stream<int> f() async* {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -112,7 +112,7 @@ Stream<int> f() async* => 0;
 // [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -239,7 +239,7 @@ V1: SimpleIdentifier
 void m<T extends List<T>>() {}
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -328,7 +328,7 @@ V1: FunctionDeclaration
 void m<T extends num>() {}
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -790,7 +790,7 @@ Iterable<int> f() sync* {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -873,7 +873,7 @@ Iterable<int> f() sync* => 0;
 // [diag.returnInGenerator] Can't return a value from a generator function that uses the 'async*' or 'sync*' modifier.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   returnType: NamedType
@@ -945,7 +945,7 @@ _() {}
 // [diag.unusedElement][column 1][length 1] The declaration '_' isn't referenced.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   name: _
@@ -987,7 +987,7 @@ _() {}
 // [diag.unusedElement][column 1][length 1] The declaration '_' isn't referenced.
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleTopLevelFunctionDeclaration;
     assertResolvedNodeText(node, r'''
 TopLevelFunctionDeclaration
   name: _
