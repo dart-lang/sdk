@@ -211,6 +211,7 @@ class _List<E> extends _Array<E> {
     }
     int length = end - start;
     if (length == 0) return;
+    RangeError.checkNotNegative(skipCount, "skipCount");
     if (identical(this, iterable)) {
       Lists.copy(this, skipCount, this, start, length);
     } else if (ClassID.getID(iterable) == ClassID.cidArray) {
@@ -221,11 +222,11 @@ class _List<E> extends _Array<E> {
     } else {
       Iterator<E> it = iterable.iterator;
       while (skipCount > 0) {
-        if (!it.moveNext()) return;
+        if (!it.moveNext()) throw IterableElementError.tooFew();
         skipCount--;
       }
       for (int i = start; i < end; i++) {
-        if (!it.moveNext()) return;
+        if (!it.moveNext()) throw IterableElementError.tooFew();
         this[i] = it.current;
       }
     }

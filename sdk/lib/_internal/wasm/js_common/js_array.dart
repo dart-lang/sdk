@@ -80,20 +80,24 @@ class JSArrayImpl<T extends JSAny?> extends js.JSExternWrapper
     _setLengthUnsafe(length + thatLength);
     final end = index + thatLength;
     setRange(end, length, this, index);
-    setRange(index, end, iterable);
+    setRange(index, end, that);
   }
 
   @override
   void setAll(int index, Iterable<T> iterable) {
+    RangeErrorUtils.checkValueBetweenZeroAndPositiveMax(index, length);
     for (final element in iterable) {
       this[index++] = element;
     }
   }
 
   @override
-  T removeLast() => js.JSValue.boxT<T>(
-    js.JS<WasmExternRef?>('a => a.pop()', wrappedExternRef),
-  );
+  T removeLast() {
+    if (isEmpty) throw IterableElementError.noElement();
+    return js.JSValue.boxT<T>(
+      js.JS<WasmExternRef?>('a => a.pop()', wrappedExternRef),
+    );
+  }
 
   @override
   bool remove(Object? element) {
