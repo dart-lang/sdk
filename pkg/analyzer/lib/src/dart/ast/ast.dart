@@ -17993,7 +17993,7 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
         case RecordLiteralNamedField():
         case NullAwareElement():
         case SpreadElement():
-        case VariableDeclaration():
+        case VariableBindingImpl():
           break;
         default:
           return null;
@@ -57542,6 +57542,32 @@ sealed class ValidInvocationResolutionImpl extends InvocationResolutionImpl
   const ValidInvocationResolutionImpl();
 }
 
+/// A single variable in a variable declaration group: a top-level variable, a
+/// field, or a local variable.
+///
+/// Initializer resolution and linking are shared by all kinds of variables,
+/// and use this interface. Modifiers and whether the type is declared are
+/// read from [declaredFragment], not from the enclosing group.
+///
+/// The variable is the flow analysis root of its initializer if it is a
+/// top-level variable or a field.
+sealed class VariableBindingImpl implements AstNodeImpl, FlowAnalysisRootImpl {
+  VariableFragmentImpl? get declaredFragment;
+
+  Token? get equals;
+
+  ExpressionImpl? get initializer2;
+
+  /// The scope in which the initializer is resolved.
+  ///
+  /// For instance non-late fields inside classes with primary constructors
+  /// the initializer scope is different from the scope of the enclosing
+  /// [FieldDeclaration].
+  Scope? get initializerScope;
+
+  Token get name;
+}
+
 /// An identifier that has an initial value associated with it.
 ///
 /// Instances of this class are always children of the class
@@ -57607,7 +57633,7 @@ abstract final class VariableDeclaration implements Declaration {
 )
 final class VariableDeclarationImpl extends DeclarationImpl
     with FlowAnalysisRootImpl
-    implements VariableDeclaration {
+    implements VariableBindingImpl, VariableDeclaration {
   @generated
   @override
   final Token name;
@@ -57622,9 +57648,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   @override
   VariableFragmentImpl? declaredFragment;
 
-  /// For instance non-late fields inside classes with primary constructors
-  /// the initializer scope is different from the scope of the enclosing
-  /// [FieldDeclaration].
+  @override
   Scope? initializerScope;
 
   /// When this node is read as a part of summaries, we usually don't want

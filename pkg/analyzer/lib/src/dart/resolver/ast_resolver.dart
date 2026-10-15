@@ -301,7 +301,7 @@ class AstResolver {
   /// If resolving the initializer of a non-late instance field, there
   /// might be [inScopePrimaryConstructorParameters].
   ExpressionImpl resolveVariableInitializer(
-    VariableDeclarationImpl node, {
+    VariableBindingImpl node, {
     required TypeImpl contextType,
     required List<FormalParameterElementImpl>?
     inScopePrimaryConstructorParameters,

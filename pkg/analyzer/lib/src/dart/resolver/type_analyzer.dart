@@ -4888,16 +4888,14 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
     var initializer = node.initializer2;
     if (initializer != null) {
-      var parent = node.parent2 as VariableDeclarationList;
-      var declaredType = parent.type;
       var initializerStaticType = initializer.typeOrThrow;
       flowAnalysis.flow?.initialize(
-        node.declaredFragment?.element as PromotableElementImpl,
+        fragment.element as PromotableElementImpl,
         SharedTypeView(initializerStaticType),
         flowAnalysis.getExpressionInfo(initializer),
-        isFinal: parent.isFinal,
-        isLate: parent.isLate,
-        isImplicitlyTyped: declaredType == null,
+        isFinal: fragment.isFinal,
+        isLate: fragment.isLate,
+        isImplicitlyTyped: fragment.hasImplicitType,
         offset: node.end,
       );
     }
@@ -5081,7 +5079,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     }
   }
 
-  void _checkTypeInferenceError(VariableDeclaration node) {
+  void _checkTypeInferenceError(VariableBindingImpl node) {
     var fragment = node.declaredFragment;
     if (fragment is! PropertyInducingFragmentImpl) {
       return;

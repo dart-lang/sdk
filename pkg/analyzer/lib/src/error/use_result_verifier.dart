@@ -205,7 +205,7 @@ class UseResultVerifier {
         parent is SwitchExpressionCase ||
         parent is SwitchStatement ||
         parent is ThrowExpression ||
-        parent is VariableDeclaration ||
+        parent is VariableBindingImpl ||
         parent is WhenClause ||
         parent is WhileStatement ||
         parent is YieldStatement;

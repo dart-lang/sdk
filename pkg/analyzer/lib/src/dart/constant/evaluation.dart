@@ -2115,7 +2115,7 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
           return diag.nonConstantCaseExpressionFromDeferredLibrary;
         } else if (current is SwitchPatternCase) {
           return diag.patternConstantFromDeferredLibrary;
-        } else if (current is VariableDeclaration) {
+        } else if (current is VariableBindingImpl) {
           return diag.constInitializedWithNonConstantValueFromDeferredLibrary;
         }
         previous = current;

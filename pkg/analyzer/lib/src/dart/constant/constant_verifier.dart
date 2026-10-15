@@ -539,8 +539,9 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer2;
-    if (initializer != null && (node.isConst || node.isFinal)) {
-      var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    if (initializer != null && (fragment.isConst || fragment.isFinal)) {
+      var element = fragment.element;
       if (element is FieldElementImpl && !element.isStatic) {
         var enclosingElement = element.enclosingElement;
         if (enclosingElement is ClassElementImpl &&
@@ -560,11 +561,11 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
         // ConstantValueComputer.  Other variables will only have had their
         // values computed if the value was needed (e.g. final variables in a
         // class containing const constructors).
-        assert(!node.isConst);
+        assert(!fragment.isConst);
         return;
       }
       if (result is InvalidConstant) {
-        if (node.isConst) {
+        if (fragment.isConst) {
           _reportError(result, diag.constInitializedWithNonConstantValue);
         } else {
           _reportError(result, null);

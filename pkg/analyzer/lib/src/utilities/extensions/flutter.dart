@@ -6,7 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast;
+import 'package:analyzer/src/dart/ast/ast.dart' show V1Ast, VariableBindingImpl;
 import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 
@@ -252,7 +252,7 @@ extension AstNodeExtension2 on AstNode? {
           parent is NamedArgument && parent.argumentExpression2 == node ||
           parent is Statement ||
           parent is SwitchExpressionCase && parent.expression2 == node ||
-          parent is VariableDeclaration) {
+          parent is VariableBindingImpl) {
         return node as Expression;
       }
     }

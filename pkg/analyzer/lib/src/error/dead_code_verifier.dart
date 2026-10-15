@@ -116,11 +116,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var initializer = node.initializer2;
-    if (initializer != null && node.isLate) {
+    if (initializer != null) {
       var element = node.declaredFragment!.element;
       // TODO(pq): ask the LocalVariableElement once implemented
       if (_wildCardVariablesEnabled &&
           element is LocalVariableElement &&
+          element.isLate &&
           element.name == '_') {
         _diagnosticReporter.report(
           diag.deadCodeLateWildcardVariableInitializer.at(initializer),

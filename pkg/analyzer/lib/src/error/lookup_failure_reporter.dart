@@ -642,7 +642,7 @@ enum ReadPosition {
         case NullAwareElementImpl():
         case RecordLiteralNamedFieldImpl():
         case SpreadElementImpl():
-        case VariableDeclarationImpl():
+        case VariableBindingImpl():
           break;
         default:
           return other;

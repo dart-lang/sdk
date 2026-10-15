@@ -14,7 +14,7 @@ import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/error_detection_helpers.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
-/// Helper for resolving [VariableDeclaration]s.
+/// Helper for resolving [VariableBindingImpl]s.
 class VariableDeclarationResolver {
   final TypeAnalyzer _typeAnalyzer;
   final bool _strictInference;
@@ -25,13 +25,12 @@ class VariableDeclarationResolver {
   }) : _typeAnalyzer = typeAnalyzer,
        _strictInference = strictInference;
 
-  void resolve(VariableDeclarationImpl node) {
-    var parent = node.parent2 as VariableDeclarationList;
-
+  void resolve(VariableBindingImpl node) {
+    var fragment = node.declaredFragment!;
     var initializer = node.initializer2;
 
     if (initializer == null) {
-      if (_strictInference && parent.type == null) {
+      if (_strictInference && fragment.hasImplicitType) {
         _typeAnalyzer.diagnosticReporter.report(
           diag.inferenceFailureOnUninitializedVariable
               .withArguments(variable: node.name.lexeme)
@@ -41,7 +40,7 @@ class VariableDeclarationResolver {
       return;
     }
 
-    var element = node.declaredFragment!.element;
+    var element = fragment.element;
     bool isTopLevel;
     bool bindsThis;
     if (element is FieldElementImpl) {
@@ -110,7 +109,7 @@ class VariableDeclarationResolver {
     );
 
     var initializerType = initializer.typeOrThrow;
-    if (parent.type == null && element is LocalVariableElementImpl) {
+    if (fragment.hasImplicitType && element is LocalVariableElementImpl) {
       element.type = _typeAnalyzer
           .variableTypeFromInitializerType(SharedTypeView(initializerType))
           .unwrapTypeView();
