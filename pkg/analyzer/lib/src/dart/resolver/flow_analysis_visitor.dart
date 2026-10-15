@@ -381,7 +381,7 @@ class FlowAnalysisHelper {
   void labeledStatement_exit(LabeledStatement node) {
     if (flow == null) return;
 
-    flow!.labeledStatement_end(offset: node.statement.endToken.offset);
+    flow!.labeledStatement_end(offset: node.statement2.endToken.offset);
   }
 
   /// Associates [expression] with the given [expressionInfo] object, for later
@@ -504,7 +504,7 @@ class FlowAnalysisHelper {
       } else {
         if (node is LabeledStatementImpl) {
           if (_hasLabel(node.labels, element)) {
-            var statement = node.statement;
+            var statement = node.statement2;
             // The inner statement is returned for labeled loops and
             // switch statements, while the LabeledStatement is returned
             // for the other known targets. This could be possibly changed
@@ -1179,7 +1179,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitForStatement(covariant ForStatementImpl node) {
-    _handleFor(node, node.forLoopParts, node.body);
+    _handleFor(node, node.forLoopParts, node.body2);
   }
 
   @override

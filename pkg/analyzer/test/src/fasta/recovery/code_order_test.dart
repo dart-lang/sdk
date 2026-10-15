@@ -1105,7 +1105,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1204,7 +1204,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block

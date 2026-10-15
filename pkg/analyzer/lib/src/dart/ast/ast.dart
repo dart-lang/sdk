@@ -4191,7 +4191,11 @@ abstract final class Block implements Statement {
   Token get rightBracket;
 
   /// The statements contained in the block.
+  @V1Ast('The V2 counterpart is statements2.')
   NodeList<Statement> get statements;
+
+  @experimental
+  NodeList<Statement> get statements2;
 }
 
 /// The class body with members.
@@ -4716,7 +4720,11 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('statements'),
+    GenerateNodeProperty(
+      'statements2',
+      v1Name: 'statements',
+      v1Projection: V1Projection.statement,
+    ),
     GenerateNodeProperty('rightBracket'),
   ],
 )
@@ -4728,8 +4736,17 @@ final class BlockImpl extends StatementImpl
   final Token leftBracket;
 
   @generated
+  @experimental
   @override
-  final NodeListImpl<StatementImpl> statements = NodeListImpl._();
+  final NodeListImpl<StatementImpl> statements2 = NodeListImpl._();
+
+  @generated
+  @V1Ast('The V2 counterpart is statements2.')
+  @override
+  late final NodeListImpl<StatementImpl> statements = _V1ProjectedNodeListImpl(
+    statements2,
+    V1Projection.toV1Statement,
+  );
 
   @generated
   @override
@@ -4738,10 +4755,10 @@ final class BlockImpl extends StatementImpl
   @generated
   BlockImpl({
     required this.leftBracket,
-    required List<StatementImpl> statements,
+    required List<StatementImpl> statements2,
     required this.rightBracket,
   }) {
-    this.statements._initialize(this, statements);
+    this.statements2._initializeProjected(this, statements2);
   }
 
   @generated
@@ -4768,7 +4785,7 @@ final class BlockImpl extends StatementImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('leftBracket', leftBracket)
-    ..addNodeList('statements', statements)
+    ..addNodeList('statements2', statements2)
     ..addToken('rightBracket', rightBracket);
 
   @generated
@@ -4784,9 +4801,9 @@ final class BlockImpl extends StatementImpl
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (statements.containsChild(oldNode)) {
+    if (statements2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'statements' because NodeList cannot be resized.",
+        "Cannot remove child 'statements2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -4795,7 +4812,7 @@ final class BlockImpl extends StatementImpl
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (statements.replaceChild(oldNode, newNode)) {
+    if (statements2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -4812,7 +4829,7 @@ final class BlockImpl extends StatementImpl
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    statements.accept2(visitor);
+    statements2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -4824,12 +4841,12 @@ final class BlockImpl extends StatementImpl
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements2,
   }) {
-    if (visitStatements != null) {
-      visitStatements(statements);
+    if (visitStatements2 != null) {
+      visitStatements2(statements2);
     } else {
-      statements.accept2(visitor);
+      statements2.accept2(visitor);
     }
   }
 
@@ -4847,7 +4864,7 @@ final class BlockImpl extends StatementImpl
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+    if (statements2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -14010,7 +14027,11 @@ class DoNotGenerate {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DoStatement implements Statement {
   /// The body of the loop.
+  @V1Ast('The V2 counterpart is body2.')
   Statement get body;
+
+  @experimental
+  Statement get body2;
 
   /// The condition that determines when the loop terminates.
   @V1Ast('The V2 counterpart is condition2.')
@@ -14038,7 +14059,11 @@ abstract final class DoStatement implements Statement {
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('doKeyword'),
-    GenerateNodeProperty('body'),
+    GenerateNodeProperty(
+      'body2',
+      v1Name: 'body',
+      v1Projection: V1Projection.statement,
+    ),
     GenerateNodeProperty('whileKeyword'),
     GenerateNodeProperty('leftParenthesis'),
     GenerateNodeProperty(
@@ -14056,7 +14081,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   final Token doKeyword;
 
   @generated
-  StatementImpl _body;
+  StatementImpl _body2;
 
   @generated
   @override
@@ -14080,15 +14105,15 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @generated
   DoStatementImpl({
     required this.doKeyword,
-    required StatementImpl body,
+    required StatementImpl body2,
     required this.whileKeyword,
     required this.leftParenthesis,
     required ExpressionImpl condition2,
     required this.rightParenthesis,
     required this.semicolon,
-  }) : _body = body,
+  }) : _body2 = body2,
        _condition2 = condition2 {
-    _becomeParentOf12(body);
+    _becomeParentOf2AndExisting1(body2);
     _becomeParentOf2AndExisting1(condition2);
   }
 
@@ -14099,12 +14124,19 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   }
 
   @generated
+  @V1Ast('The V2 counterpart is body2.')
   @override
-  StatementImpl get body => _body;
+  StatementImpl get body => _becomeParentOf1(V1Projection.toV1Statement(body2));
 
   @generated
-  set body(StatementImpl body) {
-    _body = _becomeParentOf12(body);
+  @experimental
+  @override
+  StatementImpl get body2 => _body2;
+
+  @generated
+  @experimental
+  set body2(StatementImpl body2) {
+    _body2 = _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
@@ -14146,7 +14178,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addToken('doKeyword', doKeyword)
-    ..addNode('body', body)
+    ..addNode('body2', body2)
     ..addToken('whileKeyword', whileKeyword)
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNode('condition2', condition2)
@@ -14166,8 +14198,8 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @generated
   @override
   void removeChild(AstNodeImpl oldNode) {
-    if (identical(body, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'body'.");
+    if (identical(body2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body2'.");
     }
     if (identical(condition2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'condition2'.");
@@ -14178,8 +14210,8 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @generated
   @override
   void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
-    if (identical(body, oldNode)) {
-      body = newNode as StatementImpl;
+    if (identical(body2, oldNode)) {
+      body2 = newNode as StatementImpl;
       return;
     }
     if (identical(condition2, oldNode)) {
@@ -14201,7 +14233,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @experimental
   @override
   void visitChildren2(AstVisitor2 visitor) {
-    body.accept2(visitor);
+    body2.accept2(visitor);
     condition2.accept2(visitor);
   }
 
@@ -14214,13 +14246,13 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @experimental
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
-    void Function(StatementImpl)? visitBody,
+    void Function(StatementImpl)? visitBody2,
     void Function(ExpressionImpl)? visitCondition2,
   }) {
-    if (visitBody != null) {
-      visitBody(body);
+    if (visitBody2 != null) {
+      visitBody2(body2);
     } else {
-      body.accept2(visitor);
+      body2.accept2(visitor);
     }
     if (visitCondition2 != null) {
       visitCondition2(condition2);
@@ -14245,8 +14277,8 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   @generated
   @override
   AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
+    if (body2._containsOffset(rangeOffset, rangeEnd)) {
+      return body2;
     }
     if (condition2._containsOffset(rangeOffset, rangeEnd)) {
       return condition2;
@@ -22947,7 +22979,14 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
 ///      | [DeclaredIdentifier] 'in' [Expression]
 ///      | [SimpleIdentifier] 'in' [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class ForStatement implements Statement, ForLoop<Statement> {}
+abstract final class ForStatement implements Statement, ForLoop<Statement> {
+  @V1Ast('The V2 counterpart is body2.')
+  @override
+  Statement get body;
+
+  @experimental
+  Statement get body2;
+}
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
@@ -22956,7 +22995,11 @@ abstract final class ForStatement implements Statement, ForLoop<Statement> {}
     GenerateNodeProperty('leftParenthesis'),
     GenerateNodeProperty('forLoopParts'),
     GenerateNodeProperty('rightParenthesis'),
-    GenerateNodeProperty('body'),
+    GenerateNodeProperty(
+      'body2',
+      v1Name: 'body',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class ForStatementImpl extends StatementImpl
@@ -22982,7 +23025,7 @@ final class ForStatementImpl extends StatementImpl
   final Token rightParenthesis;
 
   @generated
-  StatementImpl _body;
+  StatementImpl _body2;
 
   @generated
   ForStatementImpl({
@@ -22991,11 +23034,11 @@ final class ForStatementImpl extends StatementImpl
     required this.leftParenthesis,
     required ForLoopPartsImpl forLoopParts,
     required this.rightParenthesis,
-    required StatementImpl body,
+    required StatementImpl body2,
   }) : _forLoopParts = forLoopParts,
-       _body = body {
+       _body2 = body2 {
     _becomeParentOf12(forLoopParts);
-    _becomeParentOf12(body);
+    _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
@@ -23008,18 +23051,25 @@ final class ForStatementImpl extends StatementImpl
   }
 
   @generated
+  @V1Ast('The V2 counterpart is body2.')
   @override
-  StatementImpl get body => _body;
+  StatementImpl get body => _becomeParentOf1(V1Projection.toV1Statement(body2));
 
   @generated
-  set body(StatementImpl body) {
-    _body = _becomeParentOf12(body);
+  @experimental
+  @override
+  StatementImpl get body2 => _body2;
+
+  @generated
+  @experimental
+  set body2(StatementImpl body2) {
+    _body2 = _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
   @override
   Token get endToken {
-    return body.endToken;
+    return body2.endToken;
   }
 
   @generated
@@ -23050,7 +23100,7 @@ final class ForStatementImpl extends StatementImpl
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNode('forLoopParts', forLoopParts)
     ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('body', body);
+    ..addNode('body2', body2);
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -23068,8 +23118,8 @@ final class ForStatementImpl extends StatementImpl
     if (identical(forLoopParts, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'forLoopParts'.");
     }
-    if (identical(body, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'body'.");
+    if (identical(body2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body2'.");
     }
     super.removeChild(oldNode);
   }
@@ -23081,8 +23131,8 @@ final class ForStatementImpl extends StatementImpl
       forLoopParts = newNode as ForLoopPartsImpl;
       return;
     }
-    if (identical(body, oldNode)) {
-      body = newNode as StatementImpl;
+    if (identical(body2, oldNode)) {
+      body2 = newNode as StatementImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -23101,7 +23151,7 @@ final class ForStatementImpl extends StatementImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     forLoopParts.accept2(visitor);
-    body.accept2(visitor);
+    body2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -23114,17 +23164,17 @@ final class ForStatementImpl extends StatementImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(ForLoopPartsImpl)? visitForLoopParts,
-    void Function(StatementImpl)? visitBody,
+    void Function(StatementImpl)? visitBody2,
   }) {
     if (visitForLoopParts != null) {
       visitForLoopParts(forLoopParts);
     } else {
       forLoopParts.accept2(visitor);
     }
-    if (visitBody != null) {
-      visitBody(body);
+    if (visitBody2 != null) {
+      visitBody2(body2);
     } else {
-      body.accept2(visitor);
+      body2.accept2(visitor);
     }
   }
 
@@ -23147,8 +23197,8 @@ final class ForStatementImpl extends StatementImpl
     if (forLoopParts._containsOffset(rangeOffset, rangeEnd)) {
       return forLoopParts;
     }
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
+    if (body2._containsOffset(rangeOffset, rangeEnd)) {
+      return body2;
     }
     return null;
   }
@@ -27720,7 +27770,11 @@ abstract final class IfStatement implements Statement {
 
   /// The statement that is executed if the condition evaluates to `false`, or
   /// `null` if there's no else statement.
+  @V1Ast('The V2 counterpart is elseStatement2.')
   Statement? get elseStatement;
+
+  @experimental
+  Statement? get elseStatement2;
 
   /// The expression used to either determine which of the statements is
   /// executed next or to compute the value matched against the pattern in the
@@ -27742,7 +27796,11 @@ abstract final class IfStatement implements Statement {
   Token get rightParenthesis;
 
   /// The statement that is executed if the condition evaluates to `true`.
+  @V1Ast('The V2 counterpart is thenStatement2.')
   Statement get thenStatement;
+
+  @experimental
+  Statement get thenStatement2;
 }
 
 @GenerateNodeImpl(
@@ -27756,9 +27814,17 @@ abstract final class IfStatement implements Statement {
     ),
     GenerateNodeProperty('caseClause'),
     GenerateNodeProperty('rightParenthesis'),
-    GenerateNodeProperty('thenStatement'),
+    GenerateNodeProperty(
+      'thenStatement2',
+      v1Name: 'thenStatement',
+      v1Projection: V1Projection.statement,
+    ),
     GenerateNodeProperty('elseKeyword'),
-    GenerateNodeProperty('elseStatement'),
+    GenerateNodeProperty(
+      'elseStatement2',
+      v1Name: 'elseStatement',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class IfStatementImpl extends StatementImpl
@@ -27782,14 +27848,14 @@ final class IfStatementImpl extends StatementImpl
   final Token rightParenthesis;
 
   @generated
-  StatementImpl _thenStatement;
+  StatementImpl _thenStatement2;
 
   @generated
   @override
   final Token? elseKeyword;
 
   @generated
-  StatementImpl? _elseStatement;
+  StatementImpl? _elseStatement2;
 
   @generated
   IfStatementImpl({
@@ -27798,17 +27864,17 @@ final class IfStatementImpl extends StatementImpl
     required ExpressionImpl expression2,
     required CaseClauseImpl? caseClause,
     required this.rightParenthesis,
-    required StatementImpl thenStatement,
+    required StatementImpl thenStatement2,
     required this.elseKeyword,
-    required StatementImpl? elseStatement,
+    required StatementImpl? elseStatement2,
   }) : _expression2 = expression2,
        _caseClause = caseClause,
-       _thenStatement = thenStatement,
-       _elseStatement = elseStatement {
+       _thenStatement2 = thenStatement2,
+       _elseStatement2 = elseStatement2 {
     _becomeParentOf2AndExisting1(expression2);
     _becomeParentOf12(caseClause);
-    _becomeParentOf12(thenStatement);
-    _becomeParentOf12(elseStatement);
+    _becomeParentOf2AndExisting1(thenStatement2);
+    _becomeParentOf2AndExisting1(elseStatement2);
   }
 
   @generated
@@ -27831,24 +27897,34 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @generated
+  @V1Ast('The V2 counterpart is elseStatement2.')
   @override
-  StatementImpl? get elseStatement => _elseStatement;
+  StatementImpl? get elseStatement => _becomeParentOf1(switch (elseStatement2) {
+    var node? => V1Projection.toV1Statement(node),
+    _ => null,
+  });
 
   @generated
-  set elseStatement(StatementImpl? elseStatement) {
-    _elseStatement = _becomeParentOf12(elseStatement);
+  @experimental
+  @override
+  StatementImpl? get elseStatement2 => _elseStatement2;
+
+  @generated
+  @experimental
+  set elseStatement2(StatementImpl? elseStatement2) {
+    _elseStatement2 = _becomeParentOf2AndExisting1(elseStatement2);
   }
 
   @generated
   @override
   Token get endToken {
-    if (elseStatement case var elseStatement?) {
-      return elseStatement.endToken;
+    if (elseStatement2 case var elseStatement2?) {
+      return elseStatement2.endToken;
     }
     if (elseKeyword case var elseKeyword?) {
       return elseKeyword;
     }
-    return thenStatement.endToken;
+    return thenStatement2.endToken;
   }
 
   @generated
@@ -27869,18 +27945,26 @@ final class IfStatementImpl extends StatementImpl
   }
 
   @override
-  StatementImpl? get ifFalse2 => elseStatement;
+  StatementImpl? get ifFalse2 => elseStatement2;
 
   @override
-  StatementImpl get ifTrue2 => thenStatement;
+  StatementImpl get ifTrue2 => thenStatement2;
 
   @generated
+  @V1Ast('The V2 counterpart is thenStatement2.')
   @override
-  StatementImpl get thenStatement => _thenStatement;
+  StatementImpl get thenStatement =>
+      _becomeParentOf1(V1Projection.toV1Statement(thenStatement2));
 
   @generated
-  set thenStatement(StatementImpl thenStatement) {
-    _thenStatement = _becomeParentOf12(thenStatement);
+  @experimental
+  @override
+  StatementImpl get thenStatement2 => _thenStatement2;
+
+  @generated
+  @experimental
+  set thenStatement2(StatementImpl thenStatement2) {
+    _thenStatement2 = _becomeParentOf2AndExisting1(thenStatement2);
   }
 
   @generated
@@ -27904,9 +27988,9 @@ final class IfStatementImpl extends StatementImpl
     ..addNode('expression2', expression2)
     ..addNode('caseClause', caseClause)
     ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('thenStatement', thenStatement)
+    ..addNode('thenStatement2', thenStatement2)
     ..addToken('elseKeyword', elseKeyword)
-    ..addNode('elseStatement', elseStatement);
+    ..addNode('elseStatement2', elseStatement2);
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -27928,11 +28012,11 @@ final class IfStatementImpl extends StatementImpl
       caseClause = null;
       return;
     }
-    if (identical(thenStatement, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'thenStatement'.");
+    if (identical(thenStatement2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'thenStatement2'.");
     }
-    if (identical(elseStatement, oldNode)) {
-      elseStatement = null;
+    if (identical(elseStatement2, oldNode)) {
+      elseStatement2 = null;
       return;
     }
     super.removeChild(oldNode);
@@ -27949,12 +28033,12 @@ final class IfStatementImpl extends StatementImpl
       caseClause = newNode as CaseClauseImpl?;
       return;
     }
-    if (identical(thenStatement, oldNode)) {
-      thenStatement = newNode as StatementImpl;
+    if (identical(thenStatement2, oldNode)) {
+      thenStatement2 = newNode as StatementImpl;
       return;
     }
-    if (identical(elseStatement, oldNode)) {
-      elseStatement = newNode as StatementImpl?;
+    if (identical(elseStatement2, oldNode)) {
+      elseStatement2 = newNode as StatementImpl?;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -27976,8 +28060,8 @@ final class IfStatementImpl extends StatementImpl
   void visitChildren2(AstVisitor2 visitor) {
     expression2.accept2(visitor);
     caseClause?.accept2(visitor);
-    thenStatement.accept2(visitor);
-    elseStatement?.accept2(visitor);
+    thenStatement2.accept2(visitor);
+    elseStatement2?.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -27991,8 +28075,8 @@ final class IfStatementImpl extends StatementImpl
     AstVisitor2 visitor, {
     void Function(ExpressionImpl)? visitExpression2,
     void Function(CaseClauseImpl)? visitCaseClause,
-    void Function(StatementImpl)? visitThenStatement,
-    void Function(StatementImpl)? visitElseStatement,
+    void Function(StatementImpl)? visitThenStatement2,
+    void Function(StatementImpl)? visitElseStatement2,
   }) {
     if (visitExpression2 != null) {
       visitExpression2(expression2);
@@ -28006,16 +28090,16 @@ final class IfStatementImpl extends StatementImpl
         caseClause.accept2(visitor);
       }
     }
-    if (visitThenStatement != null) {
-      visitThenStatement(thenStatement);
+    if (visitThenStatement2 != null) {
+      visitThenStatement2(thenStatement2);
     } else {
-      thenStatement.accept2(visitor);
+      thenStatement2.accept2(visitor);
     }
-    if (elseStatement case var elseStatement?) {
-      if (visitElseStatement != null) {
-        visitElseStatement(elseStatement);
+    if (elseStatement2 case var elseStatement2?) {
+      if (visitElseStatement2 != null) {
+        visitElseStatement2(elseStatement2);
       } else {
-        elseStatement.accept2(visitor);
+        elseStatement2.accept2(visitor);
       }
     }
   }
@@ -28054,12 +28138,12 @@ final class IfStatementImpl extends StatementImpl
         return caseClause;
       }
     }
-    if (thenStatement._containsOffset(rangeOffset, rangeEnd)) {
-      return thenStatement;
+    if (thenStatement2._containsOffset(rangeOffset, rangeEnd)) {
+      return thenStatement2;
     }
-    if (elseStatement case var elseStatement?) {
-      if (elseStatement._containsOffset(rangeOffset, rangeEnd)) {
-        return elseStatement;
+    if (elseStatement2 case var elseStatement2?) {
+      if (elseStatement2._containsOffset(rangeOffset, rangeEnd)) {
+        return elseStatement2;
       }
     }
     return null;
@@ -33038,13 +33122,21 @@ abstract final class LabeledStatement implements Statement {
   NodeList<Label> get labels;
 
   /// The statement with which the labels are being associated.
+  @V1Ast('The V2 counterpart is statement2.')
   Statement get statement;
+
+  @experimental
+  Statement get statement2;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('labels'),
-    GenerateNodeProperty('statement'),
+    GenerateNodeProperty(
+      'statement2',
+      v1Name: 'statement',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class LabeledStatementImpl extends StatementImpl
@@ -33054,15 +33146,15 @@ final class LabeledStatementImpl extends StatementImpl
   final NodeListImpl<LabelImpl> labels = NodeListImpl._();
 
   @generated
-  StatementImpl _statement;
+  StatementImpl _statement2;
 
   @generated
   LabeledStatementImpl({
     required List<LabelImpl> labels,
-    required StatementImpl statement,
-  }) : _statement = statement {
+    required StatementImpl statement2,
+  }) : _statement2 = statement2 {
     this.labels._initialize(this, labels);
-    _becomeParentOf12(statement);
+    _becomeParentOf2AndExisting1(statement2);
   }
 
   @generated
@@ -33071,26 +33163,39 @@ final class LabeledStatementImpl extends StatementImpl
     if (labels.beginToken case var result?) {
       return result;
     }
-    return statement.beginToken;
+    return statement2.beginToken;
   }
 
   @generated
   @override
   Token get endToken {
-    return statement.endToken;
+    return statement2.endToken;
   }
 
   @generated
+  @V1Ast('The V2 counterpart is statement2.')
   @override
-  StatementImpl get statement => _statement;
+  StatementImpl get statement =>
+      _becomeParentOf1(V1Projection.toV1Statement(statement2));
 
   @generated
-  set statement(StatementImpl statement) {
-    _statement = _becomeParentOf12(statement);
+  @experimental
+  @override
+  StatementImpl get statement2 => _statement2;
+
+  @generated
+  @experimental
+  set statement2(StatementImpl statement2) {
+    _statement2 = _becomeParentOf2AndExisting1(statement2);
   }
 
+  @V1Ast('The V2 counterpart is unlabeled2.')
   @override
-  StatementImpl get unlabeled => _statement.unlabeled;
+  StatementImpl get unlabeled => statement.unlabeled;
+
+  @experimental
+  @override
+  StatementImpl get unlabeled2 => statement2.unlabeled2;
 
   @generated
   @V1Ast('The V2 counterpart is _childEntities2.')
@@ -33103,7 +33208,7 @@ final class LabeledStatementImpl extends StatementImpl
   @override
   ChildEntities get _childEntities2 => ChildEntities()
     ..addNodeList('labels', labels)
-    ..addNode('statement', statement);
+    ..addNode('statement2', statement2);
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -33123,8 +33228,8 @@ final class LabeledStatementImpl extends StatementImpl
         "Cannot remove child 'labels' because NodeList cannot be resized.",
       );
     }
-    if (identical(statement, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'statement'.");
+    if (identical(statement2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'statement2'.");
     }
     super.removeChild(oldNode);
   }
@@ -33135,8 +33240,8 @@ final class LabeledStatementImpl extends StatementImpl
     if (labels.replaceChild(oldNode, newNode)) {
       return;
     }
-    if (identical(statement, oldNode)) {
-      statement = newNode as StatementImpl;
+    if (identical(statement2, oldNode)) {
+      statement2 = newNode as StatementImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -33155,7 +33260,7 @@ final class LabeledStatementImpl extends StatementImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     labels.accept2(visitor);
-    statement.accept2(visitor);
+    statement2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -33168,17 +33273,17 @@ final class LabeledStatementImpl extends StatementImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
-    void Function(StatementImpl)? visitStatement,
+    void Function(StatementImpl)? visitStatement2,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
     } else {
       labels.accept2(visitor);
     }
-    if (visitStatement != null) {
-      visitStatement(statement);
+    if (visitStatement2 != null) {
+      visitStatement2(statement2);
     } else {
-      statement.accept2(visitor);
+      statement2.accept2(visitor);
     }
   }
 
@@ -33203,8 +33308,8 @@ final class LabeledStatementImpl extends StatementImpl
         case var result?) {
       return result;
     }
-    if (statement._containsOffset(rangeOffset, rangeEnd)) {
-      return statement;
+    if (statement2._containsOffset(rangeOffset, rangeEnd)) {
+      return statement2;
     }
     return null;
   }
@@ -50579,7 +50684,11 @@ final class SpreadElementImpl extends AstNodeImpl
 abstract final class Statement implements AstNode {
   /// If this is a labeled statement, returns the statement being labeled,
   /// otherwise returns the statement itself.
+  @V1Ast('The V2 counterpart is unlabeled2.')
   Statement get unlabeled;
+
+  @experimental
+  Statement get unlabeled2;
 }
 
 sealed class StatementImpl extends AstNodeImpl implements Statement {
@@ -50593,8 +50702,13 @@ sealed class StatementImpl extends AstNodeImpl implements Statement {
   /// is unreachable.
   bool mayCompleteNormally = true;
 
+  @V1Ast('The V2 counterpart is unlabeled2.')
   @override
   StatementImpl get unlabeled => this;
+
+  @experimental
+  @override
+  StatementImpl get unlabeled2 => this;
 }
 
 /// A successful invocation with a statically known function signature.
@@ -51923,7 +52037,12 @@ abstract final class SwitchCase implements SwitchMember {
       v1Projection: V1Projection.expression,
     ),
     GenerateNodeProperty('colon', isSuper: true),
-    GenerateNodeProperty('statements', isSuper: true),
+    GenerateNodeProperty(
+      'statements2',
+      isSuper: true,
+      v1Name: 'statements',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
@@ -51936,7 +52055,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     required super.keyword,
     required ExpressionImpl expression2,
     required super.colon,
-    required super.statements,
+    required super.statements2,
   }) : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
@@ -51953,7 +52072,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   @generated
   @override
   Token get endToken {
-    if (statements.endToken case var result?) {
+    if (statements2.endToken case var result?) {
       return result;
     }
     return colon;
@@ -51993,7 +52112,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     ..addToken('keyword', keyword)
     ..addNode('expression2', expression2)
     ..addToken('colon', colon)
-    ..addNodeList('statements', statements);
+    ..addNodeList('statements2', statements2);
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -52016,9 +52135,9 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     if (identical(expression2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'expression2'.");
     }
-    if (statements.containsChild(oldNode)) {
+    if (statements2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'statements' because NodeList cannot be resized.",
+        "Cannot remove child 'statements2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -52034,7 +52153,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
       expression2 = newNode as ExpressionImpl;
       return;
     }
-    if (statements.replaceChild(oldNode, newNode)) {
+    if (statements2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -52055,7 +52174,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   void visitChildren2(AstVisitor2 visitor) {
     labels.accept2(visitor);
     expression2.accept2(visitor);
-    statements.accept2(visitor);
+    statements2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -52069,7 +52188,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
     void Function(ExpressionImpl)? visitExpression2,
-    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements2,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
@@ -52081,10 +52200,10 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     } else {
       expression2.accept2(visitor);
     }
-    if (visitStatements != null) {
-      visitStatements(statements);
+    if (visitStatements2 != null) {
+      visitStatements2(statements2);
     } else {
-      statements.accept2(visitor);
+      statements2.accept2(visitor);
     }
   }
 
@@ -52116,7 +52235,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
     if (expression2._containsOffset(rangeOffset, rangeEnd)) {
       return expression2;
     }
-    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+    if (statements2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -52136,7 +52255,12 @@ abstract final class SwitchDefault implements SwitchMember {}
     GenerateNodeProperty('labels', isSuper: true),
     GenerateNodeProperty('keyword', isSuper: true),
     GenerateNodeProperty('colon', isSuper: true),
-    GenerateNodeProperty('statements', isSuper: true),
+    GenerateNodeProperty(
+      'statements2',
+      isSuper: true,
+      v1Name: 'statements',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class SwitchDefaultImpl extends SwitchMemberImpl
@@ -52146,7 +52270,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
     required super.labels,
     required super.keyword,
     required super.colon,
-    required super.statements,
+    required super.statements2,
   });
 
   @generated
@@ -52161,7 +52285,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   @generated
   @override
   Token get endToken {
-    if (statements.endToken case var result?) {
+    if (statements2.endToken case var result?) {
       return result;
     }
     return colon;
@@ -52182,7 +52306,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
     ..addNodeList('labels', labels)
     ..addToken('keyword', keyword)
     ..addToken('colon', colon)
-    ..addNodeList('statements', statements);
+    ..addNodeList('statements2', statements2);
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -52202,9 +52326,9 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
         "Cannot remove child 'labels' because NodeList cannot be resized.",
       );
     }
-    if (statements.containsChild(oldNode)) {
+    if (statements2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'statements' because NodeList cannot be resized.",
+        "Cannot remove child 'statements2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -52216,7 +52340,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
     if (labels.replaceChild(oldNode, newNode)) {
       return;
     }
-    if (statements.replaceChild(oldNode, newNode)) {
+    if (statements2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -52235,7 +52359,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   @override
   void visitChildren2(AstVisitor2 visitor) {
     labels.accept2(visitor);
-    statements.accept2(visitor);
+    statements2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -52248,17 +52372,17 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
-    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements2,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
     } else {
       labels.accept2(visitor);
     }
-    if (visitStatements != null) {
-      visitStatements(statements);
+    if (visitStatements2 != null) {
+      visitStatements2(statements2);
     } else {
-      statements.accept2(visitor);
+      statements2.accept2(visitor);
     }
   }
 
@@ -52284,7 +52408,7 @@ final class SwitchDefaultImpl extends SwitchMemberImpl
         case var result?) {
       return result;
     }
-    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+    if (statements2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -52788,7 +52912,11 @@ sealed class SwitchMember implements AstNode {
   NodeList<Label> get labels;
 
   /// The statements that are executed if this switch member is selected.
+  @V1Ast('The V2 counterpart is statements2.')
   NodeList<Statement> get statements;
+
+  @experimental
+  NodeList<Statement> get statements2;
 }
 
 sealed class SwitchMemberImpl extends AstNodeImpl
@@ -52802,7 +52930,13 @@ sealed class SwitchMemberImpl extends AstNodeImpl
   @override
   final Token colon;
 
-  final NodeListImpl<StatementImpl> _statements = NodeListImpl._();
+  final NodeListImpl<StatementImpl> _statements2 = NodeListImpl._();
+
+  @V1Ast('The V2 counterpart is _statements2.')
+  late final NodeListImpl<StatementImpl> _statements = _V1ProjectedNodeListImpl(
+    _statements2,
+    V1Projection.toV1Statement,
+  );
 
   /// Initializes a newly created switch member.
   ///
@@ -52811,10 +52945,10 @@ sealed class SwitchMemberImpl extends AstNodeImpl
     required List<LabelImpl> labels,
     required this.keyword,
     required this.colon,
-    required List<StatementImpl> statements,
+    required List<StatementImpl> statements2,
   }) {
     _labels._initialize(this, labels);
-    _statements._initialize(this, statements);
+    _statements2._initializeProjected(this, statements2);
   }
 
   @override
@@ -52827,8 +52961,8 @@ sealed class SwitchMemberImpl extends AstNodeImpl
 
   @override
   Token get endToken {
-    if (_statements.isNotEmpty) {
-      return _statements.endToken!;
+    if (_statements2.isNotEmpty) {
+      return _statements2.endToken!;
     }
     return colon;
   }
@@ -52836,8 +52970,13 @@ sealed class SwitchMemberImpl extends AstNodeImpl
   @override
   NodeListImpl<LabelImpl> get labels => _labels;
 
+  @V1Ast('The V2 counterpart is statements2.')
   @override
   NodeListImpl<StatementImpl> get statements => _statements;
+
+  @experimental
+  @override
+  NodeListImpl<StatementImpl> get statements2 => _statements2;
 }
 
 /// A pattern-based case in a switch statement.
@@ -52856,7 +52995,12 @@ abstract final class SwitchPatternCase implements SwitchMember {
     GenerateNodeProperty('keyword', isSuper: true),
     GenerateNodeProperty('guardedPattern'),
     GenerateNodeProperty('colon', isSuper: true),
-    GenerateNodeProperty('statements', isSuper: true),
+    GenerateNodeProperty(
+      'statements2',
+      isSuper: true,
+      v1Name: 'statements',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class SwitchPatternCaseImpl extends SwitchMemberImpl
@@ -52870,7 +53014,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     required super.keyword,
     required GuardedPatternImpl guardedPattern,
     required super.colon,
-    required super.statements,
+    required super.statements2,
   }) : _guardedPattern = guardedPattern {
     _becomeParentOf12(guardedPattern);
   }
@@ -52887,7 +53031,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   @generated
   @override
   Token get endToken {
-    if (statements.endToken case var result?) {
+    if (statements2.endToken case var result?) {
       return result;
     }
     return colon;
@@ -52919,7 +53063,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     ..addToken('keyword', keyword)
     ..addNode('guardedPattern', guardedPattern)
     ..addToken('colon', colon)
-    ..addNodeList('statements', statements);
+    ..addNodeList('statements2', statements2);
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -52942,9 +53086,9 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     if (identical(guardedPattern, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'guardedPattern'.");
     }
-    if (statements.containsChild(oldNode)) {
+    if (statements2.containsChild(oldNode)) {
       throw UnsupportedError(
-        "Cannot remove child 'statements' because NodeList cannot be resized.",
+        "Cannot remove child 'statements2' because NodeList cannot be resized.",
       );
     }
     super.removeChild(oldNode);
@@ -52960,7 +53104,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
       guardedPattern = newNode as GuardedPatternImpl;
       return;
     }
-    if (statements.replaceChild(oldNode, newNode)) {
+    if (statements2.replaceChild(oldNode, newNode)) {
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -52981,7 +53125,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   void visitChildren2(AstVisitor2 visitor) {
     labels.accept2(visitor);
     guardedPattern.accept2(visitor);
-    statements.accept2(visitor);
+    statements2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -52995,7 +53139,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     AstVisitor2 visitor, {
     void Function(NodeListImpl<LabelImpl>)? visitLabels,
     void Function(GuardedPatternImpl)? visitGuardedPattern,
-    void Function(NodeListImpl<StatementImpl>)? visitStatements,
+    void Function(NodeListImpl<StatementImpl>)? visitStatements2,
   }) {
     if (visitLabels != null) {
       visitLabels(labels);
@@ -53007,10 +53151,10 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     } else {
       guardedPattern.accept2(visitor);
     }
-    if (visitStatements != null) {
-      visitStatements(statements);
+    if (visitStatements2 != null) {
+      visitStatements2(statements2);
     } else {
-      statements.accept2(visitor);
+      statements2.accept2(visitor);
     }
   }
 
@@ -53042,7 +53186,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
     if (guardedPattern._containsOffset(rangeOffset, rangeEnd)) {
       return guardedPattern;
     }
-    if (statements._elementContainingRange(rangeOffset, rangeEnd)
+    if (statements2._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
     }
@@ -53092,7 +53236,7 @@ class SwitchStatementCaseGroup {
   SwitchStatementCaseGroup(this.members, this.hasLabels);
 
   NodeListImpl<StatementImpl> get statements {
-    return members.last.statements;
+    return members.last.statements2;
   }
 }
 
@@ -53320,7 +53464,7 @@ final class SwitchStatementImpl extends StatementImpl
     for (var member in members) {
       groupMembers.add(member);
       groupHasLabels |= member.labels.isNotEmpty;
-      if (member.statements.isNotEmpty) {
+      if (member.statements2.isNotEmpty) {
         groups.add(SwitchStatementCaseGroup(groupMembers, groupHasLabels));
         groupMembers = [];
         groupHasLabels = false;
@@ -56821,7 +56965,10 @@ enum V1Projection {
   expression,
 
   /// Project a [RecordLiteralFieldImpl] child to the V1 record view.
-  recordLiteralField;
+  recordLiteralField,
+
+  /// Project a [StatementImpl] child to the V1 statement view.
+  statement;
 
   @V1Ast()
   static ArgumentImpl toV1Argument(ArgumentImpl node) {
@@ -56876,6 +57023,11 @@ enum V1Projection {
     if (node is ExpressionImpl) {
       return toV1Expression(node);
     }
+    return node;
+  }
+
+  @V1Ast()
+  static StatementImpl toV1Statement(StatementImpl node) {
     return node;
   }
 
@@ -58180,7 +58332,11 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class WhileStatement implements Statement {
   /// The body of the loop.
+  @V1Ast('The V2 counterpart is body2.')
   Statement get body;
+
+  @experimental
+  Statement get body2;
 
   /// The expression used to determine whether to execute the body of the loop.
   @V1Ast('The V2 counterpart is condition2.')
@@ -58209,7 +58365,11 @@ abstract final class WhileStatement implements Statement {
       v1Projection: V1Projection.expression,
     ),
     GenerateNodeProperty('rightParenthesis'),
-    GenerateNodeProperty('body'),
+    GenerateNodeProperty(
+      'body2',
+      v1Name: 'body',
+      v1Projection: V1Projection.statement,
+    ),
   ],
 )
 final class WhileStatementImpl extends StatementImpl implements WhileStatement {
@@ -58229,7 +58389,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   final Token rightParenthesis;
 
   @generated
-  StatementImpl _body;
+  StatementImpl _body2;
 
   @generated
   WhileStatementImpl({
@@ -58237,11 +58397,11 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
     required this.leftParenthesis,
     required ExpressionImpl condition2,
     required this.rightParenthesis,
-    required StatementImpl body,
+    required StatementImpl body2,
   }) : _condition2 = condition2,
-       _body = body {
+       _body2 = body2 {
     _becomeParentOf2AndExisting1(condition2);
-    _becomeParentOf12(body);
+    _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
@@ -58251,12 +58411,19 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   }
 
   @generated
+  @V1Ast('The V2 counterpart is body2.')
   @override
-  StatementImpl get body => _body;
+  StatementImpl get body => _becomeParentOf1(V1Projection.toV1Statement(body2));
 
   @generated
-  set body(StatementImpl body) {
-    _body = _becomeParentOf12(body);
+  @experimental
+  @override
+  StatementImpl get body2 => _body2;
+
+  @generated
+  @experimental
+  set body2(StatementImpl body2) {
+    _body2 = _becomeParentOf2AndExisting1(body2);
   }
 
   @generated
@@ -58279,7 +58446,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   @generated
   @override
   Token get endToken {
-    return body.endToken;
+    return body2.endToken;
   }
 
   @generated
@@ -58299,7 +58466,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
     ..addToken('leftParenthesis', leftParenthesis)
     ..addNode('condition2', condition2)
     ..addToken('rightParenthesis', rightParenthesis)
-    ..addNode('body', body);
+    ..addNode('body2', body2);
 
   @generated
   @V1Ast('The V2 counterpart is accept2.')
@@ -58317,8 +58484,8 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
     if (identical(condition2, oldNode)) {
       throw UnsupportedError("Cannot remove required child 'condition2'.");
     }
-    if (identical(body, oldNode)) {
-      throw UnsupportedError("Cannot remove required child 'body'.");
+    if (identical(body2, oldNode)) {
+      throw UnsupportedError("Cannot remove required child 'body2'.");
     }
     super.removeChild(oldNode);
   }
@@ -58330,8 +58497,8 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
       condition2 = newNode as ExpressionImpl;
       return;
     }
-    if (identical(body, oldNode)) {
-      body = newNode as StatementImpl;
+    if (identical(body2, oldNode)) {
+      body2 = newNode as StatementImpl;
       return;
     }
     super.replaceChild(oldNode, newNode);
@@ -58350,7 +58517,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   @override
   void visitChildren2(AstVisitor2 visitor) {
     condition2.accept2(visitor);
-    body.accept2(visitor);
+    body2.accept2(visitor);
   }
 
   /// Visits the children of this node.
@@ -58363,17 +58530,17 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   void visitChildrenWithHooks(
     AstVisitor2 visitor, {
     void Function(ExpressionImpl)? visitCondition2,
-    void Function(StatementImpl)? visitBody,
+    void Function(StatementImpl)? visitBody2,
   }) {
     if (visitCondition2 != null) {
       visitCondition2(condition2);
     } else {
       condition2.accept2(visitor);
     }
-    if (visitBody != null) {
-      visitBody(body);
+    if (visitBody2 != null) {
+      visitBody2(body2);
     } else {
-      body.accept2(visitor);
+      body2.accept2(visitor);
     }
   }
 
@@ -58396,8 +58563,8 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
     if (condition2._containsOffset(rangeOffset, rangeEnd)) {
       return condition2;
     }
-    if (body._containsOffset(rangeOffset, rangeEnd)) {
-      return body;
+    if (body2._containsOffset(rangeOffset, rangeEnd)) {
+      return body2;
     }
     return null;
   }

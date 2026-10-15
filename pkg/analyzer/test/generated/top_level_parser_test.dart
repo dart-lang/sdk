@@ -1392,7 +1392,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: StringInterpolation
                 elements
@@ -5354,7 +5354,7 @@ CompilationUnit
             body: BlockFunctionBody
               block: Block
                 leftBracket: {
-                statements
+                statements2
                   ExpressionStatement
                     expression2: DirectAssignment
                       target: UnqualifiedNameAssignmentTarget

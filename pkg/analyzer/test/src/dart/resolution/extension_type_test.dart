@@ -902,7 +902,7 @@ MethodDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: TypeLiteral
             type: NamedType
@@ -4443,7 +4443,7 @@ ExtensionTypeDeclaration
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements
+            statements2
               ExpressionStatement
                 expression2: UnqualifiedNameExpression
                   name: it
@@ -4486,7 +4486,7 @@ ExtensionTypeDeclaration
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements
+            statements2
               ExpressionStatement
                 expression2: UnqualifiedNameExpression
                   name: it
@@ -4620,7 +4620,7 @@ PrimaryConstructorBody
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: it

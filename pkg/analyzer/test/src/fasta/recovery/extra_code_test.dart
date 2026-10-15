@@ -204,7 +204,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedValueArguments
                 operand: ParsedUnqualifiedName
@@ -396,7 +396,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -423,7 +423,7 @@ CompilationUnit
                 rightOperand: IntegerLiteral
                   literal: 3
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }

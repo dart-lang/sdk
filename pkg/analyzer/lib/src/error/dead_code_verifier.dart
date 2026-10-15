@@ -246,7 +246,7 @@ class NullSafetyDeadCodeVerifier {
       // semicolon that follows one or more constructor initializers.
     } else if (parent is ConstructorDeclaration &&
         firstDeadNode is BlockFunctionBody &&
-        firstDeadNode.block.statements.isEmpty) {
+        firstDeadNode.block.statements2.isEmpty) {
       // Don't report "dead code" for an unreachable, but empty block body that
       // follows one or more constructor initializers.
     } else {
@@ -276,11 +276,11 @@ class NullSafetyDeadCodeVerifier {
         if (node is BlockFunctionBody) {
           node = node.block;
         }
-        if (node is Block && node.statements.isNotEmpty) {
-          node = node.statements.last;
+        if (node is Block && node.statements2.isNotEmpty) {
+          node = node.statements2.last;
         }
-        if (node is SwitchMember && node.statements.isNotEmpty) {
-          node = node.statements.last;
+        if (node is SwitchMember && node.statements2.isNotEmpty) {
+          node = node.statements2.last;
         }
       } else if (parent is BinaryOperatorInvocation) {
         offset = parent.operator.offset;
@@ -298,7 +298,7 @@ class NullSafetyDeadCodeVerifier {
       } else if (parent is DoStatement) {
         var whileOffset = parent.whileKeyword.offset;
         var whileEnd = parent.semicolon.end;
-        var body = parent.body;
+        var body = parent.body2;
         if (body is Block) {
           whileOffset = body.rightBracket.offset;
         }
@@ -669,7 +669,7 @@ class _LabelTracker {
 extension DoStatementExtension on DoStatement {
   bool get hasBreakStatement {
     var visitor = _BreakDoStatementVisitor(this);
-    body.visitChildren2(visitor);
+    body2.visitChildren2(visitor);
     return visitor.hasBreakStatement;
   }
 }

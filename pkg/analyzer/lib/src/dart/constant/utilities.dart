@@ -100,7 +100,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
   @override
   void visitSwitchCase(SwitchCase node) {
     _find(node.expression2);
-    node.statements.accept2(this);
+    node.statements2.accept2(this);
   }
 
   /// Add dependencies of a [CollectionElement] or [Expression] (which is a type

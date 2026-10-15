@@ -1395,7 +1395,7 @@ class C extends B {
     assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: UnqualifiedNameExpression
         name: _i
@@ -1437,7 +1437,7 @@ Block
     assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: UnqualifiedNameExpression
         name: _i
@@ -1503,7 +1503,7 @@ class C<T extends Object> extends B<T> {
     assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: UnqualifiedNameExpression
         name: _t
@@ -1553,7 +1553,7 @@ Block
     assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: UnqualifiedNameExpression
         name: _t
@@ -1627,7 +1627,7 @@ class C extends B {
     assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CallInvocation
         receiver: UnqualifiedNameExpression
@@ -1699,7 +1699,7 @@ Block
     assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CallInvocation
         receiver: UnqualifiedNameExpression
@@ -1795,7 +1795,7 @@ class C<T extends Object> extends B<T> {
     assertResolvedNodeText(node1, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CallInvocation
         receiver: UnqualifiedNameExpression
@@ -1875,7 +1875,7 @@ Block
     assertResolvedNodeText(node2, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CallInvocation
         receiver: UnqualifiedNameExpression

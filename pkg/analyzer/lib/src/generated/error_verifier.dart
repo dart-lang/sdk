@@ -469,8 +469,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitBlock(covariant BlockImpl node) {
-    _withHiddenElementsForStatements(node.statements, () {
-      _duplicateDefinitionVerifier.checkStatements(node.statements);
+    _withHiddenElementsForStatements(node.statements2, () {
+      _duplicateDefinitionVerifier.checkStatements(node.statements2);
       super.visitBlock(node);
     });
   }
@@ -2270,16 +2270,16 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitSwitchCase(covariant SwitchCaseImpl node) {
-    _withHiddenElementsForStatements(node.statements, () {
-      _duplicateDefinitionVerifier.checkStatements(node.statements);
+    _withHiddenElementsForStatements(node.statements2, () {
+      _duplicateDefinitionVerifier.checkStatements(node.statements2);
       super.visitSwitchCase(node);
     });
   }
 
   @override
   void visitSwitchDefault(covariant SwitchDefaultImpl node) {
-    _withHiddenElementsForStatements(node.statements, () {
-      _duplicateDefinitionVerifier.checkStatements(node.statements);
+    _withHiddenElementsForStatements(node.statements2, () {
+      _duplicateDefinitionVerifier.checkStatements(node.statements2);
       super.visitSwitchDefault(node);
     });
   }
@@ -2292,8 +2292,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
 
   @override
   void visitSwitchPatternCase(covariant SwitchPatternCaseImpl node) {
-    _withHiddenElementsForStatements(node.statements, () {
-      _duplicateDefinitionVerifier.checkStatements(node.statements);
+    _withHiddenElementsForStatements(node.statements2, () {
+      _duplicateDefinitionVerifier.checkStatements(node.statements2);
       super.visitSwitchPatternCase(node);
     });
   }

@@ -63,7 +63,7 @@ CompilationUnit
             body: BlockFunctionBody
               block: Block
                 leftBracket: {
-                statements
+                statements2
                   ExpressionStatement
                     expression2: ParsedValueArguments
                       operand: ParsedNameAccess
@@ -120,7 +120,7 @@ MethodDeclaration
     keyword: async
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: AwaitExpression
             awaitKeyword: await
@@ -151,7 +151,7 @@ MethodDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         VariableDeclarationStatement
           variables: VariableDeclarationList
             type: NamedType
@@ -186,7 +186,7 @@ MethodDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: BinaryOperatorInvocation
@@ -239,7 +239,7 @@ MethodDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: AwaitExpression
             awaitKeyword: await
@@ -283,7 +283,7 @@ MethodDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         IfStatement
           ifKeyword: if
           leftParenthesis: (
@@ -302,11 +302,11 @@ MethodDeclaration
                 leftParenthesis: (
                 rightParenthesis: )
           rightParenthesis: )
-          thenStatement: Block
+          thenStatement2: Block
             leftBracket: {
             rightBracket: }
           elseKeyword: else
-          elseStatement: IfStatement
+          elseStatement2: IfStatement
             ifKeyword: if
             leftParenthesis: (
             expression2: LogicalNot
@@ -336,7 +336,7 @@ MethodDeclaration
                     leftParenthesis: (
                     rightParenthesis: )
             rightParenthesis: )
-            thenStatement: Block
+            thenStatement2: Block
               leftBracket: {
               rightBracket: }
       rightBracket: }
@@ -363,7 +363,7 @@ MethodDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: ParsedValueArguments
             operand: ParsedUnqualifiedName
@@ -430,7 +430,7 @@ MethodDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: ParsedValueArguments
             operand: ParsedUnqualifiedName
@@ -539,7 +539,7 @@ MethodDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: BinaryOperatorInvocation
             leftOperand: AwaitExpression
@@ -617,7 +617,7 @@ MethodDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: ParsedValueArguments
             operand: ParsedUnqualifiedName
@@ -3099,7 +3099,7 @@ CompilationUnit
             body: BlockFunctionBody
               block: Block
                 leftBracket: {
-                statements
+                statements2
                   ExpressionStatement
                     expression2: CompoundAssignment
                       target: UnqualifiedNameAssignmentTarget
@@ -3594,7 +3594,7 @@ CompilationUnit
             body: BlockFunctionBody
               block: Block
                 leftBracket: {
-                statements
+                statements2
                   ExpressionStatement
                     expression2: ParsedUnqualifiedName
                       name: n

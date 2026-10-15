@@ -1503,7 +1503,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         return true;
       }
     } else if (body is BlockFunctionBody) {
-      List<Statement> statements = body.block.statements;
+      List<Statement> statements = body.block.statements2;
       if (statements.length == 1) {
         Statement returnStatement = statements.first;
         if (returnStatement is ReturnStatement &&

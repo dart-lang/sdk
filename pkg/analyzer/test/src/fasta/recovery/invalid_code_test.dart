@@ -140,7 +140,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ReturnStatement
               returnKeyword: return
               expression2: ListLiteral
@@ -215,7 +215,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ReturnStatement
               returnKeyword: return
               expression2: ListLiteral
@@ -290,7 +290,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ReturnStatement
               returnKeyword: return
               expression2: ListLiteral
@@ -375,7 +375,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedValueArguments
                 operand: ParsedUnqualifiedName

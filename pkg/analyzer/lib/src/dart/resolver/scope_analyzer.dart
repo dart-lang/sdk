@@ -211,8 +211,8 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   void visitBlock(covariant BlockImpl node) {
     _scopeContext.withLocalScope((scope) {
       node.nameScope = scope;
-      _defineLocalElements(scope, node.statements);
-      node.statements.accept2(this);
+      _defineLocalElements(scope, node.statements2);
+      node.statements2.accept2(this);
     });
   }
 
@@ -388,7 +388,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   @override
   void visitDoStatement(covariant DoStatementImpl node) {
     _withUnlabeledBreakContinueContextNested(node, () {
-      _visitStatementInScope(node.body);
+      _visitStatementInScope(node.body2);
       node.condition2.accept2(this);
     });
   }
@@ -500,7 +500,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       _scopeContext.withLocalScope((scope) {
         node.nameScope = scope;
         _visitForLoopParts(scope, node.forLoopParts);
-        _visitStatementInScope(node.body);
+        _visitStatementInScope(node.body2);
       });
     });
   }
@@ -625,7 +625,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    var unlabeled = node.unlabeled;
+    var unlabeled = node.unlabeled2;
     var labelScope = _nestLabelScopes(_labelScope, node.labels, unlabeled);
 
     _withLabelScope(labelScope, () {
@@ -969,7 +969,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   void visitWhileStatement(covariant WhileStatementImpl node) {
     _withUnlabeledBreakContinueContextNested(node, () {
       node.condition2.accept2(this);
-      _visitStatementInScope(node.body);
+      _visitStatementInScope(node.body2);
     });
   }
 
@@ -1000,7 +1000,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
 
   void _defineLocalElements(LocalScope scope, List<Statement> statements) {
     for (var statement in statements) {
-      statement = statement.unlabeled;
+      statement = statement.unlabeled2;
       switch (statement) {
         case FunctionDeclarationStatementImpl():
           var declaration = statement.functionDeclaration;

@@ -314,7 +314,7 @@ class AnnotationVerifier {
     if (body is ExpressionFunctionBody && factoryExpression(body.expression2)) {
       return;
     } else if (body is BlockFunctionBody) {
-      NodeList<Statement> statements = body.block.statements;
+      NodeList<Statement> statements = body.block.statements2;
       if (statements.isNotEmpty) {
         Statement last = statements.last;
         if (last is ReturnStatement && factoryExpression(last.expression2)) {

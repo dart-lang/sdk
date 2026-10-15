@@ -109,7 +109,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         returnExp = body.expression2;
       } else {
         var stmt =
-            (body as BlockFunctionBody).block.statements[0] as ReturnStatement;
+            (body as BlockFunctionBody).block.statements2[0] as ReturnStatement;
         returnExp = stmt.expression2!;
       }
       DartType type = returnExp.typeOrThrow;
@@ -166,7 +166,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
         returnExp = body.expression2;
       } else {
         var stmt =
-            (body as BlockFunctionBody).block.statements[0] as ReturnStatement;
+            (body as BlockFunctionBody).block.statements2[0] as ReturnStatement;
         returnExp = stmt.expression2!;
       }
       DartType type = returnExp.typeOrThrow;
@@ -385,7 +385,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       null,
     );
     var body = constructor.body as BlockFunctionBody;
-    var stmt = body.block.statements[0] as ReturnStatement;
+    var stmt = body.block.statements2[0] as ReturnStatement;
     var exp = stmt.expression2 as ConstructorInvocation;
     ClassElement elementB = AstFinder.getClass(
       result.unit,
@@ -456,7 +456,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
     FunctionDeclaration inner =
         (statements[0] as FunctionDeclarationStatement).functionDeclaration;
     var body0 = inner.functionExpression.body as BlockFunctionBody;
-    var return0 = body0.block.statements[0] as ReturnStatement;
+    var return0 = body0.block.statements2[0] as ReturnStatement;
     Expression anon0 = return0.expression2!;
     var type0 = anon0.staticType as FunctionType;
     expect(type0.returnType, result.typeProvider.intType);
@@ -603,7 +603,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       if (body is ExpressionFunctionBody) {
         return body.expression2;
       } else {
-        Statement stmt = (body as BlockFunctionBody).block.statements[0];
+        Statement stmt = (body as BlockFunctionBody).block.statements2[0];
         return (stmt as ReturnStatement).expression2!;
       }
     }
@@ -902,7 +902,7 @@ class StrongModeLocalInferenceTest extends PubPackageResolutionTest {
       if (body is ExpressionFunctionBody) {
         return body.expression2;
       } else {
-        Statement stmt = (body as BlockFunctionBody).block.statements[0];
+        Statement stmt = (body as BlockFunctionBody).block.statements2[0];
         return (stmt as ReturnStatement).expression2!;
       }
     }
@@ -1544,7 +1544,7 @@ void _mergeSort<T>(T Function(T) list, int compare(T a, T b), T Function(T) targ
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: UnqualifiedFunctionInvocation
         name: _mergeSort
@@ -1960,7 +1960,7 @@ void _mergeSort<T>(List<T> list, int compare(T a, T b), List<T> target) {
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: UnqualifiedFunctionInvocation
         name: _mergeSort
@@ -2376,7 +2376,7 @@ void _mergeSort<T>(T list, int compare(T a, T b), T target) {
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: UnqualifiedFunctionInvocation
         name: _mergeSort
@@ -3834,7 +3834,7 @@ V1: MethodInvocation
       if (body is ExpressionFunctionBody) {
         return body.expression2;
       } else {
-        Statement stmt = (body as BlockFunctionBody).block.statements[0];
+        Statement stmt = (body as BlockFunctionBody).block.statements2[0];
         return (stmt as ReturnStatement).expression2!;
       }
     }
@@ -4823,7 +4823,7 @@ class D<S> {
 ''');
 
     checkBody(String className) {
-      var statements = result.findNode.block('{ // $className').statements;
+      var statements = result.findNode.block('{ // $className').statements2;
 
       for (int i = 1; i <= 5; i++) {
         Expression exp = (statements[i] as ExpressionStatement).expression2;

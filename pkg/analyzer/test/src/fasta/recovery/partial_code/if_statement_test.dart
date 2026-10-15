@@ -34,7 +34,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -43,7 +43,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: AssertStatement
+              thenStatement2: AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
                 condition2: BooleanLiteral
@@ -97,7 +97,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -106,7 +106,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -154,7 +154,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -163,7 +163,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: BreakStatement
+              thenStatement2: BreakStatement
                 breakKeyword: break
                 semicolon: ;
           rightBracket: }
@@ -211,7 +211,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -220,7 +220,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: ContinueStatement
+              thenStatement2: ContinueStatement
                 continueKeyword: continue
                 semicolon: ;
           rightBracket: }
@@ -266,7 +266,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -275,9 +275,9 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: DoStatement
+              thenStatement2: DoStatement
                 doKeyword: do
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
                 whileKeyword: while
@@ -340,7 +340,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -349,7 +349,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: ExpressionStatement
+              thenStatement2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -399,7 +399,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -408,7 +408,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: ForStatement
+              thenStatement2: ForStatement
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithDeclaration
@@ -421,7 +421,7 @@ CompilationUnit
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -478,7 +478,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -487,13 +487,13 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: IfStatement
+              thenStatement2: IfStatement
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                thenStatement: Block
+                thenStatement2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -545,7 +545,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -554,12 +554,12 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: LabeledStatement
+              thenStatement2: LabeledStatement
                 labels
                   Label
                     name: l
                     colon: :
-                statement: Block
+                statement2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -610,7 +610,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -619,7 +619,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: FunctionDeclarationStatement
+              thenStatement2: FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -685,7 +685,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -694,7 +694,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: FunctionDeclarationStatement
+              thenStatement2: FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void
@@ -760,7 +760,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -769,7 +769,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: VariableDeclarationStatement
+              thenStatement2: VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -823,7 +823,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -832,7 +832,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: ReturnStatement
+              thenStatement2: ReturnStatement
                 returnKeyword: return
                 semicolon: ;
           rightBracket: }
@@ -878,7 +878,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -887,7 +887,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: SwitchStatement
+              thenStatement2: SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
                 expression2: ParsedUnqualifiedName
@@ -945,7 +945,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -954,7 +954,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: TryStatement
+              thenStatement2: TryStatement
                 tryKeyword: try
                 body: Block
                   leftBracket: {
@@ -1012,7 +1012,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -1021,13 +1021,13 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              thenStatement: WhileStatement
+              thenStatement2: WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
                 condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -1080,7 +1080,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1089,7 +1089,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: AssertStatement
+              thenStatement2: AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
                 condition2: BooleanLiteral
@@ -1144,7 +1144,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1153,7 +1153,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1201,7 +1201,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1210,7 +1210,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: BreakStatement
+              thenStatement2: BreakStatement
                 breakKeyword: break
                 semicolon: ;
           rightBracket: }
@@ -1258,7 +1258,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1267,7 +1267,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: ContinueStatement
+              thenStatement2: ContinueStatement
                 continueKeyword: continue
                 semicolon: ;
           rightBracket: }
@@ -1314,7 +1314,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1323,9 +1323,9 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: DoStatement
+              thenStatement2: DoStatement
                 doKeyword: do
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
                 whileKeyword: while
@@ -1388,7 +1388,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1397,7 +1397,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: ExpressionStatement
+              thenStatement2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -1448,7 +1448,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1457,7 +1457,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: ForStatement
+              thenStatement2: ForStatement
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithDeclaration
@@ -1470,7 +1470,7 @@ CompilationUnit
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -1528,7 +1528,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1537,13 +1537,13 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: IfStatement
+              thenStatement2: IfStatement
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                thenStatement: Block
+                thenStatement2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -1596,7 +1596,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1605,12 +1605,12 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: LabeledStatement
+              thenStatement2: LabeledStatement
                 labels
                   Label
                     name: l
                     colon: :
-                statement: Block
+                statement2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -1662,7 +1662,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1671,7 +1671,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: FunctionDeclarationStatement
+              thenStatement2: FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -1738,7 +1738,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1747,7 +1747,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: FunctionDeclarationStatement
+              thenStatement2: FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void
@@ -1814,7 +1814,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1823,7 +1823,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: VariableDeclarationStatement
+              thenStatement2: VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -1878,7 +1878,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1887,7 +1887,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: ReturnStatement
+              thenStatement2: ReturnStatement
                 returnKeyword: return
                 semicolon: ;
           rightBracket: }
@@ -1934,7 +1934,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -1943,7 +1943,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: SwitchStatement
+              thenStatement2: SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
                 expression2: ParsedUnqualifiedName
@@ -2002,7 +2002,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -2011,7 +2011,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: TryStatement
+              thenStatement2: TryStatement
                 tryKeyword: try
                 body: Block
                   leftBracket: {
@@ -2070,7 +2070,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: ( <synthetic>
@@ -2079,13 +2079,13 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: WhileStatement
+              thenStatement2: WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
                 condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -2137,7 +2137,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2160,7 +2160,7 @@ CompilationUnit
                       literal: true
                   rightParenthesis: )
               rightParenthesis: ) <synthetic>
-              thenStatement: EmptyStatement
+              thenStatement2: EmptyStatement
                 semicolon: ;
           rightBracket: }
   declarations(v1)
@@ -2214,7 +2214,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2223,7 +2223,7 @@ CompilationUnit
                 rightBracket: }
                 isMap: false
               rightParenthesis: ) <synthetic>
-              thenStatement: ExpressionStatement
+              thenStatement2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -2278,7 +2278,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2287,7 +2287,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: BreakStatement
+              thenStatement2: BreakStatement
                 breakKeyword: break
                 semicolon: ;
           rightBracket: }
@@ -2336,7 +2336,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2345,7 +2345,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: ContinueStatement
+              thenStatement2: ContinueStatement
                 continueKeyword: continue
                 semicolon: ;
           rightBracket: }
@@ -2393,7 +2393,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2402,9 +2402,9 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: DoStatement
+              thenStatement2: DoStatement
                 doKeyword: do
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
                 whileKeyword: while
@@ -2467,7 +2467,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2476,7 +2476,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: ExpressionStatement
+              thenStatement2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -2528,7 +2528,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2537,7 +2537,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: ForStatement
+              thenStatement2: ForStatement
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithDeclaration
@@ -2550,7 +2550,7 @@ CompilationUnit
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -2609,7 +2609,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2618,13 +2618,13 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: IfStatement
+              thenStatement2: IfStatement
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                thenStatement: Block
+                thenStatement2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -2680,7 +2680,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2689,7 +2689,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: l
               rightParenthesis: ) <synthetic>
-              thenStatement: ExpressionStatement
+              thenStatement2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -2760,7 +2760,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2773,7 +2773,7 @@ CompilationUnit
                     leftBracket: {
                     rightBracket: }
               rightParenthesis: ) <synthetic>
-              thenStatement: ExpressionStatement
+              thenStatement2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -2834,7 +2834,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2847,7 +2847,7 @@ CompilationUnit
                     leftBracket: {
                     rightBracket: }
               rightParenthesis: ) <synthetic>
-              thenStatement: ExpressionStatement
+              thenStatement2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -2905,7 +2905,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2914,7 +2914,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: VariableDeclarationStatement
+              thenStatement2: VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -2971,7 +2971,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2980,7 +2980,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: EmptyStatement
+              thenStatement2: EmptyStatement
                 semicolon: ;
           rightBracket: }
   declarations(v1)
@@ -3027,7 +3027,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -3042,7 +3042,7 @@ CompilationUnit
                 leftBracket: {
                 rightBracket: }
               rightParenthesis: ) <synthetic>
-              thenStatement: ExpressionStatement
+              thenStatement2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -3100,7 +3100,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -3109,7 +3109,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: TryStatement
+              thenStatement2: TryStatement
                 tryKeyword: try
                 body: Block
                   leftBracket: {
@@ -3169,7 +3169,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -3178,13 +3178,13 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              thenStatement: WhileStatement
+              thenStatement2: WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
                 condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }

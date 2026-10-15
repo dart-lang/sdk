@@ -67,7 +67,7 @@ class _LocalNameScope {
 
   factory _LocalNameScope.forBlock(_LocalNameScope enclosing, Block node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
-    for (Statement statement in node.statements) {
+    for (Statement statement in node.statements2) {
       if (statement is FunctionDeclarationStatement) {
         scope.add(statement.functionDeclaration.name);
       } else if (statement is VariableDeclarationStatement) {

@@ -1052,7 +1052,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -1237,7 +1237,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: CascadeExpression
                 target2: ParsedUnqualifiedName
@@ -2279,7 +2279,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2292,7 +2292,7 @@ CompilationUnit
                 type: NamedType
                   name: String
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2347,7 +2347,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2360,7 +2360,7 @@ CompilationUnit
                 type: NamedType
                   name: <empty> <synthetic>
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3531,7 +3531,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -3831,7 +3831,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedValueArguments
                 operand: ParsedUnqualifiedName
@@ -4847,7 +4847,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedValueArguments
                 operand: ParsedUnqualifiedName

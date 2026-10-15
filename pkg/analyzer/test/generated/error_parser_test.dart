@@ -1645,7 +1645,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: get
@@ -1660,7 +1660,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             Block
               leftBracket: {
-              statements
+              statements2
                 ReturnStatement
                   returnKeyword: return
                   expression2: ParsedUnqualifiedName
@@ -2536,7 +2536,7 @@ TopLevelFunctionDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: InvalidSuperExpression
             superReference: SuperReference
@@ -2709,7 +2709,7 @@ TopLevelFunctionDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: ParsedUnqualifiedName

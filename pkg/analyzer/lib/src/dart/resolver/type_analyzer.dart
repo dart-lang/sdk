@@ -2813,7 +2813,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     var condition = node.condition2;
 
     flowAnalysis.flow?.doStatement_bodyBegin(node, offset: node.offset);
-    node.body.accept2(this);
+    node.body2.accept2(this);
 
     flowAnalysis.flow?.doStatement_conditionBegin(
       offset: node.whileKeyword.offset,
@@ -3200,7 +3200,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     _forResolver.resolveStatement(node);
-    nullSafetyDeadCodeVerifier.flowEnd(node.body);
+    nullSafetyDeadCodeVerifier.flowEnd(node.body2);
     _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
@@ -3400,8 +3400,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         node.expression2,
         guardedPattern.pattern,
         guardedPattern.whenClause?.expression2,
-        node.thenStatement,
-        node.elseStatement,
+        node.thenStatement2,
+        node.elseStatement2,
         guardedPattern.variables,
         afterExpressionOffset: caseClause.caseKeyword.offset,
         thenBeginOffset: node.rightParenthesis.offset,
@@ -3414,8 +3414,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       analyzeIfStatement(
         node,
         node.expression2,
-        node.thenStatement,
-        node.elseStatement,
+        node.thenStatement2,
+        node.elseStatement2,
         thenBeginOffset: node.rightParenthesis.offset,
         elseBeginOffset: node.elseKeyword?.offset,
       );
@@ -4973,9 +4973,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       flowAnalysis.getExpressionInfo(condition),
       offset: node.rightParenthesis.offset,
     );
-    node.body.accept2(this);
+    node.body2.accept2(this);
     flowAnalysis.flow?.whileStatement_end(offset: node.endToken.offset);
-    nullSafetyDeadCodeVerifier.flowEnd(node.body);
+    nullSafetyDeadCodeVerifier.flowEnd(node.body2);
     _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }

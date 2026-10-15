@@ -1644,7 +1644,7 @@ void f() {
 // [diag.expectedToken] Expected to find ')'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1654,7 +1654,7 @@ IfStatement
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
-  thenStatement: ExpressionStatement
+  thenStatement2: ExpressionStatement
     expression2: ParsedValueArguments
       operand: ParsedUnqualifiedName
         name: f
@@ -2201,7 +2201,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2219,7 +2219,7 @@ CompilationUnit
                 rightOperand: NullLiteral
                   literal: null
               rightParenthesis: )
-              thenStatement: ReturnStatement
+              thenStatement2: ReturnStatement
                 returnKeyword: return
                 expression2: NullLiteral
                   literal: null
@@ -2302,7 +2302,7 @@ CompilationUnit
                       body: BlockFunctionBody
                         block: Block
                           leftBracket: {
-                          statements
+                          statements2
                             ExpressionStatement
                               expression2: DirectAssignment
                                 target: ReceiverIndexAssignmentTarget
@@ -2862,7 +2862,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2881,7 +2881,7 @@ ForStatement
       token: i
     rightSeparator: ; <synthetic>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -2897,7 +2897,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2916,7 +2916,7 @@ ForStatement
       token: i
     rightSeparator: ; <synthetic>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -2931,7 +2931,7 @@ void f() {
 }
 // [diag.expectedExecutable][column 1][length 1] Expected a method, getter, setter or operator declaration.
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -2955,7 +2955,7 @@ void f() {
 }
 // [diag.expectedExecutable][column 1][length 1] Expected a method, getter, setter or operator declaration.
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -2975,7 +2975,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -2996,7 +2996,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3017,7 +3017,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3038,7 +3038,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3382,7 +3382,7 @@ CompilationUnit
             body: BlockFunctionBody
               block: Block
                 leftBracket: {
-                statements
+                statements2
                   IfStatement
                     ifKeyword: if
                     leftParenthesis: (
@@ -3395,7 +3395,7 @@ CompilationUnit
                       type: NamedType
                         name: <empty> <synthetic>
                     rightParenthesis: )
-                    thenStatement: ReturnStatement
+                    thenStatement2: ReturnStatement
                       returnKeyword: return
                       semicolon: ;
                   IfStatement
@@ -3411,7 +3411,7 @@ CompilationUnit
                       type: NamedType
                         name: <empty> <synthetic>
                     rightParenthesis: )
-                    thenStatement: ExpressionStatement
+                    thenStatement2: ExpressionStatement
                       expression2: ParsedUnqualifiedName
                         name: <empty> <synthetic>
                       expression(v1): SimpleIdentifier

@@ -1231,7 +1231,7 @@ class AstBuilder extends StackListener {
     push(
       BlockImpl(
         leftBracket: leftBracket,
-        statements: statements,
+        statements2: statements,
         rightBracket: rightBracket,
       ),
     );
@@ -1246,7 +1246,7 @@ class AstBuilder extends StackListener {
     var statements = popTypedList2<StatementImpl>(count);
     var block = BlockImpl(
       leftBracket: leftBracket,
-      statements: statements,
+      statements2: statements,
       rightBracket: rightBracket,
     );
     var star = pop() as Token?;
@@ -1304,7 +1304,7 @@ class AstBuilder extends StackListener {
             whenClause: whenClause,
           ),
           colon: colon,
-          statements: <StatementImpl>[],
+          statements2: <StatementImpl>[],
         ),
       );
     } else {
@@ -1315,7 +1315,7 @@ class AstBuilder extends StackListener {
           keyword: caseKeyword,
           expression2: expression,
           colon: colon,
-          statements: <StatementImpl>[],
+          statements2: <StatementImpl>[],
         ),
       );
     }
@@ -1587,7 +1587,7 @@ class AstBuilder extends StackListener {
     push(
       DoStatementImpl(
         doKeyword: doKeyword,
-        body: body,
+        body2: body,
         whileKeyword: whileKeyword,
         leftParenthesis: condition.leftParenthesis,
         condition2: condition.expression,
@@ -1831,7 +1831,7 @@ class AstBuilder extends StackListener {
         leftParenthesis: leftParenthesis,
         forLoopParts: forLoopParts,
         rightParenthesis: leftParenthesis.endGroup!,
-        body: body,
+        body2: body,
       ),
     );
   }
@@ -2071,7 +2071,7 @@ class AstBuilder extends StackListener {
         leftParenthesis: leftParen,
         forLoopParts: forLoopParts,
         rightParenthesis: leftParen.endGroup!,
-        body: body,
+        body2: body,
       ),
     );
   }
@@ -2222,9 +2222,9 @@ class AstBuilder extends StackListener {
         expression2: condition.expression,
         caseClause: condition.caseClause,
         rightParenthesis: condition.rightParenthesis,
-        thenStatement: thenPart,
+        thenStatement2: thenPart,
         elseKeyword: elseToken,
-        elseStatement: elsePart,
+        elseStatement2: elsePart,
       ),
     );
   }
@@ -2361,7 +2361,7 @@ class AstBuilder extends StackListener {
 
     var statement = pop() as StatementImpl;
     var labels = popTypedList2<LabelImpl>(labelCount);
-    push(LabeledStatementImpl(labels: labels, statement: statement));
+    push(LabeledStatementImpl(labels: labels, statement2: statement));
   }
 
   @override
@@ -3202,14 +3202,14 @@ class AstBuilder extends StackListener {
           keyword: member.keyword,
           expression2: member.expression2,
           colon: member.colon,
-          statements: statements ?? member.statements,
+          statements2: statements ?? member.statements2,
         );
       } else if (member is SwitchDefaultImpl) {
         return SwitchDefaultImpl(
           labels: labels ?? member.labels,
           keyword: member.keyword,
           colon: member.colon,
-          statements: statements ?? member.statements,
+          statements2: statements ?? member.statements2,
         );
       } else if (member is SwitchPatternCaseImpl) {
         return SwitchPatternCaseImpl(
@@ -3217,7 +3217,7 @@ class AstBuilder extends StackListener {
           keyword: member.keyword,
           guardedPattern: member.guardedPattern,
           colon: member.colon,
-          statements: statements ?? member.statements,
+          statements2: statements ?? member.statements2,
         );
       } else {
         throw UnimplementedError('(${member.runtimeType}) $member');
@@ -3235,7 +3235,7 @@ class AstBuilder extends StackListener {
           labels: labels,
           keyword: defaultKeyword,
           colon: colonAfterDefault!,
-          statements: <StatementImpl>[],
+          statements2: <StatementImpl>[],
         );
         members = List.filled(expressionCount + 1, null);
         members[expressionCount] = member;
@@ -3774,7 +3774,7 @@ class AstBuilder extends StackListener {
         leftParenthesis: condition.leftParenthesis,
         condition2: condition.expression,
         rightParenthesis: condition.rightParenthesis,
-        body: body,
+        body2: body,
       ),
     );
   }
@@ -4782,7 +4782,7 @@ class AstBuilder extends StackListener {
     debugEvent("InvalidFunctionBody");
     var block = BlockImpl(
       leftBracket: leftBracket,
-      statements: [],
+      statements2: [],
       rightBracket: leftBracket.endGroup!,
     );
     var star = pop() as Token?;

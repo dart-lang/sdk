@@ -359,6 +359,13 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
   AstNode? parentOf(AstNode node) => node.parent;
 
   @override
+  List<Statement> statementsOf(Block node) => node.statements;
+
+  @override
+  List<Statement> switchMemberStatementsOf(SwitchMember node) =>
+      node.statements;
+
+  @override
   void visitNode(AstNode node) {
     immediateChild = node;
     parentOf(node)?.accept(this);
@@ -377,9 +384,16 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   AstNode? parentOf(AstNode node) => node.parent2;
 
   @override
+  List<Statement> statementsOf(Block node) => node.statements2;
+
+  @override
+  List<Statement> switchMemberStatementsOf(SwitchMember node) =>
+      node.statements2;
+
+  @override
   void visitNode(AstNode node) {
     if (node is SwitchMember) {
-      _checkStatements(node.statements);
+      _checkStatements(switchMemberStatementsOf(node));
     } else if (node is TypeAlias) {
       _declarationNode = node;
       return;
@@ -424,8 +438,14 @@ mixin _ScopedNameFinderMixin {
 
   AstNode? parentOf(AstNode node);
 
+  /// The statements of [node] in the view of this finder.
+  List<Statement> statementsOf(Block node);
+
+  /// The statements of [node] in the view of this finder.
+  List<Statement> switchMemberStatementsOf(SwitchMember node);
+
   void visitBlock(Block node) {
-    _checkStatements(node.statements);
+    _checkStatements(statementsOf(node));
     visitNode(node);
   }
 
@@ -488,7 +508,7 @@ mixin _ScopedNameFinderMixin {
   void visitNode(AstNode node);
 
   void visitSwitchMember(SwitchMember node) {
-    _checkStatements(node.statements);
+    _checkStatements(switchMemberStatementsOf(node));
     visitNode(node);
   }
 

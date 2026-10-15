@@ -713,7 +713,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -731,7 +731,7 @@ CompilationUnit
                 rightOperand: NullLiteral
                   literal: null
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: } <synthetic>
           rightBracket: }
@@ -788,7 +788,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -806,9 +806,9 @@ CompilationUnit
                 rightOperand: NullLiteral
                   literal: null
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
-                statements
+                statements2
                   WhileStatement
                     whileKeyword: while
                     leftParenthesis: (
@@ -826,7 +826,7 @@ CompilationUnit
                       rightOperand: NullLiteral
                         literal: null
                     rightParenthesis: )
-                    body: Block
+                    body2: Block
                       leftBracket: {
                       rightBracket: }
                 rightBracket: } <synthetic>
@@ -901,7 +901,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: class
@@ -967,7 +967,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 name: g
@@ -1080,7 +1080,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -1412,7 +1412,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -1421,7 +1421,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: x
               rightParenthesis: ) <synthetic>
-              thenStatement: ExpressionStatement
+              thenStatement2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -1479,7 +1479,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -1488,7 +1488,7 @@ CompilationUnit
               expression(v1): SimpleIdentifier
                 token: x
               rightParenthesis: ) <synthetic>
-              thenStatement: WhileStatement
+              thenStatement2: WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
                 condition2: BinaryOperatorInvocation
@@ -1505,7 +1505,7 @@ CompilationUnit
                   rightOperand: NullLiteral
                     literal: null
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }

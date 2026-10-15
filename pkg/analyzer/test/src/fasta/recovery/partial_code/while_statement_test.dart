@@ -34,7 +34,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -43,7 +43,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: AssertStatement
+              body2: AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
                 condition2: BooleanLiteral
@@ -97,7 +97,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -106,7 +106,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -152,7 +152,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -161,7 +161,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: BreakStatement
+              body2: BreakStatement
                 breakKeyword: break
                 semicolon: ;
           rightBracket: }
@@ -207,7 +207,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -216,7 +216,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: ContinueStatement
+              body2: ContinueStatement
                 continueKeyword: continue
                 semicolon: ;
           rightBracket: }
@@ -262,7 +262,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -271,9 +271,9 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: DoStatement
+              body2: DoStatement
                 doKeyword: do
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
                 whileKeyword: while
@@ -336,7 +336,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -345,7 +345,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: ExpressionStatement
+              body2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -395,7 +395,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -404,7 +404,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: ForStatement
+              body2: ForStatement
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithDeclaration
@@ -417,7 +417,7 @@ CompilationUnit
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -474,7 +474,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -483,13 +483,13 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: IfStatement
+              body2: IfStatement
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                thenStatement: Block
+                thenStatement2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -541,7 +541,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -550,12 +550,12 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: LabeledStatement
+              body2: LabeledStatement
                 labels
                   Label
                     name: l
                     colon: :
-                statement: Block
+                statement2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -606,7 +606,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -615,7 +615,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: FunctionDeclarationStatement
+              body2: FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -681,7 +681,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -690,7 +690,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: FunctionDeclarationStatement
+              body2: FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void
@@ -756,7 +756,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -765,7 +765,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: VariableDeclarationStatement
+              body2: VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -819,7 +819,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -828,7 +828,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: ReturnStatement
+              body2: ReturnStatement
                 returnKeyword: return
                 semicolon: ;
           rightBracket: }
@@ -874,7 +874,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -883,7 +883,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: SwitchStatement
+              body2: SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
                 expression2: ParsedUnqualifiedName
@@ -941,7 +941,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -950,7 +950,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: TryStatement
+              body2: TryStatement
                 tryKeyword: try
                 body: Block
                   leftBracket: {
@@ -1008,7 +1008,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -1017,13 +1017,13 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
-              body: WhileStatement
+              body2: WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
                 condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -1076,7 +1076,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1085,7 +1085,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: AssertStatement
+              body2: AssertStatement
                 assertKeyword: assert
                 leftParenthesis: (
                 condition2: BooleanLiteral
@@ -1140,7 +1140,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1149,7 +1149,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1196,7 +1196,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1205,7 +1205,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: BreakStatement
+              body2: BreakStatement
                 breakKeyword: break
                 semicolon: ;
           rightBracket: }
@@ -1252,7 +1252,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1261,7 +1261,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: ContinueStatement
+              body2: ContinueStatement
                 continueKeyword: continue
                 semicolon: ;
           rightBracket: }
@@ -1308,7 +1308,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1317,9 +1317,9 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: DoStatement
+              body2: DoStatement
                 doKeyword: do
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
                 whileKeyword: while
@@ -1382,7 +1382,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1391,7 +1391,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: ExpressionStatement
+              body2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -1442,7 +1442,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1451,7 +1451,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: ForStatement
+              body2: ForStatement
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithDeclaration
@@ -1464,7 +1464,7 @@ CompilationUnit
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -1522,7 +1522,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1531,13 +1531,13 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: IfStatement
+              body2: IfStatement
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                thenStatement: Block
+                thenStatement2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -1590,7 +1590,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1599,12 +1599,12 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: LabeledStatement
+              body2: LabeledStatement
                 labels
                   Label
                     name: l
                     colon: :
-                statement: Block
+                statement2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -1656,7 +1656,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1665,7 +1665,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: FunctionDeclarationStatement
+              body2: FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: int
@@ -1732,7 +1732,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1741,7 +1741,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: FunctionDeclarationStatement
+              body2: FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
                   returnType: NamedType
                     name: void
@@ -1808,7 +1808,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1817,7 +1817,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: VariableDeclarationStatement
+              body2: VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -1872,7 +1872,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1881,7 +1881,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: ReturnStatement
+              body2: ReturnStatement
                 returnKeyword: return
                 semicolon: ;
           rightBracket: }
@@ -1928,7 +1928,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -1937,7 +1937,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: SwitchStatement
+              body2: SwitchStatement
                 switchKeyword: switch
                 leftParenthesis: (
                 expression2: ParsedUnqualifiedName
@@ -1996,7 +1996,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -2005,7 +2005,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: TryStatement
+              body2: TryStatement
                 tryKeyword: try
                 body: Block
                   leftBracket: {
@@ -2064,7 +2064,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: ( <synthetic>
@@ -2073,13 +2073,13 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: WhileStatement
+              body2: WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
                 condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -2131,7 +2131,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2154,7 +2154,7 @@ CompilationUnit
                       literal: true
                   rightParenthesis: )
               rightParenthesis: ) <synthetic>
-              body: EmptyStatement
+              body2: EmptyStatement
                 semicolon: ;
           rightBracket: }
   declarations(v1)
@@ -2208,7 +2208,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2217,7 +2217,7 @@ CompilationUnit
                 rightBracket: }
                 isMap: false
               rightParenthesis: ) <synthetic>
-              body: ExpressionStatement
+              body2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -2271,7 +2271,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2280,7 +2280,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: BreakStatement
+              body2: BreakStatement
                 breakKeyword: break
                 semicolon: ;
           rightBracket: }
@@ -2328,7 +2328,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2337,7 +2337,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: ContinueStatement
+              body2: ContinueStatement
                 continueKeyword: continue
                 semicolon: ;
           rightBracket: }
@@ -2385,7 +2385,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2394,9 +2394,9 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: DoStatement
+              body2: DoStatement
                 doKeyword: do
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
                 whileKeyword: while
@@ -2459,7 +2459,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2468,7 +2468,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: ExpressionStatement
+              body2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -2520,7 +2520,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2529,7 +2529,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: ForStatement
+              body2: ForStatement
                 forKeyword: for
                 leftParenthesis: (
                 forLoopParts: ForEachPartsWithDeclaration
@@ -2542,7 +2542,7 @@ CompilationUnit
                   iterable(v1): SimpleIdentifier
                     token: y
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -2601,7 +2601,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2610,13 +2610,13 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: IfStatement
+              body2: IfStatement
                 ifKeyword: if
                 leftParenthesis: (
                 expression2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                thenStatement: Block
+                thenStatement2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }
@@ -2672,7 +2672,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2681,7 +2681,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: l
               rightParenthesis: ) <synthetic>
-              body: ExpressionStatement
+              body2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -2752,7 +2752,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2765,7 +2765,7 @@ CompilationUnit
                     leftBracket: {
                     rightBracket: }
               rightParenthesis: ) <synthetic>
-              body: ExpressionStatement
+              body2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -2826,7 +2826,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2839,7 +2839,7 @@ CompilationUnit
                     leftBracket: {
                     rightBracket: }
               rightParenthesis: ) <synthetic>
-              body: ExpressionStatement
+              body2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -2897,7 +2897,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2906,7 +2906,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: VariableDeclarationStatement
+              body2: VariableDeclarationStatement
                 variables: VariableDeclarationList
                   keyword: var
                   variables
@@ -2963,7 +2963,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -2972,7 +2972,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: EmptyStatement
+              body2: EmptyStatement
                 semicolon: ;
           rightBracket: }
   declarations(v1)
@@ -3019,7 +3019,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -3034,7 +3034,7 @@ CompilationUnit
                 leftBracket: {
                 rightBracket: }
               rightParenthesis: ) <synthetic>
-              body: ExpressionStatement
+              body2: ExpressionStatement
                 expression2: ParsedUnqualifiedName
                   name: <empty> <synthetic>
                 expression(v1): SimpleIdentifier
@@ -3092,7 +3092,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -3101,7 +3101,7 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: TryStatement
+              body2: TryStatement
                 tryKeyword: try
                 body: Block
                   leftBracket: {
@@ -3161,7 +3161,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -3170,13 +3170,13 @@ CompilationUnit
               condition(v1): SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
-              body: WhileStatement
+              body2: WhileStatement
                 whileKeyword: while
                 leftParenthesis: (
                 condition2: BooleanLiteral
                   literal: true
                 rightParenthesis: )
-                body: Block
+                body2: Block
                   leftBracket: {
                   rightBracket: }
           rightBracket: }

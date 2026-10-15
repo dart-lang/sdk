@@ -265,8 +265,8 @@ void f() {
     var block = parseResult.findNode.block('{');
     _assertReplaceInList(
       destination: block,
-      child: block.statements[0],
-      replacement: block.statements[1],
+      child: block.statements2[0],
+      replacement: block.statements2[1],
     );
   }
 
@@ -611,7 +611,7 @@ void f() {
     _assertReplacementForChildren<DoStatement>(
       destination: parseResult.findNode.doStatement('true'),
       source: parseResult.findNode.doStatement('false'),
-      childAccessors: [(node) => node.body, (node) => node.condition2],
+      childAccessors: [(node) => node.body2, (node) => node.condition2],
     );
   }
 
@@ -859,7 +859,7 @@ void f(int a) {
     _assertReplacementForChildren<ForStatement>(
       destination: parseResult.findNode.forStatement('a in'),
       source: parseResult.findNode.forStatement('b in'),
-      childAccessors: [(node) => node.body, (node) => node.forLoopParts],
+      childAccessors: [(node) => node.body2, (node) => node.forLoopParts],
     );
   }
 
@@ -1077,8 +1077,8 @@ void f() {
       source: parseResult.findNode.ifStatement('false'),
       childAccessors: [
         (node) => node.expression2,
-        (node) => node.thenStatement,
-        (node) => node.elseStatement!,
+        (node) => node.thenStatement2,
+        (node) => node.elseStatement2!,
       ],
     );
   }
@@ -1175,7 +1175,7 @@ void f() {
     _assertReplacementForChildren<LabeledStatement>(
       destination: foo,
       source: parseResult.findNode.labeledStatement('baz'),
-      childAccessors: [(node) => node.statement],
+      childAccessors: [(node) => node.statement2],
     );
   }
 
@@ -1839,7 +1839,9 @@ void f() {
 int f() => 0;
 double g() => 0;
 ''');
-    _assertAnnotatedNode(parseResult.findNode.topLevelFunctionDeclaration('f()'));
+    _assertAnnotatedNode(
+      parseResult.findNode.topLevelFunctionDeclaration('f()'),
+    );
     _assertReplacementForChildren<TopLevelFunctionDeclaration>(
       destination: parseResult.findNode.topLevelFunctionDeclaration('f()'),
       source: parseResult.findNode.topLevelFunctionDeclaration('g()'),
@@ -2010,7 +2012,7 @@ void f() {
     _assertReplacementForChildren<WhileStatement>(
       destination: parseResult.findNode.whileStatement('(true)'),
       source: parseResult.findNode.whileStatement('(false)'),
-      childAccessors: [(node) => node.condition2, (node) => node.body],
+      childAccessors: [(node) => node.condition2, (node) => node.body2],
     );
   }
 
@@ -2115,8 +2117,8 @@ void f() sync* {
     );
     _assertReplaceInList(
       destination: node,
-      child: node.statements[0],
-      replacement: node.statements[1],
+      child: node.statements2[0],
+      replacement: node.statements2[1],
     );
   }
 }

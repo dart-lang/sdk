@@ -2545,7 +2545,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -2779,7 +2779,7 @@ void f() {
   return;
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 ReturnStatement
   returnKeyword: return
@@ -2793,7 +2793,7 @@ void f() {
   return x;
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 ReturnStatement
   returnKeyword: return
@@ -2811,7 +2811,7 @@ void f() {
   Function<A>(core.List<core.int> x) m() => null;
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, '''
 FunctionDeclarationStatement
   functionDeclaration: FunctionDeclaration
@@ -2886,7 +2886,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ReturnStatement
       returnKeyword: return
       semicolon: ;
@@ -2907,7 +2907,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ReturnStatement
       returnKeyword: return
       semicolon: ;
@@ -3883,7 +3883,7 @@ void f() {
 // [diag.modifierOutOfOrder] The modifier 'late' should be before the modifier 'final'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3904,7 +3904,7 @@ void f() {
 // [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3922,7 +3922,7 @@ void f() {
   late final a;
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3943,7 +3943,7 @@ void f() {
 // [diag.missingConstFinalVarOrType] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3964,7 +3964,7 @@ void f() {
   late A a;
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3984,7 +3984,7 @@ void f() {
   late var a;
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -4003,7 +4003,7 @@ void f() {
   late var a = 0;
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList

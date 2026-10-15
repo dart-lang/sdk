@@ -547,7 +547,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -580,7 +580,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: LogicalAnd
         leftOperand: BinaryOperatorInvocation
@@ -1868,7 +1868,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: BinaryOperatorInvocation
         leftOperand: BinaryOperatorInvocation
@@ -1978,7 +1978,7 @@ class A {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: BinaryOperatorInvocation
         leftOperand: BinaryOperatorInvocation
@@ -2530,7 +2530,7 @@ LabeledStatement
     Label
       name: c
       colon: :
-  statement: ReturnStatement
+  statement2: ReturnStatement
     returnKeyword: return
     expression2: ParsedUnqualifiedName
       name: x

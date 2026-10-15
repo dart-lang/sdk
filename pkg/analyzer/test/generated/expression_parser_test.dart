@@ -2854,7 +2854,7 @@ CallInvocation
     body: BlockFunctionBody
       block: Block
         leftBracket: {
-        statements
+        statements2
           ReturnStatement
             returnKeyword: return
             expression2: BinaryOperatorInvocation
@@ -2941,7 +2941,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: CallInvocation
                 receiver: ReceiverIndexExpression
@@ -3037,7 +3037,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: CallInvocation
                 receiver: ParsedValueArguments
@@ -5614,7 +5614,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: b

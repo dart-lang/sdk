@@ -49,7 +49,7 @@ IfStatement
           staticType: int
         matchedValueType: dynamic
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -142,9 +142,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -252,9 +252,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -361,9 +361,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -469,9 +469,9 @@ IfStatement
           staticInvokeType: null
           staticType: InvalidType
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -576,9 +576,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -686,9 +686,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -799,9 +799,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -909,9 +909,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1016,9 +1016,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1126,9 +1126,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1247,9 +1247,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1264,9 +1264,9 @@ IfStatement
         semicolon: ;
     rightBracket: }
   elseKeyword: else
-  elseStatement: Block
+  elseStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1355,9 +1355,9 @@ IfStatement
           element: a@null
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1372,9 +1372,9 @@ IfStatement
         semicolon: ;
     rightBracket: }
   elseKeyword: else
-  elseStatement: Block
+  elseStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1464,9 +1464,9 @@ IfStatement
           staticInvokeType: bool Function(num)
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1481,9 +1481,9 @@ IfStatement
         semicolon: ;
     rightBracket: }
   elseKeyword: else
-  elseStatement: Block
+  elseStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: UnqualifiedNameExpression
           name: a
@@ -1523,7 +1523,7 @@ IfStatement
     superKeyword: super
     staticType: A
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1584,7 +1584,7 @@ IfStatement
           staticType: A
         matchedValueType: dynamic
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1628,7 +1628,7 @@ IfStatement
     staticInvokeType: bool Function()
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1680,7 +1680,7 @@ IfStatement
           staticType: int
         matchedValueType: int
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1744,7 +1744,7 @@ IfStatement
           staticInvokeType: bool Function()
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1786,7 +1786,7 @@ IfStatement
           literal: true
           staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -1838,9 +1838,9 @@ IfStatement
       type: int
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: FunctionExpression
           parameters: FormalParameterList
@@ -1921,9 +1921,9 @@ IfStatement
       type: int
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: FunctionExpression
           parameters: FormalParameterList
@@ -2015,9 +2015,9 @@ IfStatement
     staticInvokeType: bool Function(Object)
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: FunctionExpression
           parameters: FormalParameterList
@@ -2109,9 +2109,9 @@ IfStatement
     staticInvokeType: bool Function(Object)
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ExpressionStatement
         expression2: FunctionExpression
           parameters: FormalParameterList

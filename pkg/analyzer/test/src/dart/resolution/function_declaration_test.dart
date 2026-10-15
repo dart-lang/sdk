@@ -51,7 +51,7 @@ TopLevelFunctionDeclaration
     star: *
     block: Block
       leftBracket: {
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: IntegerLiteral
@@ -651,7 +651,7 @@ TopLevelSetterDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: value
@@ -814,7 +814,7 @@ TopLevelFunctionDeclaration
     star: *
     block: Block
       leftBracket: {
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: IntegerLiteral

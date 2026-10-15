@@ -22,7 +22,7 @@ class BlockScope {
     for (int i = 0; i < statementCount; i++) {
       Statement statement = statements[i];
       if (statement is LabeledStatement) {
-        statement = statement.statement;
+        statement = statement.statement2;
       }
       if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
