@@ -580,6 +580,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
       this.{col::ListBase::setRange}(index, index.{core::num::+}(iterable.{core::Iterable::length}{core::int}){(core::num) → core::int}, iterable){(core::int, core::int, core::Iterable<cac::_CustomList&Object&ListMixin::E%>, [core::int]) → void};
     }
     else {
+      core::RangeError::checkValueInInterval(index, 0, this.{core::List::length}{core::int}, "index");
       {
         synthesized core::Iterator<cac::_CustomList&Object&ListMixin::E%> :sync-for-iterator = iterable.{core::Iterable::iterator}{core::Iterator<cac::_CustomList&Object&ListMixin::E%>};
         for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -614,4 +615,4 @@ Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:464:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:473:12 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-sdk:///sdk/lib/collection/list.dart:482:12 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 1208, effectively constant: 4
+Extra constant evaluation: evaluated: 1212, effectively constant: 4

@@ -64,16 +64,6 @@ class _GrowableList<T> extends ListBase<T> {
     setAll(index, iterable);
   }
 
-  void setAll(int index, Iterable<T> iterable) {
-    if (iterable is List) {
-      setRange(index, index + iterable.length, iterable);
-    } else {
-      for (T element in iterable) {
-        this[index++] = element;
-      }
-    }
-  }
-
   void removeRange(int start, int end) {
     RangeError.checkValidRange(start, end, this.length);
     Lists.copy(this, end, this, start, this.length - end);
