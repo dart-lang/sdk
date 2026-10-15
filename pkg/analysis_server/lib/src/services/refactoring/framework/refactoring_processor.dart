@@ -9,6 +9,7 @@ import 'package:analysis_server/src/services/refactoring/add_import_prefix.dart'
 import 'package:analysis_server/src/services/refactoring/convert_all_formal_parameters_to_named.dart';
 import 'package:analysis_server/src/services/refactoring/convert_selected_formal_parameters_to_named.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
+import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/services/refactoring/move_selected_formal_parameters_left.dart';
@@ -33,6 +34,7 @@ class RefactoringProcessor {
     ConvertSelectedFormalParametersToNamed.commandName:
         ConvertSelectedFormalParametersToNamed.new,
     ExtractMethod.commandName: ExtractMethod.new,
+    ExtractWidget.commandName: ExtractWidget.new,
     MoveSelectedFormalParametersLeft.commandName:
         MoveSelectedFormalParametersLeft.new,
     MoveTopLevelToFile.commandName: MoveTopLevelToFile.new,

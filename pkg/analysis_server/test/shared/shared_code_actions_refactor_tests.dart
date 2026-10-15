@@ -10,6 +10,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/perform_refactor.dart';
 import 'package:analysis_server/src/services/refactoring/extract_method.dart';
+import 'package:analysis_server/src/services/refactoring/extract_widget.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 
@@ -737,6 +738,8 @@ void doFoo(void Function() a) => a();
     expect(field.description, 'Method Name');
     expect(field.defaultValue, 'newMethod');
     expect(field.error, isNull);
+
+    // Also verify the client-side validators are present.
     expect(
       field.type,
       isA<FormFieldTypeString>().having(
@@ -1022,7 +1025,7 @@ const new({
   });
 ''';
 
-  Future<void> test_appliesCorrectEdits() async {
+  Future<void> test_legacy_appliesCorrectEdits() async {
     const content = '''
 import 'package:flutter/material.dart';
 
@@ -1084,7 +1087,7 @@ class NewWidget extends StatelessWidget {
     );
   }
 
-  Future<void> test_invalidLocation() async {
+  Future<void> test_legacy_invalidLocation() async {
     const content = '''
 import 'dart:convert';
 ^
@@ -1095,6 +1098,300 @@ void f() {}
       content,
       command: Commands.performRefactor,
       title: extractWidgetTitle,
+    );
+  }
+
+  /// Ensure only the legacy version of the refactor shows up if interactive
+  /// forms are not supported.
+  Future<void> test_onlyOne_legacy() async {
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new [!Column!]();
+  }
+}
+''';
+
+    var code = TestCode.parseNormalized(content);
+    createFile(testFilePath, code.code);
+    await initializeServer();
+    var codeActions = await getCodeActions(
+      testFileUri,
+      position: code.positions.isNotEmpty ? code.position.position : null,
+      range: code.ranges.isNotEmpty ? code.range.range : null,
+    );
+    var extractWidgetActions = codeActions.where(
+      (action) => action.title == extractWidgetTitle,
+    );
+    expect(extractWidgetActions, hasLength(1));
+    // Expect the legacy refactor command.
+    expect(extractWidgetActions.single.command!.command, 'refactor.perform');
+  }
+
+  /// Ensure only the new self-describing version of the refactor shows up if
+  /// interactive forms are supported.
+  Future<void> test_onlyOne_selfDescribed() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new [!Column!]();
+  }
+}
+''';
+
+    var code = TestCode.parseNormalized(content);
+    createFile(testFilePath, code.code);
+    await initializeServer();
+    var codeActions = await getCodeActions(
+      testFileUri,
+      position: code.positions.isNotEmpty ? code.position.position : null,
+      range: code.ranges.isNotEmpty ? code.range.range : null,
+    );
+    var extractWidgetActions = codeActions.where(
+      (action) => action.title == extractWidgetTitle,
+    );
+    expect(extractWidgetActions, hasLength(1));
+    // Expect the new self-described refactor command.
+    expect(
+      extractWidgetActions.single.command!.command,
+      'dart.refactor.extract_widget',
+    );
+  }
+
+  Future<void> test_selfDescribing_appliesCorrectEdits() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        new [!Column!](
+          children: <Widget>[
+            new Text('AAA'),
+            new Text('BBB'),
+          ],
+        ),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+''';
+    var expectedContent =
+        '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        NewWidget(),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+
+class NewWidget extends StatelessWidget {
+  $expectedNewWidgetConstructorDeclaration
+  @override
+  Widget build(BuildContext context) {
+    return new Column(
+      children: <Widget>[
+        new Text('AAA'),
+        new Text('BBB'),
+      ],
+    );
+  }
+}
+''';
+
+    await verifyCodeActionLiteralEdits(
+      content,
+      expectedContent,
+      command: ExtractWidget.commandName,
+      title: extractWidgetTitle,
+      openTargetFile: true,
+    );
+  }
+
+  Future<void> test_selfDescribing_appliesCorrectEdits_customName() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        new [!Column!](
+          children: <Widget>[
+            new Text('AAA'),
+            new Text('BBB'),
+          ],
+        ),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+''';
+    var expectedContent =
+        '''
+>>>>>>>>>> lib/test.dart
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new Row(
+      children: <Widget>[
+        CustomWidgetName(),
+        new Text('CCC'),
+        new Text('DDD'),
+      ],
+    );
+  }
+}
+
+class CustomWidgetName extends StatelessWidget {
+  $expectedNewWidgetConstructorDeclaration
+  @override
+  Widget build(BuildContext context) {
+    return new Column(
+      children: <Widget>[
+        new Text('AAA'),
+        new Text('BBB'),
+      ],
+    );
+  }
+}
+''';
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: ExtractWidget.commandName,
+      title: extractWidgetTitle,
+      openTargetFile: true,
+    );
+
+    var command = codeAction.command!;
+    var interactiveCommand = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+    var field = interactiveCommand.formFields!.single;
+    interactiveCommand = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: interactiveCommand.command,
+        arguments: interactiveCommand.arguments,
+        formFields: interactiveCommand.formFields,
+        formAnswers: [field.answer('CustomWidgetName')],
+      ),
+    );
+    expect(interactiveCommand.formFields, isNull);
+
+    await verifyCommandEdits(
+      Command(
+        title: command.title,
+        command: interactiveCommand.command,
+        arguments: interactiveCommand.arguments,
+      ),
+      expectedContent,
+    );
+  }
+
+  Future<void> test_selfDescribing_invalidLocation() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'dart:convert';
+^
+void f() {}
+''';
+
+    await expectNoAction(
+      content,
+      command: ExtractWidget.commandName,
+      title: extractWidgetTitle,
+    );
+  }
+
+  Future<void>
+  test_selfDescribing_validLocation_passesInitialValidation() async {
+    setSupportedInteractiveFormInputKinds({'string'});
+
+    const content = '''
+import 'package:flutter/material.dart';
+
+class MyWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return new [!Column!]();
+  }
+}
+''';
+
+    var codeAction = await expectCodeActionLiteral(
+      content,
+      command: ExtractWidget.commandName,
+      title: extractWidgetTitle,
+    );
+
+    var command = codeAction.command!;
+
+    var response = await resolveCommand(
+      InteractiveExecuteCommandParams(
+        command: command.command,
+        arguments: command.arguments,
+      ),
+    );
+
+    expect(response.formFields, hasLength(1));
+    var field = response.formFields!.single;
+    expect(field.id, 'name');
+    expect(field.description, 'Widget Name');
+    expect(field.defaultValue, 'NewWidget');
+    expect(field.error, isNull);
+
+    // Also verify the client-side validators are present.
+    expect(
+      field.type,
+      isA<FormFieldTypeString>().having(
+        (type) => type.validators,
+        'validators',
+        editorClientCapabilities.ecmaScriptRegex
+            ? allOf(
+                isNotEmpty,
+                everyElement(
+                  isA<RegexValidator>().having(
+                    (e) => e.message,
+                    'message',
+                    startsWith('Class name'),
+                  ),
+                ),
+              )
+            : isEmpty,
+      ),
     );
   }
 }
