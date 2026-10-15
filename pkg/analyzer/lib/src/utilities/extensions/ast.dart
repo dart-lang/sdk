@@ -42,7 +42,7 @@ extension AstNodeExtension on AstNode {
         case FunctionDeclaration() ||
             ConstructorDeclaration() ||
             MethodDeclaration():
-          break;
+          return null;
       }
     }
     return null;
@@ -61,7 +61,7 @@ extension AstNodeExtension on AstNode {
             TopLevelFunctionDeclaration() ||
             TopLevelGetterDeclaration() ||
             TopLevelSetterDeclaration():
-          break;
+          return null;
       }
     }
     return null;
