@@ -24,10 +24,10 @@ final x = (0);
 
     var node = result.findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -50,10 +50,10 @@ final x = const (0);
 
     var node = result.findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -74,10 +74,10 @@ final x = (0,);
 
     var node = result.findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -98,10 +98,10 @@ final x = (0, 1);
 
     var node = result.findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: IntegerLiteral
       literal: 0
@@ -122,10 +122,10 @@ final x = ();
 
     var node = result.findNode.singleVariableDeclaration;
     assertResolvedNodeText(node, r'''
-VariableDeclaration
+TopLevelVariable
   name: x
   equals: =
-  initializer2: ParenthesizedExpression
+  initializer: ParenthesizedExpression
     leftParenthesis: (
     expression2: UnqualifiedNameExpression
       name: <empty> <synthetic>

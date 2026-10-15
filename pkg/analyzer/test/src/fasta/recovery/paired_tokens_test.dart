@@ -34,6 +34,26 @@ List<List<int>
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: List
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                rightBracket: >
+          rightBracket: > <synthetic>
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -67,6 +87,26 @@ List<List<int> f;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: List
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                rightBracket: >
+          rightBracket: > <synthetic>
+      variables
+        TopLevelVariable
+          name: f
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -103,6 +143,34 @@ Map<List<int, List<String>>
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: Map
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                  NamedType
+                    name: List
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: String
+                      rightBracket: >
+                rightBracket: >
+          rightBracket: > <synthetic>
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -144,6 +212,34 @@ Map<List<int, List<String>> f;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: Map
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: int
+                  NamedType
+                    name: List
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: String
+                      rightBracket: >
+                rightBracket: >
+          rightBracket: > <synthetic>
+      variables
+        TopLevelVariable
+          name: f
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -185,6 +281,22 @@ List<int double> f;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: List
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+            NamedType
+              name: double
+          rightBracket: >
+      variables
+        TopLevelVariable
+          name: f
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -217,6 +329,20 @@ List<int
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: List
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: > <synthetic>
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -244,6 +370,20 @@ List<int f;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: List
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: > <synthetic>
+      variables
+        TopLevelVariable
+          name: f
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -1262,6 +1402,30 @@ var x = [[0], [1];
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: ListLiteral
+            leftBracket: [
+            elements2
+              ListLiteral
+                leftBracket: [
+                elements2
+                  IntegerLiteral
+                    literal: 0
+                rightBracket: ]
+              ListLiteral
+                leftBracket: [
+                elements2
+                  IntegerLiteral
+                    literal: 1
+                rightBracket: ]
+            rightBracket: ] <synthetic>
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1269,18 +1433,18 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: ListLiteral
+            initializer: ListLiteral
               leftBracket: [
-              elements2
+              elements
                 ListLiteral
                   leftBracket: [
-                  elements2
+                  elements
                     IntegerLiteral
                       literal: 0
                   rightBracket: ]
                 ListLiteral
                   leftBracket: [
-                  elements2
+                  elements
                     IntegerLiteral
                       literal: 1
                   rightBracket: ]
@@ -1299,6 +1463,36 @@ var x = [[0], [1, [2]];
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: ListLiteral
+            leftBracket: [
+            elements2
+              ListLiteral
+                leftBracket: [
+                elements2
+                  IntegerLiteral
+                    literal: 0
+                rightBracket: ]
+              ListLiteral
+                leftBracket: [
+                elements2
+                  IntegerLiteral
+                    literal: 1
+                  ListLiteral
+                    leftBracket: [
+                    elements2
+                      IntegerLiteral
+                        literal: 2
+                    rightBracket: ]
+                rightBracket: ]
+            rightBracket: ] <synthetic>
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1306,23 +1500,23 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: ListLiteral
+            initializer: ListLiteral
               leftBracket: [
-              elements2
+              elements
                 ListLiteral
                   leftBracket: [
-                  elements2
+                  elements
                     IntegerLiteral
                       literal: 0
                   rightBracket: ]
                 ListLiteral
                   leftBracket: [
-                  elements2
+                  elements
                     IntegerLiteral
                       literal: 1
                     ListLiteral
                       leftBracket: [
-                      elements2
+                      elements
                         IntegerLiteral
                           literal: 2
                       rightBracket: ]
@@ -1342,6 +1536,22 @@ var x = [0 1];
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: ListLiteral
+            leftBracket: [
+            elements2
+              IntegerLiteral
+                literal: 0
+              IntegerLiteral
+                literal: 1
+            rightBracket: ]
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1349,9 +1559,9 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: ListLiteral
+            initializer: ListLiteral
               leftBracket: [
-              elements2
+              elements
                 IntegerLiteral
                   literal: 0
                 IntegerLiteral
@@ -1372,6 +1582,22 @@ var x = [0, 1
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: ListLiteral
+            leftBracket: [
+            elements2
+              IntegerLiteral
+                literal: 0
+              IntegerLiteral
+                literal: 1
+            rightBracket: ] <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1379,9 +1605,9 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: ListLiteral
+            initializer: ListLiteral
               leftBracket: [
-              elements2
+              elements
                 IntegerLiteral
                   literal: 0
                 IntegerLiteral

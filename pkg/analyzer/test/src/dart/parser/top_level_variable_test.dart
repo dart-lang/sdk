@@ -23,7 +23,15 @@ abstract int foo;
 
     var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
+TopLevelVariablesDeclaration
+  abstractKeyword: abstract
+  type: NamedType
+    name: int
+  variables
+    TopLevelVariable
+      name: foo
+  semicolon: ;
+V1: TopLevelVariableDeclaration
   abstractKeyword: abstract
   variables: VariableDeclarationList
     type: NamedType
@@ -44,7 +52,15 @@ abstract int foo;
 
     var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
+TopLevelVariablesDeclaration
+  abstractKeyword: abstract
+  type: NamedType
+    name: int
+  variables
+    TopLevelVariable
+      name: foo
+  semicolon: ;
+V1: TopLevelVariableDeclaration
   abstractKeyword: abstract
   variables: VariableDeclarationList
     type: NamedType
@@ -63,7 +79,17 @@ augment final foo = 0;
 
     var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
+TopLevelVariablesDeclaration
+  augmentKeyword: augment
+  constFinalOrVarKeyword: final
+  variables
+    TopLevelVariable
+      name: foo
+      equals: =
+      initializer: IntegerLiteral
+        literal: 0
+  semicolon: ;
+V1: TopLevelVariableDeclaration
   augmentKeyword: augment
   variables: VariableDeclarationList
     keyword: final
@@ -71,7 +97,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: foo
         equals: =
-        initializer2: IntegerLiteral
+        initializer: IntegerLiteral
           literal: 0
   semicolon: ;
 ''');
@@ -84,7 +110,16 @@ augment abstract int foo;
 
     var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
+TopLevelVariablesDeclaration
+  augmentKeyword: augment
+  abstractKeyword: abstract
+  type: NamedType
+    name: int
+  variables
+    TopLevelVariable
+      name: foo
+  semicolon: ;
+V1: TopLevelVariableDeclaration
   augmentKeyword: augment
   abstractKeyword: abstract
   variables: VariableDeclarationList
@@ -109,6 +144,21 @@ augment abstract int foo;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: augment
+      variables
+        TopLevelVariable
+          name: abstract
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: int
+      variables
+        TopLevelVariable
+          name: foo
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -140,6 +190,21 @@ augment final foo = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: augment
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: foo
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -153,7 +218,7 @@ CompilationUnit
           VariableDeclaration
             name: foo
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -166,7 +231,16 @@ augment external int foo;
 
     var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
+TopLevelVariablesDeclaration
+  augmentKeyword: augment
+  externalKeyword: external
+  type: NamedType
+    name: int
+  variables
+    TopLevelVariable
+      name: foo
+  semicolon: ;
+V1: TopLevelVariableDeclaration
   augmentKeyword: augment
   externalKeyword: external
   variables: VariableDeclarationList
@@ -186,7 +260,15 @@ external int foo;
 
     var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
+TopLevelVariablesDeclaration
+  externalKeyword: external
+  type: NamedType
+    name: int
+  variables
+    TopLevelVariable
+      name: foo
+  semicolon: ;
+V1: TopLevelVariableDeclaration
   externalKeyword: external
   variables: VariableDeclarationList
     type: NamedType

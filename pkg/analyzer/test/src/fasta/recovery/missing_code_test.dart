@@ -951,11 +951,10 @@ CompilationUnit
         expression(v1): SimpleIdentifier
           token: as
         semicolon: ; <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: T
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: T
       semicolon: ;
   declarations(v1)
     FunctionDeclaration
@@ -2880,6 +2879,28 @@ int f int x, int y) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: int
+      variables
+        TopLevelVariable
+          name: f
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: int
+      variables
+        TopLevelVariable
+          name: x
+        TopLevelVariable
+          name: int
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: y
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType

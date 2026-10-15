@@ -5292,10 +5292,10 @@ const a = 0;
 VariableDeclarationList
   keyword: const
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
       equals: =
-      initializer2: IntegerLiteral
+      initializer: IntegerLiteral
         literal: 0
 ''');
   }
@@ -5315,7 +5315,7 @@ VariableDeclarationList
   type: NamedType
     name: A
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
 ''');
   }
@@ -5333,7 +5333,7 @@ final a;
 VariableDeclarationList
   keyword: final
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
 ''');
   }
@@ -5353,7 +5353,7 @@ VariableDeclarationList
   type: NamedType
     name: A
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
 ''');
   }
@@ -5372,11 +5372,11 @@ VariableDeclarationList
   type: NamedType
     name: A
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
-    VariableDeclaration
+    TopLevelVariable
       name: b
-    VariableDeclaration
+    TopLevelVariable
       name: c
 ''');
   }
@@ -5395,7 +5395,7 @@ VariableDeclarationList
   type: NamedType
     name: A
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
 ''');
   }
@@ -5413,11 +5413,11 @@ var a, b, c;
 VariableDeclarationList
   keyword: var
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
-    VariableDeclaration
+    TopLevelVariable
       name: b
-    VariableDeclaration
+    TopLevelVariable
       name: c
 ''');
   }
@@ -5435,7 +5435,7 @@ var a;
 VariableDeclarationList
   keyword: var
   variables
-    VariableDeclaration
+    TopLevelVariable
       name: a
 ''');
   }
@@ -5573,6 +5573,20 @@ Block
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: bar
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: <empty> <synthetic>
+          rightBracket: > <synthetic>
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -5603,6 +5617,26 @@ foo <bar<
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: foo
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: bar
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: <empty> <synthetic>
+                rightBracket: > <synthetic>
+          rightBracket: > <synthetic>
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType

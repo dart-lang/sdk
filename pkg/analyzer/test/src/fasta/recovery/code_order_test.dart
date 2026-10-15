@@ -236,6 +236,30 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: exte
+      semicolon: ; <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: UnrelatedClass
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: Bar
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -1009,6 +1033,31 @@ mixin UnrelatedMixin on Bar {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: Foo
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: imple
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: UnrelatedMixin
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: Bar
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     MixinDeclaration
       mixinKeyword: mixin
       name: Foo

@@ -27,6 +27,22 @@ var x = () {};
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: FunctionExpression
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: BlockFunctionBody
+              block: Block
+                leftBracket: {
+                rightBracket: }
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -34,7 +50,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: FunctionExpression
+            initializer: FunctionExpression
               parameters: FormalParameterList
                 leftParenthesis: (
                 rightParenthesis: )
@@ -490,6 +506,26 @@ Future<List<>>
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: Future
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: List
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: <empty> <synthetic>
+                rightBracket: >
+          rightBracket: >
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -1072,6 +1108,32 @@ abstract<dynamic> _abstract = new abstract.A();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: abstract
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: dynamic
+          rightBracket: >
+      variables
+        TopLevelVariable
+          name: _abstract
+          equals: =
+          initializer: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: abstract
+                  period: .
+                name: A
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -1086,18 +1148,7 @@ CompilationUnit
           VariableDeclaration
             name: _abstract
             equals: =
-            initializer2: ConstructorInvocation
-              keyword: new
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  importPrefix: ImportPrefixReference
-                    name: abstract
-                    period: .
-                  name: A
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1205,6 +1256,29 @@ export.A _export = new export.A();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        importPrefix: ImportPrefixReference
+          name: export
+          period: .
+        name: A
+      variables
+        TopLevelVariable
+          name: _export
+          equals: =
+          initializer: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: export
+                  period: .
+                name: A
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -1216,18 +1290,7 @@ CompilationUnit
           VariableDeclaration
             name: _export
             equals: =
-            initializer2: ConstructorInvocation
-              keyword: new
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  importPrefix: ImportPrefixReference
-                    name: export
-                    period: .
-                  name: A
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1251,6 +1314,32 @@ export<dynamic> _export = new export.A();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: export
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: dynamic
+          rightBracket: >
+      variables
+        TopLevelVariable
+          name: _export
+          equals: =
+          initializer: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: export
+                  period: .
+                name: A
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -1265,18 +1354,7 @@ CompilationUnit
           VariableDeclaration
             name: _export
             equals: =
-            initializer2: ConstructorInvocation
-              keyword: new
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  importPrefix: ImportPrefixReference
-                    name: export
-                    period: .
-                  name: A
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1300,6 +1378,32 @@ operator<dynamic> _operator = new operator.A();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: operator
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: dynamic
+          rightBracket: >
+      variables
+        TopLevelVariable
+          name: _operator
+          equals: =
+          initializer: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: operator
+                  period: .
+                name: A
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -1314,18 +1418,7 @@ CompilationUnit
           VariableDeclaration
             name: _operator
             equals: =
-            initializer2: ConstructorInvocation
-              keyword: new
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  importPrefix: ImportPrefixReference
-                    name: operator
-                    period: .
-                  name: A
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1465,6 +1558,29 @@ typedef.A _typedef = new typedef.A();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        importPrefix: ImportPrefixReference
+          name: typedef
+          period: .
+        name: A
+      variables
+        TopLevelVariable
+          name: _typedef
+          equals: =
+          initializer: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: typedef
+                  period: .
+                name: A
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -1476,18 +1592,7 @@ CompilationUnit
           VariableDeclaration
             name: _typedef
             equals: =
-            initializer2: ConstructorInvocation
-              keyword: new
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  importPrefix: ImportPrefixReference
-                    name: typedef
-                    period: .
-                  name: A
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1510,6 +1615,29 @@ abstract.A _abstract = new abstract.A();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        importPrefix: ImportPrefixReference
+          name: abstract
+          period: .
+        name: A
+      variables
+        TopLevelVariable
+          name: _abstract
+          equals: =
+          initializer: ConstructorInvocation
+            keyword: new
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                importPrefix: ImportPrefixReference
+                  name: abstract
+                  period: .
+                name: A
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -1521,18 +1649,7 @@ CompilationUnit
           VariableDeclaration
             name: _abstract
             equals: =
-            initializer2: ConstructorInvocation
-              keyword: new
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  importPrefix: ImportPrefixReference
-                    name: abstract
-                    period: .
-                  name: A
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               keyword: new
               constructorName: ConstructorName
                 type: NamedType
@@ -1597,6 +1714,18 @@ const int x = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      type: NamedType
+        name: int
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -1606,7 +1735,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1653,6 +1782,16 @@ final x = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -1660,7 +1799,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2704,6 +2843,17 @@ int x = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: int
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -2712,7 +2862,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2726,6 +2876,16 @@ var x = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -2733,7 +2893,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2747,6 +2907,42 @@ Function(int) Function(String) v;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: GenericFunctionType
+        returnType: GenericFunctionType
+          functionKeyword: Function
+          parameters: FormalParameterList
+            leftParenthesis: (
+            requiredPositionalFormalParameters
+              RegularFormalParameter
+                type: NamedType
+                  name: int
+            rightParenthesis: )
+          parameters(v1): FormalParameterList
+            leftParenthesis: (
+            parameter: RegularFormalParameter
+              type: NamedType
+                name: int
+            rightParenthesis: )
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: String
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: String
+          rightParenthesis: )
+      variables
+        TopLevelVariable
+          name: v
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -2754,26 +2950,12 @@ CompilationUnit
             functionKeyword: Function
             parameters: FormalParameterList
               leftParenthesis: (
-              requiredPositionalFormalParameters
-                RegularFormalParameter
-                  type: NamedType
-                    name: int
-              rightParenthesis: )
-            parameters(v1): FormalParameterList
-              leftParenthesis: (
               parameter: RegularFormalParameter
                 type: NamedType
                   name: int
               rightParenthesis: )
           functionKeyword: Function
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: String
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -2794,21 +2976,38 @@ Function(int, String) v;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          requiredPositionalFormalParameters
+            RegularFormalParameter
+              type: NamedType
+                name: int
+            RegularFormalParameter
+              type: NamedType
+                name: String
+          rightParenthesis: )
+        parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: String
+          rightParenthesis: )
+      variables
+        TopLevelVariable
+          name: v
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: GenericFunctionType
           functionKeyword: Function
           parameters: FormalParameterList
-            leftParenthesis: (
-            requiredPositionalFormalParameters
-              RegularFormalParameter
-                type: NamedType
-                  name: int
-              RegularFormalParameter
-                type: NamedType
-                  name: String
-            rightParenthesis: )
-          parameters(v1): FormalParameterList
             leftParenthesis: (
             parameter: RegularFormalParameter
               type: NamedType
@@ -2833,6 +3032,19 @@ var x = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      documentationComment: Comment
+        tokens
+          /// Doc
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       documentationComment: Comment
         tokens
@@ -2843,7 +3055,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2857,6 +3069,17 @@ String get = null;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: String
+      variables
+        TopLevelVariable
+          name: get
+          equals: =
+          initializer: NullLiteral
+            literal: null
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -2865,7 +3088,7 @@ CompilationUnit
           VariableDeclaration
             name: get
             equals: =
-            initializer2: NullLiteral
+            initializer: NullLiteral
               literal: null
       semicolon: ;
 ''');
@@ -2879,6 +3102,17 @@ String set = null;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: String
+      variables
+        TopLevelVariable
+          name: set
+          equals: =
+          initializer: NullLiteral
+            literal: null
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -2887,7 +3121,7 @@ CompilationUnit
           VariableDeclaration
             name: set
             equals: =
-            initializer2: NullLiteral
+            initializer: NullLiteral
               literal: null
       semicolon: ;
 ''');
@@ -5499,6 +5733,15 @@ external int i;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      externalKeyword: external
+      type: NamedType
+        name: int
+      variables
+        TopLevelVariable
+          name: i
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       externalKeyword: external
       variables: VariableDeclarationList
@@ -5520,6 +5763,17 @@ external late int? i;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      externalKeyword: external
+      lateKeyword: late
+      type: NamedType
+        name: int
+        question: ?
+      variables
+        TopLevelVariable
+          name: i
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       externalKeyword: external
       variables: VariableDeclarationList
@@ -5543,6 +5797,18 @@ external late final int? i;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      externalKeyword: external
+      lateKeyword: late
+      constFinalOrVarKeyword: final
+      type: NamedType
+        name: int
+        question: ?
+      variables
+        TopLevelVariable
+          name: i
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       externalKeyword: external
       variables: VariableDeclarationList
@@ -5568,6 +5834,14 @@ final late a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      lateKeyword: late
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         lateKeyword: late
@@ -5589,6 +5863,13 @@ late a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      lateKeyword: late
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         lateKeyword: late
@@ -5607,6 +5888,14 @@ late final a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      lateKeyword: late
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         lateKeyword: late
@@ -5628,6 +5917,16 @@ late a = 0;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      lateKeyword: late
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         lateKeyword: late
@@ -5635,7 +5934,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -5649,6 +5948,15 @@ late A a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      lateKeyword: late
+      type: NamedType
+        name: A
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         lateKeyword: late
@@ -5669,6 +5977,14 @@ int i;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: int
+      variables
+        TopLevelVariable
+          name: i
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType

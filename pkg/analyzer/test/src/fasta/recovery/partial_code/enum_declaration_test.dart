@@ -78,6 +78,28 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -85,7 +107,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -180,6 +202,28 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -187,7 +231,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -525,16 +569,13 @@ CompilationUnit
           EnumConstantDeclaration
             name: typedef
         rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: A
-            equals: =
-            initializer2: ParsedUnqualifiedName
-              name: B
-            initializer(v1): SimpleIdentifier
-              token: B
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: A
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: B
       semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: Function
@@ -611,6 +652,25 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -671,6 +731,26 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: }
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -678,7 +758,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -760,6 +840,26 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: }
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -767,7 +867,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1102,6 +1202,23 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: }
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1170,6 +1287,28 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -1177,7 +1316,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1270,6 +1409,28 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -1277,7 +1438,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1648,6 +1809,25 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1712,6 +1892,28 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: }
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: }
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -1719,7 +1921,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1807,6 +2009,28 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: }
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: }
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -1814,7 +2038,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2171,6 +2395,25 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: }
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: }
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -2306,6 +2549,23 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -2313,7 +2573,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2585,6 +2845,20 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -2649,6 +2923,26 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -2656,7 +2950,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -2738,6 +3032,26 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -2745,7 +3059,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3049,16 +3363,13 @@ CompilationUnit
           EnumConstantDeclaration
             name: typedef
         rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: A
-            equals: =
-            initializer2: ParsedUnqualifiedName
-              name: B
-            initializer(v1): SimpleIdentifier
-              token: B
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: A
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: B
       semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: Function
@@ -3129,6 +3440,23 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -3183,6 +3511,23 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: {
         rightBracket: }
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumBody
+        leftBracket: {
+        rightBracket: }
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -3190,7 +3535,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3263,6 +3608,23 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: {
         rightBracket: }
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumBody
+        leftBracket: {
+        rightBracket: }
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -3270,7 +3632,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3572,6 +3934,20 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: {
         rightBracket: }
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumBody
+        leftBracket: {
+        rightBracket: }
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -3626,6 +4002,23 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -3633,7 +4026,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3706,6 +4099,23 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -3713,7 +4123,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -4015,6 +4425,20 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4075,6 +4499,26 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -4082,7 +4526,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -4163,6 +4607,26 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -4170,7 +4634,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -4495,6 +4959,23 @@ enum E {a var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     EnumDeclaration
       enumKeyword: enum
       namePart: NameWithTypeParameters

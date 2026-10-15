@@ -64,6 +64,23 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: T
+      equals: =
+      type: NamedType
+        name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -71,7 +88,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -150,6 +167,23 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: T
+      equals: =
+      type: NamedType
+        name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -157,7 +191,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -477,6 +511,20 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: T
+      equals: =
+      type: NamedType
+        name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -535,6 +583,23 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -542,7 +607,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -621,6 +686,23 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -628,7 +710,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -887,6 +969,20 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -947,6 +1043,23 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      equals: =
+      type: NamedType
+        name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -954,7 +1067,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1036,6 +1149,23 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      equals: =
+      type: NamedType
+        name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -1043,7 +1173,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1374,6 +1504,20 @@ CompilationUnit
       type: NamedType
         name: <empty> <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: <empty> <synthetic>
+      equals: =
+      type: NamedType
+        name: <empty> <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1432,6 +1576,23 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      name: T
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -1439,7 +1600,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1518,6 +1679,23 @@ CompilationUnit
         leftParenthesis: ( <synthetic>
         rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      name: T
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -1525,7 +1703,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -1842,6 +2020,20 @@ typedef T var a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      name: T
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       name: T

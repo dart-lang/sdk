@@ -581,11 +581,10 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: T
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: T
       semicolon: ; <synthetic>
   declarations(v1)
     FunctionDeclaration
@@ -1251,11 +1250,10 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: T
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: T
       semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: #synthetic_function_9 <synthetic>

@@ -151,6 +151,26 @@ var v = <b?c>();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: FunctionExpression
+            typeParameters: TypeParameterList
+              leftBracket: <
+              typeParameters
+                TypeParameter
+                  name: b
+              rightBracket: >
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -158,7 +178,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: FunctionExpression
+            initializer: FunctionExpression
               typeParameters: TypeParameterList
                 leftBracket: <
                 typeParameters
@@ -192,6 +212,44 @@ var v = n=<.["$assert;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: DirectAssignment
+            target: UnqualifiedNameAssignmentTarget
+              name: n
+            operator: =
+            value: ListLiteral
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    importPrefix: ImportPrefixReference
+                      name: <empty> <synthetic>
+                      period: .
+                    name: <empty> <synthetic>
+                rightBracket: > <synthetic>
+              leftBracket: [
+              elements2
+                StringInterpolation
+                  elements
+                    InterpolationString
+                      contents: "
+                    InterpolationExpression
+                      leftBracket: $
+                      expression2: ParsedUnqualifiedName
+                        name: assert
+                      expression(v1): SimpleIdentifier
+                        token: assert
+                    InterpolationString
+                      contents: ;" <synthetic>
+                  stringValue: null
+              rightBracket: ] <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -199,37 +257,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: DirectAssignment
-              target: UnqualifiedNameAssignmentTarget
-                name: n
-              operator: =
-              value: ListLiteral
-                typeArguments: TypeArgumentList
-                  leftBracket: <
-                  arguments
-                    NamedType
-                      importPrefix: ImportPrefixReference
-                        name: <empty> <synthetic>
-                        period: .
-                      name: <empty> <synthetic>
-                  rightBracket: > <synthetic>
-                leftBracket: [
-                elements2
-                  StringInterpolation
-                    elements
-                      InterpolationString
-                        contents: "
-                      InterpolationExpression
-                        leftBracket: $
-                        expression2: ParsedUnqualifiedName
-                          name: assert
-                        expression(v1): SimpleIdentifier
-                          token: assert
-                      InterpolationString
-                        contents: ;" <synthetic>
-                    stringValue: null
-                rightBracket: ] <synthetic>
-            initializer(v1): AssignmentExpression
+            initializer: AssignmentExpression
               leftHandSide: SimpleIdentifier
                 token: n
               operator: =
@@ -273,6 +301,37 @@ var v = [<y.<z>(){}];
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ListLiteral
+            leftBracket: [
+            elements2
+              SetOrMapLiteral
+                typeArguments: TypeArgumentList
+                  leftBracket: <
+                  arguments
+                    NamedType
+                      importPrefix: ImportPrefixReference
+                        name: y
+                        period: .
+                      name: <empty> <synthetic>
+                      typeArguments: TypeArgumentList
+                        leftBracket: <
+                        arguments
+                          NamedType
+                            name: z
+                        rightBracket: >
+                  rightBracket: > <synthetic>
+                leftBracket: {
+                rightBracket: }
+                isMap: false
+            rightBracket: ]
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -280,9 +339,9 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: ListLiteral
+            initializer: ListLiteral
               leftBracket: [
-              elements2
+              elements
                 SetOrMapLiteral
                   typeArguments: TypeArgumentList
                     leftBracket: <
@@ -4090,6 +4149,40 @@ var v = <String, int> {'1' : 1} <String, int> {'1' : 1};
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: BinaryOperatorInvocation
+            leftOperand: SetOrMapLiteral
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: String
+                  NamedType
+                    name: int
+                rightBracket: >
+              leftBracket: {
+              elements2
+                MapLiteralEntry
+                  key2: SimpleStringLiteral
+                    literal: '1'
+                  separator: :
+                  value2: IntegerLiteral
+                    literal: 1
+              rightBracket: }
+              isMap: false
+            operator: <
+            rightOperand: ParsedUnqualifiedName
+              name: String
+            binaryOperator: lessThan
+        TopLevelVariable
+          name: int
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4097,31 +4190,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: BinaryOperatorInvocation
-              leftOperand: SetOrMapLiteral
-                typeArguments: TypeArgumentList
-                  leftBracket: <
-                  arguments
-                    NamedType
-                      name: String
-                    NamedType
-                      name: int
-                  rightBracket: >
-                leftBracket: {
-                elements2
-                  MapLiteralEntry
-                    key2: SimpleStringLiteral
-                      literal: '1'
-                    separator: :
-                    value2: IntegerLiteral
-                      literal: 1
-                rightBracket: }
-                isMap: false
-              operator: <
-              rightOperand: ParsedUnqualifiedName
-                name: String
-              binaryOperator: lessThan
-            initializer(v1): BinaryExpression
+            initializer: BinaryExpression
               leftOperand: SetOrMapLiteral
                 typeArguments: TypeArgumentList
                   leftBracket: <
@@ -4362,6 +4431,28 @@ var v = { x' :  };
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: SetOrMapLiteral
+            leftBracket: {
+            elements2
+              ParsedUnqualifiedName
+                name: x
+              SimpleStringLiteral
+                literal: ' :  };' <synthetic>
+            elements(v1)
+              SimpleIdentifier
+                token: x
+              SimpleStringLiteral
+                literal: ' :  };' <synthetic>
+            rightBracket: } <synthetic>
+            isMap: false
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -4369,14 +4460,9 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: SetOrMapLiteral
+            initializer: SetOrMapLiteral
               leftBracket: {
-              elements2
-                ParsedUnqualifiedName
-                  name: x
-                SimpleStringLiteral
-                  literal: ' :  };' <synthetic>
-              elements(v1)
+              elements
                 SimpleIdentifier
                   token: x
                 SimpleStringLiteral
@@ -5542,6 +5628,21 @@ var v = a' 'b;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: a
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: b
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -5549,9 +5650,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: a
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: a
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -5594,17 +5693,14 @@ var v = a ${b} c $this d;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        keyword: var
-        variables
-          VariableDeclaration
-            name: v
-            equals: =
-            initializer2: ParsedUnqualifiedName
-              name: a
-            initializer(v1): SimpleIdentifier
-              token: a
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: a
       semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: $
@@ -5622,19 +5718,17 @@ CompilationUnit
                 token: b
               semicolon: ; <synthetic>
           rightBracket: }
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        type: NamedType
-          name: c
-        variables
-          VariableDeclaration
-            name: $this
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: c
+      variables
+        TopLevelVariable
+          name: $this
       semicolon: ; <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: d
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: d
       semicolon: ;
   declarations(v1)
     TopLevelVariableDeclaration
@@ -5696,22 +5790,21 @@ var v = <html>$void</html>;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        keyword: var
-        variables
-          VariableDeclaration
-            name: v
-            equals: =
-            initializer2: ListLiteral
-              typeArguments: TypeArgumentList
-                leftBracket: <
-                arguments
-                  NamedType
-                    name: html
-                rightBracket: >
-              leftBracket: [ <synthetic>
-              rightBracket: ] <synthetic>
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ListLiteral
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: html
+              rightBracket: >
+            leftBracket: [ <synthetic>
+            rightBracket: ] <synthetic>
       semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: $void
@@ -5777,6 +5870,23 @@ a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: x20
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -5784,9 +5894,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: <empty> <synthetic>
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -5828,6 +5936,21 @@ a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -5835,9 +5958,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: <empty> <synthetic>
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -5875,6 +5996,21 @@ a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -5882,9 +6018,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: <empty> <synthetic>
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -5924,6 +6058,21 @@ a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -5931,9 +6080,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: <empty> <synthetic>
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -5970,6 +6117,23 @@ a;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: t
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -5977,9 +6141,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: <empty> <synthetic>
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -6039,6 +6201,21 @@ var v = ${x}y;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: $
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: y
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -6046,9 +6223,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: $
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: $
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -6098,6 +6273,21 @@ b;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: a
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: b
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -6105,9 +6295,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: a
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: a
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration
@@ -6165,6 +6353,21 @@ var v = ${x}y;
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: $
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: y
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -6172,9 +6375,7 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: ParsedUnqualifiedName
-              name: $
-            initializer(v1): SimpleIdentifier
+            initializer: SimpleIdentifier
               token: $
       semicolon: ; <synthetic>
     TopLevelVariableDeclaration

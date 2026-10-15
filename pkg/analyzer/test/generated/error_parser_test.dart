@@ -1053,6 +1053,35 @@ var s = '$x$';
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: s
+          equals: =
+          initializer: StringInterpolation
+            elements
+              InterpolationString
+                contents: '
+              InterpolationExpression
+                leftBracket: $
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+              InterpolationString
+                contents: <empty> <synthetic>
+              InterpolationExpression
+                leftBracket: $
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              InterpolationString
+                contents: '
+            stringValue: null
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1060,23 +1089,19 @@ CompilationUnit
           VariableDeclaration
             name: s
             equals: =
-            initializer2: StringInterpolation
+            initializer: StringInterpolation
               elements
                 InterpolationString
                   contents: '
                 InterpolationExpression
                   leftBracket: $
-                  expression2: ParsedUnqualifiedName
-                    name: x
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                 InterpolationString
                   contents: <empty> <synthetic>
                 InterpolationExpression
                   leftBracket: $
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                 InterpolationString
                   contents: '

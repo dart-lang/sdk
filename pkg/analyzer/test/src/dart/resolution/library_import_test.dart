@@ -294,6 +294,26 @@ CompilationUnit
         uri: DirectiveUriWithLibrary
           uri: package:test/a.dart
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                element: package:test/a.dart::@class::A
+                type: A
+              element: package:test/a.dart::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticType: A
+          declaredFragment: <testLibraryFragment> a@96
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -301,18 +321,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: ConstructorInvocation
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  name: A
-                  element: package:test/a.dart::@class::A
-                  type: A
-                element: package:test/a.dart::@class::A::@constructor::new
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              staticType: A
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -391,6 +400,26 @@ CompilationUnit
         uri: DirectiveUriWithLibrary
           uri: package:test/a_html.dart
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                element: package:test/a_html.dart::@class::A
+                type: A
+              element: package:test/a_html.dart::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticType: A
+          declaredFragment: <testLibraryFragment> a@96
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -398,18 +427,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: ConstructorInvocation
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  name: A
-                  element: package:test/a_html.dart::@class::A
-                  type: A
-                element: package:test/a_html.dart::@class::A::@constructor::new
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              staticType: A
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A
@@ -598,6 +616,26 @@ CompilationUnit
         uri: DirectiveUriWithLibrary
           uri: package:test/a_io.dart
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: ConstructorInvocation
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: A
+                element: package:test/a_io.dart::@class::A
+                type: A
+              element: package:test/a_io.dart::@class::A::@constructor::new
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+            staticType: A
+          declaredFragment: <testLibraryFragment> a@96
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -605,18 +643,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: ConstructorInvocation
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  name: A
-                  element: package:test/a_io.dart::@class::A
-                  type: A
-                element: package:test/a_io.dart::@class::A::@constructor::new
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-              staticType: A
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               constructorName: ConstructorName
                 type: NamedType
                   name: A

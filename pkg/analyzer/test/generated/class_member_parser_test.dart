@@ -799,32 +799,31 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: x
-            equals: =
-            initializer2: IsExpression
-              expression2: ParsedUnqualifiedName
-                name: a
-              expression(v1): SimpleIdentifier
-                token: a
-              isOperator: is
-              type: NamedType
-                name: int
-          VariableDeclaration
-            name: y
-            equals: =
-            initializer2: IsExpression
-              expression2: ParsedUnqualifiedName
-                name: b
-              expression(v1): SimpleIdentifier
-                token: b
-              isOperator: is
-              type: NamedType
-                name: int
-                question: ?
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: IsExpression
+            expression2: ParsedUnqualifiedName
+              name: a
+            expression(v1): SimpleIdentifier
+              token: a
+            isOperator: is
+            type: NamedType
+              name: int
+        TopLevelVariable
+          name: y
+          equals: =
+          initializer: IsExpression
+            expression2: ParsedUnqualifiedName
+              name: b
+            expression(v1): SimpleIdentifier
+              token: b
+            isOperator: is
+            type: NamedType
+              name: int
+              question: ?
       semicolon: ;
   declarations(v1)
     FunctionDeclaration
@@ -902,32 +901,31 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: x
-            equals: =
-            initializer2: IsExpression
-              expression2: ParsedUnqualifiedName
-                name: a
-              expression(v1): SimpleIdentifier
-                token: a
-              isOperator: is
-              type: NamedType
-                name: int
-                question: ?
-          VariableDeclaration
-            name: y
-            equals: =
-            initializer2: IsExpression
-              expression2: ParsedUnqualifiedName
-                name: b
-              expression(v1): SimpleIdentifier
-                token: b
-              isOperator: is
-              type: NamedType
-                name: int
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: IsExpression
+            expression2: ParsedUnqualifiedName
+              name: a
+            expression(v1): SimpleIdentifier
+              token: a
+            isOperator: is
+            type: NamedType
+              name: int
+              question: ?
+        TopLevelVariable
+          name: y
+          equals: =
+          initializer: IsExpression
+            expression2: ParsedUnqualifiedName
+              name: b
+            expression(v1): SimpleIdentifier
+              token: b
+            isOperator: is
+            type: NamedType
+              name: int
       semicolon: ;
   declarations(v1)
     FunctionDeclaration
@@ -1009,32 +1007,31 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: x
-            equals: =
-            initializer2: IsExpression
-              expression2: ParsedUnqualifiedName
-                name: a
-              expression(v1): SimpleIdentifier
-                token: a
-              isOperator: is
-              type: NamedType
-                name: int
-          VariableDeclaration
-            name: y
-            equals: =
-            initializer2: IsExpression
-              expression2: ParsedUnqualifiedName
-                name: b
-              expression(v1): SimpleIdentifier
-                token: b
-              isOperator: is
-              type: NamedType
-                name: int
-                question: ?
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: IsExpression
+            expression2: ParsedUnqualifiedName
+              name: a
+            expression(v1): SimpleIdentifier
+              token: a
+            isOperator: is
+            type: NamedType
+              name: int
+        TopLevelVariable
+          name: y
+          equals: =
+          initializer: IsExpression
+            expression2: ParsedUnqualifiedName
+              name: b
+            expression(v1): SimpleIdentifier
+              token: b
+            isOperator: is
+            type: NamedType
+              name: int
+              question: ?
       semicolon: ; <synthetic>
   declarations(v1)
     FunctionDeclaration
@@ -1116,32 +1113,31 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: x
-            equals: =
-            initializer2: IsExpression
-              expression2: ParsedUnqualifiedName
-                name: a
-              expression(v1): SimpleIdentifier
-                token: a
-              isOperator: is
-              type: NamedType
-                name: int
-                question: ?
-          VariableDeclaration
-            name: y
-            equals: =
-            initializer2: IsExpression
-              expression2: ParsedUnqualifiedName
-                name: b
-              expression(v1): SimpleIdentifier
-                token: b
-              isOperator: is
-              type: NamedType
-                name: int
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: IsExpression
+            expression2: ParsedUnqualifiedName
+              name: a
+            expression(v1): SimpleIdentifier
+              token: a
+            isOperator: is
+            type: NamedType
+              name: int
+              question: ?
+        TopLevelVariable
+          name: y
+          equals: =
+          initializer: IsExpression
+            expression2: ParsedUnqualifiedName
+              name: b
+            expression(v1): SimpleIdentifier
+              token: b
+            isOperator: is
+            type: NamedType
+              name: int
       semicolon: ; <synthetic>
   declarations(v1)
     FunctionDeclaration
@@ -1219,32 +1215,31 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: x
-            equals: =
-            initializer2: AsExpression
-              expression2: ParsedUnqualifiedName
-                name: a
-              expression(v1): SimpleIdentifier
-                token: a
-              asOperator: as
-              type: NamedType
-                name: int
-          VariableDeclaration
-            name: y
-            equals: =
-            initializer2: AsExpression
-              expression2: ParsedUnqualifiedName
-                name: b
-              expression(v1): SimpleIdentifier
-                token: b
-              asOperator: as
-              type: NamedType
-                name: int
-                question: ?
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: AsExpression
+            expression2: ParsedUnqualifiedName
+              name: a
+            expression(v1): SimpleIdentifier
+              token: a
+            asOperator: as
+            type: NamedType
+              name: int
+        TopLevelVariable
+          name: y
+          equals: =
+          initializer: AsExpression
+            expression2: ParsedUnqualifiedName
+              name: b
+            expression(v1): SimpleIdentifier
+              token: b
+            asOperator: as
+            type: NamedType
+              name: int
+              question: ?
       semicolon: ;
   declarations(v1)
     FunctionDeclaration
@@ -1322,32 +1317,31 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: x
-            equals: =
-            initializer2: AsExpression
-              expression2: ParsedUnqualifiedName
-                name: a
-              expression(v1): SimpleIdentifier
-                token: a
-              asOperator: as
-              type: NamedType
-                name: int
-                question: ?
-          VariableDeclaration
-            name: y
-            equals: =
-            initializer2: AsExpression
-              expression2: ParsedUnqualifiedName
-                name: b
-              expression(v1): SimpleIdentifier
-                token: b
-              asOperator: as
-              type: NamedType
-                name: int
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: AsExpression
+            expression2: ParsedUnqualifiedName
+              name: a
+            expression(v1): SimpleIdentifier
+              token: a
+            asOperator: as
+            type: NamedType
+              name: int
+              question: ?
+        TopLevelVariable
+          name: y
+          equals: =
+          initializer: AsExpression
+            expression2: ParsedUnqualifiedName
+              name: b
+            expression(v1): SimpleIdentifier
+              token: b
+            asOperator: as
+            type: NamedType
+              name: int
       semicolon: ;
   declarations(v1)
     FunctionDeclaration
@@ -1429,32 +1423,31 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: x
-            equals: =
-            initializer2: AsExpression
-              expression2: ParsedUnqualifiedName
-                name: a
-              expression(v1): SimpleIdentifier
-                token: a
-              asOperator: as
-              type: NamedType
-                name: int
-          VariableDeclaration
-            name: y
-            equals: =
-            initializer2: AsExpression
-              expression2: ParsedUnqualifiedName
-                name: b
-              expression(v1): SimpleIdentifier
-                token: b
-              asOperator: as
-              type: NamedType
-                name: int
-                question: ?
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: AsExpression
+            expression2: ParsedUnqualifiedName
+              name: a
+            expression(v1): SimpleIdentifier
+              token: a
+            asOperator: as
+            type: NamedType
+              name: int
+        TopLevelVariable
+          name: y
+          equals: =
+          initializer: AsExpression
+            expression2: ParsedUnqualifiedName
+              name: b
+            expression(v1): SimpleIdentifier
+              token: b
+            asOperator: as
+            type: NamedType
+              name: int
+              question: ?
       semicolon: ; <synthetic>
   declarations(v1)
     FunctionDeclaration
@@ -1536,32 +1529,31 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: x
-            equals: =
-            initializer2: AsExpression
-              expression2: ParsedUnqualifiedName
-                name: a
-              expression(v1): SimpleIdentifier
-                token: a
-              asOperator: as
-              type: NamedType
-                name: int
-                question: ?
-          VariableDeclaration
-            name: y
-            equals: =
-            initializer2: AsExpression
-              expression2: ParsedUnqualifiedName
-                name: b
-              expression(v1): SimpleIdentifier
-                token: b
-              asOperator: as
-              type: NamedType
-                name: int
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: AsExpression
+            expression2: ParsedUnqualifiedName
+              name: a
+            expression(v1): SimpleIdentifier
+              token: a
+            asOperator: as
+            type: NamedType
+              name: int
+              question: ?
+        TopLevelVariable
+          name: y
+          equals: =
+          initializer: AsExpression
+            expression2: ParsedUnqualifiedName
+              name: b
+            expression(v1): SimpleIdentifier
+              token: b
+            asOperator: as
+            type: NamedType
+              name: int
       semicolon: ; <synthetic>
   declarations(v1)
     FunctionDeclaration

@@ -8193,6 +8193,22 @@ var (a, b) = (0, 1);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+          equals: =
+          initializer: RecordLiteral
+            leftParenthesis: (
+            fields2
+              IntegerLiteral
+                literal: 0
+              IntegerLiteral
+                literal: 1
+            rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -8200,9 +8216,9 @@ CompilationUnit
           VariableDeclaration
             name: <empty> <synthetic>
             equals: =
-            initializer2: RecordLiteral
+            initializer: RecordLiteral
               leftParenthesis: (
-              fields2
+              fields
                 IntegerLiteral
                   literal: 0
                 IntegerLiteral

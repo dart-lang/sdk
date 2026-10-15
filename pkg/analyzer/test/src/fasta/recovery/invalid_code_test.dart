@@ -27,6 +27,41 @@ List<String> fruits = cont <String>['apples', 'bananas', 'pears'];
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: List
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: String
+          rightBracket: >
+      variables
+        TopLevelVariable
+          name: fruits
+          equals: =
+          initializer: BinaryOperatorInvocation
+            leftOperand: BinaryOperatorInvocation
+              leftOperand: ParsedUnqualifiedName
+                name: cont
+              operator: <
+              rightOperand: ParsedUnqualifiedName
+                name: String
+              binaryOperator: lessThan
+            operator: >
+            rightOperand: ListLiteral
+              leftBracket: [
+              elements2
+                SimpleStringLiteral
+                  literal: 'apples'
+                SimpleStringLiteral
+                  literal: 'bananas'
+                SimpleStringLiteral
+                  literal: 'pears'
+              rightBracket: ]
+            binaryOperator: greaterThan
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -41,27 +76,7 @@ CompilationUnit
           VariableDeclaration
             name: fruits
             equals: =
-            initializer2: BinaryOperatorInvocation
-              leftOperand: BinaryOperatorInvocation
-                leftOperand: ParsedUnqualifiedName
-                  name: cont
-                operator: <
-                rightOperand: ParsedUnqualifiedName
-                  name: String
-                binaryOperator: lessThan
-              operator: >
-              rightOperand: ListLiteral
-                leftBracket: [
-                elements2
-                  SimpleStringLiteral
-                    literal: 'apples'
-                  SimpleStringLiteral
-                    literal: 'bananas'
-                  SimpleStringLiteral
-                    literal: 'pears'
-                rightBracket: ]
-              binaryOperator: greaterThan
-            initializer(v1): BinaryExpression
+            initializer: BinaryExpression
               leftOperand: BinaryExpression
                 leftOperand: SimpleIdentifier
                   token: cont
@@ -93,6 +108,22 @@ const default = const Object();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: default
+          equals: =
+          initializer: ConstructorInvocation
+            keyword: const
+            constructorReference: ConstructorReference2
+              typeReference: ConstructorTypeReference
+                name: Object
+            argumentList: ArgumentList
+              leftParenthesis: (
+              rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -100,15 +131,7 @@ CompilationUnit
           VariableDeclaration
             name: default
             equals: =
-            initializer2: ConstructorInvocation
-              keyword: const
-              constructorReference: ConstructorReference2
-                typeReference: ConstructorTypeReference
-                  name: Object
-              argumentList: ArgumentList
-                leftParenthesis: (
-                rightParenthesis: )
-            initializer(v1): InstanceCreationExpression
+            initializer: InstanceCreationExpression
               keyword: const
               constructorName: ConstructorName
                 type: NamedType
@@ -519,16 +542,15 @@ allValues.forEach((enum) {});
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        keyword: var
-        variables
-          VariableDeclaration
-            name: allValues
-            equals: =
-            initializer2: ListLiteral
-              leftBracket: [
-              rightBracket: ]
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: allValues
+          equals: =
+          initializer: ListLiteral
+            leftBracket: [
+            rightBracket: ]
       semicolon: ;
     TopLevelFunctionDeclaration
       name: allValues

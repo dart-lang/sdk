@@ -382,11 +382,10 @@ ClassDeclaration
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: B
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: B
       semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: #synthetic_function_11 <synthetic>
