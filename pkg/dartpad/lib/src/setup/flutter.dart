@@ -127,8 +127,9 @@ final class SetupFlutterCommand extends Command<void> {
         print('Cloning Flutter ($channel) into $flutterRoot...');
         _runSync('git', [
           'clone',
-          '--depth',
-          '1',
+          // Flutter's version fallback needs release tags from other branches
+          // and their common ancestors, so retain the full commit history.
+          '--filter=blob:none',
           '-b',
           channel,
           'https://github.com/flutter/flutter.git',
