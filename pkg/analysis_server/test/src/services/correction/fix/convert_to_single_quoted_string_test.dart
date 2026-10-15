@@ -62,7 +62,8 @@ void f() {
 }
 
 @reflectiveTest
-class ConvertToSingleQuotedStringTest extends FixProcessorLintTest {
+class ConvertToSingleQuotedStringTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToSingleQuotedString;
 

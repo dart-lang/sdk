@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddRequiredKeywordTest extends FixProcessorTest {
+class AddRequiredKeywordTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addMetaPackageDep => true;
 

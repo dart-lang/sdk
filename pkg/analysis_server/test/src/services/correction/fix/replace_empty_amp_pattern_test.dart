@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceEmptyMapPatternWithAnyTest extends FixProcessorTest {
+class ReplaceEmptyMapPatternWithAnyTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.matchAnyMap;
 
@@ -73,7 +74,8 @@ void f(Object x) {
 }
 
 @reflectiveTest
-class ReplaceEmptyMapPatternWithEmptyTest extends FixProcessorTest {
+class ReplaceEmptyMapPatternWithEmptyTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.matchEmptyMap;
 

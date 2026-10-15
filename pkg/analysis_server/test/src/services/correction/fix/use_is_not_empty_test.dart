@@ -37,7 +37,7 @@ void f(List<int> l) {
 }
 
 @reflectiveTest
-class UseIsNotEmptyTest extends FixProcessorLintTest {
+class UseIsNotEmptyTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.useIsNotEmpty;
 

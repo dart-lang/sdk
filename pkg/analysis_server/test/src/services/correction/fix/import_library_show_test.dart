@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class ImportLibraryShowMultipleTest extends FixProcessorTest {
+class ImportLibraryShowMultipleTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibraryCombinatorMultiple;
 
@@ -268,7 +269,7 @@ void f(A a1) {
 }
 
 @reflectiveTest
-class ImportLibraryShowTest extends FixProcessorTest {
+class ImportLibraryShowTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.importLibraryCombinator;
 

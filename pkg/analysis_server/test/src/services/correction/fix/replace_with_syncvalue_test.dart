@@ -33,7 +33,7 @@ Future<int> g() => .syncValue(1);
 }
 
 @reflectiveTest
-class ReplaceWithSyncValueLintTest extends FixProcessorLintTest {
+class ReplaceWithSyncValueLintTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithSyncValue;
 

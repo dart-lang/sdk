@@ -39,7 +39,7 @@ text \ $ \\
 }
 
 @reflectiveTest
-class ConvertToRawStringTest extends FixProcessorLintTest {
+class ConvertToRawStringTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToRawString;
 

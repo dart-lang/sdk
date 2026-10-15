@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToNamedArgumentsTest extends FixProcessorTest {
+class ConvertToNamedArgumentsTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertToNamedArguments;
 

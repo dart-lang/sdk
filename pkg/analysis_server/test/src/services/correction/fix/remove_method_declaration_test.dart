@@ -48,7 +48,7 @@ class B extends A {
 }
 
 @reflectiveTest
-class RemoveMethodDeclarationTest extends FixProcessorTest {
+class RemoveMethodDeclarationTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeMethoddeclaration;
 
@@ -78,7 +78,7 @@ extension type E(int i) {
 }
 
 @reflectiveTest
-class UnnecessaryOverridesTest extends FixProcessorLintTest {
+class UnnecessaryOverridesTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeMethoddeclaration;
 

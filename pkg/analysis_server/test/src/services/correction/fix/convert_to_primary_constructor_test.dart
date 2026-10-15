@@ -16,7 +16,8 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToPrimaryConstructorClassTest extends FixProcessorLintTest {
+class ConvertToPrimaryConstructorClassTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToPrimaryConstructor;
 
@@ -385,7 +386,8 @@ class B(this.x) {
 }
 
 @reflectiveTest
-class ConvertToPrimaryConstructorEnumTest extends FixProcessorLintTest {
+class ConvertToPrimaryConstructorEnumTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToPrimaryConstructor;
 

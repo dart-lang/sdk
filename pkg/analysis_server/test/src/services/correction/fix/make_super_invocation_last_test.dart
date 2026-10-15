@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class MakeSuperInvocationLastTest extends FixProcessorTest {
+class MakeSuperInvocationLastTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.makeSuperInvocationLast;
 

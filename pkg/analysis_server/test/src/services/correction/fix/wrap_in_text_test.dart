@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class WrapInTextTest extends FixProcessorTest {
+class WrapInTextTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addFlutterPackageDep => true;
 

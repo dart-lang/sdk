@@ -15,7 +15,8 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertDefaultToPrimaryConstructorTest extends FixProcessorLintTest {
+class ConvertDefaultToPrimaryConstructorTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertDefaultToPrimaryConstructor;
 

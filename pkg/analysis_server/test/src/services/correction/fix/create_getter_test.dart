@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateGetterEnumTest extends FixProcessorTest {
+class CreateGetterEnumTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createGetter;
 
@@ -87,7 +87,7 @@ void f(E e) {
 }
 
 @reflectiveTest
-class CreateGetterMixinTest extends FixProcessorTest {
+class CreateGetterMixinTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createGetter;
 
@@ -293,7 +293,7 @@ mixin M {
 }
 
 @reflectiveTest
-class CreateGetterTest extends FixProcessorTest {
+class CreateGetterTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createGetter;
 

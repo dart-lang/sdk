@@ -24,7 +24,7 @@ bool _ignoreDeadCode(Diagnostic diagnostic) =>
     diagnostic.diagnosticCode != diag.deadCode;
 
 @reflectiveTest
-class RemoveComparisonTest extends FixProcessorTest {
+class RemoveComparisonTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeComparison;
 
@@ -704,7 +704,7 @@ class Person {
 }
 
 @reflectiveTest
-class RemoveNullCheckComparisonTest extends FixProcessorLintTest {
+class RemoveNullCheckComparisonTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeComparison;
 
@@ -809,7 +809,7 @@ void g(int a, int b) {
 }
 
 @reflectiveTest
-class RemoveTypeCheckTest extends FixProcessorTest {
+class RemoveTypeCheckTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeTypeCheck;
 

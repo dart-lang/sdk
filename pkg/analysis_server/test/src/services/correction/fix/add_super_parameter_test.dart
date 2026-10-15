@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddSuperParameterTest extends FixProcessorTest {
+class AddSuperParameterTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addSuperParameter;
 

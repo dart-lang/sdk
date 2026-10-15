@@ -242,7 +242,7 @@ void f(Color color) {
 }
 
 @reflectiveTest
-class ReplaceWithDecoratedBoxTest extends FixProcessorLintTest {
+class ReplaceWithDecoratedBoxTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   bool get addFlutterPackageDep => true;
 

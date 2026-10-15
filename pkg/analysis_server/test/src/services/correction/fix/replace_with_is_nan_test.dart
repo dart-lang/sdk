@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithIsNanTest extends FixProcessorTest {
+class ReplaceWithIsNanTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithIsNaN;
 

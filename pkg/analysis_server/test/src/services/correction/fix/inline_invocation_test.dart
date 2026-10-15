@@ -35,7 +35,7 @@ var l3 = ['a', 'b', 'c'];
 }
 
 @reflectiveTest
-class InlineInvocationTest extends FixProcessorLintTest {
+class InlineInvocationTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.inlineInvocation;
 

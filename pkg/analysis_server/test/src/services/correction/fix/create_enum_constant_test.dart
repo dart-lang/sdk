@@ -16,7 +16,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateEnumConstantTest extends FixProcessorTest {
+class CreateEnumConstantTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createEnumConstant;
 

@@ -79,7 +79,7 @@ Object f(a, b) {
 }
 
 @reflectiveTest
-class AddTrailingCommaRecordTest extends FixProcessorTest {
+class AddTrailingCommaRecordTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addTrailingComma;
 
@@ -169,7 +169,7 @@ void f((int,) r) {
 }
 
 @reflectiveTest
-class AddTrailingCommaTest extends FixProcessorLintTest {
+class AddTrailingCommaTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addTrailingComma;
 

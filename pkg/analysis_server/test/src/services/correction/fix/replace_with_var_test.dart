@@ -99,7 +99,8 @@ void f2(List<int> list) {
 }
 
 @reflectiveTest
-class OmitLocalVariableTypesLintTest extends FixProcessorLintTest {
+class OmitLocalVariableTypesLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithVar;
 
@@ -736,7 +737,8 @@ void f2() {
 }
 
 @reflectiveTest
-class OmitObviousLocalVariableTypesLintTest extends FixProcessorLintTest {
+class OmitObviousLocalVariableTypesLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithVar;
 
@@ -1000,7 +1002,8 @@ class A {
 }
 
 @reflectiveTest
-class OmitObviousPropertyTypesLintTest extends FixProcessorLintTest {
+class OmitObviousPropertyTypesLintTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithVar;
 

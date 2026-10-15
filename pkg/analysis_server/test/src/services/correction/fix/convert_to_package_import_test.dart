@@ -52,7 +52,7 @@ var bar = Bar();
 
 @reflectiveTest
 class ConvertToPackageImport_AlwaysUsePackageImportsTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToPackageImport;
 
@@ -130,7 +130,7 @@ var bar = Bar();
 
 @reflectiveTest
 class ConvertToPackageImport_AvoidRelativeLibImportsTest
-    extends FixProcessorLintTest {
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToPackageImport;
 

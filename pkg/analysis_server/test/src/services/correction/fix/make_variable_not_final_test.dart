@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class MakeVariableNotFinalTest extends FixProcessorTest {
+class MakeVariableNotFinalTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.makeVariableNotFinal;
 

@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class ReplaceWithIsNotEmptyTest extends FixProcessorLintTest {
+class ReplaceWithIsNotEmptyTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithIsNotEmpty;
 

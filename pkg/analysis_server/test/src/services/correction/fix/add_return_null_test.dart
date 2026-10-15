@@ -42,7 +42,7 @@ int? f() {
 }
 
 @reflectiveTest
-class AddReturnNullTest extends FixProcessorTest {
+class AddReturnNullTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addReturnNull;
 

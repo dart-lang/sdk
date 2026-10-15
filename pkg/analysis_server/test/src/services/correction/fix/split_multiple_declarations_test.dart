@@ -44,7 +44,7 @@ final r3= ('b', 2);
 }
 
 @reflectiveTest
-class SplitMultipleDeclarationsTest extends FixProcessorLintTest {
+class SplitMultipleDeclarationsTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.splitMultipleDeclarations;
 

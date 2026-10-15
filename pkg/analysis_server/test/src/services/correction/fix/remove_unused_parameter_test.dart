@@ -86,7 +86,7 @@ void main() {
 }
 
 @reflectiveTest
-class RemoveUnusedParameterTest extends FixProcessorLintTest {
+class RemoveUnusedParameterTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedParameter;
 
@@ -442,7 +442,8 @@ class C();
 /// than lints.   Apply the same algorithm for parameter removal as for
 /// lints.
 @reflectiveTest
-class RemoveUnusedParameterTestHint extends FixProcessorTest {
+class RemoveUnusedParameterTestHint
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.removeUnusedParameter;
 

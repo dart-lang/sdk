@@ -18,7 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddReturnType_AlwaysDeclareReturnTypesTest extends FixProcessorLintTest {
+class AddReturnType_AlwaysDeclareReturnTypesTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addReturnType;
 
@@ -301,7 +302,8 @@ Iterable<num> f() sync* {
 }
 
 @reflectiveTest
-class AddReturnType_DeprecatedFactoryMethodTest extends FixProcessorTest {
+class AddReturnType_DeprecatedFactoryMethodTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addReturnType;
 
@@ -322,7 +324,8 @@ class C {
 }
 
 @reflectiveTest
-class AddReturnType_StrictTopLevelInferenceTest extends FixProcessorLintTest {
+class AddReturnType_StrictTopLevelInferenceTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addReturnType;
 

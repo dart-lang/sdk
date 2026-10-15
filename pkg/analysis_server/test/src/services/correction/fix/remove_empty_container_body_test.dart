@@ -35,7 +35,7 @@ mixin M;
 }
 
 @reflectiveTest
-class RemoveEmptyContainerBodyTest extends FixProcessorLintTest {
+class RemoveEmptyContainerBodyTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.removeEmptyContainerBody;
 

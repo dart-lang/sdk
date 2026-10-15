@@ -18,7 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateFieldEnumTest extends FixProcessorTest {
+class CreateFieldEnumTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createField;
 
@@ -260,7 +260,7 @@ void f(E e) {
 }
 
 @reflectiveTest
-class CreateFieldMixinTest extends FixProcessorTest {
+class CreateFieldMixinTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createField;
 
@@ -389,7 +389,7 @@ void f() {
 }
 
 @reflectiveTest
-class CreateFieldTest extends FixProcessorTest {
+class CreateFieldTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createField;
 

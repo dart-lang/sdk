@@ -39,7 +39,7 @@ String f() {
 }
 
 @reflectiveTest
-class ReplaceWithInterpolationTest extends FixProcessorLintTest {
+class ReplaceWithInterpolationTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceWithInterpolation;
 

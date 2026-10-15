@@ -43,7 +43,7 @@ void f2(String s) {
 }
 
 @reflectiveTest
-class ReplaceNullWithClosureTest extends FixProcessorLintTest {
+class ReplaceNullWithClosureTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.replaceNullWithClosure;
 

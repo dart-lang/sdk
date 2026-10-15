@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddClassModifierBaseTest extends FixProcessorTest {
+class AddClassModifierBaseTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addClassModifierBase;
 
@@ -80,7 +80,7 @@ base class B extends A {}
 }
 
 @reflectiveTest
-class AddClassModifierFinalTest extends FixProcessorTest {
+class AddClassModifierFinalTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addClassModifierFinal;
 
@@ -108,7 +108,7 @@ final class B extends A {}
 }
 
 @reflectiveTest
-class AddClassModifierSealedTest extends FixProcessorTest {
+class AddClassModifierSealedTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addClassModifierSealed;
 

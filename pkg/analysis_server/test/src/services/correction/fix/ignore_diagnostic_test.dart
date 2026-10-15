@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class IgnoreDiagnosticAnalysisOptionFileTest extends FixProcessorTest {
+class IgnoreDiagnosticAnalysisOptionFileTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => ignoreErrorAnalysisFileKind;
 
@@ -218,7 +219,7 @@ void f() {
 }
 
 @reflectiveTest
-class IgnoreDiagnosticFileTest extends FixProcessorTest {
+class IgnoreDiagnosticFileTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => ignoreErrorFileKind;
 
@@ -352,7 +353,7 @@ void f() {
 }
 
 @reflectiveTest
-class IgnoreDiagnosticLineTest extends FixProcessorTest {
+class IgnoreDiagnosticLineTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => ignoreErrorLineKind;
 

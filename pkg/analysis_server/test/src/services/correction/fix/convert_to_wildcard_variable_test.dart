@@ -17,7 +17,8 @@ void main() {
 }
 
 @reflectiveTest
-class ConvertToWildcardVariableTest extends FixProcessorTest {
+class ConvertToWildcardVariableTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.convertToWildcardVariable;
 
@@ -292,7 +293,8 @@ void f(int _) {
 }
 
 @reflectiveTest
-class ConvertUnnecessaryUnderscoresTest extends FixProcessorLintTest {
+class ConvertUnnecessaryUnderscoresTest
+    extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.convertToWildcardVariable;
 

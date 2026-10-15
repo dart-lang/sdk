@@ -3769,7 +3769,8 @@ void f(Test t) {}
 
 /// A base class for these tests, which makes `testFilePath` writable, as many
 /// of the tests require testing with code in different locations.
-abstract class _ImportLibraryProjectTest extends FixProcessorTest {
+abstract class _ImportLibraryProjectTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   late String testFilePath = '$testPackageLibPath/test.dart';
 }

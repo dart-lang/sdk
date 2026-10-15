@@ -23,7 +23,7 @@ void main() {
 
 @reflectiveTest
 class CreateConstructorForFinalFieldsRequiredNamedTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addFlutterPackageDep => true;
 
@@ -587,7 +587,7 @@ enum E {
 
 @reflectiveTest
 class CreateConstructorForFinalFieldsRequiredPositionalTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addFlutterPackageDep => true;
 
@@ -862,7 +862,7 @@ final int v;
 
 @reflectiveTest
 class CreateConstructorForFinalFieldsWithoutSuperParametersTest
-    extends FixProcessorTest {
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addFlutterPackageDep => true;
 

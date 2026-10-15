@@ -18,7 +18,8 @@ void main() {
 }
 
 @reflectiveTest
-class AddNullCheckReplaceWithNullAwareTest extends FixProcessorTest {
+class AddNullCheckReplaceWithNullAwareTest
+    extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.replaceWithNullAware;
 
@@ -132,7 +133,7 @@ void f(String? s) {
 }
 
 @reflectiveTest
-class AddNullCheckTest extends FixProcessorTest {
+class AddNullCheckTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.addNullCheck;
 
@@ -674,7 +675,7 @@ Iterable<String> f(List<String>? args) sync* {
 }
 
 @reflectiveTest
-class CastNullableToNonNullableTest extends FixProcessorLintTest {
+class CastNullableToNonNullableTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.addNullCheck;
 

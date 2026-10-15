@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class AddCallSuperTest extends FixProcessorTest {
+class AddCallSuperTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   bool get addMetaPackageDep => true;
 

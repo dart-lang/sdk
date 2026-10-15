@@ -20,7 +20,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateExtensionGetterTest extends FixProcessorTest {
+class CreateExtensionGetterTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createExtensionGetter;
 
@@ -641,7 +641,7 @@ extension on List<int> {
 }
 
 @reflectiveTest
-class CreateExtensionMethodTest extends FixProcessorTest {
+class CreateExtensionMethodTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createExtensionMethod;
 
@@ -1910,7 +1910,7 @@ void f(A? a) {
 }
 
 @reflectiveTest
-class CreateExtensionOperatorTest extends FixProcessorTest {
+class CreateExtensionOperatorTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createExtensionOperator;
 
@@ -2170,7 +2170,7 @@ void f(void Function() fn) {
 }
 
 @reflectiveTest
-class CreateExtensionSetterTest extends FixProcessorTest {
+class CreateExtensionSetterTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createExtensionSetter;
 

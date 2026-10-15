@@ -53,7 +53,7 @@ void f2() {
 }
 
 @reflectiveTest
-class UseRethrowTest extends FixProcessorLintTest {
+class UseRethrowTest extends FixProcessorForBuiltInLintRuleTest {
   @override
   FixKind get kind => DartFixKind.useRethrow;
 

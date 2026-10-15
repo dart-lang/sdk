@@ -17,7 +17,7 @@ void main() {
 }
 
 @reflectiveTest
-class CreateFunctionTearoffTest extends FixProcessorTest {
+class CreateFunctionTearoffTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createFunctionTearoff;
 
@@ -307,7 +307,7 @@ A<int> test() {}
 }
 
 @reflectiveTest
-class CreateFunctionTest extends FixProcessorTest {
+class CreateFunctionTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => DartFixKind.createFunction;
 

@@ -15,7 +15,7 @@ void main() {
 }
 
 @reflectiveTest
-class FixTest extends FixProcessorTest {
+class FixTest extends FixProcessorForBuiltInDiagnosticTest {
   @override
   FixKind get kind => fail('kind should not be requested');
 
