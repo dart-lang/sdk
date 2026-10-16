@@ -473,7 +473,7 @@ MixinDeclaration
 
     var node = parseResult.findNode.singleGenericTypeAlias;
     assertParsedNodeText(node, r'''
-GenericTypeAlias
+GenericTypeAlias2
   typedefKeyword: typedef
   name: A
   typeParameters: TypeParameterList
@@ -496,7 +496,24 @@ GenericTypeAlias
           type: NamedType
             name: X
       rightParenthesis: )
-    parameters(v1): FormalParameterList
+  semicolon: ;
+V1: GenericTypeAlias
+  typedefKeyword: typedef
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: inout
+      TypeParameter
+        name: X
+    rightBracket: >
+  equals: =
+  type: GenericFunctionType
+    returnType: NamedType
+      name: X
+    functionKeyword: Function
+    parameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType
@@ -516,7 +533,7 @@ GenericTypeAlias
 
     var node = parseResult.findNode.singleGenericTypeAlias;
     assertParsedNodeText(node, r'''
-GenericTypeAlias
+GenericTypeAlias2
   typedefKeyword: typedef
   name: A
   typeParameters: TypeParameterList
@@ -539,7 +556,24 @@ GenericTypeAlias
           type: NamedType
             name: X
       rightParenthesis: )
-    parameters(v1): FormalParameterList
+  semicolon: ;
+V1: GenericTypeAlias
+  typedefKeyword: typedef
+  name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: inout
+      TypeParameter
+        name: X
+    rightBracket: >
+  equals: =
+  type: GenericFunctionType
+    returnType: NamedType
+      name: X
+    functionKeyword: Function
+    parameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
         type: NamedType

@@ -1094,7 +1094,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _sink.writeln('FunctionTypeAlias');
+    // TODO(scheglov): Remove the V2 label when type aliases are parsed as
+    // FunctionTypeAlias2.
+    _sink.writeln(
+      _view == _AstView.v2 ? 'FunctionTypeAlias2' : 'FunctionTypeAlias',
+    );
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -1128,7 +1132,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    _sink.writeln('GenericTypeAlias');
+    // TODO(scheglov): Remove the V2 label when type aliases are parsed as
+    // GenericTypeAlias2.
+    _sink.writeln(
+      _view == _AstView.v2 ? 'GenericTypeAlias2' : 'GenericTypeAlias',
+    );
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -2584,6 +2592,16 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       v1 = V1Projection.toV1Expression(expression);
     }
 
+    // TODO(scheglov): Remove when type aliases are parsed as
+    // GenericTypeAlias2 and FunctionTypeAlias2, which have distinct V1
+    // projections.
+    if (node is FunctionTypeAlias || node is GenericTypeAlias) {
+      _withInlineV1ChildEntities(false, () => writeNode(node));
+      _sink.writeWithIndent('V1: ');
+      _withView(_AstView.v1, () => _acceptInView(node));
+      return;
+    }
+
     if (v1 == null || identical(v1, node)) {
       writeNode(node);
       return;
@@ -3046,8 +3064,14 @@ Expected parent: (${parent.runtimeType}) $parent
     }
 
     var entities2 = node.namedChildEntities2.toList();
+    // TODO(scheglov): Remove the type alias cases when type aliases are
+    // parsed as GenericTypeAlias2 and FunctionTypeAlias2, which have no V1
+    // child entities.
     var entities =
-        !_includeInlineV1ChildEntities || node.astNodeApi == AstNodeApi.v2
+        !_includeInlineV1ChildEntities ||
+            node.astNodeApi == AstNodeApi.v2 ||
+            node is FunctionTypeAlias ||
+            node is GenericTypeAlias
         ? <ChildEntity>[]
         // ignore: analyzer_v1_ast_use
         : node.namedChildEntities.toList();
@@ -3076,7 +3100,8 @@ Expected parent: (${parent.runtimeType}) $parent
         });
       } else if (entity != null &&
           entity.name != entity2.name &&
-          !_sameChildEntityValue(entity2.value, entity.value)) {
+          (!_sameChildEntityValue(entity2.value, entity.value) ||
+              _hasTypeAlias(entity2.value))) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3450,6 +3475,19 @@ Expected parent: (${parent.runtimeType}) $parent
     throw UnimplementedError(
       '(${parametersParent.runtimeType}) $parametersParent',
     );
+  }
+
+  /// Whether [value] is a list of nodes that includes a generic or function
+  /// type alias.
+  ///
+  /// Such a list is printed as if it already had a distinct V1 projection.
+  // TODO(scheglov): Remove when type aliases are parsed as GenericTypeAlias2
+  // and FunctionTypeAlias2.
+  static bool _hasTypeAlias(Object value) {
+    return value is List<AstNode> &&
+        value.any(
+          (node) => node is FunctionTypeAlias || node is GenericTypeAlias,
+        );
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

@@ -2803,6 +2803,14 @@ typedef F();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       name: F
@@ -2822,6 +2830,17 @@ typedef F();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias2
+      documentationComment: Comment
+        tokens
+          /// Doc
+      typedefKeyword: typedef
+      name: F
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     FunctionTypeAlias
       documentationComment: Comment
         tokens
@@ -4449,7 +4468,7 @@ typedef F = int Function(int);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       equals: =
@@ -4471,6 +4490,22 @@ CompilationUnit
               name: int
           rightParenthesis: )
       semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: int
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+          rightParenthesis: )
+      semicolon: ;
 ''');
   }
 
@@ -4482,7 +4517,7 @@ typedef F<T> = T Function(T);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -4504,6 +4539,28 @@ CompilationUnit
                 name: T
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: T
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: T
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4521,7 +4578,7 @@ typedef F<T> = T Function(T);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -4549,6 +4606,28 @@ CompilationUnit
               name: T
           rightParenthesis: )
       semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: T
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: T
+          rightParenthesis: )
+      semicolon: ;
 ''');
   }
 
@@ -4560,7 +4639,7 @@ typedef F<A, B, C> = Function(A a, B b, C c);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -4593,6 +4672,39 @@ CompilationUnit
               name: c
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: A
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: B
+            name: b
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+            name: c
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+          TypeParameter
+            name: B
+          TypeParameter
+            name: C
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4619,7 +4731,7 @@ typedef F<A, B, C> = Function(A a, B b, C c);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -4652,6 +4764,39 @@ CompilationUnit
               name: c
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: A
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: B
+            name: b
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+            name: c
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+          TypeParameter
+            name: B
+          TypeParameter
+            name: C
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4678,7 +4823,7 @@ typedef F<A, B, C extends D<E>> = Function(A a, B b, C c);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -4720,6 +4865,48 @@ CompilationUnit
               name: c
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: A
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: B
+            name: b
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+            name: c
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+          TypeParameter
+            name: B
+          TypeParameter
+            name: C
+            extendsKeyword: extends
+            bound: NamedType
+              name: D
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4746,7 +4933,7 @@ typedef F<A, B, C extends D<E, G, H>> = Function(A a, B b, C c);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -4792,6 +4979,52 @@ CompilationUnit
               name: c
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: A
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: B
+            name: b
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+            name: c
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+          TypeParameter
+            name: B
+          TypeParameter
+            name: C
+            extendsKeyword: extends
+            bound: NamedType
+              name: D
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                  NamedType
+                    name: G
+                  NamedType
+                    name: H
+                rightBracket: >
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4818,7 +5051,7 @@ typedef F<A, B, C extends D<E, G, H>> = Function(A a, B b, C c);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -4879,6 +5112,52 @@ CompilationUnit
             name: c
           rightParenthesis: )
       semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+          TypeParameter
+            name: B
+          TypeParameter
+            name: C
+            extendsKeyword: extends
+            bound: NamedType
+              name: D
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                  NamedType
+                    name: G
+                  NamedType
+                    name: H
+                rightBracket: >
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: A
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: B
+            name: b
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+            name: c
+          rightParenthesis: )
+      semicolon: ;
 ''');
   }
 
@@ -4890,7 +5169,7 @@ typedef F<A, B, C extends D<E>> = Function(A a, B b, C c);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -4932,6 +5211,48 @@ CompilationUnit
               name: c
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: A
+            name: a
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: B
+            name: b
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+            name: c
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: A
+          TypeParameter
+            name: B
+          TypeParameter
+            name: C
+            extendsKeyword: extends
+            bound: NamedType
+              name: D
+              typeArguments: TypeArgumentList
+                leftBracket: <
+                arguments
+                  NamedType
+                    name: E
+                rightBracket: >
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4960,7 +5281,7 @@ typedef F< = int Function(int);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -4988,6 +5309,28 @@ CompilationUnit
               name: int
           rightParenthesis: )
       semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: <empty> <synthetic>
+        rightBracket: > <synthetic>
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: int
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+          rightParenthesis: )
+      semicolon: ;
 ''');
   }
 
@@ -5001,7 +5344,7 @@ typedef F<>= int Function(int);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -5029,6 +5372,28 @@ CompilationUnit
               name: int
           rightParenthesis: )
       semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: <empty> <synthetic>
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: int
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+          rightParenthesis: )
+      semicolon: ;
 ''');
   }
 
@@ -5042,7 +5407,7 @@ typedef F<> = int Function(int);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -5064,6 +5429,28 @@ CompilationUnit
                 name: int
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: int
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: <empty> <synthetic>
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: int
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -6004,6 +6391,16 @@ typedef bool F();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias2
+      typedefKeyword: typedef
+      returnType: NamedType
+        name: bool
+      name: F
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -6024,6 +6421,14 @@ typedef F();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6042,6 +6447,22 @@ typedef A<B> F();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias2
+      typedefKeyword: typedef
+      returnType: NamedType
+        name: A
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: B
+          rightBracket: >
+      name: F
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -6068,7 +6489,7 @@ typedef bool F(Object value);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    FunctionTypeAlias
+    FunctionTypeAlias2
       typedefKeyword: typedef
       returnType: NamedType
         name: bool
@@ -6081,7 +6502,14 @@ CompilationUnit
               name: Object
             name: value
         rightParenthesis: )
-      parameters(v1): FormalParameterList
+      semicolon: ;
+  declarations(v1)
+    FunctionTypeAlias
+      typedefKeyword: typedef
+      returnType: NamedType
+        name: bool
+      name: F
+      parameters: FormalParameterList
         leftParenthesis: (
         parameter: RegularFormalParameter
           type: NamedType
@@ -6100,6 +6528,22 @@ typedef bool F<E>();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias2
+      typedefKeyword: typedef
+      returnType: NamedType
+        name: bool
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: E
+        rightBracket: >
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -6126,6 +6570,16 @@ typedef void F();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias2
+      typedefKeyword: typedef
+      returnType: NamedType
+        name: void
+      name: F
+      parameters: FormalParameterList
+        leftParenthesis: (
+        rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       returnType: NamedType
@@ -6146,6 +6600,19 @@ typedef F = bool Function();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: bool
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6169,6 +6636,17 @@ typedef F = Function();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6190,6 +6668,25 @@ typedef F = A<B> Function();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: A
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: B
+            rightBracket: >
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6219,7 +6716,7 @@ typedef F = bool Function(Object value);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       equals: =
@@ -6243,6 +6740,23 @@ CompilationUnit
             name: value
           rightParenthesis: )
       semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: bool
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: Object
+            name: value
+          rightParenthesis: )
+      semicolon: ;
 ''');
   }
 
@@ -6254,6 +6768,25 @@ typedef F = bool Function<E>();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: bool
+        functionKeyword: Function
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: E
+          rightBracket: >
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6283,6 +6816,25 @@ typedef F<T> = bool Function();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: bool
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6312,6 +6864,23 @@ typedef F<T> = Function();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6340,6 +6909,31 @@ typedef F<T> = A<B> Function();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: A
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: B
+            rightBracket: >
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6375,7 +6969,7 @@ typedef F<T> = bool Function(Object value);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: F
       typeParameters: TypeParameterList
@@ -6405,6 +6999,29 @@ CompilationUnit
             name: value
           rightParenthesis: )
       semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: bool
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: Object
+            name: value
+          rightParenthesis: )
+      semicolon: ;
 ''');
   }
 
@@ -6416,6 +7033,31 @@ typedef F<T> = bool Function<E>();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: bool
+        functionKeyword: Function
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: E
+          rightBracket: >
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6451,6 +7093,25 @@ typedef F<T> = void Function();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      typeParameters: TypeParameterList
+        leftBracket: <
+        typeParameters
+          TypeParameter
+            name: T
+        rightBracket: >
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: void
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6480,6 +7141,19 @@ typedef F = void Function();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      typedefKeyword: typedef
+      name: F
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: void
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       typedefKeyword: typedef
       name: F
@@ -6504,6 +7178,22 @@ typedef F = bool Function();
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    GenericTypeAlias2
+      documentationComment: Comment
+        tokens
+          /// Doc
+      typedefKeyword: typedef
+      name: F
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: bool
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     GenericTypeAlias
       documentationComment: Comment
         tokens

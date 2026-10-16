@@ -4863,6 +4863,14 @@ typedef n
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    FunctionTypeAlias2
+      typedefKeyword: typedef
+      name: n
+      parameters: FormalParameterList
+        leftParenthesis: ( <synthetic>
+        rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     FunctionTypeAlias
       typedefKeyword: typedef
       name: n

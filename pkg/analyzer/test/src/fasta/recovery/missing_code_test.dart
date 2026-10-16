@@ -5550,7 +5550,7 @@ typedef Predicate = bool <E>(E element);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: Predicate
       equals: =
@@ -5573,6 +5573,29 @@ CompilationUnit
               name: element
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: E
+            name: element
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: Predicate
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: bool
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+        functionKeyword: Function <synthetic>
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
