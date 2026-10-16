@@ -181,13 +181,7 @@ final class DdsStreamManager {
     try {
       final includePrivateMembers = params['_includePrivateMembers'] as bool?;
       if (!_streamSubscriptions.containsKey(streamId)) {
-        try {
-          await backend.vmServiceClient.streamListen(streamId);
-        } on vm.RPCError catch (e) {
-          if (e.code != vm.RPCErrorKind.kStreamAlreadySubscribed.code) {
-            rethrow;
-          }
-        }
+        await backend.vmServiceClient.streamListen(streamId);
         if (includePrivateMembers != null) {
           try {
             await backend.vmServiceClient.callMethod(
@@ -207,14 +201,9 @@ final class DdsStreamManager {
             );
           }
         }
-        _streamSubscriptions.putIfAbsent(
-          streamId,
-          () => backend.vmServiceClient
-              .onEvent(streamId)
-              .listen(
-                (vm.Event event) => _handleVmServiceEvent(streamId, event),
-              ),
-        );
+        _streamSubscriptions[streamId] = backend.vmServiceClient
+            .onEvent(streamId)
+            .listen((vm.Event event) => _handleVmServiceEvent(streamId, event));
       }
       return true;
     } on vm.RPCError catch (e, st) {

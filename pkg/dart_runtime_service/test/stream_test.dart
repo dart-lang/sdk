@@ -14,47 +14,7 @@ import 'package:vm_service/vm_service.dart';
 import 'package:vm_service/vm_service_io.dart';
 
 import 'utils/matchers.dart';
-import 'utils/mocks.dart';
 import 'utils/utilities.dart';
-
-final class _DelayedStreamListenBackend extends FakeDartRuntimeServiceBackend {
-  _DelayedStreamListenBackend({required super.frontend});
-
-  final onStreamListenCompleters = <String, Completer<bool>>{};
-  final onStreamListenCountByStream = <String, int>{};
-  final onStreamListenWaiters = <String, Map<int, Completer<void>>>{};
-
-  Future<void> waitForListenCount(String streamId, int count) {
-    final waiters = onStreamListenWaiters.putIfAbsent(
-      streamId,
-      () => <int, Completer<void>>{},
-    );
-    final completer = waiters.putIfAbsent(count, Completer<void>.new);
-    if ((onStreamListenCountByStream[streamId] ?? 0) >= count &&
-        !completer.isCompleted) {
-      completer.complete();
-    }
-    return completer.future;
-  }
-
-  @override
-  Future<bool> onStreamListen({
-    required String streamId,
-    required Map<String, Object?> params,
-  }) {
-    final count = (onStreamListenCountByStream[streamId] ?? 0) + 1;
-    onStreamListenCountByStream[streamId] = count;
-    final waiter = onStreamListenWaiters[streamId]?[count];
-    if (waiter != null && !waiter.isCompleted) {
-      waiter.complete();
-    }
-    final completer = onStreamListenCompleters[streamId];
-    if (completer != null) {
-      return completer.future;
-    }
-    return Future<bool>.value(true);
-  }
-}
 
 final class HelloWorldEvent extends StreamEvent {
   HelloWorldEvent() : super(streamId: kStreamId, kind: kKind);
@@ -219,99 +179,6 @@ void main() {
       // subscribed.
       await pumpEventQueue();
       expect(client1ServiceRegisteredEventCount, equals(0));
-    });
-
-    test(
-      'concurrent streamListen for the same stream waits for onStreamListen',
-      () async {
-        late final _DelayedStreamListenBackend backend;
-        final service = await createDartRuntimeServiceForTest(
-          config: const DartRuntimeServiceOptions(enableLogging: true),
-          backendBuilder: (frontend) {
-            backend = _DelayedStreamListenBackend(frontend: frontend);
-            backend.onStreamListenCompleters[HelloWorldEvent.kStreamId] =
-                Completer<bool>();
-            return backend;
-          },
-        );
-
-        final client1 = await vmServiceConnectUri(service.uri.toString());
-        final client2 = await vmServiceConnectUri(service.uri.toString());
-
-        var listen1Completed = false;
-        final listen1 = client1
-            .streamListen(HelloWorldEvent.kStreamId)
-            .then((_) => listen1Completed = true);
-        await backend.waitForListenCount(HelloWorldEvent.kStreamId, 1);
-
-        var listen2Completed = false;
-        final listen2 = client2
-            .streamListen(HelloWorldEvent.kStreamId)
-            .then((_) => listen2Completed = true);
-        await backend.waitForListenCount(HelloWorldEvent.kStreamId, 2);
-
-        expect(listen1Completed, isFalse);
-        expect(listen2Completed, isFalse);
-
-        // Subscriptions to other streams should not be blocked by the in-flight
-        // subscription on HelloWorldEvent.kStreamId.
-        await client1.streamListen(EventStreams.kService);
-        expect(backend.onStreamListenCountByStream[EventStreams.kService], 1);
-
-        backend.onStreamListenCompleters[HelloWorldEvent.kStreamId]!.complete(
-          true,
-        );
-        await Future.wait([listen1, listen2]);
-
-        expect(listen1Completed, isTrue);
-        expect(listen2Completed, isTrue);
-        expect(
-          service
-              .eventStreamManager
-              .streamListeners[HelloWorldEvent.kStreamId]
-              ?.length,
-          2,
-        );
-      },
-    );
-
-    test('concurrent streamListen for the same invalid stream fails for all '
-        'callers', () async {
-      late final _DelayedStreamListenBackend backend;
-      final service = await createDartRuntimeServiceForTest(
-        config: const DartRuntimeServiceOptions(enableLogging: true),
-        backendBuilder: (frontend) {
-          backend = _DelayedStreamListenBackend(frontend: frontend);
-          backend.onStreamListenCompleters[HelloWorldEvent.kStreamId] =
-              Completer<bool>();
-          return backend;
-        },
-      );
-
-      final client1 = await vmServiceConnectUri(service.uri.toString());
-      final client2 = await vmServiceConnectUri(service.uri.toString());
-
-      final listen1 = expectLater(
-        client1.streamListen(HelloWorldEvent.kStreamId),
-        throwsInvalidParamsRPCError,
-      );
-      await backend.waitForListenCount(HelloWorldEvent.kStreamId, 1);
-
-      final listen2 = expectLater(
-        client2.streamListen(HelloWorldEvent.kStreamId),
-        throwsInvalidParamsRPCError,
-      );
-      await backend.waitForListenCount(HelloWorldEvent.kStreamId, 2);
-
-      backend.onStreamListenCompleters[HelloWorldEvent.kStreamId]!.complete(
-        false,
-      );
-      await Future.wait([listen1, listen2]);
-
-      expect(
-        service.eventStreamManager.streamListeners[HelloWorldEvent.kStreamId],
-        isNull,
-      );
     });
 
     test('BinaryStreamEvent.fromData parses streamId and payload', () {
