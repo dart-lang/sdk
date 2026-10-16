@@ -128,7 +128,7 @@ class PluginServer {
   /// Otherwise it is `false`.
   final bool _useGlobalRegistry;
 
-  PluginServer({
+  new({
     required ResourceProvider resourceProvider,
     required List<Plugin> plugins,
   }) : _resourceProvider = OverlayResourceProvider(resourceProvider),
@@ -157,7 +157,7 @@ class PluginServer {
     PluginRegistryImpl.registerIgnoreProducerGenerators();
   }
 
-  PluginServer.new2({
+  new new2({
     required ResourceProvider resourceProvider,
     required Map<String, Plugin> plugins,
   }) : _resourceProvider = OverlayResourceProvider(resourceProvider),
@@ -1247,7 +1247,7 @@ final class _LibraryDiagnosticsContext {
   final List<RuleContextUnit> allUnits;
   final Map<RuleContextUnit, RecordingDiagnosticListener> diagnosticListeners;
 
-  _LibraryDiagnosticsContext._({
+  new _({
     required this.ruleContext,
     required this.allUnits,
     required this.diagnosticListeners,

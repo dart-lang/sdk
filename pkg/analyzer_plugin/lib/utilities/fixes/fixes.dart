@@ -62,7 +62,7 @@ class FixGenerator {
   final List<FixContributor> contributors;
 
   /// Initialize a newly created fix generator to use the given [contributors].
-  FixGenerator(this.contributors);
+  new(this.contributors);
 
   /// Create an 'edit.getFixes' response for the location in the file specified
   /// by the given [request]. If any of the contributors throws an exception,
@@ -115,7 +115,7 @@ class FixKind {
 
   /// Initialize a newly created kind of fix to have the given [id],
   /// [priority], and [message].
-  const FixKind(this.id, this.priority, this.message);
+  const new(this.id, this.priority, this.message);
 
   @override
   int get hashCode => id.hashCode;

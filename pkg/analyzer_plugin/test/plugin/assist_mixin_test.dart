@@ -55,7 +55,7 @@ class AssistsMixinTest extends AbstractPluginTest {
 class _TestAssistContributor implements AssistContributor {
   List<PrioritizedSourceChange> changes;
 
-  _TestAssistContributor(this.changes);
+  new(this.changes);
 
   @override
   Future<void> computeAssists(
@@ -69,7 +69,7 @@ class _TestAssistContributor implements AssistContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with AssistsMixin {
-  _TestServerPlugin(super.resourceProvider);
+  new(super.resourceProvider);
 
   PrioritizedSourceChange createChange() {
     return PrioritizedSourceChange(0, SourceChange(''));

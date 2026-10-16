@@ -54,7 +54,7 @@ class CompletionMixinTest extends AbstractPluginTest {
 class _TestCompletionContributor implements CompletionContributor {
   List<CompletionSuggestion> suggestions;
 
-  _TestCompletionContributor(this.suggestions);
+  new(this.suggestions);
 
   @override
   Future<void> computeSuggestions(
@@ -72,7 +72,7 @@ class _TestCompletionContributor implements CompletionContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with CompletionMixin {
-  _TestServerPlugin(super.resourceProvider);
+  new(super.resourceProvider);
 
   CompletionSuggestion createSuggestion() {
     return CompletionSuggestion(

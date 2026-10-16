@@ -51,7 +51,7 @@ abstract class ServerPlugin {
   /// Initialize a newly created analysis server plugin. If a resource [resourceProvider]
   /// is given, then it will be used to access the file system. Otherwise a
   /// resource provider that accesses the physical file system will be used.
-  ServerPlugin({required ResourceProvider resourceProvider})
+  new({required ResourceProvider resourceProvider})
     : resourceProvider = OverlayResourceProvider(resourceProvider);
 
   /// Return the communication channel being used to communicate with the

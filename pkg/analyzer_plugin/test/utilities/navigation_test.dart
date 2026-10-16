@@ -94,7 +94,7 @@ class TestContributor implements NavigationContributor {
   /// The number of times that [computeNavigation] was invoked.
   int count = 0;
 
-  TestContributor({this.throwException = false});
+  new({this.throwException = false});
 
   @override
   void computeNavigation(

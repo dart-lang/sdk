@@ -13,7 +13,7 @@ class MockAnalysisContext implements AnalysisContext {
   @override
   ContextRoot contextRoot;
 
-  MockAnalysisContext(ResourceProvider resourceProvider)
+  new(ResourceProvider resourceProvider)
     : contextRoot = MockContextRoot(resourceProvider);
 
   @override
@@ -27,7 +27,7 @@ class MockAnalysisSession implements AnalysisSession {
   @override
   AnalysisContext analysisContext;
 
-  MockAnalysisSession(this.resourceProvider)
+  new(this.resourceProvider)
     : analysisContext = MockAnalysisContext(resourceProvider);
 
   @override
@@ -40,7 +40,7 @@ class MockContextRoot implements ContextRoot {
   @override
   ResourceProvider resourceProvider;
 
-  MockContextRoot(this.resourceProvider);
+  new(this.resourceProvider);
 
   @override
   bool isAnalyzed(String filePath) => true;

@@ -58,7 +58,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   /// If not `null`, [write] will copy everything into this buffer.
   StringBuffer? _carbonCopyBuffer;
 
-  DartEditBuilderImpl(
+  new(
     DartFileEditBuilderImpl super.sourceFileEditBuilder,
     super.offset,
     super.length, {
@@ -1881,16 +1881,15 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
   /// change being built by the given [changeBuilder].
   ///
   /// The file being edited has the given [resolvedUnit] and [timeStamp].
-  DartFileEditBuilderImpl(
+  new(
     ChangeBuilderImpl changeBuilder,
     this.resolvedLibrary,
     this.resolvedUnit,
     int timeStamp,
     this.libraryChangeBuilder, {
     required super.eol,
-    bool createEditsForImports = true,
-  }) : _createEditsForImports = createEditsForImports,
-       super(changeBuilder, resolvedUnit.path, timeStamp);
+    this._createEditsForImports = true,
+  }) : super(changeBuilder, resolvedUnit.path, timeStamp);
 
   @override
   bool get hasEdits =>
@@ -3594,7 +3593,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
 class DartLinkedEditBuilderImpl extends LinkedEditBuilderImpl
     implements DartLinkedEditBuilder {
   /// Initialize a newly created linked edit builder.
-  DartLinkedEditBuilderImpl(DartEditBuilderImpl super.editBuilder);
+  new(DartEditBuilderImpl super.editBuilder);
 
   DartEditBuilderImpl get dartEditBuilder => editBuilder as DartEditBuilderImpl;
 
@@ -3620,7 +3619,7 @@ class ImportLibraryElementResultImpl implements ImportLibraryElementResult {
   @override
   final String? prefix;
 
-  ImportLibraryElementResultImpl(this.prefix);
+  new(this.prefix);
 }
 
 class _DartFileEditBuilderRevertData {
@@ -3631,7 +3630,7 @@ class _EnclosingElementFinder {
   ClassElement? enclosingClass;
   ExecutableElement? enclosingExecutable;
 
-  _EnclosingElementFinder();
+  new();
 
   void find(CompilationUnit target, int offset) {
     var node = target.nodeCovering(offset: offset);
@@ -3668,10 +3667,7 @@ class _InsertionPreparer {
 
   Token? _trailingComma;
 
-  factory _InsertionPreparer(
-    CompilationUnitMember declaration,
-    LineInfo lineInfo,
-  ) {
+  factory(CompilationUnitMember declaration, LineInfo lineInfo) {
     var members = declaration.members;
     if (members == null) {
       assert(
@@ -3685,7 +3681,7 @@ class _InsertionPreparer {
     return _InsertionPreparer._(declaration, lineInfo, members);
   }
 
-  _InsertionPreparer._(this._declaration, this._lineInfo, this._members);
+  new _(this._declaration, this._lineInfo, this._members);
 
   /// Returns the offset of where a new member should be inserted, as a new
   /// member of [_declaration].
@@ -3871,7 +3867,7 @@ class _LibraryImport implements Comparable<_LibraryImport> {
   /// flag may change from `false` to `true`.
   bool isExplicitlyImported;
 
-  _LibraryImport({
+  new({
     required this.uriText,
     required String prefix,
     required this.isExplicitlyImported,

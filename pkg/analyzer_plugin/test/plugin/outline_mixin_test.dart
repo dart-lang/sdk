@@ -65,7 +65,7 @@ class OutlineMixinTest extends AbstractPluginTest {
 class _TestOutlineContributor implements OutlineContributor {
   int elementCount;
 
-  _TestOutlineContributor(this.elementCount);
+  new(this.elementCount);
 
   @override
   void computeOutline(OutlineRequest request, OutlineCollector collector) {
@@ -77,7 +77,7 @@ class _TestOutlineContributor implements OutlineContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with OutlineMixin {
-  _TestServerPlugin(super.resourceProvider);
+  new(super.resourceProvider);
 
   @override
   List<OutlineContributor> getOutlineContributors(String path) {

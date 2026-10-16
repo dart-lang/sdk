@@ -7,7 +7,7 @@ class Pair<E, F> {
   final E first;
   final F last;
 
-  Pair(this.first, this.last);
+  new(this.first, this.last);
 
   @override
   int get hashCode => first.hashCode ^ last.hashCode;

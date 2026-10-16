@@ -23,7 +23,7 @@ abstract class ProducerRequestPerformance extends RequestPerformance {
   final String snippet;
   final List<ProducerTiming> producerTimings;
 
-  ProducerRequestPerformance({
+  new({
     required super.operation,
     required this.path,
     required super.performance,
@@ -52,7 +52,7 @@ class RequestPerformance {
   final RequestPerformanceAdditionalTimings? additionalTimings =
       RequestPerformanceAdditionalTimings.current;
 
-  RequestPerformance({
+  new({
     required this.operation,
     required this.performance,
     this.requestLatency,

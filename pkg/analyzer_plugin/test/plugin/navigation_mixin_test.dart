@@ -80,7 +80,7 @@ class NavigationMixinTest extends AbstractPluginTest {
 class _TestNavigationContributor implements NavigationContributor {
   int regionCount;
 
-  _TestNavigationContributor(this.regionCount);
+  new(this.regionCount);
 
   @override
   void computeNavigation(
@@ -99,7 +99,7 @@ class _TestNavigationContributor implements NavigationContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with NavigationMixin {
-  _TestServerPlugin(super.resourceProvider);
+  new(super.resourceProvider);
 
   @override
   List<NavigationContributor> getNavigationContributors(String path) {

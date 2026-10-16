@@ -66,7 +66,7 @@ class FoldingMixinTest extends AbstractPluginTest {
 class _TestFoldingContributor implements FoldingContributor {
   int regionCount;
 
-  _TestFoldingContributor(this.regionCount);
+  new(this.regionCount);
 
   @override
   void computeFolding(FoldingRequest request, FoldingCollector collector) {
@@ -77,7 +77,7 @@ class _TestFoldingContributor implements FoldingContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with FoldingMixin {
-  _TestServerPlugin(super.resourceProvider);
+  new(super.resourceProvider);
 
   @override
   List<FoldingContributor> getFoldingContributors(String path) {

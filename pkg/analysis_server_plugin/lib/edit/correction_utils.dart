@@ -27,11 +27,9 @@ final class CorrectionUtils {
 
   String? _endOfLine;
 
-  CorrectionUtils(ParsedUnitResult result)
-    : _unit = result.unit,
-      _buffer = result.content;
+  new(ParsedUnitResult result) : _unit = result.unit, _buffer = result.content;
 
-  CorrectionUtils.fromUnitAndContent(CompilationUnit unit, String content)
+  new fromUnitAndContent(CompilationUnit unit, String content)
     : _unit = unit,
       _buffer = content;
 
@@ -477,7 +475,7 @@ class _InvertedCondition {
 
   final String _source;
 
-  _InvertedCondition(this._precedence, this._source);
+  new(this._precedence, this._source);
 
   static _InvertedCondition _binary(
     int precedence,

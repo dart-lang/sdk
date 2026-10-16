@@ -13,7 +13,7 @@ import 'package:analyzer/dart/element/element.dart';
 abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
   final int offset;
 
-  LocalDeclarationVisitor(this.offset);
+  new(this.offset);
 
   void declaredClass(ClassDeclaration declaration) {}
 

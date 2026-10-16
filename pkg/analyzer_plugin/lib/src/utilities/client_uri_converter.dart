@@ -30,15 +30,14 @@ abstract class ClientUriConverter {
 
   /// Creates a converter that does nothing besides translation between file
   /// paths and `file://` URIs.
-  factory ClientUriConverter.noop(path.Context context) =>
-      _NoOpConverter(context);
+  factory noop(path.Context context) => _NoOpConverter(context);
 
   /// Creates a converter that translates paths/URIs for virtual files such as
   /// those created by macros.
-  factory ClientUriConverter.withVirtualFileSupport(path.Context context) =>
+  factory withVirtualFileSupport(path.Context context) =>
       _VirtualFileClientUriConverter(context);
 
-  ClientUriConverter._(this._context, [this.supportedNonFileSchemes = const {}])
+  new _(this._context, [this.supportedNonFileSchemes = const {}])
     : supportedSchemes = {'file', ...supportedNonFileSchemes};
 
   /// Converts client FilePath (which may be a URI or a file path depending on
@@ -67,7 +66,7 @@ abstract class ClientUriConverter {
 }
 
 class _NoOpConverter extends ClientUriConverter {
-  _NoOpConverter(super.context) : super._();
+  new(super.context) : super._();
 
   @override
   String fromClientFilePath(String filePathOrUri) => filePathOrUri;
@@ -83,8 +82,7 @@ class _NoOpConverter extends ClientUriConverter {
 }
 
 class _VirtualFileClientUriConverter extends ClientUriConverter {
-  _VirtualFileClientUriConverter(path.Context context)
-    : super._(context, {macroClientUriScheme});
+  new(path.Context context) : super._(context, {macroClientUriScheme});
 
   @override
   String fromClientFilePath(String filePathOrUri) =>
