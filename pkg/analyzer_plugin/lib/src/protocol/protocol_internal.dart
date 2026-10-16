@@ -568,7 +568,7 @@ class RequestDecoder extends JsonDecoder {
   /// The request being deserialized.
   final Request request;
 
-  RequestDecoder(this.request);
+  new(this.request);
 
   @override
   RefactoringKind? get refactoringKind {
@@ -614,7 +614,7 @@ class ResponseDecoder extends JsonDecoder {
   @override
   final RefactoringKind? refactoringKind;
 
-  ResponseDecoder(this.refactoringKind);
+  new(this.refactoringKind);
 
   @override
   Object mismatch(String jsonPath, String expected, [Object? actual]) {

@@ -67,7 +67,7 @@ class CompletionGenerator {
   final List<CompletionContributor> contributors;
 
   /// Initialize a newly created completion generator.
-  CompletionGenerator(this.contributors);
+  new(this.contributors);
 
   /// Create a 'completion.getSuggestions' response for the file with the given
   /// [path]. If any of the contributors throws an exception, also create a

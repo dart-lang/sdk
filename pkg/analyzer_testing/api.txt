@@ -1,5 +1,5 @@
 environment:
-  sdk: ^3.9.0
+  sdk: ^3.13.0
 package:analyzer_testing/analysis_rule/analysis_rule.dart:
   contextMessage (function: ExpectedContextMessage Function(File, int, int, {deprecated String? text, List<Pattern> textContains}))
   error (function: ExpectedDiagnostic Function(DiagnosticCode, int, int, {List<ExpectedContextMessage>? contextMessages, Pattern? correctionContains, deprecated Pattern? messageContains, List<Pattern> messageContainsAll}))

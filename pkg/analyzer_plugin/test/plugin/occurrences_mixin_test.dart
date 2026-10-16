@@ -81,7 +81,7 @@ class OccurrencesMixinTest extends AbstractPluginTest {
 class _TestOccurrencesContributor implements OccurrencesContributor {
   Map<Element, List<int>> elements;
 
-  _TestOccurrencesContributor(this.elements);
+  new(this.elements);
 
   @override
   void computeOccurrences(
@@ -97,7 +97,7 @@ class _TestOccurrencesContributor implements OccurrencesContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with OccurrencesMixin {
-  _TestServerPlugin(super.resourceProvider);
+  new(super.resourceProvider);
 
   @override
   List<OccurrencesContributor> getOccurrencesContributors(String path) {

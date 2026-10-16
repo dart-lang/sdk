@@ -113,7 +113,7 @@ abstract class AbstractAnalysisServerIntegrationTest
   /// request (e.g. because the server is known to have already shutdown).
   bool skipShutdown = false;
 
-  AbstractAnalysisServerIntegrationTest() {
+  new() {
     initializeInttestMixin();
   }
 
@@ -257,7 +257,7 @@ class LazyMatcher implements Matcher {
   /// Otherwise null.
   Matcher? _wrappedMatcher;
 
-  LazyMatcher(this._creator);
+  new(this._creator);
 
   @override
   Description describe(Description description) {
@@ -301,7 +301,7 @@ class MatchesEnum extends Matcher {
   /// The set of enum values that are allowed.
   final List<String> allowedValues;
 
-  const MatchesEnum(this.description, this.allowedValues);
+  const new(this.description, this.allowedValues);
 
   @override
   Description describe(Description description) =>
@@ -327,11 +327,7 @@ class MatchesJsonObject extends _RecursiveMatcher {
   /// their expected types.
   final Map<String, Matcher>? optionalFields;
 
-  const MatchesJsonObject(
-    this.description,
-    this.requiredFields, {
-    this.optionalFields,
-  });
+  const new(this.description, this.requiredFields, {this.optionalFields});
 
   @override
   Description describe(Description description) =>
@@ -674,7 +670,7 @@ class Server {
 class ServerErrorMessage {
   final Map message;
 
-  ServerErrorMessage(this.message);
+  new(this.message);
 
   dynamic get error => message['error'];
 }
@@ -688,7 +684,7 @@ class _ListOf extends Matcher {
   /// Iterable matcher which we use to test the contents of the list.
   final Matcher iterableMatcher;
 
-  _ListOf(this.elementMatcher) : iterableMatcher = everyElement(elementMatcher);
+  new(this.elementMatcher) : iterableMatcher = everyElement(elementMatcher);
 
   @override
   Description describe(Description description) =>
@@ -736,7 +732,7 @@ class _MapOf extends _RecursiveMatcher {
   /// Matcher which every value in the map must satisfy.
   final Matcher valueMatcher;
 
-  _MapOf(this.keyMatcher, this.valueMatcher);
+  new(this.keyMatcher, this.valueMatcher);
 
   @override
   Description describe(Description description) => description
@@ -776,7 +772,7 @@ class _OneOf extends Matcher {
   /// Matchers for the individual choices.
   final List<Matcher> choiceMatchers;
 
-  _OneOf(this.choiceMatchers);
+  new(this.choiceMatchers);
 
   @override
   Description describe(Description description) {
@@ -811,7 +807,7 @@ class _OneOf extends Matcher {
 /// Base class for matchers that operate by recursing through the contents of
 /// an object.
 abstract class _RecursiveMatcher extends Matcher {
-  const _RecursiveMatcher();
+  const new();
 
   /// Check the type of a substructure whose value is [item], using [matcher].
   /// If it doesn't match, record a closure in [mismatches] which can describe

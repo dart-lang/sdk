@@ -321,7 +321,7 @@ class _FixThrowsSyncErrorPlugin extends Plugin {
 
 /// A correction producer with a `null` `fixKind`.
 class _MissingFixKindFix extends ResolvedCorrectionProducer {
-  _MissingFixKindFix({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -370,7 +370,7 @@ class _PrintingRule extends AnalysisRule {
     uniqueName: 'LintCode.no_bools',
   );
 
-  _PrintingRule() : super(name: 'no_bools', description: 'No bools desc');
+  new() : super(name: 'no_bools', description: 'No bools desc');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -389,7 +389,7 @@ class _PrintingRule extends AnalysisRule {
 class _PrintingVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _PrintingVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
@@ -420,7 +420,7 @@ class _RuleThrowsSyncErrorPlugin extends Plugin {
 /// A correction producer that throws an async error while computing a
 /// correction.
 class _ThrowsAsyncErrorFix extends ResolvedCorrectionProducer {
-  _ThrowsAsyncErrorFix({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -445,8 +445,7 @@ class _ThrowsAsyncErrorRule extends AnalysisRule {
     uniqueName: 'LintCode.no_bools',
   );
 
-  _ThrowsAsyncErrorRule()
-    : super(name: 'no_bools', description: 'No bools desc');
+  new() : super(name: 'no_bools', description: 'No bools desc');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -464,7 +463,7 @@ class _ThrowsAsyncErrorRule extends AnalysisRule {
 class _ThrowsAsyncErrorVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _ThrowsAsyncErrorVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {
@@ -476,7 +475,7 @@ class _ThrowsAsyncErrorVisitor extends SimpleAstVisitor<void> {
 
 /// A correction producer that throws a sync error while computing a correction.
 class _ThrowsSyncErrorFix extends ResolvedCorrectionProducer {
-  _ThrowsSyncErrorFix({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -498,8 +497,7 @@ class _ThrowsSyncErrorRule extends AnalysisRule {
     uniqueName: 'LintCode.no_bools',
   );
 
-  _ThrowsSyncErrorRule()
-    : super(name: 'no_bools', description: 'No bools desc');
+  new() : super(name: 'no_bools', description: 'No bools desc');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -517,7 +515,7 @@ class _ThrowsSyncErrorRule extends AnalysisRule {
 class _ThrowsSyncErrorVisitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
 
-  _ThrowsSyncErrorVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitBooleanLiteral(BooleanLiteral node) {

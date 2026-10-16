@@ -111,7 +111,7 @@ sealed class CorrectionProducer<T extends ParsedUnitResult>
   /// it needs to be computed.
   bool _coveringNodeIsSet = false;
 
-  CorrectionProducer({required super.context});
+  new({required super.context});
 
   /// The applicability of this producer.
   ///
@@ -235,25 +235,19 @@ final class CorrectionProducerContext {
 
   final Token _token;
 
-  CorrectionProducerContext._({
-    required ParsedLibraryResult libraryResult,
+  new _({
+    required this._libraryResult,
     required ParsedUnitResult unitResult,
-    required bool applyingBulkFixes,
+    required this._applyingBulkFixes,
     required this.dartFixContext,
-    required Diagnostic? diagnostic,
+    required this._diagnostic,
     required this.node,
-    required Token token,
-    required int selectionOffset,
-    required int selectionLength,
-  }) : _libraryResult = libraryResult,
-       _unitResult = unitResult,
+    required this._token,
+    required this._selectionOffset,
+    required this._selectionLength,
+  }) : _unitResult = unitResult,
        _sessionHelper = AnalysisSessionHelper(unitResult.session),
-       _utils = dartFixContext?.correctionUtils ?? CorrectionUtils(unitResult),
-       _applyingBulkFixes = applyingBulkFixes,
-       _diagnostic = diagnostic,
-       _token = token,
-       _selectionOffset = selectionOffset,
-       _selectionLength = selectionLength;
+       _utils = dartFixContext?.correctionUtils ?? CorrectionUtils(unitResult);
 
   String get path => _unitResult.path;
 
@@ -338,7 +332,7 @@ final class CorrectionProducerContext {
 
 abstract class CorrectionProducerWithDiagnostic
     extends ResolvedCorrectionProducer {
-  CorrectionProducerWithDiagnostic({required super.context});
+  new({required super.context});
 
   // TODO(migration): Consider providing it via constructor.
   @override
@@ -349,7 +343,7 @@ abstract class CorrectionProducerWithDiagnostic
 /// assists).
 abstract class MultiCorrectionProducer
     extends _AbstractCorrectionProducer<ResolvedUnitResult> {
-  MultiCorrectionProducer({required super.context});
+  new({required super.context});
 
   CorrectionProducerContext get context => _context;
 
@@ -372,14 +366,14 @@ abstract class MultiCorrectionProducer
 /// ([ParsedUnitResult]s).
 abstract class ParsedCorrectionProducer
     extends CorrectionProducer<ParsedUnitResult> {
-  ParsedCorrectionProducer({required super.context});
+  new({required super.context});
 }
 
 /// A [CorrectionProducer] that can compute a correction (fix or assist) in a
 /// Dart file using the resolved AST.
 abstract class ResolvedCorrectionProducer
     extends CorrectionProducer<ResolvedUnitResult> {
-  ResolvedCorrectionProducer({required super.context});
+  new({required super.context});
 
   AnalysisOptions get analysisOptions => sessionHelper.session.analysisContext
       .getAnalysisOptionsForFile(unitResult.file);
@@ -838,7 +832,7 @@ abstract class ResolvedCorrectionProducer
 final class StubCorrectionProducerContext implements CorrectionProducerContext {
   static final instance = StubCorrectionProducerContext._();
 
-  StubCorrectionProducerContext._();
+  new _();
 
   @override
   dynamic noSuchMethod(Invocation invocation) =>
@@ -851,8 +845,7 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// The context used to produce corrections.
   final CorrectionProducerContext _context;
 
-  _AbstractCorrectionProducer({required CorrectionProducerContext context})
-    : _context = context;
+  new({required this._context});
 
   /// Whether the fixes are being built for the bulk-fix request.
   bool get applyingBulkFixes => _context._applyingBulkFixes;

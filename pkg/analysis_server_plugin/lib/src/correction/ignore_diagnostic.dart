@@ -35,7 +35,7 @@ const ignoreErrorLineKind = FixKind(
 );
 
 class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
-  IgnoreDiagnosticInAnalysisOptionsFile({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -137,7 +137,7 @@ class IgnoreDiagnosticInAnalysisOptionsFile extends _BaseIgnoreDiagnostic {
 }
 
 class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
-  IgnoreDiagnosticInFile({required super.context});
+  new({required super.context});
 
   @override
   String get commentPrefix => 'ignore_for_file';
@@ -214,7 +214,7 @@ class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
 }
 
 class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
-  IgnoreDiagnosticOnLine({required super.context});
+  new({required super.context});
 
   @override
   String get commentPrefix => 'ignore';
@@ -255,7 +255,7 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
 }
 
 abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
-  _BaseIgnoreDiagnostic({required super.context});
+  new({required super.context});
 
   @override
   CorrectionApplicability get applicability =>
@@ -308,7 +308,7 @@ abstract class _BaseIgnoreDiagnostic extends ResolvedCorrectionProducer {
 }
 
 abstract class _DartIgnoreDiagnostic extends _BaseIgnoreDiagnostic {
-  _DartIgnoreDiagnostic({required super.context});
+  new({required super.context});
 
   /// The ignore-comment prefix (either 'ignore' or 'ignore_for_file').
   String get commentPrefix;

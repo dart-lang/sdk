@@ -31,10 +31,7 @@ class NamedPatternFieldWantsName {
   /// The already specified fields, to filter out.
   final List<PatternField> existingFields;
 
-  NamedPatternFieldWantsName({
-    required this.matchedType,
-    required this.existingFields,
-  });
+  new({required this.matchedType, required this.existingFields});
 }
 
 /// An [AstVisitor] for determining whether top level suggestions or invocation
@@ -102,7 +99,7 @@ class OpType {
 
   /// Determine the suggestions that should be made based upon the given
   /// [CompletionTarget] and [offset].
-  factory OpType.forCompletion(CompletionTarget target, int offset) {
+  factory forCompletion(CompletionTarget target, int offset) {
     var optype = OpType._();
 
     // Don't suggest anything right after double or integer literals.
@@ -140,7 +137,7 @@ class OpType {
     return optype;
   }
 
-  OpType._();
+  new _();
 
   /// Return `true` if free standing identifiers should be suggested
   bool get includeIdentifiers {
@@ -196,7 +193,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   /// The [OpType] being initialized
   final OpType optype;
 
-  _OpTypeAstVisitor(this.optype, this.entity, this.offset);
+  new(this.optype, this.entity, this.offset);
 
   @override
   void visitAnnotation(Annotation node) {

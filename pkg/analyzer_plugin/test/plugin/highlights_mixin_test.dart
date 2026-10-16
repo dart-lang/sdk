@@ -65,7 +65,7 @@ class HighlightsMixinTest extends AbstractPluginTest {
 class _TestHighlightsContributor implements HighlightsContributor {
   int elementCount;
 
-  _TestHighlightsContributor(this.elementCount);
+  new(this.elementCount);
 
   @override
   void computeHighlights(
@@ -79,7 +79,7 @@ class _TestHighlightsContributor implements HighlightsContributor {
 }
 
 class _TestServerPlugin extends MockServerPlugin with HighlightsMixin {
-  _TestServerPlugin(super.resourceProvider);
+  new(super.resourceProvider);
 
   @override
   List<HighlightsContributor> getHighlightsContributors(String path) {

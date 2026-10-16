@@ -41,7 +41,7 @@ import 'package:path/path.dart' as path;
 class BlazeMockPackages {
   static final BlazeMockPackages instance = BlazeMockPackages._();
 
-  BlazeMockPackages._();
+  new _();
 
   void addFlutter(ResourceProvider provider) {
     _addFiles(provider, 'flutter', [

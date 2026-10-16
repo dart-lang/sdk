@@ -121,13 +121,10 @@ class MockResolvedUnitResult implements ResolvedUnitResult {
   @override
   final String path;
 
-  MockResolvedUnitResult({
-    List<Diagnostic>? errors,
-    LineInfo? lineInfo,
-    String? path,
-  }) : diagnostics = errors ?? [],
-       lineInfo = lineInfo ?? LineInfo([0]),
-       path = path ?? '';
+  new({List<Diagnostic>? errors, LineInfo? lineInfo, String? path})
+    : diagnostics = errors ?? [],
+      lineInfo = lineInfo ?? LineInfo([0]),
+      path = path ?? '';
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -140,7 +137,7 @@ class MockResourceProvider implements ResourceProvider {
 
 /// A concrete implementation of a server plugin that is suitable for testing.
 class MockServerPlugin extends ServerPlugin {
-  MockServerPlugin(ResourceProvider resourceProvider)
+  new(ResourceProvider resourceProvider)
     : super(resourceProvider: resourceProvider);
 
   @override

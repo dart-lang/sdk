@@ -12,7 +12,7 @@ class SubscriptionManager {
   Map<AnalysisService, List<String>>? _subscriptions;
 
   /// Initialize a newly created subscription manager to have no subscriptions.
-  SubscriptionManager();
+  new();
 
   /// Return `true` if the file with the given [filePath] has a subscription for
   /// the given [service].

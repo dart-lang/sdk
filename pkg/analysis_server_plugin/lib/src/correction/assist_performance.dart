@@ -11,12 +11,12 @@ class AssistPerformance {
   Duration? computeTime;
   List<ProducerTiming> producerTimings = [];
 
-  AssistPerformance([this.operationPerformance]);
+  new([this.operationPerformance]);
 }
 
 /// Overall performance of a request for assists operation.
 class GetAssistsPerformance extends ProducerRequestPerformance {
-  GetAssistsPerformance({
+  new({
     required super.performance,
     required super.path,
     super.requestLatency,
