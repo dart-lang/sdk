@@ -608,7 +608,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "PDJz3b3CL31uoLOkDb0mm8FidqJ1eCJryoRFd9iVmbIC",
+      "version": "kFdyRnojbVy0cxvRZueVcnyi4XuxGnAiSK0YOvpzOG8C",
       }
     ],
     "condition": 'download_fuchsia_deps',
