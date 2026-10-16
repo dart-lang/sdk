@@ -219,16 +219,15 @@ extension on DiagnosticCode {
   /// Whether this [DiagnosticCode] is likely to have a fix associated with
   /// it.
   bool get hasFix {
-    var self = this;
-    if (PubspecFixGenerator.codesWithFixes.contains(self) ||
-        AnalysisOptionsFixGenerator.codesWithFixes.contains(self)) {
+    if (PubspecFixGenerator.codesWithFixes.contains(this) ||
+        AnalysisOptionsFixGenerator.codesWithFixes.contains(this)) {
       return true;
     }
-    if (self is LintCode) {
-      return registeredFixGenerators.lintProducers.containsKey(self) ||
-          registeredFixGenerators.lintMultiProducers.containsKey(self);
+    if (this is LintCode) {
+      return registeredFixGenerators.lintProducers.containsKey(this) ||
+          registeredFixGenerators.lintMultiProducers.containsKey(this);
     }
-    return registeredFixGenerators.warningProducers.containsKey(self) ||
-        registeredFixGenerators.warningMultiProducers.containsKey(self);
+    return registeredFixGenerators.warningProducers.containsKey(this) ||
+        registeredFixGenerators.warningMultiProducers.containsKey(this);
   }
 }

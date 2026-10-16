@@ -263,10 +263,9 @@ class _CreateClass extends ResolvedCorrectionProducer {
 extension on AstNode {
   /// If this might be a type name, return its name.
   String? get nameOfType {
-    var self = this;
-    if (self is SimpleIdentifier) {
-      var name = self.name;
-      if (self.parent is NamedType || _isNameOfType(name)) {
+    if (this is SimpleIdentifier) {
+      var name = this.name;
+      if (parent is NamedType || _isNameOfType(name)) {
         return name;
       }
     }

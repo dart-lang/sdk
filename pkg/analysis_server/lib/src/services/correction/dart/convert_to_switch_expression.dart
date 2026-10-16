@@ -656,9 +656,8 @@ final class _SwitchTypeReturn extends _SwitchType {
 
 extension on Statement {
   bool get isThrowExpressionStatement {
-    var self = this;
-    if (self is! ExpressionStatement) return false;
-    return self.expression is ThrowExpression;
+    if (this is! ExpressionStatement) return false;
+    return expression is ThrowExpression;
   }
 }
 

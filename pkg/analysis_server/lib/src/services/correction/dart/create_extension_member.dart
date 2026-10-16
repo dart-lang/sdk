@@ -823,11 +823,10 @@ extension on TypeParameterElement {
 extension on DartType {
   List<TypeParameterElement> recursiveTypeParameters(List<DartType?> visited) {
     visited.add(this);
-    var self = this;
-    if (self is TypeParameterType) {
-      return self.element.referencedTypeParameters(visited);
-    } else if (self is InterfaceType) {
-      return self.typeArguments.typeParameters(visited);
+    if (this is TypeParameterType) {
+      return element.referencedTypeParameters(visited);
+    } else if (this is InterfaceType) {
+      return typeArguments.typeParameters(visited);
     } else {
       return [];
     }
@@ -836,18 +835,13 @@ extension on DartType {
 
 extension on Element? {
   bool get declaresIndex {
-    var element = this;
-    if (element is! InterfaceElement) {
+    if (this is! InterfaceElement) {
       return false;
     }
-    var indexName = Name.forLibrary(element.library, TokenType.INDEX.lexeme);
-    var indexEqName = Name.forLibrary(
-      element.library,
-      TokenType.INDEX_EQ.lexeme,
-    );
+    var indexName = Name.forLibrary(library, TokenType.INDEX.lexeme);
+    var indexEqName = Name.forLibrary(library, TokenType.INDEX_EQ.lexeme);
     var member =
-        element.getInterfaceMember(indexName) ??
-        element.getInterfaceMember(indexEqName);
+        getInterfaceMember(indexName) ?? getInterfaceMember(indexEqName);
     return member != null;
   }
 }

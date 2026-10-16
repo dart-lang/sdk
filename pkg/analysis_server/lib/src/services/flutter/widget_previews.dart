@@ -579,7 +579,7 @@ extension on DartType {
   /// [prefixAllocator] to apply namespaces to all referenced types.
   String toSource(NamespaceAllocator prefixAllocator) {
     if (this is RecordType) {
-      return _recordToSource(this as RecordType, prefixAllocator);
+      return _recordToSource(this, prefixAllocator);
     }
     var typeArguments = switch (this) {
       InterfaceType(:var typeArguments) => [
