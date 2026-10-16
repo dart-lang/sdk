@@ -101,15 +101,15 @@ class GenericInferrer {
 
   final TypeConstraintGenerationDataForTesting? dataForTesting;
 
-  GenericInferrer(
+  new(
     this._typeSystem,
     List<TypeParameterElementImpl> typeFormals, {
     DiagnosticReporter? diagnosticReporter,
     this.errorEntity,
-    required bool genericMetadataIsEnabled,
+    required this._genericMetadataIsEnabled,
     required this.inferenceUsingBoundsIsEnabled,
-    required bool strictInference,
-    required TypeSystemOperations typeSystemOperations,
+    required this._strictInference,
+    required this._typeSystemOperations,
     required this.dataForTesting,
   }) : assert(diagnosticReporter == null || errorEntity != null),
        _typeParameters = typeFormals,
@@ -119,10 +119,7 @@ class GenericInferrer {
        ),
        _constraints = {for (var formal in typeFormals) formal: []},
        _diagnosticReporter = diagnosticReporter,
-       _typeFormals = typeFormals,
-       _genericMetadataIsEnabled = genericMetadataIsEnabled,
-       _strictInference = strictInference,
-       _typeSystemOperations = typeSystemOperations;
+       _typeFormals = typeFormals;
 
   /// Performs upwards inference, producing a final set of inferred types that
   /// does not  contain references to the "unknown type".

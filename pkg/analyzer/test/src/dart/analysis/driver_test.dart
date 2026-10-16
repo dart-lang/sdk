@@ -6134,12 +6134,12 @@ class DriverEventCollector {
   final List<_PendingFuture> _pendingFutures = [];
   final List<Completer<void>> _statusIdleCompleters = [];
 
-  DriverEventCollector(this.driver, {IdProvider? idProvider})
+  new(this.driver, {IdProvider? idProvider})
     : idProvider = idProvider ?? IdProvider() {
     _listenSchedulerEvents(driver.scheduler);
   }
 
-  DriverEventCollector.forCollection(
+  new forCollection(
     AnalysisContextCollectionImpl collection, {
     IdProvider? idProvider,
   }) : idProvider = idProvider ?? IdProvider() {
@@ -105360,7 +105360,7 @@ class _AlwaysReportedLint extends AnalysisRule {
     uniqueName: 'LintCode.always_reported_lint',
   );
 
-  _AlwaysReportedLint() : super(name: 'always_reported_lint', description: '');
+  new() : super(name: 'always_reported_lint', description: '');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -105379,7 +105379,7 @@ class _AlwaysReportedLint extends AnalysisRule {
 class _AlwaysReportedLintVisitor extends SimpleAstVisitor2<void> {
   final AnalysisRule rule;
 
-  _AlwaysReportedLintVisitor(this.rule);
+  new(this.rule);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
@@ -105429,23 +105429,23 @@ mixin _EventsMixin {
 }
 
 sealed class _FineOperation {
-  const _FineOperation();
+  const new();
 }
 
 final class _FineOperationAddTestFile extends _FineOperation {
-  const _FineOperationAddTestFile();
+  const new();
 }
 
 final class _FineOperationGetTestLibrary extends _FineOperation {
-  const _FineOperationGetTestLibrary();
+  const new();
 }
 
 final class _FineOperationTestFileGetErrors extends _FineOperation {
-  const _FineOperationTestFileGetErrors();
+  const new();
 }
 
 final class _FineOperationTestFileGetIndex extends _FineOperation {
-  const _FineOperationTestFileGetIndex();
+  const new();
 }
 
 /// Helper for triggering requirements manually.
@@ -105456,7 +105456,7 @@ final class _FineOperationTestFileGetIndex extends _FineOperation {
 class _ManualRequirements {
   final List<CompilationUnitImpl> units;
 
-  _ManualRequirements(this.units);
+  new(this.units);
 
   _ManualRequirementsUnit get singleUnit {
     var unit = units.single;
@@ -105474,7 +105474,7 @@ class _ManualRequirements {
 class _ManualRequirementsUnit {
   final CompilationUnitImpl unit;
 
-  _ManualRequirementsUnit(this.unit);
+  new(this.unit);
 
   List<LibraryElementImpl> get importedLibraries {
     var result = <LibraryElementImpl>[];
@@ -105524,7 +105524,7 @@ class _PendingFuture<T> {
   final DriverEvent Function(T value) createEvent;
   final List<DriverEvent> eventsList;
 
-  _PendingFuture({
+  new({
     required this.future,
     required this.createEvent,
     required this.eventsList,

@@ -24,11 +24,7 @@ class CorrectOverrideHelper {
 
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
-  CorrectOverrideHelper({
-    required TypeSystemImpl typeSystem,
-    required InternalExecutableElement thisMember,
-  }) : _typeSystem = typeSystem,
-       _thisMember = thisMember {
+  new({required this._typeSystem, required this._thisMember}) {
     _computeThisTypeForSubtype();
   }
 
@@ -99,7 +95,7 @@ class CovariantParametersVerifier {
 
   final InternalExecutableElement _thisMember;
 
-  CovariantParametersVerifier({required InternalExecutableElement thisMember})
+  new({required InternalExecutableElement thisMember})
     : _session = thisMember.library.session as AnalysisSessionImpl,
       _typeSystem = thisMember.library.typeSystem as TypeSystemImpl,
       _thisMember = thisMember;
@@ -254,14 +250,14 @@ class _SuperMember {
   final InterfaceType interface;
   final ExecutableElement rawElement;
 
-  _SuperMember(this.interface, this.rawElement);
+  new(this.interface, this.rawElement);
 }
 
 class _SuperParameter {
   final FormalParameterElement element;
   final TypeImpl type;
 
-  _SuperParameter(this.element, this.type);
+  new(this.element, this.type);
 
   ExecutableElement get member => element.enclosingElement as ExecutableElement;
 }

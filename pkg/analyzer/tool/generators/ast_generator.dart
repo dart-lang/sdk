@@ -613,7 +613,7 @@ ChildEntities get _childEntities2 =>''');
 
     buffer.write('''
 \n@generated
-    ${implClass.name}({
+    new({
     ''');
 
     if (implClass.isAnnotatedNodeSubclass) {
@@ -1604,7 +1604,7 @@ class _ImplClass {
     return generatedLookupNames;
   }();
 
-  _ImplClass({
+  new({
     required this.node,
     required this.api,
     required this.generateConstructor,
@@ -1660,7 +1660,7 @@ class _Property {
   final bool withOverride;
   final bool withOverrideSuperNotNull;
 
-  _Property({
+  new({
     required this.name,
     required this.v1Name,
     required this.v1Projection,
@@ -1816,7 +1816,7 @@ class _PropertyTypeKindNodeList extends _PropertyTypeKind {
   final InterfaceType elementType;
   bool isWritable = false;
 
-  _PropertyTypeKindNodeList({required this.elementType});
+  new({required this.elementType});
 
   String get elementTypeCode {
     return '${elementType.element.name!}Impl';
@@ -1853,7 +1853,7 @@ class _Replacement {
   final int end;
   final String text;
 
-  _Replacement(this.offset, this.end, this.text);
+  new(this.offset, this.end, this.text);
 }
 
 enum _V1ProjectionKind {

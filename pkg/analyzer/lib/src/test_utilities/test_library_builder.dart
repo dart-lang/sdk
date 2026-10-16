@@ -45,7 +45,7 @@ class ClassSpec {
   final List<ConstructorSpec> constructors;
   final List<MethodSpec> methods;
 
-  const ClassSpec(
+  const new(
     this.header, {
     this.constructors = const [],
     this.methods = const [],
@@ -55,20 +55,20 @@ class ClassSpec {
 class ConstructorSpec {
   final String header;
 
-  const ConstructorSpec(this.header);
+  const new(this.header);
 }
 
 class EnumSpec {
   final String header;
   final List<String> constants;
 
-  const EnumSpec(this.header, {this.constants = const []});
+  const new(this.header, {this.constants = const []});
 }
 
 class ExtensionTypeSpec {
   final String header;
 
-  const ExtensionTypeSpec(this.header);
+  const new(this.header);
 }
 
 class LibrarySpec {
@@ -81,7 +81,7 @@ class LibrarySpec {
   final List<MixinSpec> mixins;
   final List<TypeAliasSpec> typeAliases;
 
-  const LibrarySpec({
+  const new({
     required this.uri,
     this.imports = const [],
     this.classes = const [],
@@ -96,31 +96,31 @@ class LibrarySpec {
 class MethodSpec {
   final String header;
 
-  const MethodSpec(this.header);
+  const new(this.header);
 }
 
 class MixinSpec {
   final String header;
 
-  const MixinSpec(this.header);
+  const new(this.header);
 }
 
 class TopLevelFunctionSpec {
   final String header;
 
-  const TopLevelFunctionSpec(this.header);
+  const new(this.header);
 }
 
 class TypeAliasSpec {
   final String header;
 
-  const TypeAliasSpec(this.header);
+  const new(this.header);
 }
 
 final class TypeSpecParser {
   final _Scope _scope;
 
-  TypeSpecParser({
+  new({
     required List<LibraryElementImpl> libraries,
     required List<TypeParameterElementImpl> typeParameters,
   }) : _scope = _Scope.forLibraries(
@@ -152,12 +152,12 @@ class _ClassDeclaration {
   late final ClassFragmentImpl fragment;
   late final ClassElementImpl element;
 
-  factory _ClassDeclaration.fromSpec(ClassSpec spec) {
+  factory fromSpec(ClassSpec spec) {
     var header = _SpecParser.parseClassHeader(spec.header);
     return _ClassDeclaration._(spec, header);
   }
 
-  _ClassDeclaration._(this.spec, this.header)
+  new _(this.spec, this.header)
     : typeParameters = _TypeParameterDeclarations(header.typeParameters),
       constructors = [
         for (var constructorSpec in spec.constructors)
@@ -219,12 +219,12 @@ class _ConstructorDeclaration {
   late final ConstructorFragmentImpl fragment;
   late final ConstructorElementImpl element;
 
-  factory _ConstructorDeclaration.fromSpec(ConstructorSpec spec) {
+  factory fromSpec(ConstructorSpec spec) {
     var header = _SpecParser.parseConstructorHeader(spec.header);
     return _ConstructorDeclaration._(spec, header);
   }
 
-  _ConstructorDeclaration._(this.spec, this.header)
+  new _(this.spec, this.header)
     : formalParameters = _FormalParameterDeclarations(header.formalParameters);
 
   void createElement({required ClassElementImpl classElement}) {
@@ -255,12 +255,12 @@ class _EnumDeclaration {
   late final EnumFragmentImpl fragment;
   late final EnumElementImpl element;
 
-  factory _EnumDeclaration.fromSpec(EnumSpec spec) {
+  factory fromSpec(EnumSpec spec) {
     var header = _SpecParser.parseEnumHeader(spec.header);
     return _EnumDeclaration._(spec, header);
   }
 
-  _EnumDeclaration._(this.spec, this.header);
+  new _(this.spec, this.header);
 
   void createElement({required LibraryReference libraryReference}) {
     fragment = EnumFragmentImpl(name: header.name);
@@ -300,10 +300,7 @@ enum _ExecutableHeaderContext {
   final _TypeParameterContext typeParameterContext;
   final bool allowsOperators;
 
-  const _ExecutableHeaderContext({
-    required this.typeParameterContext,
-    required this.allowsOperators,
-  });
+  new({required this.typeParameterContext, required this.allowsOperators});
 }
 
 class _ExtensionTypeDeclaration {
@@ -315,12 +312,12 @@ class _ExtensionTypeDeclaration {
   late final ExtensionTypeFragmentImpl fragment;
   late final ExtensionTypeElementImpl element;
 
-  factory _ExtensionTypeDeclaration.fromSpec(ExtensionTypeSpec spec) {
+  factory fromSpec(ExtensionTypeSpec spec) {
     var header = _SpecParser.parseExtensionTypeHeader(spec.header);
     return _ExtensionTypeDeclaration._(spec, header);
   }
 
-  _ExtensionTypeDeclaration._(this.spec, this.header)
+  new _(this.spec, this.header)
     : typeParameters = _TypeParameterDeclarations(header.typeParameters);
 
   void createElement({required LibraryReference libraryReference}) {
@@ -360,7 +357,7 @@ class _FormalParameterDeclaration {
 
   late final FormalParameterFragmentImpl fragment;
 
-  _FormalParameterDeclaration(this.parsed);
+  new(this.parsed);
 
   FormalParameterElementImpl get element => fragment.element;
 
@@ -384,9 +381,8 @@ class _FormalParameterDeclaration {
 class _FormalParameterDeclarations {
   final List<_FormalParameterDeclaration> _declarations;
 
-  _FormalParameterDeclarations(
-    Iterable<_ParsedFormalParameter> formalParameters,
-  ) : _declarations = [
+  new(Iterable<_ParsedFormalParameter> formalParameters)
+    : _declarations = [
         for (var parsed in formalParameters)
           _FormalParameterDeclaration(parsed),
       ];
@@ -438,7 +434,7 @@ class _LibraryBuilder {
 
   late final List<_LibraryDeclaration> _libraries;
 
-  _LibraryBuilder(
+  new(
     this.rootReference,
     this.analysisContext,
     this.analysisSession,
@@ -500,7 +496,7 @@ class _LibraryDeclaration {
   late final LibraryElementImpl element;
   late final LibraryReference reference;
 
-  _LibraryDeclaration.fromSpec(this.spec)
+  new fromSpec(this.spec)
     : classes = [
         for (var classSpec in spec.classes)
           _ClassDeclaration.fromSpec(classSpec),
@@ -622,12 +618,12 @@ class _MethodDeclaration {
   late final MethodFragmentImpl fragment;
   late final MethodElementImpl element;
 
-  factory _MethodDeclaration.fromSpec(MethodSpec spec) {
+  factory fromSpec(MethodSpec spec) {
     var header = _SpecParser.parseMethodHeader(spec.header);
     return _MethodDeclaration._(spec, header);
   }
 
-  _MethodDeclaration._(this.spec, this.header)
+  new _(this.spec, this.header)
     : formalParameters = _FormalParameterDeclarations(header.formalParameters),
       typeParameters = _TypeParameterDeclarations(header.typeParameters);
 
@@ -661,12 +657,12 @@ class _MixinDeclaration {
   late final MixinFragmentImpl fragment;
   late final MixinElementImpl element;
 
-  factory _MixinDeclaration.fromSpec(MixinSpec spec) {
+  factory fromSpec(MixinSpec spec) {
     var header = _SpecParser.parseMixinHeader(spec.header);
     return _MixinDeclaration._(spec, header);
   }
 
-  _MixinDeclaration._(this.spec, this.header)
+  new _(this.spec, this.header)
     : typeParameters = _TypeParameterDeclarations(header.typeParameters);
 
   void createElement({required LibraryReference libraryReference}) {
@@ -701,7 +697,7 @@ class _ParsedClassHeader {
   final List<_ParsedType> mixins;
   final List<_ParsedType> interfaces;
 
-  _ParsedClassHeader({
+  new({
     required this.name,
     required this.isAbstract,
     required this.isSealed,
@@ -718,7 +714,7 @@ class _ParsedConstructorHeader {
   final bool isFactory;
   final List<_ParsedFormalParameter> formalParameters;
 
-  _ParsedConstructorHeader({
+  new({
     required this.name,
     required this.isConst,
     required this.isFactory,
@@ -731,11 +727,7 @@ class _ParsedEnumHeader {
   final List<_ParsedType> mixins;
   final List<_ParsedType> interfaces;
 
-  _ParsedEnumHeader({
-    required this.name,
-    required this.mixins,
-    required this.interfaces,
-  });
+  new({required this.name, required this.mixins, required this.interfaces});
 }
 
 class _ParsedExecutableHeader {
@@ -744,7 +736,7 @@ class _ParsedExecutableHeader {
   final List<_ParsedFormalParameter> formalParameters;
   final _ParsedType returnType;
 
-  _ParsedExecutableHeader({
+  new({
     required this.name,
     required this.typeParameters,
     required this.formalParameters,
@@ -755,7 +747,7 @@ class _ParsedExecutableHeader {
 class _ParsedExplicitType implements _ParsedType {
   final TypeImpl type;
 
-  _ParsedExplicitType({required this.type});
+  new({required this.type});
 
   @override
   TypeImpl materialize(_Scope scope) => type;
@@ -768,7 +760,7 @@ class _ParsedExtensionTypeHeader {
   final String representationName;
   final List<_ParsedType> interfaces;
 
-  _ParsedExtensionTypeHeader({
+  new({
     required this.name,
     required this.typeParameters,
     required this.representationType,
@@ -783,7 +775,7 @@ class _ParsedFormalParameter {
   final String? name;
   final _ParsedType type;
 
-  _ParsedFormalParameter({
+  new({
     required this.isCovariant,
     required this.kind,
     required this.name,
@@ -796,7 +788,7 @@ class _ParsedFunctionType implements _ParsedType {
   final _ParsedType returnType;
   final List<_ParsedTypeParameter> typeParameters;
 
-  _ParsedFunctionType({
+  new({
     required this.typeParameters,
     required this.formalParameters,
     required this.returnType,
@@ -831,7 +823,7 @@ class _ParsedMixinHeader {
   final List<_ParsedType> constraints;
   final List<_ParsedType> interfaces;
 
-  _ParsedMixinHeader({
+  new({
     required this.name,
     required this.typeParameters,
     required this.constraints,
@@ -843,7 +835,7 @@ class _ParsedNamedType implements _ParsedType {
   final List<_ParsedType> args;
   final String name;
 
-  _ParsedNamedType({required this.name, required this.args});
+  new({required this.name, required this.args});
 
   @override
   TypeImpl materialize(_Scope scope) {
@@ -876,7 +868,7 @@ class _ParsedNamedType implements _ParsedType {
 class _ParsedNullableType implements _ParsedType {
   final _ParsedType inner;
 
-  _ParsedNullableType({required this.inner});
+  new({required this.inner});
 
   @override
   TypeImpl materialize(_Scope scope) {
@@ -888,7 +880,7 @@ class _ParsedPromotedType implements _ParsedType {
   final _ParsedType base;
   final _ParsedType promotedBound;
 
-  _ParsedPromotedType({required this.base, required this.promotedBound});
+  new({required this.base, required this.promotedBound});
 
   @override
   TypeImpl materialize(_Scope scope) {
@@ -908,10 +900,7 @@ class _ParsedRecordType implements _ParsedType {
   final List<({String name, _ParsedType type})> namedFields;
   final List<_ParsedType> positionalFields;
 
-  _ParsedRecordType({
-    required this.positionalFields,
-    required this.namedFields,
-  });
+  new({required this.positionalFields, required this.namedFields});
 
   @override
   TypeImpl materialize(_Scope scope) {
@@ -947,7 +936,7 @@ class _ParsedTypeAliasHeader {
   final List<_ParsedTypeParameter> typeParameters;
   final _ParsedType aliasedType;
 
-  _ParsedTypeAliasHeader({
+  new({
     required this.name,
     required this.typeParameters,
     required this.aliasedType,
@@ -959,11 +948,8 @@ class _ParsedTypeParameter {
   final String name;
   final Variance? variance;
 
-  _ParsedTypeParameter({
-    required this.name,
-    required this.bound,
-    required this.variance,
-  }) : assert(name.isNotEmpty);
+  new({required this.name, required this.bound, required this.variance})
+    : assert(name.isNotEmpty);
 }
 
 /// A unified scope for looking up named elements.
@@ -979,11 +965,11 @@ class _Scope {
   /// Creates a nested scope that inherits its parent's context.
   ///
   /// This is used to add type parameters of a class, method, etc.
-  _Scope.child(_Scope this.parent)
+  new child(_Scope this.parent)
     : _interfaces = parent._interfaces,
       _typeAliases = parent._typeAliases;
 
-  factory _Scope.forLibraries({
+  factory forLibraries({
     required List<LibraryElementImpl> libraries,
     List<TypeParameterElementImpl> typeParameters = const [],
   }) {
@@ -1026,12 +1012,8 @@ class _Scope {
   }
 
   /// Creates a root scope containing all known interfaces.
-  _Scope.root({
-    required Map<String, InterfaceElementImpl> interfaces,
-    required Map<String, TypeAliasElementImpl> typeAliases,
-  }) : parent = null,
-       _interfaces = interfaces,
-       _typeAliases = typeAliases;
+  new root({required this._interfaces, required this._typeAliases})
+    : parent = null;
 
   /// Adds a type parameter to the current scope.
   void addTypeParameter(TypeParameterElementImpl element) {
@@ -1056,7 +1038,7 @@ class _Scope {
 class _SpecParser {
   final _TokenStream _stream;
 
-  _SpecParser._(String input) : _stream = _TokenStream.fromString(input);
+  new _(String input) : _stream = _TokenStream.fromString(input);
 
   void _expectEnd(String message) {
     if (!_stream.isAtEnd) {
@@ -1616,12 +1598,12 @@ class _TokenStream {
   final List<String> _tokens;
   int _index = 0;
 
-  factory _TokenStream.fromString(String input) {
+  factory fromString(String input) {
     var tokens = _tokenizer.allMatches(input).map((m) => m[0]!).toList();
     return _TokenStream._(tokens);
   }
 
-  _TokenStream._(this._tokens);
+  new _(this._tokens);
 
   bool get isAtEnd => _index >= _tokens.length;
 
@@ -1672,12 +1654,12 @@ class _TopLevelFunctionDeclaration {
   late final TopLevelFunctionFragmentImpl fragment;
   late final TopLevelFunctionElementImpl element;
 
-  factory _TopLevelFunctionDeclaration.fromSpec(TopLevelFunctionSpec spec) {
+  factory fromSpec(TopLevelFunctionSpec spec) {
     var header = _SpecParser.parseTopLevelFunctionHeader(spec.header);
     return _TopLevelFunctionDeclaration._(spec, header);
   }
 
-  _TopLevelFunctionDeclaration._(this.spec, this.header)
+  new _(this.spec, this.header)
     : formalParameters = _FormalParameterDeclarations(header.formalParameters),
       typeParameters = _TypeParameterDeclarations(header.typeParameters);
 
@@ -1710,12 +1692,12 @@ class _TypeAliasDeclaration {
   late final TypeAliasFragmentImpl fragment;
   late final TypeAliasElementImpl element;
 
-  factory _TypeAliasDeclaration.fromSpec(TypeAliasSpec spec) {
+  factory fromSpec(TypeAliasSpec spec) {
     var header = _SpecParser.parseTypeAliasHeader(spec.header);
     return _TypeAliasDeclaration._(spec, header);
   }
 
-  _TypeAliasDeclaration._(this.spec, this.header)
+  new _(this.spec, this.header)
     : typeParameters = _TypeParameterDeclarations(header.typeParameters);
 
   void createElement({required LibraryReference libraryReference}) {
@@ -1746,14 +1728,14 @@ enum _TypeParameterContext {
 
   final bool allowsVariance;
 
-  const _TypeParameterContext({required this.allowsVariance});
+  new({required this.allowsVariance});
 }
 
 class _TypeParameterDeclaration {
   final _ParsedTypeParameter parsed;
   late final TypeParameterFragmentImpl fragment;
 
-  _TypeParameterDeclaration(this.parsed);
+  new(this.parsed);
 
   TypeParameterElementImpl get element => fragment.element;
 
@@ -1778,7 +1760,7 @@ class _TypeParameterDeclaration {
 class _TypeParameterDeclarations {
   final List<_TypeParameterDeclaration> _declarations;
 
-  _TypeParameterDeclarations(Iterable<_ParsedTypeParameter> parameters)
+  new(Iterable<_ParsedTypeParameter> parameters)
     : _declarations = [
         for (var parameter in parameters) _TypeParameterDeclaration(parameter),
       ];

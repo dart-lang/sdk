@@ -43,7 +43,7 @@ class _ImplementsNode extends graph.Node<_ImplementsNode> {
   @override
   bool isEvaluated = false;
 
-  _ImplementsNode(this.walker, this.element);
+  new(this.walker, this.element);
 
   @override
   List<_ImplementsNode> computeDependencies() {

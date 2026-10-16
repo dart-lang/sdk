@@ -86,7 +86,7 @@ class LibraryManifest {
   /// can be skipped; if it differs, the check must be re-run.
   Hash hashForRequirements;
 
-  LibraryManifest({
+  new({
     required this.name,
     required this.isOriginNotExistingFile,
     required this.isSynthetic,
@@ -113,13 +113,13 @@ class LibraryManifest {
     required this.hashForRequirements,
   });
 
-  factory LibraryManifest.fromBytes(Uint8List bytes) {
+  factory fromBytes(Uint8List bytes) {
     var reader = BinaryReader(bytes);
     reader.initFromTableTrailer();
     return LibraryManifest.read(reader);
   }
 
-  factory LibraryManifest.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return LibraryManifest(
       name: reader.readOptionalStringUtf8(),
       isOriginNotExistingFile: reader.readBool(),
@@ -298,7 +298,7 @@ class LibraryManifestBuilder {
   /// items for declared elements that don't have items in this map.
   final Map<Element, ManifestItem> declaredItems = Map.identity();
 
-  LibraryManifestBuilder({
+  new({
     required this.elementFactory,
     required this.inputLibraries,
     required this.inputManifests,
@@ -1654,15 +1654,13 @@ class LibraryManifestHandle {
   Uint8List? _bytes;
   LibraryManifest? _instance;
 
-  LibraryManifestHandle({
-    required Hash? hashForRequirements,
-    required Uint8List? bytes,
-    required LibraryManifest? instance,
-  }) : _hashForRequirements = hashForRequirements,
-       _bytes = bytes,
-       _instance = instance;
+  new({
+    required this._hashForRequirements,
+    required this._bytes,
+    required this._instance,
+  });
 
-  factory LibraryManifestHandle.fromInstance(LibraryManifest instance) {
+  factory fromInstance(LibraryManifest instance) {
     // Note, we don't convert instance to bytes here.
     // The instance is not finished yet in the builder.
     return LibraryManifestHandle(
@@ -1672,7 +1670,7 @@ class LibraryManifestHandle {
     );
   }
 
-  factory LibraryManifestHandle.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return LibraryManifestHandle(
       hashForRequirements: Hash.read(reader),
       bytes: reader.readUint8List(),
@@ -1748,7 +1746,7 @@ class _LibraryMatch {
   /// [refElementsMap].
   final Map<Element, ManifestItemId> refExternalIds;
 
-  _LibraryMatch({
+  new({
     required this.manifest,
     required this.library,
     required this.itemMap,

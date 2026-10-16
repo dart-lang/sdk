@@ -86,7 +86,7 @@ vars = {
   "clang_version": "git_revision:3493720eca95cf844a8d7e58fdd12e0e5644e7d0",
 
   # https://chrome-infra-packages.appspot.com/p/gn/gn
-  "gn_version": "git_revision:0035961837fbcfe875d855744b3eda4fd2eefb43",
+  "gn_version": "git_revision:f90c3d9df882a9da4a66457f47dd3d99b3df3dd5",
 
   "reclient_version": "re_client_version:28341fc74c68f05a5c8be35160ada940c4edb969",
   "download_reclient": True,
@@ -105,7 +105,7 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "1c0c9f3836e858e01c4f94ac2e5a936d16a6ba1d",
-  "boringssl_rev": "44979b8a96e43671e1283fdfc6757724248978bc",
+  "boringssl_rev": "5b83e5d1abf0ae0033ae52ab579d906b67633b2c",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "85f945ac99379d64d4df6f67d9b011e4cc418e7e",
@@ -608,7 +608,7 @@ deps = {
     "packages": [
       {
       "package": "chromium/fuchsia/gn-sdk",
-      "version": "PDJz3b3CL31uoLOkDb0mm8FidqJ1eCJryoRFd9iVmbIC",
+      "version": "kFdyRnojbVy0cxvRZueVcnyi4XuxGnAiSK0YOvpzOG8C",
       }
     ],
     "condition": 'download_fuchsia_deps',

@@ -18,7 +18,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 final class ManifestDynamicType extends ManifestType {
   static final instance = ManifestDynamicType._();
 
-  ManifestDynamicType._() : super(nullabilitySuffix: NullabilitySuffix.none);
+  new _() : super(nullabilitySuffix: NullabilitySuffix.none);
 
   @override
   bool match(MatchContext context, DartType type) {
@@ -38,7 +38,7 @@ sealed class ManifestFunctionFormalParameter {
   final FormalParameterDeclarationForm declarationForm;
   final ManifestType type;
 
-  ManifestFunctionFormalParameter({
+  new({
     required this.metadata,
     required this.isRequired,
     required this.isCovariant,
@@ -67,7 +67,7 @@ class ManifestFunctionNamedFormalParameter
     extends ManifestFunctionFormalParameter {
   final String name;
 
-  factory ManifestFunctionNamedFormalParameter.encode(
+  factory encode(
     EncodeContext context,
     InternalFormalParameterElement element,
   ) {
@@ -81,7 +81,7 @@ class ManifestFunctionNamedFormalParameter
     );
   }
 
-  factory ManifestFunctionNamedFormalParameter.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestFunctionNamedFormalParameter._(
       metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
@@ -92,7 +92,7 @@ class ManifestFunctionNamedFormalParameter
     );
   }
 
-  ManifestFunctionNamedFormalParameter._({
+  new _({
     required super.metadata,
     required super.isRequired,
     required super.isCovariant,
@@ -117,7 +117,7 @@ class ManifestFunctionNamedFormalParameter
 
 class ManifestFunctionPositionalFormalParameter
     extends ManifestFunctionFormalParameter {
-  factory ManifestFunctionPositionalFormalParameter.encode(
+  factory encode(
     EncodeContext context,
     InternalFormalParameterElement element,
   ) {
@@ -130,7 +130,7 @@ class ManifestFunctionPositionalFormalParameter
     );
   }
 
-  factory ManifestFunctionPositionalFormalParameter.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestFunctionPositionalFormalParameter._(
       metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
@@ -140,7 +140,7 @@ class ManifestFunctionPositionalFormalParameter
     );
   }
 
-  ManifestFunctionPositionalFormalParameter._({
+  new _({
     required super.metadata,
     required super.isRequired,
     required super.isCovariant,
@@ -160,10 +160,7 @@ final class ManifestFunctionType extends ManifestType {
   final List<ManifestFunctionPositionalFormalParameter> positional;
   final List<ManifestFunctionNamedFormalParameter> named;
 
-  factory ManifestFunctionType.encode(
-    EncodeContext context,
-    FunctionTypeImpl type,
-  ) {
+  factory encode(EncodeContext context, FunctionTypeImpl type) {
     return context.withTypeParameters(type.typeParameters, (typeParameters) {
       return ManifestFunctionType._(
         typeParameters: typeParameters,
@@ -185,7 +182,7 @@ final class ManifestFunctionType extends ManifestType {
     });
   }
 
-  factory ManifestFunctionType.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestFunctionType._(
       typeParameters: reader.readTypedList(() {
         return ManifestTypeParameter.read(reader);
@@ -201,7 +198,7 @@ final class ManifestFunctionType extends ManifestType {
     );
   }
 
-  ManifestFunctionType._({
+  new _({
     required this.typeParameters,
     required this.returnType,
     required this.positional,
@@ -281,10 +278,7 @@ final class ManifestInterfaceType extends ManifestType {
   final ManifestElement element;
   final List<ManifestType> arguments;
 
-  factory ManifestInterfaceType.encode(
-    EncodeContext context,
-    InterfaceType type,
-  ) {
+  factory encode(EncodeContext context, InterfaceType type) {
     return ManifestInterfaceType._(
       element: ManifestElement.encode(context, type.element),
       arguments: type.typeArguments.encode(context),
@@ -292,7 +286,7 @@ final class ManifestInterfaceType extends ManifestType {
     );
   }
 
-  factory ManifestInterfaceType.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestInterfaceType._(
       element: ManifestElement.read(reader),
       arguments: reader.readTypedList(() {
@@ -302,7 +296,7 @@ final class ManifestInterfaceType extends ManifestType {
     );
   }
 
-  ManifestInterfaceType._({
+  new _({
     required this.element,
     required this.arguments,
     required super.nullabilitySuffix,
@@ -348,7 +342,7 @@ final class ManifestInterfaceType extends ManifestType {
 final class ManifestInvalidType extends ManifestType {
   static final instance = ManifestInvalidType._();
 
-  ManifestInvalidType._() : super(nullabilitySuffix: NullabilitySuffix.none);
+  new _() : super(nullabilitySuffix: NullabilitySuffix.none);
 
   @override
   bool match(MatchContext context, DartType type) {
@@ -362,17 +356,17 @@ final class ManifestInvalidType extends ManifestType {
 }
 
 final class ManifestNeverType extends ManifestType {
-  factory ManifestNeverType.encode(NeverTypeImpl type) {
+  factory encode(NeverTypeImpl type) {
     return ManifestNeverType._(nullabilitySuffix: type.nullabilitySuffix);
   }
 
-  factory ManifestNeverType.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestNeverType._(
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
   }
 
-  ManifestNeverType._({required super.nullabilitySuffix});
+  new _({required super.nullabilitySuffix});
 
   @override
   bool match(MatchContext context, DartType type) {
@@ -396,10 +390,7 @@ final class ManifestRecordType extends ManifestType {
   final List<ManifestType> positionalFields;
   final List<ManifestRecordTypeNamedField> namedFields;
 
-  factory ManifestRecordType.encode(
-    EncodeContext context,
-    RecordTypeImpl type,
-  ) {
+  factory encode(EncodeContext context, RecordTypeImpl type) {
     return ManifestRecordType._(
       positionalFields: type.positionalFields
           .map((field) {
@@ -413,7 +404,7 @@ final class ManifestRecordType extends ManifestType {
     );
   }
 
-  factory ManifestRecordType.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestRecordType._(
       positionalFields: reader.readTypedList(() {
         return ManifestType.read(reader);
@@ -425,7 +416,7 @@ final class ManifestRecordType extends ManifestType {
     );
   }
 
-  ManifestRecordType._({
+  new _({
     required this.positionalFields,
     required this.namedFields,
     required super.nullabilitySuffix,
@@ -479,24 +470,21 @@ class ManifestRecordTypeNamedField {
   final String name;
   final ManifestType type;
 
-  factory ManifestRecordTypeNamedField.encode(
-    EncodeContext context,
-    RecordTypeNamedField field,
-  ) {
+  factory encode(EncodeContext context, RecordTypeNamedField field) {
     return ManifestRecordTypeNamedField._(
       name: field.name,
       type: field.type.encode(context),
     );
   }
 
-  factory ManifestRecordTypeNamedField.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestRecordTypeNamedField._(
       name: reader.readStringReference(),
       type: ManifestType.read(reader),
     );
   }
 
-  ManifestRecordTypeNamedField._({required this.name, required this.type});
+  new _({required this.name, required this.type});
 
   bool match(MatchContext context, RecordTypeNamedField field) {
     return field.name == name && type.match(context, field.type);
@@ -511,7 +499,7 @@ class ManifestRecordTypeNamedField {
 sealed class ManifestType {
   final NullabilitySuffix nullabilitySuffix;
 
-  ManifestType({required this.nullabilitySuffix});
+  new({required this.nullabilitySuffix});
 
   bool match(MatchContext context, DartType type);
 
@@ -552,24 +540,21 @@ class ManifestTypeParameter {
   final shared.Variance variance;
   final ManifestType? bound;
 
-  factory ManifestTypeParameter.encode(
-    EncodeContext context,
-    TypeParameterElementImpl element,
-  ) {
+  factory encode(EncodeContext context, TypeParameterElementImpl element) {
     return ManifestTypeParameter._(
       variance: element.variance,
       bound: element.bound?.encode(context),
     );
   }
 
-  factory ManifestTypeParameter.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestTypeParameter._(
       variance: reader.readEnum(shared.Variance.values),
       bound: ManifestType.readOptional(reader),
     );
   }
 
-  ManifestTypeParameter._({required this.variance, required this.bound});
+  new _({required this.variance, required this.bound});
 
   bool match(MatchContext context, TypeParameterElementImpl element) {
     return element.variance == variance && bound.match(context, element.bound);
@@ -588,27 +573,21 @@ class ManifestTypeParameter {
 final class ManifestTypeParameterType extends ManifestType {
   final int index;
 
-  factory ManifestTypeParameterType.encode(
-    EncodeContext context,
-    TypeParameterTypeImpl type,
-  ) {
+  factory encode(EncodeContext context, TypeParameterTypeImpl type) {
     return ManifestTypeParameterType._(
       index: context.indexOfTypeParameter(type.element),
       nullabilitySuffix: type.nullabilitySuffix,
     );
   }
 
-  factory ManifestTypeParameterType.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestTypeParameterType._(
       index: reader.readUint30(),
       nullabilitySuffix: reader.readEnum(NullabilitySuffix.values),
     );
   }
 
-  ManifestTypeParameterType._({
-    required this.index,
-    required super.nullabilitySuffix,
-  });
+  new _({required this.index, required super.nullabilitySuffix});
 
   @override
   bool match(MatchContext context, DartType type) {
@@ -639,7 +618,7 @@ final class ManifestTypeParameterType extends ManifestType {
 final class ManifestVoidType extends ManifestType {
   static final instance = ManifestVoidType._();
 
-  ManifestVoidType._() : super(nullabilitySuffix: NullabilitySuffix.none);
+  new _() : super(nullabilitySuffix: NullabilitySuffix.none);
 
   @override
   bool match(MatchContext context, DartType type) {

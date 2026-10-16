@@ -14,7 +14,7 @@ import 'package:collection/collection.dart';
 class FindElement extends _FindElementBase {
   final CompilationUnit unit;
 
-  FindElement(this.unit);
+  new(this.unit);
 
   @override
   LibraryFragment get libraryFragment => unit.declaredFragment!;
@@ -318,7 +318,7 @@ class FindElement extends _FindElementBase {
 class ImportFindElement extends _FindElementBase {
   final LibraryImport import;
 
-  ImportFindElement(this.import);
+  new(this.import);
 
   LibraryElement get importedLibrary => import.importedLibrary!;
 
@@ -334,7 +334,7 @@ class PartFindElement extends _FindElementBase {
   @override
   final LibraryFragment libraryFragment;
 
-  PartFindElement(this.libraryFragment);
+  new(this.libraryFragment);
 }
 
 abstract class _FindElementBase {

@@ -300,13 +300,13 @@ class AnalysisDriver {
   ///
   /// The given [SourceFactory] is cloned to ensure that it does not contain a
   /// reference to an [AnalysisContext] in which it could have been used.
-  AnalysisDriver({
-    required AnalysisDriverScheduler scheduler,
-    required PerformanceLog logger,
+  new({
+    required this._scheduler,
+    required this._logger,
     required ResourceProvider resourceProvider,
-    required ByteStore byteStore,
-    required SourceFactory sourceFactory,
-    required Packages packages,
+    required this._byteStore,
+    required this._sourceFactory,
+    required this._packages,
     required this.withFineDependencies,
     this.ownedFiles,
     this.analysisContext,
@@ -315,26 +315,18 @@ class AnalysisDriver {
     UnlinkedUnitStore? unlinkedUnitStore,
     this.enableIndex = false,
     this.shouldReportInconsistentAnalysisException = true,
-    SummaryDataStore? externalSummaries,
+    this._externalSummaries,
     DeclaredVariables? declaredVariables,
-    Version? languageVersionOverride,
+    this._languageVersionOverride,
     bool retainDataForTesting = false,
     this.testView,
-    bool enableLintRuleTiming = false,
-  }) : _scheduler = scheduler,
-       _resourceProvider = resourceProvider,
-       _byteStore = byteStore,
+    this._enableLintRuleTiming = false,
+  }) : _resourceProvider = resourceProvider,
        _fileContentCache =
            fileContentCache ?? FileContentCache.ephemeral(resourceProvider),
        _unlinkedUnitStore = unlinkedUnitStore ?? UnlinkedUnitStoreImpl(),
-       _logger = logger,
-       _packages = packages,
-       _languageVersionOverride = languageVersionOverride,
-       _sourceFactory = sourceFactory,
-       _externalSummaries = externalSummaries,
        declaredVariables = declaredVariables ?? DeclaredVariables(),
        testingData = retainDataForTesting ? TestingData() : null,
-       _enableLintRuleTiming = enableLintRuleTiming,
        _saltForUnlinked = _calculateSaltForUnlinked(enableIndex: enableIndex),
        _saltForElements = _calculateSaltForElements(
          declaredVariables ?? DeclaredVariables(),
@@ -2605,7 +2597,7 @@ class AnalysisDriverScheduler {
   /// File updates since last transition to working status.
   FileUpdatesStatistics _fileUpdatesStatistics = FileUpdatesStatistics();
 
-  AnalysisDriverScheduler(
+  new(
     this._logger, {
     this.driverWatcher,
     this.shouldDiscardMemoryExpensiveDataOnIdle = true,
@@ -2971,7 +2963,7 @@ class ExceptionResult {
   /// number of context to store was reached, etc.
   final String? contextKey;
 
-  ExceptionResult({
+  new({
     required this.filePath,
     required this.fileContentMap,
     required this.exception,
@@ -2984,7 +2976,7 @@ class FileChange {
   final String path;
   final FileChangeKind kind;
 
-  FileChange(this.path, this.kind);
+  new(this.path, this.kind);
 
   @override
   String toString() {
@@ -3068,7 +3060,7 @@ class _DiscoverAvailableFilesJob {
 
   bool _isInitialized = false;
 
-  _DiscoverAvailableFilesJob(this.driver, this.filter);
+  new(this.driver, this.filter);
 
   bool get isCompleted => completer.isCompleted;
 
@@ -3214,7 +3206,7 @@ class _DiscoverAvailableFilesTask {
   _DiscoverAvailableFilesJob? _allFilesJob;
   bool _isStopped = false;
 
-  _DiscoverAvailableFilesTask(this.driver);
+  new(this.driver);
 
   bool get hasPendingWork {
     return _pendingScopedJobs.any((job) => !job.isCompleted) ||
@@ -3305,14 +3297,14 @@ class _GetFilesDefiningClassMemberNameRequest {
   final String name;
   final completer = Completer<List<FileState>>();
 
-  _GetFilesDefiningClassMemberNameRequest(this.name);
+  new(this.name);
 }
 
 class _GetFilesReferencingNamesRequest {
   final Set<String> names;
   final completer = Completer<List<FileState>>();
 
-  _GetFilesReferencingNamesRequest(this.names);
+  new(this.names);
 }
 
 class _ResolveForCompletionRequest {
@@ -3323,7 +3315,7 @@ class _ResolveForCompletionRequest {
   final OperationPerformanceImpl performance;
   final Completer<ResolvedForCompletionResultImpl?> completer = Completer();
 
-  _ResolveForCompletionRequest({
+  new({
     required this.path,
     required this.offset,
     required this.line,

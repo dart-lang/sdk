@@ -1214,16 +1214,16 @@ class _InfoBuilder {
 }
 
 class _InfoClassDeclaration extends _InfoInterfaceDeclaration {
-  _InfoClassDeclaration({required super.data});
+  new({required super.data});
 
-  _InfoClassDeclaration.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 class _InfoClassTypeAlias extends _InfoNode {
   final List<_InfoTypeParameter> typeParameters;
   final Uint32List constantOffsets;
 
-  _InfoClassTypeAlias({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1233,7 +1233,7 @@ class _InfoClassTypeAlias extends _InfoNode {
     required this.constantOffsets,
   }) : super();
 
-  _InfoClassTypeAlias.read(super.reader)
+  new read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       constantOffsets = reader.readUint30List(),
       super.read();
@@ -1250,9 +1250,9 @@ class _InfoCombinator {
   final int offset;
   final int end;
 
-  _InfoCombinator({required this.offset, required this.end});
+  new({required this.offset, required this.end});
 
-  factory _InfoCombinator.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InfoCombinator(
       offset: reader.readUint30(),
       end: reader.readUint30(),
@@ -1275,7 +1275,7 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
   final SourceRange? primaryHeaderCodeRange;
   final SourceRange? primaryBodyCodeRange;
 
-  _InfoConstructorDeclaration({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1294,7 +1294,7 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
     required this.primaryBodyCodeRange,
   });
 
-  _InfoConstructorDeclaration.read(super.reader)
+  new read(super.reader)
     : newKeywordOffset = reader.readOptionalUint30(),
       factoryKeywordOffset = reader.readOptionalUint30(),
       typeNameOffset = reader.readOptionalUint30(),
@@ -1320,9 +1320,9 @@ class _InfoConstructorDeclaration extends _InfoExecutableDeclaration {
 }
 
 class _InfoEnumDeclaration extends _InfoInterfaceDeclaration {
-  _InfoEnumDeclaration({required super.data});
+  new({required super.data});
 
-  _InfoEnumDeclaration.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 class _InfoExecutableDeclaration extends _InfoNode {
@@ -1330,7 +1330,7 @@ class _InfoExecutableDeclaration extends _InfoNode {
   final List<_InfoFormalParameter> parameters;
   final Uint32List constantOffsets;
 
-  _InfoExecutableDeclaration({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1341,7 +1341,7 @@ class _InfoExecutableDeclaration extends _InfoNode {
     required this.constantOffsets,
   }) : super();
 
-  _InfoExecutableDeclaration.read(super.reader)
+  new read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       parameters = reader.readList(_InfoFormalParameter.read),
       constantOffsets = reader.readUint30List(),
@@ -1360,9 +1360,9 @@ class _InfoExport {
   final int exportKeywordOffset;
   final List<_InfoCombinator> combinators;
 
-  _InfoExport({required this.exportKeywordOffset, required this.combinators});
+  new({required this.exportKeywordOffset, required this.combinators});
 
-  factory _InfoExport.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InfoExport(
       exportKeywordOffset: reader.readUint30(),
       combinators: reader.readList(_InfoCombinator.read),
@@ -1376,21 +1376,21 @@ class _InfoExport {
 }
 
 class _InfoExtensionDeclaration extends _InfoInstanceDeclaration {
-  _InfoExtensionDeclaration({required super.data});
+  new({required super.data});
 
-  _InfoExtensionDeclaration.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 class _InfoExtensionTypeDeclaration extends _InfoInterfaceDeclaration {
-  _InfoExtensionTypeDeclaration({required super.data});
+  new({required super.data});
 
-  _InfoExtensionTypeDeclaration.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 class _InfoFieldDeclaration extends _InfoNode {
   final Uint32List constantOffsets;
 
-  _InfoFieldDeclaration({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1399,7 +1399,7 @@ class _InfoFieldDeclaration extends _InfoNode {
     required this.constantOffsets,
   }) : super();
 
-  _InfoFieldDeclaration.read(super.reader)
+  new read(super.reader)
     : constantOffsets = reader.readUint30List(),
       super.read();
 
@@ -1414,7 +1414,7 @@ class _InfoFormalParameter extends _InfoNode {
   final List<_InfoTypeParameter> typeParameters;
   final List<_InfoFormalParameter> parameters;
 
-  _InfoFormalParameter({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1424,7 +1424,7 @@ class _InfoFormalParameter extends _InfoNode {
     required this.parameters,
   });
 
-  _InfoFormalParameter.read(super.reader)
+  new read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       parameters = reader.readList(_InfoFormalParameter.read),
       super.read();
@@ -1442,13 +1442,13 @@ class _InfoImport {
   final int? prefixOffset;
   final List<_InfoCombinator> combinators;
 
-  _InfoImport({
+  new({
     required this.importKeywordOffset,
     required this.prefixOffset,
     required this.combinators,
   });
 
-  factory _InfoImport.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InfoImport(
       importKeywordOffset: reader.readUint30(),
       prefixOffset: reader.readOptionalUint30(),
@@ -1471,7 +1471,7 @@ abstract class _InfoInstanceDeclaration extends _InfoNode {
   final List<_InfoExecutableDeclaration> methods;
   final Uint32List constantOffsets;
 
-  _InfoInstanceDeclaration({required _InstanceData data})
+  new({required _InstanceData data})
     : typeParameters = data.typeParameters,
       fields = data.fields,
       getters = data.getters,
@@ -1486,7 +1486,7 @@ abstract class _InfoInstanceDeclaration extends _InfoNode {
         documentationComment: data.documentationComment,
       );
 
-  _InfoInstanceDeclaration.read(super.reader)
+  new read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       fields = reader.readList(_InfoFieldDeclaration.read),
       getters = reader.readList(_InfoExecutableDeclaration.read),
@@ -1510,11 +1510,11 @@ abstract class _InfoInstanceDeclaration extends _InfoNode {
 abstract class _InfoInterfaceDeclaration extends _InfoInstanceDeclaration {
   final List<_InfoConstructorDeclaration> constructors;
 
-  _InfoInterfaceDeclaration({required _InterfaceData data})
+  new({required _InterfaceData data})
     : constructors = data.constructors,
       super(data: data.instanceData);
 
-  _InfoInterfaceDeclaration.read(super.reader)
+  new read(super.reader)
     : constructors = reader.readList(_InfoConstructorDeclaration.read),
       super.read();
 
@@ -1529,9 +1529,9 @@ class _InfoLibraryName {
   final int offset;
   final int length;
 
-  _InfoLibraryName({required this.offset, required this.length});
+  new({required this.offset, required this.length});
 
-  factory _InfoLibraryName.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InfoLibraryName(
       offset: reader.readUint30() - 1,
       length: reader.readUint30(),
@@ -1545,9 +1545,9 @@ class _InfoLibraryName {
 }
 
 class _InfoMixinDeclaration extends _InfoInterfaceDeclaration {
-  _InfoMixinDeclaration({required super.data});
+  new({required super.data});
 
-  _InfoMixinDeclaration.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 abstract class _InfoNode {
@@ -1557,7 +1557,7 @@ abstract class _InfoNode {
   final int? nameOffset;
   final String? documentationComment;
 
-  _InfoNode({
+  new({
     required this.firstTokenOffset,
     required this.codeOffset,
     required this.codeLength,
@@ -1565,7 +1565,7 @@ abstract class _InfoNode {
     required this.documentationComment,
   });
 
-  _InfoNode.read(BinaryReader reader)
+  new read(BinaryReader reader)
     : firstTokenOffset = reader.readUint30(),
       codeOffset = reader.readUint30(),
       codeLength = reader.readUint30(),
@@ -1584,9 +1584,9 @@ abstract class _InfoNode {
 class _InfoPart {
   final int partKeywordOffset;
 
-  _InfoPart({required this.partKeywordOffset});
+  new({required this.partKeywordOffset});
 
-  factory _InfoPart.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return _InfoPart(partKeywordOffset: reader.readUint30());
   }
 
@@ -1598,7 +1598,7 @@ class _InfoPart {
 class _InfoTopLevelVariable extends _InfoNode {
   final Uint32List constantOffsets;
 
-  _InfoTopLevelVariable({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1607,7 +1607,7 @@ class _InfoTopLevelVariable extends _InfoNode {
     required this.constantOffsets,
   }) : super();
 
-  _InfoTopLevelVariable.read(super.reader)
+  new read(super.reader)
     : constantOffsets = reader.readUint30List(),
       super.read();
 
@@ -1622,7 +1622,7 @@ class _InfoTypeAlias extends _InfoNode {
   final List<_InfoTypeParameter> typeParameters;
   final Uint32List constantOffsets;
 
-  _InfoTypeAlias({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
@@ -1632,7 +1632,7 @@ class _InfoTypeAlias extends _InfoNode {
     required this.constantOffsets,
   }) : super();
 
-  _InfoTypeAlias.read(super.reader)
+  new read(super.reader)
     : typeParameters = reader.readList(_InfoTypeParameter.read),
       constantOffsets = reader.readUint30List(),
       super.read();
@@ -1646,14 +1646,14 @@ class _InfoTypeAlias extends _InfoNode {
 }
 
 class _InfoTypeParameter extends _InfoNode {
-  _InfoTypeParameter({
+  new({
     required super.firstTokenOffset,
     required super.codeOffset,
     required super.codeLength,
     required super.nameOffset,
   }) : super(documentationComment: null);
 
-  _InfoTypeParameter.read(super.reader) : super.read();
+  new read(super.reader) : super.read();
 }
 
 class _InfoUnit {
@@ -1678,7 +1678,7 @@ class _InfoUnit {
   final List<_InfoTopLevelVariable> topLevelVariable;
   final List<_InfoTypeAlias> typeAliases;
 
-  _InfoUnit({
+  new({
     required this.codeOffset,
     required this.codeLength,
     required this.lineStarts,
@@ -1701,7 +1701,7 @@ class _InfoUnit {
     required this.typeAliases,
   });
 
-  _InfoUnit.read(BinaryReader reader)
+  new read(BinaryReader reader)
     : codeOffset = reader.readUint30(),
       codeLength = reader.readUint30(),
       lineStarts = reader.readUint30List(),
@@ -1760,7 +1760,7 @@ class _InstanceData {
   final List<_InfoExecutableDeclaration> methods;
   final Uint32List constantOffsets;
 
-  _InstanceData({
+  new({
     required this.firstTokenOffset,
     required this.codeOffset,
     required this.codeLength,
@@ -1779,13 +1779,13 @@ class _InterfaceData {
   final _InstanceData instanceData;
   final List<_InfoConstructorDeclaration> constructors;
 
-  _InterfaceData({required this.instanceData, required this.constructors});
+  new({required this.instanceData, required this.constructors});
 }
 
 class _OffsetsApplier extends _OffsetsAstVisitor {
   final _SafeListIterator<int> _iterator;
 
-  _OffsetsApplier(this._iterator);
+  new(this._iterator);
 
   void applyToConstantInitializer(FragmentImpl fragment) {
     if (fragment is FieldFragmentImpl && fragment.isEnumConstant) {
@@ -2478,7 +2478,7 @@ class _SafeListIterator<T> {
   final List<T> _elements;
   int _index = 0;
 
-  _SafeListIterator(this._elements);
+  new(this._elements);
 
   bool get hasNext {
     return _index < _elements.length;

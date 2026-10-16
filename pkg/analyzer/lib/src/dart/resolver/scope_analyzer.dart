@@ -70,7 +70,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
 
   int _libraryDirectiveIndex = 0;
 
-  factory ScopeAnalyzer({
+  factory({
     required LibraryFragmentImpl libraryFragment,
     required DiagnosticListener diagnosticListener,
     required Scope nameScope,
@@ -125,7 +125,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
     );
   }
 
-  ScopeAnalyzer._(
+  new _(
     this._libraryElement,
     this._typeProvider,
     this._libraryFragment,
@@ -1505,7 +1505,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
 class _PatternVariableBinderVisitor extends ThrowingAstVisitor2<void> {
   final VariableBinder<DartPatternImpl, PatternVariableElementImpl> _binder;
 
-  _PatternVariableBinderVisitor(this._binder);
+  new(this._binder);
 
   @override
   void visitAssignedVariablePattern(AssignedVariablePattern node) {}
@@ -1602,7 +1602,7 @@ class _VariableBinder
     extends VariableBinder<DartPatternImpl, PatternVariableElementImpl> {
   final TypeProvider typeProvider;
 
-  _VariableBinder({required super.errors, required this.typeProvider});
+  new({required super.errors, required this.typeProvider});
 
   @override
   JoinPatternVariableElementImpl joinPatternVariables({
@@ -1649,7 +1649,7 @@ class _VariableBinderErrors
         VariableBinderErrors<DartPatternImpl, PatternVariableElementImpl> {
   final ScopeAnalyzer scopeAnalyzer;
 
-  _VariableBinderErrors(this.scopeAnalyzer);
+  new(this.scopeAnalyzer);
 
   @override
   void assertInErrorRecovery() {

@@ -120,11 +120,7 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   InterfaceTypeImpl? ffiVoidType;
 
   /// Initialize a newly created verifier.
-  FfiVerifier(
-    this.typeSystem,
-    this._diagnosticReporter, {
-    required this.strictCasts,
-  });
+  new(this.typeSystem, this._diagnosticReporter, {required this.strictCasts});
 
   @override
   void visitCallInvocation(covariant CallInvocationImpl node) {
@@ -2453,7 +2449,7 @@ final class _FfiInvocation {
   final ArgumentListImpl argumentList;
   final List<TypeImpl>? typeArgumentTypes;
 
-  _FfiInvocation({
+  new({
     required this.node,
     required this.name,
     required this.target,

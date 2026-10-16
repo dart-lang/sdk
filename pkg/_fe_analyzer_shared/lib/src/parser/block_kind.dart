@@ -15,7 +15,7 @@ class BlockKind {
   final codes.Template<codes.Message Function({required Token lexeme})>?
   template;
 
-  const BlockKind._(this.name, {this.template, this.message});
+  const new _(this.name, {this.template, this.message});
 
   @override
   String toString() => 'BlockKind($name)';

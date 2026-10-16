@@ -75,12 +75,9 @@ class ConstantEvaluationEngine {
 
   /// Initialize a newly created [ConstantEvaluationEngine].
   ///
-  /// [declaredVariables] is the set of variables declared on the command
+  /// [_declaredVariables] is the set of variables declared on the command
   /// line using '-D'.
-  ConstantEvaluationEngine({
-    required DeclaredVariables declaredVariables,
-    required this.configuration,
-  }) : _declaredVariables = declaredVariables;
+  new({required this._declaredVariables, required this.configuration});
 
   /// Compute the constant value associated with the given [constant].
   void computeConstantValue(ConstantEvaluationTarget constant) {
@@ -549,24 +546,21 @@ class ConstantVisitor extends UnifyingAstVisitor2<Constant> {
   late final DartObjectComputer _dartObjectComputer;
 
   /// Initializes a newly created constant visitor. The [_evaluationEngine] is
-  /// used to evaluate constructor invocations. The [lexicalEnvironment]
+  /// used to evaluate constructor invocations. The [_lexicalEnvironment]
   /// is a map containing values which should override identifiers, or `null` if
   /// no overriding is necessary. The [_diagnosticReporter] is used to report
   /// errors found during evaluation.
   ///
-  /// The [substitution] is specified for constructor invocations.
-  ConstantVisitor(
+  /// The [_substitution] is specified for constructor invocations.
+  new(
     this._evaluationEngine,
     this._library,
     this._diagnosticReporter, {
-    Map<FormalParameterElement, DartObjectImpl>? lexicalEnvironment,
-    Map<TypeParameterElement, TypeImpl>? lexicalTypeEnvironment,
-    Substitution? substitution,
-    bool reportsInvalidNamedReads = true,
-  }) : _lexicalEnvironment = lexicalEnvironment,
-       _lexicalTypeEnvironment = lexicalTypeEnvironment,
-       _substitution = substitution,
-       _reportsInvalidNamedReads = reportsInvalidNamedReads {
+    this._lexicalEnvironment,
+    this._lexicalTypeEnvironment,
+    this._substitution,
+    this._reportsInvalidNamedReads = true,
+  }) {
     _dartObjectComputer = DartObjectComputer(typeSystem, _library.featureSet);
   }
 
@@ -2353,7 +2347,7 @@ class DartObjectComputer {
   final TypeSystemImpl _typeSystem;
   final FeatureSet _featureSet;
 
-  DartObjectComputer(this._typeSystem, this._featureSet);
+  new(this._typeSystem, this._featureSet);
 
   Constant add(
     Expression node,
@@ -2903,21 +2897,18 @@ class _ConstructorInvocationEvaluator {
   /// This constructor is private, as the entry point for using a
   /// [_ConstructorInvocationEvaluator] is the static method,
   /// [_ConstructorInvocationEvaluator.evaluate].
-  _ConstructorInvocationEvaluator._(
+  new _(
     this._evaluationEngine,
     this._declaredVariables,
     this._library,
     this._errorNode,
     this._constructor,
     this._typeArguments, {
-    required List<DartObjectImpl> argumentValues,
-    required Map<FormalParameterElement, DartObjectImpl> argumentValueMap,
-    required Map<FormalParameterElement, AstNode?> argumentNodeMap,
-    required ConstructorInvocationDataImpl invocation,
-  }) : _argumentValues = argumentValues,
-       _argumentValueMap = argumentValueMap,
-       _argumentNodeMap = argumentNodeMap,
-       _invocation = invocation;
+    required this._argumentValues,
+    required this._argumentValueMap,
+    required this._argumentNodeMap,
+    required this._invocation,
+  });
 
   InterfaceTypeImpl get definingType => _constructor.returnType;
 
@@ -3851,7 +3842,7 @@ class _EnumConstant {
   final int index;
   final String name;
 
-  _EnumConstant({required this.index, required this.name});
+  new({required this.index, required this.name});
 }
 
 /// The result of evaluation the initializers declared on a const constructor.
@@ -3883,7 +3874,7 @@ class _InitializersEvaluationResult {
   /// constructor, otherwise `null`.
   final List<Argument>? superArguments;
 
-  _InitializersEvaluationResult(
+  new(
     this.result, {
     required this.evaluationIsComplete,
     this.superName,
@@ -3896,7 +3887,7 @@ class _RedirectionResult {
   final Map<FormalParameterElement, DartObjectImpl> argumentValueMap;
   final Map<FormalParameterElement, AstNode?> argumentNodeMap;
 
-  _RedirectionResult({
+  new({
     required this.constructor,
     required this.argumentValueMap,
     required this.argumentNodeMap,

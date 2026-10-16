@@ -33,7 +33,7 @@ abstract class AnalysisContextCollection {
   /// ignored.
   ///
   /// [dispose] must be invoked after collection is finished being used.
-  factory AnalysisContextCollection({
+  factory({
     List<String> enabledExperiments = const [],
     required List<String> includedPaths,
     Version? languageVersionOverride,

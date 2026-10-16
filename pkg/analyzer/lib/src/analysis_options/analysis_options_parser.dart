@@ -49,7 +49,7 @@ final class AnalysisOptionsParseResult {
   final AnalysisOptionsImpl analysisOptions;
   final List<Diagnostic> diagnostics;
 
-  AnalysisOptionsParseResult({
+  new({
     required this.file,
     required this.content,
     required this.analysisOptions,
@@ -138,7 +138,7 @@ final class _ApplyState {
   bool _hasLinterSection = false;
   YamlNode? _legacyPluginsNode;
 
-  _ApplyState(File file) : builder = AnalysisOptionsBuilder(file: file);
+  new(File file) : builder = AnalysisOptionsBuilder(file: file);
 
   void apply(_ParsedFileData fileData) {
     _applyAnalyzer(fileData.file, fileData.analyzer);
@@ -336,7 +336,7 @@ final class _ParseRequest {
   final VersionConstraint? sdkVersionConstraint;
   final Map<_ParsedFileNode, _ParsedFileData> fileDataCache = {};
 
-  _ParseRequest({
+  new({
     required this.session,
     required this.sourceFactory,
     required this.contextRoot,

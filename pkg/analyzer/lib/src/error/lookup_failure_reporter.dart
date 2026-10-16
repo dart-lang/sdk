@@ -31,17 +31,14 @@ final class DotShorthandLookupDomain extends LookupDomain {
   final bool _isPrivateDeclaration;
 
   /// A lookup in the declaration that [context] denotes.
-  DotShorthandLookupDomain.declaration(
-    ValidDotShorthandContextResolutionImpl context,
-  ) : contextType = context.contextType,
+  new declaration(ValidDotShorthandContextResolutionImpl context)
+    : contextType = context.contextType,
       declaration = context.lookupType.element,
       _isPrivateDeclaration = false;
 
   /// A lookup in the context type of [context], which doesn't denote an
   /// accessible interface declaration, so nothing could be found.
-  factory DotShorthandLookupDomain.invalid(
-    InvalidDotShorthandContextResolutionImpl context,
-  ) {
+  factory invalid(InvalidDotShorthandContextResolutionImpl context) {
     if (context.lookupType case InterfaceTypeImpl(:var element)) {
       if (element.isPrivate) {
         return DotShorthandLookupDomain._privateDeclaration(
@@ -53,11 +50,11 @@ final class DotShorthandLookupDomain extends LookupDomain {
     return DotShorthandLookupDomain._noDeclaration(context.contextType);
   }
 
-  DotShorthandLookupDomain._noDeclaration(this.contextType)
+  new _noDeclaration(this.contextType)
     : declaration = null,
       _isPrivateDeclaration = false;
 
-  DotShorthandLookupDomain._privateDeclaration(
+  new _privateDeclaration(
     this.contextType,
     InterfaceElementImpl this.declaration,
   ) : _isPrivateDeclaration = true;
@@ -137,7 +134,7 @@ final class ExtensionOverrideLookupDomain extends LookupDomain {
   /// The extension that the override names.
   final ExtensionElement extension;
 
-  ExtensionOverrideLookupDomain(this.extension);
+  new(this.extension);
 
   String get _extensionName {
     // An extension override can only name a named extension.
@@ -217,12 +214,10 @@ final class FunctionTypeAliasLookupDomain extends LookupDomain {
   /// The name of the alias, with its import prefix if one is written.
   final String aliasName;
 
-  FunctionTypeAliasLookupDomain({
-    required ImportPrefixReferenceImpl? importPrefix,
-    required Token name,
-  }) : aliasName = importPrefix != null
-           ? '${importPrefix.name.lexeme}.${name.lexeme}'
-           : name.lexeme;
+  new({required ImportPrefixReferenceImpl? importPrefix, required Token name})
+    : aliasName = importPrefix != null
+          ? '${importPrefix.name.lexeme}.${name.lexeme}'
+          : name.lexeme;
 
   @override
   LocatableDiagnostic _readFailure(
@@ -260,7 +255,7 @@ final class InstanceLookupDomain extends LookupDomain {
   /// failed write can't report it as found instead.
   final RecordTypeField? recordField;
 
-  InstanceLookupDomain(this.receiverType, {this.recordField});
+  new(this.receiverType, {this.recordField});
 
   @override
   LocatableDiagnostic _readFailure(
@@ -429,7 +424,7 @@ class LookupFailureReporter {
   final DiagnosticReporter _diagnosticReporter;
   final LibraryFragmentImpl _libraryFragment;
 
-  LookupFailureReporter(this._diagnosticReporter, this._libraryFragment);
+  new(this._diagnosticReporter, this._libraryFragment);
 
   /// Reports that the lookup of [name] in [domain] found nothing that can be
   /// read, invoked, or torn off.
@@ -491,7 +486,7 @@ final class PrefixedLookupDomain extends LookupDomain {
   /// The import prefix.
   final PrefixElement prefix;
 
-  PrefixedLookupDomain(this.prefix);
+  new(this.prefix);
 
   /// The name of the [prefix], which the code being analyzed used to
   /// reference it, so it isn't `null`.
@@ -660,7 +655,7 @@ final class StaticLookupDomain extends LookupDomain {
   /// The declaration whose static members were searched.
   final InstanceElementImpl declaration;
 
-  StaticLookupDomain(this.declaration);
+  new(this.declaration);
 
   String get _containerKind => _displayKindOf(declaration);
 
@@ -776,7 +771,7 @@ final class SuperLookupDomain extends LookupDomain {
   /// The type of `this` in the enclosing declaration.
   final InterfaceTypeImpl type;
 
-  SuperLookupDomain(this.type);
+  new(this.type);
 
   @override
   LocatableDiagnostic _readFailure(
@@ -936,17 +931,17 @@ final class UnqualifiedLookupDomain extends LookupDomain {
 final class _FoundDeclaration extends _FoundInstead {
   final Element element;
 
-  _FoundDeclaration(this.element);
+  new(this.element);
 }
 
 /// What a failed lookup found instead of a declaration with the required
 /// capability.
 sealed class _FoundInstead {
-  const _FoundInstead();
+  const new();
 
   /// What a lookup in [library] found instead: the [element] that the caller
   /// found, or nothing if it is `null`.
-  factory _FoundInstead.of(Element? element, LibraryElement library) {
+  factory of(Element? element, LibraryElement library) {
     if (element == null) {
       return const _FoundNothing();
     } else if (element.isPrivate && element.library != library) {
@@ -959,7 +954,7 @@ sealed class _FoundInstead {
 
 /// Nothing that has the name.
 final class _FoundNothing extends _FoundInstead {
-  const _FoundNothing();
+  const new();
 }
 
 /// A private declaration of another library that has the name, which is
@@ -967,7 +962,7 @@ final class _FoundNothing extends _FoundInstead {
 final class _FoundPrivate extends _FoundInstead {
   final Element element;
 
-  _FoundPrivate(this.element);
+  new(this.element);
 
   /// The URI of the library that declares the [element].
   Uri get libraryUri => element.library!.uri;

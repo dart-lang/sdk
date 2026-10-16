@@ -1130,7 +1130,7 @@ class _TestFile implements RandomAccessFile {
 class _TestFileSource implements File {
   final _TestFile handle;
 
-  _TestFileSource(this.handle);
+  new(this.handle);
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

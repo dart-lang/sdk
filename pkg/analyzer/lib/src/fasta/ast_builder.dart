@@ -143,7 +143,7 @@ class AstBuilder extends StackListener {
 
   final LineInfo _lineInfo;
 
-  AstBuilder(
+  new(
     DiagnosticReporter? errorReporter,
     this.fileUri,
     this.isFullAst,
@@ -6813,7 +6813,7 @@ class _CascadeBuilder {
   final ExpressionImpl target;
   final List<CascadeSectionImpl> sections = [];
 
-  _CascadeBuilder(this.target);
+  new(this.target);
 }
 
 class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
@@ -6835,7 +6835,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   ImplementsClauseImpl? implementsClause;
   final NativeClauseImpl? nativeClause;
 
-  _ClassDeclarationBuilder({
+  new({
     required super.comment,
     required super.metadata,
     required super.typeParameters,
@@ -6903,7 +6903,7 @@ abstract class _ClassLikeDeclarationBuilder {
   final List<ClassMemberImpl> members = [];
   Token rightBracket;
 
-  _ClassLikeDeclarationBuilder({
+  new({
     required this.comment,
     required this.metadata,
     required this.typeParameters,
@@ -6932,10 +6932,7 @@ class _ConstructorReferenceWithInvalidTypeArgs {
   final ConstructorReference2Impl reference;
   final TypeArgumentListImpl invalidTypeArgs;
 
-  _ConstructorReferenceWithInvalidTypeArgs(
-    this.reference,
-    this.invalidTypeArgs,
-  );
+  new(this.reference, this.invalidTypeArgs);
 }
 
 class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
@@ -6951,7 +6948,7 @@ class _EnumDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final List<EnumConstantDeclarationImpl> constants = [];
   Token? semicolon;
 
-  _EnumDeclarationBuilder({
+  new({
     required super.comment,
     required super.metadata,
     required super.typeParameters,
@@ -7002,7 +6999,7 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   @override
   final Token? name;
 
-  _ExtensionDeclarationBuilder({
+  new({
     required super.comment,
     required super.metadata,
     required super.typeParameters,
@@ -7049,7 +7046,7 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   @override
   final Token name;
 
-  _ExtensionTypeDeclarationBuilder({
+  new({
     required super.comment,
     required super.metadata,
     required super.typeParameters,
@@ -7101,10 +7098,7 @@ class _FunctionTypedFormalParameterData {
   final TypeAnnotationImpl? returnType;
   final FunctionTypedFormalParameterSuffixImpl functionTypedSuffix;
 
-  _FunctionTypedFormalParameterData({
-    required this.returnType,
-    required this.functionTypedSuffix,
-  });
+  new({required this.returnType, required this.functionTypedSuffix});
 }
 
 class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
@@ -7118,7 +7112,7 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   MixinOnClauseImpl? onClause;
   ImplementsClauseImpl? implementsClause;
 
-  _MixinDeclarationBuilder({
+  new({
     required super.comment,
     required super.metadata,
     required super.typeParameters,
@@ -7211,11 +7205,7 @@ class _ObjectPatternFields {
   final Token rightParenthesis;
   final List<PatternFieldImpl> fields;
 
-  _ObjectPatternFields(
-    this.leftParenthesis,
-    this.rightParenthesis,
-    this.fields,
-  );
+  new(this.leftParenthesis, this.rightParenthesis, this.fields);
 }
 
 /// Data structure placed on the stack to represent the keyword "operator"
@@ -7224,7 +7214,7 @@ class _OperatorName {
   final Token operatorKeyword;
   final Token name;
 
-  _OperatorName(this.operatorKeyword, this.name);
+  new(this.operatorKeyword, this.name);
 }
 
 /// Data structure placed on the stack to represent the parenthesized condition
@@ -7235,11 +7225,7 @@ class _ParenthesizedCondition {
   final ExpressionImpl expression;
   final CaseClauseImpl? caseClause;
 
-  _ParenthesizedCondition(
-    this.leftParenthesis,
-    this.expression,
-    this.caseClause,
-  );
+  new(this.leftParenthesis, this.expression, this.caseClause);
 
   Token get rightParenthesis => leftParenthesis.endGroup!;
 }
@@ -7249,7 +7235,7 @@ class _PrimaryConstructorBuilder {
   final PrimaryConstructorNameImpl? constructorName;
   final FormalParameterListImpl formalParameterList;
 
-  _PrimaryConstructorBuilder({
+  new({
     required this.constKeyword,
     required this.constructorName,
     required this.formalParameterList,
@@ -7275,7 +7261,7 @@ class _QualifiedName {
   final Token period;
   final Token name;
 
-  _QualifiedName(this.prefix, this.period, this.name);
+  new(this.prefix, this.period, this.name);
 }
 
 /// Data structure placed on stack to represent the redirected constructor.
@@ -7285,7 +7271,7 @@ class _RedirectingFactoryBody {
   final Token equalToken;
   final ConstructorReference2Impl constructorReference;
 
-  _RedirectingFactoryBody(
+  new(
     this.asyncKeyword,
     this.starKeyword,
     this.equalToken,

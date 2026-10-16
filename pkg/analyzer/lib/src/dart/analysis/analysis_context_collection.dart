@@ -36,7 +36,7 @@ class AnalysisContextCollectionImpl implements AnalysisContextCollection {
   final List<DriverBasedAnalysisContext> contexts = [];
 
   /// Initialize a newly created analysis context manager.
-  AnalysisContextCollectionImpl({
+  new({
     ByteStore? byteStore,
     Map<String, String>? declaredVariables,
     bool drainStreams = true,

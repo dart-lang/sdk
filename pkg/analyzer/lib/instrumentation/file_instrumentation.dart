@@ -12,7 +12,7 @@ class FileInstrumentationLogger implements InstrumentationLogger {
   final String filePath;
   late final IOSink _sink;
 
-  FileInstrumentationLogger(this.filePath) {
+  new(this.filePath) {
     File file = File(filePath);
     _sink = file.openWrite();
   }

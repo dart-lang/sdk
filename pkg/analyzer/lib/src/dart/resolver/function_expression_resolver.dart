@@ -18,8 +18,7 @@ import 'package:analyzer/src/summary2/default_types_builder.dart';
 class FunctionExpressionResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  FunctionExpressionResolver({required TypeAnalyzer typeAnalyzer})
-    : _typeAnalyzer = typeAnalyzer;
+  new({required this._typeAnalyzer});
 
   TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 

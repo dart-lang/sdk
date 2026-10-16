@@ -46,7 +46,7 @@ class EnumInfo<
   Map<EnumElementValue, EnumElementStaticType<Type, EnumElement>>?
   _enumElements;
 
-  EnumInfo(
+  new(
     this._typeOperations,
     this._fieldLookup,
     this._enumOperations,
@@ -93,12 +93,8 @@ class EnumStaticType<Type extends Object, EnumElement extends Object>
   final EnumInfo<Type, Object, EnumElement, Object> _enumInfo;
   List<StaticType>? _enumElements;
 
-  EnumStaticType(
-    super.typeOperations,
-    super.fieldLookup,
-    super.type,
-    this._enumInfo,
-  ) : super(isImplicitlyNullable: false);
+  new(super.typeOperations, super.fieldLookup, super.type, this._enumInfo)
+    : super(isImplicitlyNullable: false);
 
   @override
   bool get isSealed => true;
@@ -158,7 +154,7 @@ class EnumElementStaticType<Type extends Object, EnumElement extends Object>
     extends ValueStaticType<Type, EnumElement> {
   final EnumElement _value;
 
-  EnumElementStaticType(
+  new(
     super.typeOperations,
     super.fieldLookup,
     super.type,

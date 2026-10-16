@@ -128,7 +128,7 @@ class FuzzyMatcher extends CompletionMatcher {
 
   /// Initialize a newly created matcher to match the [pattern] using the given
   /// [matchStyle].
-  FuzzyMatcher(this.pattern, {this.matchStyle = MatchStyle.TEXT}) {
+  new(this.pattern, {this.matchStyle = MatchStyle.TEXT}) {
     if (pattern.length > maxPatternSize) {
       pattern = pattern.substring(0, maxPatternSize);
     }

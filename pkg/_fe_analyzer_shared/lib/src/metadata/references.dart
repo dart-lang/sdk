@@ -5,7 +5,7 @@
 /// A resolved reference to an entity.
 // TODO(johnniwinther): Do we need to split these into subtypes?
 sealed class Reference {
-  const Reference();
+  const new();
 }
 
 abstract class FieldReference extends Reference {
@@ -30,7 +30,7 @@ abstract class ConstructorReference extends Reference {
 }
 
 abstract class TypeReference extends Reference {
-  const TypeReference();
+  const new();
 
   String get name;
 

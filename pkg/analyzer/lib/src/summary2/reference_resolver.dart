@@ -35,7 +35,7 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   final TypeSystemImpl typeSystem;
   final NodesToBuildType nodesToBuildType;
 
-  ReferenceResolver(
+  new(
     this.linker,
     this.nodesToBuildType,
     this.typeSystem,

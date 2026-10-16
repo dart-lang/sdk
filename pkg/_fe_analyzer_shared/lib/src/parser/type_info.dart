@@ -78,7 +78,7 @@ abstract class TypeInfo {
 /// [computeTypeParamOrArg] about a particular group of type arguments
 /// or type parameters.
 abstract class TypeParamOrArgInfo {
-  const TypeParamOrArgInfo();
+  const new();
 
   /// Return `true` if the receiver represents a single type argument
   bool get isSimpleTypeArgument => false;

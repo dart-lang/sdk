@@ -19,7 +19,7 @@ class RedeclareVerifier extends RecursiveAstVisitor2<void> {
   /// The current extension type.
   ExtensionTypeElementImpl? _currentExtensionType;
 
-  RedeclareVerifier(this._errorReporter);
+  new(this._errorReporter);
 
   @override
   void visitExtensionTypeDeclaration(

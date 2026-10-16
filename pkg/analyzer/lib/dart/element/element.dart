@@ -997,7 +997,7 @@ class ElementKind implements Comparable<ElementKind> {
   final String displayName;
 
   /// Initialize a newly created element kind to have the given [displayName].
-  const ElementKind(this.name, this.ordinal, this.displayName);
+  const new(this.name, this.ordinal, this.displayName);
 
   @override
   int compareTo(ElementKind other) => ordinal - other.ordinal;
@@ -2462,7 +2462,7 @@ class LibraryLanguageVersion {
   /// The version specified using `@dart` override, `null` if absent or invalid.
   final Version? override;
 
-  LibraryLanguageVersion({required this.package, required this.override});
+  new({required this.package, required this.override});
 
   /// The effective language version for the library.
   Version get effective {

@@ -17,7 +17,7 @@ class UnaryOperatorInvocationResolver {
   final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
 
-  UnaryOperatorInvocationResolver(this._typeAnalyzer)
+  new(this._typeAnalyzer)
     : _typePropertyResolver = _typeAnalyzer.typePropertyResolver;
 
   void resolve(

@@ -41,10 +41,7 @@ class LiteralEntryInfo {
   /// +1 for an `if` condition and -1 for `else`.
   final int ifConditionDelta;
 
-  const LiteralEntryInfo({
-    required this.hasEntry,
-    required this.ifConditionDelta,
-  });
+  const new({required this.hasEntry, required this.ifConditionDelta});
 
   /// Parse the control flow and spread collection aspects of this entry.
   Token parse(Token token, Parser parser) {

@@ -21,7 +21,7 @@ import 'package:analyzer/src/dart/element/type_visitor.dart';
 class UnknownInferredType extends TypeImpl implements SharedUnknownType {
   static const UnknownInferredType instance = UnknownInferredType._();
 
-  const UnknownInferredType._();
+  const new _();
 
   @override
   Element? get element => null;

@@ -109,7 +109,7 @@ class FreshTypeParameters {
   final List<TypeParameterElementImpl> freshTypeParameters;
   final Substitution substitution;
 
-  FreshTypeParameters(this.freshTypeParameters, this.substitution);
+  new(this.freshTypeParameters, this.substitution);
 
   FunctionTypeImpl applyToFunctionType(FunctionTypeImpl type) {
     return FunctionTypeImpl(
@@ -128,7 +128,7 @@ class FreshTypeParameters {
 
 /// Substitution that is based on the [map].
 abstract class MapSubstitution extends Substitution {
-  const MapSubstitution();
+  const new();
 
   Map<TypeParameterElement, DartType> get map;
 
@@ -142,7 +142,7 @@ abstract class MapSubstitution extends Substitution {
 abstract class Substitution {
   static const MapSubstitution empty = _NullSubstitution.instance;
 
-  const Substitution();
+  const new();
 
   DartType? getSubstitute(TypeParameterElement parameter, bool upperBound);
 
@@ -223,7 +223,7 @@ class _CombinedSubstitution extends Substitution {
   final Substitution first;
   final Substitution second;
 
-  _CombinedSubstitution(this.first, this.second);
+  new(this.first, this.second);
 
   @override
   DartType? getSubstitute(TypeParameterElement parameter, bool upperBound) {
@@ -235,7 +235,7 @@ class _CombinedSubstitution extends Substitution {
 class _FreshTypeParametersSubstitutor extends _TypeSubstitutor {
   final Map<TypeParameterElement, DartType> substitution = {};
 
-  _FreshTypeParametersSubstitutor(_TypeSubstitutor super.outer);
+  new(_TypeSubstitutor super.outer);
 
   @override
   List<TypeParameterElementImpl> freshTypeParameters(
@@ -280,7 +280,7 @@ class _MapSubstitution extends MapSubstitution {
   @override
   final Map<TypeParameterElement, DartType> map;
 
-  _MapSubstitution(this.map);
+  new(this.map);
 
   @override
   MapSubstitution andThen(MapSubstitution after) {
@@ -307,7 +307,7 @@ class _MapSubstitution extends MapSubstitution {
 class _NullSubstitution extends MapSubstitution {
   static const _NullSubstitution instance = _NullSubstitution();
 
-  const _NullSubstitution();
+  const new();
 
   @override
   Map<TypeParameterElement, DartType> get map => const {};
@@ -334,7 +334,7 @@ class _NullSubstitution extends MapSubstitution {
 class _TopSubstitutor extends _TypeSubstitutor {
   final Substitution substitution;
 
-  _TopSubstitutor(this.substitution, bool contravariant) : super(null) {
+  new(this.substitution, bool contravariant) : super(null) {
     if (contravariant) {
       invertVariance();
     }
@@ -369,7 +369,7 @@ abstract class _TypeSubstitutor
   /// check quickly if anything happened in a substitution.
   int useCounter = 0;
 
-  _TypeSubstitutor(this.outer) {
+  new(this.outer) {
     covariantContext = outer == null || outer!.covariantContext;
   }
 

@@ -15,7 +15,7 @@ class ReplaceTopBottomVisitor {
   final TypeImpl _topType;
   final TypeImpl _bottomType;
 
-  ReplaceTopBottomVisitor._(this._typeSystem, this._topType, this._bottomType);
+  new _(this._typeSystem, this._topType, this._bottomType);
 
   TypeImpl process(TypeImpl type, Variance variance) {
     if (variance.isContravariant) {

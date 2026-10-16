@@ -12,7 +12,7 @@ import '../kinds.dart';
 /// Swap the first and last top-level function declarations in a file.
 /// Preserves each function's raw text (comments/metadata travel with it).
 class SwapTopLevelFunctionsMutation extends Mutation {
-  SwapTopLevelFunctionsMutation({required super.path});
+  new({required super.path});
 
   @override
   MutationKind get kind => MutationKind.swapTopLevelFunctions;

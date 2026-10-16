@@ -238,7 +238,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
   // TODO(paulberry): Maybe this should have access to the [ResolvedUnitResult] instead.
   final Map<Uri, AnnotatedCode> code;
 
-  AnalyzerCompiledData(
+  new(
     this.code,
     Uri mainUri,
     Map<Uri, Map<Id, ActualData<T>>> actualMaps,
@@ -337,7 +337,7 @@ class AnalyzerCompiledData<T> extends CompiledData<T> {
 }
 
 abstract class DataComputer<T> {
-  const DataComputer();
+  const new();
 
   DataInterpreter<T> get dataValidator;
 
@@ -371,7 +371,7 @@ class TestConfig {
   final String name;
   final FeatureSet featureSet;
 
-  TestConfig(this.marker, this.name, {FeatureSet? featureSet})
+  new(this.marker, this.name, {FeatureSet? featureSet})
     : featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 }
 
@@ -379,7 +379,7 @@ class _TestFile {
   final Uri uri;
   final File file;
 
-  _TestFile({required this.uri, required this.file});
+  new({required this.uri, required this.file});
 
   String get path => file.path;
 }

@@ -37,13 +37,12 @@ class BundleReader {
 
   final Map<Uri, LibraryReader> libraryMap = {};
 
-  BundleReader({
+  new({
     required LinkedElementFactory elementFactory,
     required Uint8List resolutionBytes,
-    Map<Uri, Uint8List> unitsInformativeBytes = const {},
+    this._unitsInformativeBytes = const {},
     required Map<Uri, LibraryManifestHandle> libraryManifests,
-  }) : _reader = BinaryReader(resolutionBytes),
-       _unitsInformativeBytes = unitsInformativeBytes {
+  }) : _reader = BinaryReader(resolutionBytes) {
     const bytesOfU32 = 4;
     const countOfU32 = 4;
     _reader.offset = _reader.bytes.length - bytesOfU32 * countOfU32;
@@ -101,23 +100,17 @@ class LibraryReader {
   /// Map of unique (in the bundle) IDs to fragments.
   final Map<int, FragmentImpl> idFragmentMap = {};
 
-  LibraryReader._({
-    required LinkedElementFactory elementFactory,
-    required BinaryReader reader,
+  new _({
+    required this._elementFactory,
+    required this._reader,
     required this.uri,
-    required Map<Uri, Uint8List> unitsInformativeBytes,
-    required int baseResolutionOffset,
-    required ReferenceTableReader referenceReader,
-    required LibraryReference reference,
-    required int offset,
+    required this._unitsInformativeBytes,
+    required this._baseResolutionOffset,
+    required this._referenceReader,
+    required this._reference,
+    required this._offset,
     required this.manifest,
-  }) : _elementFactory = elementFactory,
-       _reader = reader,
-       _unitsInformativeBytes = unitsInformativeBytes,
-       _baseResolutionOffset = baseResolutionOffset,
-       _referenceReader = referenceReader,
-       _reference = reference,
-       _offset = offset;
+  });
 
   LibraryElementImpl readElement({required Source librarySource}) {
     var analysisContext = _elementFactory.analysisContext;
@@ -1490,7 +1483,7 @@ class ResolutionReader {
   /// by the client. However it is also updated during [_readFunctionType].
   final List<ElementImpl> _localElements = [];
 
-  ResolutionReader(this._elementFactory, this._referenceReader, this._reader);
+  new(this._elementFactory, this._referenceReader, this._reader);
 
   LibraryElementImpl libraryOfUri(Uri uri) {
     return _elementFactory.libraryOfUri2(uri);
@@ -1883,5 +1876,5 @@ class _LibraryHeader {
   final Uri uri;
   final int offset;
 
-  _LibraryHeader({required this.uri, required this.offset});
+  new({required this.uri, required this.offset});
 }

@@ -404,7 +404,7 @@ final class TestResolvedUnitResult {
   @V1Ast('The V2 counterpart is findNode.')
   late final FindNode findNodeV1 = FindNode(content, unit);
 
-  TestResolvedUnitResult(this.analysisResult);
+  new(this.analysisResult);
 
   String get content => analysisResult.content;
 
@@ -448,17 +448,13 @@ class _DiagnosticTestFile {
   final String expectedCode;
   final LanguageFeatureDirectiveLowering _featureDirectiveLowering;
 
-  factory _DiagnosticTestFile(File file, String expectedCode) {
+  factory(File file, String expectedCode) {
     var cleanCode = removeDiagnosticExpectations(expectedCode);
     var featureDirectiveLowering = LanguageFeatureDirectiveLowering(cleanCode);
     return _DiagnosticTestFile._(file, expectedCode, featureDirectiveLowering);
   }
 
-  _DiagnosticTestFile._(
-    this.file,
-    this.expectedCode,
-    this._featureDirectiveLowering,
-  );
+  new _(this.file, this.expectedCode, this._featureDirectiveLowering);
 
   String get loweredCode => _featureDirectiveLowering.loweredCode;
 

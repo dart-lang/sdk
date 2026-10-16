@@ -22,7 +22,7 @@ String _parenthesizeIf(bool condition, String s) => condition ? '($s)' : s;
 class DynamicType extends _SpecialSimpleType implements SharedDynamicType {
   static final instance = DynamicType._();
 
-  DynamicType._() : super._(TypeRegistry.dynamic_);
+  new _() : super._(TypeRegistry.dynamic_);
 
   @override
   bool get isQuestionType => false;
@@ -73,7 +73,7 @@ class FunctionType extends Type implements SharedFunctionType {
   /// A list of the named parameters, sorted by name.
   final List<NamedFunctionParameter> namedParameters;
 
-  FunctionType(
+  new(
     this.returnType,
     this.positionalParameters, {
     this.typeParametersShared = const [],
@@ -380,7 +380,7 @@ class FunctionType extends Type implements SharedFunctionType {
 /// Representation of the type `FutureOr<T>` suitable for unit testing of code
 /// in the `_fe_analyzer_shared` package.
 class FutureOrType extends PrimaryType {
-  FutureOrType(Type typeArgument, {super.isQuestionType = false})
+  new(Type typeArgument, {super.isQuestionType = false})
     : super._special(TypeRegistry.futureOr, args: [typeArgument]);
 
   Type get typeArgument => args.single;
@@ -415,7 +415,7 @@ class FutureOrType extends PrimaryType {
 
 /// A type name that represents an ordinary interface type.
 class InterfaceTypeName extends TypeNameInfo {
-  InterfaceTypeName._(super.name) : super(expectedRuntimeType: PrimaryType);
+  new _(super.name) : super(expectedRuntimeType: PrimaryType);
 }
 
 /// Representation of an invalid type suitable for unit testing of code in the
@@ -423,7 +423,7 @@ class InterfaceTypeName extends TypeNameInfo {
 class InvalidType extends _SpecialSimpleType implements SharedInvalidType {
   static final instance = InvalidType._();
 
-  InvalidType._() : super._(TypeRegistry.error_);
+  new _() : super._(TypeRegistry.error_);
 
   @override
   Type asQuestionType(bool isQuestionType) => this;
@@ -441,11 +441,7 @@ class NamedFunctionParameter
   @override
   final bool isRequired;
 
-  NamedFunctionParameter({
-    required this.isRequired,
-    required this.name,
-    required this.type,
-  });
+  new({required this.isRequired, required this.name, required this.type});
 
   @override
   int get hashCode => Object.hash(name, type, isRequired);
@@ -483,7 +479,7 @@ class NamedType implements SharedNamedType, _Substitutable<NamedType> {
 
   final Type type;
 
-  NamedType({required this.name, required this.type});
+  new({required this.name, required this.type});
 
   @override
   int get hashCode => Object.hash(name, type);
@@ -511,7 +507,7 @@ class NamedType implements SharedNamedType, _Substitutable<NamedType> {
 class NeverType extends _SpecialSimpleType {
   static final instance = NeverType._();
 
-  NeverType._({super.isQuestionType = false}) : super._(TypeRegistry.never);
+  new _({super.isQuestionType = false}) : super._(TypeRegistry.never);
 
   @override
   Type asQuestionType(bool isQuestionType) =>
@@ -523,7 +519,7 @@ class NeverType extends _SpecialSimpleType {
 class NullType extends _SpecialSimpleType implements SharedNullType {
   static final instance = NullType._();
 
-  NullType._() : super._(TypeRegistry.null_, isQuestionType: false);
+  new _() : super._(TypeRegistry.null_, isQuestionType: false);
 
   @override
   Type asQuestionType(bool isQuestionType) => this;
@@ -533,7 +529,7 @@ class NullType extends _SpecialSimpleType implements SharedNullType {
 class ParseError extends Error {
   final String message;
 
-  ParseError(this.message);
+  new(this.message);
 
   @override
   String toString() => message;
@@ -550,17 +546,14 @@ class PrimaryType extends Type {
   /// The type arguments, or `const []` if there are no type arguments.
   final List<Type> args;
 
-  PrimaryType(
+  new(
     InterfaceTypeName nameInfo, {
     List<Type> args = const [],
     bool isQuestionType = false,
   }) : this._(nameInfo, args: args, isQuestionType: isQuestionType);
 
-  PrimaryType._(
-    this.nameInfo, {
-    this.args = const [],
-    super.isQuestionType = false,
-  }) : super._() {
+  new _(this.nameInfo, {this.args = const [], super.isQuestionType = false})
+    : super._() {
     assert(
       runtimeType == nameInfo._expectedRuntimeType,
       '${nameInfo.name} should use ${nameInfo._expectedRuntimeType}, but '
@@ -568,7 +561,7 @@ class PrimaryType extends Type {
     );
   }
 
-  PrimaryType._special(
+  new _special(
     SpecialTypeName nameInfo, {
     List<Type> args = const [],
     bool isQuestionType = false,
@@ -653,7 +646,7 @@ class RecordType extends Type implements SharedRecordType {
 
   final List<NamedType> namedTypes;
 
-  RecordType({
+  new({
     required this.positionalTypes,
     required this.namedTypes,
     super.isQuestionType = false,
@@ -831,7 +824,7 @@ class RecordType extends Type implements SharedRecordType {
 /// - `Null`
 /// - `void`
 class SpecialTypeName extends TypeNameInfo {
-  SpecialTypeName._(super.name, {required super.expectedRuntimeType});
+  new _(super.name, {required super.expectedRuntimeType});
 }
 
 /// Representation of a type suitable for unit testing of code in the
@@ -840,9 +833,9 @@ abstract class Type implements SharedType, _Substitutable<Type> {
   @override
   final bool isQuestionType;
 
-  factory Type(String typeStr) => _TypeParser.parse(typeStr);
+  factory(String typeStr) => _TypeParser.parse(typeStr);
 
-  const Type._({this.isQuestionType = false});
+  const new _({this.isQuestionType = false});
 
   String get type => toString();
 
@@ -928,7 +921,7 @@ sealed class TypeNameInfo {
   /// in `mini_ast.dart`), the appropriate subtype of [Type] is used.
   final core.Type _expectedRuntimeType;
 
-  TypeNameInfo(this.name, {required core.Type expectedRuntimeType})
+  new(this.name, {required core.Type expectedRuntimeType})
     : _expectedRuntimeType = expectedRuntimeType;
 }
 
@@ -941,7 +934,7 @@ class TypeParameter extends TypeNameInfo implements SharedTypeParameter {
   /// parameters whose bound refers to the type parameter itself).
   Type? explicitBound;
 
-  TypeParameter._(super.name) : super(expectedRuntimeType: TypeParameterType);
+  new _(super.name) : super(expectedRuntimeType: TypeParameterType);
 
   Type get bound => explicitBound ?? Type('Object?');
 
@@ -986,11 +979,8 @@ class TypeParameterType extends Type {
   /// If non-null, the promoted type.
   final Type? promotion;
 
-  TypeParameterType(
-    this.typeParameter, {
-    this.promotion,
-    super.isQuestionType = false,
-  }) : super._();
+  new(this.typeParameter, {this.promotion, super.isQuestionType = false})
+    : super._();
 
   /// The type parameter's bound.
   Type get bound => typeParameter.bound;
@@ -1131,7 +1121,7 @@ abstract final class TypeRegistry {
         '`setUp` callback)',
       ));
 
-  factory TypeRegistry._() => throw StateError('Do not construct');
+  factory _() => throw StateError('Do not construct');
 
   /// Registers [name] as the name of an ordinary interface type.
   static InterfaceTypeName addInterfaceTypeName(String name) {
@@ -1789,7 +1779,7 @@ class TypeSystem {
 /// Representation of the unknown type suitable for unit testing of code in the
 /// `_fe_analyzer_shared` package.
 class UnknownType extends Type implements SharedUnknownType {
-  const UnknownType({super.isQuestionType = false}) : super._();
+  const new({super.isQuestionType = false}) : super._();
 
   @override
   int get hashCode => Object.hash(runtimeType, isQuestionType);
@@ -1831,10 +1821,7 @@ class InvocationStructuralContextType extends UnknownType
   @override
   final Type returnType;
 
-  InvocationStructuralContextType({
-    required this.returnType,
-    super.isQuestionType = false,
-  });
+  new({required this.returnType, super.isQuestionType = false});
 
   @override
   int get hashCode => Object.hash(runtimeType, isQuestionType, returnType);
@@ -1903,7 +1890,7 @@ class LookupStructuralContextType extends UnknownType
   @override
   final Type lookupType;
 
-  LookupStructuralContextType({
+  new({
     required this.lookupName,
     required this.lookupType,
     super.isQuestionType = false,
@@ -1974,7 +1961,7 @@ class LookupStructuralContextType extends UnknownType
 class VoidType extends _SpecialSimpleType implements SharedVoidType {
   static final instance = VoidType._();
 
-  VoidType._() : super._(TypeRegistry.void_, isQuestionType: false);
+  new _() : super._(TypeRegistry.void_, isQuestionType: false);
 
   @override
   Type asQuestionType(bool isQuestionType) => this;
@@ -1989,7 +1976,7 @@ class _PreFunctionType extends _PreType {
   final int requiredPositionalParameterCount;
   final List<_PreNamedFunctionParameter> namedParameters;
 
-  _PreFunctionType({
+  new({
     required this.returnType,
     required this.typeFormals,
     required this.positionalParameterTypes,
@@ -2046,11 +2033,7 @@ class _PreNamedFunctionParameter {
   final _PreType type;
   final bool isRequired;
 
-  _PreNamedFunctionParameter({
-    required this.name,
-    required this.type,
-    required this.isRequired,
-  });
+  new({required this.name, required this.type, required this.isRequired});
 }
 
 /// Representation of a named component of a [_PreRecordType].
@@ -2058,7 +2041,7 @@ class _PreNamedType {
   final String name;
   final _PreType type;
 
-  _PreNamedType({required this.name, required this.type});
+  new({required this.name, required this.type});
 }
 
 /// Representation of a [PrimaryType] or [TypeParameterType] that has been
@@ -2067,7 +2050,7 @@ class _PrePrimaryType extends _PreType {
   final String typeName;
   final List<_PreType> typeArgs;
 
-  _PrePrimaryType({required this.typeName, required this.typeArgs});
+  new({required this.typeName, required this.typeArgs});
 
   @override
   Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
@@ -2132,7 +2115,7 @@ class _PrePromotedType extends _PreType {
   final _PreType inner;
   final _PreType promotion;
 
-  _PrePromotedType({required this.inner, required this.promotion});
+  new({required this.inner, required this.promotion});
 
   @override
   Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
@@ -2156,7 +2139,7 @@ class _PreRecordType extends _PreType {
   final List<_PreType> positionalTypes;
   final List<_PreNamedType> namedTypes;
 
-  _PreRecordType({required this.positionalTypes, required this.namedTypes});
+  new({required this.positionalTypes, required this.namedTypes});
 
   @override
   Type materialize({required Map<String, TypeParameter> typeFormalScope}) =>
@@ -2194,7 +2177,7 @@ class _PreTypeFormal {
   final String name;
   final _PreType? bound;
 
-  _PreTypeFormal({required this.name, required this.bound});
+  new({required this.name, required this.bound});
 }
 
 /// Representation of a [Type] with a nullability suffix that has been parsed
@@ -2203,7 +2186,7 @@ class _PreTypeWithNullability extends _PreType {
   final _PreType inner;
   final bool isQuestionType;
 
-  _PreTypeWithNullability({required this.inner, required this.isQuestionType});
+  new({required this.inner, required this.isQuestionType});
 
   @override
   Type materialize({required Map<String, TypeParameter> typeFormalScope}) =>
@@ -2226,10 +2209,7 @@ class _PreLookupStructuralContextType extends _PreType {
   final String lookupName;
   final _PreType lookupType;
 
-  _PreLookupStructuralContextType({
-    required this.lookupName,
-    required this.lookupType,
-  });
+  new({required this.lookupName, required this.lookupType});
 
   @override
   Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
@@ -2245,7 +2225,7 @@ class _PreLookupStructuralContextType extends _PreType {
 class _PreInvocationStructuralContextType extends _PreType {
   final _PreType returnType;
 
-  _PreInvocationStructuralContextType({required this.returnType});
+  new({required this.returnType});
 
   @override
   Type materialize({required Map<String, TypeParameter> typeFormalScope}) {
@@ -2262,8 +2242,7 @@ class _PreInvocationStructuralContextType extends _PreType {
 /// that don't need special functionality for the [closureWithRespectToUnknown]
 /// and [recursivelyDemote] methods.
 abstract class _SpecialSimpleType extends PrimaryType {
-  _SpecialSimpleType._(super.nameInfo, {super.isQuestionType = false})
-    : super._special();
+  new _(super.nameInfo, {super.isQuestionType = false}) : super._special();
 
   @override
   Type? closureWithRespectToUnknown({required bool covariant}) => null;
@@ -2303,7 +2282,7 @@ class _TypeParser {
 
   int _i = 0;
 
-  _TypeParser._(this._typeStr, this._tokens);
+  new _(this._typeStr, this._tokens);
 
   String get _currentToken => _tokens[_i];
 

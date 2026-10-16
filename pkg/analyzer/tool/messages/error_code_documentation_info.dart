@@ -62,7 +62,7 @@ class ErrorCodeDocumentationBlock extends ErrorCodeDocumentationPart {
   /// the file.
   final String? uri;
 
-  ErrorCodeDocumentationBlock(
+  new(
     this.text, {
     required this.containingSection,
     this.experiments = const [],
@@ -83,7 +83,7 @@ class ErrorCodeDocumentationText extends ErrorCodeDocumentationPart {
   /// The text, in markdown format.
   final String text;
 
-  ErrorCodeDocumentationText(this.text);
+  new(this.text);
 }
 
 class _ErrorCodeDocumentationParser {
@@ -115,7 +115,7 @@ class _ErrorCodeDocumentationParser {
 
   String? currentSection;
 
-  _ErrorCodeDocumentationParser(this.errorCode, this.commentLines);
+  new(this.errorCode, this.commentLines);
 
   bool get done => currentLineNumber >= commentLines.length;
 

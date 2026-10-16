@@ -66,7 +66,7 @@ class IdValue {
   final Annotation annotation;
   final String value;
 
-  const IdValue(this.id, this.annotation, this.value);
+  const new(this.id, this.annotation, this.value);
 
   @override
   int get hashCode => id.hashCode * 13 + value.hashCode * 17;
@@ -208,7 +208,7 @@ class MemberId implements Id {
   @override
   final bool isGlobal;
 
-  factory MemberId(String text, {bool isGlobal = false}) {
+  factory(String text, {bool isGlobal = false}) {
     int dotPos = text.indexOf('.');
     if (dotPos != -1) {
       return new MemberId.internal(
@@ -221,7 +221,7 @@ class MemberId implements Id {
     }
   }
 
-  MemberId.internal(this.memberName, {this.className, this.isGlobal = false});
+  new internal(this.memberName, {this.className, this.isGlobal = false});
 
   @override
   int get hashCode => className.hashCode * 13 + memberName.hashCode * 17;
@@ -251,7 +251,7 @@ class ClassId implements Id {
   @override
   final bool isGlobal;
 
-  ClassId(this.className, {this.isGlobal = false});
+  new(this.className, {this.isGlobal = false});
 
   @override
   int get hashCode => className.hashCode * 13;
@@ -279,7 +279,7 @@ class ClassId implements Id {
 class LibraryId implements Id {
   final Uri uri;
 
-  LibraryId(this.uri);
+  new(this.uri);
 
   // TODO(johnniwinther): Support global library annotations.
   @override
@@ -313,7 +313,7 @@ class NodeId implements Id {
   @override
   final IdKind kind;
 
-  const NodeId(this.value, this.kind) : assert(value >= 0);
+  const new(this.value, this.kind) : assert(value >= 0);
 
   @override
   bool get isGlobal => false;
@@ -342,7 +342,7 @@ class ActualData<T> {
   final int _offset;
   final Object object;
 
-  ActualData(this.id, this.value, this.uri, this._offset, this.object);
+  new(this.id, this.value, this.uri, this._offset, this.object);
 
   int get offset {
     if (id is NodeId) {

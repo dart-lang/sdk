@@ -21,11 +21,11 @@ class RecordTypeAnnotationResolver {
   final DiagnosticReporter _diagnosticReporter;
   final LibraryElement libraryElement;
 
-  RecordTypeAnnotationResolver({
+  new({
     required this.typeProvider,
-    required DiagnosticReporter diagnosticReporter,
+    required this._diagnosticReporter,
     required this.libraryElement,
-  }) : _diagnosticReporter = diagnosticReporter;
+  });
 
   bool get isWildCardVariablesEnabled =>
       libraryElement.featureSet.isEnabled(Feature.wildcard_variables);

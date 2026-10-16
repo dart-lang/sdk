@@ -29,7 +29,7 @@ class MemberDuplicateDefinitionVerifier {
   final DuplicationDefinitionContext context;
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
 
-  MemberDuplicateDefinitionVerifier._(
+  new _(
     this._inheritanceManager,
     this._currentLibrary,
     this._currentUnit,
@@ -670,13 +670,12 @@ sealed class _ScopeEntry {}
 class _ScopeEntryElement extends _ScopeEntry {
   final ElementImpl element;
 
-  _ScopeEntryElement(this.element)
-    : assert(element is! PropertyInducingElementImpl);
+  new(this.element) : assert(element is! PropertyInducingElementImpl);
 }
 
 class _ScopeEntryGetterSetterPair extends _ScopeEntry {
   final GetterElementImpl getter;
   final SetterElementImpl setter;
 
-  _ScopeEntryGetterSetterPair({required this.getter, required this.setter});
+  new({required this.getter, required this.setter});
 }

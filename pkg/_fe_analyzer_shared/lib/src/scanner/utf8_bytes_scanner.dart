@@ -86,7 +86,7 @@ class Utf8BytesScanner extends AbstractScanner {
    */
   int utf8Slack = 0;
 
-  Utf8BytesScanner(
+  new(
     this._bytes, {
     ScannerConfiguration? configuration,
     bool includeComments = false,
@@ -107,7 +107,7 @@ class Utf8BytesScanner extends AbstractScanner {
     }
   }
 
-  Utf8BytesScanner.createRecoveryOptionScanner(Utf8BytesScanner copyFrom)
+  new createRecoveryOptionScanner(Utf8BytesScanner copyFrom)
     : _bytes = copyFrom._bytes,
       _bytesLengthMinusOne = copyFrom._bytesLengthMinusOne,
       super.recoveryOptionScanner(copyFrom) {

@@ -174,7 +174,7 @@ abstract class ArrayKeywordState implements KeywordState {
   @override
   final Keyword? keyword;
 
-  ArrayKeywordState(this.table, String? syntax)
+  new(this.table, String? syntax)
     : keyword = ((syntax == null) ? null : Keyword.keywords[syntax]);
 
   @override
@@ -207,8 +207,7 @@ abstract class ArrayKeywordState implements KeywordState {
 }
 
 class LowerCaseArrayKeywordState extends ArrayKeywordState {
-  LowerCaseArrayKeywordState(List<KeywordState?> table, String? syntax)
-    : super(table, syntax) {
+  new(List<KeywordState?> table, String? syntax) : super(table, syntax) {
     assert(table.length == $z - $a + 1);
   }
 
@@ -220,8 +219,7 @@ class LowerCaseArrayKeywordState extends ArrayKeywordState {
 }
 
 class UpperCaseArrayKeywordState extends ArrayKeywordState {
-  UpperCaseArrayKeywordState(List<KeywordState?> table, String? syntax)
-    : super(table, syntax) {
+  new(List<KeywordState?> table, String? syntax) : super(table, syntax) {
     assert(table.length == $z - $A + 1);
   }
 
@@ -239,7 +237,7 @@ class LeafKeywordState implements KeywordState {
   @override
   final Keyword keyword;
 
-  LeafKeywordState(String syntax) : keyword = Keyword.keywords[syntax]!;
+  new(String syntax) : keyword = Keyword.keywords[syntax]!;
 
   @override
   KeywordState? next(int c) => null;

@@ -133,14 +133,12 @@ class _ContextLocator {
   /// Initialize a newly created context locator. If a [resourceProvider] is
   /// supplied, it will be used to access the file system. Otherwise the default
   /// resource provider will be used.
-  _ContextLocator({
+  new({
     required ResourceProvider? resourceProvider,
-    required File? defaultOptionsFile,
-    required File? defaultPackageConfigFile,
+    required this._defaultOptionsFile,
+    required this._defaultPackageConfigFile,
   }) : _resourceProvider =
-           resourceProvider ?? PhysicalResourceProvider.INSTANCE,
-       _defaultOptionsFile = defaultOptionsFile,
-       _defaultPackageConfigFile = defaultPackageConfigFile;
+           resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   /// Adds individually included files to contexts. Unlike an options file,
   /// workspace and package configuration affect how every library reachable
@@ -1017,7 +1015,7 @@ class _RootLocation {
   final File? optionsFile;
   final File? packageConfigFile;
 
-  _RootLocation({
+  new({
     required this.contextRootFolder,
     required this.resolutionRootFolder,
     required this.workspace,

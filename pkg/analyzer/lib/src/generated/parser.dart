@@ -22,7 +22,7 @@ class Parser {
   /// based on the Fasta parser.
   final AstBuilder astBuilder;
 
-  Parser(
+  new(
     DiagnosticReporter diagnosticReporter, {
     required FeatureSet featureSet,
     required LibraryLanguageVersion languageVersion,

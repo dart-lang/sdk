@@ -34,8 +34,5 @@ final class AnalyzerDiagnosticExpectationReference {
   /// The offset of [name] relative to the string literal token lexeme.
   final int offsetInLexeme;
 
-  const AnalyzerDiagnosticExpectationReference({
-    required this.name,
-    required this.offsetInLexeme,
-  });
+  const new({required this.name, required this.offsetInLexeme});
 }

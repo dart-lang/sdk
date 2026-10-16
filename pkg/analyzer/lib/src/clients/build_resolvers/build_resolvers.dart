@@ -92,7 +92,7 @@ class AnalysisDriverForPackageBuild {
   final List<Uri> _sdkLibraryUris;
   final AnalysisDriver _driver;
 
-  AnalysisDriverForPackageBuild._(this._sdkLibraryUris, this._driver);
+  new _(this._sdkLibraryUris, this._driver);
 
   AnalysisSession get currentSession {
     return _driver.currentSession;

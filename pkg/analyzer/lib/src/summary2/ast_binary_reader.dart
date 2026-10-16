@@ -22,7 +22,7 @@ import 'package:analyzer/src/summary2/unlinked_token_type.dart';
 class AstBinaryReader {
   final ResolutionReader _reader;
 
-  AstBinaryReader({required ResolutionReader reader}) : _reader = reader;
+  new({required this._reader});
 
   AstNode readNode() {
     var node = _readNode();

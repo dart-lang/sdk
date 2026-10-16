@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 class CommentReferenceResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  CommentReferenceResolver(this._typeAnalyzer);
+  new(this._typeAnalyzer);
 
   /// Resolves [commentReference].
   void resolve(CommentReferenceImpl commentReference) {

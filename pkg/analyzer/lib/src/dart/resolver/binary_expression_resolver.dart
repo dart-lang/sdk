@@ -27,7 +27,7 @@ class BinaryExpressionResolver {
   final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
 
-  BinaryExpressionResolver({required TypeAnalyzer typeAnalyzer})
+  new({required TypeAnalyzer typeAnalyzer})
     : _typeAnalyzer = typeAnalyzer,
       _typePropertyResolver = typeAnalyzer.typePropertyResolver;
 

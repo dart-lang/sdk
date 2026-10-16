@@ -105,7 +105,7 @@ class _ElementGenerator {
   final Set<String> fragmentStorageFlags = {};
   final List<_Replacement> replacements = [];
 
-  _ElementGenerator(this.unitResult);
+  new(this.unitResult);
 
   Future<String> generate() async {
     _replaceGeneratedFlags();
@@ -317,10 +317,7 @@ class _ExistingGeneratedGetter {
   final String? documentationComment;
   final List<String> annotations;
 
-  _ExistingGeneratedGetter({
-    required this.documentationComment,
-    required this.annotations,
-  });
+  new({required this.documentationComment, required this.annotations});
 }
 
 class _GenerateElementFlag {
@@ -328,7 +325,7 @@ class _GenerateElementFlag {
   final bool fragment;
   final _ElementFlagSource elementSource;
 
-  _GenerateElementFlag({
+  new({
     required this.name,
     required this.fragment,
     required this.elementSource,
@@ -339,7 +336,7 @@ class _GenerateElementFlags {
   final ClassElement element;
   final List<_GenerateElementFlag> flags;
 
-  _GenerateElementFlags(this.element, this.flags);
+  new(this.element, this.flags);
 }
 
 class _Replacement {
@@ -347,7 +344,7 @@ class _Replacement {
   final int end;
   final String text;
 
-  _Replacement({required this.offset, required this.end, required this.text});
+  new({required this.offset, required this.end, required this.text});
 }
 
 extension on StringBuffer {

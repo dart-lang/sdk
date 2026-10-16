@@ -107,7 +107,7 @@ List<Witness>? checkExhaustiveness(
 class _Checker {
   final ObjectPropertyLookup _propertyLookup;
 
-  _Checker(this._propertyLookup);
+  new(this._propertyLookup);
 
   /// Tries to find a pattern containing at least one value matched by
   /// [valuePatterns] that is not matched by any of the patterns in [caseRows].
@@ -467,7 +467,7 @@ class NonExhaustiveness {
 
   final List<Witness> witnesses;
 
-  NonExhaustiveness(this.valueType, this.cases, this.witnesses);
+  new(this.valueType, this.cases, this.witnesses);
 
   @override
   String toString() =>
@@ -479,7 +479,7 @@ class CaseUnreachability {
   final List<Space> cases;
   final int index;
 
-  CaseUnreachability(this.valueType, this.cases, this.index);
+  new(this.valueType, this.cases, this.index);
 
   @override
   String toString() => 'Case #${index + 1} ${cases[index]} is unreachable.';

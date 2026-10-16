@@ -33,7 +33,7 @@ class FunctionAstVisitor extends RecursiveAstVisitor2<void> {
   unqualifiedFunctionInvocation;
   final void Function(VariableDeclaration)? variableDeclaration;
 
-  FunctionAstVisitor({
+  new({
     this.block,
     this.catchClauseParameter,
     this.declaredIdentifier,

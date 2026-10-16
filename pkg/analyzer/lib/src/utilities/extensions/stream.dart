@@ -7,7 +7,7 @@ import 'dart:async';
 class _WhereTypeStreamSink<S, T> implements EventSink<S> {
   final EventSink<T> _sink;
 
-  _WhereTypeStreamSink(this._sink);
+  new(this._sink);
 
   @override
   void add(S data) {

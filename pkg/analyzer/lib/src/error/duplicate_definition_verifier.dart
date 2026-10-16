@@ -20,7 +20,7 @@ class DuplicateDefinitionVerifier {
   final DiagnosticFactory _diagnosticFactory = DiagnosticFactory();
   final Set<Token> _reportedTokens = Set.identity();
 
-  DuplicateDefinitionVerifier(this._currentLibrary, this._diagnosticReporter);
+  new(this._currentLibrary, this._diagnosticReporter);
 
   /// Check that the exception and stack trace parameters have different names.
   void checkCatchClause(CatchClause node) {
@@ -359,7 +359,7 @@ class _DuplicateIdentifierScope<T extends AstNode> {
 
   final Map<String, (T, Token)> _scope = {};
 
-  _DuplicateIdentifierScope(this._verifier);
+  new(this._verifier);
 
   /// Reports an error if there is already a node in this scope with the given
   /// [identifier] name.
@@ -414,7 +414,7 @@ class _DuplicateIdentifierScope<T extends AstNode> {
 /// Handles private named parameters and initializing formals.
 class _FormalParameterDuplicateIdentifierScope
     extends _DuplicateIdentifierScope<FormalParameter> {
-  _FormalParameterDuplicateIdentifierScope(super.verifier);
+  new(super.verifier);
 
   /// Given a private named parameter with [privateName] and corresponding
   /// [publicName], checks that the public name doesn't collide with any other

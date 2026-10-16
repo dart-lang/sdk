@@ -43,11 +43,7 @@ enum MutationKind {
   final ApiSurface apiSurface;
   final SelectorMode selector;
 
-  const MutationKind(
-    this.id, {
-    required this.apiSurface,
-    required this.selector,
-  });
+  new(this.id, {required this.apiSurface, required this.selector});
 
   static MutationKind parse(String id) {
     return byId[id] ?? (throw ArgumentError('Unknown kind: $id'));

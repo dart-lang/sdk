@@ -86,7 +86,7 @@ class ElementResolver {
 
   /// Initialize a newly created visitor to work for the given [_typeAnalyzer]
   /// to resolve the nodes in a compilation unit.
-  ElementResolver(this._typeAnalyzer)
+  new(this._typeAnalyzer)
     : _definingLibrary = _typeAnalyzer.definingLibrary,
       _methodInvocationResolver = MethodInvocationResolver(_typeAnalyzer);
 

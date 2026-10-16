@@ -21,13 +21,11 @@ class BoolExpressionVerifier {
 
   final InterfaceTypeImpl _boolType;
 
-  BoolExpressionVerifier({
+  new({
     required TypeAnalyzer typeAnalyzer,
-    required DiagnosticReporter diagnosticReporter,
-    required NullableDereferenceVerifier nullableDereferenceVerifier,
+    required this._diagnosticReporter,
+    required this._nullableDereferenceVerifier,
   }) : _typeAnalyzer = typeAnalyzer,
-       _diagnosticReporter = diagnosticReporter,
-       _nullableDereferenceVerifier = nullableDereferenceVerifier,
        _boolType = typeAnalyzer.typeSystem.typeProvider.boolType;
 
   /// Check to ensure that the [condition] is of type bool, are. Otherwise an

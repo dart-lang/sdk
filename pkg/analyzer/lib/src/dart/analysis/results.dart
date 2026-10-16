@@ -46,7 +46,7 @@ abstract class AnalysisResultImpl implements AnalysisResult {
   @override
   final AnalysisSession session;
 
-  AnalysisResultImpl({required this.session});
+  new({required this.session});
 }
 
 /// A visitor which locates the [AstNode] which declares an [Element].
@@ -62,7 +62,7 @@ class DeclarationByElementLocator extends UnifyingAstVisitor2<void> {
   final int _nameOffset;
   AstNode? result;
 
-  DeclarationByElementLocator(this.fragment, this._nameOffset);
+  new(this.fragment, this._nameOffset);
 
   @override
   void visitNode(AstNode node) {
@@ -190,12 +190,7 @@ class ElementDeclarationResultImpl implements FragmentDeclarationResult {
   @override
   final ResolvedUnitResult? resolvedUnit;
 
-  ElementDeclarationResultImpl(
-    this.fragment,
-    this.node,
-    this.parsedUnit,
-    this.resolvedUnit,
-  );
+  new(this.fragment, this.node, this.parsedUnit, this.resolvedUnit);
 }
 
 class ErrorsResultImpl implements ErrorsResult {
@@ -226,7 +221,7 @@ class ErrorsResultImpl implements ErrorsResult {
   @override
   final AnalysisOptions analysisOptions;
 
-  ErrorsResultImpl({
+  new({
     required this.session,
     required this.file,
     required this.content,
@@ -260,7 +255,7 @@ class FileResultImpl extends AnalysisResultImpl implements FileResult {
   @override
   final bool isPart;
 
-  FileResultImpl({required super.session, required this.fileState})
+  new({required super.session, required this.fileState})
     : content = fileState.content,
       lineInfo = fileState.lineInfo,
       isLibrary = fileState.kind is LibraryFileKind,
@@ -283,14 +278,14 @@ class LibraryElementResultImpl implements LibraryElementResult {
   @override
   final LibraryElementImpl element;
 
-  LibraryElementResultImpl(this.element);
+  new(this.element);
 }
 
 class MissingSdkLibraryResultImpl implements MissingSdkLibraryResult {
   @override
   final Uri missingUri;
 
-  MissingSdkLibraryResultImpl({required this.missingUri});
+  new({required this.missingUri});
 }
 
 class ParsedLibraryResultImpl extends AnalysisResultImpl
@@ -298,7 +293,7 @@ class ParsedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ParsedUnitResult> units;
 
-  ParsedLibraryResultImpl({required super.session, required this.units});
+  new({required super.session, required this.units});
 
   @override
   ElementDeclarationResultImpl? getFragmentDeclaration(Fragment fragment) {
@@ -359,7 +354,7 @@ class ParsedUnitResultImpl extends FileResultImpl implements ParsedUnitResult {
   @override
   final List<Diagnostic> diagnostics;
 
-  ParsedUnitResultImpl({
+  new({
     required super.session,
     required super.fileState,
     required this.unit,
@@ -380,7 +375,7 @@ class ParseStringResultImpl implements ParseStringResult {
   @override
   final CompilationUnit unit;
 
-  ParseStringResultImpl(this.content, this.unit, this.errors);
+  new(this.content, this.unit, this.errors);
 
   @override
   LineInfo get lineInfo => unit.lineInfo;
@@ -416,7 +411,7 @@ class ResolvedForCompletionResultImpl {
   /// offset. Other nodes are provided mostly FYI.
   final List<AstNode> resolvedNodes;
 
-  ResolvedForCompletionResultImpl({
+  new({
     required this.analysisSession,
     required this.fileState,
     required this.path,
@@ -438,11 +433,7 @@ class ResolvedLibraryResultImpl extends AnalysisResultImpl
   @override
   final List<ResolvedUnitResultImpl> units;
 
-  ResolvedLibraryResultImpl({
-    required super.session,
-    required this.element,
-    required this.units,
-  });
+  new({required super.session, required this.element, required this.units});
 
   @override
   TypeProviderImpl get typeProvider => element.typeProvider;
@@ -519,7 +510,7 @@ class ResolvedUnitResultImpl extends FileResultImpl
   @override
   final List<Diagnostic> diagnostics;
 
-  ResolvedUnitResultImpl({
+  new({
     required super.session,
     required super.fileState,
     required this.unit,
@@ -552,7 +543,7 @@ class UnitElementResultImpl extends FileResultImpl
   @override
   final LibraryFragmentImpl fragment;
 
-  UnitElementResultImpl({
+  new({
     required super.session,
     required super.fileState,
     required this.fragment,

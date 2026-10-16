@@ -67,7 +67,7 @@ A f(p) {
 class _BreadthFirstVisitorTestHelper extends BreadthFirstVisitor<void> {
   List<AstNode> nodes;
 
-  _BreadthFirstVisitorTestHelper(this.nodes) : super();
+  new(this.nodes) : super();
 
   @override
   void visitNode(AstNode node) {

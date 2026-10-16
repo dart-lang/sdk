@@ -19,15 +19,12 @@ class FeatureSetProvider {
 
   final Map<String, FeatureSet> _cachedFeatureSets = {};
 
-  FeatureSetProvider._({
-    required Version sdkLanguageVersion,
-    required AllowedExperiments allowedExperiments,
-    required ResourceProvider resourceProvider,
-    required Packages packages,
-  }) : _sdkLanguageVersion = sdkLanguageVersion,
-       _allowedExperiments = allowedExperiments,
-       _resourceProvider = resourceProvider,
-       _packages = packages;
+  new _({
+    required this._sdkLanguageVersion,
+    required this._allowedExperiments,
+    required this._resourceProvider,
+    required this._packages,
+  });
 
   FeatureSet featureSetForExperiments(List<String> experiments) {
     String key = experiments.join("|");

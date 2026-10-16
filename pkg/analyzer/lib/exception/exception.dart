@@ -13,7 +13,7 @@ class AnalysisException implements Exception {
 
   /// Initialize a newly created exception to have the given [message] and
   /// [cause].
-  AnalysisException([this.message = 'Exception', this.cause]);
+  new([this.message = 'Exception', this.cause]);
 
   @override
   String toString() {
@@ -44,12 +44,12 @@ class CaughtException implements Exception {
 
   /// Initialize a newly created caught exception to have the given [exception]
   /// and [stackTrace].
-  CaughtException(Object exception, StackTrace stackTrace)
+  new(Object exception, StackTrace stackTrace)
     : this.withMessage(null, exception, stackTrace);
 
   /// Initialize a newly created caught exception to have the given [exception],
   /// [stackTrace], and [message].
-  CaughtException.withMessage(this.message, this.exception, this.stackTrace);
+  new withMessage(this.message, this.exception, this.stackTrace);
 
   /// Recursively unwrap this [CaughtException] if it itself contains a
   /// [CaughtException].
@@ -96,11 +96,11 @@ class CaughtException implements Exception {
 /// This is still considered an exceptional situation and will be sent to crash
 /// reporting.
 class SilentException extends CaughtException {
-  SilentException(String super.message, super.exception, super.stackTrace)
+  new(String super.message, super.exception, super.stackTrace)
     : super.withMessage();
 
   /// Create a [SilentException] to wrap a [CaughtException], adding a
   /// [message].
-  SilentException.wrapInMessage(String message, CaughtException exception)
+  new wrapInMessage(String message, CaughtException exception)
     : this(message, exception, StackTrace.current);
 }

@@ -29,7 +29,7 @@ class LibraryDiagnosticsBundle {
   /// which includes diagnostics and the index.
   final Map<Uri, Uint8List> serializedFileResults;
 
-  factory LibraryDiagnosticsBundle.fromBytes(Uint8List bytes) {
+  factory fromBytes(Uint8List bytes) {
     var reader = BinaryReader(bytes);
     reader.initFromTableTrailer();
     return LibraryDiagnosticsBundle._(
@@ -42,7 +42,7 @@ class LibraryDiagnosticsBundle {
     );
   }
 
-  LibraryDiagnosticsBundle._({
+  new _({
     required this.id,
     required this.requirementsBytes,
     required this.serializedFileResults,

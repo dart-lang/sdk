@@ -45,7 +45,7 @@ class TypePropertyResolver {
   InternalExecutableElement? _setterRequested;
   InternalExecutableElement? _setterRecovery;
 
-  TypePropertyResolver(this._typeAnalyzer)
+  new(this._typeAnalyzer)
     : _definingLibrary = _typeAnalyzer.definingLibrary,
       _typeSystem = _typeAnalyzer.typeSystem,
       _typeProvider = _typeAnalyzer.typeProvider,

@@ -9,7 +9,7 @@ class CountedStopwatch extends Stopwatch {
   int stopCount = 0;
 
   /// Initialize a newly created stopwatch.
-  CountedStopwatch();
+  new();
 
   /// The average number of millisecond that were recorded each time the [start]
   /// and [stop] methods were invoked.

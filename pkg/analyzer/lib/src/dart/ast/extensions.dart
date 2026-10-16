@@ -88,7 +88,7 @@ class _TokenRange extends SyntacticEntity {
   final Token _begin;
   final Token _end;
 
-  _TokenRange(this._begin, this._end);
+  new(this._begin, this._end);
 
   @override
   int get end => _end.end;

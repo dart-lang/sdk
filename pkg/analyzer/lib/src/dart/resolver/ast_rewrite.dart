@@ -27,11 +27,7 @@ class AstRewriter {
   final ScopeContext _scopeContext;
   final LibraryElementImpl _libraryElement;
 
-  AstRewriter(
-    this._diagnosticReporter,
-    this._scopeContext,
-    this._libraryElement,
-  );
+  new(this._diagnosticReporter, this._scopeContext, this._libraryElement);
 
   AssignmentTargetImpl parsedAssignmentTarget(
     Scope nameScope,
@@ -779,7 +775,7 @@ sealed class ParsedExpressionResult {}
 final class PreparedCascadeInvocation extends ParsedExpressionResult {
   final ParsedValueArgumentsImpl valueArguments;
 
-  PreparedCascadeInvocation(this.valueArguments);
+  new(this.valueArguments);
 }
 
 /// A shorthand call needs the context established by its enclosing expression
@@ -787,7 +783,7 @@ final class PreparedCascadeInvocation extends ParsedExpressionResult {
 final class PreparedDotShorthandInvocation extends ParsedExpressionResult {
   final ParsedValueArgumentsImpl valueArguments;
 
-  PreparedDotShorthandInvocation(this.valueArguments);
+  new(this.valueArguments);
 }
 
 /// A call ready for receiver traversal and subsequent member lookup.
@@ -796,7 +792,7 @@ final class PreparedReceiverInvocation extends ParsedExpressionResult {
   final TypeArgumentListImpl? typeArguments;
   final ParsedValueArgumentsImpl valueArguments;
 
-  PreparedReceiverInvocation._({
+  new _({
     required this.receiver,
     required this.typeArguments,
     required this.valueArguments,
@@ -807,5 +803,5 @@ final class PreparedReceiverInvocation extends ParsedExpressionResult {
 final class RewrittenParsedExpression extends ParsedExpressionResult {
   final InstanceReceiverImpl expression;
 
-  RewrittenParsedExpression._(this.expression);
+  new _(this.expression);
 }

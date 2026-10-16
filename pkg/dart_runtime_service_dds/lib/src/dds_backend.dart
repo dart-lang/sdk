@@ -8,7 +8,6 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
-import 'package:dds/dds.dart' show DartDevelopmentServiceException;
 import 'package:devtools_shared/devtools_extensions_io.dart';
 import 'package:devtools_shared/devtools_shared.dart' show DtdInfo;
 import 'package:dtd/dtd.dart';
@@ -50,8 +49,6 @@ class DartRuntimeServiceDdsBackend
   /// The path segment for DevTools requests (e.g., 'devtools').
   static const _devtoolsPath = 'devtools';
 
-  static const _ddsUriKey = 'ddsUri';
-
   /// Whether DevTools is served directly by this service or redirected to an
   /// external instance.
   final bool serveDevTools;
@@ -73,22 +70,21 @@ class DartRuntimeServiceDdsBackend
   late final shelf.Handler _httpHandler;
 
   late final DdsIsolateManager _isolateManager;
-  DdsStreamManager? _streamManager;
-  WebSocketChannel? _webSocketChannel;
-  vm.VmService? _vmServiceClient;
+  late final DdsStreamManager _streamManager;
+  late final WebSocketChannel _webSocketChannel;
+  late final vm.VmService _vmServiceClient;
   late final DdsRpcHandlers _rpcHandlers;
-  bool _shuttingDown = false;
 
   @override
   DdsIsolateManager get isolateManager => _isolateManager;
 
-  DdsStreamManager get streamManager => _streamManager!;
+  DdsStreamManager get streamManager => _streamManager;
 
   @override
   ExpressionEvaluator? get expressionEvaluator => _expressionEvaluator;
   late final DdsExpressionEvaluator _expressionEvaluator;
 
-  vm.VmService get vmServiceClient => _vmServiceClient!;
+  vm.VmService get vmServiceClient => _vmServiceClient;
 
   @override
   shelf.Handler get httpHandler => _httpHandler;
@@ -205,17 +201,10 @@ class DartRuntimeServiceDdsBackend
       // 4. Connect to the target VM Service WebSocket and initialize isolate
       // state.
       final wsUri = _convertToWebSocketUri(remoteVmServiceUri);
-      final webSocketChannel = WebSocketChannel.connect(wsUri);
-      try {
-        await webSocketChannel.ready;
-      } on WebSocketChannelException catch (e) {
-        throw DartDevelopmentServiceException.connectionIssue('$e');
-      }
-      _webSocketChannel = webSocketChannel;
+      _webSocketChannel = WebSocketChannel.connect(wsUri);
 
-      var connectionClosed = false;
       final stringStreamController = StreamController<String>();
-      webSocketChannel.stream.listen(
+      _webSocketChannel.stream.listen(
         (Object? data) {
           switch (data) {
             case final String text:
@@ -237,37 +226,27 @@ class DartRuntimeServiceDdsBackend
           }
         },
         onError: stringStreamController.addError,
-        onDone: () {
-          connectionClosed = true;
-          unawaited(stringStreamController.close());
-        },
+        onDone: stringStreamController.close,
       );
 
-      final vmServiceClient = vm.VmService(
+      _vmServiceClient = vm.VmService(
         stringStreamController.stream,
-        (String message) => webSocketChannel.sink.add(message),
+        (String message) => _webSocketChannel.sink.add(message),
         disposeHandler: () async {
-          await webSocketChannel.sink.close();
+          await _webSocketChannel.sink.close();
         },
       );
-      _vmServiceClient = vmServiceClient;
 
-      var initializationComplete = false;
-      DartDevelopmentServiceException? startupError;
       unawaited(
-        vmServiceClient.onDone.then((_) {
-          if (initializationComplete && !_shuttingDown) {
-            frontend.shutdown();
-          } else if (!initializationComplete) {
-            startupError ??= DartDevelopmentServiceException.failedToStart();
-          }
-        }),
+        _vmServiceClient.onDone.then(
+          (_) => frontend.shutdown(),
+          onError: (e, st) => frontend.shutdown(),
+        ),
       );
 
-      _isolateManager = DdsIsolateManager(vmServiceClient: vmServiceClient);
+      _isolateManager = DdsIsolateManager(vmServiceClient: _vmServiceClient);
 
-      final streamManager = DdsStreamManager(backend: this);
-      _streamManager = streamManager;
+      _streamManager = DdsStreamManager(backend: this);
 
       _expressionEvaluator = DdsExpressionEvaluator(
         backend: this,
@@ -277,18 +256,12 @@ class DartRuntimeServiceDdsBackend
       _rpcHandlers = DdsRpcHandlers(this);
 
       // 5. Initialize DDS core streams and logging repositories.
-      await streamManager.initialize();
-      await _isolateManager.initializeIsolates();
-      if (connectionClosed) {
-        startupError ??= DartDevelopmentServiceException.failedToStart();
-      }
+      await _streamManager.initialize();
 
-      if (startupError != null) {
-        throw startupError!;
-      }
-      initializationComplete = true;
+      await _isolateManager.initializeIsolates();
     } catch (_) {
-      await shutdown();
+      await _hostedDartToolingDaemon?.shutdown();
+      _hostedDartToolingDaemon = null;
       rethrow;
     }
   }
@@ -298,15 +271,11 @@ class DartRuntimeServiceDdsBackend
 
   @override
   Future<void> shutdown() async {
-    _shuttingDown = true;
     await _hostedDartToolingDaemon?.shutdown();
     _hostedDartToolingDaemon = null;
-    await _streamManager?.shutdown();
-    _streamManager = null;
-    await _vmServiceClient?.dispose();
-    _vmServiceClient = null;
-    await _webSocketChannel?.sink.close();
-    _webSocketChannel = null;
+    await _streamManager.shutdown();
+    await _vmServiceClient.dispose();
+    await _webSocketChannel.sink.close();
   }
 
   @override
@@ -318,26 +287,12 @@ class DartRuntimeServiceDdsBackend
     required Uri wsUri,
   }) async {
     try {
-      await vmServiceClient.yieldControlToDds(uri: httpUri);
+      await _vmServiceClient.yieldControlToDds(uri: httpUri);
     } on vm.RPCError catch (e, st) {
       _logger.severe('Failed to yield control to DDS', e, st);
-      await shutdown();
-      if (e.code != vm.RPCErrorKind.kFeatureDisabled.code) {
-        throw DartDevelopmentServiceException.failedToStart('$e');
-      }
-      var message = e.toString();
-      final data = e.data;
-      Uri? ddsUri;
-      if (data != null) {
-        message += ' data: $data';
-        if (data[_ddsUriKey] case final String uri) {
-          ddsUri = Uri.tryParse(uri);
-        }
-      }
-      throw DartDevelopmentServiceException.existingDdsInstance(
-        message,
-        ddsUri: ddsUri,
-      );
+      await _hostedDartToolingDaemon?.shutdown();
+      _hostedDartToolingDaemon = null;
+      rethrow;
     }
 
     final hostedDtd = _hostedDartToolingDaemon;
@@ -369,18 +324,18 @@ class DartRuntimeServiceDdsBackend
 
   @override
   void onClientSubscribe(Client client, String streamId) {
-    streamManager.onClientSubscribe(client, streamId);
+    _streamManager.onClientSubscribe(client, streamId);
   }
 
   @override
   Future<bool> onStreamListen({
     required Map<String, Object?> params,
     required String streamId,
-  }) => streamManager.onStreamListen(params: params, streamId: streamId);
+  }) => _streamManager.onStreamListen(params: params, streamId: streamId);
 
   @override
   Future<void> onStreamCancel({required String streamId}) =>
-      streamManager.onStreamCancel(streamId: streamId);
+      _streamManager.onStreamCancel(streamId: streamId);
 
   Uri _convertToWebSocketUri(Uri uri) {
     var scheme = uri.scheme;
@@ -431,7 +386,7 @@ class DartRuntimeServiceDdsBackend
     Map<String, Object?>? args,
   }) async {
     try {
-      final response = await vmServiceClient.callMethod(method, args: args);
+      final response = await _vmServiceClient.callMethod(method, args: args);
       // Return the untouched raw JSON map (`response.json!`) rather than
       // `response.toJson()`. `package:vm_service` model `toJson()` methods
       // strip VM-private fields (such as `_heaps`, `_profiler`, and `_Zone`),

@@ -20,13 +20,11 @@ class ScopeContext {
   InstanceElementImpl? _enclosingInstanceElement;
   bool _isInStaticMember = false;
 
-  ScopeContext({
-    required LibraryFragmentImpl libraryFragment,
-    required Scope nameScope,
-    DocImportScope? docImportScope,
-  }) : _libraryFragment = libraryFragment,
-       _docImportScope = docImportScope,
-       _nameScope = nameScope;
+  new({
+    required this._libraryFragment,
+    required this._nameScope,
+    this._docImportScope,
+  });
 
   InstanceElementImpl? get enclosingInstanceElement {
     return _enclosingInstanceElement;

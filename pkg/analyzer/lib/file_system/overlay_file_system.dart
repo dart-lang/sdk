@@ -25,7 +25,7 @@ class OverlayResourceProvider implements ResourceProvider {
 
   /// Initialize a newly created resource provider to represent an overlay on
   /// the given [baseProvider].
-  OverlayResourceProvider(this.baseProvider);
+  new(this.baseProvider);
 
   @override
   pathos.Context get pathContext => baseProvider.pathContext;
@@ -124,7 +124,7 @@ class OverlayResourceProvider implements ResourceProvider {
 class _OverlayFile extends _OverlayResource implements File {
   /// Initialize a newly created file to have the given [provider] and to
   /// correspond to the given [file] from the provider's base resource provider.
-  _OverlayFile(super.provider, File super.file);
+  new(super.provider, File super.file);
 
   @override
   bool get exists => provider.hasOverlay(path) || _resource.exists;
@@ -225,7 +225,7 @@ class _OverlayFileData {
   final String content;
   final int modificationStamp;
 
-  _OverlayFileData(this.content, this.modificationStamp);
+  new(this.content, this.modificationStamp);
 }
 
 /// A folder from an [OverlayResourceProvider].
@@ -233,7 +233,7 @@ class _OverlayFolder extends _OverlayResource implements Folder {
   /// Initialize a newly created folder to have the given [provider] and to
   /// correspond to the given [folder] from the provider's base resource
   /// provider.
-  _OverlayFolder(super.provider, Folder super.folder);
+  new(super.provider, Folder super.folder);
 
   @override
   bool get exists => provider._hasOverlayIn(path) || _resource.exists;
@@ -341,14 +341,11 @@ abstract class _OverlayResource implements Resource {
   /// Initialize a newly created instance of a resource to have the given
   /// [provider] and to represent the [_resource] from the provider's base
   /// resource provider.
-  _OverlayResource(this.provider, this._resource);
+  new(this.provider, this._resource);
 
   /// Return an instance of the subclass of this class corresponding to the
   /// given [resource] that is associated with the given [provider].
-  factory _OverlayResource._from(
-    OverlayResourceProvider provider,
-    Resource resource,
-  ) {
+  factory _from(OverlayResourceProvider provider, Resource resource) {
     if (resource is Folder) {
       return _OverlayFolder(provider, resource);
     } else if (resource is File) {

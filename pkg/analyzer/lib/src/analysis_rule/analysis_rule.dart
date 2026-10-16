@@ -45,7 +45,7 @@ sealed class AbstractAnalysisRule {
   /// applied to a given rule.
   final RuleState state;
 
-  AbstractAnalysisRule({
+  new({
     required this.name,
     required this.description,
     this.state = const RuleState.stable(),
@@ -185,7 +185,7 @@ sealed class AbstractAnalysisRule {
   message: 'Exported by package:analyzer/analysis_rule/analysis_rule.dart',
 )
 abstract class AnalysisRule extends AbstractAnalysisRule {
-  AnalysisRule({required super.name, required super.description, super.state});
+  new({required super.name, required super.description, super.state});
 
   /// The code to report for a violation.
   DiagnosticCode get diagnosticCode;
@@ -282,11 +282,7 @@ abstract class AnalysisRule extends AbstractAnalysisRule {
   message: 'Exported by package:analyzer/analysis_rule/analysis_rule.dart',
 )
 abstract class MultiAnalysisRule extends AbstractAnalysisRule {
-  MultiAnalysisRule({
-    required super.name,
-    required super.description,
-    super.state,
-  });
+  new({required super.name, required super.description, super.state});
 
   /// Reports [diagnosticCode] at [node] with message [arguments] and
   /// [contextMessages].
@@ -383,7 +379,7 @@ abstract class MultiAnalysisRule extends AbstractAnalysisRule {
   message: 'Exported by package:analyzer/analysis_rule/analysis_rule.dart',
 )
 final class RemovedAnalysisRule extends MultiAnalysisRule {
-  RemovedAnalysisRule({
+  new({
     required super.name,
     required super.description,
     Version? since,

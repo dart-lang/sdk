@@ -550,7 +550,7 @@ class ScopeAnalyzerTest {
 final class _ScopeAnalyzerEventListener extends ScopeAnalyzerEventListener {
   final ScopeAnalyzerTest test;
 
-  _ScopeAnalyzerEventListener(this.test);
+  new(this.test);
 
   @override
   void onAlloc({required int index, required StateVar stateVar}) {
@@ -593,7 +593,7 @@ class _ScopeAnalyzerTestIRWriter extends TestIRWriter {
   final Map<int, List<void Function(ScopeAnalyzerEventListener)>>
   _addressToOnAnalyzeCallbacks;
 
-  _ScopeAnalyzerTestIRWriter(this._addressToOnAnalyzeCallbacks);
+  new(this._addressToOnAnalyzeCallbacks);
 
   void onAnalyze(void Function(ScopeAnalyzerEventListener) callback) {
     _addressToOnAnalyzeCallbacks

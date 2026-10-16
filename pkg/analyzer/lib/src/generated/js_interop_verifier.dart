@@ -23,7 +23,7 @@ class JsInteropVerifier {
 
   final DiagnosticReporter _diagnosticReporter;
 
-  JsInteropVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   void verifyCompilationUnit(CompilationUnit node) {
     for (var declaration in node.declarations2) {

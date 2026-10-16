@@ -30,7 +30,7 @@ class TypeBasedStaticType<Type extends Object> extends NonNullableStaticType {
   @override
   final bool isImplicitlyNullable;
 
-  TypeBasedStaticType(
+  new(
     this._typeOperations,
     this._fieldLookup,
     this._type, {
@@ -142,7 +142,7 @@ abstract class RestrictedStaticType<
   @override
   final String name;
 
-  RestrictedStaticType(
+  new(
     super.typeOperations,
     super.fieldLookup,
     super.type,
@@ -162,7 +162,7 @@ class GeneralValueStaticType<Type extends Object, T extends Object>
     buffer.writeGeneralConstantValue(_value, name);
   }
 
-  GeneralValueStaticType(
+  new(
     super.typeOperations,
     super.fieldLookup,
     super.type,
@@ -177,7 +177,7 @@ abstract class ValueStaticType<Type extends Object, T extends Object>
     extends RestrictedStaticType<Type, IdentityRestriction<T>> {
   void valueToDart(DartTemplateBuffer buffer);
 
-  ValueStaticType(
+  new(
     super.typeOperations,
     super.fieldLookup,
     super.type,
@@ -231,7 +231,7 @@ abstract class Restriction<Type extends Object> {
 
 /// The unrestricted [Restriction] that covers all values of a type.
 class Unrestricted implements Restriction<Object> {
-  const Unrestricted();
+  const new();
 
   @override
   bool get isUnrestricted => true;
@@ -246,7 +246,7 @@ class IdentityRestriction<Identity extends Object>
     implements Restriction<Object> {
   final Identity identity;
 
-  const IdentityRestriction(this.identity);
+  const new(this.identity);
 
   @override
   bool get isUnrestricted => false;

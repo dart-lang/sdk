@@ -477,7 +477,7 @@ class SubstituteTest extends _Base {
 
 @reflectiveTest
 class SubstituteWithNullabilityTest extends _Base {
-  SubstituteWithNullabilityTest();
+  new();
 
   test_interface_none() async {
     // class A<T> {}

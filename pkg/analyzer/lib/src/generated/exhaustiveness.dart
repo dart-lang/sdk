@@ -78,7 +78,7 @@ class AnalyzerDartTemplateBuffer
 
 class AnalyzerEnumOperations
     implements EnumOperations<TypeImpl, EnumElement, FieldElement, DartObject> {
-  const AnalyzerEnumOperations();
+  const new();
 
   @override
   EnumElement? getEnumClass(TypeImpl type) {
@@ -125,7 +125,7 @@ class AnalyzerExhaustivenessCache
         > {
   final TypeSystemImpl typeSystem;
 
-  AnalyzerExhaustivenessCache(this.typeSystem, LibraryElement enclosingLibrary)
+  new(this.typeSystem, LibraryElement enclosingLibrary)
     : super(
         AnalyzerTypeOperations(typeSystem, enclosingLibrary),
         const AnalyzerEnumOperations(),
@@ -137,7 +137,7 @@ class AnalyzerSealedClassOperations
     implements SealedClassOperations<TypeImpl, InterfaceElementImpl> {
   final TypeSystemImpl _typeSystem;
 
-  AnalyzerSealedClassOperations(this._typeSystem);
+  new(this._typeSystem);
 
   @override
   List<InterfaceElementImpl> getDirectSubclasses(
@@ -213,7 +213,7 @@ class AnalyzerTypeOperations implements TypeOperations<TypeImpl> {
   final Map<InterfaceTypeImpl, Map<Key, TypeImpl>> _interfaceFieldTypesCaches =
       {};
 
-  AnalyzerTypeOperations(this._typeSystem, this._enclosingLibrary);
+  new(this._typeSystem, this._enclosingLibrary);
 
   @override
   TypeImpl get boolType => _typeSystem.typeProvider.boolType;
@@ -440,17 +440,14 @@ class ExhaustivenessDataForTesting {
   /// non-exhaustive, to information about their non-exhaustiveness.
   Map<AstNode, NonExhaustiveness> nonExhaustivenesses = {};
 
-  ExhaustivenessDataForTesting(this.objectFieldLookup);
+  new(this.objectFieldLookup);
 }
 
 class MissingPatternEnumValuePart extends MissingPatternPart {
   final EnumElement enumElement2;
   final FieldElement value2;
 
-  MissingPatternEnumValuePart({
-    required this.enumElement2,
-    required this.value2,
-  });
+  new({required this.enumElement2, required this.value2});
 
   @override
   String toString() => value2.name!;
@@ -468,7 +465,7 @@ abstract class MissingPatternPart {
 class MissingPatternTextPart extends MissingPatternPart {
   final String text;
 
-  MissingPatternTextPart(this.text);
+  new(this.text);
 
   @override
   String toString() => text;
@@ -477,7 +474,7 @@ class MissingPatternTextPart extends MissingPatternPart {
 class MissingPatternTypePart extends MissingPatternPart {
   final TypeImpl type;
 
-  MissingPatternTypePart(this.type);
+  new(this.type);
 
   @override
   String toString() {
@@ -496,7 +493,7 @@ class PatternConverter with SpaceCreator<DartPattern, TypeImpl> {
   /// and there is no need to verify exhaustiveness.
   bool hasInvalidType = false;
 
-  PatternConverter({
+  new({
     required this.languageVersion,
     required this.featureSet,
     required this.cache,
@@ -792,7 +789,7 @@ class TypeParameterReplacer extends ReplacementVisitor {
   final TypeSystemImpl _typeSystem;
   Variance _variance = Variance.covariant;
 
-  TypeParameterReplacer(this._typeSystem);
+  new(this._typeSystem);
 
   @override
   void changeVariance() {

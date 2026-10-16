@@ -23,7 +23,7 @@ import 'package:collection/collection.dart';
 class ConstantInitializersResolver {
   final Linker linker;
 
-  ConstantInitializersResolver(this.linker);
+  new(this.linker);
 
   void perform() {
     for (var builder in linker.builders.values) {
@@ -107,7 +107,7 @@ class ConstantInitializersResolver {
 class TopLevelInference {
   final Linker linker;
 
-  TopLevelInference(this.linker);
+  new(this.linker);
 
   void infer() {
     var initializerInference = _InitializerInference(linker);
@@ -137,7 +137,7 @@ class _InitializerInference {
 
   late LibraryBuilder _libraryBuilder;
 
-  _InitializerInference(this._linker);
+  new(this._linker);
 
   void createNodes() {
     for (var builder in _linker.builders.values) {
@@ -206,12 +206,7 @@ class _PropertyInducingElementTypeInference
   final LibraryBuilder _libraryBuilder;
   final PropertyInducingElementImpl _element;
 
-  _PropertyInducingElementTypeInference(
-    this._linker,
-    this._inferring,
-    this._element,
-    this._libraryBuilder,
-  );
+  new(this._linker, this._inferring, this._element, this._libraryBuilder);
 
   @override
   ({TypeImpl type, bool isTypeInferredFromInitializer}) perform() {

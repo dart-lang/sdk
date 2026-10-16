@@ -52,7 +52,7 @@ bool _isPackageBuildGeneratedPath(List<String> pathComponents, int startIndex) {
 class PackageConfigFileUriResolver extends ResourceUriResolver {
   final PackageConfigWorkspace workspace;
 
-  PackageConfigFileUriResolver(this.workspace) : super(workspace.provider);
+  new(this.workspace) : super(workspace.provider);
 
   @override
   Uri pathToUri(String path) {
@@ -103,10 +103,8 @@ class PackageConfigPackageUriResolver extends UriResolver {
   final UriResolver _normalUriResolver;
   final Context _context;
 
-  PackageConfigPackageUriResolver(
-    PackageConfigWorkspace workspace,
-    this._normalUriResolver,
-  ) : _workspace = workspace,
+  new(PackageConfigWorkspace workspace, this._normalUriResolver)
+    : _workspace = workspace,
       _context = workspace.provider.pathContext;
 
   // TODO(scheglov): Finish switching to [Packages].
@@ -186,7 +184,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
 
   final Map<String, WorkspacePackageImpl> _workspacePackages = {};
 
-  factory PackageConfigWorkspace(
+  factory(
     ResourceProvider provider, //Packages packages,
     String root,
     File packageConfigFile,
@@ -205,12 +203,7 @@ class PackageConfigWorkspace extends SimpleWorkspace {
     );
   }
 
-  PackageConfigWorkspace._(
-    super.provider,
-    super.packages,
-    super.root,
-    this.packageConfigFile,
-  ) {
+  new _(super.provider, super.packages, super.root, this.packageConfigFile) {
     _packageConfigContent = packageConfigFile.readAsStringSync();
     var pubspecFile = provider.getFolder(root).getFile(file_paths.pubspecYaml);
     if (pubspecFile.exists) {
@@ -416,7 +409,7 @@ final class PackageConfigWorkspaceFindSession {
   >
   _workspaces = {};
 
-  PackageConfigWorkspaceFindSession(this._resourceProvider);
+  new(this._resourceProvider);
 
   /// Finds the package config workspace containing [filePath].
   ///
@@ -481,11 +474,7 @@ class PubPackage extends WorkspacePackageImpl {
   @override
   final PackageConfigWorkspace workspace;
 
-  factory PubPackage(
-    Folder root,
-    PackageConfigWorkspace workspace,
-    File pubspecFile,
-  ) {
+  factory(Folder root, PackageConfigWorkspace workspace, File pubspecFile) {
     var pubspecContent = pubspecFile.readAsStringSync();
     var pubspec = Pubspec.parse(
       pubspecContent,
@@ -502,7 +491,7 @@ class PubPackage extends WorkspacePackageImpl {
     );
   }
 
-  PubPackage._(
+  new _(
     this.root,
     this.workspace,
     this.pubspecContent,

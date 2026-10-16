@@ -2480,13 +2480,13 @@ class AstToIRTestBase extends PubPackageResolutionTest {
 class ListInstance extends Instance {
   final List<Object?> values;
 
-  ListInstance(super.type, this.values);
+  new(super.type, this.values);
 }
 
 class _CallDispatcher implements CallDispatcher {
   final AstToIRTest _test;
 
-  _CallDispatcher(this._test);
+  new(this._test);
 
   @override
   Object? await_(Instance future) {

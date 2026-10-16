@@ -11,7 +11,7 @@ import 'package:analyzer/src/summary2/link.dart';
 class SuperConstructorResolver {
   final Linker _linker;
 
-  SuperConstructorResolver(this._linker);
+  new(this._linker);
 
   void perform() {
     for (var builder in _linker.builders.values) {

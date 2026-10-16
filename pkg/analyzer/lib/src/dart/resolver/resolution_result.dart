@@ -29,7 +29,7 @@ enum LookupOutcome {
   nullableReceiver;
 
   /// The outcome of a lookup that produced [element].
-  factory LookupOutcome.of(InternalExecutableElement? element) {
+  factory of(InternalExecutableElement? element) {
     return element != null ? resolved : notFound;
   }
 }
@@ -50,7 +50,7 @@ class ResolutionResult extends SimpleResolutionResult {
 
   /// Initialize a newly created result to represent resolving a single
   /// reading and / or writing result.
-  ResolutionResult({
+  new({
     super.getter2,
     this.getterOutcome = LookupOutcome.notFound,
     super.setter2,
@@ -67,7 +67,7 @@ class SimpleResolutionResult {
   /// Return the element that is invoked for writing.
   final InternalExecutableElement? setter2;
 
-  const SimpleResolutionResult({this.getter2, this.setter2});
+  const new({this.getter2, this.setter2});
 }
 
 class SimpleStaticExtensionResolutionResult {
@@ -77,5 +77,5 @@ class SimpleStaticExtensionResolutionResult {
   /// its basename. Hence, the result is a single member.
   final InternalExecutableElement? member;
 
-  const SimpleStaticExtensionResolutionResult({this.member});
+  const new({this.member});
 }

@@ -33,7 +33,7 @@ main(List<String> args) {
 }
 
 class _WhyNotPromotedDataComputer extends DataComputer<String?> {
-  const _WhyNotPromotedDataComputer();
+  const new();
 
   @override
   DataInterpreter<String?> get dataValidator =>
@@ -57,7 +57,7 @@ class _WhyNotPromotedDataComputer extends DataComputer<String?> {
 class _WhyNotPromotedDataExtractor extends AstDataExtractor<String?> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  _WhyNotPromotedDataExtractor(super.uri, super.actualMap, this._flowResult);
+  new(super.uri, super.actualMap, this._flowResult);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
@@ -78,7 +78,7 @@ class _WhyNotPromotedDataExtractor extends AstDataExtractor<String?> {
 }
 
 class _WhyNotPromotedDataInterpreter implements DataInterpreter<String?> {
-  const _WhyNotPromotedDataInterpreter();
+  const new();
 
   @override
   String getText(String? actualData, [String? indentation]) =>

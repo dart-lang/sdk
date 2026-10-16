@@ -116,7 +116,7 @@ List<NamespaceCombinator> buildNamespaceCombinators(
 }
 
 class DefiningLinkingUnit extends LinkingUnit {
-  DefiningLinkingUnit({
+  new({
     required super.node,
     required super.fragment,
     required super.informativeBytes,
@@ -131,7 +131,7 @@ class ImplicitEnumNodes {
   final Set<String> valuesNames;
   ast.ListLiteralImpl valuesInitializer;
 
-  ImplicitEnumNodes({
+  new({
     required this.fragment,
     required this.valuesTypeNode,
     required this.valuesNode,
@@ -194,7 +194,7 @@ class LibraryBuilder {
   /// at the time when we create them, because of future augmentations.
   final Set<FieldFragmentImpl> finalInstanceFields = Set.identity();
 
-  LibraryBuilder._({
+  new _({
     required this.linker,
     required this.kind,
     required this.uri,
@@ -795,7 +795,7 @@ class LinkingUnit {
   final LibraryFragmentImpl fragment;
   final Uint8List informativeBytes;
 
-  LinkingUnit({
+  new({
     required this.node,
     required this.fragment,
     required this.informativeBytes,
@@ -819,7 +819,7 @@ class _FieldPromotability
   /// Fields that might be promotable, if not marked unpromotable later.
   final List<FieldElementImpl> _potentiallyPromotableFields = [];
 
-  _FieldPromotability(this._libraryBuilder, {required this.enabled});
+  new(this._libraryBuilder, {required this.enabled});
 
   @override
   Iterable<InterfaceElementImpl> getSuperclasses(

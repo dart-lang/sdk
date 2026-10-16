@@ -23,7 +23,7 @@ class _ReferencesTypeParameterVisitor extends RecursiveTypeVisitor {
   /// The result of whether any type parameters were found.
   bool result = false;
 
-  _ReferencesTypeParameterVisitor() : super(includeTypeAliasArguments: false);
+  new() : super(includeTypeAliasArguments: false);
 
   @override
   bool visitTypeParameterType(_) {

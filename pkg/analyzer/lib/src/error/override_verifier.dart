@@ -19,7 +19,7 @@ class OverrideVerifier extends RecursiveAstVisitor2<void> {
   /// The current class or mixin.
   InterfaceElement? _currentClass;
 
-  OverrideVerifier(this._errorReporter);
+  new(this._errorReporter);
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {

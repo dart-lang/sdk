@@ -91,7 +91,7 @@ abstract class AnalysisSession {
 /// The exception thrown by an [AnalysisSession] if a result is requested that
 /// might be inconsistent with any previously returned results.
 class InconsistentAnalysisException extends AnalysisException {
-  InconsistentAnalysisException()
+  new()
     : super(
         'Requested result might be inconsistent with previously '
         'returned results',

@@ -53,7 +53,7 @@ class NamedTypeResolver with ScopeHelpers {
   /// If [resolve] reported an error, this flag is set to `true`.
   bool hasErrorReported = false;
 
-  NamedTypeResolver(
+  new(
     LibraryElementImpl libraryElement,
     this._libraryFragment,
     this._scopeContext,
@@ -705,7 +705,7 @@ class NamedTypeResolver with ScopeHelpers {
 class _ErrorHelper {
   final DiagnosticReporter diagnosticReporter;
 
-  _ErrorHelper(this.diagnosticReporter);
+  new(this.diagnosticReporter);
 
   void reportNullOrNonTypeElement(NamedType node, Element? element) {
     if (node.name.isSynthetic) {

@@ -27,7 +27,7 @@ class ErrorConfig {
   ///     new ErrorConfig({'missing_return' : 'error'});
   /// will create a processor config that turns `missing_return` warnings into
   /// errors.
-  ErrorConfig(YamlNode? codeMap) {
+  new(YamlNode? codeMap) {
     if (codeMap is YamlMap) {
       _processMap(codeMap);
     }
@@ -68,10 +68,10 @@ class ErrorProcessor {
   /// given [severity].
   ///
   /// If [severity] is `null`, matching errors will be filtered.
-  ErrorProcessor(String code, [this.severity]) : code = code.toLowerCase();
+  new(String code, [this.severity]) : code = code.toLowerCase();
 
   /// Create an error processor that ignores the given error by [code].
-  factory ErrorProcessor.ignore(String code) => ErrorProcessor(code);
+  factory ignore(String code) => ErrorProcessor(code);
 
   /// The string that unique describes the processor.
   String get description => '$code -> ${severity?.name}';

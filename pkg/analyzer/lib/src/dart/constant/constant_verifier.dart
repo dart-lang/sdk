@@ -69,7 +69,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   final ExhaustivenessDataForTesting? exhaustivenessDataForTesting;
 
   /// Initialize a newly created constant verifier.
-  ConstantVerifier(
+  new(
     DiagnosticReporter diagnosticReporter,
     LibraryElementImpl currentLibrary,
     DeclaredVariables declaredVariables, {
@@ -83,7 +83,7 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
          retainDataForTesting: retainDataForTesting,
        );
 
-  ConstantVerifier._(
+  new _(
     this._diagnosticReporter,
     this._currentLibrary,
     this._typeSystem,
@@ -1253,7 +1253,7 @@ class _ConstLiteralVerifier {
   final _SetVerifierConfig? setConfig;
   final _MapVerifierConfig? mapConfig;
 
-  _ConstLiteralVerifier(
+  new(
     this.verifier, {
     required this.diagnosticCode,
     this.listElementType,
@@ -1690,7 +1690,7 @@ class _MapVerifierConfig {
   final Map<DartObject, Expression> uniqueKeys = {};
   final Map<Expression, Expression> duplicateKeys = {};
 
-  _MapVerifierConfig({required this.keyType, required this.valueType});
+  new({required this.keyType, required this.valueType});
 }
 
 class _SetVerifierConfig {
@@ -1698,7 +1698,7 @@ class _SetVerifierConfig {
   final Map<DartObject, Expression> uniqueValues = {};
   final Map<Expression, Expression> duplicateElements = {};
 
-  _SetVerifierConfig({required this.elementType});
+  new({required this.elementType});
 }
 
 extension on Expression {

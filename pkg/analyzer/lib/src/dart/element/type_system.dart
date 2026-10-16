@@ -40,7 +40,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:meta/meta.dart';
 
 class ExtensionTypeErasure extends ReplacementVisitor {
-  const ExtensionTypeErasure();
+  const new();
 
   TypeImpl perform(TypeImpl type) {
     return type.accept(this) ?? type;
@@ -69,12 +69,12 @@ class RelatedTypeParameters2 {
   final List<TypeParameterElementImpl> typeParameters;
   final List<TypeParameterTypeImpl> typeParameterTypes;
 
-  RelatedTypeParameters2._(this.typeParameters, this.typeParameterTypes);
+  new _(this.typeParameters, this.typeParameterTypes);
 }
 
 /// Aborts recursive type operations that exceed the depth limit.
 final class TypeOperationDepthLimitExceeded implements Exception {
-  const TypeOperationDepthLimitExceeded();
+  const new();
 }
 
 /// The [TypeSystem] implementation.
@@ -104,7 +104,7 @@ class TypeSystemImpl implements TypeSystem {
 
   int _typeOperationDepth = 0;
 
-  TypeSystemImpl({required TypeProvider typeProvider})
+  new({required TypeProvider typeProvider})
     : typeProvider = typeProvider as TypeProviderImpl {
     _greatestLowerBoundHelper = GreatestLowerBoundHelper(this);
     _leastUpperBoundHelper = LeastUpperBoundHelper(this);
@@ -2201,7 +2201,7 @@ class TypeSystemImpl implements TypeSystem {
 class _RemoveBoundsOfGenericFunctionTypeVisitor extends ReplacementVisitor {
   final DartType _bottomType;
 
-  _RemoveBoundsOfGenericFunctionTypeVisitor._(this._bottomType);
+  new _(this._bottomType);
 
   @override
   DartType visitTypeParameterBound(DartType type) {
@@ -2219,7 +2219,7 @@ class _TypeVariableEliminator extends Substitution {
   final DartType _topType;
   final DartType _bottomType;
 
-  _TypeVariableEliminator(this._topType, this._bottomType);
+  new(this._topType, this._bottomType);
 
   @override
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {

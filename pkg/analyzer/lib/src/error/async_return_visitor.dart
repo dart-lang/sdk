@@ -14,15 +14,12 @@ class AsyncReturnVisitor extends SimpleAstVisitor2<void> {
   final TypeProvider _typeProvider;
   final bool _withinTryBlock;
 
-  AsyncReturnVisitor({
-    required Diagnostic? Function(Token token) reportAtToken,
-    required TypeSystem typeSystem,
-    required TypeProvider typeProvider,
-    bool withinTryBlock = false,
-  }) : _withinTryBlock = withinTryBlock,
-       _typeProvider = typeProvider,
-       _typeSystem = typeSystem,
-       _reportAtToken = reportAtToken;
+  new({
+    required this._reportAtToken,
+    required this._typeSystem,
+    required this._typeProvider,
+    this._withinTryBlock = false,
+  });
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {

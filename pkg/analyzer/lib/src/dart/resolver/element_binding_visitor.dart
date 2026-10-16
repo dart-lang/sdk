@@ -20,8 +20,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   /// enclosing element.
   ElementHolder _elementHolder;
 
-  ElementBindingVisitor(this._libraryFragment)
-    : _elementHolder = ElementHolder(_libraryFragment);
+  new(this._libraryFragment) : _elementHolder = ElementHolder(_libraryFragment);
 
   void bindSubtree(FragmentImpl enclosingFragment, AstNode node) {
     _withElementHolder(ElementHolder(enclosingFragment), () {
@@ -1071,7 +1070,7 @@ class ElementHolder {
   final List<TypeParameterFragmentImpl> _typeParameters = [];
   final List<FormalParameterFragmentImpl> _formalParameters = [];
 
-  ElementHolder(this._fragment);
+  new(this._fragment);
 
   List<FormalParameterFragmentImpl> get formalParameters {
     return _formalParameters.toFixedList();
@@ -1112,7 +1111,7 @@ final class _ContainerMemberFragments {
   final List<MethodFragmentImpl> methods;
   int _methodIndex = 0;
 
-  _ContainerMemberFragments({
+  new({
     this.constructors = const [],
     this.fields = const [],
     this.getters = const [],

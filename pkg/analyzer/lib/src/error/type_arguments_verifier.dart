@@ -33,11 +33,7 @@ class TypeArgumentsVerifier {
   final LibraryElement _libraryElement;
   final DiagnosticReporter _diagnosticReporter;
 
-  TypeArgumentsVerifier(
-    this._options,
-    this._libraryElement,
-    this._diagnosticReporter,
-  );
+  new(this._options, this._libraryElement, this._diagnosticReporter);
 
   TypeSystemImpl get _typeSystem =>
       _libraryElement.typeSystem as TypeSystemImpl;
@@ -784,7 +780,7 @@ class _TypeArgumentIssue {
   /// The type argument that violated the [parameterBound].
   final DartType argument;
 
-  _TypeArgumentIssue(
+  new(
     this.index,
     this.parameter,
     this.parameterName,

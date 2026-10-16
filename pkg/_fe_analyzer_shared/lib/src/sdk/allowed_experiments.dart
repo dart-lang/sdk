@@ -25,7 +25,7 @@ class AllowedExperiments {
   /// are enabled for all files of this package.
   final Map<String, List<String>> packageExperiments;
 
-  AllowedExperiments({
+  new({
     required this.sdkDefaultExperiments,
     required this.sdkLibraryExperiments,
     required this.packageExperiments,
@@ -49,7 +49,7 @@ class _AllowedExperimentsParser {
   final List<String> _parsePath = [];
   final Map<String, List<String>> _experimentSets = {};
 
-  _AllowedExperimentsParser(this._jsonText);
+  new(this._jsonText);
 
   AllowedExperiments parse() {
     Object rootObject = json.decode(_jsonText);

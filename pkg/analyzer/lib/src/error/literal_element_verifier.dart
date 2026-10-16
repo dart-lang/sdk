@@ -29,7 +29,7 @@ class LiteralElementVerifier {
   final TypeImpl? mapKeyType;
   final TypeImpl? mapValueType;
 
-  LiteralElementVerifier(
+  new(
     this.typeProvider,
     this.typeSystem,
     this._diagnosticReporter,

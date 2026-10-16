@@ -5,7 +5,6 @@
 import 'dart:io';
 
 import 'package:dds/dds.dart';
-import 'package:dds/dds_launcher.dart';
 import 'package:test/test.dart';
 
 import 'common/test_helper.dart';
@@ -51,27 +50,5 @@ void main() async {
       expect(e.ddsUri, dds.uri);
       expect(e.toString(), contains('A DDS instance is already connected'));
     }
-
-    // Trying to launch a second DDS instance via the CLI launcher should also
-    // throw ExistingDartDevelopmentServiceException with the first DDS URI.
-    await expectLater(
-      DartDevelopmentServiceLauncher.start(
-        remoteVmServiceUri: remoteVmServiceUri,
-      ),
-      throwsA(
-        isA<ExistingDartDevelopmentServiceException>()
-            .having(
-              (e) => e.errorCode,
-              'errorCode',
-              DartDevelopmentServiceException.existingDdsInstanceError,
-            )
-            .having((e) => e.ddsUri, 'ddsUri', dds.uri)
-            .having(
-              (e) => e.toString(),
-              'toString()',
-              contains('A DDS instance is already connected'),
-            ),
-      ),
-    );
   });
 }

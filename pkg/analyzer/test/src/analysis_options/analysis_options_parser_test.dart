@@ -5503,12 +5503,11 @@ plugins:
 }
 
 class DeprecatedLint extends TestLintRule {
-  DeprecatedLint()
-    : super(name: 'deprecated_lint', state: RuleState.deprecated());
+  new() : super(name: 'deprecated_lint', state: RuleState.deprecated());
 }
 
 class DeprecatedLintWithReplacement extends TestLintRule {
-  DeprecatedLintWithReplacement()
+  new()
     : super(
         name: 'deprecated_lint_with_replacement',
         state: RuleState.deprecated(replacedBy: 'replacing_lint'),
@@ -5516,7 +5515,7 @@ class DeprecatedLintWithReplacement extends TestLintRule {
 }
 
 class DeprecatedSince3Lint extends TestLintRule {
-  DeprecatedSince3Lint()
+  new()
     : super(
         name: 'deprecated_since_3_lint',
         state: RuleState.deprecated(since: dart3),
@@ -5524,25 +5523,25 @@ class DeprecatedSince3Lint extends TestLintRule {
 }
 
 class ReplacingLint extends TestLintRule {
-  ReplacingLint() : super(name: 'replacing_lint');
+  new() : super(name: 'replacing_lint');
 }
 
 class RuleNeg extends TestLintRule {
-  RuleNeg() : super(name: 'rule_neg');
+  new() : super(name: 'rule_neg');
 
   @override
   List<String> get incompatibleRules => ['rule_pos'];
 }
 
 class RulePos extends TestLintRule {
-  RulePos() : super(name: 'rule_pos');
+  new() : super(name: 'rule_pos');
 
   @override
   List<String> get incompatibleRules => ['rule_neg'];
 }
 
 class StableLint extends TestLintRule {
-  StableLint() : super(name: 'stable_lint', state: RuleState.stable());
+  new() : super(name: 'stable_lint', state: RuleState.stable());
 }
 
 abstract class TestLintRule extends AnalysisRule {
@@ -5553,7 +5552,7 @@ abstract class TestLintRule extends AnalysisRule {
     uniqueName: 'LintCode.lint_code',
   );
 
-  TestLintRule({required super.name, super.state}) : super(description: '');
+  new({required super.name, super.state}) : super(description: '');
 
   @override
   DiagnosticCode get diagnosticCode => code;
@@ -5567,9 +5566,9 @@ class TestRule extends AnalysisRule {
     uniqueName: 'LintCode.fantastic_test_rule',
   );
 
-  TestRule() : super(name: 'fantastic_test_rule', description: '');
+  new() : super(name: 'fantastic_test_rule', description: '');
 
-  TestRule.withName(String name) : super(name: name, description: '');
+  new withName(String name) : super(name: name, description: '');
 
   @override
   DiagnosticCode get diagnosticCode => code;

@@ -15,7 +15,7 @@ import 'package:analyzer/src/summary2/tokens_writer.dart';
 class AstBinaryWriter extends ThrowingAstVisitor2<void> {
   final ResolutionSink _sink;
 
-  AstBinaryWriter({required ResolutionSink sink}) : _sink = sink;
+  new({required this._sink});
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {

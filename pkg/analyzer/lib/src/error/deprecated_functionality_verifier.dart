@@ -16,10 +16,7 @@ class DeprecatedFunctionalityVerifier {
 
   final LibraryElement _currentLibrary;
 
-  DeprecatedFunctionalityVerifier(
-    this._diagnosticReporter,
-    this._currentLibrary,
-  );
+  new(this._diagnosticReporter, this._currentLibrary);
 
   void classDeclaration(ClassDeclaration node) {
     _checkForDeprecatedExtend(node.extendsClause?.superclass);

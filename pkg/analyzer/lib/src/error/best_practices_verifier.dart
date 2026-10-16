@@ -100,7 +100,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   /// Whether we are currently in a primary constructor declaration.
   bool _inPrimaryConstructorDeclaration = false;
 
-  BestPracticesVerifier(
+  new(
     this._diagnosticReporter,
     TypeProviderImpl typeProvider,
     this._currentLibrary, {
@@ -1796,15 +1796,14 @@ class _InvalidAccessVerifier {
 
   InterfaceElement? _enclosingClass;
 
-  _InvalidAccessVerifier(
+  new(
     this._diagnosticReporter,
     this._library,
     this._workspacePackage, {
-    required bool inTestDirectory,
+    required this._inTestDirectory,
   }) : _inTemplateSource = _library.firstFragment.source.fullName.contains(
          _templateExtension,
-       ),
-       _inTestDirectory = inTestDirectory;
+       );
 
   void verifyBinary(BinaryOperatorInvocation node) {
     var element = node.element;
@@ -2287,7 +2286,7 @@ class _UsedParameterVisitor extends RecursiveAstVisitor2<void> {
 
   final Set<FormalParameterElement> _usedParameters = {};
 
-  _UsedParameterVisitor(this._parameters);
+  new(this._parameters);
 
   bool isUsed(FormalParameterElement parameter) =>
       _usedParameters.contains(parameter);

@@ -55,7 +55,7 @@ part of '../types.dart';
 /// and the list of n or more elements as the witness candidates.
 class ListTypeStaticType<Type extends Object>
     extends TypeBasedStaticType<Type> {
-  ListTypeStaticType(super.typeOperations, super.fieldLookup, super.type)
+  new(super.typeOperations, super.fieldLookup, super.type)
     : super(isImplicitlyNullable: false);
 
   @override
@@ -125,7 +125,7 @@ class ListTypeStaticType<Type extends Object>
 /// uniqueness.
 class ListPatternStaticType<Type extends Object>
     extends RestrictedStaticType<Type, ListTypeRestriction<Type>> {
-  ListPatternStaticType(
+  new(
     super.typeOperations,
     super.fieldLookup,
     super.type,
@@ -250,7 +250,7 @@ class ListTypeRestriction<Type extends Object> implements Restriction<Type> {
   final bool hasRest;
   final String typeArgumentText;
 
-  ListTypeRestriction(
+  new(
     this.elementType,
     this.typeArgumentText, {
     required this.size,

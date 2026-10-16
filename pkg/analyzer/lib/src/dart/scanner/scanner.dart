@@ -48,11 +48,10 @@ class Scanner {
 
   late FeatureSet _featureSet;
 
-  /// Initializes a scanner to scan the given [inputText].
+  /// Initializes a scanner to scan the given [_inputText].
   ///
   /// The [reportError] callback will be informed of any errors that are found.
-  Scanner({required String inputText, required this.reportError})
-    : _inputText = inputText;
+  new({required this._inputText, required this.reportError});
 
   /// The features associated with this scanner.
   ///

@@ -24,7 +24,7 @@ class Predicate {
   // kind of predicate that means "this value was equal to this constant".
   final StaticType valueType;
 
-  Predicate(this.path, this.staticType, this.valueType);
+  new(this.path, this.staticType, this.valueType);
 
   @override
   String toString() => 'Predicate(path=$path,type=$valueType)';
@@ -52,7 +52,7 @@ class Witness {
   final List<Predicate> _predicates;
   late final PropertyWitness _witness = _buildWitness();
 
-  Witness(this._predicates);
+  new(this._predicates);
 
   PropertyWitness _buildWitness() {
     PropertyWitness witness = new PropertyWitness();

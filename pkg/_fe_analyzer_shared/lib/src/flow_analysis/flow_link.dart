@@ -55,11 +55,8 @@ abstract base class FlowLink<Link extends FlowLink<Link>> {
 
   /// Creates a new [FlowLink] object. Caller is required to satisfy the
   /// invariant described in [previousForKey].
-  FlowLink({
-    required this.key,
-    required this.previous,
-    required this.previousForKey,
-  }) : _depth = previous.depth + 1 {
+  new({required this.key, required this.previous, required this.previousForKey})
+    : _depth = previous.depth + 1 {
     assert(key >= 0);
     assert(identical(previousForKey, _computePreviousForKey(key)));
   }
@@ -100,7 +97,7 @@ class FlowLinkDiffEntry<Link extends FlowLink<Link>> {
   /// both the `left` and `right` arguments to [FlowLinkReader.diff].
   Link? _previousForKey;
 
-  FlowLinkDiffEntry._({
+  new _({
     required this.key,
     required Link? firstLeft,
     required Link? firstRight,

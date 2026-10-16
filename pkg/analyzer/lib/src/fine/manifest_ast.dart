@@ -75,7 +75,7 @@ class ManifestNode {
   /// behavior of [_ElementCollector].
   final Uint32List elementIndexList;
 
-  factory ManifestNode.encode(EncodeContext context, AstNode node) {
+  factory encode(EncodeContext context, AstNode node) {
     var buffer = StringBuffer();
     var lengthList = GrowableUint32List();
 
@@ -116,7 +116,7 @@ class ManifestNode {
     }
   }
 
-  factory ManifestNode.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestNode._(
       isValid: reader.readBool(),
       tokenBuffer: reader.readStringReference(),
@@ -126,7 +126,7 @@ class ManifestNode {
     );
   }
 
-  ManifestNode._({
+  new _({
     required this.isValid,
     required this.tokenBuffer,
     required this.tokenLengthList,
@@ -220,7 +220,7 @@ class _ElementCollector extends UnifyingAstVisitor2<void> {
   final Map<Element, int> map = Map.identity();
   final GrowableUint32List elementIndexList = GrowableUint32List();
 
-  _ElementCollector({
+  new({
     required this.indexOfTypeParameter,
     required this.indexOfFormalParameter,
   });

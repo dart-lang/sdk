@@ -121,7 +121,7 @@ class FlowAnalysisHelper {
   /// source code offsets.
   final bool enableLog;
 
-  FlowAnalysisHelper(
+  new(
     bool retainDataForTesting, {
     required TypeSystemOperations typeSystemOperations,
     required TypeAnalyzerOptions typeAnalyzerOptions,
@@ -133,7 +133,7 @@ class FlowAnalysisHelper {
          enableLog: enableLog,
        );
 
-  FlowAnalysisHelper._(
+  new _(
     this.typeOperations,
     this.dataForTesting, {
     required this.typeAnalyzerOptions,
@@ -559,7 +559,7 @@ class TypeSystemOperations
   final bool strictCasts;
   final TypeSystemImpl typeSystem;
 
-  TypeSystemOperations(this.typeSystem, {required this.strictCasts});
+  new(this.typeSystem, {required this.strictCasts});
 
   @override
   SharedTypeView get boolType {
@@ -1097,7 +1097,7 @@ class TypeSystemOperations
 class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   final AssignedVariables<AstNode, PromotableElementImpl> assignedVariables;
 
-  _AssignedVariablesVisitor(this.assignedVariables);
+  new(this.assignedVariables);
 
   @override
   void visitAnonymousMethodInvocation(AnonymousMethodInvocation node) {
@@ -1459,7 +1459,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 class _LocalVariableTypeProvider implements LocalVariableTypeProvider {
   final FlowAnalysisHelper _manager;
 
-  _LocalVariableTypeProvider(this._manager);
+  new(this._manager);
 
   @override
   TypeImpl getWriteType(InternalVariableElement element) {

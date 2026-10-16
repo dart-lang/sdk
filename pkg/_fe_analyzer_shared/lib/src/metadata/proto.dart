@@ -89,7 +89,7 @@ class UnresolvedIdentifier extends Proto implements Unresolved {
   final Scope scope;
   final String name;
 
-  UnresolvedIdentifier(this.scope, this.name);
+  new(this.scope, this.name);
 
   @override
   Proto access(String? name) {
@@ -162,7 +162,7 @@ class UnresolvedAccess extends Proto implements Unresolved {
   final Proto prefix;
   final String name;
 
-  UnresolvedAccess(this.prefix, this.name);
+  new(this.prefix, this.name);
 
   @override
   Proto access(String? name) {
@@ -230,7 +230,7 @@ class UnresolvedInstantiate extends Proto implements Unresolved {
   final Proto prefix;
   final List<TypeAnnotation> typeArguments;
 
-  UnresolvedInstantiate(this.prefix, this.typeArguments);
+  new(this.prefix, this.typeArguments);
 
   @override
   Proto access(String? name) {
@@ -304,7 +304,7 @@ class UnresolvedInvoke extends Proto implements Unresolved {
   final Proto prefix;
   final List<Argument> arguments;
 
-  UnresolvedInvoke(this.prefix, this.arguments);
+  new(this.prefix, this.arguments);
 
   @override
   Proto access(String? name) {
@@ -373,7 +373,7 @@ class ClassProto extends Proto {
   final ClassReference reference;
   final TypeDeclarationScope scope;
 
-  ClassProto(this.reference, this.scope);
+  new(this.reference, this.scope);
 
   @override
   String toString() => 'ClassProto($reference)';
@@ -422,7 +422,7 @@ class GenericClassProto extends Proto {
   final TypeDeclarationScope scope;
   final List<TypeAnnotation> typeArguments;
 
-  GenericClassProto(this.reference, this.scope, this.typeArguments);
+  new(this.reference, this.scope, this.typeArguments);
 
   @override
   String toString() => 'GenericClassProto($reference,$typeArguments)';
@@ -478,7 +478,7 @@ class ExtensionProto extends Proto {
   final ExtensionReference reference;
   final TypeDeclarationScope scope;
 
-  ExtensionProto(this.reference, this.scope);
+  new(this.reference, this.scope);
 
   @override
   String toString() => 'ExtensionProto($reference)';
@@ -528,7 +528,7 @@ class EnumProto extends Proto {
   final EnumReference reference;
   final TypeDeclarationScope scope;
 
-  EnumProto(this.reference, this.scope);
+  new(this.reference, this.scope);
 
   @override
   String toString() => 'EnumProto($reference)';
@@ -579,7 +579,7 @@ class GenericEnumProto extends Proto {
   final TypeDeclarationScope scope;
   final List<TypeAnnotation> typeArguments;
 
-  GenericEnumProto(this.reference, this.scope, this.typeArguments);
+  new(this.reference, this.scope, this.typeArguments);
 
   @override
   String toString() => 'GenericEnumProto($reference,$typeArguments)';
@@ -635,7 +635,7 @@ class MixinProto extends Proto {
   final MixinReference reference;
   final TypeDeclarationScope scope;
 
-  MixinProto(this.reference, this.scope);
+  new(this.reference, this.scope);
 
   @override
   String toString() => 'MixinProto($reference)';
@@ -686,7 +686,7 @@ class GenericMixinProto extends Proto {
   final TypeDeclarationScope scope;
   final List<TypeAnnotation> typeArguments;
 
-  GenericMixinProto(this.reference, this.scope, this.typeArguments);
+  new(this.reference, this.scope, this.typeArguments);
 
   @override
   String toString() => 'GenericMixinProto($reference,$typeArguments)';
@@ -742,7 +742,7 @@ class ExtensionTypeProto extends Proto {
   final ExtensionTypeReference reference;
   final TypeDeclarationScope scope;
 
-  ExtensionTypeProto(this.reference, this.scope);
+  new(this.reference, this.scope);
 
   @override
   String toString() => 'ExtensionTypeProto($reference)';
@@ -791,7 +791,7 @@ class GenericExtensionTypeProto extends Proto {
   final TypeDeclarationScope scope;
   final List<TypeAnnotation> typeArguments;
 
-  GenericExtensionTypeProto(this.reference, this.scope, this.typeArguments);
+  new(this.reference, this.scope, this.typeArguments);
 
   @override
   String toString() => 'GenericExtensionTypeProto($reference,$typeArguments)';
@@ -847,7 +847,7 @@ class TypedefProto extends Proto {
   final TypedefReference reference;
   final TypeDeclarationScope scope;
 
-  TypedefProto(this.reference, this.scope);
+  new(this.reference, this.scope);
 
   @override
   String toString() => 'TypedefProto($reference)';
@@ -896,7 +896,7 @@ class GenericTypedefProto extends Proto {
   final TypeDeclarationScope scope;
   final List<TypeAnnotation> typeArguments;
 
-  GenericTypedefProto(this.reference, this.scope, this.typeArguments);
+  new(this.reference, this.scope, this.typeArguments);
 
   @override
   String toString() => 'GenericTypedefProto($reference,$typeArguments)';
@@ -948,7 +948,7 @@ class GenericTypedefProto extends Proto {
 class VoidProto extends Proto {
   final Reference reference;
 
-  VoidProto(this.reference);
+  new(this.reference);
 
   @override
   Expression toExpression() {
@@ -988,7 +988,7 @@ class VoidProto extends Proto {
 class DynamicProto extends Proto {
   final Reference reference;
 
-  DynamicProto(this.reference);
+  new(this.reference);
 
   @override
   Expression toExpression() {
@@ -1031,7 +1031,7 @@ class ConstructorProto extends Proto {
   final List<TypeAnnotation> typeArguments;
   final ConstructorReference reference;
 
-  ConstructorProto(this.type, this.typeArguments, this.reference);
+  new(this.type, this.typeArguments, this.reference);
 
   @override
   String toString() => 'ConstructorProto($type,$typeArguments,$reference)';
@@ -1080,7 +1080,7 @@ class ConstructorProto extends Proto {
 class FieldProto extends Proto {
   final FieldReference reference;
 
-  FieldProto(this.reference);
+  new(this.reference);
 
   @override
   String toString() => 'FieldProto($reference)';
@@ -1120,7 +1120,7 @@ class FieldProto extends Proto {
 class FunctionProto extends Proto {
   final FunctionReference reference;
 
-  FunctionProto(this.reference);
+  new(this.reference);
 
   @override
   String toString() => 'FunctionProto($reference)';
@@ -1164,7 +1164,7 @@ class FunctionInstantiationProto extends Proto {
   final FunctionReference reference;
   final List<TypeAnnotation> typeArguments;
 
-  FunctionInstantiationProto(this.reference, this.typeArguments);
+  new(this.reference, this.typeArguments);
 
   @override
   String toString() => 'FunctionInstantiationProto($reference,$typeArguments)';
@@ -1210,7 +1210,7 @@ class PrefixProto extends Proto {
   final String prefix;
   final Scope scope;
 
-  PrefixProto(this.prefix, this.scope);
+  new(this.prefix, this.scope);
 
   @override
   String toString() => 'PrefixProto($prefix)';
@@ -1261,9 +1261,9 @@ class IdentifierProto extends Proto {
   final List<TypeAnnotation>? typeArguments;
   final List<Argument>? arguments;
 
-  IdentifierProto(String text) : this._(text, null, null);
+  new(String text) : this._(text, null, null);
 
-  IdentifierProto._(this.text, this.typeArguments, this.arguments);
+  new _(this.text, this.typeArguments, this.arguments);
 
   @override
   Proto access(String? name) {
@@ -1316,7 +1316,7 @@ class InstanceAccessProto extends Proto {
   final String text;
   final bool isNullAware;
 
-  InstanceAccessProto(this.receiver, this.text, {this.isNullAware = false});
+  new(this.receiver, this.text, {this.isNullAware = false});
 
   @override
   Proto access(String? name) {
@@ -1365,7 +1365,7 @@ class ExpressionInstantiationProto extends Proto {
   final Proto receiver;
   final List<TypeAnnotation> typeArguments;
 
-  ExpressionInstantiationProto(this.receiver, this.typeArguments);
+  new(this.receiver, this.typeArguments);
 
   @override
   Proto access(String? name) {
@@ -1414,7 +1414,7 @@ class InstanceInvocationProto extends Proto {
   final List<TypeAnnotation> typeArguments;
   final List<Argument> arguments;
 
-  InstanceInvocationProto(this.receiver, this.typeArguments, this.arguments);
+  new(this.receiver, this.typeArguments, this.arguments);
 
   @override
   Proto access(String? name) {
@@ -1459,7 +1459,7 @@ class InvalidAccessProto extends Proto {
   final Proto receiver;
   final String text;
 
-  InvalidAccessProto(this.receiver, this.text);
+  new(this.receiver, this.text);
 
   @override
   Proto access(String? name) {
@@ -1499,7 +1499,7 @@ class InvalidInstantiationProto extends Proto {
   final Proto receiver;
   final List<TypeAnnotation> typeArguments;
 
-  InvalidInstantiationProto(this.receiver, this.typeArguments);
+  new(this.receiver, this.typeArguments);
 
   @override
   Proto access(String? name) {
@@ -1540,7 +1540,7 @@ class InvalidInvocationProto extends Proto {
   final List<TypeAnnotation> typeArguments;
   final List<Argument> arguments;
 
-  InvalidInvocationProto(this.receiver, this.typeArguments, this.arguments);
+  new(this.receiver, this.typeArguments, this.arguments);
 
   @override
   Proto access(String? name) {
@@ -1577,7 +1577,7 @@ class InvalidInvocationProto extends Proto {
 class ExpressionProto extends Proto {
   final Expression expression;
 
-  ExpressionProto(this.expression);
+  new(this.expression);
 
   @override
   Proto access(String? name) {
@@ -1619,7 +1619,7 @@ class ExpressionProto extends Proto {
 class FunctionTypeParameterProto extends Proto {
   final FunctionTypeParameter functionTypeParameter;
 
-  FunctionTypeParameterProto(this.functionTypeParameter);
+  new(this.functionTypeParameter);
 
   @override
   Proto access(String? name) {

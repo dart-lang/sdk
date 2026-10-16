@@ -34,7 +34,7 @@ enum _ReachabilityAssertion { doesNotComplete, unreachable }
 
 class _ReachabilityDataComputer
     extends DataComputer<Set<_ReachabilityAssertion>> {
-  const _ReachabilityDataComputer();
+  const new();
 
   @override
   DataInterpreter<Set<_ReachabilityAssertion>> get dataValidator =>
@@ -56,7 +56,7 @@ class _ReachabilityDataExtractor
     extends AstDataExtractor<Set<_ReachabilityAssertion>> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  _ReachabilityDataExtractor(super.uri, super.actualMap, this._flowResult);
+  new(super.uri, super.actualMap, this._flowResult);
 
   @override
   Set<_ReachabilityAssertion>? computeNodeValue(Id id, AstNode node) {
@@ -102,7 +102,7 @@ class _ReachabilityDataExtractor
 
 class _ReachabilityDataInterpreter
     implements DataInterpreter<Set<_ReachabilityAssertion>> {
-  const _ReachabilityDataInterpreter();
+  const new();
 
   @override
   String getText(

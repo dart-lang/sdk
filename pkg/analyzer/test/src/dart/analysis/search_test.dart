@@ -10944,7 +10944,7 @@ class _SearchAnnotation {
   final int order;
   final String text;
 
-  _SearchAnnotation({
+  new({
     required this.offset,
     required this.length,
     this.order = 0,

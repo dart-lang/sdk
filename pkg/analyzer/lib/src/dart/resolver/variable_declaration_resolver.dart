@@ -19,11 +19,7 @@ class VariableDeclarationResolver {
   final TypeAnalyzer _typeAnalyzer;
   final bool _strictInference;
 
-  VariableDeclarationResolver({
-    required TypeAnalyzer typeAnalyzer,
-    required bool strictInference,
-  }) : _typeAnalyzer = typeAnalyzer,
-       _strictInference = strictInference;
+  new({required this._typeAnalyzer, required this._strictInference});
 
   void resolve(VariableBindingImpl node) {
     var fragment = node.declaredFragment!;

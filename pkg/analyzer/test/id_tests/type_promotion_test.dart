@@ -33,7 +33,7 @@ main(List<String> args) {
 }
 
 class _TypePromotionDataComputer extends DataComputer<DartType> {
-  const _TypePromotionDataComputer();
+  const new();
 
   @override
   DataInterpreter<DartType> get dataValidator =>
@@ -54,7 +54,7 @@ class _TypePromotionDataComputer extends DataComputer<DartType> {
 }
 
 class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
-  _TypePromotionDataExtractor(super.uri, super.actualMap);
+  new(super.uri, super.actualMap);
 
   @override
   DartType? computeNodeValue(Id id, AstNode node) {
@@ -105,7 +105,7 @@ class _TypePromotionDataExtractor extends AstDataExtractor<DartType> {
 }
 
 class _TypePromotionDataInterpreter implements DataInterpreter<DartType> {
-  const _TypePromotionDataInterpreter();
+  const new();
 
   @override
   String getText(DartType actualData, [String? indentation]) {

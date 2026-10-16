@@ -42,16 +42,13 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   final Map<Token, String> _tokenIdMap = Map.identity();
 
-  ResolvedAstPrinter({
-    required TreeStringSink sink,
-    required ElementPrinter elementPrinter,
+  new({
+    required this._sink,
+    required this._elementPrinter,
     required this.configuration,
-    bool withOffsets = false,
-    bool withResolution = true,
-  }) : _sink = sink,
-       _elementPrinter = elementPrinter,
-       _withOffsets = withOffsets,
-       _withResolution = withResolution;
+    this._withOffsets = false,
+    this._withResolution = true,
+  });
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {

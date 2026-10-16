@@ -19,7 +19,7 @@ class FastaErrorReporter {
 
   /// Initialize a newly created error reporter to report diagnostics to the
   /// given [diagnosticReporter].
-  FastaErrorReporter(this.diagnosticReporter);
+  new(this.diagnosticReporter);
 
   void reportByCode(
     PseudoSharedCode? pseudoSharedCode,

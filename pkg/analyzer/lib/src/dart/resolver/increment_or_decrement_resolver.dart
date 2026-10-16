@@ -25,7 +25,7 @@ class IncrementOrDecrementResolver {
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionResolver _assignmentResolver;
 
-  IncrementOrDecrementResolver({required TypeAnalyzer typeAnalyzer})
+  new({required TypeAnalyzer typeAnalyzer})
     : _typeAnalyzer = typeAnalyzer,
       _typePropertyResolver = typeAnalyzer.typePropertyResolver,
       _assignmentResolver = AssignmentExpressionResolver(

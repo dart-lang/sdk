@@ -34,7 +34,7 @@ class Evaluator {
   final GetFieldInitializer? _getFieldInitializer;
   final Map<FieldReference, Expression>? _dereferences;
 
-  Evaluator({
+  new({
     required GetFieldInitializer? getFieldInitializer,
     required Map<FieldReference, Expression>? dereferences,
   }) : _getFieldInitializer = getFieldInitializer,

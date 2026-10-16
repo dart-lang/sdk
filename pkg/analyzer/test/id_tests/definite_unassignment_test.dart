@@ -47,7 +47,7 @@ main(List<String> args) {
 const String analyzerInferenceUpdate4Marker = 'analyzer:inference-update-4';
 
 class _DefiniteAssignmentDataComputer extends DataComputer<String> {
-  const _DefiniteAssignmentDataComputer();
+  const new();
 
   @override
   DataInterpreter<String> get dataValidator =>
@@ -88,11 +88,7 @@ class _DefiniteAssignmentDataComputer extends DataComputer<String> {
 class _DefiniteUnassignmentDataExtractor extends AstDataExtractor<String> {
   final FlowAnalysisDataForTesting _flowResult;
 
-  _DefiniteUnassignmentDataExtractor(
-    super.uri,
-    super.actualMap,
-    this._flowResult,
-  );
+  new(super.uri, super.actualMap, this._flowResult);
 
   @override
   String? computeNodeValue(Id id, AstNode node) {
@@ -122,7 +118,7 @@ class _DefiniteUnassignmentDataExtractor extends AstDataExtractor<String> {
 }
 
 class _DefiniteUnassignmentDataInterpreter implements DataInterpreter<String> {
-  const _DefiniteUnassignmentDataInterpreter();
+  const new();
 
   @override
   String getText(String actualData, [String? indentation]) => actualData;

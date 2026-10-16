@@ -46,7 +46,7 @@ class ErrorHandlerVerifier {
 
   final bool _strictCasts;
 
-  ErrorHandlerVerifier(
+  new(
     this._diagnosticReporter,
     this._typeProvider,
     this._typeSystem, {
@@ -412,7 +412,7 @@ class ErrorHandlerVerifier {
 class _ReturnStatementVerifier extends RecursiveAstVisitor2<void> {
   final ReturnTypeVerifier _returnTypeVerifier;
 
-  _ReturnStatementVerifier(this._returnTypeVerifier);
+  new(this._returnTypeVerifier);
 
   @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {

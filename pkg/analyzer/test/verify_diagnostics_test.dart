@@ -286,7 +286,7 @@ class DocumentationValidator {
   bool hasWrittenVariableName = false;
 
   /// Initialize a newly created documentation validator.
-  DocumentationValidator();
+  new();
 
   /// Validate the documentation.
   Future<void> validate() async {
@@ -726,7 +726,7 @@ class _SnippetData {
   final String? languageVersion;
   String? lintCode;
 
-  _SnippetData(
+  new(
     this.content,
     this.offset,
     this.length,
@@ -897,7 +897,7 @@ class _SnippetTest extends PubPackageResolutionTest {
   final _SnippetData snippet;
 
   /// Initialize a newly created test to test the given [snippet].
-  _SnippetTest(this.snippet) {
+  new(this.snippet) {
     writeTestPackageAnalysisOptionsFile(
       analysisOptionsContent(
         experimentalFeatures: snippet.experimentalFeatures,

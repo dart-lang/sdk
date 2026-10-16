@@ -29,7 +29,7 @@ class BinaryWriter {
   final ManifestIdTableBuilder _manifestIdTableBuilder;
   final StringTableBuilder _stringTableBuilder;
 
-  BinaryWriter({
+  new({
     StringTableBuilder? stringTableBuilder,
     ManifestIdTableBuilder? manifestIdTableBuilder,
   }) : _stringTableBuilder = stringTableBuilder ?? StringTableBuilder(),

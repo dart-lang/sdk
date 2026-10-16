@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 class MixinSuperInvokedNamesCollector extends RecursiveAstVisitor2<void> {
   final Set<String> _names;
 
-  MixinSuperInvokedNamesCollector(this._names);
+  new(this._names);
 
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {

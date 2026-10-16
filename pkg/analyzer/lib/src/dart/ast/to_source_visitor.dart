@@ -15,7 +15,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
 
   /// Initialize a newly created visitor to write source code representing the
   /// visited nodes to the given [sink].
-  ToSourceVisitor(this.sink);
+  new(this.sink);
 
   @override
   void visitAdjacentStrings(AdjacentStrings node) {

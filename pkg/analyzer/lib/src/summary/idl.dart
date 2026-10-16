@@ -56,7 +56,7 @@ const informative = null;
 /// Information about the context of an exception in analysis driver.
 @TopLevel('ADEC')
 abstract class AnalysisDriverExceptionContext extends base.SummaryClass {
-  factory AnalysisDriverExceptionContext.fromBuffer(List<int> buffer) =>
+  factory fromBuffer(List<int> buffer) =>
       generated.readAnalysisDriverExceptionContext(buffer);
 
   /// The exception string.
@@ -90,7 +90,7 @@ abstract class AnalysisDriverExceptionFile extends base.SummaryClass {
 /// Information about a resolved unit.
 @TopLevel('ADRU')
 abstract class AnalysisDriverResolvedUnit extends base.SummaryClass {
-  factory AnalysisDriverResolvedUnit.fromBuffer(List<int> buffer) =>
+  factory fromBuffer(List<int> buffer) =>
       generated.readAnalysisDriverResolvedUnit(buffer);
 
   /// The full list of analysis errors, both syntactic and semantic.
@@ -146,7 +146,7 @@ abstract class AnalysisDriverUnitError extends base.SummaryClass {
 /// Information about a resolved unit.
 @TopLevel('ADUI')
 abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
-  factory AnalysisDriverUnitIndex.fromBuffer(List<int> buffer) =>
+  factory fromBuffer(List<int> buffer) =>
       generated.readAnalysisDriverUnitIndex(buffer);
 
   /// Each item of this list corresponds to a unique referenced element.  It is
@@ -283,8 +283,7 @@ abstract class AnalysisDriverUnitIndex extends base.SummaryClass {
 /// Errors for a single unit.
 @TopLevel('CUEr')
 abstract class CiderUnitErrors extends base.SummaryClass {
-  factory CiderUnitErrors.fromBuffer(List<int> buffer) =>
-      generated.readCiderUnitErrors(buffer);
+  factory fromBuffer(List<int> buffer) => generated.readCiderUnitErrors(buffer);
 
   @Id(0)
   List<AnalysisDriverUnitError> get errors;

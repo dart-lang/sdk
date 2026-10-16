@@ -18,7 +18,7 @@ class VarianceBuilder {
   final Set<TypeAlias> _pending = Set.identity();
   final Set<TypeAlias> _visit = Set.identity();
 
-  VarianceBuilder(this._linker);
+  new(this._linker);
 
   void perform() {
     for (var builder in _linker.builders.values) {

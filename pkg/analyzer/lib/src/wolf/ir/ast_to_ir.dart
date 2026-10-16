@@ -139,7 +139,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   late final stackIndices101 = ir.encodeStackIndices(const [1, 0, 1]);
   late final stackIndices2012 = ir.encodeStackIndices(const [2, 0, 1, 2]);
 
-  _AstToIRVisitor({
+  new({
     required this.typeProvider,
     required this.typeSystem,
     required this.inheritanceManager,
@@ -1257,10 +1257,8 @@ class _IndexAssignmentTemplates extends _LValueTemplates {
   final MethodElement? readElement;
   final MethodElement? writeElement;
 
-  _IndexAssignmentTemplates({
-    required this.readElement,
-    required this.writeElement,
-  }) : super(subexpressionCount: 2);
+  new({required this.readElement, required this.writeElement})
+    : super(subexpressionCount: 2);
 
   @override
   void readForCompoundAssignment(_AstToIRVisitor visitor) {
@@ -1299,7 +1297,7 @@ class _IndexAssignmentTemplates extends _LValueTemplates {
 class _LocalTemplates extends _LValueTemplates {
   final int localIndex;
 
-  _LocalTemplates(this.localIndex) : super(subexpressionCount: 0);
+  new(this.localIndex) : super(subexpressionCount: 0);
 
   void read(_AstToIRVisitor visitor) {
     visitor.ir.readLocal(localIndex);
@@ -1349,7 +1347,7 @@ class _LocalTemplates extends _LValueTemplates {
 sealed class _LValueTemplates {
   final int subexpressionCount;
 
-  _LValueTemplates({required this.subexpressionCount});
+  new({required this.subexpressionCount});
 
   /// Outputs the IR instructions for reading from the L-value in a way that
   /// remains prepared for a compound assignment.
@@ -1400,11 +1398,8 @@ class _PropertyAccessTemplates extends _LValueTemplates {
   ///
   /// Caller is responsible for ensuring that the target of the property access
   /// is pushed to the stack.
-  _PropertyAccessTemplates.direct({
-    required this.name,
-    this.readElement,
-    this.writeElement,
-  }) : super(subexpressionCount: 1);
+  new direct({required this.name, this.readElement, this.writeElement})
+    : super(subexpressionCount: 1);
 
   void read(_AstToIRVisitor visitor) {
     // Stack: target

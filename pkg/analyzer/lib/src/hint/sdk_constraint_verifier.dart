@@ -29,7 +29,7 @@ class SdkConstraintVerifier extends RecursiveAstVisitor2<void> {
 
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
-  SdkConstraintVerifier(this._errorReporter, this._versionConstraint);
+  new(this._errorReporter, this._versionConstraint);
 
   /// Return a range covering every version up to, but not including, 2.14.0.
   VersionRange get before_2_14_0 => VersionRange(max: Version.parse('2.14.0'));

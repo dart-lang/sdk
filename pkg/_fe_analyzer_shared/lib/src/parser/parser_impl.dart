@@ -353,7 +353,7 @@ class Parser {
   /// `true` if the 'single-combinators' feature is enabled.
   final bool _isSingleCombinatorsFeatureEnabled;
 
-  Parser(
+  new(
     this.listener, {
     this.useImplicitCreationExpression = true,
     required this.experimentalFeatures,
@@ -12589,7 +12589,7 @@ enum PatternContext {
 
   final bool isRefutable;
 
-  const PatternContext({required this.isRefutable});
+  new({required this.isRefutable});
 }
 
 /// Enum describing the different contexts in which a constant pattern is

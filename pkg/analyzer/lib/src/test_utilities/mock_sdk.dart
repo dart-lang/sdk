@@ -1969,7 +1969,7 @@ class MockSdkLibrary implements SdkLibrary {
   final String name;
   final List<MockSdkLibraryUnit> units;
 
-  MockSdkLibrary(this.name, this.units);
+  new(this.name, this.units);
 
   @override
   bool get isDocumented => throw UnimplementedError();
@@ -1991,5 +1991,5 @@ class MockSdkLibraryUnit {
   final String path;
   final String content;
 
-  MockSdkLibraryUnit(this.path, this.content);
+  new(this.path, this.content);
 }
