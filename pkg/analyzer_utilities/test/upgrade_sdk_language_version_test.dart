@@ -606,6 +606,44 @@ linter:
       );
     });
 
+    group('include', () {
+      test('starts a new file with an include of the inherited options', () {
+        expect(
+          addLintsAndExperiments(
+            null,
+            lintSet: ['foo'],
+            experiments: [],
+            include: '../analysis_options.yaml',
+          ),
+          'include: ../analysis_options.yaml\n\nlinter:\n  rules:\n    - foo\n',
+        );
+      });
+
+      test('is not added to an existing file', () {
+        expect(
+          addLintsAndExperiments(
+            'linter:\n  rules:\n    - bar\n',
+            lintSet: ['foo'],
+            experiments: [],
+            include: '../analysis_options.yaml',
+          ),
+          'linter:\n  rules:\n    - bar\n    - foo\n',
+        );
+      });
+
+      test('does not by itself call for a new file', () {
+        expect(
+          addLintsAndExperiments(
+            null,
+            lintSet: [],
+            experiments: [],
+            include: '../analysis_options.yaml',
+          ),
+          isNull,
+        );
+      });
+    });
+
     test('rejects flow-style sections', () {
       expect(
         () => addAnalysisOptionsEntries(
@@ -702,6 +740,56 @@ environment:
     });
   });
 
+  group('checkTargetVersion', () {
+    String versionFile({String channel = 'main'}) =>
+        '''
+# A comment, mentioning MAJOR 9.
+CHANNEL $channel
+MAJOR 3
+MINOR 15
+PATCH 0
+PRERELEASE 0
+PRERELEASE_PATCH 0
+''';
+
+    String? check(String target, {String channel = 'main'}) =>
+        checkTargetVersion(
+          Version.parse(target),
+          versionFileContents: versionFile(channel: channel),
+        );
+
+    test('accepts an older release target', () {
+      expect(check('3.13.0'), isNull);
+    });
+
+    test('accepts a prerelease target for the version in development', () {
+      expect(check('3.15.0-0'), isNull);
+    });
+
+    test('rejects a target newer than the SDK', () {
+      expect(check('3.16.0-0'), contains('newer than the SDK'));
+      expect(check('4.0.0-0'), contains('newer than the SDK'));
+    });
+
+    test('rejects a release target for the version in development', () {
+      expect(check('3.15.0'), contains('Use 3.15.0-0 instead'));
+    });
+
+    test('accepts a release target once the SDK is stable', () {
+      expect(check('3.15.0', channel: 'stable'), isNull);
+    });
+
+    test('complains about a VERSION file it cannot read', () {
+      expect(
+        checkTargetVersion(
+          Version.parse('3.15.0-0'),
+          versionFileContents: 'MAJOR 3\n',
+        ),
+        contains('Could not find'),
+      );
+    });
+  });
+
   group('classifySdkConstraint', () {
     ({Version minVersion, SdkConstraintVerdict verdict}) classify(
       String constraint, {
@@ -758,6 +846,73 @@ environment:
 
     test('a constraint with no lower bound is rejected', () {
       expect(() => classify('any'), throwsException);
+    });
+
+    test('a prerelease of the target version needs no bump', () {
+      // Only the major and minor versions matter: a release target mustn't
+      // rewrite `^3.14.0-0` to `^3.14.0`, which a dev SDK wouldn't satisfy.
+      expect(
+        classify('^3.14.0-0', target: '3.14.0').verdict,
+        SdkConstraintVerdict.upToDate,
+      );
+    });
+  });
+
+  group('execute', () {
+    test('includes the end of stdout when the command fails', () {
+      expect(
+        () => execute('sh', ['-c', r'echo "solver said $((6*7))"; exit 255']),
+        throwsA(
+          predicate((e) => '$e'.contains('solver said 42'), 'mentions stdout'),
+        ),
+      );
+    });
+  });
+
+  group('findInheritedAnalysisOptions', () {
+    late Directory root;
+
+    setUp(() {
+      root = Directory.systemTemp.createTempSync('find_inherited_options');
+      Directory(join(root.path, 'pkg', 'foo')).createSync(recursive: true);
+    });
+
+    tearDown(() {
+      root.deleteSync(recursive: true);
+    });
+
+    String? find() => findInheritedAnalysisOptions(
+      join(root.path, 'pkg', 'foo'),
+      root: root.path,
+    );
+
+    test('finds the nearest enclosing options file', () {
+      File(join(root.path, 'analysis_options.yaml')).writeAsStringSync('');
+      File(join(root.path, 'pkg', 'analysis_options.yaml'))
+          .writeAsStringSync('');
+      expect(find(), '../analysis_options.yaml');
+    });
+
+    test('looks as far up as the root', () {
+      File(join(root.path, 'analysis_options.yaml')).writeAsStringSync('');
+      expect(find(), '../../analysis_options.yaml');
+    });
+
+    test('ignores the package\'s own options file', () {
+      File(join(root.path, 'pkg', 'foo', 'analysis_options.yaml'))
+          .writeAsStringSync('');
+      expect(find(), isNull);
+    });
+
+    test('looks no further up than the root', () {
+      File(join(root.path, 'analysis_options.yaml')).writeAsStringSync('');
+      expect(
+        findInheritedAnalysisOptions(
+          join(root.path, 'pkg', 'foo'),
+          root: join(root.path, 'pkg'),
+        ),
+        isNull,
+      );
     });
   });
 
@@ -961,6 +1116,46 @@ AA pkg/foo/lib/baz.dart
       expect(
         () => parseGitStatusConflicts('UU "pkg/foo/lib/w\\303\\244.dart"\n'),
         throwsException,
+      );
+    });
+  });
+
+  group('parseUnrestorableFiles', () {
+    test('returns nothing for empty output', () {
+      expect(parseUnrestorableFiles(''), isEmpty);
+    });
+
+    test('reports untracked files of any kind', () {
+      expect(
+        parseUnrestorableFiles(
+          '?? pkg/foo/lib/wip.dart\n?? pkg/foo/analysis_options.yaml\n',
+        ),
+        ['pkg/foo/lib/wip.dart', 'pkg/foo/analysis_options.yaml'],
+      );
+    });
+
+    test('reports only the ignored files that are Dart', () {
+      expect(
+        parseUnrestorableFiles(
+          '!! pkg/foo/lib/generated.dart\n!! pkg/foo/data.json.gz\n',
+        ),
+        ['pkg/foo/lib/generated.dart'],
+      );
+    });
+
+    test('ignores files in hidden directories, which dart format skips', () {
+      expect(
+        parseUnrestorableFiles(
+          '!! pkg/foo/.dart_tool/x.dart\n?? pkg/foo/.idea/y.dart\n',
+        ),
+        isEmpty,
+      );
+    });
+
+    test('ignores tracked files', () {
+      expect(
+        parseUnrestorableFiles(' M pkg/foo/lib/a.dart\nA  pkg/foo/b.dart\n'),
+        isEmpty,
       );
     });
   });
@@ -1183,13 +1378,77 @@ AA pkg/foo/lib/baz.dart
       write('pkg/foo/analysis_options.yaml', 'new\n');
       state.gitAdd([path('pkg/foo/analysis_options.yaml')]);
 
-      state.abandonScratchBranch(scratchBranch: 'scratch', originalRef: null);
+      expect(
+        state.abandonScratchBranch(scratchBranch: 'scratch', originalRef: null),
+        isTrue,
+      );
 
       expect(git(['rev-parse', 'HEAD']).trim(), initialSha);
       expect(git(['branch', '--list', 'scratch']), isEmpty);
       expect(read('pkg/foo/foo.dart'), 'f\n');
       expect(File(path('pkg/foo/analysis_options.yaml')).existsSync(), isFalse);
       expect(git(['status', '--porcelain', '--untracked-files=all']), isEmpty);
+    });
+
+    test('abandonScratchBranch reports a failed cleanup', () {
+      commit('Initial');
+      state.initialSha = '0' * 40;
+      state.gitCreateBranch('scratch');
+
+      expect(
+        state.abandonScratchBranch(scratchBranch: 'scratch', originalRef: null),
+        isFalse,
+      );
+    });
+
+    group('checkGitClean', () {
+      setUp(() {
+        write('pkg/foo/pubspec.yaml', 'environment:\n  sdk: ^3.9.0\n');
+        write('pkg/foo/lib/a.dart', 'void a() {}\n');
+        write('.gitignore', 'generated.dart\n.dart_tool/\n');
+        commit('Initial');
+        state = State(
+          packageStates: {
+            'foo': PackageState(
+              PackageInfo(
+                path: path('pkg/foo'),
+                name: 'foo',
+                isPublished: false,
+                ownerSet: OwnerSet.fromStrings([]),
+                sdkConstraint: '^3.9.0',
+                sdkConstraintNode: loadYamlNode('^3.9.0') as YamlScalar,
+              ),
+            ),
+          },
+          targetVersion: Version.parse('3.15.0-0'),
+          dryRun: false,
+          root: repo.path,
+        );
+      });
+
+      test('accepts a clean package', () {
+        state.checkGitClean();
+      });
+
+      test('rejects an untracked file in a selected package', () {
+        write('pkg/foo/lib/wip.dart', 'void   wip( ) {   }\n');
+        expect(state.checkGitClean, throwsException);
+      });
+
+      test('rejects an ignored Dart file in a selected package', () {
+        write('pkg/foo/lib/generated.dart', 'void generated() {}\n');
+        expect(state.checkGitClean, throwsException);
+      });
+
+      test('accepts files in hidden directories', () {
+        write('pkg/foo/.dart_tool/cache.dart', 'void cache() {}\n');
+        state.checkGitClean();
+      });
+
+      test('accepts an untracked file outside the selected packages', () {
+        write('pkg/bar/lib/wip.dart', 'void wip() {}\n');
+        state.checkGitClean();
+      });
     });
 
     group('package config', () {

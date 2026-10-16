@@ -64,10 +64,17 @@
 /// `python3 tools/generate_package_config.py` before running anything that
 /// depends on language versions (such as the analyzer, the formatter, or code
 /// generators).
+///
+/// ## Exit status
+///
+/// 0 if the migration was committed, even if some packages had to be dropped
+/// along the way; 1 if the run was thrown away; and 2 if even cleaning up
+/// after that failed, leaving the repository part way through the run.
 library;
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:analyzer_utilities/tool/sdk_packages.dart';
 import 'package:args/args.dart';
@@ -144,6 +151,15 @@ void main(List<String> args) {
     print('');
     showUsageAndExit();
   }
+  if (checkTargetVersion(
+        targetVersion,
+        versionFileContents: File(join(repoRoot, 'tools', 'VERSION'))
+            .readAsStringSync(),
+      )
+      case var problem?) {
+    print(problem);
+    exit(1);
+  }
   if (options.filterOwnerSets case var filter?) {
     filteredPackages = filteredPackages
         .where((p) => filter.contains(p.ownerSet))
@@ -189,7 +205,12 @@ void main(List<String> args) {
     return;
   }
 
-  state.checkGitClean();
+  try {
+    state.checkGitClean();
+  } on Exception catch (e) {
+    print('$e');
+    exit(1);
+  }
   state.initialSha = state.gitGetSha();
   state.warnIfColocatedWithJj();
   // `null` means `HEAD` was already detached. That's the normal case in a
@@ -244,13 +265,15 @@ void main(List<String> args) {
     print('  python3 tools/generate_package_config.py');
   } on Skip catch (e) {
     print('Skipping further steps: ${e.message}');
-    state.abandonScratchBranch(
+    exitCode = _exitCodeAfterAbandoning(
+      state,
       scratchBranch: scratchBranch,
       originalRef: originalRef,
     );
   } catch (e) {
     print('Aborting due to error: $e');
-    state.abandonScratchBranch(
+    exitCode = _exitCodeAfterAbandoning(
+      state,
       scratchBranch: scratchBranch,
       originalRef: originalRef,
     );
@@ -568,11 +591,17 @@ String? addAnalysisOptionsEntries(
 /// [contents] (or `null`, if it doesn't exist yet) should look like with
 /// [lintSet] and [experiments] enabled.
 ///
+/// When the file doesn't exist yet, the new file starts with an `include:` of
+/// [include], if given. The analyzer uses only the nearest
+/// `analysis_options.yaml`, so without that, a new file would silently stop
+/// the package from inheriting the options it was using until now.
+///
 /// Returns `null` if no change is needed.
 String? addLintsAndExperiments(
   String? contents, {
   required List<String> lintSet,
   required List<String> experiments,
+  String? include,
 }) {
   var result = contents;
   for (var (outerKey, innerKey, entries) in [
@@ -593,7 +622,16 @@ String? addLintsAndExperiments(
       result = updated;
     }
   }
-  return result == contents ? null : result;
+  if (result == contents) return null;
+  if (contents == null && include != null) {
+    // `include:` conventionally comes first in the file. It can't simply be
+    // put in the file before the loop above, because
+    // `addAnalysisOptionsEntries` writes a brand new top-level section at the
+    // very top of the file (below any leading comments), which would push the
+    // `include:` down below it. So it's prepended now instead.
+    return 'include: $include\n\n$result';
+  }
+  return result;
 }
 
 /// Returns [pubspecText] with its SDK constraint replaced by a caret
@@ -639,6 +677,52 @@ String bumpSdkConstraint(
   ].join();
 }
 
+/// Checks [targetVersion] against the version of the SDK being built, as
+/// described by [versionFileContents], the contents of `tools/VERSION`.
+///
+/// Returns a description of the problem, or `null` if there is none.
+///
+/// Only the major and minor versions are compared, since those are all that
+/// a language version consists of. A target above the SDK's version would
+/// make `pub get` (run by `tools/generate_package_config.py`) fail part way
+/// through the run. And while the SDK's own version is still in development
+/// (any channel other than `stable`), a target of the same major and minor
+/// version must be a prerelease: the SDK's version is then a prerelease
+/// itself, which a constraint such as `^3.15.0` doesn't allow.
+String? checkTargetVersion(
+  Version targetVersion, {
+  required String versionFileContents,
+}) {
+  // Decode the SDK's current version from `tools/VERSION`, whose lines are
+  // `KEY VALUE` pairs (e.g. `MINOR 15`), interspersed with `#` comments.
+  var fields = {
+    for (var line in const LineSplitter().convert(versionFileContents))
+      if (!line.startsWith('#'))
+        if (line.trim().split(RegExp(r'\s+')) case [var key, var value])
+          key: value,
+  };
+  var channel = fields['CHANNEL'];
+  var major = int.tryParse(fields['MAJOR'] ?? '');
+  var minor = int.tryParse(fields['MINOR'] ?? '');
+  if (channel == null || major == null || minor == null) {
+    return 'Could not find CHANNEL, MAJOR and MINOR in tools/VERSION.';
+  }
+  var comparison = targetVersion.major != major
+      ? targetVersion.major.compareTo(major)
+      : targetVersion.minor.compareTo(minor);
+  if (comparison > 0) {
+    return 'Target version $targetVersion is newer than the SDK being built '
+        '($major.$minor, according to tools/VERSION).';
+  }
+  if (comparison == 0 && channel != 'stable' && !targetVersion.isPreRelease) {
+    return 'Target version $targetVersion is not a prerelease, but the SDK '
+        'being built ($major.$minor, channel $channel, according to '
+        'tools/VERSION) is still in development, and its prerelease versions '
+        "wouldn't satisfy ^$targetVersion. Use $major.$minor.0-0 instead.";
+  }
+  return null;
+}
+
 /// Decides what a package whose SDK constraint is [rawSdkConstraint] needs,
 /// given that the migration targets [targetVersion], and returns that verdict
 /// along with the lowest SDK version the constraint allows.
@@ -667,7 +751,12 @@ String bumpSdkConstraint(
       throw Exception('Complex version constraint');
   }
 
-  if (minVersion >= targetVersion) {
+  // Only the major and minor versions matter, since that's all a language
+  // version is. In particular, a package at `^3.14.0-0` is already up to date
+  // for a target of `3.14.0`.
+  if (minVersion.major > targetVersion.major ||
+      (minVersion.major == targetVersion.major &&
+          minVersion.minor >= targetVersion.minor)) {
     // Already at or beyond the target version, so there is nothing to bump.
     // The package is still migrated, in case it hasn't yet had this lint set
     // applied to it.
@@ -712,14 +801,48 @@ String execute(
       );
       var isOk = checkOk?.call(processResult) ?? processResult.exitCode == 0;
       if (!isOk) {
+        // Some commands report failure on stdout rather than stderr, notably
+        // `tools/generate_package_config.py`, which prints `pub get`'s
+        // complaints. So include the end of stdout too.
+        var stdoutLines = const LineSplitter().convert(
+          processResult.stdout as String,
+        );
+        var stdoutTail = stdoutLines
+            .skip(max(0, stdoutLines.length - 20))
+            .join('\n');
         throw Exception(
-          'Subprocess exited with code ${processResult.exitCode}\nstderr:\n'
+          'Subprocess exited with code ${processResult.exitCode}\n'
+          'stdout (last ${min(20, stdoutLines.length)} lines):\n'
+          '$stdoutTail\n'
+          'stderr:\n'
           '${processResult.stderr as String}',
         );
       }
       return processResult.stdout as String;
     },
   );
+}
+
+/// Returns the path, relative to [packagePath], of the `analysis_options.yaml`
+/// that the package at [packagePath] inherits when it has none of its own.
+///
+/// That's the nearest one in an enclosing directory, looking no further up
+/// than [root]. Returns `null` if there isn't one.
+String? findInheritedAnalysisOptions(
+  String packagePath, {
+  required String root,
+}) {
+  var packageDirectory = absolute(packagePath);
+  var directory = packageDirectory;
+  var stop = absolute(root);
+  while (directory != stop && isWithin(stop, directory)) {
+    directory = dirname(directory);
+    var candidate = join(directory, 'analysis_options.yaml');
+    if (File(candidate).existsSync()) {
+      return posix.joinAll(split(relative(candidate, from: packageDirectory)));
+    }
+  }
+  return null;
 }
 
 /// Summarizes [diagnostics], the `diagnostics` list from the JSON output of
@@ -815,6 +938,30 @@ List<String> parseGitStatusConflicts(String output) {
   return mergeConflicts;
 }
 
+/// Extracts, from the [output] of `git status --porcelain
+/// --untracked-files=all --ignored=traditional`, the paths of files that the
+/// tool might rewrite but git can't restore: untracked files, and ignored
+/// `.dart` files.
+///
+/// `dart format` and `dart fix` rewrite every `.dart` file under a package
+/// regardless of git status, except in hidden directories such as
+/// `.dart_tool`, which they skip. Files that git doesn't track survive every
+/// way the tool has of undoing its changes, so a work-in-progress file would
+/// end up formatted at the new language version and migrated, even when the
+/// run is abandoned.
+///
+/// Untracked files count whatever their type, since a stray
+/// `analysis_options.yaml`, for instance, would also be edited.
+List<String> parseUnrestorableFiles(String output) => [
+  for (var line in const LineSplitter().convert(output))
+    if (line.length > 3 && line[2] == ' ')
+      if (line.substring(3) case var path
+          when !posix.split(path).any((segment) => segment.startsWith('.')))
+        if (line.startsWith('??') ||
+            (line.startsWith('!!') && path.endsWith('.dart')))
+          path,
+];
+
 void printAvailableLintSets() {
   print('Available lint sets');
   for (var MapEntry(:key, :value) in lintSets.entries) {
@@ -900,6 +1047,23 @@ String _computeDartExecutablePath() {
     exit(1);
   }
 }
+
+/// Throws away the run, and returns the exit code that reflects how that went.
+///
+/// Either way the migration has been thrown away, which is a failure (1). If
+/// even cleaning up failed, the repository is left part way through the run,
+/// which is worse (2).
+int _exitCodeAfterAbandoning(
+  State state, {
+  required String scratchBranch,
+  required String? originalRef,
+}) =>
+    state.abandonScratchBranch(
+      scratchBranch: scratchBranch,
+      originalRef: originalRef,
+    )
+    ? 1
+    : 2;
 
 /// Whether the SDK repository is colocated with a `jj` repository.
 bool get _isColocatedWithJj => Directory(join(repoRoot, '.jj')).existsSync();
@@ -1139,8 +1303,8 @@ class State {
   ///
   /// This is the last thing that runs on every failure path, so it must not
   /// itself fail silently. If it can't finish, it says exactly what to type to
-  /// finish by hand.
-  void abandonScratchBranch({
+  /// finish by hand, and returns `false`.
+  bool abandonScratchBranch({
     required String scratchBranch,
     required String? originalRef,
   }) {
@@ -1176,9 +1340,10 @@ class State {
         }
       }
       print('');
-      return;
+      return false;
     }
     restorePackageConfig();
+    return true;
   }
 
   void bumpLanguageVersion() {
@@ -1302,6 +1467,10 @@ class State {
     });
   }
 
+  /// Throws unless the selected packages can be safely migrated and then
+  /// restored: there must be no local modifications at all, and no files
+  /// under the packages that git can't restore (see
+  /// [parseUnrestorableFiles]).
   void checkGitClean() {
     print('Checking that there are no modified files...');
     var output = _execute('git', [
@@ -1311,6 +1480,31 @@ class State {
     if (output.isNotEmpty) {
       throw Exception(
         'There are local modifications. Commit or discard before running.',
+      );
+    }
+    print('Checking for untracked files in the selected packages...');
+    var unrestorableFiles = parseUnrestorableFiles(
+      _execute('git', [
+        'status',
+        '--porcelain',
+        '--untracked-files=all',
+        '--ignored=traditional',
+        '--',
+        for (var packageState in packageStates.values)
+          packageState.packageInfo.path,
+      ]),
+    );
+    if (unrestorableFiles.isNotEmpty) {
+      for (var file in unrestorableFiles.take(10)) {
+        print('  $file');
+      }
+      if (unrestorableFiles.length > 10) {
+        print('  ...and ${unrestorableFiles.length - 10} more');
+      }
+      throw Exception(
+        'The selected packages contain files that git does not track, which '
+        'the migration could rewrite but not restore. Commit, move or delete '
+        'them before running.',
       );
     }
   }
@@ -1476,6 +1670,10 @@ class State {
             originalAnalysisOptions,
             lintSet: lintSet,
             experiments: experiments,
+            include: findInheritedAnalysisOptions(
+              packageState.packageInfo.path,
+              root: root,
+            ),
           )
           case var updated?) {
         analysisOptionsFile.writeAsStringSync(updated);
@@ -1816,11 +2014,15 @@ class State {
     var file = File(join(packageInfo.path, 'analysis_options.yaml'));
     var exists = file.existsSync();
     var contents = exists ? file.readAsStringSync() : null;
+    var include = exists
+        ? null
+        : findInheritedAnalysisOptions(packageInfo.path, root: root);
     try {
       if (addLintsAndExperiments(
             contents,
             lintSet: lintSet,
             experiments: experiments,
+            include: include,
           ) ==
           null) {
         return 'already up to date';
@@ -1831,7 +2033,10 @@ class State {
       // only fail part way through a real run.
       return 'WOULD FAIL: $e';
     }
-    return exists ? 'would be updated' : 'would be created';
+    if (exists) return 'would be updated';
+    return include == null
+        ? 'would be created, inheriting nothing'
+        : 'would be created, including $include';
   }
 
   /// Renders [values] as a comma-separated list, or `(none)` if it's empty.
