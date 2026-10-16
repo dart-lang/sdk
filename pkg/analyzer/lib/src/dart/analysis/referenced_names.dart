@@ -191,8 +191,10 @@ class _LocalNameScope {
           scope.add(declaration.name);
         case TopLevelFunctionDeclarationImpl():
           scope.add(declaration.name);
-        case TopLevelVariableDeclarationImpl():
-          scope.addVariableNames(declaration.variables);
+        case TopLevelVariablesDeclarationImpl():
+          for (var variable in declaration.variables) {
+            scope.add(variable.name);
+          }
         case TopLevelGetterDeclarationImpl():
           scope.add(declaration.name);
         case TopLevelSetterDeclarationImpl():

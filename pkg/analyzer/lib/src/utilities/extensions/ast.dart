@@ -298,17 +298,25 @@ extension TokenExtension on Token {
   Token get precedingCommentOrThis => precedingComments ?? this;
 }
 
+extension TopLevelVariable2Extension on TopLevelVariable2 {
+  TopLevelVariableElementImpl get declaredElement {
+    return declaredFragment!.element as TopLevelVariableElementImpl;
+  }
+}
+
+@V1Ast('The V2 counterpart is TopLevelVariablesDeclarationExtension.')
 extension TopLevelVariableDeclarationExtension on TopLevelVariableDeclaration {
   Element get firstVariableElement =>
       variables.variables.first.declaredFragment!.element;
 }
 
+extension TopLevelVariablesDeclarationExtension
+    on TopLevelVariablesDeclaration {
+  Element get firstVariableElement => variables.first.declaredFragment!.element;
+}
+
 extension VariableDeclarationExtension on VariableDeclaration {
   FieldElementImpl get declaredFieldElement {
     return declaredFragment!.element as FieldElementImpl;
-  }
-
-  TopLevelVariableElementImpl get declaredTopLevelVariableElement {
-    return declaredFragment!.element as TopLevelVariableElementImpl;
   }
 }

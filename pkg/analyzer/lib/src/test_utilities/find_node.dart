@@ -47,6 +47,9 @@ class FindNode extends _FindNodeBase {
 
   SuperExpression get singleSuperExpression => _single();
 
+  TopLevelVariableDeclaration get singleTopLevelVariableDeclaration =>
+      _single();
+
   AssignmentExpression assignment(String search) {
     return _node(search, (n) => n is AssignmentExpression);
   }
@@ -121,6 +124,23 @@ class FindNode extends _FindNodeBase {
 
   SuperExpression super_(String search) {
     return _node(search, (n) => n is SuperExpression);
+  }
+
+  TopLevelVariableDeclaration topLevelVariableDeclaration(String search) {
+    return _node(search, (n) => n is TopLevelVariableDeclaration);
+  }
+
+  VariableDeclaration topVariableDeclarationByName(String name) {
+    for (var declaration in unit.declarations) {
+      if (declaration is TopLevelVariableDeclaration) {
+        for (var variable in declaration.variables.variables) {
+          if (variable.name.lexeme == name) {
+            return variable;
+          }
+        }
+      }
+    }
+    throw StateError(name);
   }
 
   @override
@@ -209,6 +229,11 @@ class FindNode2 extends _FindNodeBase {
   TopLevelGetterDeclaration get singleTopLevelGetterDeclaration => _single();
 
   TopLevelSetterDeclaration get singleTopLevelSetterDeclaration => _single();
+
+  TopLevelVariable2 get singleTopLevelVariable => _single();
+
+  TopLevelVariablesDeclaration get singleTopLevelVariablesDeclaration =>
+      _single();
 
   UnaryOperatorInvocation get singleUnaryOperatorInvocation => _single();
 
@@ -321,6 +346,27 @@ class FindNode2 extends _FindNodeBase {
 
   TopLevelSetterDeclaration topLevelSetterDeclaration(String search) {
     return _node(search, (node) => node is TopLevelSetterDeclaration);
+  }
+
+  TopLevelVariable2 topLevelVariable(String search) {
+    return _node(search, (node) => node is TopLevelVariable2);
+  }
+
+  TopLevelVariable2 topLevelVariableByName(String name) {
+    for (var declaration in unit.declarations2) {
+      if (declaration is TopLevelVariablesDeclaration) {
+        for (var variable in declaration.variables) {
+          if (variable.name.lexeme == name) {
+            return variable;
+          }
+        }
+      }
+    }
+    throw StateError(name);
+  }
+
+  TopLevelVariablesDeclaration topLevelVariablesDeclaration(String search) {
+    return _node(search, (node) => node is TopLevelVariablesDeclaration);
   }
 
   UnaryOperatorInvocation unaryOperatorInvocation(String search) {
@@ -666,9 +712,6 @@ abstract class _FindNodeBase {
   ThisExpression get singleThisExpression => _single();
 
   ThrowExpression get singleThrowExpression => _single();
-
-  TopLevelVariableDeclaration get singleTopLevelVariableDeclaration =>
-      _single();
 
   TryStatement get singleTryStatement => _single();
 
@@ -1322,23 +1365,6 @@ abstract class _FindNodeBase {
 
   ThrowExpression throw_(String search) {
     return _node(search, (n) => n is ThrowExpression);
-  }
-
-  TopLevelVariableDeclaration topLevelVariableDeclaration(String search) {
-    return _node(search, (n) => n is TopLevelVariableDeclaration);
-  }
-
-  VariableDeclaration topVariableDeclarationByName(String name) {
-    for (var declaration in unit.declarations2) {
-      if (declaration is TopLevelVariableDeclaration) {
-        for (var variable in declaration.variables.variables) {
-          if (variable.name.lexeme == name) {
-            return variable;
-          }
-        }
-      }
-    }
-    throw StateError(name);
   }
 
   TryStatement tryStatement(String search) {

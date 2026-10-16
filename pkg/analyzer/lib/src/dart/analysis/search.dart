@@ -593,7 +593,7 @@ class Search {
             n is Block ||
             n is ForElement ||
             n is FunctionBody ||
-            n is TopLevelVariableDeclaration ||
+            n is TopLevelVariablesDeclaration ||
             n is SwitchExpression ||
             n.parent2 is CompilationUnit,
       );

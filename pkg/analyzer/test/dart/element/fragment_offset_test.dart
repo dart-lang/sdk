@@ -179,7 +179,7 @@ class C {
 dynamic d;
 ''');
     var namedType =
-        result.findNode.topLevelVariableDeclaration('dynamic d').variables.type
+        result.findNode.topLevelVariablesDeclaration('dynamic d').type
             as NamedType;
     expect(namedType.element!.kind, ElementKind.DYNAMIC);
     // `dynamic` isn't defined in the source code anywhere, so its offset is 0.
@@ -451,19 +451,17 @@ class C {
     var result = await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration = result.findNode
-        .topLevelVariableDeclaration('x')
-        .variables
-        .variables[0];
+    var topLevelVariable = result.findNode.topLevelVariable('x');
     checkOffset<FormalParameterFragment>(
-      topLevelVariableDeclaration,
-      (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
+      topLevelVariable,
+      topLevelVariable
+          .declaredFragment!
           .element
           .setter!
           .formalParameters
           .single
           .firstFragment,
-      topLevelVariableDeclaration.name.offset,
+      topLevelVariable.name.offset,
     );
   }
 
@@ -545,17 +543,11 @@ int get foo => 0;
     var result = await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration = result.findNode
-        .topLevelVariableDeclaration('x')
-        .variables
-        .variables[0];
+    var topLevelVariable = result.findNode.topLevelVariable('x');
     checkOffset<GetterFragment>(
-      topLevelVariableDeclaration,
-      (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
-          .element
-          .getter!
-          .firstFragment,
-      topLevelVariableDeclaration.name.offset,
+      topLevelVariable,
+      topLevelVariable.declaredFragment!.element.getter!.firstFragment,
+      topLevelVariable.name.offset,
     );
   }
 
@@ -776,7 +768,7 @@ mixin {}
 Never n = throw '';
 ''');
     var namedType =
-        result.findNode.topLevelVariableDeclaration('Never n').variables.type
+        result.findNode.topLevelVariablesDeclaration('Never n').type
             as NamedType;
     expect(namedType.element!.kind, ElementKind.NEVER);
     // `Never` isn't defined in the source code anywhere, so its offset is 0.
@@ -875,17 +867,11 @@ set foo(int value) {}
     var result = await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration = result.findNode
-        .topLevelVariableDeclaration('x')
-        .variables
-        .variables[0];
+    var topLevelVariable = result.findNode.topLevelVariable('x');
     checkOffset<SetterFragment>(
-      topLevelVariableDeclaration,
-      (topLevelVariableDeclaration.declaredFragment as TopLevelVariableFragment)
-          .element
-          .setter!
-          .firstFragment,
-      topLevelVariableDeclaration.name.offset,
+      topLevelVariable,
+      topLevelVariable.declaredFragment!.element.setter!.firstFragment,
+      topLevelVariable.name.offset,
     );
   }
 
@@ -961,14 +947,11 @@ void foo() {}
     var result = await resolveTestCodeWithDiagnostics(r'''
 int? x;
 ''');
-    var topLevelVariableDeclaration = result.findNode
-        .topLevelVariableDeclaration('x')
-        .variables
-        .variables[0];
+    var topLevelVariable = result.findNode.topLevelVariable('x');
     checkOffset<TopLevelVariableFragment>(
-      topLevelVariableDeclaration,
-      topLevelVariableDeclaration.declaredFragment!,
-      topLevelVariableDeclaration.name.offset,
+      topLevelVariable,
+      topLevelVariable.declaredFragment!,
+      topLevelVariable.name.offset,
     );
   }
 
@@ -976,14 +959,11 @@ int? x;
     var result = await resolveTestCodeWithDiagnostics(r'''
 const int x = 0;
 ''');
-    var topLevelVariableDeclaration = result.findNode
-        .topLevelVariableDeclaration('x')
-        .variables
-        .variables[0];
+    var topLevelVariable = result.findNode.topLevelVariable('x');
     checkOffset<TopLevelVariableFragment>(
-      topLevelVariableDeclaration,
-      topLevelVariableDeclaration.declaredFragment!,
-      topLevelVariableDeclaration.name.offset,
+      topLevelVariable,
+      topLevelVariable.declaredFragment!,
+      topLevelVariable.name.offset,
     );
   }
 

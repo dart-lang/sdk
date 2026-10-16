@@ -148,23 +148,32 @@ void x;
 
   Future<void> _assertConst(String code) async {
     var result = await resolveTestCode(code);
-    var type = result.findNode.variableDeclarationList('x;').type!;
+    var type = _xType(result);
     expect(isPotentiallyConstantTypeExpression(type), isTrue);
     expect(isConstantTypeExpression(type), isTrue);
   }
 
   Future<void> _assertNeverConst(String code) async {
     var result = await resolveTestCode(code);
-    var type = result.findNode.variableDeclarationList('x;').type!;
+    var type = _xType(result);
     expect(isPotentiallyConstantTypeExpression(type), isFalse);
     expect(isConstantTypeExpression(type), isFalse);
   }
 
   Future<void> _assertPotentiallyConst(String code) async {
     var result = await resolveTestCode(code);
-    var type = result.findNode.variableDeclarationList('x;').type!;
+    var type = _xType(result);
     expect(isPotentiallyConstantTypeExpression(type), isTrue);
     expect(isConstantTypeExpression(type), isFalse);
+  }
+
+  TypeAnnotation _xType(TestResolvedUnitResult result) {
+    return switch (result.findNode.any('x;')) {
+      TopLevelVariable2(parent2: TopLevelVariablesDeclaration(:var type?)) =>
+        type,
+      VariableDeclaration(parent2: VariableDeclarationList(:var type?)) => type,
+      _ => throw StateError('No type of x'),
+    };
   }
 }
 
@@ -1715,6 +1724,10 @@ class A<T> {
   }
 
   Expression _xInitializer(TestResolvedUnitResult result) {
-    return result.findNode.variableDeclaration('x = ').initializer2!;
+    return switch (result.findNode.any('x = ')) {
+      TopLevelVariable2(:var initializer?) => initializer,
+      VariableDeclaration(:var initializer2?) => initializer2,
+      _ => throw StateError('No initializer of x'),
+    };
   }
 }

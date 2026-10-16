@@ -286,7 +286,7 @@ V1: FunctionDeclaration
       featureSet: _disabledFeatureSet,
     );
 
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelVariablesDeclaration
   type: NamedType
@@ -338,7 +338,7 @@ V1: TopLevelVariableDeclaration
       featureSet: _enabledFeatureSet,
     );
 
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelVariablesDeclaration
   type: NamedType

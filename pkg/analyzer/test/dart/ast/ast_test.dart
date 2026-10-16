@@ -1990,20 +1990,22 @@ class A {
 
 @reflectiveTest
 class VariableDeclarationTest extends ParserDiagnosticsTest {
+  @V1Ast('Tests the V1 projection.')
   void test_getDocumentationComment_onGrandParent() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 /// text
 var a = 0;
 ''');
-    var node = parseResult.findNode.variableDeclaration('a =');
+    var node = parseResult.findNodeV1.variableDeclaration('a =');
     expect(node.documentationComment, isNotNull);
   }
 
+  @V1Ast('Tests the V1 projection.')
   test_sortedCommentAndAnnotations_noComment() {
     var parseResult = parseTestCodeWithDiagnostics('''
 var a = 0;
 ''');
-    var variable = parseResult.findNode.variableDeclaration('a =');
+    var variable = parseResult.findNodeV1.variableDeclaration('a =');
     expect(variable.sortedCommentAndAnnotations, isEmpty);
   }
 }

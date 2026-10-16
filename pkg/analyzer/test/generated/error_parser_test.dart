@@ -2171,7 +2171,7 @@ var v = x.class;
 // [diag.expectedIdentifierButGotKeyword] 'class' can't be used as an identifier because it's a keyword.
 ''');
     assertParsedNodeText(
-      parseResult.findNode.singleVariableDeclaration.initializer2!,
+      parseResult.findNode.singleTopLevelVariable.initializer!,
       r'''
 ParsedNameAccess
   operand: ParsedUnqualifiedName
@@ -2195,7 +2195,7 @@ var v = x.this;
 // [diag.missingIdentifier] Expected an identifier.
 ''');
     assertParsedNodeText(
-      parseResult.findNode.singleVariableDeclaration.initializer2!,
+      parseResult.findNode.singleTopLevelVariable.initializer!,
       r'''
 ParsedNameAccess
   operand: ParsedUnqualifiedName
@@ -3379,8 +3379,7 @@ var x = a..();
 // [diag.missingIdentifier] Expected an identifier.
 ''');
 
-    var methodInvocation =
-        result.findNode.singleVariableDeclaration.initializer2!;
+    var methodInvocation = result.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(methodInvocation, r'''
 CascadeExpression
   target2: ParsedUnqualifiedName
@@ -3413,8 +3412,7 @@ var x = a..<E>();
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var methodInvocation =
-        result.findNode.singleVariableDeclaration.initializer2!;
+    var methodInvocation = result.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(methodInvocation, r'''
 CascadeExpression
   target2: ParsedUnqualifiedName

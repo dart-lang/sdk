@@ -393,11 +393,11 @@ class Derived extends Base {
 var x = [];
 var y = {};
 ''');
-    var xNode = result.findNode.variableDeclaration('x = ');
+    var xNode = result.findNode.topLevelVariable('x = ');
     var xfragment = xNode.declaredFragment!;
     assertType(xfragment.element.type, 'List<dynamic>');
 
-    var yNode = result.findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.topLevelVariable('y = ');
     var yfragment = yNode.declaredFragment!;
     assertType(yfragment.element.type, 'Map<dynamic, dynamic>');
   }
@@ -407,11 +407,11 @@ var y = {};
 var x = [null];
 var y = {null: null};
 ''');
-    var xNode = result.findNode.variableDeclaration('x = ');
+    var xNode = result.findNode.topLevelVariable('x = ');
     var xFragment = xNode.declaredFragment!;
     assertType(xFragment.element.type, 'List<Null>');
 
-    var yNode = result.findNode.variableDeclaration('y = ');
+    var yNode = result.findNode.topLevelVariable('y = ');
     var yFragment = yNode.declaredFragment!;
     assertType(yFragment.element.type, 'Map<Null, Null>');
   }
@@ -607,7 +607,7 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var xNode = result.findNode.variableDeclaration('x = ');
+    var xNode = result.findNode.topLevelVariable('x = ');
     var xFragment = xNode.declaredFragment!;
     expect(xFragment.element.type, VoidTypeImpl.instance);
 
@@ -626,7 +626,7 @@ main() {
 // [diag.unusedLocalVariable] The value of the local variable 'y' isn't used.
 }
 ''');
-    var xNode = result.findNode.variableDeclaration('x = ');
+    var xNode = result.findNode.topLevelVariable('x = ');
     var xFragment = xNode.declaredFragment!;
     expect(xFragment.element.type, VoidTypeImpl.instance);
 

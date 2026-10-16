@@ -536,42 +536,15 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
+    super.visitTopLevelVariable2(node);
+    _checkVariableInitializer(node);
+  }
+
+  @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     super.visitVariableDeclaration(node);
-    var initializer = node.initializer2;
-    var fragment = node.declaredFragment!;
-    if (initializer != null && (fragment.isConst || fragment.isFinal)) {
-      var element = fragment.element;
-      if (element is FieldElementImpl && !element.isStatic) {
-        var enclosingElement = element.enclosingElement;
-        if (enclosingElement is ClassElementImpl &&
-            !enclosingElement.hasGenerativeConstConstructor) {
-          // TODO(kallentu): Evaluate if we need to do this check for inline
-          // classes.
-          //
-          // We report errors in the class fields only if there's a generative
-          // const constructor in the class.
-          return;
-        }
-      }
-
-      var result = element.evaluationResult;
-      if (result == null) {
-        // Variables marked "const" should have had their values computed by
-        // ConstantValueComputer.  Other variables will only have had their
-        // values computed if the value was needed (e.g. final variables in a
-        // class containing const constructors).
-        assert(!fragment.isConst);
-        return;
-      }
-      if (result is InvalidConstant) {
-        if (fragment.isConst) {
-          _reportError(result, diag.constInitializedWithNonConstantValue);
-        } else {
-          _reportError(result, null);
-        }
-      }
-    }
+    _checkVariableInitializer(node);
   }
 
   /// Returns `false` if we can prove that `constant == value` always returns
@@ -692,6 +665,45 @@ class ConstantVerifier extends RecursiveAstVisitor2<void> {
           locatableDiagnostic,
           allowedTypeParameters: allowedTypeParameters,
         );
+      }
+    }
+  }
+
+  /// Reports the constant evaluation errors of the initializer of the const or
+  /// final variable [node].
+  void _checkVariableInitializer(VariableBindingImpl node) {
+    var initializer = node.initializer2;
+    var fragment = node.declaredFragment!;
+    if (initializer != null && (fragment.isConst || fragment.isFinal)) {
+      var element = fragment.element;
+      if (element is FieldElementImpl && !element.isStatic) {
+        var enclosingElement = element.enclosingElement;
+        if (enclosingElement is ClassElementImpl &&
+            !enclosingElement.hasGenerativeConstConstructor) {
+          // TODO(kallentu): Evaluate if we need to do this check for inline
+          // classes.
+          //
+          // We report errors in the class fields only if there's a generative
+          // const constructor in the class.
+          return;
+        }
+      }
+
+      var result = element.evaluationResult;
+      if (result == null) {
+        // Variables marked "const" should have had their values computed by
+        // ConstantValueComputer.  Other variables will only have had their
+        // values computed if the value was needed (e.g. final variables in a
+        // class containing const constructors).
+        assert(!fragment.isConst);
+        return;
+      }
+      if (result is InvalidConstant) {
+        if (fragment.isConst) {
+          _reportError(result, diag.constInitializedWithNonConstantValue);
+        } else {
+          _reportError(result, null);
+        }
       }
     }
   }

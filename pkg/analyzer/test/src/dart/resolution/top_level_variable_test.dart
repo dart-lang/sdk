@@ -27,7 +27,7 @@ final x = f(g, (z) => z.length);
 //                      ^^^^^^
 // [diag.uncheckedPropertyAccessOfNullableValue] The property 'length' can't be unconditionally accessed because the receiver can be 'null'.
 ''');
-    var node = result.findNode.variableDeclaration('x =');
+    var node = result.findNode.topLevelVariable('x =');
     assertResolvedNodeText(node, r'''
 TopLevelVariable
   name: x
@@ -155,7 +155,7 @@ T? f<T>(T Function() a, int Function(T) b) => null;
 String g() => '';
 final String? x = f(g, (z) => z.length);
 ''');
-    var node = result.findNode.variableDeclaration('x =');
+    var node = result.findNode.topLevelVariable('x =');
     assertResolvedNodeText(node, r'''
 TopLevelVariable
   name: x

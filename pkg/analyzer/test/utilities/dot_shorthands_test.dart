@@ -377,7 +377,13 @@ Set<E> e = {.b};
     TestResolvedUnitResult result,
     bool expected,
   ) {
-    var initializer = result.findNode.singleVariableDeclaration.initializer2!;
+    var topLevelDeclaration = result.unit.declarations2
+        .whereType<TopLevelVariablesDeclaration>()
+        .singleOrNull;
+    var initializer = switch (topLevelDeclaration) {
+      var declaration? => declaration.variables.single.initializer!,
+      null => result.findNode.singleVariableDeclaration.initializer2!,
+    };
     expect(hasDependentDotShorthand2(initializer), expected, reason: 'V2');
 
     // ignore: analyzer_v1_ast_use
@@ -397,7 +403,7 @@ class A {
 }
 A result = .value();
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, true);
   }
 
@@ -408,7 +414,7 @@ class A {
 }
 A result = .named();
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, true);
   }
 
@@ -419,7 +425,7 @@ class A {
 }
 A result = .value!;
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, true);
   }
 
@@ -430,7 +436,7 @@ class A {
 }
 A result = (.named());
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, false);
   }
 
@@ -441,7 +447,7 @@ class A {
 }
 A result = .values[0];
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, true);
   }
 
@@ -453,7 +459,7 @@ class A {
 }
 A result = .named().method();
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, true);
   }
 
@@ -464,7 +470,7 @@ class A {
 }
 A result = .identity<A>.call(A());
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, true);
   }
 
@@ -476,7 +482,7 @@ class A {
 }
 A result = .values[0]!.method();
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, true);
   }
 
@@ -501,7 +507,7 @@ class A {
 }
 A? result = .value?.method();
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, true);
   }
 
@@ -513,7 +519,7 @@ class A {
 }
 A result = .value.self;
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, true);
   }
 
@@ -525,7 +531,7 @@ class A {
 A accept(A value) => value;
 A result = accept(.named());
 ''');
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     _assertIsDotShorthand(node, false);
   }
 

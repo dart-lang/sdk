@@ -907,7 +907,7 @@ class C<T> {}
 var x = C<int>.new.hashCode;
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
   receiver: ConstructorTearOff

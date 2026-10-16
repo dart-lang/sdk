@@ -368,8 +368,6 @@ class ElementResolver {
     }
   }
 
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {}
-
   void visitTypeParameter(TypeParameter node) {}
 
   void visitUnqualifiedFunctionInvocation(

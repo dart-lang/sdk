@@ -964,14 +964,14 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    for (var variable in node.variables.variables) {
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
+    for (var variable in node.variables) {
       _visitTopLevelVariableElement(
         variable.declaredFragment?.element as TopLevelVariableElement,
       );
     }
 
-    super.visitTopLevelVariableDeclaration(node);
+    super.visitTopLevelVariablesDeclaration(node);
   }
 
   @override

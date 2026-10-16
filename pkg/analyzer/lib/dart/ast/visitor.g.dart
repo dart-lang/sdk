@@ -3267,8 +3267,16 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  R? visitTopLevelVariable2(TopLevelVariable2 node) {
+    node.visitChildren2(this);
+    return null;
+  }
+
+  @experimental
+  @override
+  R? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4705,8 +4713,14 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) => null;
 
+  @experimental
   @override
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) => null;
+  R? visitTopLevelVariable2(TopLevelVariable2 node) => null;
+
+  @experimental
+  @override
+  R? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) =>
+      null;
 
   @override
   R? visitTryStatement(TryStatement node) => null;
@@ -6132,8 +6146,13 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) =>
       _throw(node);
 
+  @experimental
   @override
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
+  R? visitTopLevelVariable2(TopLevelVariable2 node) => _throw(node);
+
+  @experimental
+  @override
+  R? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) =>
       _throw(node);
 
   @override
@@ -9480,10 +9499,20 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  T? visitTopLevelVariable2(TopLevelVariable2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitTopLevelVariableDeclaration(node);
+    T? result = _baseVisitor.visitTopLevelVariable2(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @experimental
+  @override
+  T? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitTopLevelVariablesDeclaration(node);
     stopwatch.stop();
     return result;
   }
@@ -11043,8 +11072,13 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   R? visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) =>
       visitNode(node);
 
+  @experimental
   @override
-  R? visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) =>
+  R? visitTopLevelVariable2(TopLevelVariable2 node) => visitNode(node);
+
+  @experimental
+  @override
+  R? visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) =>
       visitNode(node);
 
   @override

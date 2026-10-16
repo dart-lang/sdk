@@ -329,7 +329,7 @@ class C<T> {
     expect(v1.constructorName.name!.element, same(reference.element));
     expect(v1.staticType, same(v2.staticType));
 
-    expect(v1.parent, same(v2.parent2));
+    expect(v1.parent, same(result.findNodeV1.variableDeclaration('x =')));
     expect(v1.constructorName.parent, same(v1));
     expect(v1.argumentList, same(v2.argumentList));
     expect(v1.argumentList.parent, same(v1));
@@ -443,8 +443,8 @@ var x = a;
 import 'a.dart' as p;
 const x = p.a;
 ''');
-    var declaration = unitResult.findNode.topVariableDeclarationByName('x');
-    var expression = declaration.initializer2!;
+    var declaration = unitResult.findNode.topLevelVariableByName('x');
+    var expression = declaration.initializer!;
     expect(expression.inConstantContext, isTrue);
     var result = expression.computeConstantValue();
     expect(result, isNotNull);
@@ -588,7 +588,7 @@ var x = throw 42;
 import 'a.dart' as p;
 const x = p.a;
 ''');
-    var declaration = unitResult.findNode.topVariableDeclarationByName('x');
+    var declaration = unitResult.findNodeV1.topVariableDeclarationByName('x');
     var expression = declaration.initializer!;
     expect(expression.inConstantContext, isTrue);
     var result = expression.computeConstantValue();
@@ -654,7 +654,7 @@ class A {
   }
 
   AttemptedConstantEvaluationResult? _evaluateX(TestResolvedUnitResult result) {
-    var node = result.findNode.topVariableDeclarationByName('x').initializer2!;
+    var node = result.findNode.topLevelVariableByName('x').initializer!;
     return node.computeConstantValue();
   }
 }

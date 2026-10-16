@@ -385,6 +385,11 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
     immediateChild = node;
     parentOf(node)?.accept(this);
   }
+
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+    _declarationNode = node;
+  }
 }
 
 /// The V2 AST equivalent of [ScopedNameFinder].
@@ -443,6 +448,11 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
     if (!identical(immediateChild, parameters)) {
       _addParameters(parameters.allFormalParameters);
     }
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
+    _declarationNode = node;
   }
 }
 
@@ -522,10 +532,6 @@ mixin _ScopedNameFinderMixin {
   void visitSwitchMember(SwitchMember node) {
     _checkStatements(switchMemberStatementsOf(node));
     visitNode(node);
-  }
-
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    _declarationNode = node;
   }
 
   void visitTypeAlias(TypeAlias node) {

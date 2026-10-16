@@ -1305,6 +1305,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelVariable2(TopLevelVariable2 node) {
+    throw StateError('Should not visit top level declarations');
+  }
+
+  @override
   void visitTryStatement(TryStatement node) {
     var finallyBlock = node.finallyBlock;
     assignedVariables.beginNode(); // Begin info for [node].
@@ -1330,8 +1335,7 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var grandParent = node.parent2!.parent2;
-    if (grandParent is TopLevelVariableDeclaration ||
-        grandParent is FieldDeclaration) {
+    if (grandParent is FieldDeclaration) {
       throw StateError('Should not visit top level declarations');
     }
     var declaredElement =

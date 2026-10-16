@@ -3890,7 +3890,7 @@ CompilationUnit
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var a = b;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariable;
     assertParsedNodeText(node, r'''
 TopLevelVariable
   name: a
@@ -4048,7 +4048,7 @@ VariableDeclarationStatement
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var a;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariable;
     assertParsedNodeText(node, r'''
 TopLevelVariable
   name: a

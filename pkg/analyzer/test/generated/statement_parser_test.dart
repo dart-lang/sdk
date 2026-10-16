@@ -5285,18 +5285,28 @@ var x = null;
 const a = 0;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations2.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: const
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: const
   variables
     TopLevelVariable
       name: a
       equals: =
       initializer: IntegerLiteral
         literal: 0
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: const
+    variables
+      VariableDeclaration
+        name: a
+        equals: =
+        initializer: IntegerLiteral
+          literal: 0
+  semicolon: ;
 ''');
   }
 
@@ -5306,17 +5316,26 @@ var x = null;
 const A a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations2.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: const
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: const
   type: NamedType
     name: A
   variables
     TopLevelVariable
       name: a
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: const
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -5326,15 +5345,22 @@ var x = null;
 final a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations2.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: final
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: final
   variables
     TopLevelVariable
       name: a
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: final
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -5344,17 +5370,26 @@ var x = null;
 final A a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations2.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: final
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: final
   type: NamedType
     name: A
   variables
     TopLevelVariable
       name: a
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: final
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -5364,11 +5399,10 @@ var x = null;
 A a, b, c;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations2.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
+TopLevelVariablesDeclaration
   type: NamedType
     name: A
   variables
@@ -5378,6 +5412,19 @@ VariableDeclarationList
       name: b
     TopLevelVariable
       name: c
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
+        name: a
+      VariableDeclaration
+        name: b
+      VariableDeclaration
+        name: c
+  semicolon: ;
 ''');
   }
 
@@ -5387,16 +5434,24 @@ var x = null;
 A a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations2.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
+TopLevelVariablesDeclaration
   type: NamedType
     name: A
   variables
     TopLevelVariable
       name: a
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    type: NamedType
+      name: A
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 
@@ -5406,12 +5461,11 @@ var x = null;
 var a, b, c;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations2.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: var
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: var
   variables
     TopLevelVariable
       name: a
@@ -5419,6 +5473,18 @@ VariableDeclarationList
       name: b
     TopLevelVariable
       name: c
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: a
+      VariableDeclaration
+        name: b
+      VariableDeclaration
+        name: c
+  semicolon: ;
 ''');
   }
 
@@ -5428,15 +5494,22 @@ var x = null;
 var a;
 ''');
     var node =
-        (parseResult.findNode.unit.declarations2.last
-                as TopLevelVariableDeclaration)
-            .variables;
+        parseResult.findNode.unit.declarations2.last
+            as TopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
-VariableDeclarationList
-  keyword: var
+TopLevelVariablesDeclaration
+  constFinalOrVarKeyword: var
   variables
     TopLevelVariable
       name: a
+  semicolon: ;
+V1: TopLevelVariableDeclaration
+  variables: VariableDeclarationList
+    keyword: var
+    variables
+      VariableDeclaration
+        name: a
+  semicolon: ;
 ''');
   }
 

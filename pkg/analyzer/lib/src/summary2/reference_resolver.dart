@@ -351,8 +351,14 @@ class ReferenceResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
+    node.initializerScope = nameScope;
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     node.visitChildren2(this);
+    nodesToBuildType.addDeclaration(node);
   }
 
   @override

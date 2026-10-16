@@ -71,8 +71,8 @@ class _UnitApiSignatureComputer {
           );
           signature.addBool(declaration.isComplete);
           _addFunctionBodyModifiers(declaration.body);
-        case TopLevelVariableDeclarationImpl():
-          _topLevelVariableDeclaration(declaration);
+        case TopLevelVariablesDeclarationImpl():
+          _topLevelVariablesDeclaration(declaration);
         case TypeAliasImpl():
           _addNode(declaration);
       }
@@ -225,15 +225,27 @@ class _UnitApiSignatureComputer {
     }
   }
 
-  void _topLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void _topLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     _addToken(node.abstractKeyword);
     _addToken(node.augmentKeyword);
     _addToken(node.externalKeyword);
     _addNodeList(node.metadata);
 
-    var variableList = node.variables;
-    var includeInitializers = variableList.type == null || variableList.isConst;
-    _variableList(variableList, includeInitializers);
+    _addToken(node.constFinalOrVarKeyword);
+    _addToken(node.lateKeyword);
+    _addNode(node.type);
+
+    var includeInitializers = node.type == null || node.constKeyword != null;
+    var variables = node.variables;
+    signature.addInt(variables.length);
+
+    for (var variable in variables) {
+      _addToken(variable.name);
+      signature.addBool(variable.initializer != null);
+      if (includeInitializers) {
+        _addNode(variable.initializer);
+      }
+    }
   }
 
   void _variableList(VariableDeclarationList node, bool includeInitializers) {

@@ -1172,7 +1172,11 @@ abstract class RuleVisitorRegistry2 {
     AstVisitor2 visitor,
   );
 
-  void addTopLevelVariableDeclaration(
+  @experimental
+  void addTopLevelVariable2(AbstractAnalysisRule rule, AstVisitor2 visitor);
+
+  @experimental
+  void addTopLevelVariablesDeclaration(
     AbstractAnalysisRule rule,
     AstVisitor2 visitor,
   );

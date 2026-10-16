@@ -4564,67 +4564,85 @@ void f() {
     _assertSource(code, node);
   }
 
-  void test_visitTopLevelVariableDeclaration_abstract() {
+  void test_visitTopLevelVariable_initialized() {
+    var code = 'foo = bar';
+    var parseResult = parseTestCodeWithDiagnostics('''
+var $code;
+''');
+    var node = parseResult.findNode.singleTopLevelVariable;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelVariable_uninitialized() {
+    var code = 'foo';
+    var parseResult = parseTestCodeWithDiagnostics('''
+var $code;
+''');
+    var node = parseResult.findNode.singleTopLevelVariable;
+    _assertSource(code, node);
+  }
+
+  void test_visitTopLevelVariablesDeclaration_abstract() {
     var code = 'abstract var a;';
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
 ''');
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     _assertSource(code, node);
   }
 
-  void test_visitTopLevelVariableDeclaration_augment() {
+  void test_visitTopLevelVariablesDeclaration_augment() {
     var code = 'augment var a = 0;';
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
 ''');
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     _assertSource(code, node);
   }
 
-  void test_visitTopLevelVariableDeclaration_external() {
+  void test_visitTopLevelVariablesDeclaration_external() {
     var code = 'external var a;';
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
 ''');
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     _assertSource(code, node);
   }
 
-  void test_visitTopLevelVariableDeclaration_external_abstract() {
+  void test_visitTopLevelVariablesDeclaration_external_abstract() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
 external abstract var a;
 //       ^^^^^^^^
 // [diag.abstractExternalField] Fields can't be declared both 'abstract' and 'external'.
 ''');
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     _assertSource('external abstract var a;', node);
   }
 
-  void test_visitTopLevelVariableDeclaration_multiple() {
+  void test_visitTopLevelVariablesDeclaration_multiple() {
     var code = 'var a = 0, b = 1;';
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
 ''');
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     _assertSource(code, node);
   }
 
-  void test_visitTopLevelVariableDeclaration_single() {
+  void test_visitTopLevelVariablesDeclaration_single() {
     var code = 'var a;';
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
 ''');
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     _assertSource(code, node);
   }
 
-  void test_visitTopLevelVariableDeclaration_withMetadata() {
+  void test_visitTopLevelVariablesDeclaration_withMetadata() {
     var code = '@deprecated var a;';
     var parseResult = parseTestCodeWithDiagnostics('''
 $code
 ''');
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     _assertSource(code, node);
   }
 
@@ -4776,7 +4794,9 @@ int f() {
   void test_visitVariableDeclaration_initialized() {
     var code = 'foo = bar';
     var parseResult = parseTestCodeWithDiagnostics('''
-var $code;
+void f() {
+  var $code;
+}
 ''');
     var node = parseResult.findNode.singleVariableDeclaration;
     _assertSource(code, node);
@@ -4785,7 +4805,9 @@ var $code;
   void test_visitVariableDeclaration_uninitialized() {
     var code = 'foo';
     var parseResult = parseTestCodeWithDiagnostics('''
-var $code;
+void f() {
+  var $code;
+}
 ''');
     var node = parseResult.findNode.singleVariableDeclaration;
     _assertSource(code, node);
@@ -4794,7 +4816,9 @@ var $code;
   void test_visitVariableDeclarationList_const_type() {
     var code = 'const int a = 0, b = 0';
     var parseResult = parseTestCodeWithDiagnostics('''
-$code;
+void f() {
+  $code;
+}
 ''');
     var node = parseResult.findNode.singleVariableDeclarationList;
     _assertSource(code, node);
@@ -4803,7 +4827,9 @@ $code;
   void test_visitVariableDeclarationList_final_noType() {
     var code = 'final a = 0, b = 0';
     var parseResult = parseTestCodeWithDiagnostics('''
-$code;
+void f() {
+  $code;
+}
 ''');
     var node = parseResult.findNode.singleVariableDeclarationList;
     _assertSource(code, node);
@@ -4812,7 +4838,9 @@ $code;
   void test_visitVariableDeclarationList_type() {
     var code = 'int a, b';
     var parseResult = parseTestCodeWithDiagnostics('''
-$code;
+void f() {
+  $code;
+}
 ''');
     var node = parseResult.findNode.singleVariableDeclarationList;
     _assertSource(code, node);
@@ -4821,18 +4849,22 @@ $code;
   void test_visitVariableDeclarationList_var() {
     var code = 'var a, b';
     var parseResult = parseTestCodeWithDiagnostics('''
-$code;
+void f() {
+  $code;
+}
 ''');
     var node = parseResult.findNode.singleVariableDeclarationList;
     _assertSource(code, node);
   }
 
   void test_visitVariableDeclarationStatement() {
-    var code = 'int a';
+    var code = 'int a;';
     var parseResult = parseTestCodeWithDiagnostics('''
-$code;
+void f() {
+  $code
+}
 ''');
-    var node = parseResult.findNode.singleVariableDeclarationList;
+    var node = parseResult.findNode.singleVariableDeclarationStatement;
     _assertSource(code, node);
   }
 
