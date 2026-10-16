@@ -860,8 +860,21 @@ PRERELEASE_PATCH 0
 
   group('execute', () {
     test('includes the end of stdout when the command fails', () {
+      // A Dart script, rather than a shell command, so that this works on
+      // every platform. The text is computed, so that it can't simply come
+      // from the command line, which the error mentions too.
+      var directory = Directory.systemTemp.createTempSync('execute_test');
+      addTearDown(() => directory.deleteSync(recursive: true));
+      var script = File(join(directory.path, 'fail.dart'))
+        ..writeAsStringSync('''
+import 'dart:io';
+void main() {
+  print('solver said \${6 * 7}');
+  exit(255);
+}
+''');
       expect(
-        () => execute('sh', ['-c', r'echo "solver said $((6*7))"; exit 255']),
+        () => execute(Platform.resolvedExecutable, [script.path]),
         throwsA(
           predicate((e) => '$e'.contains('solver said 42'), 'mentions stdout'),
         ),
@@ -1520,6 +1533,22 @@ open('.dart_tool/package_config.json', 'w').write(
 
         expect(packageConfig(), '^3.9.0');
       });
-    });
-  });
+    }, skip: _skipUnlessAvailable('python3'));
+  }, skip: _skipUnlessAvailable('git'));
+}
+
+/// Returns a reason to skip tests that need [executable], or `null` if it's
+/// available.
+///
+/// Some of the bots that run these tests don't have every tool installed. On
+/// Windows, running a missing executable throws a [ProcessException]. On
+/// macOS without the Xcode command line tools, `/usr/bin/git` is a stub that
+/// fails, so the exit code needs checking too.
+String? _skipUnlessAvailable(String executable) {
+  try {
+    if (Process.runSync(executable, ['--version']).exitCode == 0) return null;
+  } on ProcessException {
+    // Not installed; fall through.
+  }
+  return '`$executable` is not available on this machine';
 }
