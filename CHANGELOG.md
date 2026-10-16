@@ -234,6 +234,15 @@ remove them.
 
 [#54366]: https://github.com/dart-lang/sdk/issues/54366
 
+#### Linter
+
+- Added the `future_sync_value` lint rule, which recommends using
+  `Future.syncValue` instead of `Future.sync` when the callback returns a
+  synchronous (non-`Future`) value.
+  For more details, see SDK issue [#61740][].
+
+[#61740]: https://github.com/dart-lang/sdk/issues/61740
+
 #### Dart CLI
 
 - `dart run <package>:<command>` and `dart test` now cache the precompiled
@@ -298,6 +307,15 @@ remove them.
 [dart_style #1885]: https://github.com/dart-lang/dart_style/issues/1885
 [dart_style #1886]: https://github.com/dart-lang/dart_style/issues/1886
 [dart_style #1888]: https://github.com/dart-lang/dart_style/issues/1888
+
+#### Pub
+
+- `dart pub upgrade` now accepts `<package>@<constraint>`, `<package>@latest`,
+  and `<package>@resolvable` targets to upgrade specific dependencies within a
+  version constraint or inspect why a newer version cannot be selected
+  (issue [dart-lang/pub#4569][]).
+
+[dart-lang/pub#4569]: https://github.com/dart-lang/pub/issues/4569
 
 #### dart2js
 
