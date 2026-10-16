@@ -39,7 +39,7 @@ class ExpectedContextMessage {
   /// the message contents should not be checked.
   final List<Pattern> textContains;
 
-  ExpectedContextMessage(
+  new(
     this.file,
     this.offset,
     this.length, {
@@ -99,23 +99,21 @@ class ExpectedDiagnostic {
   /// The list of context messages that are expected to be associated with the
   /// error, or `null` if the context messages should not be checked.
   final List<ExpectedContextMessage>? _contextMessages;
-  ExpectedDiagnostic(
+  new(
     this.diagnosticMatcher,
     this.offset,
     this.length, {
     @Deprecated('Use messageContainsAll instead') Pattern? messageContains,
     List<Pattern> messageContainsAll = const [],
-    Pattern? correctionContains,
-    List<ExpectedContextMessage>? contextMessages,
+    this._correctionContains,
+    this._contextMessages,
   }) : assert(
          messageContains == null || messageContainsAll.isEmpty,
          'Use only one of messageContains or messageContainsAll',
        ),
-       _contextMessages = contextMessages,
        _messageContains = messageContains != null
            ? [messageContains]
-           : messageContainsAll,
-       _correctionContains = correctionContains;
+           : messageContainsAll;
 
   List<ExpectedContextMessage>? get contextMessages => _contextMessages;
   Pattern? get correctionContains => _correctionContains;
@@ -158,7 +156,7 @@ class ExpectedDiagnostic {
 /// A description of an expected error.
 final class ExpectedError extends ExpectedDiagnostic {
   final DiagnosticCode _code;
-  ExpectedError(
+  new(
     this._code,
     int offset,
     int length, {
@@ -178,7 +176,7 @@ final class ExpectedError extends ExpectedDiagnostic {
 /// A description of an expected lint rule violation.
 final class ExpectedLint extends ExpectedDiagnostic {
   final String _lintName;
-  ExpectedLint(
+  new(
     this._lintName,
     int offset,
     int length, {
@@ -202,7 +200,7 @@ class PackageBuilder {
   final String _packagePath;
   final PubPackageResolutionTest _test;
 
-  PackageBuilder._(String packagePath, PubPackageResolutionTest test)
+  new _(String packagePath, PubPackageResolutionTest test)
     : _packagePath = packagePath,
       _test = test;
 

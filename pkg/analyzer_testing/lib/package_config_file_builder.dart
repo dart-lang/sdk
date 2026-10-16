@@ -101,7 +101,7 @@ class _PackageDescription {
   final String packageUriStr;
   final String? languageVersion;
 
-  _PackageDescription({
+  new({
     required this.name,
     required this.rootFolder,
     required this.packageUriStr,

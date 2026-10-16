@@ -15,7 +15,7 @@ final class Spelunker {
   final FeatureSet _featureSet;
   final String _source;
 
-  Spelunker(this._source, {StringSink? sink, FeatureSet? featureSet})
+  new(this._source, {StringSink? sink, FeatureSet? featureSet})
     : _sink = sink ?? stdout,
       _featureSet = featureSet ?? FeatureSet.latestLanguageVersion();
 
@@ -32,7 +32,7 @@ class _SourceVisitor extends GeneralizingAstVisitor<void> {
 
   final StringSink sink;
 
-  _SourceVisitor(this.sink);
+  new(this.sink);
 
   String asString(AstNode node) => '${typeInfo(node.runtimeType)} [$node]';
 
