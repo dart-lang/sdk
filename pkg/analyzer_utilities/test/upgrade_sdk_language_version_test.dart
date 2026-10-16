@@ -1191,5 +1191,64 @@ AA pkg/foo/lib/baz.dart
       expect(File(path('pkg/foo/analysis_options.yaml')).existsSync(), isFalse);
       expect(git(['status', '--porcelain', '--untracked-files=all']), isEmpty);
     });
+
+    group('package config', () {
+      // Stands in for the real script: like `pub get`, it records the
+      // package's SDK constraint in the gitignored package config.
+      const fakeGenerator = '''
+import os, re
+s = open('pkg/foo/pubspec.yaml').read()
+os.makedirs('.dart_tool', exist_ok=True)
+open('.dart_tool/package_config.json', 'w').write(
+    re.search(r'sdk: (\\S+)', s).group(1))
+''';
+
+      String packageConfig() => read('.dart_tool/package_config.json');
+
+      setUp(() {
+        write('.gitignore', '.dart_tool/\n');
+        write('tools/generate_package_config.py', fakeGenerator);
+        write('pkg/foo/pubspec.yaml', 'environment:\n  sdk: ^3.9.0\n');
+      });
+
+      test('abandonScratchBranch restores it after a bump', () {
+        state.initialSha = commit('Initial');
+        state.generatePackageConfig();
+        state.gitCreateBranch('scratch');
+        state.versionsBumped = true;
+        write('pkg/foo/pubspec.yaml', 'environment:\n  sdk: ^3.15.0-0\n');
+        commit('Bump language version');
+        state.generatePackageConfig();
+        expect(packageConfig(), '^3.15.0-0');
+
+        state.abandonScratchBranch(scratchBranch: 'scratch', originalRef: null);
+
+        expect(packageConfig(), '^3.9.0');
+      });
+
+      test('abandonScratchBranch leaves it alone before a bump', () {
+        state.initialSha = commit('Initial');
+        state.gitCreateBranch('scratch');
+        state.abandonScratchBranch(scratchBranch: 'scratch', originalRef: null);
+
+        expect(
+          File(path('.dart_tool/package_config.json')).existsSync(),
+          isFalse,
+        );
+      });
+
+      test('restorePackageConfig matches a dropped package again', () {
+        state.initialSha = commit('Initial');
+        state.versionsBumped = true;
+        write('pkg/foo/pubspec.yaml', 'environment:\n  sdk: ^3.15.0-0\n');
+        state.generatePackageConfig();
+        // As `restoreDroppedPackages` would.
+        git(['checkout', '--no-overlay', state.initialSha, '--', 'pkg/foo']);
+
+        state.restorePackageConfig();
+
+        expect(packageConfig(), '^3.9.0');
+      });
+    });
   });
 }

@@ -55,6 +55,15 @@
 ///
 /// A successful run therefore leaves either one commit (`Migrate`) or two
 /// (`Pre-format`, then `Migrate`) on the scratch branch.
+///
+/// The run also regenerates `.dart_tool/package_config.json`, which then
+/// records the migrated packages' new language versions. If the run is
+/// abandoned, or some packages are dropped, the tool regenerates it again to
+/// match. But after a successful run, it's right only for the scratch branch,
+/// and stale for any other revision. After checking out another revision, run
+/// `python3 tools/generate_package_config.py` before running anything that
+/// depends on language versions (such as the analyzer, the formatter, or code
+/// generators).
 library;
 
 import 'dart:convert';
@@ -219,6 +228,9 @@ void main(List<String> args) {
       migrateSha: migrateSha,
     );
     print('Done.');
+    // Any packages dropped after the version bump have been restored to their
+    // old language version, which the package config doesn't know about yet.
+    if (state.droppedPackagePaths.isNotEmpty) state.restorePackageConfig();
     if (!options.skipPostAnalysis) state.reportRemainingDiagnostics();
     printExperimentWarning(options.experiments);
     print('');
@@ -226,6 +238,10 @@ void main(List<String> args) {
     print('out. To go back without keeping it:');
     print('  git checkout ${originalRef ?? state.initialSha}');
     print('  git branch -D $scratchBranch');
+    print('');
+    print('.dart_tool/package_config.json now matches the migrated packages.');
+    print('After checking out any other revision, regenerate it with:');
+    print('  python3 tools/generate_package_config.py');
   } on Skip catch (e) {
     print('Skipping further steps: ${e.message}');
     state.abandonScratchBranch(
@@ -1098,6 +1114,11 @@ class State {
   /// run because some operation failed on them.
   final Set<String> droppedPackagePaths = {};
 
+  /// Whether [bumpLanguageVersion] has run, after which the package config
+  /// may record language versions that the working tree no longer has, once
+  /// the bump has been undone for some or all packages.
+  bool versionsBumped = false;
+
   /// The git sha that was checked out when the run started.
   ///
   /// Everything the tool does is undone by returning to this sha, so it's the
@@ -1141,19 +1162,28 @@ class State {
       print('  git reset --hard $initialSha');
       print('  git checkout ${originalRef ?? initialSha}');
       print('  git branch -D $scratchBranch');
+      if (versionsBumped) {
+        print('  python3 tools/generate_package_config.py');
+      }
       if (_isColocatedWithJj) {
         print('');
         print('Or, since this repository is colocated with jj, undo the whole');
         print('run at once:');
         print('  jj op log             # find the op just before the run');
         print('  jj op restore <id>');
+        if (versionsBumped) {
+          print('  python3 tools/generate_package_config.py');
+        }
       }
       print('');
+      return;
     }
+    restorePackageConfig();
   }
 
   void bumpLanguageVersion() {
     print('Bumping language version...');
+    versionsBumped = true;
     byPackage((packageState) {
       if (!packageState.needsVersionBump) return;
       var sdkConstraintNode = packageState.packageInfo.sdkConstraintNode;
@@ -1648,14 +1678,6 @@ class State {
   void reportRemainingDiagnostics() {
     print('');
     print('Analyzing the migrated packages...');
-    try {
-      // Packages dropped after the version bump have been restored to their
-      // old version, which the package config doesn't know about yet.
-      generatePackageConfig();
-    } catch (e) {
-      print('  Could not regenerate the package config: $e');
-      return;
-    }
     var clean = 0;
     for (var packageState in packageStates.values) {
       var name = packageState.packageInfo.name;
@@ -1708,6 +1730,25 @@ class State {
       '--',
       ...droppedPackagePaths,
     ]);
+  }
+
+  /// Regenerates the package config, if [bumpLanguageVersion] has run, so
+  /// that it matches the language versions in the working tree again.
+  ///
+  /// Called once the bump has been undone for some packages (because they
+  /// were dropped) or for all of them (because the run was abandoned).
+  ///
+  /// Never throws, since it runs during cleanup. If it fails, it says what to
+  /// type to finish by hand.
+  void restorePackageConfig() {
+    if (!versionsBumped) return;
+    try {
+      generatePackageConfig();
+    } catch (e) {
+      print('  Could not regenerate the package config: $e');
+      print('  To regenerate it by hand:');
+      print('    python3 tools/generate_package_config.py');
+    }
   }
 
   /// Runs `dart fix` on the package named [name], fixing the diagnostics in
