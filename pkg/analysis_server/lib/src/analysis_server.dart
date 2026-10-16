@@ -217,11 +217,6 @@ abstract class AnalysisServer {
   /// A service for fetching pub.dev package details.
   late final PubPackageService pubPackageService;
 
-  /// The class into which performance information is currently being recorded.
-  /// During startup, this will be the same as [performanceDuringStartup]
-  /// and after startup is complete, this switches to [performanceAfterStartup].
-  late ServerPerformance performance;
-
   /// Performance information before initial analysis is complete.
   final ServerPerformance performanceDuringStartup = ServerPerformance();
 
@@ -382,7 +377,6 @@ abstract class AnalysisServer {
       pubApi,
       pubCommand,
     );
-    performance = performanceDuringStartup;
 
     this.pluginManager = pluginManager ??= PluginManager(
       resourceProvider,
@@ -586,6 +580,12 @@ abstract class AnalysisServer {
   OwnedFiles get ownedFiles => contextManager.ownedFiles;
 
   path.Context get pathContext => resourceProvider.pathContext;
+
+  /// The class into which performance information is currently being recorded.
+  /// During startup, this will be the same as [performanceDuringStartup]
+  /// and after startup is complete, this switches to [performanceAfterStartup].
+  ServerPerformance get performance =>
+      performanceAfterStartup ?? performanceDuringStartup;
 
   /// Whether the client prefers legacy refactors over self-describing refactors
   /// that use Interactive Forms.

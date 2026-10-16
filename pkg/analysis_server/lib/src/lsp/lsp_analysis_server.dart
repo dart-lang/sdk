@@ -365,7 +365,6 @@ class LspAnalysisServer extends AnalysisServer {
     }
 
     performanceAfterStartup = ServerPerformance();
-    performance = performanceAfterStartup!;
 
     checkAnalytics();
     enableSurveys();
