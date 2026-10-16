@@ -1229,25 +1229,57 @@ typedef void (*Dart_HeapSamplingDeleteCallback)(void* data);
 
 /**
  * Starts the heap sampling profiler for each thread in the VM.
+ *
+ * Sampling callbacks must be registered via Dart_RegisterHeapSamplingCallback
+ * before enabling heap sampling.
+ *
+ * NOTE: The enabled state is updated on a thread-by-thread basis once each
+ * thread performs an interrupt check. There is no guarantee that the enabled
+ * state will be updated for every thread by the time this method returns.
  */
 DART_EXPORT void Dart_EnableHeapSampling(void);
 
-/*
+/**
  * Stops the heap sampling profiler for each thread in the VM.
+ *
+ * NOTE: The enabled state is updated on a thread-by-thread basis once each
+ * thread performs an interrupt check. There is no guarantee that the enabled
+ * state will be updated for every thread by the time this method returns.
  */
 DART_EXPORT void Dart_DisableHeapSampling(void);
 
-/* Registers callbacks are invoked once per sampled allocation upon object
+/**
+ * Registers callbacks that are invoked once per sampled allocation upon object
  * allocation and garbage collection.
  *
- * |create_callback| can be used to associate additional data with the sampled
- * allocation, such as a stack trace. This data pointer will be passed to
- * |delete_callback| to allow for proper disposal when the object associated
- * with the allocation sample is collected.
+ * |create_callback| is invoked on the allocating thread when an allocation is
+ * sampled. When |create_callback| is invoked:
+ *  - |isolate| and |isolate_group| are the isolate and isolate group performing
+ *    the allocation.
+ *  - |cls_name| is a C string representing the user-visible class name of the
+ *    allocated object, or null if the class does not have a registered
+ *    user-visible name (e.g., top-level classes). When non-null, this pointer
+ *    is owned by the VM, remains valid for the lifetime of |isolate_group|, and
+ *    must not be freed by the embedder.
+ *  - |allocation_size| is the number of bytes attributed to the sample. For
+ *    allocations smaller than the sampling period, this is scaled to a multiple
+ *    of the sampling period based on the Poisson sampling process; for
+ *    allocations at least as large as the sampling period, this is the size of
+ *    the allocated object.
  *
- * The provided callbacks must not call into the VM and should do as little
- * work as possible to avoid performance penalities during object allocation and
- * garbage collection.
+ * |create_callback| can return an opaque data pointer to associate additional
+ * state with the sampled allocation, such as a stack trace. If a non-null
+ * pointer is returned, it will be passed to |delete_callback| when the object
+ * associated with the allocation sample is collected by the GC or when the
+ * isolate group's heap is destroyed. If null is returned, no data is associated
+ * with the object and |delete_callback| will not be invoked for it.
+ *
+ * |create_callback| is invoked within a no-safepoint and no-callback scope on
+ * the allocating thread. |delete_callback| may be invoked on mutator threads,
+ * concurrent GC worker threads, or during isolate group shutdown, and therefore
+ * must be thread-safe. The provided callbacks must not call into the VM and
+ * should do as little work as possible to avoid performance penalties during
+ * object allocation and garbage collection.
  *
  * NOTE: It is a fatal error to set either callback to null once they have been
  * initialized.
@@ -1256,37 +1288,36 @@ DART_EXPORT void Dart_RegisterHeapSamplingCallback(
     Dart_HeapSamplingCreateCallback create_callback,
     Dart_HeapSamplingDeleteCallback delete_callback);
 
-/*
+/**
  * Reports the surviving allocation samples for all live isolate groups in the
  * VM.
  *
- * When the callback is invoked:
+ * When |callback| is invoked:
  *  - |context| will be the context object provided when invoking
  *    |Dart_ReportSurvivingAllocations|. This can be safely set to null if not
  *    required.
- *  - |heap_size| will be equal to the size of the allocated object associated
- *    with the sample.
- *  - |cls_name| will be a C String representing
- *    the class name of the allocated object. This string is valid for the
- *    duration of the call to Dart_ReportSurvivingAllocations and can be
- *    freed by the VM at any point after the method returns.
- *  - |data| will be set to the data associated with the sample by
- *    |Dart_HeapSamplingCreateCallback|.
+ *  - |data| will be set to the non-null data pointer associated with the sample
+ *    by |Dart_HeapSamplingCreateCallback|.
  *
  * If |force_gc| is true, a full GC will be performed before reporting the
  * allocations.
+ *
+ * Requires there to be no current isolate.
  */
 DART_EXPORT void Dart_ReportSurvivingAllocations(
     Dart_HeapSamplingReportCallback callback,
     void* context,
     bool force_gc);
 
-/*
+/**
  * Sets the average heap sampling rate based on a number of |bytes| for each
  * thread.
  *
  * In other words, approximately every |bytes| allocated will create a sample.
  * Defaults to 512 KiB.
+ *
+ * NOTE: If heap sampling is enabled, the sampling period is updated on a
+ * thread-by-thread basis once each thread performs an interrupt check.
  */
 DART_EXPORT void Dart_SetHeapSamplingPeriod(intptr_t bytes);
 
