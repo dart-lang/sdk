@@ -205,6 +205,8 @@ base class _HashMap<K, V> extends MapBase<K, V> implements HashMap<K, V> {
   }
 
   void clear() {
+    // Nothing to clear, and the buckets already have the initial capacity.
+    if (_elementCount == 0 && _buckets.length == _INITIAL_CAPACITY) return;
     _buckets = List.filled(_INITIAL_CAPACITY, null);
     if (_elementCount > 0) {
       _elementCount = 0;
@@ -783,6 +785,8 @@ base class _HashSet<E> extends _SetBase<E> implements HashSet<E> {
   }
 
   void clear() {
+    // Nothing to clear, and the buckets already have the initial capacity.
+    if (_elementCount == 0 && _buckets.length == _INITIAL_CAPACITY) return;
     _buckets = List<_HashSetEntry<E>?>.filled(_INITIAL_CAPACITY, null);
     if (_elementCount > 0) {
       _elementCount = 0;
