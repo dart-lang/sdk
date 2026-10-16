@@ -171,13 +171,13 @@ class TypesBuilder {
       _topLevelSetterDeclaration(node);
     } else if (node is TopLevelVariablesDeclarationImpl) {
       _topLevelVariablesDeclaration(node);
-    } else if (node is FunctionTypeAliasImpl) {
+    } else if (node is FunctionTypeAlias2Impl) {
       _functionTypeAlias(node);
     } else if (node is RegularFormalParameterImpl) {
       _regularFormalParameter(node);
     } else if (node is GenericFunctionTypeImpl) {
       _genericFunctionType(node);
-    } else if (node is GenericTypeAliasImpl) {
+    } else if (node is GenericTypeAlias2Impl) {
       _genericTypeAlias(node);
     } else if (node is MethodDeclarationImpl) {
       _methodDeclaration(node);
@@ -261,7 +261,7 @@ class TypesBuilder {
     }).toFixedList();
   }
 
-  void _functionTypeAlias(FunctionTypeAliasImpl node) {
+  void _functionTypeAlias(FunctionTypeAlias2Impl node) {
     var fragment = node.declaredFragment!;
     fragment.element.aliasedType = _buildFunctionType(
       typeParameterList: null,
@@ -276,7 +276,7 @@ class TypesBuilder {
     element.returnType = node.returnType?.type ?? _dynamicType;
   }
 
-  void _genericTypeAlias(GenericTypeAliasImpl node) {
+  void _genericTypeAlias(GenericTypeAlias2Impl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     var featureSet = element.library.featureSet;

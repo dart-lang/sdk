@@ -603,9 +603,9 @@ class _InfoBuilder {
         for (var variable in declaration.variables) {
           topLevelVariable.add(_buildTopLevelVariable(declaration, variable));
         }
-      } else if (declaration is FunctionTypeAlias) {
+      } else if (declaration is FunctionTypeAlias2) {
         typeAliases.add(_buildFunctionTypeAlias(declaration));
-      } else if (declaration is GenericTypeAlias) {
+      } else if (declaration is GenericTypeAlias2) {
         typeAliases.add(_buildGenericTypeAlias(declaration));
       }
     }
@@ -895,7 +895,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoTypeAlias _buildFunctionTypeAlias(FunctionTypeAlias node) {
+  _InfoTypeAlias _buildFunctionTypeAlias(FunctionTypeAlias2 node) {
     return _InfoTypeAlias(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,
@@ -911,7 +911,7 @@ class _InfoBuilder {
     );
   }
 
-  _InfoTypeAlias _buildGenericTypeAlias(GenericTypeAlias node) {
+  _InfoTypeAlias _buildGenericTypeAlias(GenericTypeAlias2 node) {
     return _InfoTypeAlias(
       firstTokenOffset: node.offset,
       codeOffset: node.offset,

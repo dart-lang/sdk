@@ -205,9 +205,9 @@ class ElementResolver {
 
   void visitFieldFormalParameter(FieldFormalParameter node) {}
 
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {}
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {}
 
-  void visitGenericTypeAlias(GenericTypeAlias node) {}
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {}
 
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var importElement = node.libraryImport;

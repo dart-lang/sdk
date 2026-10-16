@@ -516,8 +516,8 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
-    _scopeContext.visitFunctionTypeAlias(node, visitor: this);
+  void visitFunctionTypeAlias2(covariant FunctionTypeAlias2Impl node) {
+    _scopeContext.visitFunctionTypeAlias2(node, visitor: this);
   }
 
   @override
@@ -538,8 +538,8 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    _scopeContext.visitGenericTypeAlias(
+  void visitGenericTypeAlias2(covariant GenericTypeAlias2Impl node) {
+    _scopeContext.visitGenericTypeAlias2(
       node,
       visitor: this,
       enterTypeParameterScope: () {

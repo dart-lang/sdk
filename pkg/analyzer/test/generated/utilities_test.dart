@@ -951,7 +951,7 @@ typedef double G<U>(double b);
 ''');
     var destination = parseResult.findNode.functionTypeAlias('int F');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<FunctionTypeAlias>(
+    _assertReplacementForChildren<FunctionTypeAlias2>(
       destination: destination,
       source: parseResult.findNode.functionTypeAlias('double G'),
       childAccessors: [
@@ -960,7 +960,7 @@ typedef double G<U>(double b);
         (node) => node.typeParameters!,
       ],
     );
-    _assertRemovalForNullableChild<FunctionTypeAlias>(
+    _assertRemovalForNullableChild<FunctionTypeAlias2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );
@@ -1020,12 +1020,12 @@ typedef B<U> = double;
 ''');
     var destination = parseResult.findNode.genericTypeAlias('A<T>');
     _assertAnnotatedNode(destination);
-    _assertReplacementForChildren<GenericTypeAlias>(
+    _assertReplacementForChildren<GenericTypeAlias2>(
       destination: destination,
       source: parseResult.findNode.genericTypeAlias('B<U>'),
       childAccessors: [(node) => node.typeParameters!, (node) => node.type],
     );
-    _assertRemovalForNullableChild<GenericTypeAlias>(
+    _assertRemovalForNullableChild<GenericTypeAlias2>(
       destination: destination,
       childAccessor: (node) => node.typeParameters,
     );

@@ -773,7 +773,8 @@ abstract class RuleVisitorRegistry2 {
   @experimental
   void addFunctionInstantiation(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addFunctionTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addFunctionTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   void addFunctionTypedFormalParameterSuffix(
     AbstractAnalysisRule rule,
@@ -782,7 +783,8 @@ abstract class RuleVisitorRegistry2 {
 
   void addGenericFunctionType(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
-  void addGenericTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor);
+  @experimental
+  void addGenericTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor);
 
   @experimental
   void addGetterDeclaration(AbstractAnalysisRule rule, AstVisitor2 visitor);

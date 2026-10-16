@@ -1399,7 +1399,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
+  void visitFunctionTypeAlias2(covariant FunctionTypeAlias2Impl node) {
     var declaredFragment = node.declaredFragment!;
 
     _checkForBuiltInIdentifierAsName(
@@ -1411,11 +1411,11 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       declaredFragment.element,
       node.name,
     );
-    super.visitFunctionTypeAlias(node);
+    super.visitFunctionTypeAlias2(node);
   }
 
   @override
-  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
+  void visitGenericTypeAlias2(covariant GenericTypeAlias2Impl node) {
     var declaredFragment = node.declaredFragment!;
 
     _checkForBuiltInIdentifierAsName(
@@ -1427,7 +1427,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       declaredFragment.element,
       node.name,
     );
-    super.visitGenericTypeAlias(node);
+    super.visitGenericTypeAlias2(node);
   }
 
   @override

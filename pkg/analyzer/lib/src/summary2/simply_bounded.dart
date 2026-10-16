@@ -56,10 +56,10 @@ void computeSimplyBounded(Linker linker) {
     } else if (node2 is ExtensionTypeDeclarationImpl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is GenericTypeAliasImpl) {
+    } else if (node2 is GenericTypeAlias2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
-    } else if (node2 is FunctionTypeAliasImpl) {
+    } else if (node2 is FunctionTypeAlias2Impl) {
       var element = node2.declaredFragment!.element;
       element.isSimplyBounded = node.isSimplyBounded;
     } else if (node2 is MixinDeclarationImpl) {
@@ -127,7 +127,7 @@ class SimplyBoundedDependencyWalker
           parameters ?? const <TypeParameter>[],
           const <TypeAnnotation>[],
         );
-      } else if (node is FunctionTypeAlias) {
+      } else if (node is FunctionTypeAlias2) {
         var parameters = node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
@@ -135,7 +135,7 @@ class SimplyBoundedDependencyWalker
           parameters ?? const <TypeParameter>[],
           _collectTypedefRhsTypes(node),
         );
-      } else if (node is GenericTypeAlias) {
+      } else if (node is GenericTypeAlias2) {
         var parameters = node.typeParameters?.typeParameters;
         graphNode = SimplyBoundedNode(
           this,
@@ -168,12 +168,12 @@ class SimplyBoundedDependencyWalker
   /// converted to a new style typedef declaration.  This means that type
   /// parameter declarations and their bounds are not included.
   static List<TypeAnnotation> _collectTypedefRhsTypes(AstNode node) {
-    if (node is FunctionTypeAlias) {
+    if (node is FunctionTypeAlias2) {
       var collector = _TypeCollector();
       collector.addType(node.returnType);
       collector.visitParameters(node.parameters);
       return collector.types;
-    } else if (node is GenericTypeAlias) {
+    } else if (node is GenericTypeAlias2) {
       var type = node.type;
       var collector = _TypeCollector();
       if (type is GenericFunctionType) {

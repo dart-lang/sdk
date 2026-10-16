@@ -1044,7 +1044,9 @@ class FileState {
           for (var variable in declaration.variables) {
             topLevelDeclarations.add(variable.name.lexeme);
           }
-        case TypeAliasImpl():
+        case ClassTypeAliasImpl() ||
+            FunctionTypeAlias2Impl() ||
+            GenericTypeAlias2Impl():
           break;
       }
     }

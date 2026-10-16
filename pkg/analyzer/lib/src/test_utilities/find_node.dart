@@ -31,6 +31,10 @@ class FindNode extends _FindNodeBase {
 
   FunctionReference get singleFunctionReference => _single();
 
+  FunctionTypeAlias get singleFunctionTypeAlias => _single();
+
+  GenericTypeAlias get singleGenericTypeAlias => _single();
+
   ImplicitCallReference get singleImplicitCallReference => _single();
 
   IndexExpression get singleIndexExpression => _single();
@@ -84,6 +88,14 @@ class FindNode extends _FindNodeBase {
 
   FunctionReference functionReference(String search) {
     return _node(search, (n) => n is FunctionReference);
+  }
+
+  FunctionTypeAlias functionTypeAlias(String search) {
+    return _node(search, (n) => n is FunctionTypeAlias);
+  }
+
+  GenericTypeAlias genericTypeAlias(String search) {
+    return _node(search, (n) => n is GenericTypeAlias);
   }
 
   ImplicitCallReference implicitCallReference(String search) {
@@ -194,6 +206,10 @@ class FindNode2 extends _FindNodeBase {
 
   DotShorthandNameExpression get singleDotShorthandNameExpression => _single();
 
+  FunctionTypeAlias2 get singleFunctionTypeAlias => _single();
+
+  GenericTypeAlias2 get singleGenericTypeAlias => _single();
+
   IfNull get singleIfNull => _single();
 
   IfNullAssignment get singleIfNullAssignment => _single();
@@ -276,6 +292,14 @@ class FindNode2 extends _FindNodeBase {
 
   ExtensionOverride2 extensionOverride2(String search) {
     return _node(search, (n) => n is ExtensionOverride2);
+  }
+
+  FunctionTypeAlias2 functionTypeAlias(String search) {
+    return _node(search, (n) => n is FunctionTypeAlias2);
+  }
+
+  GenericTypeAlias2 genericTypeAlias(String search) {
+    return _node(search, (n) => n is GenericTypeAlias2);
   }
 
   IfNull ifNull(String search) {
@@ -565,11 +589,7 @@ abstract class _FindNodeBase {
 
   FunctionInstantiation get singleFunctionInstantiation => _single();
 
-  FunctionTypeAlias get singleFunctionTypeAlias => _single();
-
   GenericFunctionType get singleGenericFunctionType => _single();
-
-  GenericTypeAlias get singleGenericTypeAlias => _single();
 
   GuardedPattern get singleGuardedPattern => _single();
 
@@ -1033,10 +1053,6 @@ abstract class _FindNodeBase {
     return _node(search, (n) => n is FunctionInstantiation);
   }
 
-  FunctionTypeAlias functionTypeAlias(String search) {
-    return _node(search, (n) => n is FunctionTypeAlias);
-  }
-
   FunctionTypedFormalParameterSuffix functionTypedFormalParameterSuffix(
     String search,
   ) {
@@ -1045,10 +1061,6 @@ abstract class _FindNodeBase {
 
   GenericFunctionType genericFunctionType(String search) {
     return _node(search, (n) => n is GenericFunctionType);
-  }
-
-  GenericTypeAlias genericTypeAlias(String search) {
-    return _node(search, (n) => n is GenericTypeAlias);
   }
 
   HideCombinator hideCombinator(String search) {

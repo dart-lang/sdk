@@ -123,7 +123,7 @@ class _LocalNameScope {
 
   factory forFunctionTypeAlias(
     _LocalNameScope enclosing,
-    FunctionTypeAlias node,
+    FunctionTypeAlias2 node,
   ) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
@@ -199,7 +199,11 @@ class _LocalNameScope {
           scope.add(declaration.name);
         case TopLevelSetterDeclarationImpl():
           scope.add(declaration.name);
-        case TypeAliasImpl():
+        case ClassTypeAliasImpl():
+          scope.add(declaration.name);
+        case FunctionTypeAlias2Impl():
+          scope.add(declaration.name);
+        case GenericTypeAlias2Impl():
           scope.add(declaration.name);
       }
     }
@@ -375,11 +379,11 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     _LocalNameScope outerScope = localScope;
     try {
       localScope = _LocalNameScope.forFunctionTypeAlias(localScope, node);
-      super.visitFunctionTypeAlias(node);
+      super.visitFunctionTypeAlias2(node);
     } finally {
       localScope = outerScope;
     }

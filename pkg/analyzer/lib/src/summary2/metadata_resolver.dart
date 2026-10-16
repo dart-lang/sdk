@@ -192,7 +192,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
     node.parameters.accept2(this);
@@ -205,7 +205,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
     node.metadata.accept2(this);
     node.typeParameters?.accept2(this);
     // TODO(eernst): Extend this visitor to visit types.

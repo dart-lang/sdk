@@ -7942,7 +7942,8 @@ abstract final class ClassTypeAlias implements TypeAlias {
     GenerateNodeProperty('semicolon', isSuper: true),
   ],
 )
-final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
+final class ClassTypeAliasImpl extends TypeAliasImpl
+    implements TopLevelDeclarationV1OrV2Impl, ClassTypeAlias {
   @generated
   @override
   final Token? abstractKeyword;
@@ -24925,21 +24926,72 @@ abstract final class FunctionTypeAlias implements TypeAlias {
   TypeParameterList? get typeParameters;
 }
 
+/// A type alias written in the legacy function type syntax.
+///
+///     functionTypeAlias ::=
+///         'typedef' functionPrefix [TypeParameterList]?
+///         [FormalParameterList] ';'
+///
+///     functionPrefix ::=
+///         [TypeAnnotation]? [SimpleIdentifier]
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FunctionTypeAlias2
+    implements TopLevelDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  @override
+  TypeAliasFragment? get declaredFragment;
+
+  /// The name of the type alias.
+  Token get name;
+
+  /// The formal parameters of the aliased function type.
+  FormalParameterList get parameters;
+
+  /// The return type of the aliased function type, or `null` if no return type
+  /// was given.
+  TypeAnnotation? get returnType;
+
+  /// The semicolon terminating the declaration.
+  Token get semicolon;
+
+  /// The `typedef` keyword.
+  Token get typedefKeyword;
+
+  /// The type parameters of the type alias, or `null` if there are none.
+  TypeParameterList? get typeParameters;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('augmentKeyword', isSuper: true),
-    GenerateNodeProperty('typedefKeyword', isSuper: true),
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('typedefKeyword'),
     GenerateNodeProperty('returnType'),
-    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('parameters'),
-    GenerateNodeProperty('semicolon', isSuper: true),
+    GenerateNodeProperty('semicolon'),
   ],
 )
-final class FunctionTypeAliasImpl extends TypeAliasImpl
-    implements FunctionTypeAlias {
+final class FunctionTypeAlias2Impl extends TopLevelDeclarationImpl
+    implements FunctionTypeAlias2 {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token typedefKeyword;
+
   @generated
   TypeAnnotationImpl? _returnType;
+
+  @generated
+  @override
+  final Token name;
 
   @generated
   TypeParameterListImpl? _typeParameters;
@@ -24947,26 +24999,33 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @generated
   FormalParameterListImpl _parameters;
 
+  @generated
+  @override
+  final Token semicolon;
+
   @override
   TypeAliasFragmentImpl? declaredFragment;
+
+  @V1Ast()
+  FunctionTypeAliasImpl? _v1Projection;
 
   @generated
   new({
     required super.comment,
     required super.metadata,
-    required super.augmentKeyword,
-    required super.typedefKeyword,
+    required this.augmentKeyword,
+    required this.typedefKeyword,
     required TypeAnnotationImpl? returnType,
-    required super.name,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl parameters,
-    required super.semicolon,
+    required this.semicolon,
   }) : _returnType = returnType,
        _typeParameters = typeParameters,
        _parameters = parameters {
-    _becomeParentOf12(returnType);
-    _becomeParentOf12(typeParameters);
-    _becomeParentOf12(parameters);
+    _becomeParentOf2(returnType);
+    _becomeParentOf2(typeParameters);
+    _becomeParentOf2(parameters);
   }
 
   @generated
@@ -24990,7 +25049,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set parameters(FormalParameterListImpl parameters) {
-    _parameters = _becomeParentOf12(parameters);
+    _parameters = _becomeParentOf2(parameters);
   }
 
   @generated
@@ -24999,7 +25058,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set returnType(TypeAnnotationImpl? returnType) {
-    _returnType = _becomeParentOf12(returnType);
+    _returnType = _becomeParentOf2(returnType);
   }
 
   @generated
@@ -25008,20 +25067,21 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf12(typeParameters);
+    _typeParameters = _becomeParentOf2(typeParameters);
   }
 
+  @V1Ast()
+  FunctionTypeAliasImpl get v1Projection =>
+      _v1Projection ??= FunctionTypeAliasImpl.v1Projection(this);
+
   @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
   @V1Ast('The V2 counterpart is _childEntities2.')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('typedefKeyword', typedefKeyword)
-    ..addNode('returnType', returnType)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities;
 
   @generated
   @override
@@ -25037,12 +25097,15 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionTypeAlias(this);
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('FunctionTypeAlias2 is not in the V1 AST view.');
+  }
 
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitFunctionTypeAlias(this);
+  E? accept2<E>(AstVisitor2<E> visitor) =>
+      visitor.visitFunctionTypeAlias2(this);
 
   @generated
   @override
@@ -25083,10 +25146,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
-    _visitCommentAndAnnotations(visitor);
-    returnType?.accept(visitor);
-    typeParameters?.accept(visitor);
-    parameters.accept(visitor);
+    throw StateError('FunctionTypeAlias2 is not in the V1 AST view.');
   }
 
   @generated
@@ -25138,23 +25198,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (returnType case var returnType?) {
-      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
-        return returnType;
-      }
-    }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
-      }
-    }
-    if (parameters._containsOffset(rangeOffset, rangeEnd)) {
-      return parameters;
-    }
-    return null;
+    throw StateError('FunctionTypeAlias2 is not in the V1 AST view.');
   }
 
   @generated
@@ -25177,6 +25221,165 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
       return parameters;
     }
     return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword', isSuper: true),
+    GenerateNodeProperty('typedefKeyword', isSuper: true),
+    GenerateNodeProperty('returnType'),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('parameters'),
+    GenerateNodeProperty('semicolon', isSuper: true),
+  ],
+)
+@V1Ast('The V2 counterpart is FunctionTypeAlias2Impl.')
+final class FunctionTypeAliasImpl extends TypeAliasImpl
+    implements FunctionTypeAlias {
+  final FunctionTypeAlias2Impl _v1ProjectionOrigin;
+
+  new v1Projection(FunctionTypeAlias2Impl origin)
+    : _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+        augmentKeyword: origin.augmentKeyword,
+        typedefKeyword: origin.typedefKeyword,
+        name: origin.name,
+        semicolon: origin.semicolon,
+      ) {
+    _becomeParentOf1(origin.returnType);
+    _becomeParentOf1(origin.typeParameters);
+    _becomeParentOf1(origin.parameters);
+  }
+
+  @override
+  TypeAliasFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    return typedefKeyword;
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  FormalParameterListImpl get parameters => _v1ProjectionOrigin.parameters;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeAnnotationImpl? get returnType => _v1ProjectionOrigin.returnType;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeParameterListImpl? get typeParameters =>
+      _v1ProjectionOrigin.typeParameters;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('typedefKeyword', typedefKeyword)
+    ..addNode('returnType', returnType)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('parameters', parameters)
+    ..addToken('semicolon', semicolon);
+
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitFunctionTypeAlias(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('FunctionTypeAlias is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    returnType?.accept(visitor);
+    typeParameters?.accept(visitor);
+    parameters.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('FunctionTypeAlias is not in the V2 AST view.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (returnType case var returnType?) {
+      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
+        return returnType;
+      }
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (parameters._containsOffset(rangeOffset, rangeEnd)) {
+      return parameters;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('FunctionTypeAlias is not in the V2 AST view.');
   }
 }
 
@@ -25831,20 +26034,67 @@ abstract final class GenericTypeAlias implements TypeAlias {
   TypeParameterList? get typeParameters;
 }
 
+/// A type alias written with `=`.
+///
+///     typeAlias ::=
+///         'typedef' [SimpleIdentifier] [TypeParameterList]? '='
+///         [TypeAnnotation] ';'
+@experimental
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class GenericTypeAlias2
+    implements TopLevelDeclaration, FragmentDeclaringNode {
+  /// The `augment` keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
+
+  @override
+  TypeAliasFragment? get declaredFragment;
+
+  /// The equal sign separating the name from the aliased type.
+  Token get equals;
+
+  /// The name of the type alias.
+  Token get name;
+
+  /// The semicolon terminating the declaration.
+  Token get semicolon;
+
+  /// The aliased type.
+  TypeAnnotation get type;
+
+  /// The `typedef` keyword.
+  Token get typedefKeyword;
+
+  /// The type parameters of the type alias, or `null` if there are none.
+  TypeParameterList? get typeParameters;
+}
+
 @GenerateNodeImpl(
+  api: AstNodeApi.v2,
   childEntitiesOrder: [
-    GenerateNodeProperty('augmentKeyword', isSuper: true),
-    GenerateNodeProperty('typedefKeyword', isSuper: true),
-    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('typedefKeyword'),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('typeParameters'),
     GenerateNodeProperty('equals'),
     GenerateNodeProperty('type'),
-    GenerateNodeProperty('semicolon', isSuper: true),
+    GenerateNodeProperty('semicolon'),
   ],
 )
-final class GenericTypeAliasImpl extends TypeAliasImpl
+final class GenericTypeAlias2Impl extends TopLevelDeclarationImpl
     with AstNodeWithNameScopeMixin
-    implements GenericTypeAlias {
+    implements GenericTypeAlias2 {
+  @generated
+  @override
+  final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token typedefKeyword;
+
+  @generated
+  @override
+  final Token name;
+
   @generated
   TypeParameterListImpl? _typeParameters;
 
@@ -25855,24 +26105,31 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @generated
   TypeAnnotationImpl _type;
 
+  @generated
+  @override
+  final Token semicolon;
+
   @override
   TypeAliasFragmentImpl? declaredFragment;
+
+  @V1Ast()
+  GenericTypeAliasImpl? _v1Projection;
 
   @generated
   new({
     required super.comment,
     required super.metadata,
-    required super.augmentKeyword,
-    required super.typedefKeyword,
-    required super.name,
+    required this.augmentKeyword,
+    required this.typedefKeyword,
+    required this.name,
     required TypeParameterListImpl? typeParameters,
     required this.equals,
     required TypeAnnotationImpl type,
-    required super.semicolon,
+    required this.semicolon,
   }) : _typeParameters = typeParameters,
        _type = type {
-    _becomeParentOf12(typeParameters);
-    _becomeParentOf12(type);
+    _becomeParentOf2(typeParameters);
+    _becomeParentOf2(type);
   }
 
   @generated
@@ -25890,23 +26147,13 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     return typedefKeyword;
   }
 
-  @override
-  GenericFunctionType? get functionType {
-    var type = _type;
-    return type is GenericFunctionTypeImpl ? type : null;
-  }
-
-  set functionType(GenericFunctionType? functionType) {
-    _type = _becomeParentOf12(functionType as GenericFunctionTypeImpl?)!;
-  }
-
   @generated
   @override
   TypeAnnotationImpl get type => _type;
 
   @generated
   set type(TypeAnnotationImpl type) {
-    _type = _becomeParentOf12(type);
+    _type = _becomeParentOf2(type);
   }
 
   @generated
@@ -25915,20 +26162,21 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
 
   @generated
   set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf12(typeParameters);
+    _typeParameters = _becomeParentOf2(typeParameters);
   }
 
+  @V1Ast()
+  GenericTypeAliasImpl get v1Projection =>
+      _v1Projection ??= GenericTypeAliasImpl.v1Projection(this);
+
   @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v2;
+
+  @DoNotGenerate(reason: 'This node is not in the V1 AST view')
   @V1Ast('The V2 counterpart is _childEntities2.')
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('typedefKeyword', typedefKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addToken('equals', equals)
-    ..addNode('type', type)
-    ..addToken('semicolon', semicolon);
+  ChildEntities get _childEntities => super._childEntities;
 
   @generated
   @override
@@ -25944,12 +26192,14 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @generated
   @V1Ast('The V2 counterpart is accept2.')
   @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitGenericTypeAlias(this);
+  E? accept<E>(AstVisitor<E> visitor) {
+    throw StateError('GenericTypeAlias2 is not in the V1 AST view.');
+  }
 
   @generated
   @experimental
   @override
-  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGenericTypeAlias(this);
+  E? accept2<E>(AstVisitor2<E> visitor) => visitor.visitGenericTypeAlias2(this);
 
   @generated
   @override
@@ -25982,9 +26232,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @V1Ast('The V2 counterpart is visitChildren2.')
   @override
   void visitChildren(AstVisitor visitor) {
-    _visitCommentAndAnnotations(visitor);
-    typeParameters?.accept(visitor);
-    type.accept(visitor);
+    throw StateError('GenericTypeAlias2 is not in the V1 AST view.');
   }
 
   @generated
@@ -26027,18 +26275,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   @V1Ast('The V2 counterpart is _childContainingRange2.')
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
-      }
-    }
-    if (type._containsOffset(rangeOffset, rangeEnd)) {
-      return type;
-    }
-    return null;
+    throw StateError('GenericTypeAlias2 is not in the V1 AST view.');
   }
 
   @generated
@@ -26056,6 +26293,174 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
       return type;
     }
     return null;
+  }
+}
+
+@GenerateNodeImpl(
+  api: AstNodeApi.v1,
+  generateConstructor: false,
+  childEntitiesOrder: [
+    GenerateNodeProperty('augmentKeyword', isSuper: true),
+    GenerateNodeProperty('typedefKeyword', isSuper: true),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('typeParameters'),
+    GenerateNodeProperty('equals'),
+    GenerateNodeProperty('type'),
+    GenerateNodeProperty('semicolon', isSuper: true),
+  ],
+)
+@V1Ast('The V2 counterpart is GenericTypeAlias2Impl.')
+final class GenericTypeAliasImpl extends TypeAliasImpl
+    with AstNodeWithNameScopeMixin
+    implements GenericTypeAlias {
+  @generated
+  @override
+  final Token equals;
+
+  final GenericTypeAlias2Impl _v1ProjectionOrigin;
+
+  new v1Projection(GenericTypeAlias2Impl origin)
+    : equals = origin.equals,
+      _v1ProjectionOrigin = origin,
+      super(
+        comment: origin.documentationComment,
+        metadata: origin.metadata.toList(),
+        augmentKeyword: origin.augmentKeyword,
+        typedefKeyword: origin.typedefKeyword,
+        name: origin.name,
+        semicolon: origin.semicolon,
+      ) {
+    _becomeParentOf1(origin.typeParameters);
+    _becomeParentOf1(origin.type);
+  }
+
+  @override
+  TypeAliasFragmentImpl? get declaredFragment =>
+      _v1ProjectionOrigin.declaredFragment;
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (augmentKeyword case var augmentKeyword?) {
+      return augmentKeyword;
+    }
+    return typedefKeyword;
+  }
+
+  @override
+  GenericFunctionType? get functionType {
+    var type = this.type;
+    return type is GenericFunctionTypeImpl ? type : null;
+  }
+
+  @override
+  Scope? get nameScope => _v1ProjectionOrigin.nameScope;
+
+  @override
+  set nameScope(Scope? nameScope) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeAnnotationImpl get type => _v1ProjectionOrigin.type;
+
+  @DoNotGenerate(reason: 'V1 projections delegate to their V2 origin')
+  @override
+  TypeParameterListImpl? get typeParameters =>
+      _v1ProjectionOrigin.typeParameters;
+
+  @generated
+  @override
+  AstNodeApi get _astNodeApi => AstNodeApi.v1;
+
+  @generated
+  @V1Ast('The V2 counterpart is _childEntities2.')
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('typedefKeyword', typedefKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addToken('equals', equals)
+    ..addNode('type', type)
+    ..addToken('semicolon', semicolon);
+
+  @DoNotGenerate(reason: 'This node is not in the V2 AST view')
+  @override
+  ChildEntities get _childEntities2 => super._childEntities2;
+
+  @generated
+  @V1Ast('The V2 counterpart is accept2.')
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitGenericTypeAlias(this);
+
+  @generated
+  @experimental
+  @override
+  E? accept2<E>(AstVisitor2<E> visitor) {
+    throw StateError('GenericTypeAlias is not in the V2 AST view.');
+  }
+
+  @generated
+  @override
+  void removeChild(AstNodeImpl oldNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @generated
+  @override
+  void replaceChild(AstNodeImpl oldNode, AstNodeImpl newNode) {
+    throw UnsupportedError('A V1 projection cannot be mutated.');
+  }
+
+  @override
+  String toSource() => _v1ProjectionOrigin.toSource();
+
+  @generated
+  @V1Ast('The V2 counterpart is visitChildren2.')
+  @override
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    typeParameters?.accept(visitor);
+    type.accept(visitor);
+  }
+
+  @generated
+  @experimental
+  @override
+  void visitChildren2(AstVisitor2 visitor) {
+    throw StateError('GenericTypeAlias is not in the V2 AST view.');
+  }
+
+  @generated
+  @V1Ast('The V2 counterpart is _childContainingRange2.')
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (typeParameters case var typeParameters?) {
+      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
+        return typeParameters;
+      }
+    }
+    if (type._containsOffset(rangeOffset, rangeEnd)) {
+      return type;
+    }
+    return null;
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange2(int rangeOffset, int rangeEnd) {
+    throw StateError('GenericTypeAlias is not in the V2 AST view.');
   }
 }
 
@@ -55906,7 +56311,7 @@ abstract final class TypeAlias implements CompilationUnitMember {
 }
 
 sealed class TypeAliasImpl extends CompilationUnitMemberImpl
-    implements TopLevelDeclarationV1OrV2Impl, TypeAlias {
+    implements TypeAlias {
   @override
   final Token? augmentKeyword;
 
@@ -57539,6 +57944,12 @@ enum V1Projection {
     if (node is TopLevelVariablesDeclarationImpl) {
       return node.v1Projection;
     }
+    if (node is FunctionTypeAlias2Impl) {
+      return node.v1Projection;
+    }
+    if (node is GenericTypeAlias2Impl) {
+      return node.v1Projection;
+    }
     return node as CompilationUnitMemberImpl;
   }
 
@@ -57586,6 +57997,8 @@ enum V1Projection {
     FunctionDeclarationV1OriginImpl() => node._v1Projection,
     TopLevelVariablesDeclarationImpl() => node._v1Projection,
     VariableDeclarationV1OriginImpl() => node._v1Projection,
+    FunctionTypeAlias2Impl() => node._v1Projection,
+    GenericTypeAlias2Impl() => node._v1Projection,
     _ => node._astNodeApi == AstNodeApi.shared ? node : null,
   };
 
@@ -57629,6 +58042,8 @@ enum V1Projection {
       LocalFunctionDeclarationImpl() => root.v1StatementProjection,
       FunctionDeclarationV1OriginImpl() => root.v1Projection,
       TopLevelVariablesDeclarationImpl() => root.v1Projection,
+      FunctionTypeAlias2Impl() => root.v1Projection,
+      GenericTypeAlias2Impl() => root.v1Projection,
       AssignmentTargetImpl() => AssignmentExpressionImpl._v1LeftHandSide(root),
       StaticQualifierImpl() => root.v1Projection,
       SuperReferenceImpl() => root.v1Projection,
@@ -57687,6 +58102,8 @@ enum V1Projection {
     FunctionExpressionImpl() => node._v1ProjectionOrigin,
     FunctionExpressionInvocationImpl() => node._origin,
     FunctionReferenceImpl() => node._v1ProjectionOrigin,
+    FunctionTypeAliasImpl() => node._v1ProjectionOrigin,
+    GenericTypeAliasImpl() => node._v1ProjectionOrigin,
     ImplicitCallReferenceImpl() => node._v1ProjectionOrigin,
     IndexExpressionImpl() => node._v1ProjectionOrigin,
     InstanceCreationExpressionImpl() => node._origin ?? node._parsedOrigin,

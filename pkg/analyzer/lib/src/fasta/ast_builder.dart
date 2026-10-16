@@ -3535,7 +3535,7 @@ class AstBuilder extends StackListener {
       var metadata = pop() as List<AnnotationImpl>?;
       var comment = _findComment(metadata, typedefKeyword);
       declarations.add(
-        FunctionTypeAliasImpl(
+        FunctionTypeAlias2Impl(
           comment: comment,
           metadata: metadata,
           augmentKeyword: augmentToken,
@@ -3560,7 +3560,7 @@ class AstBuilder extends StackListener {
         );
       }
       declarations.add(
-        GenericTypeAliasImpl(
+        GenericTypeAlias2Impl(
           comment: comment,
           metadata: metadata,
           augmentKeyword: augmentToken,

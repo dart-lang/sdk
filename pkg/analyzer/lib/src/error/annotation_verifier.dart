@@ -113,7 +113,7 @@ class AnnotationVerifier {
       for (var variable in variables) {
         checkType(variable.declaredElement.type, errorNode: variable);
       }
-    } else if (parent case GenericTypeAlias(functionType: var type?)) {
+    } else if (parent case GenericTypeAlias2(:GenericFunctionType type)) {
       checkType(type.returnType?.type);
     } else {
       // Warning reported by `_checkKinds`.
@@ -146,7 +146,7 @@ class AnnotationVerifier {
         case ClassDeclaration(:var declaredFragment) ||
             ClassTypeAlias(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
-    } else if (node.parent2 case GenericTypeAlias parent) {
+    } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
     }
 
@@ -171,7 +171,7 @@ class AnnotationVerifier {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case MixinDeclaration parent) {
       declaredElement = parent.declaredFragment!.element;
-    } else if (node.parent2 case GenericTypeAlias parent) {
+    } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
     }
 
@@ -196,7 +196,7 @@ class AnnotationVerifier {
         case ClassDeclaration(:var declaredFragment) ||
             ClassTypeAlias(:var declaredFragment)) {
       declaredElement = declaredFragment!.element;
-    } else if (node.parent2 case GenericTypeAlias parent) {
+    } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
     }
 
@@ -257,7 +257,7 @@ class AnnotationVerifier {
       declaredElement = declaredFragment!.element;
     } else if (node.parent2 case MixinDeclaration parent) {
       declaredElement = parent.declaredFragment!.element;
-    } else if (node.parent2 case GenericTypeAlias parent) {
+    } else if (node.parent2 case GenericTypeAlias2 parent) {
       declaredElement = parent.type.type?.element;
     }
 

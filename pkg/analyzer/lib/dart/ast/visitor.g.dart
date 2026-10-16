@@ -2479,8 +2479,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitFunctionTypeAlias(FunctionTypeAlias node) {
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -2499,8 +2500,9 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
     return null;
   }
 
+  @experimental
   @override
-  R? visitGenericTypeAlias(GenericTypeAlias node) {
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node) {
     node.visitChildren2(this);
     return null;
   }
@@ -4279,8 +4281,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitFunctionInstantiation(FunctionInstantiation node) => null;
 
+  @experimental
   @override
-  R? visitFunctionTypeAlias(FunctionTypeAlias node) => null;
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node) => null;
 
   @override
   R? visitFunctionTypedFormalParameterSuffix(
@@ -4290,8 +4293,9 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitGenericFunctionType(GenericFunctionType node) => null;
 
+  @experimental
   @override
-  R? visitGenericTypeAlias(GenericTypeAlias node) => null;
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node) => null;
 
   @experimental
   @override
@@ -5704,8 +5708,9 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitFunctionInstantiation(FunctionInstantiation node) => _throw(node);
 
+  @experimental
   @override
-  R? visitFunctionTypeAlias(FunctionTypeAlias node) => _throw(node);
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node) => _throw(node);
 
   @override
   R? visitFunctionTypedFormalParameterSuffix(
@@ -5715,8 +5720,9 @@ class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitGenericFunctionType(GenericFunctionType node) => _throw(node);
 
+  @experimental
   @override
-  R? visitGenericTypeAlias(GenericTypeAlias node) => _throw(node);
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node) => _throw(node);
 
   @experimental
   @override
@@ -8467,10 +8473,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitFunctionTypeAlias(FunctionTypeAlias node) {
+  T? visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitFunctionTypeAlias(node);
+    T? result = _baseVisitor.visitFunctionTypeAlias2(node);
     stopwatch.stop();
     return result;
   }
@@ -8493,10 +8500,11 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
     return result;
   }
 
+  @experimental
   @override
-  T? visitGenericTypeAlias(GenericTypeAlias node) {
+  T? visitGenericTypeAlias2(GenericTypeAlias2 node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitGenericTypeAlias(node);
+    T? result = _baseVisitor.visitGenericTypeAlias2(node);
     stopwatch.stop();
     return result;
   }
@@ -10614,8 +10622,9 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitFunctionInstantiation(FunctionInstantiation node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitFunctionTypeAlias(FunctionTypeAlias node) => visitNode(node);
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node) => visitNode(node);
 
   @override
   R? visitFunctionTypedFormalParameterSuffix(
@@ -10625,8 +10634,9 @@ class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   @override
   R? visitGenericFunctionType(GenericFunctionType node) => visitNode(node);
 
+  @experimental
   @override
-  R? visitGenericTypeAlias(GenericTypeAlias node) => visitNode(node);
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node) => visitNode(node);
 
   @experimental
   @override

@@ -217,7 +217,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
     if (!node.name.lexeme.isPrivateName) {
       var type = node.type.type;
       if (type is InterfaceTypeImpl) {
@@ -228,7 +228,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
         }
       }
     }
-    super.visitGenericTypeAlias(node);
+    super.visitGenericTypeAlias2(node);
   }
 
   @override
@@ -820,19 +820,19 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     var declaredElement = node.declaredFragment!.element;
     _visitTypeAliasElement(declaredElement);
 
-    super.visitFunctionTypeAlias(node);
+    super.visitFunctionTypeAlias2(node);
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
     var declaredElement = node.declaredFragment?.element as TypeAliasElement;
     _visitTypeAliasElement(declaredElement);
 
-    super.visitGenericTypeAlias(node);
+    super.visitGenericTypeAlias2(node);
   }
 
   @override

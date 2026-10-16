@@ -1769,7 +1769,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
+  void visitFunctionTypeAlias2(covariant FunctionTypeAlias2Impl node) {
     var nameToken = node.name;
     var name2 = _getFragmentName(nameToken);
 
@@ -1819,7 +1819,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
+  void visitGenericTypeAlias2(covariant GenericTypeAlias2Impl node) {
     var nameToken = node.name;
     var name2 = _getFragmentName(nameToken);
 
