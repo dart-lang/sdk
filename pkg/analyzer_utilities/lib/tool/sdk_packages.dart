@@ -129,10 +129,16 @@ List<String> _resolveOwnerStrings(String ownersPath, {Set<String>? visited}) {
   return ownerStrings;
 }
 
-/// Wrapper around `Set<String>` that represents a set of OWNERS files.
+/// The set of teams that own a package, as computed by [_resolveOwnerStrings]:
+/// the lowercased suffixes of the `/tools/OWNERS_*` files that the package's
+/// `OWNERS` file refers to, directly or via other packages' `OWNERS` files.
 ///
 /// This class provides an `==` operator and `hashCode` implementation, so that
-/// packages can be easily categorized by their `OwnerSet`.
+/// packages can be easily categorized by their `OwnerSet`. Packages are
+/// compared by their whole owner set: a package owned by `model` and
+/// `developer_experience` has a different owner set from one owned by `model`
+/// alone. That's deliberate, so that each migration commit has a single set of
+/// owners to review it.
 class OwnerSet with SetMixin<String> {
   final Set<String> _owners;
 
@@ -153,7 +159,7 @@ class OwnerSet with SetMixin<String> {
       const SetEquality<String>().equals(_owners, other._owners);
 
   @override
-  bool add(value) {
+  bool add(String value) {
     throw StateError('Do not modify OwnerSet');
   }
 
@@ -161,7 +167,7 @@ class OwnerSet with SetMixin<String> {
   bool contains(Object? element) => _owners.contains(element);
 
   @override
-  lookup(Object? element) => _owners.lookup(element);
+  String? lookup(Object? element) => _owners.lookup(element);
 
   @override
   bool remove(Object? value) {
@@ -185,8 +191,7 @@ class PackageInfo {
   /// Whether this package is published to `pub`.
   final bool isPublished;
 
-  /// The set of OWNERS files referenced by `file:` directives in this package's
-  /// `OWNERS` file.
+  /// The set of teams that own this package. See [OwnerSet].
   final OwnerSet ownerSet;
 
   /// The current setting of the package's SDK constraint.

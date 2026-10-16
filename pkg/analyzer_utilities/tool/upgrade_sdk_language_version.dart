@@ -94,7 +94,7 @@ void main(List<String> args) {
         .where((p) => p.isPublished == filter)
         .toList();
   }
-  if (options.showOwners) {
+  if (options.showOwnerSets) {
     var header = [
       'Owner sets',
       if (options.filterIsPublished case var filterIsPublished?)
@@ -106,7 +106,7 @@ void main(List<String> args) {
         in filteredPackages.groupListsBy((p) => p.ownerSet).entries) {
       var ownersArg = ownerSet.isEmpty ? 'none' : ownerSet.join(',');
       var packageList = packages.map((p) => p.name).join(', ');
-      print('--owners $ownersArg ($packageList)');
+      print('--owner-set $ownersArg ($packageList)');
     }
     return;
   }
@@ -327,16 +327,17 @@ const followUpFixCodes = {
 
 final argParser = ArgParser()
   ..addMultiOption(
-    'owners',
+    'owner-set',
     abbr: 'o',
-    // Commas separate the owners *within* a single owner set, so `args` must
+    // Commas separate the teams *within* a single owner set, so `args` must
     // not split them; each occurrence of the option is a separate owner set.
     splitCommas: false,
-    valueHelp: 'owner,owner,...',
+    valueHelp: 'team,team,...',
     help:
-        'Only consider packages with (one of) the given owner set(s). Repeat '
-        'the option to accept more than one owner set. Note that a package '
-        'matches only if its owners are exactly the ones listed.',
+        'Only consider packages owned by exactly the given set of teams '
+        '(`none` for packages owned by no team). A package owned by more '
+        'teams, or fewer, does not match. Repeat the option to accept more '
+        'than one owner set. Use --show-owner-sets to list them all.',
   )
   ..addMultiOption(
     'package',
@@ -348,9 +349,9 @@ final argParser = ArgParser()
     help: "Only consider packages that are/aren't published to pub",
   )
   ..addFlag(
-    'show-owners',
+    'show-owner-sets',
     negatable: false,
-    help: 'Show all meaningful values that can be passed as --owners',
+    help: 'Show all meaningful values that can be passed as --owner-set',
   )
   ..addFlag(
     'skip-pre-analysis',
@@ -1132,9 +1133,9 @@ class Options {
   /// If not `null`, only packages whose names are in this set will be migrated.
   final Set<String>? filterPackages;
 
-  /// If `true`, the list of possible values to pass for the `owner`
+  /// If `true`, the list of possible values to pass for the `owner-set`
   /// command-line option should be printed.
-  final bool showOwners;
+  final bool showOwnerSets;
 
   /// If `true`, the pre-analysis phase is skipped.
   final bool skipPreAnalysis;
@@ -1179,13 +1180,23 @@ class Options {
       showUsageAndExit();
     }
     return Options._(
-      filterOwnerSets: switch (argResults.multiOption('owners')) {
+      filterOwnerSets: switch ([
+        for (var rawValue in argResults.multiOption('owner-set'))
+          rawValue.trim().toLowerCase(),
+      ]) {
         [] => null,
-        var rawValues when rawValues.contains('all') => null,
-        var rawValues => {
-          for (var rawValue in rawValues)
+        var values when values.contains('all') => null,
+        var values => {
+          for (var value in values)
             OwnerSet.fromStrings(
-              rawValue == 'none' ? const [] : rawValue.split(','),
+              value == 'none'
+                  ? const []
+                  : [
+                      for (var team in value.split(','))
+                        if (team.trim() case var trimmed
+                            when trimmed.isNotEmpty)
+                          trimmed,
+                    ],
             ),
         },
       },
@@ -1196,7 +1207,7 @@ class Options {
         [] => null,
         var strings => strings.toSet(),
       },
-      showOwners: argResults.flag('show-owners'),
+      showOwnerSets: argResults.flag('show-owner-sets'),
       skipPreAnalysis: argResults.flag('skip-pre-analysis'),
       skipPostAnalysis: argResults.flag('skip-post-analysis'),
       experiments: argResults.multiOption('enable-experiment'),
@@ -1215,7 +1226,7 @@ class Options {
     required this.filterOwnerSets,
     required this.filterIsPublished,
     required this.filterPackages,
-    required this.showOwners,
+    required this.showOwnerSets,
     required this.skipPreAnalysis,
     required this.skipPostAnalysis,
     required this.experiments,

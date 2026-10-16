@@ -966,7 +966,7 @@ PRERELEASE_PATCH 0
     });
   });
 
-  group('Options.parse --owners', () {
+  group('Options.parse --owner-set', () {
     Set<OwnerSet>? parseOwners(List<String> args) =>
         Options.parse(args).filterOwnerSets;
 
@@ -975,7 +975,7 @@ PRERELEASE_PATCH 0
     });
 
     test('treats commas as separating owners within a single set', () {
-      expect(parseOwners(['--owners', 'developer_experience,model']), {
+      expect(parseOwners(['--owner-set', 'developer_experience,model']), {
         OwnerSet.fromStrings(['developer_experience', 'model']),
       });
     });
@@ -983,9 +983,9 @@ PRERELEASE_PATCH 0
     test('treats each occurrence as a separate owner set', () {
       expect(
         parseOwners([
-          '--owners',
+          '--owner-set',
           'model',
-          '--owners',
+          '--owner-set',
           'developer_experience,model',
         ]),
         {
@@ -996,19 +996,31 @@ PRERELEASE_PATCH 0
     });
 
     test('treats `none` as the empty owner set', () {
-      expect(parseOwners(['--owners', 'none']), {OwnerSet.fromStrings([])});
+      expect(parseOwners(['--owner-set', 'none']), {OwnerSet.fromStrings([])});
     });
 
     test('combines `none` with other owner sets', () {
-      expect(parseOwners(['--owners', 'none', '--owners', 'model']), {
+      expect(parseOwners(['--owner-set', 'none', '--owner-set', 'model']), {
         OwnerSet.fromStrings([]),
         OwnerSet.fromStrings(['model']),
       });
     });
 
     test('treats `all` as no filter, even alongside other values', () {
-      expect(parseOwners(['--owners', 'all']), isNull);
-      expect(parseOwners(['--owners', 'model', '--owners', 'all']), isNull);
+      expect(parseOwners(['--owner-set', 'all']), isNull);
+      expect(
+        parseOwners(['--owner-set', 'model', '--owner-set', 'all']),
+        isNull,
+      );
+    });
+
+    test('ignores case and surrounding whitespace', () {
+      expect(parseOwners(['--owner-set', ' Developer_Experience, MODEL ']), {
+        OwnerSet.fromStrings(['developer_experience', 'model']),
+      });
+      expect(parseOwners(['--owner-set', ' None ']), {
+        OwnerSet.fromStrings([]),
+      });
     });
   });
 
