@@ -21,13 +21,11 @@ class NullableDereferenceVerifier {
   /// The type analyzer driving this participant.
   final TypeAnalyzer _typeAnalyzer;
 
-  NullableDereferenceVerifier({
-    required TypeSystemImpl typeSystem,
-    required DiagnosticReporter diagnosticReporter,
-    required TypeAnalyzer typeAnalyzer,
-  }) : _typeSystem = typeSystem,
-       _diagnosticReporter = diagnosticReporter,
-       _typeAnalyzer = typeAnalyzer;
+  new({
+    required this._typeSystem,
+    required this._diagnosticReporter,
+    required this._typeAnalyzer,
+  });
 
   bool expression(
     LocatableDiagnostic locatableDiagnostic,

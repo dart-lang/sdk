@@ -35,7 +35,7 @@ class CollectionLiteralContext {
   /// The type context for values, if this is a map literal.  Otherwise `null`.
   final TypeImpl? valueType;
 
-  CollectionLiteralContext({
+  new({
     this.elementType,
     required this.iterableType,
     this.keyType,
@@ -52,7 +52,7 @@ class TypedLiteralResolver {
 
   final bool _strictInference;
 
-  TypedLiteralResolver(
+  new(
     this._typeAnalyzer,
     this._typeSystem,
     this._typeProvider,
@@ -914,13 +914,9 @@ class _InferredCollectionElementTypeInformation {
   final TypeImpl? keyType;
   final TypeImpl? valueType;
 
-  _InferredCollectionElementTypeInformation({
-    this.elementType,
-    this.keyType,
-    this.valueType,
-  });
+  new({this.elementType, this.keyType, this.valueType});
 
-  factory _InferredCollectionElementTypeInformation.forIfElement(
+  factory forIfElement(
     TypeSystemImpl typeSystem,
     _InferredCollectionElementTypeInformation thenInfo,
     _InferredCollectionElementTypeInformation elseInfo,
@@ -1010,7 +1006,7 @@ class _LeafElements {
 
   /// Initialize a newly created set of counts based on the given collection
   /// [elements].
-  _LeafElements(List<CollectionElement> elements) {
+  new(List<CollectionElement> elements) {
     for (CollectionElement element in elements) {
       _count(element);
     }
@@ -1076,7 +1072,7 @@ class _LiteralResolution {
   TypeImpl? contextType;
 
   /// Initialize a newly created resolution.
-  _LiteralResolution(this.kind, this.contextType);
+  new(this.kind, this.contextType);
 
   @override
   String toString() {

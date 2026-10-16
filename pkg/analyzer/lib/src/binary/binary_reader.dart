@@ -26,7 +26,7 @@ class BinaryReader {
   List<ManifestItemId>? _manifestIdTable;
   StringTable? _stringTable;
 
-  BinaryReader(this.bytes);
+  new(this.bytes);
 
   /// Create a new instance with the given [offset].
   /// It shares the same bytes and string reader.

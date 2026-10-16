@@ -48,7 +48,7 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   @override
   final ActualDataMap<T> actualMap;
 
-  AstDataExtractor(this.uri, this.actualMap);
+  new(this.uri, this.actualMap);
 
   NodeId computeDefaultNodeId(AstNode node) =>
       NodeId(_nodeOffset(node), IdKind.node);
@@ -320,7 +320,7 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
 class _Failure implements Exception {
   final String? message;
 
-  _Failure([this.message]);
+  new([this.message]);
 
   @override
   String toString() {

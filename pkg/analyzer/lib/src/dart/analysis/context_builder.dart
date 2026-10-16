@@ -50,7 +50,7 @@ class ContextBuilderImpl {
   /// Initialize a newly created context builder. If a [resourceProvider] is
   /// given, then it will be used to access the file system, otherwise the
   /// default resource provider will be used.
-  ContextBuilderImpl({ResourceProvider? resourceProvider})
+  new({ResourceProvider? resourceProvider})
     : resourceProvider = resourceProvider ?? PhysicalResourceProvider.INSTANCE;
 
   /// Return an analysis context corresponding to the given [contextRoot].

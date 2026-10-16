@@ -96,7 +96,7 @@ abstract interface class CallDispatcher {
 class Instance {
   final InterfaceType type;
 
-  Instance(this.type)
+  new(this.type)
     : assert(
         !type.isDartCoreInt &&
             !type.isDartCoreDouble &&
@@ -112,7 +112,7 @@ class SoundnessError extends Error {
   final String instructionString;
   final String message;
 
-  SoundnessError({
+  new({
     required this.address,
     required this.instructionString,
     required this.message,
@@ -163,7 +163,7 @@ class _ControlFlowStackEntry {
   /// that delimit the control flow construct.
   final int scope;
 
-  _ControlFlowStackEntry({
+  new({
     required this.kind,
     required this.stackFence,
     required this.localFence,
@@ -191,7 +191,7 @@ class _IRInterpreter {
   /// instruction preceding [address].
   var mostRecentScope = 0;
 
-  _IRInterpreter(
+  new(
     this.ir, {
     required this.scopes,
     required this.callDispatcher,
@@ -451,7 +451,7 @@ class _IRInterpreter {
 /// Sentinel value used by [_IRInterpreter.branch] to indicate that the
 /// interpreter should keep executing instructions.
 class _KeepGoing {
-  const _KeepGoing();
+  const new();
 }
 
 /// Storage for a single local variable.
@@ -463,5 +463,5 @@ class _LocalSlot {
 /// Sentinel value used by [_IRInterpreter] to indicate that a [_LocalSlot] is
 /// empty.
 class _NoValue {
-  const _NoValue();
+  const new();
 }

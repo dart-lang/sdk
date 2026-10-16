@@ -14,7 +14,7 @@ import 'package:analyzer/src/error/listener.dart';
 class MustCallSuperVerifier {
   final DiagnosticReporter _diagnosticReporter;
 
-  MustCallSuperVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   void checkMethodDeclaration(MethodDeclaration node) {
     if (node.isStatic || !node.isComplete) {

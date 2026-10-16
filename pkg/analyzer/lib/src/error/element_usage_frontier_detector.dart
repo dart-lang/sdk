@@ -31,10 +31,7 @@ class ElementUsageFrontierDetector<TagInfo extends Object>
   /// [usagesMetadataOnly] or not.
   final List<List<bool>> _inElementStacksMetadataOnly = [];
 
-  ElementUsageFrontierDetector({
-    required super.workspacePackage,
-    required super.usagesAndReporters,
-  }) {
+  new({required super.workspacePackage, required super.usagesAndReporters}) {
     for (int i = 0; i < usagesArbitrary.length; i++) {
       _inElementStacksArbitrary.add([false]);
     }
@@ -132,10 +129,7 @@ class ElementUsageFrontierDetectorV2<TagInfo extends Object>
   /// [usagesMetadataOnly] or not.
   final List<List<bool>> _inElementStacksMetadataOnly = [];
 
-  ElementUsageFrontierDetectorV2({
-    required super.workspacePackage,
-    required super.usagesAndReporters,
-  }) {
+  new({required super.workspacePackage, required super.usagesAndReporters}) {
     for (int i = 0; i < usagesArbitrary.length; i++) {
       _inElementStacksArbitrary.add([false]);
     }

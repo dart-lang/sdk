@@ -16,8 +16,7 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   /// Whether exceptions should be propagated (by rethrowing them).
   final bool _shouldPropagateExceptions;
 
-  AnalysisRuleVisitor(this._registry, {bool shouldPropagateExceptions = false})
-    : _shouldPropagateExceptions = shouldPropagateExceptions;
+  new(this._registry, {this._shouldPropagateExceptions = false});
 
   void afterLibrary() {
     _runAfterLibrarySubscriptions(_registry._afterLibrary);
@@ -1203,8 +1202,7 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
   /// Whether exceptions should be propagated (by rethrowing them).
   final bool _shouldPropagateExceptions;
 
-  AnalysisRuleVisitor2(this._registry, {bool shouldPropagateExceptions = false})
-    : _shouldPropagateExceptions = shouldPropagateExceptions;
+  new(this._registry, {this._shouldPropagateExceptions = false});
 
   void afterLibrary() {
     _runAfterLibrarySubscriptions(_registry._afterLibrary);
@@ -3151,8 +3149,7 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<YieldStatement>> _forYieldStatement = [];
 
-  RuleVisitorRegistryImpl({required bool enableTiming})
-    : _enableTiming = enableTiming;
+  new({required this._enableTiming});
 
   bool get hasNodeProcessors => _hasNodeProcessors;
 
@@ -5026,8 +5023,7 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
 
   final List<_Subscription2<YieldStatement>> _forYieldStatement = [];
 
-  RuleVisitorRegistryImpl2({required bool enableTiming})
-    : _enableTiming = enableTiming;
+  new({required this._enableTiming});
 
   bool get hasNodeProcessors => _hasNodeProcessors;
 

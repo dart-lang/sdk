@@ -458,8 +458,7 @@ class ExperimentalFeatures {
     enableString: EnableString.generic_metadata,
     isEnabledByDefault: IsEnabledByDefault.generic_metadata,
     isExpired: IsExpired.generic_metadata,
-    documentation:
-        'Allow annotations to accept type arguments; also allow generic function types as type arguments.',
+    documentation: 'Allow annotations to accept type arguments; also allow generic function types as type arguments.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.14.0'),
     channels: ["stable", "beta", "dev", "main"],
@@ -470,8 +469,7 @@ class ExperimentalFeatures {
     enableString: EnableString.getter_setter_error,
     isEnabledByDefault: IsEnabledByDefault.getter_setter_error,
     isExpired: IsExpired.getter_setter_error,
-    documentation:
-        'Stop reporting errors about mismatching types in a getter/setter pair.',
+    documentation: 'Stop reporting errors about mismatching types in a getter/setter pair.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.9.0'),
     channels: ["stable", "beta", "dev", "main"],
@@ -482,8 +480,7 @@ class ExperimentalFeatures {
     enableString: EnableString.inference_update_1,
     isEnabledByDefault: IsEnabledByDefault.inference_update_1,
     isExpired: IsExpired.inference_update_1,
-    documentation:
-        'Horizontal type inference for function expressions passed to generic invocations.',
+    documentation: 'Horizontal type inference for function expressions passed to generic invocations.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('2.18.0'),
     channels: ["stable", "beta", "dev", "main"],
@@ -651,8 +648,7 @@ class ExperimentalFeatures {
     enableString: EnableString.promotion_chain_intersection_join,
     isEnabledByDefault: IsEnabledByDefault.promotion_chain_intersection_join,
     isExpired: IsExpired.promotion_chain_intersection_join,
-    documentation:
-        'Enhanced promotion chain join algorithm (https://github.com/dart-lang/language/issues/4757)',
+    documentation: 'Enhanced promotion chain join algorithm (https://github.com/dart-lang/language/issues/4757)',
     experimentalReleaseVersion: null,
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
@@ -718,8 +714,7 @@ class ExperimentalFeatures {
     enableString: EnableString.single_combinators,
     isEnabledByDefault: IsEnabledByDefault.single_combinators,
     isExpired: IsExpired.single_combinators,
-    documentation:
-        'Allow at most one `show` or `hide` combinator per import or export directive.',
+    documentation: 'Allow at most one `show` or `hide` combinator per import or export directive.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],
@@ -730,8 +725,7 @@ class ExperimentalFeatures {
     enableString: EnableString.sound_flow_analysis,
     isEnabledByDefault: IsEnabledByDefault.sound_flow_analysis,
     isExpired: IsExpired.sound_flow_analysis,
-    documentation:
-        'Assume sound null safety when computing type promotion, reachability, and definite assignment.',
+    documentation: 'Assume sound null safety when computing type promotion, reachability, and definite assignment.',
     experimentalReleaseVersion: null,
     releaseVersion: Version.parse('3.9.0'),
     channels: ["stable", "beta", "dev", "main"],
@@ -775,8 +769,7 @@ class ExperimentalFeatures {
     enableString: EnableString.test_experiment,
     isEnabledByDefault: IsEnabledByDefault.test_experiment,
     isExpired: IsExpired.test_experiment,
-    documentation:
-        'Has no effect. Can be used for testing the --enable-experiment command line functionality.',
+    documentation: 'Has no effect. Can be used for testing the --enable-experiment command line functionality.',
     experimentalReleaseVersion: null,
     releaseVersion: null,
     channels: ["stable", "beta", "dev", "main"],

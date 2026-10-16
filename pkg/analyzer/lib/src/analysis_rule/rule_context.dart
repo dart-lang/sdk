@@ -37,11 +37,7 @@ final class RuleContextWithParsedResults implements RuleContext {
   @override
   final WorkspacePackage? package;
 
-  RuleContextWithParsedResults(
-    this.allUnits,
-    this.definingUnit, [
-    this.package,
-  ]);
+  new(this.allUnits, this.definingUnit, [this.package]);
 
   @override
   bool get isInLibDir => _isInLibDir(definingUnit.file.path, package);
@@ -94,7 +90,7 @@ final class RuleContextWithResolvedResults implements RuleContext {
   @override
   final TypeSystem typeSystem;
 
-  RuleContextWithResolvedResults(
+  new(
     this.allUnits,
     this.definingUnit,
     this.typeProvider,

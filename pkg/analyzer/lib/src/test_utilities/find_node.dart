@@ -8,7 +8,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 
 @V1Ast('The V2 counterpart is FindNode2.')
 class FindNode extends _FindNodeBase {
-  FindNode(super.content, super.unit);
+  new(super.content, super.unit);
 
   BinaryExpression get firstBinaryExpression => _first();
 
@@ -151,7 +151,7 @@ class FindNode extends _FindNodeBase {
 /// [compoundAssignment], not [FindNode.assignment]. Use [FindNode] to search
 /// the V1 view.
 class FindNode2 extends _FindNodeBase {
-  FindNode2(super.content, super.unit);
+  new(super.content, super.unit);
 
   BinaryOperatorInvocation get firstBinaryOperatorInvocation => _first();
 
@@ -380,7 +380,7 @@ abstract class _FindNodeBase {
   final String content;
   final CompilationUnit unit;
 
-  _FindNodeBase(this.content, this.unit);
+  new(this.content, this.unit);
 
   Block get firstBlock => _first();
 

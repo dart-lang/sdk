@@ -103,8 +103,5 @@ class InstrumentationServiceAttachment {
   final String stringValue;
 
   /// Create a new attachment with the unique [id] and string [value].
-  InstrumentationServiceAttachment.string({
-    required this.id,
-    required String value,
-  }) : stringValue = value;
+  new string({required this.id, required String value}) : stringValue = value;
 }

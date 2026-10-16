@@ -29,7 +29,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 /// multiple matching extensions were found, resulting in an ambiguity.
 class AmbiguousStaticExtensionResolutionError
     extends StaticExtensionResolutionResult {
-  const AmbiguousStaticExtensionResolutionError();
+  const new();
 
   @override
   InternalExecutableElement? get member => null;
@@ -38,7 +38,7 @@ class AmbiguousStaticExtensionResolutionError
 class ExtensionMemberResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  ExtensionMemberResolver(this._typeAnalyzer);
+  new(this._typeAnalyzer);
 
   DiagnosticReporter get _diagnosticReporter =>
       _typeAnalyzer.diagnosticReporter;
@@ -606,7 +606,7 @@ sealed class ExtensionResolutionResult implements SimpleResolutionResult {}
 /// matching extensions were found.
 class NoneStaticExtensionResolutionError
     extends StaticExtensionResolutionResult {
-  const NoneStaticExtensionResolutionError();
+  const new();
 
   @override
   InternalExecutableElement? get member => null;
@@ -616,10 +616,8 @@ class NoneStaticExtensionResolutionError
 /// where the result (if any) is known to come from an extension.
 class SingleExtensionResolutionResult extends SimpleResolutionResult
     implements ExtensionResolutionResult {
-  SingleExtensionResolutionResult({
-    required super.getter2,
-    required super.setter2,
-  }) : assert(getter2 != null || setter2 != null);
+  new({required super.getter2, required super.setter2})
+    : assert(getter2 != null || setter2 != null);
 }
 
 /// The result of a successful attempt to resolve an identifier to the single
@@ -628,9 +626,7 @@ class SingleExtensionResolutionResult extends SimpleResolutionResult
 class SingleStaticExtensionResolutionResult
     extends SimpleStaticExtensionResolutionResult
     implements StaticExtensionResolutionResult {
-  SingleStaticExtensionResolutionResult({
-    required InternalExecutableElement member,
-  }) : super(member: member);
+  new({required InternalExecutableElement member}) : super(member: member);
 
   @override
   InternalExecutableElement get member => super.member!;
@@ -641,5 +637,5 @@ class SingleStaticExtensionResolutionResult
 /// extension.
 sealed class StaticExtensionResolutionResult
     extends SimpleStaticExtensionResolutionResult {
-  const StaticExtensionResolutionResult({super.member});
+  const new({super.member});
 }

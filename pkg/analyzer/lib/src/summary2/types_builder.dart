@@ -46,7 +46,7 @@ class TypesBuilder {
   final Linker _linker;
   final Map<InstanceElementImpl, _ToInferMixins> _toInferMixins = {};
 
-  TypesBuilder(this._linker);
+  new(this._linker);
 
   DynamicTypeImpl get _dynamicType => DynamicTypeImpl.instance;
 
@@ -515,12 +515,9 @@ class _MixinInference {
 
   late final InterfacesMerger interfacesMerger;
 
-  _MixinInference(
-    this.element,
-    this.featureSet, {
-    required this.typeSystemOperations,
-  }) : typeSystem = element.library.typeSystem,
-       classType = element.thisType {
+  new(this.element, this.featureSet, {required this.typeSystemOperations})
+    : typeSystem = element.library.typeSystem,
+      classType = element.thisType {
     interfacesMerger = InterfacesMerger(typeSystem);
     interfacesMerger.addWithSupertypes(element.supertype);
   }
@@ -672,7 +669,7 @@ class _MixinInference {
 class _MixinsInference {
   final Map<InstanceElementImpl, _ToInferMixins> _declarations;
 
-  _MixinsInference(this._declarations);
+  new(this._declarations);
 
   void perform() {
     for (var declaration in _declarations.values) {
@@ -754,7 +751,7 @@ class _ToInferFragmentMixins {
   final InterfaceFragmentImpl fragment;
   final WithClauseImpl withClause;
 
-  _ToInferFragmentMixins(this.fragment, this.withClause);
+  new(this.fragment, this.withClause);
 }
 
 /// The declaration of a class that can have mixins.
@@ -762,7 +759,7 @@ class _ToInferMixins {
   final InterfaceElementImpl element;
   final List<_ToInferFragmentMixins> fragments = [];
 
-  _ToInferMixins(this.element);
+  new(this.element);
 }
 
 extension on InterfaceTypeImpl {

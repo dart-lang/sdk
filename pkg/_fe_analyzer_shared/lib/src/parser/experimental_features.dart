@@ -16,7 +16,7 @@ abstract class ExperimentalFeatures {
 /// This should only be used for testing. For actual parsing, the enabled
 /// features should be determined by language version and enabled experiments.
 class DefaultExperimentalFeatures implements ExperimentalFeatures {
-  const DefaultExperimentalFeatures();
+  const new();
 
   @override
   bool isExperimentEnabled(ExperimentalFlag flag) => flag.isEnabledByDefault;

@@ -159,11 +159,7 @@ class ExhaustivenessCache<
   /// Cache for [StaticType]s for fields available on a [Type].
   Map<Type, Map<Key, StaticType>> _fieldCache = {};
 
-  ExhaustivenessCache(
-    this.typeOperations,
-    this.enumOperations,
-    this._sealedClassOperations,
-  );
+  new(this.typeOperations, this.enumOperations, this._sealedClassOperations);
 
   /// Returns the [EnumInfo] for [enumClass].
   EnumInfo<Type, EnumClass, EnumElement, EnumElementValue> _getEnumInfo(

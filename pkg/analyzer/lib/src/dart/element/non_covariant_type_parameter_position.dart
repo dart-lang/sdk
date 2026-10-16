@@ -12,10 +12,8 @@ class NonCovariantTypeParameterPositionVisitor implements TypeVisitor<bool> {
   final List<TypeParameterElement> _typeParameters;
   Variance _variance;
 
-  NonCovariantTypeParameterPositionVisitor(
-    this._typeParameters, {
-    required Variance initialVariance,
-  }) : _variance = initialVariance;
+  new(this._typeParameters, {required Variance initialVariance})
+    : _variance = initialVariance;
 
   @override
   bool visitDynamicType(DynamicType type) => false;

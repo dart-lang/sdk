@@ -141,7 +141,7 @@ class TypeAssertions {
   /// Provides primitive types for basic type assertions.
   final TypeProvider _typeProvider;
 
-  TypeAssertions(this._typeProvider);
+  new(this._typeProvider);
 
   /// Primitive assertion for the dynamic type.
   Asserter<DartType> get isDynamic => isType(_typeProvider.dynamicType);

@@ -128,7 +128,7 @@ class SwitchExhaustiveness {
 
   bool isExhaustive = false;
 
-  factory SwitchExhaustiveness(TypeImpl expressionType) {
+  factory(TypeImpl expressionType) {
     if (expressionType is InterfaceType) {
       var enum_ = expressionType.element;
       if (enum_ is EnumElementImpl) {
@@ -141,7 +141,7 @@ class SwitchExhaustiveness {
     return SwitchExhaustiveness._(null, false);
   }
 
-  SwitchExhaustiveness._(this._enumConstants, this._isNullEnumValueCovered);
+  new _(this._enumConstants, this._isNullEnumValueCovered);
 
   void visitSwitchExpressionCase(SwitchExpressionCaseImpl node) {
     if (_enumConstants != null) {
@@ -393,7 +393,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   /// actually correct.
   late final Expando<AstNode> _replacements = Expando();
 
-  TypeAnalyzer({
+  new({
     required InheritanceManager3 inheritanceManager,
     required LibraryFragmentImpl libraryFragment,
     required LibraryResolutionContext libraryResolutionContext,
@@ -415,7 +415,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
          typeAnalyzerOptions: typeAnalyzerOptions,
        );
 
-  TypeAnalyzer._(
+  new _(
     this.inheritance,
     this.definingLibrary,
     this.libraryResolutionContext,
@@ -6040,7 +6040,7 @@ class _WhyNotPromotedVisitor
 
   PropertyAccessorElement? propertyReference;
 
-  _WhyNotPromotedVisitor(this.source, this._errorEntity, this._dataForTesting);
+  new(this.source, this._errorEntity, this._dataForTesting);
 
   @override
   List<DiagnosticMessage> visitDemoteViaExplicitWrite(

@@ -32,11 +32,7 @@ class AnnotationVerifier {
         _currentLibrary.firstFragment.source,
       );
 
-  AnnotationVerifier(
-    this._diagnosticReporter,
-    this._currentLibrary,
-    this._workspacePackage,
-  );
+  new(this._diagnosticReporter, this._currentLibrary, this._workspacePackage);
 
   void checkAnnotation(Annotation node) {
     var element = node.elementAnnotation;

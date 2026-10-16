@@ -67,7 +67,7 @@ class TestCode {
   /// A map of ranges marked in code, indexed by their number.
   final List<TestCodeRange> ranges;
 
-  TestCode._({
+  new _({
     required this.markedCode,
     required this.code,
     required this.positions,
@@ -219,7 +219,7 @@ class TestCodePosition {
   /// Offsets are based on [TestCode.code], with all parsed markers removed.
   final int offset;
 
-  TestCodePosition(this.lineInfo, this.offset);
+  new(this.lineInfo, this.offset);
 
   AstNode? findNode(ParsedUnitResult unitResult) {
     // ignore: analyzer_v1_ast_use
@@ -240,7 +240,7 @@ class TestCodeRange {
   /// removed.
   final SourceRange sourceRange;
 
-  TestCodeRange(this.lineInfo, this.text, this.sourceRange);
+  new(this.lineInfo, this.text, this.sourceRange);
 }
 
 /// A simple scanner to read characters and [Pattern]s from a source string.
@@ -250,7 +250,7 @@ class _StringScanner {
   int? _lastMatchPosition;
   Match? _lastMatch;
 
-  _StringScanner(this._source);
+  new(this._source);
 
   /// Returns whether the end of the string has been reached.
   bool get isDone => _position == _source.length;

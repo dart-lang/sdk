@@ -32,7 +32,7 @@ main(List<String> args) {
 }
 
 class _InferredVariableTypesDataComputer extends DataComputer<DartType> {
-  const _InferredVariableTypesDataComputer();
+  const new();
 
   @override
   DataInterpreter<DartType> get dataValidator =>
@@ -53,7 +53,7 @@ class _InferredVariableTypesDataComputer extends DataComputer<DartType> {
 }
 
 class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
-  _InferredVariableTypesDataExtractor(super.uri, super.actualMap);
+  new(super.uri, super.actualMap);
 
   @override
   DartType? computeNodeValue(Id id, AstNode node) {
@@ -84,7 +84,7 @@ class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
 
 class _InferredVariableTypesDataInterpreter
     implements DataInterpreter<DartType> {
-  const _InferredVariableTypesDataInterpreter();
+  const new();
 
   @override
   String getText(DartType actualData, [String? indentation]) {

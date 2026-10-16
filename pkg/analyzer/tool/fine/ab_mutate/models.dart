@@ -13,7 +13,7 @@ class HarnessDiagnostic {
   final int length;
   final String message;
 
-  HarnessDiagnostic({
+  new({
     required this.path,
     required this.code,
     required this.severity,
@@ -44,7 +44,7 @@ class MutationEdit {
   final int length;
   final String replacement;
 
-  MutationEdit(this.offset, this.length, this.replacement);
+  new(this.offset, this.length, this.replacement);
 
   Map<String, Object?> toJson() => {
     'offset': offset,
@@ -60,5 +60,5 @@ class MutationResult {
   final MutationEdit edit;
   final Map<String, Object?> notes;
 
-  MutationResult(this.edit, [this.notes = const {}]);
+  new(this.edit, [this.notes = const {}]);
 }

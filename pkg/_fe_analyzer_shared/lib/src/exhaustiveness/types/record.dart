@@ -6,7 +6,7 @@ part of '../types.dart';
 
 /// [StaticType] for a record type.
 class RecordStaticType<Type extends Object> extends TypeBasedStaticType<Type> {
-  RecordStaticType(super.typeOperations, super.fieldLookup, super.type)
+  new(super.typeOperations, super.fieldLookup, super.type)
     : super(isImplicitlyNullable: false);
 
   @override

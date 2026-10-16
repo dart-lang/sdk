@@ -24,7 +24,7 @@ abstract class FunctionLiteralDependencies<
   ///
   /// [unDeferredParams] should contain information about any parameters
   /// corresponding to arguments that have already been type inferred.
-  FunctionLiteralDependencies(
+  new(
     Iterable<DeferredParamInfo> deferredParams,
     Iterable<TypeVariable> typeVariables,
     Iterable<ParamInfo> unDeferredParams,
@@ -180,7 +180,7 @@ class _Node<ParamInfo> extends Node<_Node<ParamInfo>> {
   /// of deferred parameters used to construct [FunctionLiteralDependencies].
   final int? deferredParamIndex;
 
-  _Node(this.param, {required this.deferredParamIndex});
+  new(this.param, {required this.deferredParamIndex});
 
   @override
   bool get isEvaluated => stageNum != null;

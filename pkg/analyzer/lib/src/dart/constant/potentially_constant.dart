@@ -71,7 +71,7 @@ class _Collector {
   final FeatureSet featureSet;
   final List<AstNode> nodes = [];
 
-  _Collector({required this.featureSet});
+  new({required this.featureSet});
 
   void collect(AstNode node) {
     if (node is BooleanLiteral ||
@@ -444,7 +444,7 @@ class _Collector {
 class _ConstantTypeChecker {
   final bool potentially;
 
-  _ConstantTypeChecker({required this.potentially});
+  new({required this.potentially});
 
   /// Returns whether the [node] is a (potentially) constant type expression.
   bool check(TypeAnnotation? node) {

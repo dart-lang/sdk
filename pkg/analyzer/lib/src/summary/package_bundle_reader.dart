@@ -19,7 +19,7 @@ class ConflictingSummaryException implements Exception {
   final String summary2Uri;
   late final String _message;
 
-  ConflictingSummaryException(
+  new(
     Iterable<String> summaryPaths,
     this.duplicatedUri,
     this.summary1Uri,
@@ -76,11 +76,7 @@ class InSummarySource extends Source {
 
   final InSummarySourceKind kind;
 
-  InSummarySource({
-    required this.uri,
-    required this.summaryPath,
-    required this.kind,
-  });
+  new({required this.uri, required this.summaryPath, required this.kind});
 
   @override
   TimestampedData<String> get contents => TimestampedData<String>(0, '');
@@ -111,7 +107,7 @@ enum InSummarySourceKind { library, part }
 class InSummaryUriResolver extends UriResolver {
   final SummaryDataStore _dataStore;
 
-  InSummaryUriResolver(this._dataStore);
+  new(this._dataStore);
 
   @override
   Uri? pathToUri(String path) => null;

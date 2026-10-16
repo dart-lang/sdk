@@ -421,11 +421,8 @@ class _PackageMatcher extends Matcher {
   final Folder rootFolder;
   final Folder libFolder;
 
-  _PackageMatcher({
-    required this.name,
-    required this.rootFolder,
-    Folder? libFolder,
-  }) : libFolder = libFolder ?? rootFolder.getFolder('lib');
+  new({required this.name, required this.rootFolder, Folder? libFolder})
+    : libFolder = libFolder ?? rootFolder.getFolder('lib');
 
   @override
   Description describe(Description description) => description

@@ -2069,7 +2069,7 @@ class _AssignmentKind {
 
   final int ordinal;
 
-  const _AssignmentKind(this.name, this.ordinal);
+  const new(this.name, this.ordinal);
 
   @override
   int get hashCode => ordinal;
@@ -2100,7 +2100,7 @@ class _WrapperKind {
 
   final int ordinal;
 
-  const _WrapperKind(this.name, this.ordinal);
+  const new(this.name, this.ordinal);
 
   @override
   int get hashCode => ordinal;

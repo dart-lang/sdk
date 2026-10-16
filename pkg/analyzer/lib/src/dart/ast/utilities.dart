@@ -36,7 +36,7 @@ class NodeLocator extends UnifyingAstVisitor<void> {
   ///
   /// If [endOffset] is not provided, then it is considered the same as the
   /// given [startOffset].
-  NodeLocator(int startOffset, [int? endOffset])
+  new(int startOffset, [int? endOffset])
     : _startOffset = startOffset,
       _endOffset = endOffset ?? startOffset;
 
@@ -187,7 +187,7 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
   ///
   /// If [endOffset] is not provided, then it is considered the same as the
   /// given [startOffset].
-  NodeLocator2(int startOffset, [int? endOffset])
+  new(int startOffset, [int? endOffset])
     : _startOffset = startOffset,
       _endOffset = endOffset ?? startOffset;
 
@@ -353,7 +353,7 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
   @override
   final int position;
 
-  ScopedNameFinder(this.position);
+  new(this.position);
 
   @override
   AstNode? parentOf(AstNode node) => node.parent;
@@ -393,7 +393,7 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   @override
   final int position;
 
-  ScopedNameFinder2(this.position);
+  new(this.position);
 
   @override
   AstNode? parentOf(AstNode node) => node.parent2;

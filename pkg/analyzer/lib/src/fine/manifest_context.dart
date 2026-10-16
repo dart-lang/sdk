@@ -18,7 +18,7 @@ class EncodeContext {
   final Map<TypeParameterElement, int> _typeParameters = Map.identity();
   final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
-  EncodeContext({required this.elementFactory});
+  new({required this.elementFactory});
 
   /// Returns the id of [element], or `null` if from this bundle.
   ManifestItemId? getElementId(Element element) {
@@ -119,7 +119,7 @@ final class ManifestElement {
   /// The id of the element, if not from the same bundle.
   final ManifestItemId? id;
 
-  ManifestElement({
+  new({
     required this.libraryUri,
     required this.kind,
     required this.topLevelName,
@@ -127,7 +127,7 @@ final class ManifestElement {
     required this.id,
   });
 
-  factory ManifestElement.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestElement(
       libraryUri: reader.readUri(),
       kind: reader.readEnum(ManifestElementKind.values),
@@ -300,7 +300,7 @@ class MatchContext {
   final Map<TypeParameterElement, int> _typeParameters = Map.identity();
   final Map<FormalParameterElement, int> _formalParameters = Map.identity();
 
-  MatchContext({required this.parent});
+  new({required this.parent});
 
   /// Any referenced elements, from this bundle or not.
   List<Element> get elementList => elements.toList(growable: false);

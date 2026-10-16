@@ -22,7 +22,7 @@ class FunctionReferenceResolver {
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
-  FunctionReferenceResolver(this._typeAnalyzer)
+  new(this._typeAnalyzer)
     : _extensionResolver = _typeAnalyzer.extensionResolver;
 
   DiagnosticReporter get _diagnosticReporter =>

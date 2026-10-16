@@ -13,7 +13,7 @@ import 'package:analyzer/src/error/listener.dart';
 class ListPatternResolver {
   final TypeAnalyzer typeAnalyzer;
 
-  ListPatternResolver(this.typeAnalyzer);
+  new(this.typeAnalyzer);
 
   PatternResult resolve({
     required ListPatternImpl node,

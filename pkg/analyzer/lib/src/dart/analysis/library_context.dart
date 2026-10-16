@@ -55,7 +55,7 @@ class LibraryContext {
 
   Set<LibraryCycle> loadedBundles = Set.identity();
 
-  LibraryContext({
+  new({
     required this.testData,
     required AnalysisSessionImpl analysisSession,
     required this.logger,
@@ -542,7 +542,7 @@ class LibraryContextTestData {
   /// The current instance of [LibraryContext].
   LibraryContext? instance;
 
-  LibraryContextTestData({required this.fileSystemTestData});
+  new({required this.fileSystemTestData});
 
   LibraryCycleTestData forCycle(LibraryCycle cycle) {
     var files = cycle.libraries.map((library) {
@@ -582,7 +582,7 @@ class _LinkedBundleCacheEntry {
   /// The serialized libraries, for [BundleReader].
   final Uint8List linkedBytes;
 
-  _LinkedBundleCacheEntry({
+  new({
     required this.nonTransitiveApiSignature,
     required this.id,
     required this.requirementsBytes,
@@ -688,8 +688,5 @@ class _LinkedBundleProbeResult {
   final Map<Uri, LibraryManifestHandle> libraryManifests;
   final Uint8List? linkedBytes;
 
-  _LinkedBundleProbeResult({
-    required this.libraryManifests,
-    required this.linkedBytes,
-  });
+  new({required this.libraryManifests, required this.linkedBytes});
 }

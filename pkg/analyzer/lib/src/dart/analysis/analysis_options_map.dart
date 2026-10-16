@@ -20,14 +20,14 @@ class AnalysisOptionsMap {
   final Map<Folder, AnalysisOptionsImpl> _map;
 
   /// Create an empty [AnalysisOptionsMap] instance.
-  AnalysisOptionsMap()
+  new()
     : _defaultOptions = AnalysisOptionsImpl(),
       // Sort entries by (reverse) containment (for now).
       _map = SplayTreeMap((a, b) => b.path.compareTo(a.path));
 
   /// Create an [AnalysisOptionsMap] that holds one set of [sharedOptions] for
   /// all associated files.
-  AnalysisOptionsMap.forSharedOptions(AnalysisOptionsImpl sharedOptions)
+  new forSharedOptions(AnalysisOptionsImpl sharedOptions)
     : _defaultOptions = sharedOptions,
       _map = SplayTreeMap.of({
         // If there's an associated file, create an entry so that we can display

@@ -28,7 +28,7 @@ part of 'visitor.dart';
 @V1Ast()
 class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const GeneralizingAstVisitor();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => visitStringLiteral(node);
@@ -791,7 +791,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 @V1Ast('The V2 counterpart is RecursiveAstVisitor2.')
 class RecursiveAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const RecursiveAstVisitor();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) {
@@ -1920,7 +1920,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 @experimental
 class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const RecursiveAstVisitor2();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) {
@@ -3391,7 +3391,7 @@ class RecursiveAstVisitor2<R> implements AstVisitor2<R> {
 @V1Ast('The V2 counterpart is SimpleAstVisitor2.')
 class SimpleAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const SimpleAstVisitor();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => null;
@@ -3973,7 +3973,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 @experimental
 class SimpleAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const SimpleAstVisitor2();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => null;
@@ -4778,7 +4778,7 @@ class SimpleAstVisitor2<R> implements AstVisitor2<R> {
 @V1Ast('The V2 counterpart is ThrowingAstVisitor2.')
 class ThrowingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const ThrowingAstVisitor();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => _throw(node);
@@ -5380,7 +5380,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 @experimental
 class ThrowingAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const ThrowingAstVisitor2();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => _throw(node);
@@ -6218,8 +6218,7 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
 
   /// Initialize a newly created visitor to time calls to the given base
   /// visitor's visits.
-  TimedAstVisitor(this._baseVisitor, [Stopwatch? watch])
-    : stopwatch = watch ?? Stopwatch();
+  new(this._baseVisitor, [Stopwatch? watch]) : stopwatch = watch ?? Stopwatch();
 
   @override
   T? visitAdjacentStrings(AdjacentStrings node) {
@@ -7714,8 +7713,7 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 
   /// Initialize a newly created visitor to time calls to the given base
   /// visitor's visits.
-  TimedAstVisitor2(this._baseVisitor, [Stopwatch? watch])
-    : stopwatch = watch ?? Stopwatch();
+  new(this._baseVisitor, [Stopwatch? watch]) : stopwatch = watch ?? Stopwatch();
 
   @override
   T? visitAdjacentStrings(AdjacentStrings node) {
@@ -9647,7 +9645,7 @@ class TimedAstVisitor2<T> implements AstVisitor2<T> {
 @V1Ast('The V2 counterpart is UnifyingAstVisitor2.')
 class UnifyingAstVisitor<R> implements AstVisitor<R> {
   /// Initialize a newly created visitor.
-  const UnifyingAstVisitor();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => visitNode(node);
@@ -10267,7 +10265,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 @experimental
 class UnifyingAstVisitor2<R> implements AstVisitor2<R> {
   /// Initialize a newly created visitor.
-  const UnifyingAstVisitor2();
+  const new();
 
   @override
   R? visitAdjacentStrings(AdjacentStrings node) => visitNode(node);

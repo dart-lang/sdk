@@ -19,13 +19,13 @@ enum Variance {
 
   final String keyword;
 
-  const Variance({required this.keyword});
+  new({required this.keyword});
 
   /// Return the variance with the given [encoding].
-  factory Variance.fromEncoding(int encoding) => values[encoding];
+  factory fromEncoding(int encoding) => values[encoding];
 
   /// Return the variance associated with the string representation of variance.
-  factory Variance.fromKeywordString(String keywordString) {
+  factory fromKeywordString(String keywordString) {
     Variance? result;
     if (keywordString == "in") {
       result = contravariant;

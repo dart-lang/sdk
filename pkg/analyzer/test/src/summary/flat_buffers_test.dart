@@ -457,14 +457,14 @@ class StringListWrapperImpl {
   final BufferContext bp;
   final int offset;
 
-  StringListWrapperImpl(this.bp, this.offset);
+  new(this.bp, this.offset);
 
   List<String>? get items =>
       const ListReader<String>(StringReader()).vTableGetOrNull(bp, offset, 0);
 }
 
 class StringListWrapperReader extends TableReader<StringListWrapperImpl> {
-  const StringListWrapperReader();
+  const new();
 
   @override
   StringListWrapperImpl createObject(BufferContext object, int offset) {
@@ -476,7 +476,7 @@ class TestPointImpl {
   final BufferContext bp;
   final int offset;
 
-  TestPointImpl(this.bp, this.offset);
+  new(this.bp, this.offset);
 
   int get x => const Int32Reader().vTableGet(bp, offset, 0, 0);
 
@@ -484,7 +484,7 @@ class TestPointImpl {
 }
 
 class TestPointReader extends TableReader<TestPointImpl> {
-  const TestPointReader();
+  const new();
 
   @override
   TestPointImpl createObject(BufferContext object, int offset) {

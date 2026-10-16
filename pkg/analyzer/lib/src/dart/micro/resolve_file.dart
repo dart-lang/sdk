@@ -51,11 +51,7 @@ class CiderFileContent implements FileContent {
   final String path;
   final String digestStr;
 
-  CiderFileContent({
-    required this.strategy,
-    required this.path,
-    required this.digestStr,
-  });
+  new({required this.strategy, required this.path, required this.digestStr});
 
   @override
   String get content {
@@ -100,10 +96,7 @@ class CiderFileContentStrategy implements FileContentStrategy {
   /// not exist/has no contents.
   final String Function(String path) getFileDigest;
 
-  CiderFileContentStrategy({
-    required this.resourceProvider,
-    required this.getFileDigest,
-  });
+  new({required this.resourceProvider, required this.getFileDigest});
 
   @override
   CiderFileContent get(String path) {
@@ -117,7 +110,7 @@ class CiderSearchInfo {
   final int length;
   final MatchKind kind;
 
-  CiderSearchInfo(this.startPosition, this.length, this.kind);
+  new(this.startPosition, this.length, this.kind);
 
   @override
   bool operator ==(Object other) =>
@@ -131,7 +124,7 @@ class CiderSearchMatch {
   final String path;
   final List<CiderSearchInfo> references;
 
-  CiderSearchMatch(this.path, this.references);
+  new(this.path, this.references);
 
   @override
   bool operator ==(Object other) =>
@@ -152,7 +145,7 @@ class FileContext {
   final AnalysisOptionsImpl analysisOptions;
   final FileState file;
 
-  FileContext(this.analysisOptions, this.file);
+  new(this.analysisOptions, this.file);
 }
 
 class FileResolver {
@@ -204,7 +197,7 @@ class FileResolver {
     (bytes) => bytes.length,
   );
 
-  FileResolver({
+  new({
     required this.logger,
     required this.resourceProvider,
     required this.sourceFactory,
@@ -912,5 +905,5 @@ class _ContentWithDigest {
   final String content;
   final String digestStr;
 
-  _ContentWithDigest({required this.content, required this.digestStr});
+  new({required this.content, required this.digestStr});
 }

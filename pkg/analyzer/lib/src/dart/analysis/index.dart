@@ -85,7 +85,7 @@ class ElementNameComponents {
   final String? classMemberName;
   final String? unitMemberName;
 
-  factory ElementNameComponents(Element element) {
+  factory(Element element) {
     String? parameterName;
     if (element.firstFragment case FormalParameterFragment fragment) {
       parameterName = fragment.name;
@@ -121,7 +121,7 @@ class ElementNameComponents {
     );
   }
 
-  ElementNameComponents._({
+  new _({
     required this.parameterName,
     required this.classMemberName,
     required this.unitMemberName,
@@ -136,7 +136,7 @@ class IndexElementInfo {
   final Element element;
   final IndexSyntheticElementKind kind;
 
-  factory IndexElementInfo(Element element) {
+  factory(Element element) {
     IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
     if (element is GetterElement) {
       kind = IndexSyntheticElementKind.getter;
@@ -149,7 +149,7 @@ class IndexElementInfo {
     return IndexElementInfo._(element, kind);
   }
 
-  IndexElementInfo._(this.element, this.kind);
+  new _(this.element, this.kind);
 }
 
 /// The identifier of an interface element in the subtype index.
@@ -161,7 +161,7 @@ class SubtypeIndexElementId {
   final String name;
   final String id;
 
-  SubtypeIndexElementId({
+  new({
     required Source librarySource,
     required Source declarationSource,
     required this.name,
@@ -209,7 +209,7 @@ class _ElementInfo {
   /// package is done and we are assembling the full package index.
   late int id;
 
-  _ElementInfo(
+  new(
     this.unitId,
     this.nameIdUnitMember,
     this.nameIdClassMember,
@@ -226,13 +226,7 @@ class _ElementRelationInfo {
   final int length;
   final bool isQualified;
 
-  _ElementRelationInfo(
-    this.elementInfo,
-    this.kind,
-    this.offset,
-    this.length,
-    this.isQualified,
-  );
+  new(this.elementInfo, this.kind, this.offset, this.length, this.isQualified);
 }
 
 /// Assembler of a single [CompilationUnit] index.
@@ -285,7 +279,7 @@ class _IndexAssembler {
   /// The [_StringInfo] to use for `null` strings.
   late final _StringInfo nullString;
 
-  _IndexAssembler() {
+  new() {
     nullString = _getStringInfo(_nullString);
   }
 
@@ -531,7 +525,7 @@ class _IndexContributor extends UnifyingAstVisitor2 {
   late final LibraryElementImpl? _analyzerDiagnosticLibrary =
       _findAnalyzerDiagnosticLibrary();
 
-  _IndexContributor(this.assembler, this.unit);
+  new(this.assembler, this.unit);
 
   /// Record reference to the given operator [Element].
   void recordOperatorReference(Token operator, Element? element) {
@@ -1691,7 +1685,7 @@ class _LibraryFragmentReference {
   final int uriOffset;
   final int uriLength;
 
-  _LibraryFragmentReference({
+  new({
     required this.targetId,
     required this.uriOffset,
     required this.uriLength,
@@ -1705,7 +1699,7 @@ class _NameRelationInfo {
   final int offset;
   final bool isQualified;
 
-  _NameRelationInfo(this.nameInfo, this.kind, this.offset, this.isQualified);
+  new(this.nameInfo, this.kind, this.offset, this.isQualified);
 }
 
 /// Information about a string referenced in the index.
@@ -1717,7 +1711,7 @@ class _StringInfo {
   /// package is done and we are assembling the full package index.
   late int id;
 
-  _StringInfo(this.value);
+  new(this.value);
 }
 
 /// Information about a subtype in the index.
@@ -1731,7 +1725,7 @@ class _SubtypeInfo {
   /// The names of defined instance members.
   final List<_StringInfo> members;
 
-  _SubtypeInfo(this.supertype, this.name, this.members);
+  new(this.supertype, this.name, this.members);
 }
 
 extension AnalysisDriverUnitIndexExtension on AnalysisDriverUnitIndex {

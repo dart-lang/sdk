@@ -37,7 +37,7 @@ class SuperContext {
 
   /// Return an indication of the context in which the super [reference] is
   /// being used.
-  factory SuperContext.of(SuperReference reference) {
+  factory of(SuperReference reference) {
     var inDefaultValue = false;
     for (AstNode? node = reference; node != null; node = node.parent2) {
       if (node is Annotation) {
@@ -84,5 +84,5 @@ class SuperContext {
     return SuperContext.static;
   }
 
-  const SuperContext._(this.name);
+  const new _(this.name);
 }

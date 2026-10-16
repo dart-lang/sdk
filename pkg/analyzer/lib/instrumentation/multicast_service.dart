@@ -9,7 +9,7 @@ import 'package:analyzer/instrumentation/service.dart';
 class MulticastInstrumentationService implements InstrumentationService {
   final List<InstrumentationService> _services;
 
-  MulticastInstrumentationService(this._services);
+  new(this._services);
 
   @override
   void logError(String message) {

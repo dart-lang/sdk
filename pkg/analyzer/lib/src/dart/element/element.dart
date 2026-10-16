@@ -72,7 +72,7 @@ const generated = _Generated();
 
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement {
-  BindPatternVariableElementImpl(super.firstFragment);
+  new(super.firstFragment);
 
   @override
   BindPatternVariableFragmentImpl get firstFragment => _firstFragment;
@@ -112,7 +112,7 @@ class BindPatternVariableFragmentImpl extends PatternVariableFragmentImpl
   /// pattern variable with the same name within the same pattern.
   bool isDuplicate = false;
 
-  BindPatternVariableFragmentImpl({
+  new({
     required this.node,
     required super.name,
     required super.firstTokenOffset,
@@ -143,7 +143,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   final ClassFragmentImpl _firstFragment;
 
-  ClassElementImpl(this.reference, this._firstFragment) {
+  new(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
 
@@ -637,7 +637,7 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  ClassFragmentImpl({required super.name});
+  new({required super.name});
 
   @generated
   @override
@@ -775,7 +775,7 @@ class ConstantInitializerImpl {
   final VariableFragmentImpl fragment;
   final ExpressionImpl expression;
 
-  ConstantInitializerImpl({required this.fragment, required this.expression});
+  new({required this.fragment, required this.expression});
 }
 
 @elementClass
@@ -815,11 +815,11 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @trackedInternal
   bool isConstantEvaluated = false;
 
-  ConstructorElementImpl({
+  new({
     required this.name,
     required this.reference,
-    required ConstructorFragmentImpl firstFragment,
-  }) : _firstFragment = firstFragment {
+    required this._firstFragment,
+  }) {
     reference.element = this;
     _firstFragment.element = this;
 
@@ -1181,7 +1181,7 @@ class ConstructorFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
-  ConstructorFragmentImpl({required this.name});
+  new({required this.name});
 
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
@@ -1450,14 +1450,14 @@ class DirectiveUriWithLibraryImpl extends DirectiveUriWithSourceImpl
   @override
   late LibraryElementImpl library;
 
-  DirectiveUriWithLibraryImpl({
+  new({
     required super.relativeUriString,
     required super.relativeUri,
     required super.source,
     required this.library,
   });
 
-  DirectiveUriWithLibraryImpl.read({
+  new read({
     required super.relativeUriString,
     required super.relativeUri,
     required super.source,
@@ -1470,10 +1470,7 @@ class DirectiveUriWithRelativeUriImpl
   @override
   final Uri relativeUri;
 
-  DirectiveUriWithRelativeUriImpl({
-    required super.relativeUriString,
-    required this.relativeUri,
-  });
+  new({required super.relativeUriString, required this.relativeUri});
 }
 
 class DirectiveUriWithRelativeUriStringImpl extends DirectiveUriImpl
@@ -1481,7 +1478,7 @@ class DirectiveUriWithRelativeUriStringImpl extends DirectiveUriImpl
   @override
   final String relativeUriString;
 
-  DirectiveUriWithRelativeUriStringImpl({required this.relativeUriString});
+  new({required this.relativeUriString});
 }
 
 class DirectiveUriWithSourceImpl extends DirectiveUriWithRelativeUriImpl
@@ -1489,7 +1486,7 @@ class DirectiveUriWithSourceImpl extends DirectiveUriWithRelativeUriImpl
   @override
   final Source source;
 
-  DirectiveUriWithSourceImpl({
+  new({
     required super.relativeUriString,
     required super.relativeUri,
     required this.source,
@@ -1501,7 +1498,7 @@ class DirectiveUriWithUnitImpl extends DirectiveUriWithRelativeUriImpl
   @override
   final LibraryFragmentImpl libraryFragment;
 
-  DirectiveUriWithUnitImpl({
+  new({
     required super.relativeUriString,
     required super.relativeUri,
     required this.libraryFragment,
@@ -1522,10 +1519,7 @@ class DocImportPrefixElementImpl extends PrefixElementImpl {
   @override
   final List<LibraryImportImpl> imports = [];
 
-  DocImportPrefixElementImpl({
-    required super.localId,
-    required super.firstFragment,
-  });
+  new({required super.localId, required super.firstFragment});
 
   @override
   PrefixScope get scope {
@@ -1540,7 +1534,7 @@ class DynamicElementImpl extends ElementImpl {
   /// The unique instance of this class.
   static final DynamicElementImpl instance = DynamicElementImpl._();
 
-  DynamicElementImpl._();
+  new _();
 
   @override
   Null get documentationComment => null;
@@ -1598,7 +1592,7 @@ class DynamicFragmentImpl extends FragmentImpl {
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
   /// accessed through the method [instance].
-  DynamicFragmentImpl._() : super(firstTokenOffset: null);
+  new _() : super(firstTokenOffset: null);
 
   @override
   List<FragmentImpl> get children => const [];
@@ -1809,7 +1803,7 @@ class ElementAnnotationImpl
 
   /// Initialize a newly created annotation. The given [libraryFragment] is the
   /// compilation unit in which the annotation appears.
-  ElementAnnotationImpl(this.libraryFragment, this.annotationAst) {
+  new(this.libraryFragment, this.annotationAst) {
     annotationAst.elementAnnotation = this;
   }
 
@@ -2118,7 +2112,7 @@ sealed class ElementDirectiveImpl implements ElementDirective {
   @override
   MetadataImpl metadata = MetadataImpl(const []);
 
-  ElementDirectiveImpl({required this.uri});
+  new({required this.uri});
 
   /// Append a textual representation to the given [builder].
   void appendTo(ElementDisplayStringBuilder builder);
@@ -2455,7 +2449,7 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @override
   final EnumFragmentImpl _firstFragment;
 
-  EnumElementImpl(this.reference, this._firstFragment) {
+  new(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
 
@@ -2564,7 +2558,7 @@ class EnumFragmentImpl extends InterfaceFragmentImpl implements EnumFragment {
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  EnumFragmentImpl({required super.name});
+  new({required super.name});
 
   @override
   List<FieldElement> get constants {
@@ -2594,7 +2588,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
 
   FunctionTypeImpl? _type;
 
-  ExecutableElementImpl() {
+  new() {
     // Conservative until finalized during linking.
     hasEnclosingTypeParameterReference = true;
   }
@@ -2862,7 +2856,7 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
 
   /// Initialize a newly created executable element to have the given [name] and
   /// [offset].
-  ExecutableFragmentImpl({super.firstTokenOffset});
+  new({super.firstTokenOffset});
 
   @override
   List<FragmentImpl> get children => [...typeParameters, ...formalParameters];
@@ -3065,7 +3059,7 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   TypeImpl _extendedType = InvalidTypeImpl.instance;
 
-  ExtensionElementImpl(this.reference, this._firstFragment) {
+  new(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
 
@@ -3232,7 +3226,7 @@ class ExtensionFragmentImpl extends InstanceFragmentImpl
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [nameOffset] in the file that contains the declaration of this
   /// element.
-  ExtensionFragmentImpl({required super.name});
+  new({required super.name});
 
   @override
   List<FragmentImpl> get children => [
@@ -3299,7 +3293,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   late TypeImpl _typeErasure;
 
-  ExtensionTypeElementImpl(this.reference, this._firstFragment) {
+  new(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
 
@@ -3411,7 +3405,7 @@ class ExtensionTypeFragmentImpl extends InterfaceFragmentImpl
   @override
   late final ExtensionTypeElementImpl element;
 
-  ExtensionTypeFragmentImpl({required super.name});
+  new({required super.name});
 
   @override
   ExtensionTypeFragmentImpl? get nextFragment =>
@@ -3439,10 +3433,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   @override
   final FieldFragmentImpl _firstFragment;
 
-  FieldElementImpl({
-    required this.reference,
-    required FieldFragmentImpl firstFragment,
-  }) : _firstFragment = firstFragment {
+  new({required this.reference, required this._firstFragment}) {
     reference.element = this;
     _firstFragment.element = this;
     // Conservative until finalized during linking.
@@ -3712,7 +3703,7 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
     with InternalFieldFormalParameterElement {
   FieldElementImpl? _field;
 
-  FieldFormalParameterElementImpl(super.firstFragment);
+  new(super.firstFragment);
 
   @override
   FieldFormalParameterElementImpl get baseElement => this;
@@ -3770,7 +3761,7 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  FieldFormalParameterFragmentImpl({
+  new({
     super.firstTokenOffset,
     required super.name,
     required super.nameOffset,
@@ -3823,7 +3814,7 @@ class FieldFragmentImpl extends PropertyInducingFragmentImpl
 
   /// Initialize a newly created synthetic field element to have the given
   /// [name] at the given [offset].
-  FieldFragmentImpl({required super.name});
+  new({required super.name});
 
   @override
   ExpressionImpl? get constantInitializer2 {
@@ -3957,7 +3948,7 @@ class FirstFragmentLocation {
   final int? nameOffset;
   final int? firstTokenOffset;
 
-  FirstFragmentLocation({
+  new({
     required this.libraryFragment,
     required this.name,
     required this.nameOffset,
@@ -3977,10 +3968,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   final FormalParameterElementImpl? _baseFormalParameter;
 
-  FormalParameterElementImpl(
-    this._firstFragment, {
-    FormalParameterElementImpl? baseFormalParameter,
-  }) : _baseFormalParameter = baseFormalParameter {
+  new(this._firstFragment, {this._baseFormalParameter}) {
     isCovariant = _firstFragment.isExplicitlyCovariant;
     for (var fragment in _fragments) {
       fragment._element = this;
@@ -3988,7 +3976,7 @@ class FormalParameterElementImpl extends PromotableElementImpl
   }
 
   /// Creates a synthetic parameter with [name], [type] and [parameterKind].
-  factory FormalParameterElementImpl.synthetic(
+  factory synthetic(
     String? name,
     TypeImpl type,
     ParameterKind parameterKind, {
@@ -4206,7 +4194,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
 
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  FormalParameterFragmentImpl({
+  new({
     super.firstTokenOffset,
     required this.name,
     required this.nameOffset,
@@ -4215,10 +4203,7 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
        assert(name == null || name.isNotEmpty);
 
   /// Creates a synthetic parameter with [name2] and [parameterKind].
-  factory FormalParameterFragmentImpl.synthetic(
-    String? name2,
-    ParameterKind parameterKind,
-  ) {
+  factory synthetic(String? name2, ParameterKind parameterKind) {
     // TODO(dantup): This does not keep any reference to the non-synthetic
     //  parameter which prevents navigation/references from working. See
     //  https://github.com/dart-lang/sdk/issues/60200
@@ -4498,7 +4483,7 @@ abstract class FragmentImpl implements Fragment {
   int? _codeLength;
 
   /// Initialize a newly created fragment at the given [firstTokenOffset].
-  FragmentImpl({this.firstTokenOffset});
+  new({this.firstTokenOffset});
 
   @override
   List<FragmentImpl> get children;
@@ -4751,7 +4736,7 @@ sealed class FunctionFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
-  FunctionFragmentImpl({required this.name, super.firstTokenOffset});
+  new({required this.name, super.firstTokenOffset});
 
   @override
   FunctionFragmentImpl? get nextFragment;
@@ -4779,7 +4764,7 @@ abstract class FunctionTypedElementImpl extends ElementImpl
 /// Clients may not extend, implement or mix-in this class.
 abstract class FunctionTypedFragmentImpl extends FragmentImpl
     implements FunctionTypedFragment {
-  FunctionTypedFragmentImpl({super.firstTokenOffset});
+  new({super.firstTokenOffset});
 
   @override
   FunctionTypedElementImpl get element;
@@ -4806,7 +4791,7 @@ class GenerateElementFlags {
   /// use `_MyFragmentFlagsEnum.values` instead.
   final List<Enum> flags;
 
-  const GenerateElementFlags({required this.flags});
+  const new({required this.flags});
 }
 
 /// The element used for a generic function type.
@@ -4823,7 +4808,7 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   /// The type defined by this element.
   FunctionTypeImpl? _type;
 
-  GenericFunctionTypeElementImpl(this._firstFragment) {
+  new(this._firstFragment) {
     _firstFragment.element = this;
 
     for (var typeParameter in _firstFragment._typeParameters) {
@@ -4926,7 +4911,7 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
 
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
-  GenericFunctionTypeFragmentImpl({super.firstTokenOffset});
+  new({super.firstTokenOffset});
 
   @override
   List<FragmentImpl> get children => [...typeParameters, ...formalParameters];
@@ -4987,7 +4972,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
   @override
   final GetterFragmentImpl _firstFragment;
 
-  GetterElementImpl(this.reference, this._firstFragment) {
+  new(this.reference, this._firstFragment) {
     reference.element = this;
     GetterFragmentImpl? fragment = _firstFragment;
     while (fragment != null) {
@@ -5134,7 +5119,7 @@ class GetterFragmentImpl extends PropertyAccessorFragmentImpl
   @override
   GetterFragmentImpl? nextFragment;
 
-  GetterFragmentImpl({required super.name});
+  new({required super.name});
 
   void addFragment(GetterFragmentImpl fragment) {
     fragment.element = element;
@@ -5493,9 +5478,8 @@ sealed class InstanceElementImpl extends ElementImpl
       target: this,
       method: 'lookUpGetter',
     );
-    return _implementationsOfGetter(
-          name,
-        ).firstWhereOrNull((getter) => getter.isAccessibleIn(library))
+    return _implementationsOfGetter(name)
+            .firstWhereOrNull((getter) => getter.isAccessibleIn(library))
         as GetterElement?;
   }
 
@@ -5510,9 +5494,8 @@ sealed class InstanceElementImpl extends ElementImpl
       target: this,
       method: 'lookUpMethod',
     );
-    return _implementationsOfMethod(
-      name,
-    ).firstWhereOrNull((method) => method.isAccessibleIn(library));
+    return _implementationsOfMethod(name)
+        .firstWhereOrNull((method) => method.isAccessibleIn(library));
   }
 
   @override
@@ -5526,9 +5509,8 @@ sealed class InstanceElementImpl extends ElementImpl
       target: this,
       method: 'lookUpSetter',
     );
-    return _implementationsOfSetter(
-          name,
-        ).firstWhereOrNull((setter) => setter.isAccessibleIn(library))
+    return _implementationsOfSetter(name)
+            .firstWhereOrNull((setter) => setter.isAccessibleIn(library))
         as SetterElement?;
   }
 
@@ -5648,7 +5630,7 @@ abstract class InstanceFragmentImpl extends FragmentImpl
   List<SetterFragmentImpl> _setters = _Sentinel.setterFragment;
   List<MethodFragmentImpl> _methods = _Sentinel.methodFragment;
 
-  InstanceFragmentImpl({required this.name});
+  new({required this.name});
 
   List<PropertyAccessorFragmentImpl> get accessors {
     return [...getters, ...setters];
@@ -6282,7 +6264,7 @@ abstract class InterfaceFragmentImpl extends InstanceFragmentImpl
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  InterfaceFragmentImpl({required super.name});
+  new({required super.name});
 
   @override
   List<FragmentImpl> get children => [
@@ -6577,7 +6559,7 @@ mixin InternalVariableElement implements VariableElement {
 
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
     implements JoinPatternVariableElement {
-  JoinPatternVariableElementImpl(super.firstFragment);
+  new(super.firstFragment);
 
   @override
   JoinPatternVariableFragmentImpl get firstFragment => _firstFragment;
@@ -6647,7 +6629,7 @@ class JoinPatternVariableFragmentImpl extends PatternVariableFragmentImpl
   /// The name tokens that reference this element.
   final List<Token> references = [];
 
-  JoinPatternVariableFragmentImpl({
+  new({
     required super.name,
     required super.firstTokenOffset,
     required this.variables,
@@ -6695,7 +6677,7 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   @override
   final LabelFragmentImpl _firstFragment;
 
-  LabelElementImpl(this._firstFragment);
+  new(this._firstFragment);
 
   @override
   LabelElement get baseElement => this;
@@ -6753,11 +6735,11 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
   /// Initialize a newly created label element to have the given [name].
   /// [_onSwitchMember] should be `true` if this label is associated with a
   /// `switch` member.
-  LabelFragmentImpl({
+  new({
     required this.name,
     required super.firstTokenOffset,
-    required bool onSwitchMember,
-  }) : _onSwitchMember = onSwitchMember;
+    required this._onSwitchMember,
+  });
 
   @override
   List<FragmentImpl> get children => const [];
@@ -6894,7 +6876,7 @@ class LibraryElementImpl extends ElementImpl
 
   /// Initialize a newly created library element in the given [context] to have
   /// the given [name] and [nameOffset].
-  LibraryElementImpl(
+  new(
     this._context,
     this._session,
     this._name,
@@ -7671,7 +7653,7 @@ class LibraryElementImpl extends ElementImpl
 class LibraryElementImplInternal {
   final LibraryElementImpl _library;
 
-  LibraryElementImplInternal(this._library);
+  new(this._library);
 
   ClassHierarchy get classHierarchy {
     return _library._session.classHierarchy;
@@ -7738,7 +7720,7 @@ class LibraryExportImpl extends ElementDirectiveImpl implements LibraryExport {
   @override
   int exportKeywordOffset;
 
-  LibraryExportImpl({
+  new({
     required super.uri,
     required this.combinators,
     required this.exportKeywordOffset,
@@ -7822,11 +7804,8 @@ class LibraryFragmentImpl extends FragmentImpl
   /// The scope of this fragment, `null` if it has not been created yet.
   LibraryFragmentScope? _scope;
 
-  LibraryFragmentImpl({
-    required this.library,
-    required this.source,
-    required this.lineInfo,
-  }) : super(firstTokenOffset: 0);
+  new({required this.library, required this.source, required this.lineInfo})
+    : super(firstTokenOffset: 0);
 
   @override
   List<ExtensionElement> get accessibleExtensions {
@@ -8298,7 +8277,7 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
 
   Namespace? _namespace;
 
-  LibraryImportImpl({
+  new({
     required super.uri,
     required this.isSynthetic,
     required this.combinators,
@@ -8339,7 +8318,7 @@ final class LoadLibraryFunctionProvider {
   final TopLevelReference elementReference;
   TopLevelFunctionElementImpl? _element;
 
-  LoadLibraryFunctionProvider({required this.elementReference});
+  new({required this.elementReference});
 
   TopLevelFunctionElementImpl getElement(LibraryElementImpl library) {
     return _element ??= _create(library);
@@ -8363,7 +8342,7 @@ class LocalFunctionElementImpl extends ExecutableElementImpl
   @override
   final LocalFunctionFragmentImpl _firstFragment;
 
-  LocalFunctionElementImpl(this._firstFragment);
+  new(this._firstFragment);
 
   @override
   // Local functions belong to Fragments, not Elements.
@@ -8425,10 +8404,7 @@ class LocalFunctionFragmentImpl extends FunctionFragmentImpl
   @override
   LocalFunctionFragmentImpl? nextFragment;
 
-  LocalFunctionFragmentImpl({
-    required super.name,
-    required super.firstTokenOffset,
-  });
+  new({required super.name, required super.firstTokenOffset});
 }
 
 class LocalVariableElementImpl extends PromotableElementImpl
@@ -8439,7 +8415,7 @@ class LocalVariableElementImpl extends PromotableElementImpl
   @override
   TypeImpl type = InvalidTypeImpl.instance;
 
-  LocalVariableElementImpl(this._firstFragment);
+  new(this._firstFragment);
 
   @override
   LocalVariableElement get baseElement => this;
@@ -8500,10 +8476,7 @@ class LocalVariableFragmentImpl extends NonParameterVariableFragmentImpl
 
   /// Initialize a newly created method element to have the given [name] and
   /// [offset].
-  LocalVariableFragmentImpl({
-    required this.name,
-    required super.firstTokenOffset,
-  });
+  new({required this.name, required super.firstTokenOffset});
 
   @override
   List<FragmentImpl> get children => const [];
@@ -8534,7 +8507,7 @@ final class MetadataImpl implements Metadata {
   @override
   final List<ElementAnnotationImpl> annotations;
 
-  MetadataImpl(this.annotations);
+  new(this.annotations);
 
   @override
   bool get hasAlwaysThrows {
@@ -8948,11 +8921,11 @@ class MethodElementImpl extends ExecutableElementImpl
   @trackedIncludedInId
   TopLevelInferenceError? typeInferenceError;
 
-  MethodElementImpl({
+  new({
     required this.name,
     required this.reference,
-    required MethodFragmentImpl firstFragment,
-  }) : _firstFragment = firstFragment {
+    required this._firstFragment,
+  }) {
     reference.element = this;
     _firstFragment.element = this;
 
@@ -9135,7 +9108,7 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
-  MethodFragmentImpl({required this.name});
+  new({required this.name});
 
   @override
   String get displayName {
@@ -9222,7 +9195,7 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
 
   List<InterfaceTypeImpl> _superclassConstraints = const [];
 
-  MixinElementImpl(this.reference, this._firstFragment) {
+  new(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
 
@@ -9365,7 +9338,7 @@ class MixinFragmentImpl extends InterfaceFragmentImpl implements MixinFragment {
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
-  MixinFragmentImpl({required super.name});
+  new({required super.name});
 
   @generated
   @override
@@ -9414,11 +9387,8 @@ class MultiplyDefinedElementImpl extends ElementImpl
   late final MultiplyDefinedFragmentImpl _firstFragment =
       MultiplyDefinedFragmentImpl(this);
 
-  MultiplyDefinedElementImpl(
-    this.libraryFragment,
-    this.name,
-    this.conflictingElements,
-  ) : assert(conflictingElements.isNotEmpty);
+  new(this.libraryFragment, this.name, this.conflictingElements)
+    : assert(conflictingElements.isNotEmpty);
 
   @override
   MultiplyDefinedElementImpl get baseElement => this;
@@ -9532,7 +9502,7 @@ class MultiplyDefinedFragmentImpl extends FragmentImpl
   @override
   final MultiplyDefinedElementImpl element;
 
-  MultiplyDefinedFragmentImpl(this.element);
+  new(this.element);
 
   @override
   List<FragmentImpl> get children => const [];
@@ -9570,7 +9540,7 @@ class NeverElementImpl extends ElementImpl {
   /// The unique instance of this class.
   static final instance = NeverElementImpl._();
 
-  NeverElementImpl._();
+  new _();
 
   @override
   Null get documentationComment => null;
@@ -9635,7 +9605,7 @@ class NeverFragmentImpl extends FragmentImpl {
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
   /// accessed through the method [instance].
-  NeverFragmentImpl._() : super(firstTokenOffset: null);
+  new _() : super(firstTokenOffset: null);
 
   @override
   List<FragmentImpl> get children => const [];
@@ -9682,7 +9652,7 @@ class NeverFragmentImpl extends FragmentImpl {
 abstract class NonParameterVariableFragmentImpl extends VariableFragmentImpl {
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
-  NonParameterVariableFragmentImpl({super.firstTokenOffset});
+  new({super.firstTokenOffset});
 
   @override
   FragmentImpl get enclosingFragment {
@@ -9723,7 +9693,7 @@ class PartIncludeImpl extends ElementDirectiveImpl implements PartInclude {
   @override
   int partKeywordOffset;
 
-  PartIncludeImpl({required super.uri, required this.partKeywordOffset});
+  new({required super.uri, required this.partKeywordOffset});
 
   @override
   LibraryFragmentImpl? get includedFragment {
@@ -9741,7 +9711,7 @@ class PartIncludeImpl extends ElementDirectiveImpl implements PartInclude {
 
 class PatternVariableElementImpl extends LocalVariableElementImpl
     implements PatternVariableElement {
-  PatternVariableElementImpl(super.firstFragment);
+  new(super.firstFragment);
 
   @override
   PatternVariableFragmentImpl get firstFragment => _firstFragment;
@@ -9802,10 +9772,7 @@ class PatternVariableFragmentImpl extends LocalVariableFragmentImpl
   /// the [GuardedPattern] that declares this variable.
   bool isVisitingWhenClause = false;
 
-  PatternVariableFragmentImpl({
-    required super.name,
-    required super.firstTokenOffset,
-  });
+  new({required super.name, required super.firstTokenOffset});
 
   @override
   PatternVariableElementImpl get element =>
@@ -9841,11 +9808,9 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   /// The scope of this prefix, `null` if not set yet.
   PrefixScope? _scope;
 
-  PrefixElementImpl({
-    required this.localId,
-    required PrefixFragmentImpl firstFragment,
-  }) : _firstFragment = firstFragment,
-       lastFragment = firstFragment;
+  new({required this.localId, required PrefixFragmentImpl firstFragment})
+    : _firstFragment = firstFragment,
+      lastFragment = firstFragment;
 
   @override
   Null get enclosingElement => null;
@@ -9953,7 +9918,7 @@ class PrefixFragmentImpl extends FragmentImpl implements PrefixFragment {
   @override
   PrefixFragmentImpl? nextFragment;
 
-  PrefixFragmentImpl({
+  new({
     required this.name,
     required this.nameOffset,
     required super.firstTokenOffset,
@@ -10077,7 +10042,7 @@ sealed class PropertyAccessorFragmentImpl extends ExecutableFragmentImpl
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
-  PropertyAccessorFragmentImpl({required this.name, super.firstTokenOffset});
+  new({required this.name, super.firstTokenOffset});
 
   @override
   PropertyAccessorElementImpl get element;
@@ -10195,7 +10160,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   late final PropertyInducingElementImplInternal internal =
       PropertyInducingElementImplInternal(this);
 
-  PropertyInducingElementImpl();
+  new();
 
   @override
   PropertyInducingFragmentImpl get firstFragment;
@@ -10358,7 +10323,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
 class PropertyInducingElementImplInternal {
   final PropertyInducingElementImpl _element;
 
-  PropertyInducingElementImplInternal(this._element);
+  new(this._element);
 
   List<PropertyInducingFragmentImpl> get fragments => _element._fragments;
 }
@@ -10392,7 +10357,7 @@ abstract class PropertyInducingFragmentImpl
 
   /// Initialize a newly created synthetic element to have the given [name] and
   /// [offset].
-  PropertyInducingFragmentImpl({required this.name});
+  new({required this.name});
 
   @override
   List<FragmentImpl> get children => const [];
@@ -10491,7 +10456,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
   @override
   final SetterFragmentImpl _firstFragment;
 
-  SetterElementImpl(this.reference, this._firstFragment) {
+  new(this.reference, this._firstFragment) {
     reference.element = this;
     SetterFragmentImpl? fragment = _firstFragment;
     while (fragment != null) {
@@ -10656,7 +10621,7 @@ class SetterFragmentImpl extends PropertyAccessorFragmentImpl
   @override
   SetterFragmentImpl? nextFragment;
 
-  SetterFragmentImpl({required super.name});
+  new({required super.name});
 
   @override
   String? get lookupName {
@@ -10705,7 +10670,7 @@ class ShowElementCombinatorImpl implements ShowElementCombinator {
 
 class SuperFormalParameterElementImpl extends FormalParameterElementImpl
     with InternalSuperFormalParameterElement {
-  SuperFormalParameterElementImpl(super.firstFragment);
+  new(super.firstFragment);
 
   @override
   SuperFormalParameterElementImpl get baseElement => this;
@@ -10826,7 +10791,7 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
     implements SuperFormalParameterFragment {
   /// Initialize a newly created parameter element to have the given [name] and
   /// [nameOffset].
-  SuperFormalParameterFragmentImpl({
+  new({
     super.firstTokenOffset,
     required super.name,
     required super.nameOffset,
@@ -10850,7 +10815,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   @override
   final TopLevelFunctionFragmentImpl _firstFragment;
 
-  TopLevelFunctionElementImpl(this.reference, this._firstFragment) {
+  new(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
 
@@ -11007,7 +10972,7 @@ class TopLevelFunctionFragmentImpl extends FunctionFragmentImpl
   @override
   TopLevelFunctionFragmentImpl? nextFragment;
 
-  TopLevelFunctionFragmentImpl({required super.name});
+  new({required super.name});
 
   @override
   LibraryFragmentImpl get enclosingFragment =>
@@ -11075,7 +11040,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
   @override
   final TopLevelVariableFragmentImpl _firstFragment;
 
-  TopLevelVariableElementImpl(this.reference, this._firstFragment) {
+  new(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
   }
@@ -11178,7 +11143,7 @@ class TopLevelVariableFragmentImpl extends PropertyInducingFragmentImpl
 
   /// Initialize a newly created synthetic top-level variable element to have
   /// the given [name] and [offset].
-  TopLevelVariableFragmentImpl({required super.name});
+  new({required super.name});
 
   @override
   ExpressionImpl? get constantInitializer2 {
@@ -11227,7 +11192,7 @@ class TypeAliasElementImpl extends ElementImpl
 
   TypeImpl? _aliasedType;
 
-  TypeAliasElementImpl(this.reference, this._firstFragment) {
+  new(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
 
@@ -11487,7 +11452,7 @@ class TypeAliasFragmentImpl extends FragmentImpl
   @override
   late TypeAliasElementImpl element;
 
-  TypeAliasFragmentImpl({required this.name, required super.firstTokenOffset});
+  new({required this.name, required super.firstTokenOffset});
 
   @override
   List<FragmentImpl> get children => const [];
@@ -11542,14 +11507,14 @@ class TypeParameterElementImpl extends ElementImpl
   /// fall-back type value in type inference.
   TypeImpl? defaultType;
 
-  TypeParameterElementImpl({required TypeParameterFragmentImpl firstFragment})
+  new({required TypeParameterFragmentImpl firstFragment})
     : _firstFragment = firstFragment {
     assert(firstFragment.previousFragment == null);
     assert(firstFragment.nextFragment == null);
     firstFragment.element = this;
   }
 
-  factory TypeParameterElementImpl.synthetic({required String name}) {
+  factory synthetic({required String name}) {
     var fragment = TypeParameterFragmentImpl.synthetic(name: name);
     return TypeParameterElementImpl(firstFragment: fragment);
   }
@@ -11697,10 +11662,9 @@ class TypeParameterFragmentImpl extends FragmentImpl
 
   /// Initialize a newly created type parameter fragment to have the given
   /// [name] and [offset].
-  TypeParameterFragmentImpl({required this.name, super.firstTokenOffset});
+  new({required this.name, super.firstTokenOffset});
 
-  TypeParameterFragmentImpl.synthetic({required this.name})
-    : super(firstTokenOffset: null);
+  new synthetic({required this.name}) : super(firstTokenOffset: null);
 
   @override
   List<FragmentImpl> get children => const [];
@@ -11964,7 +11928,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
 
   /// Initialize a newly created variable element to have the given [name] and
   /// [offset].
-  VariableFragmentImpl({required super.firstTokenOffset});
+  new({required super.firstTokenOffset});
 
   @V1Ast('The V2 counterpart is constantInitializer2.')
   ExpressionImpl? get constantInitializer {
@@ -12129,10 +12093,7 @@ enum _ClassElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _ClassElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _ConstructorElementFlags {
@@ -12161,10 +12122,7 @@ enum _ConstructorElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _ConstructorElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _ElementFlags {
@@ -12174,8 +12132,7 @@ enum _ElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _ElementFlags({this.element = _ElementFlagSource.none})
-    : fragment = false;
+  new({this.element = _ElementFlagSource.none}) : fragment = false;
 }
 
 enum _ElementFlagSource { none, firstFragment, stored, computed }
@@ -12215,10 +12172,7 @@ enum _ExecutableElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _ExecutableElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _FieldElementFlags {
@@ -12240,10 +12194,7 @@ enum _FieldElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _FieldElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _FieldFormalParameterElementFlags {
@@ -12252,10 +12203,7 @@ enum _FieldFormalParameterElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _FieldFormalParameterElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _FormalParameterElementFlags {
@@ -12269,10 +12217,7 @@ enum _FormalParameterElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _FormalParameterElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _FragmentFlags {
@@ -12282,8 +12227,7 @@ enum _FragmentFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _FragmentFlags({this.fragment = false})
-    : element = _ElementFlagSource.none;
+  new({this.fragment = false}) : element = _ElementFlagSource.none;
 }
 
 @generated
@@ -12347,7 +12291,7 @@ enum _FragmentStorageFlag {
 }
 
 class _Generated {
-  const _Generated();
+  const new();
 }
 
 enum _InstanceElementFlags {
@@ -12356,8 +12300,7 @@ enum _InstanceElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _InstanceElementFlags({this.element = _ElementFlagSource.none})
-    : fragment = false;
+  new({this.element = _ElementFlagSource.none}) : fragment = false;
 }
 
 enum _InterfaceElementFlags {
@@ -12366,8 +12309,7 @@ enum _InterfaceElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _InterfaceElementFlags({this.element = _ElementFlagSource.none})
-    : fragment = false;
+  new({this.element = _ElementFlagSource.none}) : fragment = false;
 }
 
 enum _LibraryElementFlags {
@@ -12377,10 +12319,7 @@ enum _LibraryElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _LibraryElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _MethodElementFlags {
@@ -12393,10 +12332,7 @@ enum _MethodElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _MethodElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _MixinElementFlags {
@@ -12405,10 +12341,7 @@ enum _MixinElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _MixinElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _NonParameterVariableElementFlags {
@@ -12417,8 +12350,7 @@ enum _NonParameterVariableElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _NonParameterVariableElementFlags({this.fragment = false})
-    : element = _ElementFlagSource.none;
+  new({this.fragment = false}) : element = _ElementFlagSource.none;
 }
 
 enum _PropertyAccessorElementFlags {
@@ -12432,10 +12364,7 @@ enum _PropertyAccessorElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _PropertyAccessorElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _PropertyInducingElementFlags {
@@ -12454,10 +12383,7 @@ enum _PropertyInducingElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _PropertyInducingElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 /// Instances of [List]s that are used as "not yet computed" values, they
@@ -12503,10 +12429,7 @@ enum _TopLevelFunctionElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _TopLevelFunctionElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }
 
 enum _TypeAliasElementFlags {
@@ -12516,8 +12439,7 @@ enum _TypeAliasElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _TypeAliasElementFlags({this.element = _ElementFlagSource.none})
-    : fragment = false;
+  new({this.element = _ElementFlagSource.none}) : fragment = false;
 }
 
 enum _TypeParameterElementFlags {
@@ -12526,8 +12448,7 @@ enum _TypeParameterElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _TypeParameterElementFlags({this.fragment = false})
-    : element = _ElementFlagSource.none;
+  new({this.fragment = false}) : element = _ElementFlagSource.none;
 }
 
 enum _VariableElementFlags {
@@ -12542,8 +12463,5 @@ enum _VariableElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _VariableElementFlags({
-    this.fragment = false,
-    this.element = _ElementFlagSource.none,
-  });
+  new({this.fragment = false, this.element = _ElementFlagSource.none});
 }

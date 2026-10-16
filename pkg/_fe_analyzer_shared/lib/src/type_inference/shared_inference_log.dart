@@ -68,7 +68,7 @@ enum ConstraintGenerationSource {
   /// including in log messages.
   final String description;
 
-  const ConstraintGenerationSource({required this.description});
+  new({required this.description});
 
   @override
   String toString() => description;
@@ -83,7 +83,7 @@ class Event {
   /// List of nested events.
   List<Event>? subEvents;
 
-  Event({required this.message});
+  new({required this.message});
 }
 
 /// Specialization of [State] used when type inferring an expression.
@@ -97,11 +97,8 @@ class ExpressionState extends State {
   /// is determined by analysis to not need a static type.
   bool typeRecorded = false;
 
-  ExpressionState({
-    required super.writer,
-    required super.message,
-    required super.nodeSet,
-  }) : super(kind: StateKind.expression);
+  new({required super.writer, required super.message, required super.nodeSet})
+    : super(kind: StateKind.expression);
 }
 
 /// Specialization of [State] used when generic type inference is being
@@ -110,7 +107,7 @@ class GenericInferenceState<TypeParameter extends Object> extends State {
   /// The formal type parameters whose types are being inferred.
   final List<TypeParameter> typeFormals;
 
-  GenericInferenceState({
+  new({
     required super.writer,
     required super.message,
     required State parent,
@@ -298,7 +295,7 @@ abstract class SharedInferenceLogWriterImpl
   /// should result in the event being immediately printed.
   bool _dumping = false;
 
-  SharedInferenceLogWriterImpl() {
+  new() {
     _stateStack.add(_topState);
   }
 
@@ -863,7 +860,7 @@ class State extends Event {
   final List<Object?> nodeSet;
 
   /// Creates a new state object and adds it to the log via [writer].
-  State({
+  new({
     required this.kind,
     required SharedInferenceLogWriterImpl writer,
     required super.message,
@@ -874,7 +871,7 @@ class State extends Event {
 
   /// Creates a new state object representing the outermost nesting level of the
   /// inference log.
-  State._top() : kind = StateKind.top, nodeSet = [null], super(message: 'TOP');
+  new _top() : kind = StateKind.top, nodeSet = [null], super(message: 'TOP');
 
   @override
   String toString() => '$runtimeType(${describe(nodeSet.first)})';

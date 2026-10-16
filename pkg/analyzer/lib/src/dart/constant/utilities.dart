@@ -130,7 +130,7 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   /// treated as "const".
   bool treatFinalInstanceVarAsConst = false;
 
-  ConstantFinder({required this.configuration});
+  new({required this.configuration});
 
   @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
@@ -235,7 +235,7 @@ class ReferenceFinder extends RecursiveAstVisitor2<void> {
   /// Initialize a newly created reference finder to find references from a
   /// given variable to other variables and to add those references to the given
   /// graph. The [_callback] will be invoked for every dependency found.
-  ReferenceFinder(this._callback);
+  new(this._callback);
 
   @override
   void visitConstructorInvocation(covariant ConstructorInvocationImpl node) {

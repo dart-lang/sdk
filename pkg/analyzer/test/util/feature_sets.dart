@@ -57,5 +57,5 @@ class FeatureSets {
     ],
   );
 
-  FeatureSets._();
+  new _();
 }

@@ -52,7 +52,7 @@ class DeclaringFormalParameterInfo {
   final FieldFragmentImpl fieldFragment;
   final FormalParameterFragmentImpl formalFragment;
 
-  DeclaringFormalParameterInfo({
+  new({
     required this.node,
     required this.fieldFragment,
     required this.formalFragment,
@@ -74,7 +74,7 @@ class Linker {
   Map<Uri, LibraryManifest> newLibraryManifests = {};
   late Uint8List resolutionBytes;
 
-  Linker({required this.elementFactory, required this.apiSignature});
+  new({required this.elementFactory, required this.apiSignature});
 
   AnalysisContextImpl get analysisContext {
     return elementFactory.analysisContext;
@@ -469,12 +469,12 @@ class Linker {
 class LinkResult {
   final Uint8List resolutionBytes;
 
-  LinkResult({required this.resolutionBytes});
+  new({required this.resolutionBytes});
 }
 
 class _AdditionalExport {
   final LibraryBuilder exportedLibrary;
   final ExportEntry entry;
 
-  _AdditionalExport(this.exportedLibrary, this.entry);
+  new(this.exportedLibrary, this.entry);
 }

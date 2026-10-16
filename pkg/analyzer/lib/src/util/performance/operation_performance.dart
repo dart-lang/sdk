@@ -55,7 +55,7 @@ abstract class OperationPerformanceDataImpl<T>
   @override
   final String name;
 
-  OperationPerformanceDataImpl(this.name);
+  new(this.name);
 
   @override
   String toString() {
@@ -70,7 +70,7 @@ class OperationPerformanceDataImpl_int
   @override
   int value = 0;
 
-  OperationPerformanceDataImpl_int(super.name);
+  new(super.name);
 
   void add(int item) {
     value += item;
@@ -88,7 +88,7 @@ class OperationPerformanceDataImpl_Set<T>
   @override
   final Set<T> value = {};
 
-  OperationPerformanceDataImpl_Set(super.name);
+  new(super.name);
 
   void add(T item) {
     value.add(item);
@@ -114,7 +114,7 @@ class OperationPerformanceImpl implements OperationPerformance {
 
   final Map<String, OperationPerformanceData<Object>> _data = {};
 
-  OperationPerformanceImpl(this.name);
+  new(this.name);
 
   @override
   List<OperationPerformance> get children {

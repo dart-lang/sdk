@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 /// identifiers.
 class LexicalLookup {
   /// Do not construct
-  LexicalLookup._() {
+  new _() {
     assert(false, 'Do not construct instances of LexicalLookup');
   }
 
@@ -66,10 +66,5 @@ class LexicalLookupResult {
   /// The field referenced in a [RecordType].
   final RecordTypeFieldImpl? recordField;
 
-  LexicalLookupResult({
-    this.requested,
-    this.recovery,
-    this.callFunctionType,
-    this.recordField,
-  });
+  new({this.requested, this.recovery, this.callFunctionType, this.recordField});
 }

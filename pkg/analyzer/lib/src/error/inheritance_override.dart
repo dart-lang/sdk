@@ -41,13 +41,11 @@ class InheritanceOverrideVerifier {
   final Map<LibraryFragmentImpl, DiagnosticReporter>
   _diagnosticReportersByFragment;
 
-  InheritanceOverrideVerifier(
+  new(
     this._typeSystem,
     this._inheritance, {
-    required Map<LibraryFragmentImpl, DiagnosticReporter>
-    diagnosticReportersByFragment,
-  }) : _typeProvider = _typeSystem.typeProvider,
-       _diagnosticReportersByFragment = diagnosticReportersByFragment;
+    required this._diagnosticReportersByFragment,
+  }) : _typeProvider = _typeSystem.typeProvider;
 
   void verifyUnit(CompilationUnitImpl unit, DiagnosticReporter reporter) {
     var library = unit.declaredFragment!.element;
@@ -283,7 +281,7 @@ class _ClassVerifier {
     (e) => e.isDartCoreEnum,
   );
 
-  _ClassVerifier({
+  new({
     required this.typeSystem,
     required this.typeProvider,
     required this.inheritance,
@@ -1173,11 +1171,7 @@ class _DiagnosticTarget {
   final int offset;
   final int length;
 
-  _DiagnosticTarget({
-    required this.reporter,
-    required this.offset,
-    required this.length,
-  });
+  new({required this.reporter, required this.offset, required this.length});
 
   void report(LocatableDiagnostic diagnostic) {
     reporter.report(diagnostic.atOffset(offset: offset, length: length));
@@ -1188,5 +1182,5 @@ class _DiagnosticTarget {
 class _InterfaceElementState {
   bool hasReportedRecursiveInterfaceInheritance = false;
 
-  _InterfaceElementState();
+  new();
 }

@@ -17,7 +17,7 @@ class RenameLocalVariableMutation extends Mutation {
   final String localName;
   final int localOffset;
 
-  RenameLocalVariableMutation({
+  new({
     required super.path,
     required this.localName,
     required this.localOffset,

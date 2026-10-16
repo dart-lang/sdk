@@ -16,8 +16,7 @@ const MessageCode abstractClassMember = const MessageCode(
   "AbstractClassMember",
   sharedCode: SharedCode.abstractClassMember,
   problemMessage: """Members of classes can't be declared to be 'abstract'.""",
-  correctionMessage:
-      """Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.""",
+  correctionMessage: """Try removing the 'abstract' keyword. You can add the 'abstract' keyword before the class declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -50,8 +49,7 @@ const MessageCode abstractFinalBaseClass = const MessageCode(
 const MessageCode abstractFinalInterfaceClass = const MessageCode(
   "AbstractFinalInterfaceClass",
   sharedCode: SharedCode.abstractFinalInterfaceClass,
-  problemMessage:
-      """An 'abstract' class can't be declared as both 'final' and 'interface'.""",
+  problemMessage: """An 'abstract' class can't be declared as both 'final' and 'interface'.""",
   correctionMessage:
       """Try removing either the 'final' or 'interface' keyword.""",
 );
@@ -76,8 +74,7 @@ const MessageCode abstractNotSync = const MessageCode(
 const MessageCode abstractSealedClass = const MessageCode(
   "AbstractSealedClass",
   sharedCode: SharedCode.abstractSealedClass,
-  problemMessage:
-      """A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract.""",
+  problemMessage: """A 'sealed' class can't be marked 'abstract' because it's already implicitly abstract.""",
   correctionMessage: """Try removing the 'abstract' keyword.""",
 );
 
@@ -93,18 +90,15 @@ const MessageCode abstractStaticField = const MessageCode(
 const MessageCode annotationOnTypeArgument = const MessageCode(
   "AnnotationOnTypeArgument",
   sharedCode: SharedCode.annotationOnTypeArgument,
-  problemMessage:
-      """Type arguments can't have annotations because they aren't declarations.""",
+  problemMessage: """Type arguments can't have annotations because they aren't declarations.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode anonymousMethodWrongParameterList = const MessageCode(
   "AnonymousMethodWrongParameterList",
   sharedCode: SharedCode.anonymousMethodWrongParameterList,
-  problemMessage:
-      """An anonymous method with a parameter list must have exactly one required, positional parameter.""",
-  correctionMessage:
-      """Try removing the parameter list, or changing it to have exactly one required positional parameter.""",
+  problemMessage: """An anonymous method with a parameter list must have exactly one required, positional parameter.""",
+  correctionMessage: """Try removing the parameter list, or changing it to have exactly one required positional parameter.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -137,8 +131,7 @@ const MessageCode assertAsExpression = const MessageCode(
 const MessageCode assignmentToPrimaryConstructorParameter = const MessageCode(
   "AssignmentToPrimaryConstructorParameter",
   sharedCode: SharedCode.assignmentToPrimaryConstructorParameter,
-  problemMessage:
-      """A primary constructor parameter can't be assigned to in an initializer.""",
+  problemMessage: """A primary constructor parameter can't be assigned to in an initializer.""",
   correctionMessage: """Try removing the assignment.""",
 );
 
@@ -146,28 +139,23 @@ const MessageCode assignmentToPrimaryConstructorParameter = const MessageCode(
 const MessageCode augmentationExtendsClauseAlreadyPresent = const MessageCode(
   "AugmentationExtendsClauseAlreadyPresent",
   sharedCode: SharedCode.augmentationExtendsClauseAlreadyPresent,
-  problemMessage:
-      """The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.""",
-  correctionMessage:
-      """Try removing the 'extends' clause, either here or in the augmentation target.""",
+  problemMessage: """The augmentation has an 'extends' clause, but an augmentation target already includes an 'extends' clause and it isn't allowed to be repeated or changed.""",
+  correctionMessage: """Try removing the 'extends' clause, either here or in the augmentation target.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitAsIdentifier = const MessageCode(
   "AwaitAsIdentifier",
   pseudoSharedCode: PseudoSharedCode.asyncKeywordUsedAsIdentifier,
-  problemMessage:
-      """'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""",
+  problemMessage: """'await' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode awaitForNotAsync = const MessageCode(
   "AwaitForNotAsync",
   pseudoSharedCode: PseudoSharedCode.asyncForInWrongContext,
-  problemMessage:
-      """The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.""",
-  correctionMessage:
-      """Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.""",
+  problemMessage: """The asynchronous for-in can only be used in functions marked with 'async' or 'async*'.""",
+  correctionMessage: """Try marking the function body with either 'async' or 'async*', or removing the 'await' before the for loop.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -223,8 +211,7 @@ Message _withArgumentsBinaryOperatorWrittenOut({
 const MessageCode breakOutsideOfLoop = const MessageCode(
   "BreakOutsideOfLoop",
   sharedCode: SharedCode.breakOutsideOfLoop,
-  problemMessage:
-      """A break statement can't be used outside of a loop or switch statement.""",
+  problemMessage: """A break statement can't be used outside of a loop or switch statement.""",
   correctionMessage: """Try removing the break statement.""",
 );
 
@@ -269,20 +256,16 @@ Message _withArgumentsBuiltInIdentifierInDeclaration({required Token lexeme}) {
 const MessageCode catchSyntax = const MessageCode(
   "CatchSyntax",
   sharedCode: SharedCode.catchSyntax,
-  problemMessage:
-      """'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
-  correctionMessage:
-      """No types are needed, the first is given by 'on', the second is always 'StackTrace'.""",
+  problemMessage: """'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
+  correctionMessage: """No types are needed, the first is given by 'on', the second is always 'StackTrace'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode catchSyntaxExtraParameters = const MessageCode(
   "CatchSyntaxExtraParameters",
   sharedCode: SharedCode.catchSyntaxExtraParameters,
-  problemMessage:
-      """'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
-  correctionMessage:
-      """No types are needed, the first is given by 'on', the second is always 'StackTrace'.""",
+  problemMessage: """'catch' must be followed by '(identifier)' or '(identifier, identifier)'.""",
+  correctionMessage: """No types are needed, the first is given by 'on', the second is always 'StackTrace'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -341,8 +324,7 @@ const MessageCode constClass = const MessageCode(
   "ConstClass",
   sharedCode: SharedCode.constClass,
   problemMessage: """Classes can't be declared to be 'const'.""",
-  correctionMessage:
-      """Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).""",
+  correctionMessage: """Try removing the 'const' keyword. If you're trying to indicate that instances of the class can be constants, place the 'const' keyword on  the class' constructor(s).""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -357,10 +339,8 @@ const MessageCode constConstructorWithBody = const MessageCode(
 const MessageCode constFactory = const MessageCode(
   "ConstFactory",
   sharedCode: SharedCode.constFactory,
-  problemMessage:
-      """Only redirecting factory constructors can be declared to be 'const'.""",
-  correctionMessage:
-      """Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target.""",
+  problemMessage: """Only redirecting factory constructors can be declared to be 'const'.""",
+  correctionMessage: """Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -396,10 +376,8 @@ const MessageCode constMethod = const MessageCode(
 const MessageCode constWithoutPrimaryConstructor = const MessageCode(
   "ConstWithoutPrimaryConstructor",
   sharedCode: SharedCode.constWithoutPrimaryConstructor,
-  problemMessage:
-      """'const' can only be used together with a primary constructor declaration.""",
-  correctionMessage:
-      """Try removing the 'const' keyword or adding a primary constructor declaration.""",
+  problemMessage: """'const' can only be used together with a primary constructor declaration.""",
+  correctionMessage: """Try removing the 'const' keyword or adding a primary constructor declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -414,10 +392,8 @@ const MessageCode constructorWithReturnType = const MessageCode(
 const MessageCode constructorWithTypeArguments = const MessageCode(
   "ConstructorWithTypeArguments",
   sharedCode: SharedCode.constructorWithTypeArguments,
-  problemMessage:
-      """A constructor invocation can't have type arguments after the constructor name.""",
-  correctionMessage:
-      """Try removing the type arguments or placing them after the class name.""",
+  problemMessage: """A constructor invocation can't have type arguments after the constructor name.""",
+  correctionMessage: """Try removing the type arguments or placing them after the class name.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -432,16 +408,14 @@ const MessageCode constructorWithTypeParameters = const MessageCode(
 const MessageCode constructorWithWrongName = const MessageCode(
   "ConstructorWithWrongName",
   sharedCode: SharedCode.invalidConstructorName,
-  problemMessage:
-      """The name of a constructor must match the name of the enclosing class.""",
+  problemMessage: """The name of a constructor must match the name of the enclosing class.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode continueOutsideOfLoop = const MessageCode(
   "ContinueOutsideOfLoop",
   sharedCode: SharedCode.continueOutsideOfLoop,
-  problemMessage:
-      """A continue statement can't be used outside of a loop or switch statement.""",
+  problemMessage: """A continue statement can't be used outside of a loop or switch statement.""",
   correctionMessage: """Try removing the continue statement.""",
 );
 
@@ -449,10 +423,8 @@ const MessageCode continueOutsideOfLoop = const MessageCode(
 const MessageCode continueWithoutLabelInCase = const MessageCode(
   "ContinueWithoutLabelInCase",
   sharedCode: SharedCode.continueWithoutLabelInCase,
-  problemMessage:
-      """A continue statement in a switch statement must have a label as a target.""",
-  correctionMessage:
-      """Try adding a label associated with one of the case clauses to the continue statement.""",
+  problemMessage: """A continue statement in a switch statement must have a label as a target.""",
+  correctionMessage: """Try adding a label associated with one of the case clauses to the continue statement.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -486,8 +458,7 @@ const MessageCode defaultInSwitchExpression = const MessageCode(
 const MessageCode deferredAfterPrefix = const MessageCode(
   "DeferredAfterPrefix",
   sharedCode: SharedCode.deferredAfterPrefix,
-  problemMessage:
-      """The deferred keyword should come immediately before the prefix ('as' clause).""",
+  problemMessage: """The deferred keyword should come immediately before the prefix ('as' clause).""",
   correctionMessage: """Try moving the deferred keyword before the prefix.""",
 );
 
@@ -603,8 +574,7 @@ const MessageCode enumInClass = const MessageCode(
 const MessageCode equalityCannotBeEqualityOperand = const MessageCode(
   "EqualityCannotBeEqualityOperand",
   sharedCode: SharedCode.equalityCannotBeEqualityOperand,
-  problemMessage:
-      """A comparison expression can't be an operand of another comparison expression.""",
+  problemMessage: """A comparison expression can't be an operand of another comparison expression.""",
   correctionMessage:
       """Try putting parentheses around one of the comparisons.""",
 );
@@ -759,8 +729,7 @@ Message _withArgumentsExpectedEnumBody({required Token lexeme}) {
   return new Message(
     expectedEnumBody,
     problemMessage: """Expected a enum body, but got '${lexeme_0}'.""",
-    correctionMessage:
-        """An enum definition must have a body with at least one constant name.""",
+    correctionMessage: """An enum definition must have a body with at least one constant name.""",
     arguments: {'lexeme': lexeme},
   );
 }
@@ -778,8 +747,7 @@ const MessageCode expectedExtensionBody = const MessageCode(
 const MessageCode expectedExtensionTypeBody = const MessageCode(
   "ExpectedExtensionTypeBody",
   sharedCode: SharedCode.expectedExtensionTypeBody,
-  problemMessage:
-      """An extension type declaration must have a body, even if it is empty.""",
+  problemMessage: """An extension type declaration must have a body, even if it is empty.""",
   correctionMessage: """Try adding an empty body.""",
 );
 
@@ -1078,19 +1046,18 @@ const MessageCode extensionPrimaryConstructor = const MessageCode(
   "ExtensionPrimaryConstructor",
   sharedCode: SharedCode.extensionPrimaryConstructor,
   problemMessage: """Extensions can't have primary constructors.""",
-  correctionMessage:
-      """Try removing the primary constructor or changing the extension to an extension type.""",
+  correctionMessage: """Try removing the primary constructor or changing the extension to an extension type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-extensionTypeAugmentationSpecifiesRepresentationField = const MessageCode(
-  "ExtensionTypeAugmentationSpecifiesRepresentationField",
-  sharedCode: SharedCode.extensionTypeAugmentationSpecifiesRepresentationField,
-  problemMessage:
-      """An extension type augmentation can't specify a representation field.""",
-  correctionMessage: """Try removing the representation field.""",
-);
+const MessageCode extensionTypeAugmentationSpecifiesRepresentationField =
+    const MessageCode(
+      "ExtensionTypeAugmentationSpecifiesRepresentationField",
+      sharedCode:
+          SharedCode.extensionTypeAugmentationSpecifiesRepresentationField,
+      problemMessage: """An extension type augmentation can't specify a representation field.""",
+      correctionMessage: """Try removing the representation field.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionTypeDeclaresInstanceField = const MessageCode(
@@ -1107,8 +1074,7 @@ const MessageCode extensionTypeExtends = const MessageCode(
   sharedCode: SharedCode.extensionTypeExtends,
   problemMessage:
       """An extension type declaration can't have an 'extends' clause.""",
-  correctionMessage:
-      """Try removing the 'extends' clause or replacing the 'extends' with 'implements'.""",
+  correctionMessage: """Try removing the 'extends' clause or replacing the 'extends' with 'implements'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1117,8 +1083,7 @@ const MessageCode extensionTypeWith = const MessageCode(
   sharedCode: SharedCode.extensionTypeWith,
   problemMessage:
       """An extension type declaration can't have a 'with' clause.""",
-  correctionMessage:
-      """Try removing the 'with' clause or replacing the 'with' with 'implements'.""",
+  correctionMessage: """Try removing the 'with' clause or replacing the 'with' with 'implements'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1166,8 +1131,7 @@ const MessageCode externalConstructorWithFieldInitializers = const MessageCode(
   "ExternalConstructorWithFieldInitializers",
   sharedCode: SharedCode.externalConstructorWithFieldInitializers,
   problemMessage: """An external constructor can't initialize fields.""",
-  correctionMessage:
-      """Try removing the field initializers, or removing the keyword 'external'.""",
+  correctionMessage: """Try removing the field initializers, or removing the keyword 'external'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1198,8 +1162,7 @@ const MessageCode externalFactoryWithBody = const MessageCode(
   "ExternalFactoryWithBody",
   sharedCode: SharedCode.externalFactoryWithBody,
   problemMessage: """External factories can't have a body.""",
-  correctionMessage:
-      """Try removing the body of the factory, or removing the keyword 'external'.""",
+  correctionMessage: """Try removing the body of the factory, or removing the keyword 'external'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1352,33 +1315,32 @@ Message _withArgumentsFastaCLIArgumentRequired({required String argumentName}) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
-fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor = const MessageCode(
-  "FieldInitializedInDeclarationAndInitializerOfPrimaryConstructor",
-  sharedCode: SharedCode
-      .fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
-  problemMessage:
-      """Fields can't be initialized in both the primary constructor and at their declaration.""",
-  correctionMessage: """Try removing one of the initializations.""",
-);
+fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor =
+    const MessageCode(
+      "FieldInitializedInDeclarationAndInitializerOfPrimaryConstructor",
+      sharedCode: SharedCode
+          .fieldInitializedInDeclarationAndInitializerOfPrimaryConstructor,
+      problemMessage: """Fields can't be initialized in both the primary constructor and at their declaration.""",
+      correctionMessage: """Try removing one of the initializations.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
-fieldInitializedInDeclarationAndParameterOfPrimaryConstructor = const MessageCode(
-  "FieldInitializedInDeclarationAndParameterOfPrimaryConstructor",
-  sharedCode:
-      SharedCode.fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
-  problemMessage:
-      """Fields can't be initialized in both the primary constructor parameter list and at their declaration.""",
-  correctionMessage: """Try removing one of the initializations.""",
-);
+fieldInitializedInDeclarationAndParameterOfPrimaryConstructor =
+    const MessageCode(
+      "FieldInitializedInDeclarationAndParameterOfPrimaryConstructor",
+      sharedCode: SharedCode
+          .fieldInitializedInDeclarationAndParameterOfPrimaryConstructor,
+      problemMessage: """Fields can't be initialized in both the primary constructor parameter list and at their declaration.""",
+      correctionMessage: """Try removing one of the initializations.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode fieldInitializedOutsideDeclaringClass = const MessageCode(
   "FieldInitializedOutsideDeclaringClass",
   sharedCode: SharedCode.fieldInitializedOutsideDeclaringClass,
   problemMessage: """A field can only be initialized in its declaring class""",
-  correctionMessage:
-      """Try passing a value into the superclass constructor, or moving the initialization into the constructor body.""",
+  correctionMessage: """Try passing a value into the superclass constructor, or moving the initialization into the constructor body.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1404,10 +1366,8 @@ const MessageCode finalAndCovariant = const MessageCode(
 const MessageCode finalAndCovariantLateWithInitializer = const MessageCode(
   "FinalAndCovariantLateWithInitializer",
   sharedCode: SharedCode.finalAndCovariantLateWithInitializer,
-  problemMessage:
-      """Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'.""",
-  correctionMessage:
-      """Try removing either the 'final' or 'covariant' keyword, or removing the initializer.""",
+  problemMessage: """Members marked 'late' with an initializer can't be declared to be both 'final' and 'covariant'.""",
+  correctionMessage: """Try removing either the 'final' or 'covariant' keyword, or removing the initializer.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1473,8 +1433,7 @@ const MessageCode functionTypeDefaultValue = const MessageCode(
 const MessageCode functionTypedParameterVar = const MessageCode(
   "FunctionTypedParameterVar",
   sharedCode: SharedCode.functionTypedParameterVar,
-  problemMessage:
-      """Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.""",
+  problemMessage: """Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.""",
   correctionMessage: """Try replacing the keyword with a return type.""",
 );
 
@@ -1626,8 +1585,7 @@ const MessageCode initializingDeclaringParameter = const MessageCode(
   "InitializingDeclaringParameter",
   sharedCode: SharedCode.initializingDeclaringParameter,
   problemMessage: """Declaring parameters can't be initializing.""",
-  correctionMessage:
-      """Try removing the `this.` prefix or making the parameter non-declaring.""",
+  correctionMessage: """Try removing the `this.` prefix or making the parameter non-declaring.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1773,8 +1731,7 @@ Message _withArgumentsInvalidConstantPatternBinary({
 const MessageCode invalidConstantPatternConstPrefix = const MessageCode(
   "InvalidConstantPatternConstPrefix",
   sharedCode: SharedCode.invalidConstantConstPrefix,
-  problemMessage:
-      """The expression can't be prefixed by 'const' to form a constant pattern.""",
+  problemMessage: """The expression can't be prefixed by 'const' to form a constant pattern.""",
   correctionMessage:
       """Try wrapping the expression in 'const ( ... )' instead.""",
 );
@@ -1807,8 +1764,7 @@ const MessageCode invalidConstantPatternGeneric = const MessageCode(
 const MessageCode invalidConstantPatternNegation = const MessageCode(
   "InvalidConstantPatternNegation",
   sharedCode: SharedCode.invalidConstantPatternNegation,
-  problemMessage:
-      """Only negation of a numeric literal is supported as a constant pattern.""",
+  problemMessage: """Only negation of a numeric literal is supported as a constant pattern.""",
   correctionMessage: """Try wrapping the expression in 'const ( ... )'.""",
 );
 
@@ -1835,14 +1791,13 @@ Message _withArgumentsInvalidConstantPatternUnary({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-invalidCovariantModifierInPrimaryConstructor = const MessageCode(
-  "InvalidCovariantModifierInPrimaryConstructor",
-  sharedCode: SharedCode.invalidCovariantModifierInPrimaryConstructor,
-  problemMessage:
-      """The 'covariant' modifier can only be used on non-final declaring parameters.""",
-  correctionMessage: """Try removing 'covariant'.""",
-);
+const MessageCode invalidCovariantModifierInPrimaryConstructor =
+    const MessageCode(
+      "InvalidCovariantModifierInPrimaryConstructor",
+      sharedCode: SharedCode.invalidCovariantModifierInPrimaryConstructor,
+      problemMessage: """The 'covariant' modifier can only be used on non-final declaring parameters.""",
+      correctionMessage: """Try removing 'covariant'.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode invalidEscapeStarted = const MessageCode(
@@ -1857,8 +1812,7 @@ const MessageCode invalidEscapeStarted = const MessageCode(
 const MessageCode invalidHexEscape = const MessageCode(
   "InvalidHexEscape",
   sharedCode: SharedCode.invalidHexEscape,
-  problemMessage:
-      """An escape sequence starting with '\\x' must be followed by 2 hexadecimal digits.""",
+  problemMessage: """An escape sequence starting with '\\x' must be followed by 2 hexadecimal digits.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1874,20 +1828,16 @@ const MessageCode invalidInitializer = const MessageCode(
 const MessageCode invalidInlineFunctionType = const MessageCode(
   "InvalidInlineFunctionType",
   pseudoSharedCode: PseudoSharedCode.invalidInlineFunctionType,
-  problemMessage:
-      """Inline function types cannot be used for parameters in a generic function type.""",
-  correctionMessage:
-      """Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""",
+  problemMessage: """Inline function types cannot be used for parameters in a generic function type.""",
+  correctionMessage: """Try changing the inline function type (as in 'int f()') to a prefixed function type using the `Function` keyword (as in 'int Function() f').""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode invalidInsideUnaryPattern = const MessageCode(
   "InvalidInsideUnaryPattern",
   sharedCode: SharedCode.invalidInsideUnaryPattern,
-  problemMessage:
-      """This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.""",
-  correctionMessage:
-      """Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.""",
+  problemMessage: """This pattern cannot appear inside a unary pattern (cast pattern, null check pattern, or null assert pattern) without parentheses.""",
+  correctionMessage: """Try combining into a single pattern if possible, or enclose the inner pattern in parentheses.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1913,8 +1863,7 @@ Message _withArgumentsInvalidOperator({required Token lexeme}) {
 const MessageCode invalidSuperInInitializer = const MessageCode(
   "InvalidSuperInInitializer",
   sharedCode: SharedCode.invalidSuperInInitializer,
-  problemMessage:
-      """Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')""",
+  problemMessage: """Can only use 'super' in an initializer for calling the superclass constructor (e.g. 'super()' or 'super.namedConstructor()')""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1929,32 +1878,28 @@ const MessageCode invalidSyncModifier = const MessageCode(
 const MessageCode invalidThisInInitializer = const MessageCode(
   "InvalidThisInInitializer",
   sharedCode: SharedCode.invalidThisInInitializer,
-  problemMessage:
-      """Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())""",
+  problemMessage: """Can only use 'this' in an initializer for field initialization (e.g. 'this.x = something') and constructor redirection (e.g. 'this()' or 'this.namedConstructor())""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode invalidUnicodeEscapeUBracket = const MessageCode(
   "InvalidUnicodeEscapeUBracket",
   sharedCode: SharedCode.invalidUnicodeEscapeUBracket,
-  problemMessage:
-      """An escape sequence starting with '\\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.""",
+  problemMessage: """An escape sequence starting with '\\u{' must be followed by 1 to 6 hexadecimal digits followed by a '}'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode invalidUnicodeEscapeUNoBracket = const MessageCode(
   "InvalidUnicodeEscapeUNoBracket",
   sharedCode: SharedCode.invalidUnicodeEscapeUNoBracket,
-  problemMessage:
-      """An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits.""",
+  problemMessage: """An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode invalidUnicodeEscapeUStarted = const MessageCode(
   "InvalidUnicodeEscapeUStarted",
   sharedCode: SharedCode.invalidUnicodeEscapeUStarted,
-  problemMessage:
-      """An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.""",
+  problemMessage: """An escape sequence starting with '\\u' must be followed by 4 hexadecimal digits or from 1 to 6 digits between '{' and '}'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -1962,8 +1907,7 @@ const MessageCode invalidVoid = const MessageCode(
   "InvalidVoid",
   pseudoSharedCode: PseudoSharedCode.expectedTypeName,
   problemMessage: """Type 'void' can't be used here.""",
-  correctionMessage:
-      """Try removing 'void' keyword or replace it with 'var', 'final', or a type.""",
+  correctionMessage: """Try removing 'void' keyword or replace it with 'var', 'final', or a type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2071,8 +2015,7 @@ const MessageCode metadataTypeArguments = const MessageCode(
 const MessageCode metadataTypeArgumentsUninstantiated = const MessageCode(
   "MetadataTypeArgumentsUninstantiated",
   sharedCode: SharedCode.annotationWithTypeArgumentsUninstantiated,
-  problemMessage:
-      """An annotation with type arguments must be followed by an argument list.""",
+  problemMessage: """An annotation with type arguments must be followed by an argument list.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2096,20 +2039,16 @@ const MessageCode missingAssignmentInInitializer = const MessageCode(
 const MessageCode missingConstFinalVarOrType = const MessageCode(
   "MissingConstFinalVarOrType",
   sharedCode: SharedCode.missingConstFinalVarOrType,
-  problemMessage:
-      """Variables must be declared using the keywords 'const', 'final', 'var' or a type name.""",
-  correctionMessage:
-      """Try adding the name of the type of the variable or the keyword 'var'.""",
+  problemMessage: """Variables must be declared using the keywords 'const', 'final', 'var' or a type name.""",
+  correctionMessage: """Try adding the name of the type of the variable or the keyword 'var'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode missingExponent = const MessageCode(
   "MissingExponent",
   pseudoSharedCode: PseudoSharedCode.missingDigit,
-  problemMessage:
-      """Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).""",
-  correctionMessage:
-      """Make sure there is an exponent, and remove any whitespace before it.""",
+  problemMessage: """Numbers in exponential notation should always contain an exponent (an integer number with an optional sign).""",
+  correctionMessage: """Make sure there is an exponent, and remove any whitespace before it.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2117,8 +2056,7 @@ const MessageCode missingExpressionInThrow = const MessageCode(
   "MissingExpressionInThrow",
   sharedCode: SharedCode.missingExpressionInThrow,
   problemMessage: """Missing expression after 'throw'.""",
-  correctionMessage:
-      """Add an expression after 'throw' or use 'rethrow' to throw a caught exception""",
+  correctionMessage: """Add an expression after 'throw' or use 'rethrow' to throw a caught exception""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2163,8 +2101,7 @@ const MessageCode missingPrefixInDeferredImport = const MessageCode(
 const MessageCode missingPrimaryConstructor = const MessageCode(
   "MissingPrimaryConstructor",
   sharedCode: SharedCode.missingPrimaryConstructor,
-  problemMessage:
-      """An extension type declaration must have a primary constructor declaration.""",
+  problemMessage: """An extension type declaration must have a primary constructor declaration.""",
   correctionMessage:
       """Try adding a primary constructor to the extension type declaration.""",
 );
@@ -2214,8 +2151,7 @@ const MessageCode mixinPrimaryConstructor = const MessageCode(
   "MixinPrimaryConstructor",
   sharedCode: SharedCode.mixinPrimaryConstructor,
   problemMessage: """Mixins can't have primary constructors.""",
-  correctionMessage:
-      """Try removing the primary constructor or changing the mixin to a class.""",
+  correctionMessage: """Try removing the primary constructor or changing the mixin to a class.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2290,8 +2226,7 @@ Message _withArgumentsMultipleClauses({
 const MessageCode multipleCombinators = const MessageCode(
   "MultipleCombinators",
   sharedCode: SharedCode.multipleCombinators,
-  problemMessage:
-      """At most one 'show' or 'hide' combinator can be used on an import or export directive.""",
+  problemMessage: """At most one 'show' or 'hide' combinator can be used on an import or export directive.""",
   correctionMessage:
       """Try combining all of the combinators into a single combinator.""",
 );
@@ -2302,8 +2237,7 @@ const MessageCode multipleExtends = const MessageCode(
   sharedCode: SharedCode.multipleExtendsClauses,
   problemMessage:
       """Each class definition can have at most one extends clause.""",
-  correctionMessage:
-      """Try choosing one superclass and define your class to implement (or mix in) the others.""",
+  correctionMessage: """Try choosing one superclass and define your class to implement (or mix in) the others.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2334,15 +2268,14 @@ const MessageCode multipleOnClauses = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-multiplePrimaryConstructorBodyDeclarations = const MessageCode(
-  "MultiplePrimaryConstructorBodyDeclarations",
-  sharedCode: SharedCode.multiplePrimaryConstructorBodyDeclarations,
-  problemMessage:
-      """Only one primary constructor body declaration is allowed.""",
-  correctionMessage:
-      """Try removing all but one of the primary constructor body declarations.""",
-);
+const MessageCode multiplePrimaryConstructorBodyDeclarations =
+    const MessageCode(
+      "MultiplePrimaryConstructorBodyDeclarations",
+      sharedCode: SharedCode.multiplePrimaryConstructorBodyDeclarations,
+      problemMessage:
+          """Only one primary constructor body declaration is allowed.""",
+      correctionMessage: """Try removing all but one of the primary constructor body declarations.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode multipleVarianceModifiers = const MessageCode(
@@ -2375,16 +2308,14 @@ const MessageCode nativeClauseShouldBeAnnotation = const MessageCode(
   "NativeClauseShouldBeAnnotation",
   sharedCode: SharedCode.nativeClauseShouldBeAnnotation,
   problemMessage: """Native clause in this form is deprecated.""",
-  correctionMessage:
-      """Try removing this native clause and adding @native() or @native('native-name') before the declaration.""",
+  correctionMessage: """Try removing this native clause and adding @native() or @native('native-name') before the declaration.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode newConstructorDotName = const MessageCode(
   "NewConstructorDotName",
   sharedCode: SharedCode.newConstructorDotName,
-  problemMessage:
-      """Constructors declared with the 'new' keyword can't use '.' before the constructor name.""",
+  problemMessage: """Constructors declared with the 'new' keyword can't use '.' before the constructor name.""",
   correctionMessage: """Try replacing the '.' with a space.""",
 );
 
@@ -2402,10 +2333,8 @@ const MessageCode newConstructorNewName = const MessageCode(
 const MessageCode newConstructorQualifiedName = const MessageCode(
   "NewConstructorQualifiedName",
   sharedCode: SharedCode.newConstructorQualifiedName,
-  problemMessage:
-      """Constructors declared with the 'new' keyword can't have qualified names.""",
-  correctionMessage:
-      """Try removing the class name prefix from the qualified name or removing the 'new' keyword.""",
+  problemMessage: """Constructors declared with the 'new' keyword can't have qualified names.""",
+  correctionMessage: """Try removing the class name prefix from the qualified name or removing the 'new' keyword.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2429,8 +2358,7 @@ Message _withArgumentsNonAsciiIdentifier({
     nonAsciiIdentifier,
     problemMessage:
         """The non-ASCII character '${character_0}' (${codePoint_0}) can't be used in identifiers, only in strings and comments.""",
-    correctionMessage:
-        """Try using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).""",
+    correctionMessage: """Try using an US-ASCII letter, a digit, '_' (an underscore), or '\$' (a dollar sign).""",
     arguments: {'character': character, 'codePoint': codePoint},
   );
 }
@@ -2460,20 +2388,17 @@ const MessageCode nonPartOfDirectiveInPart = const MessageCode(
   pseudoSharedCode: PseudoSharedCode.nonPartOfDirectiveInPart,
   problemMessage:
       """The part-of directive must be the only directive in a part.""",
-  correctionMessage:
-      """Try removing the other directives, or moving them to the library for which this is a part.""",
+  correctionMessage: """Try removing the other directives, or moving them to the library for which this is a part.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-nonRedirectingGenerativeConstructorWithPrimary = const MessageCode(
-  "NonRedirectingGenerativeConstructorWithPrimary",
-  sharedCode: SharedCode.nonRedirectingGenerativeConstructorWithPrimary,
-  problemMessage:
-      """Classes with primary constructors can't have non-redirecting generative constructors.""",
-  correctionMessage:
-      """Try making the constructor redirect to the primary constructor, or remove the primary constructor.""",
-);
+const MessageCode nonRedirectingGenerativeConstructorWithPrimary =
+    const MessageCode(
+      "NonRedirectingGenerativeConstructorWithPrimary",
+      sharedCode: SharedCode.nonRedirectingGenerativeConstructorWithPrimary,
+      problemMessage: """Classes with primary constructors can't have non-redirecting generative constructors.""",
+      correctionMessage: """Try making the constructor redirect to the primary constructor, or remove the primary constructor.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode nullAwareCascadeOutOfOrder = const MessageCode(
@@ -2481,18 +2406,15 @@ const MessageCode nullAwareCascadeOutOfOrder = const MessageCode(
   sharedCode: SharedCode.nullAwareCascadeOutOfOrder,
   problemMessage:
       """The '?..' cascade operator must be first in the cascade sequence.""",
-  correctionMessage:
-      """Try moving the '?..' operator to be the first cascade operator in the sequence.""",
+  correctionMessage: """Try moving the '?..' operator to be the first cascade operator in the sequence.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode onlyTry = const MessageCode(
   "OnlyTry",
   sharedCode: SharedCode.missingCatchOrFinally,
-  problemMessage:
-      """A try block must be followed by an 'on', 'catch', or 'finally' clause.""",
-  correctionMessage:
-      """Try adding either a catch or finally clause, or remove the try statement.""",
+  problemMessage: """A try block must be followed by an 'on', 'catch', or 'finally' clause.""",
+  correctionMessage: """Try adding either a catch or finally clause, or remove the try statement.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2564,38 +2486,33 @@ Message _withArgumentsPatternAssignmentDeclaresVariable({
     patternAssignmentDeclaresVariable,
     problemMessage:
         """Variable '${variableName_0}' can't be declared in a pattern assignment.""",
-    correctionMessage:
-        """Try using a preexisting variable or changing the assignment to a pattern variable declaration.""",
+    correctionMessage: """Try using a preexisting variable or changing the assignment to a pattern variable declaration.""",
     arguments: {'variableName': variableName},
   );
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-patternVariableDeclarationOutsideFunctionOrMethod = const MessageCode(
-  "PatternVariableDeclarationOutsideFunctionOrMethod",
-  sharedCode: SharedCode.patternVariableDeclarationOutsideFunctionOrMethod,
-  problemMessage:
-      """A pattern variable declaration may not appear outside a function or method.""",
-  correctionMessage:
-      """Try declaring ordinary variables and assigning from within a function or method.""",
-);
+const MessageCode patternVariableDeclarationOutsideFunctionOrMethod =
+    const MessageCode(
+      "PatternVariableDeclarationOutsideFunctionOrMethod",
+      sharedCode: SharedCode.patternVariableDeclarationOutsideFunctionOrMethod,
+      problemMessage: """A pattern variable declaration may not appear outside a function or method.""",
+      correctionMessage: """Try declaring ordinary variables and assigning from within a function or method.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode positionalAfterNamedArgument = const MessageCode(
   "PositionalAfterNamedArgument",
   pseudoSharedCode: PseudoSharedCode.positionalAfterNamedArgument,
   problemMessage: """Place positional arguments before named arguments.""",
-  correctionMessage:
-      """Try moving the positional argument before the named arguments, or add a name to the argument.""",
+  correctionMessage: """Try moving the positional argument before the named arguments, or add a name to the argument.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode positionalParameterWithEquals = const MessageCode(
   "PositionalParameterWithEquals",
   pseudoSharedCode: PseudoSharedCode.wrongSeparatorForPositionalParameter,
-  problemMessage:
-      """Positional optional parameters can't use ':' to specify a default value.""",
+  problemMessage: """Positional optional parameters can't use ':' to specify a default value.""",
   correctionMessage: """Try replacing ':' with '='.""",
 );
 
@@ -2603,8 +2520,7 @@ const MessageCode positionalParameterWithEquals = const MessageCode(
 const MessageCode prefixAfterCombinator = const MessageCode(
   "PrefixAfterCombinator",
   sharedCode: SharedCode.prefixAfterCombinator,
-  problemMessage:
-      """The prefix ('as' clause) should come before any show/hide combinators.""",
+  problemMessage: """The prefix ('as' clause) should come before any show/hide combinators.""",
   correctionMessage: """Try moving the prefix before the combinators.""",
 );
 
@@ -2634,8 +2550,7 @@ Message _withArgumentsPrimaryConstructorBodyWithModifier({
 const MessageCode primaryConstructorBodyWithoutDeclaration = const MessageCode(
   "PrimaryConstructorBodyWithoutDeclaration",
   sharedCode: SharedCode.primaryConstructorBodyWithoutDeclaration,
-  problemMessage:
-      """A primary constructor body requires a primary constructor declaration.""",
+  problemMessage: """A primary constructor body requires a primary constructor declaration.""",
   correctionMessage: """Try adding the primary constructor declaration.""",
 );
 
@@ -2643,8 +2558,7 @@ const MessageCode primaryConstructorBodyWithoutDeclaration = const MessageCode(
 const MessageCode privateNamedNonFieldParameter = const MessageCode(
   "PrivateNamedNonFieldParameter",
   pseudoSharedCode: PseudoSharedCode.privateNamedNonFieldParameter,
-  problemMessage:
-      """A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').""",
+  problemMessage: """A named parameter that doesn't refer to an instance variable can't start with an underscore ('_').""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2655,14 +2569,13 @@ const MessageCode privateNamedParameter = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-recordLiteralOnePositionalFieldNoTrailingComma = const MessageCode(
-  "RecordLiteralOnePositionalFieldNoTrailingComma",
-  sharedCode: SharedCode.recordLiteralOnePositionalNoTrailingComma,
-  problemMessage:
-      """A record literal with exactly one positional field requires a trailing comma.""",
-  correctionMessage: """Try adding a trailing comma.""",
-);
+const MessageCode recordLiteralOnePositionalFieldNoTrailingComma =
+    const MessageCode(
+      "RecordLiteralOnePositionalFieldNoTrailingComma",
+      sharedCode: SharedCode.recordLiteralOnePositionalNoTrailingComma,
+      problemMessage: """A record literal with exactly one positional field requires a trailing comma.""",
+      correctionMessage: """Try adding a trailing comma.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode recordLiteralZeroFieldsWithTrailingComma = const MessageCode(
@@ -2674,14 +2587,13 @@ const MessageCode recordLiteralZeroFieldsWithTrailingComma = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-recordTypeOnePositionalFieldNoTrailingComma = const MessageCode(
-  "RecordTypeOnePositionalFieldNoTrailingComma",
-  sharedCode: SharedCode.recordTypeOnePositionalNoTrailingComma,
-  problemMessage:
-      """A record type with exactly one positional field requires a trailing comma.""",
-  correctionMessage: """Try adding a trailing comma.""",
-);
+const MessageCode recordTypeOnePositionalFieldNoTrailingComma =
+    const MessageCode(
+      "RecordTypeOnePositionalFieldNoTrailingComma",
+      sharedCode: SharedCode.recordTypeOnePositionalNoTrailingComma,
+      problemMessage: """A record type with exactly one positional field requires a trailing comma.""",
+      correctionMessage: """Try adding a trailing comma.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode recordTypeZeroFieldsButTrailingComma = const MessageCode(
@@ -2707,8 +2619,7 @@ const MessageCode redirectingConstructorWithBody = const MessageCode(
   "RedirectingConstructorWithBody",
   sharedCode: SharedCode.redirectingConstructorWithBody,
   problemMessage: """Redirecting constructors can't have a body.""",
-  correctionMessage:
-      """Try removing the body, or not making this a redirecting constructor.""",
+  correctionMessage: """Try removing the body, or not making this a redirecting constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2757,8 +2668,7 @@ const MessageCode sealedMixinClass = const MessageCode(
 const MessageCode setOrMapLiteralTooManyTypeArguments = const MessageCode(
   "SetOrMapLiteralTooManyTypeArguments",
   pseudoSharedCode: PseudoSharedCode.setOrMapLiteralTooManyTypeArguments,
-  problemMessage:
-      """A set or map literal requires exactly one or two type arguments, respectively.""",
+  problemMessage: """A set or map literal requires exactly one or two type arguments, respectively.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2805,16 +2715,14 @@ const MessageCode superInitializingDeclaringParameter = const MessageCode(
   "SuperInitializingDeclaringParameter",
   sharedCode: SharedCode.superInitializingDeclaringParameter,
   problemMessage: """Declaring parameters can't be super parameters.""",
-  correctionMessage:
-      """Try removing the `super.` prefix or making the parameter non-declaring.""",
+  correctionMessage: """Try removing the `super.` prefix or making the parameter non-declaring.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode superNullAware = const MessageCode(
   "SuperNullAware",
   sharedCode: SharedCode.invalidOperatorQuestionmarkPeriodForSuper,
-  problemMessage:
-      """The operator '?.' cannot be used with 'super' because 'super' cannot be null.""",
+  problemMessage: """The operator '?.' cannot be used with 'super' because 'super' cannot be null.""",
   correctionMessage: """Try replacing '?.' with '.'""",
 );
 
@@ -2841,8 +2749,7 @@ const MessageCode topLevelOperator = const MessageCode(
   "TopLevelOperator",
   sharedCode: SharedCode.topLevelOperator,
   problemMessage: """Operators must be declared within a class.""",
-  correctionMessage:
-      """Try removing the operator, moving it to a class, or converting it to be a function.""",
+  correctionMessage: """Try removing the operator, moving it to a class, or converting it to be a function.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2905,8 +2812,7 @@ const MessageCode typedefInClass = const MessageCode(
 const MessageCode unexpectedDollarInString = const MessageCode(
   "UnexpectedDollarInString",
   pseudoSharedCode: PseudoSharedCode.unexpectedDollarInString,
-  problemMessage:
-      """A '\$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).""",
+  problemMessage: """A '\$' has special meaning inside a string, and must be followed by an identifier or an expression in curly braces ({}).""",
   correctionMessage: """Try adding a backslash (\\) to escape the '\$'.""",
 );
 
@@ -2914,8 +2820,7 @@ const MessageCode unexpectedDollarInString = const MessageCode(
 const MessageCode unexpectedSeparatorInNumber = const MessageCode(
   "UnexpectedSeparatorInNumber",
   pseudoSharedCode: PseudoSharedCode.unexpectedSeparatorInNumber,
-  problemMessage:
-      """Digit separators ('_') in a number literal can only be placed between two digits.""",
+  problemMessage: """Digit separators ('_') in a number literal can only be placed between two digits.""",
   correctionMessage: """Try removing the '_'.""",
 );
 
@@ -3062,19 +2967,17 @@ const MessageCode varReturnType = const MessageCode(
   "VarReturnType",
   sharedCode: SharedCode.varReturnType,
   problemMessage: """The return type can't be 'var'.""",
-  correctionMessage:
-      """Try removing the keyword 'var', or replacing it with the name of the return type.""",
+  correctionMessage: """Try removing the keyword 'var', or replacing it with the name of the return type.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode
-variablePatternKeywordInDeclarationContext = const MessageCode(
-  "VariablePatternKeywordInDeclarationContext",
-  sharedCode: SharedCode.variablePatternKeywordInDeclarationContext,
-  problemMessage:
-      """Variable patterns in declaration context can't specify 'var' or 'final' keyword.""",
-  correctionMessage: """Try removing the keyword.""",
-);
+const MessageCode variablePatternKeywordInDeclarationContext =
+    const MessageCode(
+      "VariablePatternKeywordInDeclarationContext",
+      sharedCode: SharedCode.variablePatternKeywordInDeclarationContext,
+      problemMessage: """Variable patterns in declaration context can't specify 'var' or 'final' keyword.""",
+      correctionMessage: """Try removing the keyword.""",
+    );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode voidWithTypeArguments = const MessageCode(
@@ -3097,8 +3000,7 @@ const MessageCode withBeforeExtends = const MessageCode(
 const MessageCode yieldAsIdentifier = const MessageCode(
   "YieldAsIdentifier",
   pseudoSharedCode: PseudoSharedCode.asyncKeywordUsedAsIdentifier,
-  problemMessage:
-      """'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""",
+  problemMessage: """'yield' can't be used as an identifier in 'async', 'async*', or 'sync*' methods.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

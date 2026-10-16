@@ -88,7 +88,7 @@ abstract class _Node {
   final String payload;
   _Node? next;
 
-  _Node(this.payload, this.next);
+  new(this.payload, this.next);
 
   int get hash;
 }
@@ -96,7 +96,7 @@ abstract class _Node {
 class _StringNode extends _Node {
   int usageCount = 1;
 
-  _StringNode(super.payload, super.next);
+  new(super.payload, super.next);
 
   @override
   int get hash =>
@@ -117,7 +117,7 @@ class _Utf8Node extends _Node {
   final int start;
   final int end;
 
-  _Utf8Node(this.data, this.start, this.end, String payload, _Node? next)
+  new(this.data, this.start, this.end, String payload, _Node? next)
     : super(payload, next);
 
   @override

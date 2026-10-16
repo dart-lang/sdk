@@ -63,9 +63,9 @@ class _LocalNameScope {
   final _LocalNameScope? enclosing;
   Set<String>? names;
 
-  _LocalNameScope(this.enclosing);
+  new(this.enclosing);
 
-  factory _LocalNameScope.forBlock(_LocalNameScope enclosing, Block node) {
+  factory forBlock(_LocalNameScope enclosing, Block node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     for (Statement statement in node.statements2) {
       if (statement is LocalFunctionDeclaration) {
@@ -77,10 +77,7 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forClass(
-    _LocalNameScope enclosing,
-    ClassDeclarationImpl node,
-  ) {
+  factory forClass(_LocalNameScope enclosing, ClassDeclarationImpl node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.namePart.typeParameters);
     for (ClassMember member in node.body.members) {
@@ -93,16 +90,13 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forClassTypeAlias(
-    _LocalNameScope enclosing,
-    ClassTypeAlias node,
-  ) {
+  factory forClassTypeAlias(_LocalNameScope enclosing, ClassTypeAlias node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     return scope;
   }
 
-  factory _LocalNameScope.forConstructor(
+  factory forConstructor(
     _LocalNameScope enclosing,
     ConstructorDeclaration node,
   ) {
@@ -111,7 +105,7 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forExtensionType(
+  factory forExtensionType(
     _LocalNameScope enclosing,
     ExtensionTypeDeclarationImpl node,
   ) {
@@ -127,7 +121,7 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forFunctionTypeAlias(
+  factory forFunctionTypeAlias(
     _LocalNameScope enclosing,
     FunctionTypeAlias node,
   ) {
@@ -136,7 +130,7 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forLocalFunction(
+  factory forLocalFunction(
     _LocalNameScope enclosing,
     LocalFunctionDeclaration node,
   ) {
@@ -146,17 +140,14 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forMethod(
-    _LocalNameScope enclosing,
-    MethodDeclaration node,
-  ) {
+  factory forMethod(_LocalNameScope enclosing, MethodDeclaration node) {
     _LocalNameScope scope = _LocalNameScope(enclosing);
     scope.addTypeParameters(node.typeParameters);
     scope.addFormalParameters(node.parameters);
     return scope;
   }
 
-  factory _LocalNameScope.forTopLevelFunction(
+  factory forTopLevelFunction(
     _LocalNameScope enclosing,
     TopLevelFunctionDeclarationImpl node,
   ) {
@@ -166,7 +157,7 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forTopLevelGetter(
+  factory forTopLevelGetter(
     _LocalNameScope enclosing,
     TopLevelGetterDeclarationImpl node,
   ) {
@@ -175,7 +166,7 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forTopLevelSetter(
+  factory forTopLevelSetter(
     _LocalNameScope enclosing,
     TopLevelSetterDeclarationImpl node,
   ) {
@@ -184,7 +175,7 @@ class _LocalNameScope {
     return scope;
   }
 
-  factory _LocalNameScope.forUnit(CompilationUnitImpl node) {
+  factory forUnit(CompilationUnitImpl node) {
     _LocalNameScope scope = _LocalNameScope(null);
     for (var declaration in node.declarations2) {
       switch (declaration) {
@@ -257,9 +248,7 @@ class _ReferencedNamesComputer extends UnifyingAstVisitor2<void> {
 
   _LocalNameScope localScope = _LocalNameScope(null);
 
-  _ReferencedNamesComputer({
-    required this.includeAnalyzerDiagnosticExpectations,
-  });
+  new({required this.includeAnalyzerDiagnosticExpectations});
 
   @override
   void visitBlock(Block node) {

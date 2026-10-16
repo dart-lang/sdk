@@ -177,7 +177,7 @@ class TypeParsingScope {
   final List<LibraryElementImpl> _libraries;
   final List<TypeParameterElementImpl> _typeParameters;
 
-  TypeParsingScope({
+  new({
     required List<LibraryElementImpl> libraries,
     required List<TypeParameterElementImpl> typeParameters,
   }) : _libraries = List.unmodifiable(libraries),

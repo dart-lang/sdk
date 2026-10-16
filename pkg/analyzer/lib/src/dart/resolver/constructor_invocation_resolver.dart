@@ -18,7 +18,7 @@ class ConstructorInvocationResolver {
   /// The type analyzer driving this participant.
   final TypeAnalyzer _typeAnalyzer;
 
-  ConstructorInvocationResolver(this._typeAnalyzer);
+  new(this._typeAnalyzer);
 
   void resolve(
     ConstructorInvocationImpl node, {

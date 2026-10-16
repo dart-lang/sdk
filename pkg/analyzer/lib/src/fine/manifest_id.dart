@@ -54,7 +54,7 @@ class ManifestItemId implements Comparable<ManifestItemId> {
   final int hi32;
   final int lo32;
 
-  factory ManifestItemId.generate() {
+  factory generate() {
     _nextLo32 = (_nextLo32 + 1) & _mask32;
     if (_nextLo32 == 0) {
       _hi32 = (_hi32 + 1) & _mask32;
@@ -62,11 +62,11 @@ class ManifestItemId implements Comparable<ManifestItemId> {
     return ManifestItemId._(_hi32, _nextLo32);
   }
 
-  factory ManifestItemId.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return reader.readManifestItemId();
   }
 
-  ManifestItemId._(this.hi32, this.lo32)
+  new _(this.hi32, this.lo32)
     : assert(hi32 >= 0 && hi32 <= _mask32),
       assert(lo32 >= 0 && lo32 <= _mask32);
 
@@ -108,9 +108,9 @@ class ManifestItemId implements Comparable<ManifestItemId> {
 class ManifestItemIdList {
   final List<ManifestItemId> ids;
 
-  ManifestItemIdList(this.ids);
+  new(this.ids);
 
-  factory ManifestItemIdList.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ManifestItemIdList(ManifestItemId.readList(reader));
   }
 

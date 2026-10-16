@@ -34,7 +34,7 @@ class GatherUsedLocalElementsVisitor extends UnifyingAstVisitor2<void> {
   /// Non-null when the visitor is inside a [VariableDeclarationList]'s type.
   VariableDeclarationList? _enclosingVariableDeclaration;
 
-  GatherUsedLocalElementsVisitor(this._enclosingLibrary);
+  new(this._enclosingLibrary);
 
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {
@@ -708,11 +708,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor2<void> {
   List<BindPatternVariableElement>? _patternVariableElements;
 
   /// Create a new instance of the [UnusedLocalElementsVerifier].
-  UnusedLocalElementsVerifier(
-    this._diagnosticReporter,
-    this._usedElements,
-    LibraryElement library,
-  ) : _libraryUri = library.uri,
+  new(this._diagnosticReporter, this._usedElements, LibraryElement library)
+    : _libraryUri = library.uri,
       _wildCardVariablesEnabled = library.featureSet.isEnabled(
         Feature.wildcard_variables,
       );
@@ -1389,9 +1386,9 @@ class UsedLocalElements {
   /// Unresolved class members that are read in the library.
   final HashSet<String> unresolvedReadMembers = HashSet<String>();
 
-  UsedLocalElements();
+  new();
 
-  factory UsedLocalElements.merge(List<UsedLocalElements> parts) {
+  factory merge(List<UsedLocalElements> parts) {
     UsedLocalElements result = UsedLocalElements();
     int length = parts.length;
     for (int i = 0; i < length; i++) {

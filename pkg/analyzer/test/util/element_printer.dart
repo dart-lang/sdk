@@ -18,11 +18,7 @@ class ElementPrinter {
   final ElementPrinterConfiguration _configuration;
   final IdMap idMap = IdMap();
 
-  ElementPrinter({
-    required TreeStringSink sink,
-    required ElementPrinterConfiguration configuration,
-  }) : _sink = sink,
-       _configuration = configuration;
+  new({required this._sink, required this._configuration});
 
   void writeDirectiveUri(DirectiveUri? uri) {
     if (uri == null) {

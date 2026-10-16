@@ -63,7 +63,7 @@ Map<Object, InternalFormalParameterElement> _computeParameterMap(
 /// value or implicit `call` receiver.
 class CallInvocationInferrer
     extends FullInvocationInferrer<CallInvocationImpl> {
-  CallInvocationInferrer({
+  new({
     required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
@@ -93,7 +93,7 @@ class CallInvocationInferrer
 /// nodes of type [ConstructorInvocation].
 class ConstructorInvocationInferrer
     extends FullInvocationInferrer<ConstructorInvocationImpl> {
-  ConstructorInvocationInferrer({
+  new({
     required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
@@ -157,7 +157,7 @@ class ConstructorInvocationInferrer
 /// nodes of type [DotShorthandConstructorInvocation2].
 class DotShorthandConstructorInvocationInferrer
     extends FullInvocationInferrer<DotShorthandConstructorInvocation2Impl> {
-  DotShorthandConstructorInvocationInferrer({
+  new({
     required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
@@ -209,7 +209,7 @@ class DotShorthandConstructorInvocationInferrer
 /// nodes that require full downward and upward inference.
 abstract class FullInvocationInferrer<Node extends AstNodeImpl>
     extends InvocationInferrer<Node> {
-  FullInvocationInferrer._({
+  new _({
     required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
@@ -445,7 +445,7 @@ abstract class InvocationExpressionInferrer<
   Node extends InvocationExpressionImpl
 >
     extends FullInvocationInferrer<Node> {
-  InvocationExpressionInferrer._({
+  new _({
     required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
@@ -506,7 +506,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 
   /// Prepares to perform type inference on an invocation expression of type
   /// [Node].
-  InvocationInferrer({
+  new({
     required this.typeAnalyzer,
     required this.node,
     required this.argumentList,
@@ -751,7 +751,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 /// invocation, including repeated resolution of top-level initializers.
 class NamedFunctionInvocationInferrer<Node extends NamedFunctionInvocationImpl>
     extends FullInvocationInferrer<Node> {
-  NamedFunctionInvocationInferrer({
+  new({
     required super.typeAnalyzer,
     required super.node,
     required super.argumentList,
@@ -849,12 +849,7 @@ class _DeferredParamInfo extends _ParamInfo {
 
   final Object parameterKey;
 
-  _DeferredParamInfo(
-    super.parameter,
-    this.value,
-    this.index,
-    this.parameterKey,
-  );
+  new(super.parameter, this.value, this.index, this.parameterKey);
 }
 
 class _FunctionLiteralDependencies
@@ -868,7 +863,7 @@ class _FunctionLiteralDependencies
 
   final Set<TypeParameterElement> _typeVariables;
 
-  _FunctionLiteralDependencies(
+  new(
     this._typeSystem,
     Iterable<_DeferredParamInfo> deferredParamInfo,
     this._typeVariables,
@@ -932,10 +927,7 @@ class _IdenticalArgumentInfo {
   /// The static type of the argument.
   final TypeImpl staticType;
 
-  _IdenticalArgumentInfo({
-    required this.expressionInfo,
-    required this.staticType,
-  });
+  new({required this.expressionInfo, required this.staticType});
 }
 
 /// Information about an invocation argument that may or may not have already
@@ -946,5 +938,5 @@ class _ParamInfo {
   /// resolving a dynamic invocation.
   final InternalFormalParameterElement? parameter;
 
-  _ParamInfo(this.parameter);
+  new(this.parameter);
 }

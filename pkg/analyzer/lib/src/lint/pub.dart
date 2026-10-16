@@ -143,7 +143,7 @@ PubspecNodeList? _processScalarList(
 }
 
 abstract class Pubspec {
-  factory Pubspec.parse(
+  factory parse(
     String pubspec, {
     Uri? sourceUrl,
     required ResourceProvider resourceProvider,
@@ -156,7 +156,7 @@ abstract class Pubspec {
     }
   }
 
-  factory Pubspec.parseYaml(
+  factory parseYaml(
     YamlNode yaml, {
     required ResourceProvider resourceProvider,
   }) {
@@ -205,7 +205,7 @@ class PubspecNodeImpl implements PubspecNode {
 
   final ResourceProvider _resourceProvider;
 
-  PubspecNodeImpl(YamlScalar node, this._resourceProvider)
+  new(YamlScalar node, this._resourceProvider)
     : text = node.value?.toString(),
       span = node.span;
 
@@ -267,10 +267,7 @@ class _Pubspec implements Pubspec {
   @override
   final PubspecDependencyList? dependencyOverrides;
 
-  factory _Pubspec.parse(
-    YamlNode yaml, {
-    required ResourceProvider resourceProvider,
-  }) {
+  factory parse(YamlNode yaml, {required ResourceProvider resourceProvider}) {
     if (yaml is! YamlMap) {
       return _Pubspec._();
     }
@@ -348,7 +345,7 @@ class _Pubspec implements Pubspec {
     );
   }
 
-  _Pubspec._({
+  new _({
     this.author,
     this.authors,
     this.workspace,
@@ -446,11 +443,7 @@ class _PubspecDependency extends PubspecDependency {
   @override
   final PubspecGitRepo? git;
 
-  factory _PubspecDependency(
-    YamlScalar key,
-    YamlNode value,
-    ResourceProvider resourceProvider,
-  ) {
+  factory(YamlScalar key, YamlNode value, ResourceProvider resourceProvider) {
     var name = PubspecNodeImpl(key, resourceProvider);
     PubspecEntry? path;
     PubspecEntry? version;
@@ -487,7 +480,7 @@ class _PubspecDependency extends PubspecDependency {
     );
   }
 
-  _PubspecDependency._({
+  new _({
     required this.name,
     required this.path,
     required this.version,
@@ -524,7 +517,7 @@ class _PubspecDependencyList extends PubspecDependencyList {
   final dependencies = <PubspecDependency>[];
   final PubspecNode token;
 
-  _PubspecDependencyList(this.token);
+  new(this.token);
 
   @override
   Iterator<PubspecDependency> get iterator => dependencies.iterator;
@@ -549,7 +542,7 @@ class _PubspecEnvironment implements PubspecEnvironment {
   @override
   final PubspecEntry? sdk;
 
-  _PubspecEnvironment(this.token, {required this.flutter, required this.sdk});
+  new(this.token, {required this.flutter, required this.sdk});
 
   @override
   String toString() =>
@@ -569,7 +562,7 @@ class _PubspecGitRepo implements PubspecGitRepo {
   @override
   final PubspecEntry? url;
 
-  _PubspecGitRepo(this.token, {this.ref, required this.url});
+  new(this.token, {this.ref, required this.url});
 
   @override
   String toString() =>
@@ -592,7 +585,7 @@ class _PubspecHost implements PubspecHost {
   @override
   final PubspecEntry? url;
 
-  _PubspecHost(this.token, {required this.isShortForm, this.name, this.url});
+  new(this.token, {required this.isShortForm, this.name, this.url});
 
   @override
   String toString() =>
@@ -608,7 +601,7 @@ class _PubspecNodeList extends PubspecNodeList {
 
   final Iterable<PubspecNode> nodes;
 
-  _PubspecNodeList(this.token, this.nodes);
+  new(this.token, this.nodes);
 
   @override
   Iterator<PubspecNode> get iterator => nodes.iterator;

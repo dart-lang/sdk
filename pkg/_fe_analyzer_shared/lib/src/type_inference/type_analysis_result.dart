@@ -17,7 +17,7 @@ class AssignedVariablePatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  AssignedVariablePatternResult({
+  new({
     required this.duplicateAssignmentPatternVariableError,
     required this.patternTypeMismatchInIrrefutableContextError,
     required super.matchedValueType,
@@ -30,11 +30,7 @@ final class AwaitExpressionResult extends ExpressionTypeAnalysisResult {
   /// The static type of the operand.
   final SharedTypeView operandType;
 
-  AwaitExpressionResult({
-    required super.type,
-    super.flowAnalysisInfo,
-    required this.operandType,
-  });
+  new({required super.type, super.flowAnalysisInfo, required this.operandType});
 }
 
 /// Result for analyzing a constant pattern in
@@ -50,7 +46,7 @@ class ConstantPatternResult<Error> extends PatternResult {
   /// have a valid type wrt. the switch expression type.
   final Error? caseExpressionTypeMismatchError;
 
-  ConstantPatternResult({
+  new({
     required this.expressionType,
     required this.refutablePatternInIrrefutableContextError,
     required this.caseExpressionTypeMismatchError,
@@ -68,7 +64,7 @@ class DeclaredVariablePatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  DeclaredVariablePatternResult({
+  new({
     required this.staticType,
     required this.patternTypeMismatchInIrrefutableContextError,
     required super.matchedValueType,
@@ -88,7 +84,7 @@ final class ExpressionTypeAnalysisResult {
   /// analysis, if any.
   final ExpressionInfo? flowAnalysisInfo;
 
-  ExpressionTypeAnalysisResult({required this.type, this.flowAnalysisInfo});
+  new({required this.type, this.flowAnalysisInfo});
 }
 
 /// Result for analyzing an if-case statement or element in
@@ -104,7 +100,7 @@ class IfCaseStatementResult<Error> {
   /// The type of the guard expression, if present.
   final SharedTypeView? guardType;
 
-  IfCaseStatementResult({
+  new({
     required this.matchedExpressionType,
     required this.nonBooleanGuardError,
     required this.guardType,
@@ -116,7 +112,7 @@ final class IntTypeAnalysisResult extends ExpressionTypeAnalysisResult {
   /// Whether the integer literal was converted to a double.
   final bool convertedToDouble;
 
-  IntTypeAnalysisResult({required super.type, required this.convertedToDouble});
+  new({required super.type, required this.convertedToDouble});
 }
 
 /// Result for analyzing a list pattern in [TypeAnalyzer.analyzeListPattern].
@@ -135,7 +131,7 @@ class ListPatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  ListPatternResult({
+  new({
     required this.requiredType,
     required this.duplicateRestPatternErrors,
     required this.patternTypeMismatchInIrrefutableContextError,
@@ -149,7 +145,7 @@ class LogicalOrPatternResult<Error> extends PatternResult {
   /// Error for when the pattern occurred in an irrefutable context.
   final Error? refutablePatternInIrrefutableContextError;
 
-  LogicalOrPatternResult({
+  new({
     required this.refutablePatternInIrrefutableContextError,
     required super.matchedValueType,
   });
@@ -172,7 +168,7 @@ class MapPatternResult<Error> extends PatternResult {
   /// The key is the indices it which the rest pattern occurred.
   final Map<int, Error>? restPatternErrors;
 
-  MapPatternResult({
+  new({
     required this.requiredType,
     required this.patternTypeMismatchInIrrefutableContextError,
     required this.emptyMapPatternError,
@@ -216,7 +212,7 @@ class MatchContext<
   /// If non-null, the warning that should be issued if the pattern is `_`
   final UnnecessaryWildcardKind? unnecessaryWildcardKind;
 
-  MatchContext({
+  new({
     this.irrefutableContext,
     required this.isFinal,
     this.switchScrutinee,
@@ -280,7 +276,7 @@ class NullCheckOrAssertPatternResult<Error> extends PatternResult {
   /// Error for when the matched type is known to be non-null.
   final Error? matchedTypeIsStrictlyNonNullableError;
 
-  NullCheckOrAssertPatternResult({
+  new({
     required this.refutablePatternInIrrefutableContextError,
     required this.matchedTypeIsStrictlyNonNullableError,
     required super.matchedValueType,
@@ -305,7 +301,7 @@ class ObjectPatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  ObjectPatternResult({
+  new({
     required this.requiredType,
     required this.duplicateRecordPatternFieldErrors,
     required this.patternTypeMismatchInIrrefutableContextError,
@@ -319,10 +315,7 @@ final class PatternAssignmentAnalysisResult
   /// The type schema of the pattern on the left hand size of the assignment.
   final SharedTypeSchemaView patternSchema;
 
-  PatternAssignmentAnalysisResult({
-    required this.patternSchema,
-    required super.type,
-  });
+  new({required this.patternSchema, required super.type});
 }
 
 /// Result for analyzing a pattern-for-in statement or element in
@@ -337,7 +330,7 @@ class PatternForInResult<Error> {
   /// Error for when the expression is not an iterable.
   final Error? patternForInExpressionIsNotIterableError;
 
-  PatternForInResult({
+  new({
     required this.elementType,
     required this.expressionType,
     required this.patternForInExpressionIsNotIterableError,
@@ -349,7 +342,7 @@ class PatternResult {
   /// The matched value type that was used to type check the pattern.
   final SharedTypeView matchedValueType;
 
-  PatternResult({required this.matchedValueType});
+  new({required this.matchedValueType});
 }
 
 /// Container for the result of running type analysis on a pattern variable
@@ -361,10 +354,7 @@ class PatternVariableDeclarationAnalysisResult {
   /// The type of the initializer expression.
   final SharedTypeView initializerType;
 
-  PatternVariableDeclarationAnalysisResult({
-    required this.patternSchema,
-    required this.initializerType,
-  });
+  new({required this.patternSchema, required this.initializerType});
 }
 
 /// Result for analyzing a record pattern in
@@ -385,7 +375,7 @@ class RecordPatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  RecordPatternResult({
+  new({
     required this.requiredType,
     required this.duplicateRecordPatternFieldErrors,
     required this.patternTypeMismatchInIrrefutableContextError,
@@ -409,7 +399,7 @@ class RelationalPatternResult<Error> extends PatternResult {
   /// Error for when the relational operator does not return a bool.
   final Error? operatorReturnTypeNotAssignableToBoolError;
 
-  RelationalPatternResult({
+  new({
     required this.operandType,
     required this.refutablePatternInIrrefutableContextError,
     required this.argumentTypeNotAssignableError,
@@ -427,7 +417,7 @@ class RelationalPatternResult<Error> extends PatternResult {
 /// - A placeholder for statement types that don't need to expose any results
 ///   (use the const constructor to avoid unnecessary allocations).
 final class StatementTypeAnalysisResult {
-  const StatementTypeAnalysisResult();
+  const new();
 }
 
 /// Result for analyzing a switch expression in
@@ -447,7 +437,7 @@ final class SwitchExpressionResult<Error> extends ExpressionTypeAnalysisResult {
   /// This is `null` if no such guards where present.
   final Map<int, SharedTypeView>? guardTypes;
 
-  SwitchExpressionResult({
+  new({
     required super.type,
     required this.nonBooleanGuardErrors,
     required this.guardTypes,
@@ -495,7 +485,7 @@ class SwitchStatementTypeAnalysisResult<Error> {
   /// This is `null` if no such guards where present.
   final Map<int, Map<int, SharedTypeView>>? guardTypes;
 
-  SwitchStatementTypeAnalysisResult({
+  new({
     required this.hasDefault,
     required this.isExhaustive,
     required this.lastCaseTerminates,
@@ -526,7 +516,7 @@ class WildcardPatternResult<Error> extends PatternResult {
   /// type in an irrefutable context.
   final Error? patternTypeMismatchInIrrefutableContextError;
 
-  WildcardPatternResult({
+  new({
     required this.patternTypeMismatchInIrrefutableContextError,
     required super.matchedValueType,
   });
@@ -538,5 +528,5 @@ final class YieldStatementResult extends StatementTypeAnalysisResult {
   /// The static type of the operand.
   final SharedTypeView operandType;
 
-  YieldStatementResult({required this.operandType});
+  new({required this.operandType});
 }

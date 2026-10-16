@@ -36,7 +36,7 @@ class _Finder {
   final Set<AstNode> visited = Set.identity();
   bool hasSelfReference = false;
 
-  _Finder(this.linker, this.self);
+  new(this.linker, this.self);
 
   void functionTypeAlias(FunctionTypeAlias node) {
     _typeParameterList(node.typeParameters);

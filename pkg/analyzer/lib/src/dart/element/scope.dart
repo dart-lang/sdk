@@ -14,7 +14,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// The scope for the initializers in a constructor.
 class ConstructorInitializerScope extends EnclosedScope {
-  ConstructorInitializerScope(
+  new(
     super.parent,
     ConstructorElement element,
     List<FormalParameterFragmentImpl> formalParameterFragments,
@@ -80,12 +80,11 @@ class DocImportScope with _FileImportsScope implements Scope {
     prefix: null,
   );
 
-  DocImportScope({
-    required LibraryFragmentImpl libraryFragment,
+  new({
+    required this._libraryFragment,
     required DocImportScope? parent,
     required List<LibraryImportImpl> imports,
-  }) : _libraryFragment = libraryFragment,
-       _enclosingScope = parent,
+  }) : _enclosingScope = parent,
        _imports = imports {
     var prefixes = <DocImportPrefixElementImpl>{};
     for (var import in imports) {
@@ -128,7 +127,7 @@ class DocumentationCommentScope implements Scope {
   final Scope _innerScope;
   final DocImportScope _docImportScope;
 
-  DocumentationCommentScope(this._innerScope, this._docImportScope);
+  new(this._innerScope, this._docImportScope);
 
   @override
   ScopeLookupResult lookup(String id) {
@@ -142,7 +141,7 @@ class DocumentationCommentScope implements Scope {
 class EnclosedScope with _GettersAndSetters implements Scope {
   final Scope _parent;
 
-  EnclosedScope(Scope parent) : _parent = parent;
+  new(Scope parent) : _parent = parent;
 
   Scope get parent => _parent;
 
@@ -160,7 +159,7 @@ class EnclosedScope with _GettersAndSetters implements Scope {
 
 /// The scope defined by an extension.
 class ExtensionScope extends EnclosedScope {
-  ExtensionScope(super.parent, ExtensionElement element) {
+  new(super.parent, ExtensionElement element) {
     element.getters.forEach(_addGetter);
     element.setters.forEach(_addSetter);
     element.methods.forEach(_addGetter);
@@ -168,7 +167,7 @@ class ExtensionScope extends EnclosedScope {
 }
 
 class FormalParameterScope extends EnclosedScope {
-  FormalParameterScope(
+  new(
     super.parent,
     List<FormalParameterFragmentImpl> fragments, {
     required FeatureSet featureSet,
@@ -197,7 +196,7 @@ class ImportsTracking {
   /// Tracking information for each import prefix.
   final Map<PrefixElementImpl?, ImportsTrackingOfPrefix> map;
 
-  ImportsTracking({required this.map});
+  new({required this.map});
 
   /// The elements that are used from [import].
   Set<Element> elementsOf(LibraryImportImpl import) {
@@ -247,7 +246,7 @@ class ImportsTrackingOfPrefix {
   /// We set it temporarily to `false` while resolving combinators.
   bool active = true;
 
-  ImportsTrackingOfPrefix({required this.scope}) {
+  new({required this.scope}) {
     _buildElementToImportsMap();
   }
 
@@ -346,7 +345,7 @@ class ImportsTrackingOfPrefix {
 
 /// The scope defined by an instance element.
 class InstanceScope extends EnclosedScope {
-  InstanceScope(super.parent, InstanceElement element) {
+  new(super.parent, InstanceElement element) {
     element.getters.forEach(_addGetter);
     element.setters.forEach(_addSetter);
     element.methods.forEach(_addGetter);
@@ -388,7 +387,7 @@ class InstanceScope extends EnclosedScope {
 class LibraryDeclarations with _GettersAndSetters {
   List<ExtensionElement> extensions = [];
 
-  LibraryDeclarations(LibraryElementImpl library) {
+  new(LibraryElementImpl library) {
     library.getters.forEach(_addGetter);
     library.enums.forEach(_addGetter);
     library.extensions.forEach(_addExtension);
@@ -448,7 +447,7 @@ class LibraryFragmentScope with _FileImportsScope implements Scope {
   /// when we are not resolving files of this library.
   ImportsTracking? _importsTracking;
 
-  LibraryFragmentScope(LibraryFragmentImpl libraryFragment)
+  new(LibraryFragmentImpl libraryFragment)
     : _libraryFragment = libraryFragment,
       _enclosingScope = libraryFragment.enclosingFragment?.scope,
       _noPrefixScope = PrefixScope(
@@ -592,8 +591,7 @@ class LibraryFragmentScope with _FileImportsScope implements Scope {
 class LocalScope extends EnclosedScope {
   final FeatureSet _featureSet;
 
-  LocalScope(super.parent, {required FeatureSet featureSet})
-    : _featureSet = featureSet;
+  new(super.parent, {required this._featureSet});
 
   void add(Element element) {
     assert(() {
@@ -659,15 +657,13 @@ class PrefixScope implements Scope {
   final PrefixScopeRequirementState _requirementState =
       PrefixScopeRequirementState();
 
-  PrefixScope({
+  new({
     required this.libraryFragment,
-    required PrefixScope? parent,
-    required List<PrefixScope> parentSearchedScopes,
+    required this._parent,
+    required this._parentSearchedScopes,
     required List<LibraryImportImpl> libraryImports,
     required PrefixElement? prefix,
-  }) : _prefixElement = prefix,
-       _parent = parent,
-       _parentSearchedScopes = parentSearchedScopes {
+  }) : _prefixElement = prefix {
     var elementFactory = libraryElement.session.elementFactory;
     for (var import in libraryImports) {
       var importedUri = import.uri;
@@ -942,7 +938,7 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
 
   final int _deprecatedBits;
 
-  PrefixScopeLookupResult({
+  new({
     required super.getter,
     required super.setter,
     required bool getterIsFromDeprecatedExport,
@@ -971,7 +967,7 @@ class PrefixScopeLookupResult extends ScopeLookupResultImpl {
 /// It includes every primary formal parameter which is not declaring, not
 /// initializing, and not a super parameter.
 class PrimaryParameterScope extends EnclosedScope {
-  PrimaryParameterScope(
+  new(
     super.parent,
     ConstructorElement element,
     List<FormalParameterFragmentImpl> formalParameterFragments,
@@ -1006,11 +1002,11 @@ class ScopeLookupResultImpl extends ScopeLookupResult {
   @override
   final Element? setter;
 
-  ScopeLookupResultImpl({required this.getter, required this.setter});
+  new({required this.getter, required this.setter});
 }
 
 class TypeParameterScope extends EnclosedScope {
-  TypeParameterScope(
+  new(
     super.parent,
     List<TypeParameterElement> elements, {
     required FeatureSet featureSet,

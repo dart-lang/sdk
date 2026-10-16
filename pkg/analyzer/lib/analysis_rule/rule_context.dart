@@ -59,7 +59,7 @@ class RuleContextUnit {
   final DiagnosticReporter diagnosticReporter;
   final CompilationUnit unit;
 
-  RuleContextUnit({
+  new({
     required this.file,
     required this.content,
     required this.diagnosticReporter,

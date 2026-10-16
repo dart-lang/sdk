@@ -88,7 +88,7 @@ class Instruction {
   final CodedIRContainer ir;
   final int address;
 
-  Instruction(this.ir, this.address);
+  new(this.ir, this.address);
 
   Opcode get opcode => ir.opcodeAt(address);
 
@@ -110,7 +110,7 @@ class InstructionRange {
   /// If [start] is equal to [end], the range is empty.
   final int end;
 
-  InstructionRange({required this.ir, required this.start, required this.end});
+  new({required this.ir, required this.start, required this.end});
 
   bool containsAddress(int address) => start <= address && address < end;
 
@@ -123,7 +123,7 @@ class InstructionRange {
 class TestFunctionType {
   final int parameterCount;
 
-  TestFunctionType(this.parameterCount);
+  new(this.parameterCount);
 }
 
 /// Container for a sequence of IR instructions that aren't connected to an
@@ -139,7 +139,7 @@ class TestIRContainer extends BaseIRContainer {
   final List<TestFunctionType> _functionTypes;
   final Map<String, int> _labelToAddress;
 
-  TestIRContainer(TestIRWriter super.writer)
+  new(TestIRWriter super.writer)
     : _addressToLabel = writer._addressToLabel,
       _allocNames = writer._allocNames,
       _functionTypes = writer._functionTypes,

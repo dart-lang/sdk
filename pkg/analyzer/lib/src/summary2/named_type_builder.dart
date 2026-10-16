@@ -45,7 +45,7 @@ class NamedTypeBuilder extends TypeBuilder {
   /// and set for the [node].
   TypeImpl? _type;
 
-  NamedTypeBuilder({
+  new({
     required this.linker,
     required this.typeSystem,
     required this.element,
@@ -54,7 +54,7 @@ class NamedTypeBuilder extends TypeBuilder {
     this.node,
   });
 
-  factory NamedTypeBuilder.of({
+  factory of({
     required Linker linker,
     required TypeSystemImpl typeSystem,
     required NamedTypeImpl node,

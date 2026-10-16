@@ -21,7 +21,7 @@ class ElementBuilder {
   final LibraryBuilder libraryBuilder;
   final _executableElements = <ExecutableElementImpl>[];
 
-  ElementBuilder({required this.libraryBuilder});
+  new({required this.libraryBuilder});
 
   LibraryElementImpl get libraryElement => libraryBuilder.element;
 
@@ -1272,11 +1272,10 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
 
   _EnclosingContext _enclosingContext;
 
-  FragmentBuilder({
-    required LibraryBuilder libraryBuilder,
+  new({
+    required this._libraryBuilder,
     required LibraryFragmentImpl libraryFragment,
-  }) : _libraryBuilder = libraryBuilder,
-       _libraryFragment = libraryFragment,
+  }) : _libraryFragment = libraryFragment,
        _enclosingContext = _EnclosingContext(fragment: libraryFragment);
 
   Linker get _linker => _libraryBuilder.linker;
@@ -2408,7 +2407,7 @@ class _EnclosingContext {
   final List<FormalParameterFragmentImpl> formalParameters = [];
   final List<TypeParameterFragmentImpl> typeParameters = [];
 
-  _EnclosingContext({required this.fragment});
+  new({required this.fragment});
 
   void addParameter(FormalParameterFragmentImpl fragment) {
     fragment.enclosingFragment = this.fragment;

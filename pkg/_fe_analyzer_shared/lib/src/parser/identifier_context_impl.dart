@@ -19,7 +19,7 @@ import 'util.dart' show isAnyOf;
 
 /// See [IdentifierContext.catchParameter].
 class CatchParameterIdentifierContext extends IdentifierContext {
-  const CatchParameterIdentifierContext() : super('catchParameter');
+  const new() : super('catchParameter');
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -48,7 +48,7 @@ class CatchParameterIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.classOrMixinOrExtensionDeclaration].
 class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
-  const ClassOrMixinOrExtensionIdentifierContext()
+  const new()
     : super(
         'classOrMixinDeclaration',
         inDeclaration: true,
@@ -117,7 +117,7 @@ class ClassOrMixinOrExtensionIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.combinator].
 class CombinatorIdentifierContext extends IdentifierContext {
-  const CombinatorIdentifierContext() : super('combinator');
+  const new() : super('combinator');
 
   bool _isOneOfFollowingValues(Token token) {
     return token.isA(TokenType.SEMICOLON) ||
@@ -184,13 +184,12 @@ class CombinatorIdentifierContext extends IdentifierContext {
 /// and [IdentifierContext.constructorReferenceContinuation]
 /// and [IdentifierContext.constructorReferenceContinuationAfterTypeArguments].
 class ConstructorReferenceIdentifierContext extends IdentifierContext {
-  const ConstructorReferenceIdentifierContext()
-    : super('constructorReference', isScopeReference: true);
+  const new() : super('constructorReference', isScopeReference: true);
 
-  const ConstructorReferenceIdentifierContext.continuation()
+  const new continuation()
     : super('constructorReferenceContinuation', isContinuation: true);
 
-  const ConstructorReferenceIdentifierContext.continuationAfterTypeArguments()
+  const new continuationAfterTypeArguments()
     : super(
         'constructorReferenceContinuationAfterTypeArguments',
         isContinuation: true,
@@ -228,9 +227,9 @@ class ConstructorReferenceIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.dottedName].
 class DottedNameIdentifierContext extends IdentifierContext {
-  const DottedNameIdentifierContext() : super('dottedName');
+  const new() : super('dottedName');
 
-  const DottedNameIdentifierContext.continuation()
+  const new continuation()
     : super('dottedNameContinuation', isContinuation: true);
 
   bool _isOneOfFollowingValues(Token token) {
@@ -287,7 +286,7 @@ class DottedNameIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.enumDeclaration].
 class EnumDeclarationIdentifierContext extends IdentifierContext {
-  const EnumDeclarationIdentifierContext()
+  const new()
     : super(
         'enumDeclaration',
         inDeclaration: true,
@@ -339,8 +338,7 @@ class EnumDeclarationIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.enumValueDeclaration].
 class EnumValueDeclarationIdentifierContext extends IdentifierContext {
-  const EnumValueDeclarationIdentifierContext()
-    : super('enumValueDeclaration', inDeclaration: true);
+  const new() : super('enumValueDeclaration', inDeclaration: true);
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -381,10 +379,9 @@ class EnumValueDeclarationIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.expression].
 class ExpressionIdentifierContext extends IdentifierContext {
-  const ExpressionIdentifierContext()
-    : super('expression', isScopeReference: true);
+  const new() : super('expression', isScopeReference: true);
 
-  const ExpressionIdentifierContext.continuation()
+  const new continuation()
     : super('expressionContinuation', isContinuation: true);
 
   @override
@@ -470,8 +467,7 @@ class ExpressionIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.fieldDeclaration].
 class FieldDeclarationIdentifierContext extends IdentifierContext {
-  const FieldDeclarationIdentifierContext()
-    : super('fieldDeclaration', inDeclaration: true);
+  const new() : super('fieldDeclaration', inDeclaration: true);
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -537,7 +533,7 @@ class FieldDeclarationIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.fieldInitializer].
 class FieldInitializerIdentifierContext extends IdentifierContext {
-  const FieldInitializerIdentifierContext()
+  const new()
     : super('fieldInitializer', inDeclaration: true, isContinuation: true);
 
   @override
@@ -561,8 +557,7 @@ class FieldInitializerIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.formalParameterDeclaration].
 class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
-  const FormalParameterDeclarationIdentifierContext()
-    : super('formalParameterDeclaration', inDeclaration: true);
+  const new() : super('formalParameterDeclaration', inDeclaration: true);
 
   bool _isOneOfFollowingValues(Token token) {
     return token.isA(TokenType.COLON) ||
@@ -623,8 +618,7 @@ class FormalParameterDeclarationIdentifierContext extends IdentifierContext {
 /// FormalParameterDeclarationIdentifierContext. This should be updated
 /// to better fit the specific use case.
 class RecordFieldDeclarationIdentifierContext extends IdentifierContext {
-  const RecordFieldDeclarationIdentifierContext()
-    : super('recordFieldDeclaration', inDeclaration: true);
+  const new() : super('recordFieldDeclaration', inDeclaration: true);
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -678,7 +672,7 @@ class RecordFieldDeclarationIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.importPrefixDeclaration].
 class ImportPrefixIdentifierContext extends IdentifierContext {
-  const ImportPrefixIdentifierContext()
+  const new()
     : super(
         'importPrefixDeclaration',
         inDeclaration: true,
@@ -746,10 +740,9 @@ class ImportPrefixIdentifierContext extends IdentifierContext {
 }
 
 class LiteralSymbolIdentifierContext extends IdentifierContext {
-  const LiteralSymbolIdentifierContext()
-    : super('literalSymbol', inSymbol: true);
+  const new() : super('literalSymbol', inSymbol: true);
 
-  const LiteralSymbolIdentifierContext.continuation()
+  const new continuation()
     : super('literalSymbolContinuation', inSymbol: true, isContinuation: true);
 
   @override
@@ -782,10 +775,9 @@ class LiteralSymbolIdentifierContext extends IdentifierContext {
 /// See [IdentifierContext.localFunctionDeclaration]
 /// and [IdentifierContext.localFunctionDeclarationContinuation].
 class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
-  const LocalFunctionDeclarationIdentifierContext()
-    : super('localFunctionDeclaration', inDeclaration: true);
+  const new() : super('localFunctionDeclaration', inDeclaration: true);
 
-  const LocalFunctionDeclarationIdentifierContext.continuation()
+  const new continuation()
     : super(
         'localFunctionDeclarationContinuation',
         inDeclaration: true,
@@ -836,8 +828,7 @@ class LocalFunctionDeclarationIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.labelDeclaration].
 class LabelDeclarationIdentifierContext extends IdentifierContext {
-  const LabelDeclarationIdentifierContext()
-    : super('labelDeclaration', inDeclaration: true);
+  const new() : super('labelDeclaration', inDeclaration: true);
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -880,7 +871,7 @@ class LabelDeclarationIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.labelReference].
 class LabelReferenceIdentifierContext extends IdentifierContext {
-  const LabelReferenceIdentifierContext() : super('labelReference');
+  const new() : super('labelReference');
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -924,20 +915,18 @@ class LabelReferenceIdentifierContext extends IdentifierContext {
 /// and [IdentifierContext.partName],
 /// and [IdentifierContext.partNameContinuation].
 class LibraryIdentifierContext extends IdentifierContext {
-  const LibraryIdentifierContext()
-    : super('libraryName', inLibraryOrPartOfDeclaration: true);
+  const new() : super('libraryName', inLibraryOrPartOfDeclaration: true);
 
-  const LibraryIdentifierContext.continuation()
+  const new continuation()
     : super(
         'libraryNameContinuation',
         inLibraryOrPartOfDeclaration: true,
         isContinuation: true,
       );
 
-  const LibraryIdentifierContext.partName()
-    : super('partName', inLibraryOrPartOfDeclaration: true);
+  const new partName() : super('partName', inLibraryOrPartOfDeclaration: true);
 
-  const LibraryIdentifierContext.partNameContinuation()
+  const new partNameContinuation()
     : super(
         'partNameContinuation',
         inLibraryOrPartOfDeclaration: true,
@@ -1004,8 +993,7 @@ class LibraryIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.localVariableDeclaration].
 class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
-  const LocalVariableDeclarationIdentifierContext()
-    : super('localVariableDeclaration', inDeclaration: true);
+  const new() : super('localVariableDeclaration', inDeclaration: true);
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -1056,13 +1044,12 @@ class LocalVariableDeclarationIdentifierContext extends IdentifierContext {
 /// and [IdentifierContext.metadataContinuation]
 /// and [IdentifierContext.metadataContinuationAfterTypeArguments].
 class MetadataReferenceIdentifierContext extends IdentifierContext {
-  const MetadataReferenceIdentifierContext()
-    : super('metadataReference', isScopeReference: true);
+  const new() : super('metadataReference', isScopeReference: true);
 
-  const MetadataReferenceIdentifierContext.continuation()
+  const new continuation()
     : super('metadataContinuation', isContinuation: true);
 
-  const MetadataReferenceIdentifierContext.continuationAfterTypeArguments()
+  const new continuationAfterTypeArguments()
     : super('metadataContinuationAfterTypeArguments', isContinuation: true);
 
   @override
@@ -1118,25 +1105,23 @@ class MetadataReferenceIdentifierContext extends IdentifierContext {
 /// and [IdentifierContext.operatorName],
 /// and [IdentifierContext.primaryConstructorDeclaration].
 class MethodDeclarationIdentifierContext extends IdentifierContext {
-  const MethodDeclarationIdentifierContext()
-    : super('methodDeclaration', inDeclaration: true);
+  const new() : super('methodDeclaration', inDeclaration: true);
 
-  const MethodDeclarationIdentifierContext.continuation()
+  const new continuation()
     : super(
         'methodDeclarationContinuation',
         inDeclaration: true,
         isContinuation: true,
       );
 
-  const MethodDeclarationIdentifierContext.primaryConstructor()
+  const new primaryConstructor()
     : super(
         'primaryConstructorDeclaration',
         inDeclaration: true,
         isContinuation: true,
       );
 
-  const MethodDeclarationIdentifierContext.operatorName()
-    : super('operatorName', inDeclaration: true);
+  const new operatorName() : super('operatorName', inDeclaration: true);
 
   @override
   bool get allowsNewAsIdentifier => isContinuation;
@@ -1212,7 +1197,7 @@ class MethodDeclarationIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.namedArgumentReference].
 class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
-  const NamedArgumentReferenceIdentifierContext()
+  const new()
     : super('namedArgumentReference', allowedInConstantExpression: true);
 
   @override
@@ -1257,7 +1242,7 @@ class NamedArgumentReferenceIdentifierContext extends IdentifierContext {
 /// NamedArgumentReferenceIdentifierContext. This should be updated
 /// to better fit the specific use case.
 class NamedRecordFieldReferenceIdentifierContext extends IdentifierContext {
-  const NamedRecordFieldReferenceIdentifierContext()
+  const new()
     : super('namedRecordFieldReference', allowedInConstantExpression: true);
 
   @override
@@ -1302,8 +1287,7 @@ class NamedRecordFieldReferenceIdentifierContext extends IdentifierContext {
 class TopLevelDeclarationIdentifierContext extends IdentifierContext {
   final List<TokenType> followingValues;
 
-  const TopLevelDeclarationIdentifierContext(super.name, this.followingValues)
-    : super(inDeclaration: true);
+  const new(super.name, this.followingValues) : super(inDeclaration: true);
 
   @override
   Token ensureIdentifier(Token token, Parser parser) {
@@ -1387,7 +1371,7 @@ class TopLevelDeclarationIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.typedefDeclaration].
 class TypedefDeclarationIdentifierContext extends IdentifierContext {
-  const TypedefDeclarationIdentifierContext()
+  const new()
     : super(
         'typedefDeclaration',
         inDeclaration: true,
@@ -1485,7 +1469,7 @@ class TypedefDeclarationIdentifierContext extends IdentifierContext {
 
 /// See [IdentifierContext.typeReference].
 class TypeReferenceIdentifierContext extends IdentifierContext {
-  const TypeReferenceIdentifierContext()
+  const new()
     : super(
         'typeReference',
         isScopeReference: true,
@@ -1493,14 +1477,14 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
         recoveryTemplate: diag.expectedType,
       );
 
-  const TypeReferenceIdentifierContext.continuation()
+  const new continuation()
     : super(
         'typeReferenceContinuation',
         isContinuation: true,
         isBuiltInIdentifierAllowed: false,
       );
 
-  const TypeReferenceIdentifierContext.prefixed()
+  const new prefixed()
     : super(
         'prefixedTypeReference',
         isScopeReference: true,
@@ -1556,7 +1540,7 @@ class TypeReferenceIdentifierContext extends IdentifierContext {
 
 // See [IdentifierContext.typeVariableDeclaration].
 class TypeVariableDeclarationIdentifierContext extends IdentifierContext {
-  const TypeVariableDeclarationIdentifierContext()
+  const new()
     : super(
         'typeVariableDeclaration',
         inDeclaration: true,

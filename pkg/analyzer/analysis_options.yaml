@@ -63,7 +63,9 @@ linter:
     - no_literal_bool_comparisons
     - unawaited_futures
     - unnecessary_breaks
+    - unnecessary_const_in_enum_constructor
     - unnecessary_final
     - unnecessary_ignore
     - unnecessary_library_directive
     - unnecessary_parenthesis
+    - unnecessary_type_name_in_constructor

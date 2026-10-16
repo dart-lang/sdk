@@ -36,7 +36,7 @@ class AnnotationsListener extends StackListener {
 
   final bool delayLookup;
 
-  AnnotationsListener(
+  new(
     this.uri,
     this._initialScope,
     this._references, {
@@ -1477,7 +1477,7 @@ class FunctionTypeParameterScope implements Scope {
   final Scope parentScope;
   final Map<String, FunctionTypeParameter> functionTypeParameterMap = {};
 
-  FunctionTypeParameterScope(this.parentScope);
+  new(this.parentScope);
 
   FunctionTypeParameter declareTypeParameter(String name) {
     return functionTypeParameterMap[name] = new FunctionTypeParameter(name);

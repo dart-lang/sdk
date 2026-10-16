@@ -13,7 +13,7 @@ import 'null_value.dart' show NullValue;
 /// Add new value kinds as needed for documenting and checking the various stack
 /// listener implementations.
 abstract class ValueKind {
-  const ValueKind();
+  const new();
 
   /// Checks the [value] an returns `true` if the value is of the expected kind.
   bool check(Object? value);
@@ -24,7 +24,7 @@ abstract class ValueKind {
 class SingleValueKind<T> implements ValueKind {
   final NullValue? nullValue;
 
-  const SingleValueKind([this.nullValue]);
+  const new([this.nullValue]);
 
   @override
   bool check(Object? value) {
@@ -47,7 +47,7 @@ class SingleValueKind<T> implements ValueKind {
 class UnionValueKind implements ValueKind {
   final List<ValueKind> kinds;
 
-  const UnionValueKind(this.kinds);
+  const new(this.kinds);
 
   @override
   bool check(Object? value) {

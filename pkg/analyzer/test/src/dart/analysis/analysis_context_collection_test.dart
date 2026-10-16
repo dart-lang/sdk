@@ -5565,7 +5565,7 @@ class _AnalysisContextCollectionPrinter {
   final Map<Workspace, Map<WorkspacePackageImpl, String>> _workspacePackages =
       Map.identity();
 
-  _AnalysisContextCollectionPrinter({
+  new({
     required this.configuration,
     required this.resourceProvider,
     required this.sink,

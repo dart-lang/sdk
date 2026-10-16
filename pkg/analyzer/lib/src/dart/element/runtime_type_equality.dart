@@ -15,7 +15,7 @@ import 'package:analyzer/src/utilities/extensions/element.dart';
 class RuntimeTypeEqualityHelper {
   final TypeSystemImpl _typeSystem;
 
-  RuntimeTypeEqualityHelper(this._typeSystem);
+  new(this._typeSystem);
 
   /// Returns whether runtime types [T1] and [T2] are equal.
   ///
@@ -31,7 +31,7 @@ class RuntimeTypeEqualityVisitor
     extends TypeVisitorWithArgument<bool, DartType> {
   final TypeSystemImpl _typeSystem;
 
-  RuntimeTypeEqualityVisitor(this._typeSystem);
+  new(this._typeSystem);
 
   @override
   bool visitDynamicType(DynamicType T1, DartType T2) {
@@ -241,5 +241,5 @@ class _TypeParametersResult {
   final Substitution T1_substitution;
   final Substitution T2_substitution;
 
-  _TypeParametersResult(this.T1_substitution, this.T2_substitution);
+  new(this.T1_substitution, this.T2_substitution);
 }

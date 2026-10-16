@@ -22,7 +22,7 @@ final class _AnalysisOptionsIncludeWalker {
   })
   fileSemantics;
 
-  _AnalysisOptionsIncludeWalker({
+  new({
     required this.initialDiagnosticListener,
     required this.initialDiagnosticReporter,
     required this.initialParsedFileNode,
@@ -226,7 +226,7 @@ final class _IncludedDiagnosticListener implements DiagnosticListener {
   /// currently being processed.
   final SourceSpan initialIncludeSpan;
 
-  _IncludedDiagnosticListener({
+  new({
     required this.includedFile,
     required this.initialDiagnosticReporter,
     required this.initialIncludeSpan,
@@ -255,7 +255,7 @@ final class _IncludeWalkState {
   final SourceSpan? initialIncludeSpan;
   final Map<File, SourceSpan> includeChain;
 
-  _IncludeWalkState({
+  new({
     required this.parsedFileNode,
     required this.diagnosticListener,
     required this.diagnosticReporter,

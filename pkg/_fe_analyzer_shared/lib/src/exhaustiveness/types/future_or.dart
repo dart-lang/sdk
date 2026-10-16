@@ -15,7 +15,7 @@ class FutureOrStaticType<Type extends Object>
   /// The type for `Future<T>`.
   final StaticType _futureType;
 
-  FutureOrStaticType(
+  new(
     super.typeOperations,
     super.fieldLookup,
     super.type,

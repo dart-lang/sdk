@@ -1,5 +1,5 @@
 environment:
-  sdk: ^3.11.0
+  sdk: ^3.13.0
 package:analyzer/analysis_rule/analysis_rule.dart:
   AbstractAnalysisRule (class extends Object, sealed (immediate subtypes: AnalysisRule, MultiAnalysisRule)):
     canUseParsedResult (getter: bool)

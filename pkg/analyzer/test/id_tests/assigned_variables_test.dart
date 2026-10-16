@@ -35,7 +35,7 @@ main(List<String> args) {
 }
 
 class _AssignedVariablesDataComputer extends DataComputer<_Data> {
-  const _AssignedVariablesDataComputer();
+  const new();
 
   @override
   DataInterpreter<_Data> get dataValidator =>
@@ -62,7 +62,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   AssignedVariablesForTesting<AstNode, PromotableElementImpl>?
   _currentAssignedVariables;
 
-  _AssignedVariablesDataExtractor(super.uri, super.actualMap, this._flowResult);
+  new(super.uri, super.actualMap, this._flowResult);
 
   @override
   _Data? computeNodeValue(Id id, AstNode node) {
@@ -131,7 +131,7 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
 }
 
 class _AssignedVariablesDataInterpreter implements DataInterpreter<_Data> {
-  const _AssignedVariablesDataInterpreter();
+  const new();
 
   @override
   String getText(_Data actualData, [String? indentation]) {
@@ -186,7 +186,7 @@ class _Data {
 
   final Set<String> captured;
 
-  _Data(
+  new(
     this.declared,
     this.read,
     this.readCaptured,

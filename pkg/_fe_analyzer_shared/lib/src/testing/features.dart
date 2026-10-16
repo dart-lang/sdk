@@ -9,12 +9,12 @@ class Features {
   Map<String, Object> _features = {};
   Set<String> _unsorted = new Set<String>();
 
-  Features();
+  new();
 
   /// Creates a [Features] registering each key in [featuresMap] as a features
   /// with the corresponding value(s) in the map. Note: values are expected to
   /// be either a single `String` value or a `List<String>`.
-  factory Features.fromMap(Map<String, dynamic> featuresMap) {
+  factory fromMap(Map<String, dynamic> featuresMap) {
     Features features = new Features();
     featuresMap.forEach((key, value) {
       if (value is List) {
@@ -247,7 +247,7 @@ class Features {
 class FeaturesDataInterpreter implements DataInterpreter<Features> {
   final String? wildcard;
 
-  const FeaturesDataInterpreter({this.wildcard});
+  const new({this.wildcard});
 
   @override
   String? isAsExpected(Features actualFeatures, String? expectedData) {

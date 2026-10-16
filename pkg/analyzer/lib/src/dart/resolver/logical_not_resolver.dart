@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/resolver/type_analyzer.dart';
 class LogicalNotResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  LogicalNotResolver(this._typeAnalyzer);
+  new(this._typeAnalyzer);
 
   void resolve(LogicalNotImpl node) {
     var operand = node.operand;

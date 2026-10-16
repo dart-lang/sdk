@@ -43,7 +43,7 @@ class ExportRequirement {
   final List<ExportRequirementCombinator> combinators;
   final Map<LookupName, ManifestItemId> exportedIds;
 
-  ExportRequirement({
+  new({
     required this.fragmentUri,
     required this.exportedUri,
     required this.hashForRequirements,
@@ -51,7 +51,7 @@ class ExportRequirement {
     required this.exportedIds,
   });
 
-  factory ExportRequirement.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ExportRequirement(
       fragmentUri: reader.readUri(),
       exportedUri: reader.readUri(),
@@ -155,9 +155,9 @@ class ExportRequirement {
 
 @visibleForTesting
 sealed class ExportRequirementCombinator {
-  ExportRequirementCombinator();
+  new();
 
-  factory ExportRequirementCombinator.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     var kind = reader.readEnum(_ExportRequirementCombinatorKind.values);
     switch (kind) {
       case _ExportRequirementCombinatorKind.hide:
@@ -175,9 +175,9 @@ final class ExportRequirementHideCombinator
     extends ExportRequirementCombinator {
   final Set<BaseName> hiddenBaseNames;
 
-  ExportRequirementHideCombinator({required this.hiddenBaseNames});
+  new({required this.hiddenBaseNames});
 
-  factory ExportRequirementHideCombinator.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ExportRequirementHideCombinator(
       hiddenBaseNames: reader.readBaseNameSet(),
     );
@@ -195,9 +195,9 @@ final class ExportRequirementShowCombinator
     extends ExportRequirementCombinator {
   final Set<BaseName> shownBaseNames;
 
-  ExportRequirementShowCombinator({required this.shownBaseNames});
+  new({required this.shownBaseNames});
 
-  factory ExportRequirementShowCombinator.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return ExportRequirementShowCombinator(
       shownBaseNames: reader.readBaseNameSet(),
     );
@@ -246,7 +246,7 @@ class InstanceItemRequirements {
   ManifestItemIdList? allDeclaredSetters;
   ManifestItemIdList? allDeclaredMethods;
 
-  InstanceItemRequirements({
+  new({
     required this.requestedDeclaredFields,
     required this.requestedDeclaredGetters,
     required this.requestedDeclaredSetters,
@@ -257,7 +257,7 @@ class InstanceItemRequirements {
     required this.allDeclaredMethods,
   });
 
-  factory InstanceItemRequirements.empty() {
+  factory empty() {
     return InstanceItemRequirements(
       requestedDeclaredFields: {},
       requestedDeclaredGetters: {},
@@ -270,7 +270,7 @@ class InstanceItemRequirements {
     );
   }
 
-  factory InstanceItemRequirements.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return InstanceItemRequirements(
       requestedDeclaredFields: reader.readNameToOptionalIdMap(),
       requestedDeclaredGetters: reader.readNameToOptionalIdMap(),
@@ -333,7 +333,7 @@ class InterfaceItemRequirements {
   /// The recorded value of [ClassItem.directSubtypesOfSealed].
   ManifestItemIdList? directSubtypesOfSealed;
 
-  InterfaceItemRequirements({
+  new({
     required this.interfaceId,
     required this.hasNonFinalField,
     required this.allDeclaredConstructors,
@@ -348,7 +348,7 @@ class InterfaceItemRequirements {
     required this.directSubtypesOfSealed,
   });
 
-  factory InterfaceItemRequirements.empty() {
+  factory empty() {
     return InterfaceItemRequirements(
       interfaceId: null,
       hasNonFinalField: null,
@@ -365,7 +365,7 @@ class InterfaceItemRequirements {
     );
   }
 
-  factory InterfaceItemRequirements.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return InterfaceItemRequirements(
       interfaceId: ManifestItemId.readOptional(reader),
       hasNonFinalField: reader.readOptionalBool(),
@@ -430,13 +430,13 @@ class LibraryExportRequirements {
   final Set<LookupName> declaredTopNames;
   final List<ExportRequirement> exports;
 
-  LibraryExportRequirements({
+  new({
     required this.libraryUri,
     required this.declaredTopNames,
     required this.exports,
   });
 
-  factory LibraryExportRequirements.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return LibraryExportRequirements(
       libraryUri: reader.readUri(),
       declaredTopNames: reader.readLookupNameSet(),
@@ -616,7 +616,7 @@ class LibraryRequirements {
   ManifestItemIdList? allDeclaredGetters;
   ManifestItemIdList? allDeclaredSetters;
 
-  LibraryRequirements({
+  new({
     required this.hashForRequirements,
     required this.name,
     required this.isOriginNotExistingFile,
@@ -653,7 +653,7 @@ class LibraryRequirements {
     required this.allDeclaredSetters,
   });
 
-  factory LibraryRequirements.fromManifest(LibraryManifest manifest) {
+  factory fromManifest(LibraryManifest manifest) {
     return LibraryRequirements(
       hashForRequirements: manifest.hashForRequirements,
       name: null,
@@ -692,7 +692,7 @@ class LibraryRequirements {
     );
   }
 
-  factory LibraryRequirements.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return LibraryRequirements(
       hashForRequirements: Hash.read(reader),
       name: reader.readOptionalStringUtf8(),
@@ -806,7 +806,7 @@ class OpaqueApiUse {
   final Uri? targetElementLibraryUri;
   final String? targetElementName;
 
-  OpaqueApiUse({
+  new({
     required this.kindId,
     required this.targetRuntimeType,
     required this.methodName,
@@ -814,7 +814,7 @@ class OpaqueApiUse {
     this.targetElementName,
   });
 
-  factory OpaqueApiUse.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return OpaqueApiUse(
       kindId: reader.readEnum(RequirementFailureKindId.values),
       targetRuntimeType: reader.readStringUtf8(),
@@ -880,7 +880,7 @@ class RequirementsManifest {
   final List<LibraryElementRequirementState> _libraryElementStates = [];
   final List<PrefixScopeRequirementState> _prefixScopeStates = [];
 
-  RequirementsManifest()
+  new()
     : this._(
         id: ManifestItemId.generate(),
         libraries: {},
@@ -888,13 +888,13 @@ class RequirementsManifest {
         opaqueApiUses: [],
       );
 
-  factory RequirementsManifest.fromBytes(Uint8List bytes) {
+  factory fromBytes(Uint8List bytes) {
     var reader = BinaryReader(bytes);
     reader.initFromTableTrailer();
     return RequirementsManifest.read(reader);
   }
 
-  factory RequirementsManifest.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return RequirementsManifest._(
       id: ManifestItemId.read(reader),
       libraries: reader.readMap(
@@ -908,7 +908,7 @@ class RequirementsManifest {
     );
   }
 
-  RequirementsManifest._({
+  new _({
     required this.id,
     required this.libraries,
     required this.exportRequirements,
@@ -2813,13 +2813,13 @@ class RequirementsManifestDigest {
   final bool hasOpaqueApiUses;
   final Map<Uri, Hash> libraryHashes;
 
-  RequirementsManifestDigest({
+  new({
     required this.bundleId,
     required this.hasOpaqueApiUses,
     required this.libraryHashes,
   });
 
-  factory RequirementsManifestDigest.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return RequirementsManifestDigest(
       bundleId: ManifestItemId.read(reader),
       hasOpaqueApiUses: reader.readBool(),
@@ -2875,20 +2875,14 @@ class _InstanceItemWithRequirements {
   final InstanceItem item;
   final InstanceItemRequirements requirements;
 
-  _InstanceItemWithRequirements({
-    required this.item,
-    required this.requirements,
-  });
+  new({required this.item, required this.requirements});
 }
 
 class _InterfaceItemWithRequirements {
   final InterfaceItem item;
   final InterfaceItemRequirements requirements;
 
-  _InterfaceItemWithRequirements({
-    required this.item,
-    required this.requirements,
-  });
+  new({required this.item, required this.requirements});
 }
 
 extension RequirementsManifestExtension on RequirementsManifest? {

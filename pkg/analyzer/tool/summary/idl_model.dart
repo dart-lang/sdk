@@ -22,7 +22,7 @@ class ClassDeclaration extends Declaration {
   /// Indicates whether the class has the `deprecated` annotation.
   final bool isDeprecated;
 
-  ClassDeclaration({
+  new({
     required String? documentation,
     required this.fileIdentifier,
     required String name,
@@ -43,7 +43,7 @@ class Declaration {
   /// The name of the declaration.
   final String name;
 
-  Declaration(this.documentation, this.name);
+  new(this.documentation, this.name);
 }
 
 /// Information about a single enum defined in the IDL.
@@ -51,12 +51,12 @@ class EnumDeclaration extends Declaration {
   /// List of enumerated values.
   final List<EnumValueDeclaration> values = <EnumValueDeclaration>[];
 
-  EnumDeclaration(super.documentation, super.name);
+  new(super.documentation, super.name);
 }
 
 /// Information about a single enum value defined in the IDL.
 class EnumValueDeclaration extends Declaration {
-  EnumValueDeclaration(super.documentation, super.name);
+  new(super.documentation, super.name);
 }
 
 /// Information about a single class field defined in the IDL.
@@ -73,7 +73,7 @@ class FieldDeclaration extends Declaration {
   /// Indicates whether the field is informative.
   final bool isInformative;
 
-  FieldDeclaration({
+  new({
     required String? documentation,
     required String name,
     required this.type,
@@ -92,7 +92,7 @@ class FieldType {
   /// [typeName].
   final bool isList;
 
-  FieldType(this.typeName, this.isList);
+  new(this.typeName, this.isList);
 
   @override
   int get hashCode {

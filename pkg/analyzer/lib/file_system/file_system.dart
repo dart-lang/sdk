@@ -63,7 +63,7 @@ class FileSystemException implements Exception {
   final String path;
   final String message;
 
-  FileSystemException(this.path, this.message);
+  new(this.path, this.message);
 
   @override
   String toString() => 'FileSystemException(path=$path; message=$message)';
@@ -159,7 +159,7 @@ abstract class Link {
 /// Exception thrown when a file operation fails because a file or directory
 /// does not exist.
 class PathNotFoundException extends FileSystemException {
-  PathNotFoundException(super.path, super.message);
+  new(super.path, super.message);
 
   @override
   String toString() => 'PathNotFoundException(path=$path; message=$message)';
@@ -276,7 +276,7 @@ class ResourceWatcher {
   /// watcher.
   final Future<void> Function() _ready;
 
-  ResourceWatcher(this.changes, this._ready);
+  new(this.changes, this._ready);
 
   /// An event that fires when the watcher is fully initialized and ready to
   /// produce events.

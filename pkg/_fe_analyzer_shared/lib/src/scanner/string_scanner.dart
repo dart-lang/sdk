@@ -46,7 +46,7 @@ class StringScanner extends AbstractScanner {
   @override
   int scanOffset = -1;
 
-  StringScanner(
+  new(
     this._string, {
     ScannerConfiguration? configuration,
     bool includeComments = false,
@@ -59,7 +59,7 @@ class StringScanner extends AbstractScanner {
          numberOfBytesHint: _string.length,
        );
 
-  StringScanner.recoveryOptionScanner(StringScanner super.copyFrom)
+  new recoveryOptionScanner(StringScanner super.copyFrom)
     : _string = copyFrom._string,
       _stringLengthMinusOne = copyFrom._stringLengthMinusOne,
       scanOffset = copyFrom.scanOffset,

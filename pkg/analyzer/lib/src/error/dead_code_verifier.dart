@@ -23,8 +23,7 @@ class DeadCodeForPartsState {
   /// [NullSafetyDeadCodeVerifier.for_conditionEnd].
   final bool _hadFirstDeadNode;
 
-  DeadCodeForPartsState._({required bool hadFirstDeadNode})
-    : _hadFirstDeadNode = hadFirstDeadNode;
+  new _({required this._hadFirstDeadNode});
 }
 
 /// A visitor that finds dead code, other than unreachable code that is
@@ -39,7 +38,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   /// Whether the `wildcard_variables` feature is enabled.
   final bool _wildCardVariablesEnabled;
 
-  DeadCodeVerifier(this._diagnosticReporter, LibraryElement library)
+  new(this._diagnosticReporter, LibraryElement library)
     : _wildCardVariablesEnabled = library.featureSet.isEnabled(
         Feature.wildcard_variables,
       );
@@ -204,11 +203,7 @@ class NullSafetyDeadCodeVerifier {
   /// node is ignored, because it continues the same dead code range.
   _DeadCodeStart? _firstDead;
 
-  NullSafetyDeadCodeVerifier(
-    this._typeSystem,
-    this._diagnosticReporter,
-    this._flowAnalysis,
-  );
+  new(this._typeSystem, this._diagnosticReporter, this._flowAnalysis);
 
   /// The [node] ends a basic block in the control flow. If [_firstDead] is
   /// not `null`, and is covered by the [node], then we reached the end of
@@ -544,7 +539,7 @@ class _BreakDoStatementVisitor extends RecursiveAstVisitor2<void> {
   bool hasBreakStatement = false;
   final DoStatement doStatement;
 
-  _BreakDoStatementVisitor(this.doStatement);
+  new(this.doStatement);
 
   @override
   void visitBreakStatement(BreakStatement node) {
@@ -567,11 +562,7 @@ class _CatchClausesVerifier {
   bool _done = false;
   final List<TypeImpl> _visitedTypes = [];
 
-  _CatchClausesVerifier(
-    this._typeSystem,
-    this._reportDiagnostic,
-    this.catchClauses,
-  );
+  new(this._typeSystem, this._reportDiagnostic, this.catchClauses);
 
   void nextCatchClause(CatchClauseImpl catchClause) {
     var currentType = catchClause.exceptionType?.type;
@@ -617,7 +608,7 @@ final class _DeadCodeStart {
   AstNode node;
   final Token firstToken;
 
-  _DeadCodeStart({required this.node, required this.firstToken});
+  new({required this.node, required this.firstToken});
 }
 
 /// An object used to track the usage of labels within a single label scope.
@@ -636,7 +627,7 @@ class _LabelTracker {
   final Map<String, int> labelMap = <String, int>{};
 
   /// Initialize a newly created label tracker.
-  _LabelTracker(this.outerTracker, this.labels) {
+  new(this.outerTracker, this.labels) {
     used = List.filled(labels.length, false);
     for (int i = 0; i < labels.length; i++) {
       labelMap[labels[i].name.lexeme] = i;

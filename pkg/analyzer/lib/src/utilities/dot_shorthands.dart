@@ -323,7 +323,7 @@ AstNode? _selectorOperand2(AstNode? node) => switch (node) {
 class _TypeParameterVisitor extends RecursiveTypeVisitor {
   Set<TypeParameterElement> typeParameters = {};
 
-  _TypeParameterVisitor() : super(includeTypeAliasArguments: false);
+  new() : super(includeTypeAliasArguments: false);
 
   @override
   bool visitTypeParameterType(TypeParameterType type) {

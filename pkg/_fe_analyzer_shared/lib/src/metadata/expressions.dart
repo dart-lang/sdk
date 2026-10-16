@@ -31,7 +31,7 @@ class InvalidExpression extends Expression {
 class StaticGet extends Expression {
   final FieldReference reference;
 
-  StaticGet(this.reference);
+  new(this.reference);
 
   @override
   String toString() => 'StaticGet($reference)';
@@ -43,7 +43,7 @@ class StaticGet extends Expression {
 class FunctionTearOff extends Expression {
   final FunctionReference reference;
 
-  FunctionTearOff(this.reference);
+  new(this.reference);
 
   @override
   String toString() => 'FunctionTearOff($reference)';
@@ -56,7 +56,7 @@ class ConstructorTearOff extends Expression {
   final TypeAnnotation type;
   final ConstructorReference reference;
 
-  ConstructorTearOff(this.type, this.reference);
+  new(this.type, this.reference);
 
   @override
   String toString() => 'ConstructorTearOff($type,$reference)';
@@ -73,7 +73,7 @@ class ConstructorInvocation extends Expression {
   final Reference constructor;
   final List<Argument> arguments;
 
-  ConstructorInvocation(this.type, this.constructor, this.arguments);
+  new(this.type, this.constructor, this.arguments);
 
   @override
   String toString() => 'ConstructorInvocation($type,$constructor,$arguments)';
@@ -96,9 +96,9 @@ class IntegerLiteral extends Expression {
   final String? text;
   final int? value;
 
-  IntegerLiteral.fromText(String this.text, [this.value]);
+  new fromText(String this.text, [this.value]);
 
-  IntegerLiteral.fromValue(int this.value) : text = null;
+  new fromValue(int this.value) : text = null;
 
   @override
   String toString() => 'IntegerLiteral(${value ?? text})';
@@ -111,7 +111,7 @@ class DoubleLiteral extends Expression {
   final String text;
   final double value;
 
-  DoubleLiteral(this.text, this.value);
+  new(this.text, this.value);
 
   @override
   String toString() => 'DoubleLiteral($text)';
@@ -123,7 +123,7 @@ class DoubleLiteral extends Expression {
 class BooleanLiteral extends Expression {
   final bool value;
 
-  BooleanLiteral(this.value);
+  new(this.value);
 
   @override
   String toString() => 'BooleanLiteral($value)';
@@ -133,7 +133,7 @@ class BooleanLiteral extends Expression {
 }
 
 class NullLiteral extends Expression {
-  NullLiteral();
+  new();
 
   @override
   String toString() => 'NullLiteral()';
@@ -145,7 +145,7 @@ class NullLiteral extends Expression {
 class SymbolLiteral extends Expression {
   final List<String> parts;
 
-  SymbolLiteral(this.parts);
+  new(this.parts);
 
   @override
   String toString() => 'SymbolLiteral($parts)';
@@ -157,7 +157,7 @@ class SymbolLiteral extends Expression {
 class StringLiteral extends Expression {
   final List<StringLiteralPart> parts;
 
-  StringLiteral(this.parts);
+  new(this.parts);
 
   @override
   String toString() => 'StringLiteral($parts)';
@@ -172,7 +172,7 @@ class StringLiteral extends Expression {
 class AdjacentStringLiterals extends Expression {
   final List<Expression> expressions;
 
-  AdjacentStringLiterals(this.expressions);
+  new(this.expressions);
 
   @override
   String toString() => 'AdjacentStringLiterals($expressions)';
@@ -191,7 +191,7 @@ class ImplicitInvocation extends Expression {
   final List<TypeAnnotation> typeArguments;
   final List<Argument> arguments;
 
-  ImplicitInvocation(this.receiver, this.typeArguments, this.arguments);
+  new(this.receiver, this.typeArguments, this.arguments);
 
   @override
   String toString() =>
@@ -221,7 +221,7 @@ class StaticInvocation extends Expression {
   final List<TypeAnnotation> typeArguments;
   final List<Argument> arguments;
 
-  StaticInvocation(this.function, this.typeArguments, this.arguments);
+  new(this.function, this.typeArguments, this.arguments);
 
   @override
   String toString() => 'StaticInvocation($function,$typeArguments,$arguments)';
@@ -246,7 +246,7 @@ class Instantiation extends Expression {
   final Expression receiver;
   final List<TypeAnnotation> typeArguments;
 
-  Instantiation(this.receiver, this.typeArguments);
+  new(this.receiver, this.typeArguments);
 
   @override
   String toString() => 'Instantiation($receiver,$typeArguments)';
@@ -272,12 +272,7 @@ class MethodInvocation extends Expression {
   final List<TypeAnnotation> typeArguments;
   final List<Argument> arguments;
 
-  MethodInvocation(
-    this.receiver,
-    this.name,
-    this.typeArguments,
-    this.arguments,
-  );
+  new(this.receiver, this.name, this.typeArguments, this.arguments);
 
   @override
   String toString() =>
@@ -307,7 +302,7 @@ class PropertyGet extends Expression {
   final Expression receiver;
   final String name;
 
-  PropertyGet(this.receiver, this.name);
+  new(this.receiver, this.name);
 
   @override
   String toString() => 'PropertyGet($receiver,$name)';
@@ -323,7 +318,7 @@ class NullAwarePropertyGet extends Expression {
   final Expression receiver;
   final String name;
 
-  NullAwarePropertyGet(this.receiver, this.name);
+  new(this.receiver, this.name);
 
   @override
   String toString() => 'NullAwarePropertyGet($receiver,$name)';
@@ -340,7 +335,7 @@ class NullAwarePropertyGet extends Expression {
 class TypeLiteral extends Expression {
   final TypeAnnotation typeAnnotation;
 
-  TypeLiteral(this.typeAnnotation);
+  new(this.typeAnnotation);
 
   @override
   String toString() => 'TypeLiteral($typeAnnotation)';
@@ -357,7 +352,7 @@ class TypeLiteral extends Expression {
 class ParenthesizedExpression extends Expression {
   final Expression expression;
 
-  ParenthesizedExpression(this.expression);
+  new(this.expression);
 
   @override
   String toString() => 'ParenthesizedExpression($expression)';
@@ -376,7 +371,7 @@ class ConditionalExpression extends Expression {
   final Expression then;
   final Expression otherwise;
 
-  ConditionalExpression(this.condition, this.then, this.otherwise);
+  new(this.condition, this.then, this.otherwise);
 
   @override
   String toString() => 'ConditionalExpression($condition,$then,$otherwise)';
@@ -400,7 +395,7 @@ class ListLiteral extends Expression {
   final List<TypeAnnotation> typeArguments;
   final List<Element> elements;
 
-  ListLiteral(this.typeArguments, this.elements);
+  new(this.typeArguments, this.elements);
 
   @override
   String toString() => 'ListLiteral($typeArguments,$elements)';
@@ -424,7 +419,7 @@ class SetOrMapLiteral extends Expression {
   final List<TypeAnnotation> typeArguments;
   final List<Element> elements;
 
-  SetOrMapLiteral(this.typeArguments, this.elements);
+  new(this.typeArguments, this.elements);
 
   @override
   String toString() => 'SetOrMapLiteral($typeArguments,$elements)';
@@ -447,7 +442,7 @@ class SetOrMapLiteral extends Expression {
 class RecordLiteral extends Expression {
   final List<RecordField> fields;
 
-  RecordLiteral(this.fields);
+  new(this.fields);
 
   @override
   String toString() => 'RecordLiteral($fields)';
@@ -463,7 +458,7 @@ class IfNull extends Expression {
   final Expression left;
   final Expression right;
 
-  IfNull(this.left, this.right);
+  new(this.left, this.right);
 
   @override
   String toString() => 'IfNull($left,$right)';
@@ -484,7 +479,7 @@ enum LogicalOperator {
 
   final String text;
 
-  const LogicalOperator(this.text);
+  new(this.text);
 }
 
 class LogicalExpression extends Expression {
@@ -492,7 +487,7 @@ class LogicalExpression extends Expression {
   final LogicalOperator operator;
   final Expression right;
 
-  LogicalExpression(this.left, this.operator, this.right);
+  new(this.left, this.operator, this.right);
 
   @override
   String toString() => 'LogicalExpression($left,$operator,$right)';
@@ -512,7 +507,7 @@ class EqualityExpression extends Expression {
   final Expression right;
   final bool isNotEquals;
 
-  EqualityExpression(this.left, this.right, {required this.isNotEquals});
+  new(this.left, this.right, {required this.isNotEquals});
 
   @override
   String toString() =>
@@ -552,7 +547,7 @@ enum BinaryOperator {
 
   final String text;
 
-  const BinaryOperator(this.text);
+  new(this.text);
 }
 
 class BinaryExpression extends Expression {
@@ -560,7 +555,7 @@ class BinaryExpression extends Expression {
   final BinaryOperator operator;
   final Expression right;
 
-  BinaryExpression(this.left, this.operator, this.right);
+  new(this.left, this.operator, this.right);
 
   @override
   String toString() => 'BinaryExpression($left,$operator,$right)';
@@ -582,14 +577,14 @@ enum UnaryOperator {
 
   final String text;
 
-  const UnaryOperator(this.text);
+  new(this.text);
 }
 
 class UnaryExpression extends Expression {
   final UnaryOperator operator;
   final Expression expression;
 
-  UnaryExpression(this.operator, this.expression);
+  new(this.operator, this.expression);
 
   @override
   String toString() => 'UnaryExpression($operator,$expression)';
@@ -608,7 +603,7 @@ class IsTest extends Expression {
   final TypeAnnotation type;
   final bool isNot;
 
-  IsTest(this.expression, this.type, {required this.isNot});
+  new(this.expression, this.type, {required this.isNot});
 
   @override
   String toString() => 'IsTest($expression,$type,isNot=$isNot)';
@@ -631,7 +626,7 @@ class AsExpression extends Expression {
   final Expression expression;
   final TypeAnnotation type;
 
-  AsExpression(this.expression, this.type);
+  new(this.expression, this.type);
 
   @override
   String toString() => 'AsExpression($expression,$type)';
@@ -649,7 +644,7 @@ class AsExpression extends Expression {
 class NullCheck extends Expression {
   final Expression expression;
 
-  NullCheck(this.expression);
+  new(this.expression);
 
   @override
   String toString() => 'NullCheck($expression)';
@@ -664,7 +659,7 @@ class NullCheck extends Expression {
 class UnresolvedExpression extends Expression {
   final Unresolved unresolved;
 
-  UnresolvedExpression(this.unresolved);
+  new(this.unresolved);
 
   @override
   String toString() => 'UnresolvedExpression($unresolved)';

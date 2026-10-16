@@ -77,7 +77,7 @@ class SimplyBoundedDependencyWalker
   final Linker linker;
   final Map<Element, SimplyBoundedNode> nodeMap = Map.identity();
 
-  SimplyBoundedDependencyWalker(this.linker);
+  new(this.linker);
 
   @override
   void evaluate(SimplyBoundedNode v) {
@@ -216,12 +216,7 @@ class SimplyBoundedNode extends graph.Node<SimplyBoundedNode> {
   /// are simply bounded; `false` indicates that the type is not simply bounded.
   bool isSimplyBounded = true;
 
-  SimplyBoundedNode(
-    this._walker,
-    this._node,
-    this._typeParameters,
-    this._rhsTypes,
-  );
+  new(this._walker, this._node, this._typeParameters, this._rhsTypes);
 
   @override
   List<SimplyBoundedNode> computeDependencies() {

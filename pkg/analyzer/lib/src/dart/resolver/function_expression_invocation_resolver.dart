@@ -24,7 +24,7 @@ class CallInvocationResolver {
   final TypeAnalyzer _typeAnalyzer;
   final TypePropertyResolver _typePropertyResolver;
 
-  CallInvocationResolver({required TypeAnalyzer typeAnalyzer})
+  new({required TypeAnalyzer typeAnalyzer})
     : _typeAnalyzer = typeAnalyzer,
       _typePropertyResolver = typeAnalyzer.typePropertyResolver;
 

@@ -311,7 +311,7 @@ class MatchInfo {
   final int length;
   final MatchKind matchKind;
 
-  MatchInfo(this.offset, this.length, this.matchKind);
+  new(this.offset, this.length, this.matchKind);
 }
 
 /// Instances of the enum [MatchKind] represent the kind of reference that was
@@ -347,7 +347,7 @@ class MatchKind {
 
   final String name;
 
-  const MatchKind(this.name);
+  const new(this.name);
 
   @override
   String toString() => name;
@@ -357,7 +357,7 @@ class ReferencesCollector extends RecursiveAstVisitor2<void> {
   final Element element;
   final List<MatchInfo> references = [];
 
-  ReferencesCollector(this.element);
+  new(this.element);
 
   @override
   void visitCascadeMethodInvocation(CascadeMethodInvocation node) {

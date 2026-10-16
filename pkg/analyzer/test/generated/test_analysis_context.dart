@@ -33,7 +33,7 @@ class TestAnalysisContext implements AnalysisContext {
   late TypeProviderImpl _typeProvider;
   late TypeSystemImpl _typeSystem;
 
-  TestAnalysisContext(ResourceProviderMixin resources)
+  new(ResourceProviderMixin resources)
     : sourceFactory = SourceFactory([_TestUriResolver(resources)]) {
     var sdkElements = MockSdkElements(this, rootReference, _analysisSession);
     coreLibrary = sdkElements.coreLibrary;
@@ -83,7 +83,7 @@ class _MockAnalysisSession implements AnalysisSessionImpl {
 class _TestUriResolver implements UriResolver {
   final ResourceProviderMixin resources;
 
-  _TestUriResolver(this.resources);
+  new(this.resources);
 
   @override
   Uri? pathToUri(String path) => null;

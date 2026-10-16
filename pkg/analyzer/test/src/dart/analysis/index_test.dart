@@ -8226,7 +8226,7 @@ final class _IndexAnnotation {
   final int? labelOrder;
   final String text;
 
-  _IndexAnnotation({
+  new({
     required this.offset,
     required this.length,
     this.labelOrder,
@@ -8238,7 +8238,7 @@ final class _IndexResult {
   final TestResolvedUnitResult resolvedUnit;
   final AnalysisDriverUnitIndex index;
 
-  _IndexResult(this.resolvedUnit, this.index);
+  new(this.resolvedUnit, this.index);
 
   FindElement get findElement => resolvedUnit.findElement;
 }
@@ -8246,7 +8246,7 @@ final class _IndexResult {
 final class _IndexTextBuilder {
   final _IndexResult result;
 
-  _IndexTextBuilder(this.result);
+  new(this.result);
 
   String indexText({
     required Map<String, Element> elements,

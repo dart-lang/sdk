@@ -17,7 +17,7 @@ class CacheCleanUpRequest {
   final int maxSizeBytes;
   final SendPort replyTo;
 
-  CacheCleanUpRequest(this.cachePath, this.maxSizeBytes, this.replyTo);
+  new(this.cachePath, this.maxSizeBytes, this.replyTo);
 }
 
 /// The result that is sent from the clean-up isolate back to the main
@@ -29,7 +29,7 @@ class CacheCleanUpResult {
   final int elapsedMilliseconds;
   final int fileCount;
 
-  CacheCleanUpResult({
+  new({
     required this.currentSizeBytes,
     required this.deletedBytes,
     required this.deletedFileCount,
@@ -60,7 +60,7 @@ class EvictingFileByteStore implements ByteStore {
   int? _lastKnownSizeBytes;
   int? _lastScannedFileCount;
 
-  EvictingFileByteStore(this._cachePath, this._maxSizeBytes)
+  new(this._cachePath, this._maxSizeBytes)
     : _fileByteStore = FileByteStore(_cachePath) {
     _requestCacheCleanUp();
   }
@@ -232,7 +232,7 @@ class FileByteStore implements ByteStore {
 
   /// If the same cache path is used from more than one isolate of the same
   /// process, then a unique [tempNameSuffix] must be provided for each isolate.
-  FileByteStore(this._cachePath, {String tempNameSuffix = ''})
+  new(this._cachePath, {String tempNameSuffix = ''})
     : _tempSuffix =
           '-temp-$pid${tempNameSuffix.isEmpty ? '' : '-$tempNameSuffix'}';
 
@@ -403,7 +403,7 @@ class FuturePool {
   int _pending = 0;
   List<Future Function()> waiting = [];
 
-  FuturePool(this._available);
+  new(this._available);
 
   void execute(Future Function() fn) {
     _pending++;

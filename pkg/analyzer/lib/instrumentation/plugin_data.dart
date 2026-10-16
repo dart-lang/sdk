@@ -13,7 +13,7 @@ class PluginData {
   /// The version of the plugin, or `null` if the plugin is not running.
   final String? version;
 
-  PluginData(this.pluginId, this.name, this.version);
+  new(this.pluginId, this.name, this.version);
 
   /// Adds the information about the plugin to the list of [fields] to be sent
   /// to the instrumentation server.

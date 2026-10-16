@@ -18,7 +18,7 @@ sealed class StringLiteralPart {
 class StringPart extends StringLiteralPart {
   final String text;
 
-  StringPart(this.text);
+  new(this.text);
 
   @override
   String toString() => 'StringPart($text)';
@@ -30,7 +30,7 @@ class StringPart extends StringLiteralPart {
 class InterpolationPart extends StringLiteralPart {
   final Expression expression;
 
-  InterpolationPart(this.expression);
+  new(this.expression);
 
   @override
   String toString() => 'InterpolationPart($expression)';

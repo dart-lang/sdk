@@ -51,7 +51,7 @@ class FileTracker {
   @visibleForTesting
   late final FileTrackerTestView testView = FileTrackerTestView(this);
 
-  FileTracker(this._logger, this._fsState, this._fileContentStrategy);
+  new(this._logger, this._fsState, this._fileContentStrategy);
 
   /// Returns the path to exactly one that needs analysis.
   String? get anyPendingFile {
@@ -238,7 +238,7 @@ class FileTracker {
 class FileTrackerTestView {
   final FileTracker tracker;
 
-  FileTrackerTestView(this.tracker);
+  new(this.tracker);
 
   Set<String> get changedFiles => tracker._changedFiles;
 

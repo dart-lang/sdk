@@ -23,12 +23,11 @@ class BaseOrFinalTypeVerifier {
   /// The source file for which diagnostics are being generated.
   final Source diagnosticSource;
 
-  BaseOrFinalTypeVerifier({
-    required LibraryElement definingLibrary,
-    required DiagnosticReporter diagnosticReporter,
+  new({
+    required this._definingLibrary,
+    required this._diagnosticReporter,
     required this.diagnosticSource,
-  }) : _definingLibrary = definingLibrary,
-       _diagnosticReporter = diagnosticReporter;
+  });
 
   /// Check to ensure the subelement of a base or final element must be base,
   /// final, or sealed and that base elements are not implemented outside of its

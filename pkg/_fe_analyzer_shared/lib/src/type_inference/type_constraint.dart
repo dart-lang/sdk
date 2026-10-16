@@ -22,11 +22,9 @@ class GeneratedTypeConstraint<Variable extends Object> {
   /// `constraint <: typeParameter`.
   final bool isUpper;
 
-  GeneratedTypeConstraint.lower(this.typeParameter, this.constraint)
-    : isUpper = false;
+  new lower(this.typeParameter, this.constraint) : isUpper = false;
 
-  GeneratedTypeConstraint.upper(this.typeParameter, this.constraint)
-    : isUpper = true;
+  new upper(this.typeParameter, this.constraint) : isUpper = true;
 
   @override
   String toString() {
@@ -90,13 +88,9 @@ class MergedTypeConstraint<
   TypeConstraintOrigin<Variable, TypeDeclarationType, TypeDeclaration, AstNode>
   origin;
 
-  MergedTypeConstraint({
-    required this.lower,
-    required this.upper,
-    required this.origin,
-  });
+  new({required this.lower, required this.upper, required this.origin});
 
-  MergedTypeConstraint.fromExtends({
+  new fromExtends({
     required String typeParameterName,
     required SharedTypeView boundType,
     required SharedTypeView extendsType,
@@ -220,7 +214,7 @@ class TypeConstraintFromArgument<
   final SharedTypeView parameterType;
   final String parameterName;
 
-  TypeConstraintFromArgument({
+  new({
     required this.argumentType,
     required this.parameterType,
     required this.parameterName,
@@ -275,7 +269,7 @@ class TypeConstraintFromExtendsClause<
   /// For example `Iterable<int>` if `T` inferred to `int`.
   final SharedTypeView extendsType;
 
-  TypeConstraintFromExtendsClause({
+  new({
     required this.typeParameterName,
     required this.boundType,
     required this.extendsType,
@@ -316,10 +310,7 @@ class TypeConstraintFromFunctionContext<
   final SharedType contextType;
   final SharedType functionType;
 
-  TypeConstraintFromFunctionContext({
-    required this.functionType,
-    required this.contextType,
-  });
+  new({required this.functionType, required this.contextType});
 
   @override
   List<String> formatError(
@@ -355,10 +346,7 @@ class TypeConstraintFromReturnType<
   final SharedType contextType;
   final SharedType declaredType;
 
-  TypeConstraintFromReturnType({
-    required this.declaredType,
-    required this.contextType,
-  });
+  new({required this.declaredType, required this.contextType});
 
   @override
   List<String> formatError(
@@ -387,7 +375,7 @@ abstract class TypeConstraintOrigin<
   TypeDeclaration extends Object,
   AstNode extends Object
 > {
-  const TypeConstraintOrigin();
+  const new();
 
   List<String> formatError(
     TypeAnalyzerOperations<
@@ -413,7 +401,7 @@ class UnknownTypeConstraintOrigin<
           TypeDeclaration,
           AstNode
         > {
-  const UnknownTypeConstraintOrigin();
+  const new();
 
   @override
   List<String> formatError(

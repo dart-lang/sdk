@@ -144,7 +144,7 @@ class EnclosingExecutableContext {
   /// The number of enclosing [CatchClause] in this executable.
   int catchClauseLevel = 0;
 
-  EnclosingExecutableContext(
+  new(
     this.element, {
     required this.isAsynchronous,
     required this.isGenerator,
@@ -157,8 +157,7 @@ class EnclosingExecutableContext {
        inFactoryConstructor = _inFactoryConstructor(element),
        inStaticMethod = _inStaticMethod(element);
 
-  EnclosingExecutableContext.empty()
-    : this(null, isAsynchronous: false, isGenerator: false);
+  new empty() : this(null, isAsynchronous: false, isGenerator: false);
 
   String? get displayName {
     return element?.displayName;
@@ -296,7 +295,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   final TypeSystemOperations typeSystemOperations;
 
   /// Initialize a newly created error verifier.
-  ErrorVerifier(
+  new(
     this.diagnosticReporter,
     this._currentLibrary,
     this._currentUnit,
@@ -8802,7 +8801,7 @@ class HiddenElements {
 
   /// Initialize a newly created set of hidden elements to include all of the
   /// elements defined in [outerElements] and the given [elements].
-  HiddenElements.forElements(this.outerElements, Iterable<Element> elements) {
+  new forElements(this.outerElements, Iterable<Element> elements) {
     _elements.addAll(elements);
   }
 
@@ -8841,10 +8840,7 @@ class LibraryVerificationContext {
   /// Key: the declaration element.
   final Map<MixinElement, Set<InterfaceElement>> _setOfOnMaps = Map.identity();
 
-  LibraryVerificationContext({
-    required this.libraryKind,
-    required this.constructorFieldsVerifier,
-  });
+  new({required this.libraryKind, required this.constructorFieldsVerifier});
 
   bool libraryCycleContains(Uri uri) {
     return libraryKind.libraryCycle.libraryUris.contains(uri);
@@ -8873,7 +8869,7 @@ enum ThisContext {
 
   final bool allowsThis;
 
-  const ThisContext({required this.allowsThis});
+  new({required this.allowsThis});
 }
 
 /// Kinds of null-aware accesses handled by
@@ -8890,7 +8886,7 @@ enum _NullAwareKind {
 
   final bool canParticipateInShortCircuiting;
 
-  const _NullAwareKind({this.canParticipateInShortCircuiting = false});
+  new({this.canParticipateInShortCircuiting = false});
 
   LocatableDiagnostic locatableDiagnostic({
     required bool becauseOfShortCircuiting,
@@ -8930,7 +8926,7 @@ enum _NullAwareKind {
 class _UninstantiatedBoundChecker extends RecursiveAstVisitor2<void> {
   final DiagnosticReporter _diagnosticReporter;
 
-  _UninstantiatedBoundChecker(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   @override
   void visitNamedType(NamedType node) {

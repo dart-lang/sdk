@@ -10,7 +10,7 @@ import 'package:analyzer/src/error/listener.dart';
 /// See: https://nvd.nist.gov/vuln/detail/CVE-2021-22567
 class UnicodeTextVerifier {
   final DiagnosticReporter _diagnosticReporter;
-  UnicodeTextVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   void verify(CompilationUnit unit, String source) {
     // Optimization: We assume that we won't find any of these. Doing the loop

@@ -90,7 +90,7 @@ final class AdjacentStringsImpl extends StringLiteralImpl
   final NodeListImpl<StringLiteralImpl> strings = NodeListImpl._();
 
   @generated
-  AdjacentStringsImpl({required List<StringLiteralImpl> strings}) {
+  new({required List<StringLiteralImpl> strings}) {
     this.strings._initialize(this, strings);
   }
 
@@ -252,7 +252,7 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the node
   /// doesn't have the corresponding attribute.
-  AnnotatedNodeImpl({
+  new({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,
   }) {
@@ -399,7 +399,7 @@ final class AnnotationImpl extends AstNodeImpl
   @DoNotGenerate(
     reason: 'Wires a V2-only child in a node shared by both AST views',
   )
-  AnnotationImpl({required this.atSign, required ExpressionImpl expression})
+  new({required this.atSign, required ExpressionImpl expression})
     : _expression = expression {
     _becomeParentOf2(expression);
   }
@@ -623,7 +623,7 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   BodyInferenceContext? bodyContext;
 
   @generated
-  AnonymousBlockBodyImpl({required BlockImpl block}) : _block = block {
+  new({required BlockImpl block}) : _block = block {
     _becomeParentOf12(block);
   }
 
@@ -781,10 +781,8 @@ final class AnonymousExpressionBodyImpl extends AnonymousMethodBodyImpl
   ExpressionImpl _expression2;
 
   @generated
-  AnonymousExpressionBodyImpl({
-    required this.functionDefinition,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.functionDefinition, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -1026,7 +1024,7 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   LocalFunctionFragmentImpl? declaredFragment;
 
   @generated
-  AnonymousMethodInvocationImpl({
+  new({
     required ExpressionImpl? target2,
     required this.operator,
     required FormalParameterListImpl? parameters,
@@ -1411,7 +1409,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   List<InternalFormalParameterElement?>? _correspondingStaticParameters;
 
   @generated
-  ArgumentListImpl({
+  new({
     required this.leftParenthesis,
     required List<ArgumentImpl> arguments2,
     required this.rightParenthesis,
@@ -1613,7 +1611,7 @@ final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   TypeAnnotationImpl _type;
 
   @generated
-  AsExpressionImpl({
+  new({
     required ExpressionImpl expression2,
     required this.asOperator,
     required TypeAnnotationImpl type,
@@ -1838,7 +1836,7 @@ final class AssertInitializerImpl extends ConstructorInitializerImpl
   final Token rightParenthesis;
 
   @generated
-  AssertInitializerImpl({
+  new({
     required this.assertKeyword,
     required this.leftParenthesis,
     required ExpressionImpl condition2,
@@ -2119,7 +2117,7 @@ final class AssertStatementImpl extends StatementImpl
   final Token semicolon;
 
   @generated
-  AssertStatementImpl({
+  new({
     required this.assertKeyword,
     required this.leftParenthesis,
     required ExpressionImpl condition2,
@@ -2337,7 +2335,7 @@ final class AssignedVariablePatternImpl extends VariablePatternImpl
   Element? element;
 
   @generated
-  AssignedVariablePatternImpl({required super.name});
+  new({required super.name});
 
   @generated
   @override
@@ -2484,7 +2482,7 @@ abstract base class AssignmentExpression2Impl extends ExpressionImpl
 
   ExpressionImpl _value;
 
-  AssignmentExpression2Impl({
+  new({
     required AssignmentTargetImpl target,
     required this.operator,
     required ExpressionImpl value,
@@ -2533,20 +2531,19 @@ final class AssignmentExpressionImpl extends ExpressionImpl
 
   final AssignmentExpression2Impl _v1ProjectionOrigin;
 
-  AssignmentExpressionImpl.v1ProjectionFromCompound(
-    CompoundAssignmentImpl origin,
-  ) : operator = origin.operator,
-      _v1ProjectionOrigin = origin {
-    _attachV1Children();
-  }
-
-  AssignmentExpressionImpl.v1ProjectionFromDirect(DirectAssignmentImpl origin)
+  new v1ProjectionFromCompound(CompoundAssignmentImpl origin)
     : operator = origin.operator,
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  AssignmentExpressionImpl.v1ProjectionFromIfNull(IfNullAssignmentImpl origin)
+  new v1ProjectionFromDirect(DirectAssignmentImpl origin)
+    : operator = origin.operator,
+      _v1ProjectionOrigin = origin {
+    _attachV1Children();
+  }
+
+  new v1ProjectionFromIfNull(IfNullAssignmentImpl origin)
     : operator = origin.operator,
       _v1ProjectionOrigin = origin {
     _attachV1Children();
@@ -3471,7 +3468,7 @@ final class AttemptedConstantEvaluationResult {
   /// The diagnostics reported during the evaluation.
   final List<Diagnostic> diagnostics;
 
-  AttemptedConstantEvaluationResult._(this.value, this.diagnostics);
+  new _(this.value, this.diagnostics);
 }
 
 /// An await expression.
@@ -3511,10 +3508,8 @@ final class AwaitExpressionImpl extends ExpressionImpl
   ExpressionImpl _expression2;
 
   @generated
-  AwaitExpressionImpl({
-    required this.awaitKeyword,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.awaitKeyword, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -3700,20 +3695,19 @@ final class BinaryExpressionImpl extends ExpressionImpl
     implements BinaryExpression {
   final ExpressionImpl _origin;
 
-  BinaryExpressionImpl._and(LogicalAndImpl origin) : _origin = origin {
+  new _and(LogicalAndImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
-  BinaryExpressionImpl._ifNull(IfNullImpl origin) : _origin = origin {
+  new _ifNull(IfNullImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
-  BinaryExpressionImpl._operator(BinaryOperatorInvocationImpl origin)
-    : _origin = origin {
+  new _operator(BinaryOperatorInvocationImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
-  BinaryExpressionImpl._or(LogicalOrImpl origin) : _origin = origin {
+  new _or(LogicalOrImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
@@ -3962,7 +3956,7 @@ final class BinaryOperatorInvocationImpl extends ExpressionImpl
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
-  BinaryOperatorInvocationImpl({
+  new({
     required InstanceReceiverImpl leftOperand,
     required this.operator,
     required ExpressionImpl rightOperand,
@@ -4210,7 +4204,7 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   final Token rightBracket;
 
   @generated
-  BlockClassBodyImpl({
+  new({
     required this.leftBracket,
     required List<ClassMemberImpl> members,
     required this.rightBracket,
@@ -4373,7 +4367,7 @@ final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
   final Token rightBracket;
 
   @generated
-  BlockEnumBodyImpl({
+  new({
     required this.leftBracket,
     required List<EnumConstantDeclarationImpl> constants,
     required this.semicolon,
@@ -4554,11 +4548,8 @@ final class BlockFunctionBodyImpl extends FunctionBodyImpl
   BlockImpl _block;
 
   @generated
-  BlockFunctionBodyImpl({
-    required this.keyword,
-    required this.star,
-    required BlockImpl block,
-  }) : _block = block {
+  new({required this.keyword, required this.star, required BlockImpl block})
+    : _block = block {
     _becomeParentOf12(block);
   }
 
@@ -4734,7 +4725,7 @@ final class BlockImpl extends StatementImpl
   final Token rightBracket;
 
   @generated
-  BlockImpl({
+  new({
     required this.leftBracket,
     required List<StatementImpl> statements2,
     required this.rightBracket,
@@ -4882,7 +4873,7 @@ final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   final bool value;
 
   @generated
-  BooleanLiteralImpl({required this.literal, required this.value});
+  new({required this.literal, required this.value});
 
   @generated
   @override
@@ -5007,7 +4998,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   AstNode? target;
 
   @generated
-  BreakStatementImpl({
+  new({
     required this.breakKeyword,
     required LabelReferenceImpl? label,
     required this.semicolon,
@@ -5161,7 +5152,7 @@ final class CallInvocationImpl extends FunctionInvocationImpl
   InstanceReceiverImpl _receiver;
 
   @generated
-  CallInvocationImpl({
+  new({
     required InstanceReceiverImpl receiver,
     required super.typeArguments,
     required super.argumentList,
@@ -5398,7 +5389,7 @@ final class CascadeExpressionImpl extends ExpressionImpl
       );
 
   @DoNotGenerate(reason: 'Projects section bodies into the V1 view')
-  CascadeExpressionImpl({
+  new({
     required ExpressionImpl target2,
     required List<CascadeSectionImpl> sections,
   }) : _target2 = target2 {
@@ -5587,7 +5578,7 @@ abstract final class CascadeIndexAssignmentTarget
 final class CascadeIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
     implements CascadeIndexAssignmentTarget {
   @generated
-  CascadeIndexAssignmentTargetImpl({
+  new({
     required super.leftBracket,
     required super.index,
     required super.rightBracket,
@@ -5720,7 +5711,7 @@ abstract final class CascadeIndexExpression implements IndexExpression2 {}
 final class CascadeIndexExpressionImpl extends IndexExpression2Impl
     implements CascadeIndexExpression {
   @generated
-  CascadeIndexExpressionImpl({
+  new({
     required super.leftBracket,
     required super.index,
     required super.rightBracket,
@@ -5866,7 +5857,7 @@ final class CascadeMethodInvocationImpl extends NamedFunctionInvocationImpl
   MethodInvocationImpl? _methodInvocation;
 
   @generated
-  CascadeMethodInvocationImpl({
+  new({
     required super.name,
     required super.typeArguments,
     required super.argumentList,
@@ -6037,7 +6028,7 @@ final class CascadePropertyAssignmentTargetImpl
   PropertyAccessImpl? _propertyAccess;
 
   @generated
-  CascadePropertyAssignmentTargetImpl({required super.name});
+  new({required super.name});
 
   @generated
   @override
@@ -6145,7 +6136,7 @@ final class CascadePropertyExtractionImpl extends PropertyExtractionImpl
   PropertyAccessImpl? _propertyAccess;
 
   @generated
-  CascadePropertyExtractionImpl({required super.name});
+  new({required super.name});
 
   @generated
   @override
@@ -6262,8 +6253,7 @@ final class CascadeSectionImpl extends AstNodeImpl implements CascadeSection {
   ExpressionImpl _body;
 
   @generated
-  CascadeSectionImpl({required this.operator, required ExpressionImpl body})
-    : _body = body {
+  new({required this.operator, required ExpressionImpl body}) : _body = body {
     _becomeParentOf2(body);
   }
 
@@ -6430,10 +6420,8 @@ final class CaseClauseImpl extends AstNodeImpl
   GuardedPatternImpl _guardedPattern;
 
   @generated
-  CaseClauseImpl({
-    required this.caseKeyword,
-    required GuardedPatternImpl guardedPattern,
-  }) : _guardedPattern = guardedPattern {
+  new({required this.caseKeyword, required GuardedPatternImpl guardedPattern})
+    : _guardedPattern = guardedPattern {
     _becomeParentOf12(guardedPattern);
   }
 
@@ -6591,7 +6579,7 @@ final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   TypeAnnotationImpl _type;
 
   @generated
-  CastPatternImpl({
+  new({
     required DartPatternImpl pattern,
     required this.asToken,
     required TypeAnnotationImpl type,
@@ -6877,7 +6865,7 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   BlockImpl _body;
 
   @generated
-  CatchClauseImpl({
+  new({
     required this.onKeyword,
     required TypeAnnotationImpl? exceptionType,
     required this.catchKeyword,
@@ -7186,7 +7174,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   LocalVariableFragmentImpl? declaredFragment;
 
   @generated
-  CatchClauseParameterImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -7317,7 +7305,7 @@ class ChildEntity {
   final String name;
   final Object value;
 
-  ChildEntity(this.name, this.value);
+  new(this.name, this.value);
 }
 
 /// The body of a class declaration.
@@ -7472,7 +7460,7 @@ final class ClassDeclarationImpl extends CompilationUnitMemberImpl
   Scope? bodyScope;
 
   @generated
-  ClassDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -7860,7 +7848,7 @@ sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
-  ClassMemberImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
@@ -8001,7 +7989,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   Scope? typeParameterScope;
 
   @generated
-  ClassTypeAliasImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.augmentKeyword,
@@ -8337,7 +8325,7 @@ sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
   final Token keyword;
 
   /// Initializes a newly created combinator.
-  CombinatorImpl({required this.keyword});
+  new({required this.keyword});
 
   @override
   Token get beginToken => keyword;
@@ -8380,7 +8368,7 @@ final class CombinatorNameImpl extends AstNodeImpl implements CombinatorName {
   SimpleIdentifierImpl? _v1Projection;
 
   @generated
-  CombinatorNameImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -8545,7 +8533,7 @@ final class CommentImpl extends AstNodeImpl
   ///
   /// The list of [references] can be empty if the comment doesn't contain any
   /// embedded references.
-  CommentImpl({
+  new({
     required this.tokens,
     required List<CommentReferenceImpl> references,
     required this.codeBlocks,
@@ -8728,7 +8716,7 @@ final class CommentReferenceComponentImpl extends AstNodeImpl
   SimpleIdentifierImpl? _v1Projection;
 
   @generated
-  CommentReferenceComponentImpl({
+  new({
     required this.period,
     required this.operatorKeyword,
     required this.name,
@@ -8854,7 +8842,7 @@ final class CommentReferenceImpl extends AstNodeImpl
   CommentReferableExpressionImpl? _expression;
 
   @generated
-  CommentReferenceImpl({
+  new({
     required List<CommentReferenceComponentImpl> components,
     required this.isSynthetic,
   }) {
@@ -9171,7 +9159,7 @@ final class CompilationUnitImpl extends AstNodeImpl
   /// Initializes a newly created compilation unit to have the given directives
   /// and declarations.
   ///
-  /// The [scriptTag] can be `null` if there's no script tag in the compilation
+  /// The [_scriptTag] can be `null` if there's no script tag in the compilation
   /// unit.
   ///
   /// The list of [directives] can be `null` if there are no directives in the
@@ -9179,9 +9167,9 @@ final class CompilationUnitImpl extends AstNodeImpl
   ///
   /// The list of [declarations2] can be `null` if there are no declarations in
   /// the compilation unit.
-  CompilationUnitImpl({
+  new({
     required this.beginToken,
-    required ScriptTagImpl? scriptTag,
+    required this._scriptTag,
     required List<DirectiveImpl>? directives,
     required List<TopLevelDeclarationV1OrV2Impl>? declarations2,
     required this.endToken,
@@ -9189,7 +9177,7 @@ final class CompilationUnitImpl extends AstNodeImpl
     required this.lineInfo,
     required this.invalidNodes,
     required this.languageVersion,
-  }) : _scriptTag = scriptTag {
+  }) {
     _becomeParentOf12(_scriptTag);
     _directives._initialize(this, directives);
     _declarations2._initializeProjected(this, declarations2);
@@ -9457,7 +9445,7 @@ sealed class CompilationUnitMemberImpl extends DeclarationImpl
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the member
   /// doesn't have the corresponding attribute.
-  CompilationUnitMemberImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 }
 
 /// A compound assignment using an overloadable binary operator.
@@ -9566,11 +9554,7 @@ final class CompoundAssignmentImpl extends AssignmentExpression2Impl
   TypeImpl? operatorResultType;
 
   @generated
-  CompoundAssignmentImpl({
-    required super.target,
-    required super.operator,
-    required super.value,
-  });
+  new({required super.target, required super.operator, required super.value});
 
   /// The cached V1 compatibility projection for this expression.
   @V1Ast()
@@ -9818,7 +9802,7 @@ final class ConditionalExpressionImpl extends ExpressionImpl
   ExpressionImpl _elseExpression2;
 
   @generated
-  ConditionalExpressionImpl({
+  new({
     required ExpressionImpl condition2,
     required this.question,
     required ExpressionImpl thenExpression2,
@@ -10130,7 +10114,7 @@ final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   DirectiveUri? resolvedUri;
 
   @generated
-  ConfigurationImpl({
+  new({
     required this.ifKeyword,
     required this.leftParenthesis,
     required DottedNameImpl name,
@@ -10342,7 +10326,7 @@ final class ConstantContextForExpressionImpl extends AstNodeImpl {
   final Fragment variable;
   final ExpressionImpl expression;
 
-  ConstantContextForExpressionImpl(this.variable, this.expression) {
+  new(this.variable, this.expression) {
     _becomeParentOf12(expression);
   }
 
@@ -10405,10 +10389,8 @@ final class ConstantPatternImpl extends DartPatternImpl
   ExpressionImpl _expression2;
 
   @generated
-  ConstantPatternImpl({
-    required this.constKeyword,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.constKeyword, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -10754,7 +10736,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   @DoNotGenerate(
     reason: 'Wires a V2-only child in a node shared by both AST views',
   )
-  ConstructorDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -11183,7 +11165,7 @@ final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
   SimpleIdentifierImpl? _fieldName;
 
   @generated
-  ConstructorFieldInitializerImpl({
+  new({
     required this.thisKeyword,
     required this.period,
     required this.fieldName2,
@@ -11415,7 +11397,7 @@ final class ConstructorInvocationImpl extends ExpressionImpl
   InstanceCreationExpressionImpl? _instanceCreationExpression;
 
   @generated
-  ConstructorInvocationImpl({
+  new({
     required this.keyword,
     required ConstructorReference2Impl constructorReference,
     required TypeArgumentListImpl? typeArguments,
@@ -11695,7 +11677,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   final SimpleIdentifierImpl? _parsedName;
 
-  ConstructorNameImpl.v1ProjectionFromParsedExpression({
+  new v1ProjectionFromParsedExpression({
     required NamedTypeImpl type,
     required Token period,
     required Token name,
@@ -11707,7 +11689,7 @@ final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
     _becomeParentOf1(_parsedName);
   }
 
-  ConstructorNameImpl._(this._origin)
+  new _(this._origin)
     : _parsedType = null,
       _parsedPeriod = null,
       _parsedName = null {
@@ -11945,7 +11927,7 @@ final class ConstructorReference2Impl extends AstNodeImpl
   late final ConstructorNameImpl constructorName = ConstructorNameImpl._(this);
 
   @generated
-  ConstructorReference2Impl({
+  new({
     required ConstructorTypeReferenceImpl typeReference,
     required ConstructorSelectorImpl? selector,
   }) : _typeReference = typeReference,
@@ -12127,7 +12109,7 @@ final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
   final ConstructorTearOffImpl _origin;
 
   @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
-  ConstructorReferenceImpl._(this._origin) {
+  new _(this._origin) {
     _attachV1Children();
   }
 
@@ -12309,9 +12291,9 @@ final class ConstructorSelectorImpl extends AstNodeImpl
   InternalConstructorElement? _element;
 
   @generated
-  ConstructorSelectorImpl({required this.period, required this.name2});
+  new({required this.period, required this.name2});
 
-  ConstructorSelectorImpl.v2({required this.period, required this.name2})
+  new v2({required this.period, required this.name2})
     : _astNodeApiOverride = AstNodeApi.v2;
 
   @generated
@@ -12454,7 +12436,7 @@ final class ConstructorTearOffImpl extends ExpressionImpl
   late final ConstructorNameImpl constructorName = ConstructorNameImpl._(this);
 
   @generated
-  ConstructorTearOffImpl({
+  new({
     required ConstructorTypeReferenceImpl typeReference,
     required ConstructorSelectorImpl selector,
   }) : _typeReference = typeReference,
@@ -12699,7 +12681,7 @@ final class ConstructorTypeReferenceImpl extends AstNodeImpl
   late final NamedTypeImpl namedType = NamedTypeImpl.v1Projection(this);
 
   @generated
-  ConstructorTypeReferenceImpl({
+  new({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
     required TypeArgumentListImpl? typeArguments,
@@ -12922,7 +12904,7 @@ final class ContinueStatementImpl extends StatementImpl
   AstNode? target;
 
   @generated
-  ContinueStatementImpl({
+  new({
     required this.continueKeyword,
     required LabelReferenceImpl? label,
     required this.semicolon,
@@ -13170,7 +13152,7 @@ sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// declaration doesn't have the corresponding attribute.
-  DeclarationImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 
   @override
   FragmentImpl? get declaredFragment;
@@ -13230,7 +13212,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   LocalVariableFragmentImpl? declaredFragment;
 
   @generated
-  DeclaredIdentifierImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.keyword,
@@ -13427,7 +13409,7 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
   BindPatternVariableFragmentImpl? declaredFragment;
 
   @generated
-  DeclaredVariablePatternImpl({
+  new({
     required this.keyword,
     required TypeAnnotationImpl? type,
     required super.name,
@@ -13657,7 +13639,7 @@ final class DelimitedFormalParametersImpl extends AstNodeImpl
   final Token rightDelimiter;
 
   @generated
-  DelimitedFormalParametersImpl({
+  new({
     required this.leftDelimiter,
     required List<FormalParameterImpl> formalParameters,
     required this.rightDelimiter,
@@ -13816,11 +13798,7 @@ final class DirectAssignmentImpl extends AssignmentExpression2Impl
   AssignmentExpressionImpl? _assignmentExpression;
 
   @generated
-  DirectAssignmentImpl({
-    required super.target,
-    required super.operator,
-    required super.value,
-  });
+  new({required super.target, required super.operator, required super.value});
 
   /// The cached V1 compatibility projection for this expression.
   @V1Ast()
@@ -13990,7 +13968,7 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// directive doesn't have the corresponding attribute.
-  DirectiveImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 }
 
 /// Works together with [GenerateNodeImpl], annotated constructors and methods
@@ -13998,7 +13976,7 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
 class DoNotGenerate {
   final String reason;
 
-  const DoNotGenerate({required this.reason});
+  const new({required this.reason});
 }
 
 /// A do statement.
@@ -14084,7 +14062,7 @@ final class DoStatementImpl extends StatementImpl implements DoStatement {
   final Token semicolon;
 
   @generated
-  DoStatementImpl({
+  new({
     required this.doKeyword,
     required StatementImpl body2,
     required this.whileKeyword,
@@ -14370,7 +14348,7 @@ final class DotShorthandConstructorInvocation2Impl extends ExpressionImpl
   DotShorthandConstructorInvocationImpl? _dotShorthandConstructorInvocation;
 
   @generated
-  DotShorthandConstructorInvocation2Impl({
+  new({
     required this.constKeyword,
     required this.period,
     required this.name,
@@ -14610,7 +14588,7 @@ final class DotShorthandConstructorInvocationImpl
 
   final DotShorthandConstructorInvocation2Impl _v1ProjectionOrigin;
 
-  DotShorthandConstructorInvocationImpl.v1ProjectionFromConstructorInvocation(
+  new v1ProjectionFromConstructorInvocation(
     DotShorthandConstructorInvocation2Impl origin,
   ) : period = origin.period,
       _constructorName = SimpleIdentifierImpl.v1Projection(token: origin.name),
@@ -14831,7 +14809,7 @@ abstract final class DotShorthandContextResolution {}
 
 sealed class DotShorthandContextResolutionImpl
     implements DotShorthandContextResolution {
-  const DotShorthandContextResolutionImpl();
+  const new();
 }
 
 /// A value-producing dot-shorthand head.
@@ -14893,9 +14871,8 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
 
   final ParsedExpressionImpl? _parsedExpressionOrigin;
 
-  DotShorthandInvocationImpl.v1ProjectionFromMethodInvocation(
-    DotShorthandMethodInvocationImpl origin,
-  ) : period = origin.period,
+  new v1ProjectionFromMethodInvocation(DotShorthandMethodInvocationImpl origin)
+    : period = origin.period,
       _memberName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin,
       _parsedExpressionOrigin = null,
@@ -14906,7 +14883,7 @@ final class DotShorthandInvocationImpl extends InvocationExpressionImpl
     _attachV1Children();
   }
 
-  DotShorthandInvocationImpl.v1ProjectionFromParsedExpression({
+  new v1ProjectionFromParsedExpression({
     required ParsedExpressionImpl origin,
     required this.period,
     required Token name,
@@ -15161,7 +15138,7 @@ final class DotShorthandMethodInvocationImpl extends NamedFunctionInvocationImpl
   DotShorthandInvocationImpl? _dotShorthandInvocation;
 
   @generated
-  DotShorthandMethodInvocationImpl({
+  new({
     required this.period,
     required super.name,
     required super.typeArguments,
@@ -15356,7 +15333,7 @@ final class DotShorthandNameExpressionImpl extends NameExpressionImpl
   DotShorthandPropertyAccessImpl? _dotShorthandPropertyAccess;
 
   @generated
-  DotShorthandNameExpressionImpl({required this.period, required this.name});
+  new({required this.period, required this.name});
 
   @generated
   @override
@@ -15489,18 +15466,16 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 
   final ParsedDotShorthandNameImpl? _parsedExpressionOrigin;
 
-  DotShorthandPropertyAccessImpl.v1ProjectionFromNameExpression(
-    DotShorthandNameExpressionImpl origin,
-  ) : period = origin.period,
+  new v1ProjectionFromNameExpression(DotShorthandNameExpressionImpl origin)
+    : period = origin.period,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _parsedExpressionOrigin = null,
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  DotShorthandPropertyAccessImpl.v1ProjectionFromParsedExpression(
-    ParsedDotShorthandNameImpl origin,
-  ) : period = origin.period,
+  new v1ProjectionFromParsedExpression(ParsedDotShorthandNameImpl origin)
+    : period = origin.period,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = null,
       _parsedExpressionOrigin = origin {
@@ -15668,7 +15643,7 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
   final List<Token> tokens;
 
   @generated
-  DottedNameImpl({required this.tokens});
+  new({required this.tokens});
 
   @generated
   @override
@@ -15765,7 +15740,7 @@ final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   final double value;
 
   @generated
-  DoubleLiteralImpl({required this.literal, required this.value});
+  new({required this.literal, required this.value});
 
   @generated
   @override
@@ -15843,7 +15818,7 @@ abstract final class DynamicIndexReadResolution
 
 final class DynamicIndexReadResolutionImpl extends IndexReadResolutionImpl
     implements DynamicIndexReadResolution {
-  const DynamicIndexReadResolutionImpl();
+  const new();
 
   @override
   TypeImpl get indexContextType => UnknownInferredType.instance;
@@ -15860,7 +15835,7 @@ abstract final class DynamicIndexWriteResolution
 
 final class DynamicIndexWriteResolutionImpl extends IndexWriteResolutionImpl
     implements DynamicIndexWriteResolution {
-  const DynamicIndexWriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType => DynamicTypeImpl.instance;
@@ -15884,7 +15859,7 @@ final class DynamicInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  DynamicInvocationResolutionImpl({required this.type});
+  new({required this.type});
 }
 
 /// A property read whose getter is selected dynamically at runtime.
@@ -15895,7 +15870,7 @@ abstract final class DynamicPropertyReadResolution
 
 final class DynamicPropertyReadResolutionImpl extends NamedReadResolutionImpl
     implements DynamicPropertyReadResolution {
-  DynamicPropertyReadResolutionImpl();
+  new();
 
   @override
   TypeImpl get type => DynamicTypeImpl.instance;
@@ -15909,7 +15884,7 @@ abstract final class DynamicPropertyWriteResolution
 
 final class DynamicPropertyWriteResolutionImpl extends NamedWriteResolutionImpl
     implements DynamicPropertyWriteResolution {
-  const DynamicPropertyWriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType => DynamicTypeImpl.instance;
@@ -15933,7 +15908,7 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
     .._initialize(this, null);
 
   @generated
-  EmptyClassBodyImpl({required this.semicolon});
+  new({required this.semicolon});
 
   @generated
   @override
@@ -16019,7 +15994,7 @@ final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
     .._initialize(this, null);
 
   @generated
-  EmptyEnumBodyImpl({required this.semicolon});
+  new({required this.semicolon});
 
   @generated
   @override
@@ -16104,7 +16079,7 @@ final class EmptyFunctionBodyImpl extends FunctionBodyImpl
   final Token semicolon;
 
   @generated
-  EmptyFunctionBodyImpl({required this.semicolon});
+  new({required this.semicolon});
 
   @generated
   @override
@@ -16189,7 +16164,7 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   final Token semicolon;
 
   @generated
-  EmptyStatementImpl({required this.semicolon});
+  new({required this.semicolon});
 
   @generated
   @override
@@ -16312,7 +16287,7 @@ final class EnumConstantArgumentsImpl extends AstNodeImpl
   ArgumentListImpl _argumentList;
 
   @generated
-  EnumConstantArgumentsImpl({
+  new({
     required TypeArgumentListImpl? typeArguments,
     required ConstructorSelectorImpl? constructorSelector,
     required ArgumentListImpl argumentList,
@@ -16575,7 +16550,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   InternalConstructorElement? constructorElement;
 
   @generated
-  EnumConstantDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -16798,7 +16773,7 @@ final class EnumDeclarationImpl extends CompilationUnitMemberImpl
   Scope? bodyScope;
 
   @generated
-  EnumDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -17083,11 +17058,7 @@ final class ExecutableInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  ExecutableInvocationResolutionImpl({
-    required this.element,
-    required this.invokeType,
-    required this.type,
-  });
+  new({required this.element, required this.invokeType, required this.type});
 }
 
 /// A read that produces the tear-off of an executable declaration.
@@ -17112,7 +17083,7 @@ final class ExecutableTearOffResolutionImpl
   @override
   final InternalExecutableElement element;
 
-  ExecutableTearOffResolutionImpl({required this.element});
+  new({required this.element});
 
   @override
   TypeImpl get type => element.type;
@@ -17152,7 +17123,7 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   LibraryExportImpl? libraryExport;
 
   @generated
-  ExportDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.exportKeyword,
@@ -17495,7 +17466,7 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   final Token? semicolon;
 
   @generated
-  ExpressionFunctionBodyImpl({
+  new({
     required this.keyword,
     required this.star,
     required this.functionDefinition,
@@ -18096,10 +18067,8 @@ final class ExpressionStatementImpl extends StatementImpl
   final Token? semicolon;
 
   @generated
-  ExpressionStatementImpl({
-    required ExpressionImpl expression2,
-    required this.semicolon,
-  }) : _expression2 = expression2 {
+  new({required ExpressionImpl expression2, required this.semicolon})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -18262,10 +18231,8 @@ final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   NamedTypeImpl _superclass;
 
   @generated
-  ExtendsClauseImpl({
-    required this.extendsKeyword,
-    required NamedTypeImpl superclass,
-  }) : _superclass = superclass {
+  new({required this.extendsKeyword, required NamedTypeImpl superclass})
+    : _superclass = superclass {
     _becomeParentOf12(superclass);
   }
 
@@ -18463,7 +18430,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   Scope? bodyScope;
 
   @generated
-  ExtensionDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -18722,10 +18689,8 @@ final class ExtensionOnClauseImpl extends AstNodeImpl
   TypeAnnotationImpl _extendedType;
 
   @generated
-  ExtensionOnClauseImpl({
-    required this.onKeyword,
-    required TypeAnnotationImpl extendedType,
-  }) : _extendedType = extendedType {
+  new({required this.onKeyword, required TypeAnnotationImpl extendedType})
+    : _extendedType = extendedType {
     _becomeParentOf12(extendedType);
   }
 
@@ -18972,7 +18937,7 @@ final class ExtensionOverride2Impl extends InstanceReceiverImpl
   TypeImpl? extendedType;
 
   @generated
-  ExtensionOverride2Impl({
+  new({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
     required TypeArgumentListImpl? typeArguments,
@@ -19203,7 +19168,7 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     implements ExtensionOverride {
   final ExtensionOverride2Impl _origin;
 
-  ExtensionOverrideImpl.v1Projection(this._origin);
+  new v1Projection(this._origin);
 
   @DoNotGenerate(reason: 'Preserves V1 parent links')
   @override
@@ -19437,7 +19402,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
   Scope? bodyScope;
 
   @generated
-  ExtensionTypeDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -19763,7 +19728,7 @@ final class FieldDeclarationImpl extends ClassMemberImpl
   final Token semicolon;
 
   @generated
-  FieldDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -19983,7 +19948,7 @@ final class FieldFormalParameterImpl extends FormalParameterImpl
   final Token period;
 
   @generated
-  FieldFormalParameterImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.kind,
@@ -20279,7 +20244,7 @@ sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
 
   /// Initializes a newly created for-each statement whose loop control variable
   /// is declared internally (in the for-loop part).
-  ForEachPartsImpl({required this.inKeyword, required ExpressionImpl iterable2})
+  new({required this.inKeyword, required ExpressionImpl iterable2})
     : _iterable2 = iterable2 {
     _becomeParentOf2AndExisting1(iterable2);
   }
@@ -20359,7 +20324,7 @@ final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
   DeclaredIdentifierImpl _loopVariable;
 
   @generated
-  ForEachPartsWithDeclarationImpl({
+  new({
     required DeclaredIdentifierImpl loopVariable,
     required super.inKeyword,
     required super.iterable2,
@@ -20549,7 +20514,7 @@ final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
   @DoNotGenerate(
     reason: 'Wires a V2-only child in a node shared by both AST views',
   )
-  ForEachPartsWithIdentifierImpl({
+  new({
     required UnqualifiedNameAssignmentTargetImpl target,
     required super.inKeyword,
     required super.iterable2,
@@ -20763,7 +20728,7 @@ final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
   late final List<BindPatternVariableElementImpl> variables;
 
   @generated
-  ForEachPartsWithPatternImpl({
+  new({
     required List<AnnotationImpl> metadata,
     required this.keyword,
     required DartPatternImpl pattern,
@@ -21007,7 +20972,7 @@ final class ForElementImpl extends AstNodeImpl
   CollectionElementImpl _body2;
 
   @generated
-  ForElementImpl({
+  new({
     required this.awaitKeyword,
     required this.forKeyword,
     required this.leftParenthesis,
@@ -21395,10 +21360,8 @@ final class FormalParameterDefaultClauseImpl extends AstNodeImpl
   ExpressionImpl _value2;
 
   @generated
-  FormalParameterDefaultClauseImpl({
-    required this.separator,
-    required ExpressionImpl value2,
-  }) : _value2 = value2 {
+  new({required this.separator, required ExpressionImpl value2})
+    : _value2 = value2 {
     _becomeParentOf2AndExisting1(value2);
   }
 
@@ -21565,7 +21528,7 @@ sealed class FormalParameterImpl extends AstNodeImpl
   /// parameter has an implicit type.
   TypeImpl? explicitFragmentType;
 
-  FormalParameterImpl({
+  new({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,
     required this.kind,
@@ -21915,7 +21878,7 @@ final class FormalParameterListImpl extends AstNodeImpl
       _FormalParameterListView(this);
 
   @DoNotGenerate(reason: 'Establishes different V1 and V2 parents')
-  FormalParameterListImpl({
+  new({
     required this.leftParenthesis,
     required List<FormalParameterImpl> requiredPositionalFormalParameters,
     required DelimitedFormalParametersImpl? delimitedFormalParameters,
@@ -22181,7 +22144,7 @@ sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   ///
   /// Either the [condition] and the list of [updaters] can be `null` if the
   /// loop doesn't have the corresponding attribute.
-  ForPartsImpl({
+  new({
     required this.leftSeparator,
     required ExpressionImpl? condition2,
     required this.rightSeparator,
@@ -22279,7 +22242,7 @@ final class ForPartsWithDeclarationsImpl extends ForPartsImpl
   VariableDeclarationListImpl _variables;
 
   @generated
-  ForPartsWithDeclarationsImpl({
+  new({
     required VariableDeclarationListImpl variables,
     required super.leftSeparator,
     required super.condition2,
@@ -22515,7 +22478,7 @@ final class ForPartsWithExpressionImpl extends ForPartsImpl
   ExpressionImpl? _initialization2;
 
   @generated
-  ForPartsWithExpressionImpl({
+  new({
     required ExpressionImpl? initialization2,
     required super.leftSeparator,
     required super.condition2,
@@ -22760,7 +22723,7 @@ final class ForPartsWithPatternImpl extends ForPartsImpl
   PatternVariableDeclarationImpl _variables;
 
   @generated
-  ForPartsWithPatternImpl({
+  new({
     required PatternVariableDeclarationImpl variables,
     required super.leftSeparator,
     required super.condition2,
@@ -23007,7 +22970,7 @@ final class ForStatementImpl extends StatementImpl
   StatementImpl _body2;
 
   @generated
-  ForStatementImpl({
+  new({
     required this.awaitKeyword,
     required this.forKeyword,
     required this.leftParenthesis,
@@ -23291,10 +23254,7 @@ final class FunctionCallInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  FunctionCallInvocationResolutionImpl({
-    required this.invokeType,
-    required this.type,
-  });
+  new({required this.invokeType, required this.type});
 }
 
 /// A tear-off of the language-defined `call` method of a function-typed value.
@@ -23324,10 +23284,7 @@ final class FunctionCallTearOffResolutionImpl extends NamedReadResolutionImpl
   @override
   final FunctionTypeImpl associatedFunctionType;
 
-  FunctionCallTearOffResolutionImpl({
-    required this.type,
-    required this.associatedFunctionType,
-  });
+  new({required this.type, required this.associatedFunctionType});
 }
 
 /// A function declaration.
@@ -23423,7 +23380,7 @@ final class FunctionDeclarationImpl extends CompilationUnitMemberImpl
 
   final FunctionDeclarationV1OriginImpl _v1ProjectionOrigin;
 
-  FunctionDeclarationImpl.v1Projection(FunctionDeclarationV1OriginImpl origin)
+  new v1Projection(FunctionDeclarationV1OriginImpl origin)
     : augmentKeyword = origin.augmentKeyword,
       externalKeyword = origin.externalKeyword,
       propertyKeyword = origin._v1PropertyKeyword,
@@ -23608,9 +23565,8 @@ final class FunctionDeclarationStatementImpl extends StatementImpl
 
   final LocalFunctionDeclarationImpl _v1ProjectionOrigin;
 
-  FunctionDeclarationStatementImpl.v1Projection(
-    LocalFunctionDeclarationImpl origin,
-  ) : _functionDeclaration = origin.v1Projection,
+  new v1Projection(LocalFunctionDeclarationImpl origin)
+    : _functionDeclaration = origin.v1Projection,
       _v1ProjectionOrigin = origin {
     _becomeParentOf1(_functionDeclaration);
   }
@@ -23813,7 +23769,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   FunctionDeclarationV1OriginImpl? _v1ProjectionOrigin;
 
   @generated
-  FunctionExpressionImpl({
+  new({
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl? parameters,
     required FunctionBodyImpl body,
@@ -23826,9 +23782,8 @@ final class FunctionExpressionImpl extends ExpressionImpl
   }
 
   @V1Ast()
-  FunctionExpressionImpl.v1ProjectionFromDeclaration(
-    FunctionDeclarationV1OriginImpl origin,
-  ) : _typeParameters = origin._v1TypeParameters,
+  new v1ProjectionFromDeclaration(FunctionDeclarationV1OriginImpl origin)
+    : _typeParameters = origin._v1TypeParameters,
       _parameters = origin._v1Parameters,
       _body = origin.body,
       _v1ProjectionOrigin = origin {
@@ -24184,7 +24139,7 @@ final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     implements FunctionExpressionInvocation {
   final CallInvocationImpl _origin;
 
-  FunctionExpressionInvocationImpl._(CallInvocationImpl origin)
+  new _(CallInvocationImpl origin)
     : _origin = origin,
       super.v1Projection(
         typeArguments: origin.typeArguments,
@@ -24404,7 +24359,7 @@ final class FunctionInstantiationImpl extends ExpressionImpl
   ExpressionImpl? _v1Projection;
 
   @generated
-  FunctionInstantiationImpl({
+  new({
     required ExpressionImpl operand,
     required TypeArgumentListImpl typeArguments,
   }) : _operand = operand,
@@ -24606,7 +24561,7 @@ final class FunctionInterfaceCallTearOffResolutionImpl
   @override
   final TypeImpl type;
 
-  FunctionInterfaceCallTearOffResolutionImpl({required this.type});
+  new({required this.type});
 }
 
 /// An invocation permitted through core `Function` without a known signature.
@@ -24624,7 +24579,7 @@ final class FunctionInterfaceInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  FunctionInterfaceInvocationResolutionImpl({required this.type});
+  new({required this.type});
 }
 
 /// An expression that applies an argument list to a function or method.
@@ -24668,7 +24623,7 @@ sealed class FunctionInvocationImpl extends ExpressionImpl
   @V1Ast()
   FunctionExpressionInvocationImpl? _functionExpressionInvocation;
 
-  FunctionInvocationImpl({
+  new({
     required TypeArgumentListImpl? typeArguments,
     required ArgumentListImpl argumentList,
   }) : _typeArguments = typeArguments,
@@ -24767,7 +24722,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
 
   final ExpressionImpl _v1ProjectionOrigin;
 
-  FunctionReferenceImpl.v1Projection(ImplicitFunctionInstantiationImpl origin)
+  new v1Projection(ImplicitFunctionInstantiationImpl origin)
     : _function2 = origin.operand,
       _typeArguments = null,
       typeArgumentTypes = origin.typeArgumentTypes,
@@ -24775,9 +24730,8 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     _becomeParentOf1(function);
   }
 
-  FunctionReferenceImpl.v1ProjectionFromInstantiation(
-    FunctionInstantiationImpl origin,
-  ) : _function2 = origin.operand,
+  new v1ProjectionFromInstantiation(FunctionInstantiationImpl origin)
+    : _function2 = origin.operand,
       _typeArguments = origin.typeArguments,
       typeArgumentTypes = origin.typeArgumentTypes,
       _v1ProjectionOrigin = origin {
@@ -24785,7 +24739,7 @@ final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     _becomeParentOf1(typeArguments);
   }
 
-  FunctionReferenceImpl.v1ProjectionFromParsedExpression(
+  new v1ProjectionFromParsedExpression(
     ExpressionImpl origin,
     ExpressionImpl function,
     TypeArgumentListImpl typeArguments,
@@ -24992,7 +24946,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   TypeAliasFragmentImpl? declaredFragment;
 
   @generated
-  FunctionTypeAliasImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.augmentKeyword,
@@ -25259,7 +25213,7 @@ final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
   final Token? question;
 
   @generated
-  FunctionTypedFormalParameterSuffixImpl({
+  new({
     required TypeParameterListImpl? typeParameters,
     required FormalParameterListImpl formalParameters,
     required this.question,
@@ -25454,10 +25408,7 @@ final class FunctionTypeInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  FunctionTypeInvocationResolutionImpl({
-    required this.invokeType,
-    required this.type,
-  });
+  new({required this.invokeType, required this.type});
 }
 
 class GenerateNodeImpl {
@@ -25470,7 +25421,7 @@ class GenerateNodeImpl {
   /// Whether to generate the implementation class's unnamed constructor.
   final bool generateConstructor;
 
-  const GenerateNodeImpl({
+  const new({
     this.api = AstNodeApi.shared,
     required this.childEntitiesOrder,
     this.generateConstructor = true,
@@ -25532,7 +25483,7 @@ class GenerateNodeProperty {
   /// specified (because it can be inferred from the public API declaration).
   final Type? type;
 
-  const GenerateNodeProperty(
+  const new(
     this.name, {
     this.v1Name,
     this.v1Projection = V1Projection.none,
@@ -25636,7 +25587,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
   GenericFunctionTypeFragmentImpl? declaredFragment;
 
   @generated
-  GenericFunctionTypeImpl({
+  new({
     required TypeAnnotationImpl? returnType,
     required this.functionKeyword,
     required TypeParameterListImpl? typeParameters,
@@ -25903,7 +25854,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   TypeAliasFragmentImpl? declaredFragment;
 
   @generated
-  GenericTypeAliasImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.augmentKeyword,
@@ -26183,7 +26134,7 @@ final class GetterDeclarationImpl extends MemberDeclarationImpl
   GetterFragmentImpl? declaredFragment;
 
   @generated
-  GetterDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -26388,7 +26339,7 @@ final class GetterInvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  GetterInvocationResolutionImpl({required this.element, required this.type});
+  new({required this.element, required this.type});
 
   @override
   FunctionTypeImpl get invokeType => element.type;
@@ -26425,11 +26376,9 @@ final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   late Map<String, PatternVariableElementImpl> variables;
 
   @generated
-  GuardedPatternImpl({
-    required DartPatternImpl pattern,
-    required WhenClauseImpl? whenClause,
-  }) : _pattern = pattern,
-       _whenClause = whenClause {
+  new({required DartPatternImpl pattern, required WhenClauseImpl? whenClause})
+    : _pattern = pattern,
+      _whenClause = whenClause {
     _becomeParentOf12(pattern);
     _becomeParentOf12(whenClause);
   }
@@ -26625,10 +26574,7 @@ final class HideCombinatorImpl extends CombinatorImpl
       _V1ProjectedNodeListImpl(names, V1Projection.toV1CombinatorName);
 
   @generated
-  HideCombinatorImpl({
-    required super.keyword,
-    required List<CombinatorNameImpl> names,
-  }) {
+  new({required super.keyword, required List<CombinatorNameImpl> names}) {
     this.names._initializeProjected(this, names);
   }
 
@@ -26875,7 +26821,7 @@ final class IfElementImpl extends AstNodeImpl
   CollectionElementImpl? _elseElement2;
 
   @generated
-  IfElementImpl({
+  new({
     required this.ifKeyword,
     required this.leftParenthesis,
     required ExpressionImpl expression2,
@@ -27227,11 +27173,7 @@ final class IfNullAssignmentImpl extends AssignmentExpression2Impl
   AssignmentExpressionImpl? _assignmentExpression;
 
   @generated
-  IfNullAssignmentImpl({
-    required super.target,
-    required super.operator,
-    required super.value,
-  });
+  new({required super.target, required super.operator, required super.value});
 
   /// The cached V1 compatibility projection for this expression.
   @V1Ast()
@@ -27408,7 +27350,7 @@ final class IfNullImpl extends ExpressionImpl implements IfNull {
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
-  IfNullImpl({
+  new({
     required ExpressionImpl leftOperand,
     required this.operator,
     required ExpressionImpl rightOperand,
@@ -27683,7 +27625,7 @@ final class IfStatementImpl extends StatementImpl
   StatementImpl? _elseStatement2;
 
   @generated
-  IfStatementImpl({
+  new({
     required this.ifKeyword,
     required this.leftParenthesis,
     required ExpressionImpl expression2,
@@ -28005,7 +27947,7 @@ final class ImplementsClauseImpl extends AstNodeImpl
   final NodeListImpl<NamedTypeImpl> interfaces = NodeListImpl._();
 
   @generated
-  ImplementsClauseImpl({
+  new({
     required this.implementsKeyword,
     required List<NamedTypeImpl> interfaces,
   }) {
@@ -28179,7 +28121,7 @@ final class ImplicitCallReferenceImpl extends ExpressionImpl
 
   final ExpressionImpl _v1ProjectionOrigin;
 
-  ImplicitCallReferenceImpl.v1Projection({
+  new v1Projection({
     required ExpressionImpl origin,
     required ExpressionImpl operand,
     required this.element,
@@ -28372,10 +28314,8 @@ final class ImplicitCallTearOffImpl extends ExpressionImpl
   ImplicitCallReferenceImpl? _v1Projection;
 
   @generated
-  ImplicitCallTearOffImpl({
-    required ExpressionImpl operand,
-    required this.element,
-  }) : _operand = operand {
+  new({required ExpressionImpl operand, required this.element})
+    : _operand = operand {
     _becomeParentOf2(operand);
   }
 
@@ -28555,7 +28495,7 @@ final class ImplicitFunctionInstantiationImpl extends ExpressionImpl
   ExpressionImpl? _v1Projection;
 
   @DoNotGenerate(reason: 'Records the language-version-dependent V1 shape')
-  ImplicitFunctionInstantiationImpl({
+  new({
     required ExpressionImpl operand,
     required this.typeArgumentTypes,
     required this.useLegacyV1Projection,
@@ -28845,7 +28785,7 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   SimpleIdentifierImpl? _prefix;
 
   @generated
-  ImportDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.importKeyword,
@@ -29149,10 +29089,8 @@ final class ImportPrefixedAssignmentTargetImpl extends AssignmentTargetImpl
   PrefixedIdentifierImpl? _prefixedIdentifier;
 
   @generated
-  ImportPrefixedAssignmentTargetImpl({
-    required ImportPrefixReferenceImpl importPrefix,
-    required this.name,
-  }) : _importPrefix = importPrefix {
+  new({required ImportPrefixReferenceImpl importPrefix, required this.name})
+    : _importPrefix = importPrefix {
     _becomeParentOf2(importPrefix);
   }
 
@@ -29330,7 +29268,7 @@ final class ImportPrefixedFunctionInvocationImpl
   MethodInvocationImpl? _methodInvocation;
 
   @generated
-  ImportPrefixedFunctionInvocationImpl({
+  new({
     required ImportPrefixReferenceImpl importPrefix,
     required super.name,
     required super.typeArguments,
@@ -29557,10 +29495,8 @@ final class ImportPrefixedNameExpressionImpl extends NameExpressionImpl
   PrefixedIdentifierImpl? _prefixedIdentifier;
 
   @generated
-  ImportPrefixedNameExpressionImpl({
-    required ImportPrefixReferenceImpl importPrefix,
-    required this.name,
-  }) : _importPrefix = importPrefix {
+  new({required ImportPrefixReferenceImpl importPrefix, required this.name})
+    : _importPrefix = importPrefix {
     _becomeParentOf2(importPrefix);
   }
 
@@ -29759,7 +29695,7 @@ final class ImportPrefixReferenceImpl extends AstNodeImpl
   Element? element;
 
   @generated
-  ImportPrefixReferenceImpl({required this.name, required this.period});
+  new({required this.name, required this.period});
 
   @generated
   @override
@@ -29886,7 +29822,7 @@ final class IncrementOrDecrementExpressionImpl extends ExpressionImpl
   ExpressionImpl? _v1Projection;
 
   @generated
-  IncrementOrDecrementExpressionImpl({
+  new({
     required this.position,
     required this.operator,
     required AssignmentTargetImpl target,
@@ -30141,7 +30077,7 @@ enum IncrementOrDecrementOperation {
   /// The name of the binary operator implicitly invoked by this operation.
   final String binaryOperatorName;
 
-  const IncrementOrDecrementOperation(this.binaryOperatorName);
+  new(this.binaryOperatorName);
 }
 
 /// The position of the operator in an [IncrementOrDecrementExpression].
@@ -30190,7 +30126,7 @@ sealed class IndexAssignmentTargetImpl extends AssignmentTargetImpl
   @V1Ast()
   IndexExpressionImpl? _indexExpression;
 
-  IndexAssignmentTargetImpl({
+  new({
     required this.leftBracket,
     required ExpressionImpl index,
     required this.rightBracket,
@@ -30368,7 +30304,7 @@ sealed class IndexExpression2Impl extends ExpressionImpl
   @V1Ast()
   IndexExpressionImpl? _indexExpression;
 
-  IndexExpression2Impl({
+  new({
     required this.leftBracket,
     required ExpressionImpl index,
     required this.rightBracket,
@@ -30440,7 +30376,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 
   final AstNodeImpl _v1ProjectionOrigin;
 
-  IndexExpressionImpl.v1ProjectionFromCascadeAssignmentTarget(
+  new v1ProjectionFromCascadeAssignmentTarget(
     CascadeIndexAssignmentTargetImpl origin,
   ) : question = null,
       leftBracket = origin.leftBracket,
@@ -30449,16 +30385,15 @@ final class IndexExpressionImpl extends ExpressionImpl
     _attachV1Children();
   }
 
-  IndexExpressionImpl.v1ProjectionFromCascadeExpression(
-    CascadeIndexExpressionImpl origin,
-  ) : question = null,
+  new v1ProjectionFromCascadeExpression(CascadeIndexExpressionImpl origin)
+    : question = null,
       leftBracket = origin.leftBracket,
       rightBracket = origin.rightBracket,
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  IndexExpressionImpl.v1ProjectionFromReceiverAssignmentTarget(
+  new v1ProjectionFromReceiverAssignmentTarget(
     ReceiverIndexAssignmentTargetImpl origin,
   ) : question = origin.question,
       leftBracket = origin.leftBracket,
@@ -30467,9 +30402,8 @@ final class IndexExpressionImpl extends ExpressionImpl
     _attachV1Children();
   }
 
-  IndexExpressionImpl.v1ProjectionFromReceiverExpression(
-    ReceiverIndexExpressionImpl origin,
-  ) : question = origin.question,
+  new v1ProjectionFromReceiverExpression(ReceiverIndexExpressionImpl origin)
+    : question = origin.question,
       leftBracket = origin.leftBracket,
       rightBracket = origin.rightBracket,
       _v1ProjectionOrigin = origin {
@@ -30776,7 +30710,7 @@ abstract final class IndexReadResolution implements ReadResolution {
 
 sealed class IndexReadResolutionImpl extends ReadResolutionImpl
     implements IndexReadResolution {
-  const IndexReadResolutionImpl();
+  const new();
 
   TypeImpl get indexContextType;
 
@@ -30795,7 +30729,7 @@ abstract final class IndexWriteResolution implements WriteResolution {
 
 sealed class IndexWriteResolutionImpl extends WriteResolutionImpl
     implements IndexWriteResolution {
-  const IndexWriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType;
@@ -30852,7 +30786,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
 
   final ArgumentListImpl? _parsedArgumentList;
 
-  InstanceCreationExpressionImpl.v1ProjectionFromParsedExpression({
+  new v1ProjectionFromParsedExpression({
     required ParsedExpressionImpl origin,
     required ConstructorNameImpl constructorName,
     required ArgumentListImpl argumentList,
@@ -30864,7 +30798,7 @@ final class InstanceCreationExpressionImpl extends ExpressionImpl
   }
 
   @DoNotGenerate(reason: 'V1 projection over a canonical V2 node')
-  InstanceCreationExpressionImpl._(this._origin)
+  new _(this._origin)
     : _parsedOrigin = null,
       _parsedConstructorName = null,
       _parsedArgumentList = null {
@@ -31120,7 +31054,7 @@ final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   final int? value;
 
   @generated
-  IntegerLiteralImpl({required this.literal, required this.value});
+  new({required this.literal, required this.value});
 
   @generated
   @override
@@ -31329,7 +31263,7 @@ final class InterpolationExpressionImpl extends InterpolationElementImpl
   final Token? rightBracket;
 
   @generated
-  InterpolationExpressionImpl({
+  new({
     required this.leftBracket,
     required ExpressionImpl expression2,
     required this.rightBracket,
@@ -31503,7 +31437,7 @@ final class InterpolationStringImpl extends InterpolationElementImpl
   final String value;
 
   @generated
-  InterpolationStringImpl({required this.contents, required this.value});
+  new({required this.contents, required this.value});
 
   @generated
   @override
@@ -31633,10 +31567,7 @@ final class InvalidDotShorthandContextResolutionImpl
   @override
   final TypeImpl lookupType;
 
-  InvalidDotShorthandContextResolutionImpl({
-    required this.contextType,
-    required this.lookupType,
-  });
+  new({required this.contextType, required this.lookupType});
 }
 
 /// An invalid assignment target whose source is an ordinary value expression.
@@ -31669,8 +31600,7 @@ final class InvalidExpressionAssignmentTargetImpl extends AssignmentTargetImpl
   InvalidWriteResolutionImpl? write;
 
   @generated
-  InvalidExpressionAssignmentTargetImpl({required ExpressionImpl expression})
-    : _expression = expression {
+  new({required ExpressionImpl expression}) : _expression = expression {
     _becomeParentOf2(expression);
   }
 
@@ -31825,9 +31755,8 @@ final class InvalidExtensionOverrideAssignmentTargetImpl
   InvalidWriteResolutionImpl? write;
 
   @generated
-  InvalidExtensionOverrideAssignmentTargetImpl({
-    required ExtensionOverride2Impl extensionOverride,
-  }) : _extensionOverride = extensionOverride {
+  new({required ExtensionOverride2Impl extensionOverride})
+    : _extensionOverride = extensionOverride {
     _becomeParentOf2(extensionOverride);
   }
 
@@ -31976,9 +31905,8 @@ final class InvalidExtensionOverrideExpressionImpl extends ExpressionImpl
   ExtensionOverride2Impl _extensionOverride;
 
   @generated
-  InvalidExtensionOverrideExpressionImpl({
-    required ExtensionOverride2Impl extensionOverride,
-  }) : _extensionOverride = extensionOverride {
+  new({required ExtensionOverride2Impl extensionOverride})
+    : _extensionOverride = extensionOverride {
     _becomeParentOf2(extensionOverride);
   }
 
@@ -32138,7 +32066,7 @@ final class InvalidIndexReadResolutionImpl extends IndexReadResolutionImpl
   @override
   final InternalMethodElement? recoveryElement;
 
-  InvalidIndexReadResolutionImpl({required this.recoveryElement});
+  new({required this.recoveryElement});
 
   @override
   TypeImpl get indexContextType =>
@@ -32165,7 +32093,7 @@ final class InvalidIndexWriteResolutionImpl extends IndexWriteResolutionImpl
   @override
   final InternalMethodElement? recoveryElement;
 
-  InvalidIndexWriteResolutionImpl({required this.recoveryElement});
+  new({required this.recoveryElement});
 
   @override
   TypeImpl get acceptedType => InvalidTypeImpl.instance;
@@ -32202,7 +32130,7 @@ final class InvalidInvocationResolutionImpl extends InvocationResolutionImpl
   @override
   final TypeImpl type;
 
-  InvalidInvocationResolutionImpl({
+  new({
     required List<Element> candidates,
     required this.recovery,
     required this.type,
@@ -32226,7 +32154,7 @@ final class InvalidNamedReadResolutionImpl extends NamedReadResolutionImpl
   @override
   final Element? recoveryElement;
 
-  InvalidNamedReadResolutionImpl({required this.recoveryElement});
+  new({required this.recoveryElement});
 
   @override
   TypeImpl get type => InvalidTypeImpl.instance;
@@ -32252,7 +32180,7 @@ final class InvalidNamedWriteResolutionImpl extends NamedWriteResolutionImpl
   @override
   final Element? recoveryElement;
 
-  InvalidNamedWriteResolutionImpl({required this.recoveryElement});
+  new({required this.recoveryElement});
 
   @override
   TypeImpl get acceptedType => InvalidTypeImpl.instance;
@@ -32267,7 +32195,7 @@ abstract final class InvalidReadResolution implements ReadResolution {}
 
 final class InvalidReadResolutionImpl extends ReadResolutionImpl
     implements InvalidReadResolution {
-  const InvalidReadResolutionImpl();
+  const new();
 
   @override
   TypeImpl get type => InvalidTypeImpl.instance;
@@ -32297,7 +32225,7 @@ final class InvalidSuperAssignmentTargetImpl extends AssignmentTargetImpl
   InvalidWriteResolutionImpl? write;
 
   @generated
-  InvalidSuperAssignmentTargetImpl({required SuperReferenceImpl superReference})
+  new({required SuperReferenceImpl superReference})
     : _superReference = superReference {
     _becomeParentOf2(superReference);
   }
@@ -32437,7 +32365,7 @@ final class InvalidSuperExpressionImpl extends ExpressionImpl
   SuperReferenceImpl _superReference;
 
   @generated
-  InvalidSuperExpressionImpl({required SuperReferenceImpl superReference})
+  new({required SuperReferenceImpl superReference})
     : _superReference = superReference {
     _becomeParentOf2(superReference);
   }
@@ -32578,7 +32506,7 @@ abstract final class InvalidWriteResolution implements WriteResolution {}
 
 final class InvalidWriteResolutionImpl extends WriteResolutionImpl
     implements InvalidWriteResolution {
-  const InvalidWriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType => InvalidTypeImpl.instance;
@@ -32640,22 +32568,17 @@ sealed class InvocationExpressionImpl extends ExpressionImpl
   TypeImpl? staticInvokeType;
 
   /// Initializes a newly created invocation.
-  InvocationExpressionImpl({
-    required TypeArgumentListImpl? typeArguments,
-    required ArgumentListImpl argumentList,
-  }) : _typeArguments = typeArguments,
-       _argumentList = argumentList {
+  new({required this._typeArguments, required this._argumentList}) {
     _becomeParentOf12(_typeArguments);
     _becomeParentOf12(_argumentList);
   }
 
   /// Initializes a V1 projection whose children are owned in V2 by its origin.
   @V1Ast()
-  InvocationExpressionImpl.v1Projection({
-    required TypeArgumentListImpl? typeArguments,
-    required ArgumentListImpl argumentList,
-  }) : _typeArguments = typeArguments,
-       _argumentList = argumentList {
+  new v1Projection({
+    required this._typeArguments,
+    required this._argumentList,
+  }) {
     _becomeParentOf1(_typeArguments);
     _becomeParentOf1(_argumentList);
   }
@@ -32684,7 +32607,7 @@ abstract final class InvocationResolution {
 }
 
 sealed class InvocationResolutionImpl implements InvocationResolution {
-  const InvocationResolutionImpl();
+  const new();
 
   @override
   TypeImpl get type;
@@ -32741,7 +32664,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   TypeAnnotationImpl _type;
 
   @generated
-  IsExpressionImpl({
+  new({
     required ExpressionImpl expression2,
     required this.isOperator,
     required this.notOperator,
@@ -32974,10 +32897,8 @@ final class LabeledStatementImpl extends StatementImpl
   StatementImpl _statement2;
 
   @generated
-  LabeledStatementImpl({
-    required List<LabelImpl> labels,
-    required StatementImpl statement2,
-  }) : _statement2 = statement2 {
+  new({required List<LabelImpl> labels, required StatementImpl statement2})
+    : _statement2 = statement2 {
     this.labels._initialize(this, labels);
     _becomeParentOf2AndExisting1(statement2);
   }
@@ -33159,7 +33080,7 @@ final class LabelImpl extends AstNodeImpl implements Label {
   LabelFragmentImpl? declaredFragment;
 
   @generated
-  LabelImpl({required this.name, required this.colon});
+  new({required this.name, required this.colon});
 
   @generated
   @override
@@ -33246,7 +33167,7 @@ final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
   LabelElement? element;
 
   @generated
-  LabelReferenceImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -33354,7 +33275,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   LibraryElementImpl? element;
 
   @generated
-  LibraryDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.libraryKeyword,
@@ -33555,7 +33476,7 @@ final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   final Token rightBracket;
 
   @generated
-  ListLiteralImpl({
+  new({
     required super.constKeyword,
     required super.typeArguments,
     required this.leftBracket,
@@ -33785,7 +33706,7 @@ final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   TypeImpl? requiredType;
 
   @generated
-  ListPatternImpl({
+  new({
     required TypeArgumentListImpl? typeArguments,
     required this.leftBracket,
     required List<ListPatternElementImpl> elements,
@@ -34066,7 +33987,7 @@ final class LocalFunctionDeclarationImpl extends StatementImpl
   FunctionDeclarationStatementImpl? _v1StatementProjection;
 
   @DoNotGenerate(reason: 'The superclass is not AnnotatedNodeImpl')
-  LocalFunctionDeclarationImpl({
+  new({
     required CommentImpl? comment,
     required List<AnnotationImpl>? metadata,
     required TypeAnnotationImpl? returnType,
@@ -34386,7 +34307,7 @@ final class LogicalAndImpl extends ExpressionImpl implements LogicalAnd {
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
-  LogicalAndImpl({
+  new({
     required ExpressionImpl leftOperand,
     required this.operator,
     required ExpressionImpl rightOperand,
@@ -34593,7 +34514,7 @@ final class LogicalAndPatternImpl extends DartPatternImpl
   DartPatternImpl _rightOperand;
 
   @generated
-  LogicalAndPatternImpl({
+  new({
     required DartPatternImpl leftOperand,
     required this.operator,
     required DartPatternImpl rightOperand,
@@ -34809,7 +34730,7 @@ final class LogicalNotImpl extends ExpressionImpl implements LogicalNot {
   PrefixExpressionImpl? _prefixExpression;
 
   @generated
-  LogicalNotImpl({required this.operator, required ExpressionImpl operand})
+  new({required this.operator, required ExpressionImpl operand})
     : _operand = operand {
     _becomeParentOf2(operand);
   }
@@ -34988,7 +34909,7 @@ final class LogicalOrImpl extends ExpressionImpl implements LogicalOr {
   BinaryExpressionImpl? _binaryExpression;
 
   @generated
-  LogicalOrImpl({
+  new({
     required ExpressionImpl leftOperand,
     required this.operator,
     required ExpressionImpl rightOperand,
@@ -35195,7 +35116,7 @@ final class LogicalOrPatternImpl extends DartPatternImpl
   DartPatternImpl _rightOperand;
 
   @generated
-  LogicalOrPatternImpl({
+  new({
     required DartPatternImpl leftOperand,
     required this.operator,
     required DartPatternImpl rightOperand,
@@ -35451,7 +35372,7 @@ final class MapLiteralEntryImpl extends AstNodeImpl
   ExpressionImpl _value2;
 
   @generated
-  MapLiteralEntryImpl({
+  new({
     required this.keyQuestion,
     required ExpressionImpl key2,
     required this.separator,
@@ -35715,7 +35636,7 @@ final class MapPatternEntryImpl extends AstNodeImpl
   DartPatternImpl _value;
 
   @generated
-  MapPatternEntryImpl({
+  new({
     required ExpressionImpl key2,
     required this.separator,
     required DartPatternImpl value,
@@ -35907,7 +35828,7 @@ final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   TypeImpl? requiredType;
 
   @generated
-  MapPatternImpl({
+  new({
     required TypeArgumentListImpl? typeArguments,
     required this.leftBracket,
     required List<MapPatternElementImpl> elements,
@@ -36106,7 +36027,7 @@ sealed class MemberDeclaration implements AnnotatedNode {}
 
 sealed class MemberDeclarationImpl extends AnnotatedNodeImpl
     implements MemberDeclaration {
-  MemberDeclarationImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 
   @V1Ast('The V2 counterpart is _childEntities2.')
   @override
@@ -36282,7 +36203,7 @@ final class MethodDeclaration2Impl extends MemberDeclarationImpl
   MethodFragmentImpl? declaredFragment;
 
   @generated
-  MethodDeclaration2Impl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -36592,7 +36513,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   Scope? typeParameterScope;
 
   @generated
-  MethodDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -36926,7 +36847,7 @@ final class MethodIndexReadResolutionImpl extends IndexReadResolutionImpl
   @override
   final TypeImpl type;
 
-  MethodIndexReadResolutionImpl({required this.element, required this.type});
+  new({required this.element, required this.type});
 
   @override
   TypeImpl get indexContextType => element.formalParameters[0].type;
@@ -36953,7 +36874,7 @@ final class MethodIndexWriteResolutionImpl extends IndexWriteResolutionImpl
   @override
   final InternalMethodElement element;
 
-  MethodIndexWriteResolutionImpl({required this.element});
+  new({required this.element});
 
   @override
   TypeImpl get acceptedType => element.formalParameters[1].type;
@@ -37061,7 +36982,7 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
 
   final ParsedExpressionImpl? _parsedExpressionOrigin;
 
-  MethodInvocationImpl.v1ProjectionFromNamedFunctionInvocation(
+  new v1ProjectionFromNamedFunctionInvocation(
     NamedFunctionInvocationImpl origin,
   ) : _target2 = _v1TargetOf(origin),
       _operator = switch (origin) {
@@ -37080,15 +37001,14 @@ final class MethodInvocationImpl extends InvocationExpressionImpl
     _attachV1Children();
   }
 
-  MethodInvocationImpl.v1ProjectionFromParsedExpression({
+  new v1ProjectionFromParsedExpression({
     required ParsedExpressionImpl origin,
     required ExpressionImpl? target,
-    required Token? operator,
+    required this._operator,
     required Token name,
     required super.typeArguments,
     required super.argumentList,
   }) : _target2 = target,
-       _operator = operator,
        _methodName = SimpleIdentifierImpl.v1Projection(token: name),
        _v1ProjectionOrigin = null,
        _parsedExpressionOrigin = origin,
@@ -37466,7 +37386,7 @@ abstract final class MissingDotShorthandContextResolution
 final class MissingDotShorthandContextResolutionImpl
     extends DotShorthandContextResolutionImpl
     implements MissingDotShorthandContextResolution {
-  const MissingDotShorthandContextResolutionImpl();
+  const new();
 }
 
 /// The declaration of a mixin.
@@ -37556,7 +37476,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   Scope? bodyScope;
 
   @generated
-  MixinDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -37859,7 +37779,7 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   final NodeListImpl<NamedTypeImpl> superclassConstraints = NodeListImpl._();
 
   @generated
-  MixinOnClauseImpl({
+  new({
     required this.onKeyword,
     required List<NamedTypeImpl> superclassConstraints,
   }) {
@@ -38027,7 +37947,7 @@ final class NamedArgumentImpl extends AstNodeImpl
   ExpressionImpl _argumentExpression2;
 
   @generated
-  NamedArgumentImpl({
+  new({
     required this.name,
     required this.colon,
     required ExpressionImpl argumentExpression2,
@@ -38189,7 +38109,7 @@ sealed class NamedFunctionInvocationImpl extends FunctionInvocationImpl
   @override
   final Token name;
 
-  NamedFunctionInvocationImpl({
+  new({
     required this.name,
     required super.typeArguments,
     required super.argumentList,
@@ -38207,7 +38127,7 @@ abstract final class NamedReadResolution implements ReadResolution {}
 
 sealed class NamedReadResolutionImpl extends ReadResolutionImpl
     implements NamedReadResolution {
-  NamedReadResolutionImpl();
+  new();
 
   @override
   TypeImpl get type;
@@ -38227,7 +38147,7 @@ abstract final class NamedReadResolutionWithElement
 
 sealed class NamedReadResolutionWithElementImpl extends NamedReadResolutionImpl
     implements NamedReadResolutionWithElement {
-  NamedReadResolutionWithElementImpl();
+  new();
 }
 
 /// A value receiver or static namespace before a named selection.
@@ -38308,7 +38228,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   TypeImpl? _type;
 
   @generated
-  NamedTypeImpl({
+  new({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
     required TypeArgumentListImpl? typeArguments,
@@ -38320,7 +38240,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @V1Ast()
-  NamedTypeImpl.v1Projection(ConstructorTypeReferenceImpl origin)
+  new v1Projection(ConstructorTypeReferenceImpl origin)
     : _importPrefix = origin.importPrefix,
       name = origin.name,
       _typeArguments = origin.typeArguments,
@@ -38332,7 +38252,7 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   }
 
   @V1Ast()
-  NamedTypeImpl.v1ProjectionFromParsedExpression({
+  new v1ProjectionFromParsedExpression({
     required ImportPrefixReferenceImpl? importPrefix,
     required this.name,
     required TypeArgumentListImpl typeArguments,
@@ -38624,7 +38544,7 @@ abstract final class NamedWriteResolution implements WriteResolution {}
 
 sealed class NamedWriteResolutionImpl extends WriteResolutionImpl
     implements NamedWriteResolution {
-  const NamedWriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType;
@@ -38642,7 +38562,7 @@ abstract final class NamedWriteResolutionWithElement
 sealed class NamedWriteResolutionWithElementImpl
     extends NamedWriteResolutionImpl
     implements NamedWriteResolutionWithElement {
-  NamedWriteResolutionWithElementImpl();
+  new();
 }
 
 /// A value-producing named access.
@@ -38702,7 +38622,7 @@ sealed class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
   /// directive doesn't have the corresponding attribute.
   ///
   /// The list of [combinators] can be `null` if there are no combinators.
-  NamespaceDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.uri,
@@ -38744,10 +38664,8 @@ final class NameWithTypeParametersImpl extends ClassNamePartImpl
   TypeParameterListImpl? _typeParameters;
 
   @generated
-  NameWithTypeParametersImpl({
-    required this.typeName,
-    required TypeParameterListImpl? typeParameters,
-  }) : _typeParameters = typeParameters {
+  new({required this.typeName, required TypeParameterListImpl? typeParameters})
+    : _typeParameters = typeParameters {
     _becomeParentOf12(typeParameters);
   }
 
@@ -38906,10 +38824,8 @@ final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   StringLiteralImpl? _name;
 
   @generated
-  NativeClauseImpl({
-    required this.nativeKeyword,
-    required StringLiteralImpl? name,
-  }) : _name = name {
+  new({required this.nativeKeyword, required StringLiteralImpl? name})
+    : _name = name {
     _becomeParentOf12(name);
   }
 
@@ -39077,7 +38993,7 @@ final class NativeFunctionBodyImpl extends FunctionBodyImpl
   final Token semicolon;
 
   @generated
-  NativeFunctionBodyImpl({
+  new({
     required this.nativeKeyword,
     required StringLiteralImpl? stringLiteral,
     required this.semicolon,
@@ -39279,10 +39195,10 @@ final class NodeListImpl<E extends AstNodeImpl>
 
   /// Initializes a newly created list of nodes such that all of the nodes that
   /// are added to the list have their parent set to the given [owner].
-  NodeListImpl(AstNodeImpl owner) : _owner = owner;
+  new(AstNodeImpl owner) : _owner = owner;
 
   /// Create a partially initialized instance, [_initialize] must be called.
-  NodeListImpl._();
+  new _();
 
   @override
   Token? get beginToken {
@@ -39493,10 +39409,8 @@ final class NullAssertionExpressionImpl extends ExpressionImpl
   PostfixExpressionImpl? _postfixExpression;
 
   @generated
-  NullAssertionExpressionImpl({
-    required ExpressionImpl operand,
-    required this.operator,
-  }) : _operand = operand {
+  new({required ExpressionImpl operand, required this.operator})
+    : _operand = operand {
     _becomeParentOf2(operand);
   }
 
@@ -39664,10 +39578,8 @@ final class NullAssertPatternImpl extends DartPatternImpl
   final Token operator;
 
   @generated
-  NullAssertPatternImpl({
-    required DartPatternImpl pattern,
-    required this.operator,
-  }) : _pattern = pattern {
+  new({required DartPatternImpl pattern, required this.operator})
+    : _pattern = pattern {
     _becomeParentOf12(pattern);
   }
 
@@ -39852,7 +39764,7 @@ final class NullAwareElementImpl extends AstNodeImpl
   ExpressionImpl _value2;
 
   @generated
-  NullAwareElementImpl({required this.question, required ExpressionImpl value2})
+  new({required this.question, required ExpressionImpl value2})
     : _value2 = value2 {
     _becomeParentOf2AndExisting1(value2);
   }
@@ -40018,10 +39930,8 @@ final class NullCheckPatternImpl extends DartPatternImpl
   final Token operator;
 
   @generated
-  NullCheckPatternImpl({
-    required DartPatternImpl pattern,
-    required this.operator,
-  }) : _pattern = pattern {
+  new({required DartPatternImpl pattern, required this.operator})
+    : _pattern = pattern {
     _becomeParentOf12(pattern);
   }
 
@@ -40186,7 +40096,7 @@ final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   final Token literal;
 
   @generated
-  NullLiteralImpl({required this.literal});
+  new({required this.literal});
 
   @generated
   @override
@@ -40300,7 +40210,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   final Token rightParenthesis;
 
   @generated
-  ObjectPatternImpl({
+  new({
     required NamedTypeImpl type,
     required this.leftParenthesis,
     required List<PatternFieldImpl> fields,
@@ -40566,7 +40476,7 @@ final class OperatorDeclarationImpl extends MemberDeclarationImpl
   MethodFragmentImpl? declaredFragment;
 
   @generated
-  OperatorDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -40827,7 +40737,7 @@ final class ParenthesizedExpressionImpl extends ExpressionImpl
   final Token rightParenthesis;
 
   @generated
-  ParenthesizedExpressionImpl({
+  new({
     required this.leftParenthesis,
     required ExpressionImpl expression2,
     required this.rightParenthesis,
@@ -41034,7 +40944,7 @@ final class ParenthesizedPatternImpl extends DartPatternImpl
   final Token rightParenthesis;
 
   @generated
-  ParenthesizedPatternImpl({
+  new({
     required this.leftParenthesis,
     required DartPatternImpl pattern,
     required this.rightParenthesis,
@@ -41239,7 +41149,7 @@ final class ParsedCascadeNameImpl extends ParsedExpressionImpl
   final Token name;
 
   @generated
-  ParsedCascadeNameImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -41343,8 +41253,7 @@ final class ParsedDotShorthandExpressionImpl extends ExpressionImpl
   ExpressionImpl _expression;
 
   @generated
-  ParsedDotShorthandExpressionImpl({required ExpressionImpl expression})
-    : _expression = expression {
+  new({required ExpressionImpl expression}) : _expression = expression {
     _becomeParentOf2(expression);
   }
 
@@ -41508,7 +41417,7 @@ final class ParsedDotShorthandNameImpl extends ParsedExpressionImpl
   final Token name;
 
   @generated
-  ParsedDotShorthandNameImpl({required this.period, required this.name});
+  new({required this.period, required this.name});
 
   @generated
   @override
@@ -41695,7 +41604,7 @@ final class ParsedNameAccessAssignmentTargetImpl
   final Token name;
 
   @generated
-  ParsedNameAccessAssignmentTargetImpl({
+  new({
     required ParsedExpressionImpl operand,
     required this.operator,
     required this.name,
@@ -41853,7 +41762,7 @@ final class ParsedNameAccessImpl extends ParsedExpressionImpl
   final Token name;
 
   @generated
-  ParsedNameAccessImpl({
+  new({
     required InstanceReceiverImpl operand,
     required this.operator,
     required this.name,
@@ -42011,7 +41920,7 @@ final class ParsedTypeArgumentsImpl extends ParsedExpressionImpl
   TypeArgumentListImpl _typeArguments;
 
   @generated
-  ParsedTypeArgumentsImpl({
+  new({
     required ExpressionImpl operand,
     required TypeArgumentListImpl typeArguments,
   }) : _operand = operand,
@@ -42192,7 +42101,7 @@ final class ParsedUnqualifiedNameImpl extends ParsedExpressionImpl
   ScopeLookupResult? scopeLookupResult;
 
   @generated
-  ParsedUnqualifiedNameImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -42301,7 +42210,7 @@ final class ParsedValueArgumentsImpl extends ParsedExpressionImpl
   ArgumentListImpl _argumentList;
 
   @generated
-  ParsedValueArgumentsImpl({
+  new({
     required ParsedExpressionImpl operand,
     required ArgumentListImpl argumentList,
   }) : _operand = operand,
@@ -42535,7 +42444,7 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   PartIncludeImpl? partInclude;
 
   @generated
-  PartDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.partKeyword,
@@ -42715,7 +42624,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   final Token semicolon;
 
   @generated
-  PartOfDirectiveImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.partKeyword,
@@ -42951,7 +42860,7 @@ final class PatternAssignmentImpl extends ExpressionImpl
   TypeImpl? patternTypeSchema;
 
   @generated
-  PatternAssignmentImpl({
+  new({
     required DartPatternImpl pattern,
     required this.equals,
     required ExpressionImpl expression2,
@@ -43172,11 +43081,9 @@ final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   Element? element;
 
   @generated
-  PatternFieldImpl({
-    required PatternFieldNameImpl? name,
-    required DartPatternImpl pattern,
-  }) : _name = name,
-       _pattern = pattern {
+  new({required PatternFieldNameImpl? name, required DartPatternImpl pattern})
+    : _name = name,
+      _pattern = pattern {
     _becomeParentOf12(name);
     _becomeParentOf12(pattern);
   }
@@ -43376,7 +43283,7 @@ final class PatternFieldNameImpl extends AstNodeImpl
   final Token colon;
 
   @generated
-  PatternFieldNameImpl({required this.name, required this.colon});
+  new({required this.name, required this.colon});
 
   @generated
   @override
@@ -43504,7 +43411,7 @@ final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
   late final List<BindPatternVariableElementImpl> elements;
 
   @generated
-  PatternVariableDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.keyword,
@@ -43722,7 +43629,7 @@ final class PatternVariableDeclarationStatementImpl extends StatementImpl
   final Token semicolon;
 
   @generated
-  PatternVariableDeclarationStatementImpl({
+  new({
     required PatternVariableDeclarationImpl declaration,
     required this.semicolon,
   }) : _declaration = declaration {
@@ -43890,15 +43797,14 @@ final class PostfixExpressionImpl extends ExpressionImpl
     implements PostfixExpression {
   final ExpressionImpl _origin;
 
-  PostfixExpressionImpl.v1ProjectionFromIncrementOrDecrement(
+  new v1ProjectionFromIncrementOrDecrement(
     IncrementOrDecrementExpressionImpl origin,
   ) : _origin = origin {
     _attachV1Children();
   }
 
-  PostfixExpressionImpl.v1ProjectionFromNullAssertion(
-    NullAssertionExpressionImpl origin,
-  ) : _origin = origin {
+  new v1ProjectionFromNullAssertion(NullAssertionExpressionImpl origin)
+    : _origin = origin {
     _attachV1Children();
   }
 
@@ -44121,7 +44027,7 @@ final class PrefixedIdentifierImpl extends IdentifierImpl
   @DoNotGenerate(reason: 'V1 projections synchronize the identifier getter')
   SimpleIdentifierImpl _identifier;
 
-  PrefixedIdentifierImpl.v1Projection({
+  new v1Projection({
     required SimpleIdentifierImpl prefix,
     required this.period,
     required SimpleIdentifierImpl identifier,
@@ -44355,18 +44261,17 @@ final class PrefixExpressionImpl extends ExpressionImpl
     implements PrefixExpression {
   final ExpressionImpl _origin;
 
-  PrefixExpressionImpl.v1ProjectionFromIncrementOrDecrement(
+  new v1ProjectionFromIncrementOrDecrement(
     IncrementOrDecrementExpressionImpl origin,
   ) : _origin = origin {
     _attachV1Children();
   }
 
-  PrefixExpressionImpl.v1ProjectionFromLogicalNot(LogicalNotImpl origin)
-    : _origin = origin {
+  new v1ProjectionFromLogicalNot(LogicalNotImpl origin) : _origin = origin {
     _attachV1Children();
   }
 
-  PrefixExpressionImpl.v1ProjectionFromUnaryOperatorInvocation(
+  new v1ProjectionFromUnaryOperatorInvocation(
     UnaryOperatorInvocationImpl origin,
   ) : _origin = origin {
     _attachV1Children();
@@ -44599,7 +44504,7 @@ final class PrimaryConstructorBodyImpl extends ClassMemberImpl
   Scope? formalParameterInitializerScope;
 
   @generated
-  PrimaryConstructorBodyImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -44860,7 +44765,7 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
   List<FieldElement>? notInitializedFields;
 
   @generated
-  PrimaryConstructorDeclarationImpl({
+  new({
     required this.constKeyword,
     required this.typeName,
     required TypeParameterListImpl? typeParameters,
@@ -45148,7 +45053,7 @@ final class PrimaryConstructorNameImpl extends AstNodeImpl
   final Token name;
 
   @generated
-  PrimaryConstructorNameImpl({required this.period, required this.name});
+  new({required this.period, required this.name});
 
   @generated
   @override
@@ -45296,7 +45201,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
 
   final AstNodeImpl _v1ProjectionOrigin;
 
-  PropertyAccessImpl.v1ProjectionFromCascadeAssignmentTarget(
+  new v1ProjectionFromCascadeAssignmentTarget(
     CascadePropertyAssignmentTargetImpl origin,
   ) : _target2 = null,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
@@ -45304,15 +45209,14 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromCascadeExtraction(
-    CascadePropertyExtractionImpl origin,
-  ) : _target2 = null,
+  new v1ProjectionFromCascadeExtraction(CascadePropertyExtractionImpl origin)
+    : _target2 = null,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin {
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromCommentReference(
+  new v1ProjectionFromCommentReference(
     CommentReferenceImpl origin,
     ExpressionImpl target,
   ) : _target2 = target,
@@ -45322,7 +45226,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromImplicitFunctionInstantiation(
+  new v1ProjectionFromImplicitFunctionInstantiation(
     ImplicitFunctionInstantiationImpl origin,
     PropertyAccessImpl operand,
     SimpleIdentifierImpl propertyName,
@@ -45333,7 +45237,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromParsedExpression(
+  new v1ProjectionFromParsedExpression(
     AstNodeImpl origin,
     ExpressionImpl? target,
     Token operator,
@@ -45345,7 +45249,7 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromReceiverAssignmentTarget(
+  new v1ProjectionFromReceiverAssignmentTarget(
     ReceiverPropertyAssignmentTargetImpl origin,
   ) : _target2 = null,
       _operator = origin.operator,
@@ -45354,9 +45258,8 @@ final class PropertyAccessImpl extends CommentReferableExpressionImpl
     _attachV1Children();
   }
 
-  PropertyAccessImpl.v1ProjectionFromReceiverExtraction(
-    ReceiverPropertyExtractionImpl origin,
-  ) : _target2 = null,
+  new v1ProjectionFromReceiverExtraction(ReceiverPropertyExtractionImpl origin)
+    : _target2 = null,
       _operator = origin.operator,
       _propertyName = SimpleIdentifierImpl.v1Projection(token: origin.name),
       _v1ProjectionOrigin = origin {
@@ -45641,7 +45544,7 @@ sealed class PropertyAssignmentTargetImpl extends AssignmentTargetImpl
   @override
   NamedWriteResolutionImpl? write;
 
-  PropertyAssignmentTargetImpl({required this.name});
+  new({required this.name});
 }
 
 /// A property value selected from a receiver.
@@ -45659,7 +45562,7 @@ sealed class PropertyExtractionImpl extends NameExpressionImpl
   @override
   NamedReadResolutionImpl? resolution;
 
-  PropertyExtractionImpl({required this.name});
+  new({required this.name});
 
   @override
   bool get isAssignable => true;
@@ -45689,7 +45592,7 @@ abstract final class ReadResolution {
 }
 
 sealed class ReadResolutionImpl implements ReadResolution {
-  const ReadResolutionImpl();
+  const new();
 
   @override
   Element? get element => null;
@@ -45731,7 +45634,7 @@ final class ReceiverIndexAssignmentTargetImpl extends IndexAssignmentTargetImpl
   final Token? question;
 
   @generated
-  ReceiverIndexAssignmentTargetImpl({
+  new({
     required InstanceReceiverImpl receiver,
     required this.question,
     required super.leftBracket,
@@ -45921,7 +45824,7 @@ final class ReceiverIndexExpressionImpl extends IndexExpression2Impl
   final Token? question;
 
   @generated
-  ReceiverIndexExpressionImpl({
+  new({
     required InstanceReceiverImpl receiver,
     required this.question,
     required super.leftBracket,
@@ -46119,7 +46022,7 @@ final class ReceiverMethodInvocationImpl extends NamedFunctionInvocationImpl
   MethodInvocationImpl? _methodInvocation;
 
   @generated
-  ReceiverMethodInvocationImpl({
+  new({
     required NamedReceiverImpl receiver,
     required this.operator,
     required super.name,
@@ -46335,7 +46238,7 @@ final class ReceiverPropertyAssignmentTargetImpl
   ExpressionImpl? _v1Projection;
 
   @generated
-  ReceiverPropertyAssignmentTargetImpl({
+  new({
     required NamedReceiverImpl receiver,
     required this.operator,
     required super.name,
@@ -46542,7 +46445,7 @@ final class ReceiverPropertyExtractionImpl extends PropertyExtractionImpl
   ExpressionImpl? _v1Projection;
 
   @generated
-  ReceiverPropertyExtractionImpl({
+  new({
     required NamedReceiverImpl receiver,
     required this.operator,
     required super.name,
@@ -46726,7 +46629,7 @@ final class RecordFieldReadResolutionImpl extends NamedReadResolutionImpl
   @override
   final TypeImpl type;
 
-  RecordFieldReadResolutionImpl({required this.type});
+  new({required this.type});
 }
 
 /// A record literal.
@@ -46818,7 +46721,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   final Token rightParenthesis;
 
   @generated
-  RecordLiteralImpl({
+  new({
     required this.constKeyword,
     required this.leftParenthesis,
     required List<RecordLiteralFieldImpl> fields2,
@@ -46998,7 +46901,7 @@ final class RecordLiteralNamedFieldImpl extends AstNodeImpl
   ExpressionImpl _fieldExpression2;
 
   @generated
-  RecordLiteralNamedFieldImpl({
+  new({
     required this.name,
     required this.colon,
     required ExpressionImpl fieldExpression2,
@@ -47174,7 +47077,7 @@ final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   bool hasDuplicateNamedField = false;
 
   @generated
-  RecordPatternImpl({
+  new({
     required this.leftParenthesis,
     required List<PatternFieldImpl> fields,
     required this.rightParenthesis,
@@ -47384,7 +47287,7 @@ sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
 
   TypeAnnotationImpl _type;
 
-  RecordTypeAnnotationFieldImpl({
+  new({
     required List<AnnotationImpl>? metadata,
     required TypeAnnotationImpl type,
   }) : _type = type {
@@ -47464,7 +47367,7 @@ final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   TypeImpl? type;
 
   @generated
-  RecordTypeAnnotationImpl({
+  new({
     required this.leftParenthesis,
     required List<RecordTypeAnnotationPositionalFieldImpl> positionalFields,
     required RecordTypeAnnotationNamedFieldsImpl? namedFields,
@@ -47656,11 +47559,7 @@ final class RecordTypeAnnotationNamedFieldImpl
   final Token name;
 
   @generated
-  RecordTypeAnnotationNamedFieldImpl({
-    required super.metadata,
-    required super.type,
-    required this.name,
-  });
+  new({required super.metadata, required super.type, required this.name});
 
   @generated
   @override
@@ -47835,7 +47734,7 @@ final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
   final Token rightBracket;
 
   @generated
-  RecordTypeAnnotationNamedFieldsImpl({
+  new({
     required this.leftBracket,
     required List<RecordTypeAnnotationNamedFieldImpl> fields,
     required this.rightBracket,
@@ -47977,11 +47876,7 @@ final class RecordTypeAnnotationPositionalFieldImpl
   final Token? name;
 
   @generated
-  RecordTypeAnnotationPositionalFieldImpl({
-    required super.metadata,
-    required super.type,
-    required this.name,
-  });
+  new({required super.metadata, required super.type, required this.name});
 
   @generated
   @override
@@ -48180,7 +48075,7 @@ final class RedirectingConstructorInvocationImpl
   ConstructorElementImpl? element;
 
   @DoNotGenerate(reason: 'The constructor selector is only in the V2 AST view')
-  RedirectingConstructorInvocationImpl({
+  new({
     required this.thisKeyword,
     required ConstructorSelectorImpl? constructorSelector,
     required ArgumentListImpl argumentList,
@@ -48387,7 +48282,7 @@ abstract final class RegularFormalParameter implements FormalParameter {}
 final class RegularFormalParameterImpl extends FormalParameterImpl
     implements RegularFormalParameter {
   @generated
-  RegularFormalParameterImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.kind,
@@ -48697,10 +48592,8 @@ final class RelationalPatternImpl extends DartPatternImpl
   MethodElement? element;
 
   @generated
-  RelationalPatternImpl({
-    required this.operator,
-    required ExpressionImpl operand2,
-  }) : _operand2 = operand2 {
+  new({required this.operator, required ExpressionImpl operand2})
+    : _operand2 = operand2 {
     _becomeParentOf2AndExisting1(operand2);
   }
 
@@ -48883,10 +48776,8 @@ final class RestPatternElementImpl extends AstNodeImpl
   DartPatternImpl? _pattern;
 
   @generated
-  RestPatternElementImpl({
-    required this.operator,
-    required DartPatternImpl? pattern,
-  }) : _pattern = pattern {
+  new({required this.operator, required DartPatternImpl? pattern})
+    : _pattern = pattern {
     _becomeParentOf12(pattern);
   }
 
@@ -49034,7 +48925,7 @@ final class RethrowExpressionImpl extends ExpressionImpl
   final Token rethrowKeyword;
 
   @generated
-  RethrowExpressionImpl({required this.rethrowKeyword});
+  new({required this.rethrowKeyword});
 
   @generated
   @override
@@ -49153,7 +49044,7 @@ final class ReturnStatementImpl extends StatementImpl
   final Token semicolon;
 
   @generated
-  ReturnStatementImpl({
+  new({
     required this.returnKeyword,
     required ExpressionImpl? expression2,
     required this.semicolon,
@@ -49313,7 +49204,7 @@ final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   final Token scriptTag;
 
   @generated
-  ScriptTagImpl({required this.scriptTag});
+  new({required this.scriptTag});
 
   @generated
   @override
@@ -49484,7 +49375,7 @@ final class SetOrMapLiteralImpl extends TypedLiteralImpl
   InterfaceType? contextType;
 
   @generated
-  SetOrMapLiteralImpl({
+  new({
     required super.constKeyword,
     required super.typeArguments,
     required this.leftBracket,
@@ -49762,7 +49653,7 @@ final class SetterDeclarationImpl extends MemberDeclarationImpl
   SetterFragmentImpl? declaredFragment;
 
   @generated
-  SetterDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -49994,7 +49885,7 @@ final class SetterInvocationResolutionImpl
   @override
   final InternalSetterElement element;
 
-  SetterInvocationResolutionImpl({required this.element});
+  new({required this.element});
 
   @override
   TypeImpl get acceptedType => element.formalParameters.single.type;
@@ -50037,10 +49928,7 @@ final class ShowCombinatorImpl extends CombinatorImpl
       _V1ProjectedNodeListImpl(names, V1Projection.toV1CombinatorName);
 
   @generated
-  ShowCombinatorImpl({
-    required super.keyword,
-    required List<CombinatorNameImpl> names,
-  }) {
+  new({required super.keyword, required List<CombinatorNameImpl> names}) {
     this.names._initializeProjected(this, names);
   }
 
@@ -50226,10 +50114,8 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   @override
   List<TypeImpl>? tearOffTypeArgumentTypes;
 
-  SimpleIdentifierImpl.v1Projection({
-    required this.token,
-    ExpressionImpl? origin,
-  }) : _v1ProjectionOrigin = origin;
+  new v1Projection({required this.token, ExpressionImpl? origin})
+    : _v1ProjectionOrigin = origin;
 
   @generated
   @override
@@ -50512,7 +50398,7 @@ final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
   final String value;
 
   @generated
-  SimpleStringLiteralImpl({required this.literal, required this.value});
+  new({required this.literal, required this.value});
 
   @generated
   @override
@@ -50682,10 +50568,8 @@ final class SpreadElementImpl extends AstNodeImpl
   ExpressionImpl _expression2;
 
   @generated
-  SpreadElementImpl({
-    required this.spreadOperator,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.spreadOperator, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -50885,7 +50769,7 @@ abstract final class StaticInvocationResolution
 sealed class StaticInvocationResolutionImpl
     extends ValidInvocationResolutionImpl
     implements StaticInvocationResolution {
-  const StaticInvocationResolutionImpl();
+  const new();
 
   @override
   FunctionTypeImpl get invokeType;
@@ -50932,10 +50816,8 @@ final class StaticQualifierImpl extends NamedReceiverImpl
   IdentifierImpl? _v1Projection;
 
   @generated
-  StaticQualifierImpl({
-    required ImportPrefixReferenceImpl? importPrefix,
-    required this.name,
-  }) : _importPrefix = importPrefix {
+  new({required ImportPrefixReferenceImpl? importPrefix, required this.name})
+    : _importPrefix = importPrefix {
     _becomeParentOf2(importPrefix);
   }
 
@@ -51116,7 +50998,7 @@ final class StringInterpolationImpl extends SingleStringLiteralImpl
   final NodeListImpl<InterpolationElementImpl> elements = NodeListImpl._();
 
   @DoNotGenerate(reason: 'Has useful asserts')
-  StringInterpolationImpl({required List<InterpolationElementImpl> elements}) {
+  new({required List<InterpolationElementImpl> elements}) {
     // TODO(scheglov): Replace asserts with appropriately typed parameters.
     assert(elements.length > 2, 'Expected at last three elements.');
     assert(
@@ -51306,7 +51188,7 @@ class StringLexemeHelper {
   int start = 0;
   int end = 0;
 
-  StringLexemeHelper(this.lexeme, this.isFirst, this.isLast) {
+  new(this.lexeme, this.isFirst, this.isLast) {
     if (isFirst) {
       isRaw = lexeme.startsWith('r');
       if (isRaw) {
@@ -51473,7 +51355,7 @@ final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
   InternalConstructorElement? element;
 
   @DoNotGenerate(reason: 'The constructor selector is only in the V2 AST view')
-  SuperConstructorInvocationImpl({
+  new({
     required this.superKeyword,
     required ConstructorSelectorImpl? constructorSelector,
     required ArgumentListImpl argumentList,
@@ -51676,7 +51558,7 @@ final class SuperExpressionImpl extends ExpressionImpl
 
   final SuperReferenceImpl _origin;
 
-  SuperExpressionImpl.v1Projection(SuperReferenceImpl origin)
+  new v1Projection(SuperReferenceImpl origin)
     : _origin = origin,
       superKeyword = origin.superKeyword;
 
@@ -51830,7 +51712,7 @@ final class SuperFormalParameterImpl extends FormalParameterImpl
   final Token period;
 
   @generated
-  SuperFormalParameterImpl({
+  new({
     required super.comment,
     required super.metadata,
     required super.kind,
@@ -52093,7 +51975,7 @@ final class SuperReferenceImpl extends InstanceReceiverImpl
   TypeImpl? legacyStaticType;
 
   @generated
-  SuperReferenceImpl({required this.superKeyword});
+  new({required this.superKeyword});
 
   @generated
   @override
@@ -52212,7 +52094,7 @@ final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   ExpressionImpl _expression2;
 
   @generated
-  SwitchCaseImpl({
+  new({
     required super.labels,
     required super.keyword,
     required ExpressionImpl expression2,
@@ -52428,7 +52310,7 @@ abstract final class SwitchDefault implements SwitchMember {}
 final class SwitchDefaultImpl extends SwitchMemberImpl
     implements SwitchDefault {
   @generated
-  SwitchDefaultImpl({
+  new({
     required super.labels,
     required super.keyword,
     required super.colon,
@@ -52657,7 +52539,7 @@ final class SwitchExpressionCaseImpl extends AstNodeImpl
   ExpressionImpl _expression2;
 
   @generated
-  SwitchExpressionCaseImpl({
+  new({
     required GuardedPatternImpl guardedPattern,
     required this.arrow,
     required ExpressionImpl expression2,
@@ -52869,7 +52751,7 @@ final class SwitchExpressionImpl extends ExpressionImpl
   final Token rightBracket;
 
   @generated
-  SwitchExpressionImpl({
+  new({
     required this.switchKeyword,
     required this.leftParenthesis,
     required ExpressionImpl expression2,
@@ -53103,7 +52985,7 @@ sealed class SwitchMemberImpl extends AstNodeImpl
   /// Initializes a newly created switch member.
   ///
   /// The list of [labels] can be `null` if there are no labels.
-  SwitchMemberImpl({
+  new({
     required List<LabelImpl> labels,
     required this.keyword,
     required this.colon,
@@ -53171,7 +53053,7 @@ final class SwitchPatternCaseImpl extends SwitchMemberImpl
   GuardedPatternImpl _guardedPattern;
 
   @generated
-  SwitchPatternCaseImpl({
+  new({
     required super.labels,
     required super.keyword,
     required GuardedPatternImpl guardedPattern,
@@ -53395,7 +53277,7 @@ class SwitchStatementCaseGroup {
   /// Joined variables declared in [members], available in [statements].
   late Map<String, PromotableElementImpl> variables;
 
-  SwitchStatementCaseGroup(this.members, this.hasLabels);
+  new(this.members, this.hasLabels);
 
   NodeListImpl<StatementImpl> get statements {
     return members.last.statements2;
@@ -53450,7 +53332,7 @@ final class SwitchStatementImpl extends StatementImpl
       _computeMemberGroups();
 
   @generated
-  SwitchStatementImpl({
+  new({
     required this.switchKeyword,
     required this.leftParenthesis,
     required ExpressionImpl expression2,
@@ -53668,7 +53550,7 @@ final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   final List<Token> components;
 
   @generated
-  SymbolLiteralImpl({required this.poundSign, required this.components});
+  new({required this.poundSign, required this.components});
 
   @generated
   @override
@@ -53758,7 +53640,7 @@ final class ThisExpressionImpl extends ExpressionImpl
   final Token thisKeyword;
 
   @generated
-  ThisExpressionImpl({required this.thisKeyword});
+  new({required this.thisKeyword});
 
   @generated
   @override
@@ -53868,10 +53750,8 @@ final class ThrowExpressionImpl extends ExpressionImpl
   ExpressionImpl _expression2;
 
   @generated
-  ThrowExpressionImpl({
-    required this.throwKeyword,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.throwKeyword, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -54014,7 +53894,7 @@ abstract final class TopLevelDeclaration implements AnnotatedNode {}
 
 sealed class TopLevelDeclarationImpl extends AnnotatedNodeImpl
     implements TopLevelDeclarationV1OrV2Impl, TopLevelDeclaration {
-  TopLevelDeclarationImpl({required super.comment, required super.metadata});
+  new({required super.comment, required super.metadata});
 }
 
 /// A temporary marker interface for declarations in
@@ -54109,7 +53989,7 @@ final class TopLevelFunctionDeclarationImpl extends TopLevelDeclarationImpl
   FunctionDeclarationImpl? _v1Projection;
 
   @generated
-  TopLevelFunctionDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -54459,7 +54339,7 @@ final class TopLevelGetterDeclarationImpl extends TopLevelDeclarationImpl
   FunctionDeclarationImpl? _v1Projection;
 
   @generated
-  TopLevelGetterDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -54786,7 +54666,7 @@ final class TopLevelSetterDeclarationImpl extends TopLevelDeclarationImpl
   FunctionDeclarationImpl? _v1Projection;
 
   @generated
-  TopLevelSetterDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -55083,7 +54963,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   final Token semicolon;
 
   @generated
-  TopLevelVariableDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -55295,7 +55175,7 @@ final class TryStatementImpl extends StatementImpl implements TryStatement {
   BlockImpl? _finallyBlock;
 
   @generated
-  TryStatementImpl({
+  new({
     required this.tryKeyword,
     required BlockImpl body,
     required List<CatchClauseImpl> catchClauses,
@@ -55538,7 +55418,7 @@ sealed class TypeAliasImpl extends CompilationUnitMemberImpl
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// declaration doesn't have the corresponding attribute.
-  TypeAliasImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
@@ -55615,7 +55495,7 @@ final class TypeArgumentListImpl extends AstNodeImpl
   final Token rightBracket;
 
   @generated
-  TypeArgumentListImpl({
+  new({
     required this.leftBracket,
     required List<TypeAnnotationImpl> arguments,
     required this.rightBracket,
@@ -55767,11 +55647,8 @@ sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   ///
   /// The [constKeyword] can be `null` if the literal isn't a constant.
   ///
-  /// The [typeArguments] can be `null` if no type arguments were declared.
-  TypedLiteralImpl({
-    required this.constKeyword,
-    required TypeArgumentListImpl? typeArguments,
-  }) : _typeArguments = typeArguments {
+  /// The [_typeArguments] can be `null` if no type arguments were declared.
+  new({required this.constKeyword, required this._typeArguments}) {
     _becomeParentOf12(_typeArguments);
   }
 
@@ -55846,7 +55723,7 @@ final class TypeLiteralImpl extends ExpressionImpl implements TypeLiteral {
   NamedTypeImpl _type;
 
   @generated
-  TypeLiteralImpl({required NamedTypeImpl type}) : _type = type {
+  new({required NamedTypeImpl type}) : _type = type {
     _becomeParentOf12(type);
   }
 
@@ -56031,7 +55908,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   TypeParameterFragmentImpl? declaredFragment;
 
   @generated
-  TypeParameterImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.varianceKeyword,
@@ -56224,7 +56101,7 @@ final class TypeParameterListImpl extends AstNodeImpl
   final Token rightBracket;
 
   @generated
-  TypeParameterListImpl({
+  new({
     required this.leftBracket,
     required List<TypeParameterImpl> typeParameters,
     required this.rightBracket,
@@ -56398,10 +56275,8 @@ final class UnaryOperatorInvocationImpl extends ExpressionImpl
   PrefixExpressionImpl? _prefixExpression;
 
   @generated
-  UnaryOperatorInvocationImpl({
-    required this.operator,
-    required InstanceReceiverImpl operand,
-  }) : _operand = operand {
+  new({required this.operator, required InstanceReceiverImpl operand})
+    : _operand = operand {
     _becomeParentOf2(operand);
   }
 
@@ -56574,7 +56449,7 @@ final class UnqualifiedFunctionInvocationImpl
   MethodInvocationImpl? _methodInvocation;
 
   @generated
-  UnqualifiedFunctionInvocationImpl({
+  new({
     required super.name,
     required super.typeArguments,
     required super.argumentList,
@@ -56765,7 +56640,7 @@ final class UnqualifiedNameAssignmentTargetImpl extends AssignmentTargetImpl
   SimpleIdentifierImpl? _simpleIdentifier;
 
   @generated
-  UnqualifiedNameAssignmentTargetImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -56892,7 +56767,7 @@ final class UnqualifiedNameExpressionImpl extends NameExpressionImpl
   SimpleIdentifierImpl? _simpleIdentifier;
 
   @generated
-  UnqualifiedNameExpressionImpl({required this.name});
+  new({required this.name});
 
   @generated
   @override
@@ -57019,11 +56894,7 @@ sealed class UriBasedDirectiveImpl extends DirectiveImpl
   ///
   /// Either or both of the [comment] and [metadata] can be `null` if the
   /// directive doesn't have the corresponding attribute.
-  UriBasedDirectiveImpl({
-    required super.comment,
-    required super.metadata,
-    required StringLiteralImpl uri,
-  }) : _uri = uri {
+  new({required super.comment, required super.metadata, required this._uri}) {
     _becomeParentOf12(_uri);
   }
 
@@ -57090,7 +56961,7 @@ class UriValidationCode {
   final String name;
 
   /// Initializes a newly created validation code to have the given [name].
-  const UriValidationCode(this.name);
+  const new(this.name);
 
   @override
   String toString() => name;
@@ -57106,7 +56977,7 @@ final class V1Ast {
   final String message;
 
   /// Creates a marker for the V1 AST API.
-  const V1Ast([this.message = '']);
+  const new([this.message = '']);
 }
 
 /// The kind of V1 view projection generated for a child property.
@@ -57514,10 +57385,7 @@ final class ValidDotShorthandContextResolutionImpl
   @override
   final InterfaceTypeImpl lookupType;
 
-  ValidDotShorthandContextResolutionImpl({
-    required this.contextType,
-    required this.lookupType,
-  });
+  new({required this.contextType, required this.lookupType});
 }
 
 /// A successful index read resolution.
@@ -57539,7 +57407,7 @@ abstract final class ValidInvocationResolution
 
 sealed class ValidInvocationResolutionImpl extends InvocationResolutionImpl
     implements ValidInvocationResolution {
-  const ValidInvocationResolutionImpl();
+  const new();
 }
 
 /// A single variable in a variable declaration group: a top-level variable, a
@@ -57658,7 +57526,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   bool hasInitializer = false;
 
   @generated
-  VariableDeclarationImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.name,
@@ -57921,7 +57789,7 @@ final class VariableDeclarationListImpl extends AnnotatedNodeImpl
   final NodeListImpl<VariableDeclarationImpl> variables = NodeListImpl._();
 
   @generated
-  VariableDeclarationListImpl({
+  new({
     required super.comment,
     required super.metadata,
     required this.lateKeyword,
@@ -58157,10 +58025,8 @@ final class VariableDeclarationStatementImpl extends StatementImpl
   final Token semicolon;
 
   @generated
-  VariableDeclarationStatementImpl({
-    required VariableDeclarationListImpl variables,
-    required this.semicolon,
-  }) : _variables = variables {
+  new({required VariableDeclarationListImpl variables, required this.semicolon})
+    : _variables = variables {
     _becomeParentOf12(variables);
   }
 
@@ -58298,7 +58164,7 @@ sealed class VariablePatternImpl extends DartPatternImpl
   /// implicit name node is recorded here for a future use.
   PatternFieldNameImpl? fieldNameWithImplicitName;
 
-  VariablePatternImpl({required this.name});
+  new({required this.name});
 
   @override
   VariablePatternImpl? get variablePattern => this;
@@ -58322,7 +58188,7 @@ final class VariableReadResolutionImpl
   @override
   final TypeImpl type;
 
-  VariableReadResolutionImpl({required this.element, required this.type});
+  new({required this.element, required this.type});
 }
 
 /// A direct write to a variable.
@@ -58343,10 +58209,7 @@ final class VariableWriteResolutionImpl
   @override
   final InternalVariableElement element;
 
-  VariableWriteResolutionImpl({
-    required this.element,
-    required this.acceptedType,
-  });
+  new({required this.element, required this.acceptedType});
 }
 
 /// A guard in a pattern-based `case` in a `switch` statement, `switch`
@@ -58387,10 +58250,8 @@ final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   ExpressionImpl _expression2;
 
   @generated
-  WhenClauseImpl({
-    required this.whenKeyword,
-    required ExpressionImpl expression2,
-  }) : _expression2 = expression2 {
+  new({required this.whenKeyword, required ExpressionImpl expression2})
+    : _expression2 = expression2 {
     _becomeParentOf2AndExisting1(expression2);
   }
 
@@ -58584,7 +58445,7 @@ final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   StatementImpl _body2;
 
   @generated
-  WhileStatementImpl({
+  new({
     required this.whileKeyword,
     required this.leftParenthesis,
     required ExpressionImpl condition2,
@@ -58800,7 +58661,7 @@ final class WildcardPatternImpl extends DartPatternImpl
   final Token name;
 
   @generated
-  WildcardPatternImpl({
+  new({
     required this.keyword,
     required TypeAnnotationImpl? type,
     required this.name,
@@ -59012,10 +58873,7 @@ final class WithClauseImpl extends AstNodeImpl implements WithClause {
   final NodeListImpl<NamedTypeImpl> mixinTypes = NodeListImpl._();
 
   @generated
-  WithClauseImpl({
-    required this.withKeyword,
-    required List<NamedTypeImpl> mixinTypes,
-  }) {
+  new({required this.withKeyword, required List<NamedTypeImpl> mixinTypes}) {
     this.mixinTypes._initialize(this, mixinTypes);
   }
 
@@ -59150,7 +59008,7 @@ abstract final class WriteResolution {
 }
 
 sealed class WriteResolutionImpl implements WriteResolution {
-  const WriteResolutionImpl();
+  const new();
 
   @override
   TypeImpl get acceptedType;
@@ -59211,7 +59069,7 @@ final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   final Token semicolon;
 
   @generated
-  YieldStatementImpl({
+  new({
     required this.yieldKeyword,
     required this.star,
     required ExpressionImpl expression2,
@@ -59522,18 +59380,17 @@ final class _AnnotationV1Children {
   final SimpleIdentifierImpl? constructorName;
   final ArgumentListImpl? arguments;
 
-  _AnnotationV1Children._({
+  new _({
     required this.name,
-    required SimpleIdentifierImpl nameHead,
-    required SimpleIdentifierImpl? nameTail,
+    required this._nameHead,
+    required this._nameTail,
     required this.typeArguments,
     required this.period,
     required this.constructorName,
     required this.arguments,
-  }) : _nameHead = nameHead,
-       _nameTail = nameTail;
+  });
 
-  factory _AnnotationV1Children._of(AnnotationImpl annotation) {
+  factory _of(AnnotationImpl annotation) {
     var expression = annotation.expression;
     var end = expression.endToken;
     Token? tokenAfter(Token token) {
@@ -59731,7 +59588,7 @@ final class _FormalParameterListV1NodeList
     extends NodeListImpl<FormalParameterImpl> {
   final FormalParameterListImpl _ownerNode;
 
-  _FormalParameterListV1NodeList(this._ownerNode) : super._();
+  new(this._ownerNode) : super._();
 
   @override
   Token? get beginToken => isEmpty ? null : this[0].beginToken;
@@ -59803,7 +59660,7 @@ final class _FormalParameterListV1NodeList
 final class _FormalParameterListView extends ListBase<FormalParameterImpl> {
   final FormalParameterListImpl _node;
 
-  _FormalParameterListView(this._node);
+  new(this._node);
 
   @override
   int get length =>
@@ -59842,7 +59699,7 @@ final class _FormalParameterListView extends ListBase<FormalParameterImpl> {
 }
 
 class _Generated {
-  const _Generated();
+  const new();
 }
 
 /// Builds a V1 projection from parsed syntax, preserving canonical ownership.
@@ -59852,7 +59709,7 @@ class _Generated {
 class _ParsedExpressionBuilder {
   final ParsedExpressionImpl chain;
 
-  _ParsedExpressionBuilder(this.chain);
+  new(this.chain);
 
   ExpressionImpl build() {
     InstanceReceiverImpl node = chain;
@@ -60049,9 +59906,7 @@ final class _V1ProjectedNodeListImpl<
   final V1Node Function(V2Node node) _project;
   final bool _supportsV2;
 
-  _V1ProjectedNodeListImpl(this._base, this._project, {bool supportsV2 = false})
-    : _supportsV2 = supportsV2,
-      super._();
+  new(this._base, this._project, {this._supportsV2 = false}) : super._();
 
   @override
   Token? get beginToken {

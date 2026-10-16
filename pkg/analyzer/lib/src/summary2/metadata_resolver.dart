@@ -25,7 +25,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   /// the same, for example for all annotations of members of a class.
   ({Scope scope, AstResolver resolver})? _astResolverCache;
 
-  MetadataResolver(this._linker, this._libraryFragment, this._libraryBuilder)
+  new(this._linker, this._libraryFragment, this._libraryBuilder)
     : _containerScope = _libraryFragment.scope {
     _scope = _containerScope;
   }

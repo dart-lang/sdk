@@ -18,7 +18,7 @@ class ExpressionElement extends Element {
   final Expression expression;
   final bool isNullAware;
 
-  ExpressionElement(this.expression, {required this.isNullAware});
+  new(this.expression, {required this.isNullAware});
 
   @override
   String toString() =>
@@ -39,7 +39,7 @@ class MapEntryElement extends Element {
   final bool isNullAwareKey;
   final bool isNullAwareValue;
 
-  MapEntryElement(
+  new(
     this.key,
     this.value, {
     required this.isNullAwareKey,
@@ -70,7 +70,7 @@ class SpreadElement extends Element {
   final Expression expression;
   final bool isNullAware;
 
-  SpreadElement(this.expression, {required this.isNullAware});
+  new(this.expression, {required this.isNullAware});
 
   @override
   String toString() => 'SpreadElement($expression,isNullAware=$isNullAware)';
@@ -89,7 +89,7 @@ class IfElement extends Element {
   final Element then;
   final Element? otherwise;
 
-  IfElement(this.condition, this.then, [this.otherwise]);
+  new(this.condition, this.then, [this.otherwise]);
 
   @override
   String toString() => 'IfElement($condition,$then,$otherwise)';

@@ -18,8 +18,7 @@ import 'package:analyzer/src/error/listener.dart';
 class RecordLiteralResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  RecordLiteralResolver({required TypeAnalyzer typeAnalyzer})
-    : _typeAnalyzer = typeAnalyzer;
+  new({required this._typeAnalyzer});
 
   DiagnosticReporter get _diagnosticReporter =>
       _typeAnalyzer.diagnosticReporter;

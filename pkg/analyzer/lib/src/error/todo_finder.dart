@@ -28,7 +28,7 @@ class TodoFinder {
   ///
   /// @param errorReporter the error reporter by which to-do comments will be
   ///        reported
-  TodoFinder(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   /// Search the comments in the given compilation unit for to-do comments and
   /// report an error for each.
@@ -154,7 +154,7 @@ class _TodoFinder {
   String? _todoText;
   String? _todoKind;
 
-  _TodoFinder(this.s);
+  new(this.s);
 
   int get offset => _offset!;
   String get todoKind => _todoKind!;

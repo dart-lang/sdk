@@ -19,7 +19,7 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 final class AbstractMemberSuperLookupRecovery extends SuperLookupRecovery {
   final InternalExecutableElement member;
 
-  AbstractMemberSuperLookupRecovery(this.member);
+  new(this.member);
 }
 
 /// Failure because of there is no most specific signature in [candidates].
@@ -27,7 +27,7 @@ class CandidatesConflict extends Conflict {
   /// The list has at least two items, because the only item is always valid.
   final List<InternalExecutableElement> candidates;
 
-  CandidatesConflict({required super.name, required this.candidates});
+  new({required super.name, required this.candidates});
 }
 
 /// Failure to find a valid signature from superinterfaces.
@@ -35,7 +35,7 @@ class Conflict {
   /// The name for which we failed to find a valid signature.
   final Name name;
 
-  Conflict({required this.name});
+  new({required this.name});
 }
 
 /// The extension type inherits a method and a setter with the same name,
@@ -45,11 +45,7 @@ class ExtensionTypeConflictingInheritedMethodAndSetterConflict
   final InternalMethodElement method;
   final InternalSetterElement setter;
 
-  ExtensionTypeConflictingInheritedMethodAndSetterConflict({
-    required super.name,
-    required this.method,
-    required this.setter,
-  });
+  new({required super.name, required this.method, required this.setter});
 }
 
 /// The extension type has a static member that conflicts with an inherited
@@ -58,11 +54,7 @@ class ExtensionTypeConflictingStaticAndInstanceConflict extends Conflict {
   final InternalExecutableElement declared;
   final InternalExecutableElement inherited;
 
-  ExtensionTypeConflictingStaticAndInstanceConflict({
-    required super.name,
-    required this.declared,
-    required this.inherited,
-  });
+  new({required super.name, required this.declared, required this.inherited});
 }
 
 /// Failure because of a getter and a method from direct superinterfaces.
@@ -70,11 +62,7 @@ class GetterMethodConflict extends Conflict {
   final InternalGetterElement getter;
   final InternalMethodElement method;
 
-  GetterMethodConflict({
-    required super.name,
-    required this.getter,
-    required this.method,
-  });
+  new({required super.name, required this.getter, required this.method});
 }
 
 /// The extension type has both an extension and non-extension member
@@ -83,7 +71,7 @@ class HasNonExtensionAndExtensionMemberConflict extends Conflict {
   final List<InternalExecutableElement> nonExtension;
   final List<InternalExecutableElement> extension;
 
-  HasNonExtensionAndExtensionMemberConflict({
+  new({
     required super.name,
     required this.nonExtension,
     required this.extension,
@@ -1550,7 +1538,7 @@ class Interface {
   /// superclasses, or interfaces.
   Map<Name, InternalExecutableElement>? inheritedMap;
 
-  Interface._({
+  new _({
     required this.map,
     required this.declared,
     required this.implemented,
@@ -1577,7 +1565,7 @@ final class MissingMemberSuperLookupRecovery extends SuperLookupRecovery {
   /// or setter of another library, which is spelled like the name.
   final InternalExecutableElement? foundInstead;
 
-  const MissingMemberSuperLookupRecovery(this.foundInstead);
+  const new(this.foundInstead);
 }
 
 /// A public name, or a private name qualified by a library URI.
@@ -1599,7 +1587,7 @@ class Name {
   @override
   final int hashCode;
 
-  factory Name(Uri? libraryUri, String name) {
+  factory(Uri? libraryUri, String name) {
     if (name.startsWith('_')) {
       var hashCode = Object.hash(libraryUri, name);
       return Name._internal(libraryUri, name, false, hashCode);
@@ -1608,11 +1596,11 @@ class Name {
     }
   }
 
-  factory Name.forLibrary(LibraryElement? library, String name) {
+  factory forLibrary(LibraryElement? library, String name) {
     return Name(library?.uri, name);
   }
 
-  Name._internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
+  new _internal(this.libraryUri, this.name, this.isPublic, this.hashCode);
 
   Name get forGetter {
     if (isSetter) {
@@ -1674,15 +1662,12 @@ class Name {
 class NotUniqueExtensionMemberConflict extends Conflict {
   final List<InternalExecutableElement> candidates;
 
-  NotUniqueExtensionMemberConflict({
-    required super.name,
-    required this.candidates,
-  });
+  new({required super.name, required this.candidates});
 }
 
 /// Why a lookup through `super` found no concrete member to invoke.
 sealed class SuperLookupRecovery {
-  const SuperLookupRecovery();
+  const new();
 }
 
 class _ExtensionTypeCandidates {
@@ -1691,7 +1676,7 @@ class _ExtensionTypeCandidates {
   final List<InternalGetterElement> getters = [];
   final List<InternalSetterElement> setters = [];
 
-  _ExtensionTypeCandidates(this.name);
+  new(this.name);
 
   List<InternalExecutableElement> get all {
     return [...methods, ...getters, ...setters];
@@ -1734,7 +1719,7 @@ final class _FreshExecutableTypeParameters {
   final List<TypeParameterFragmentImpl> fragments;
   late final MapSubstitution _substitution;
 
-  _FreshExecutableTypeParameters(this._source)
+  new(this._source)
     : fragments = [
         for (var typeParameter in _source)
           TypeParameterFragmentImpl.synthetic(name: typeParameter.name ?? ''),
@@ -1783,15 +1768,15 @@ class _ParameterDesc {
   final int? index;
   final String? name;
 
-  factory _ParameterDesc(int index, FormalParameterElement element) {
+  factory(int index, FormalParameterElement element) {
     return element.isNamed
         ? _ParameterDesc.name(element.name)
         : _ParameterDesc.index(index);
   }
 
-  _ParameterDesc.index(this.index) : name = null;
+  new index(this.index) : name = null;
 
-  _ParameterDesc.name(this.name) : index = null;
+  new name(this.name) : index = null;
 
   @override
   int get hashCode {

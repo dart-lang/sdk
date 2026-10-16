@@ -63,7 +63,7 @@ class BreadthFirstVisitor<R> extends GeneralizingAstVisitor<R> {
   late final _BreadthFirstChildVisitor _childVisitor;
 
   /// Initialize a newly created visitor.
-  BreadthFirstVisitor() {
+  new() {
     _childVisitor = _BreadthFirstChildVisitor(this);
   }
 
@@ -106,7 +106,7 @@ class DelegatingAstVisitor<T> extends UnifyingAstVisitor<T> {
 
   /// Initialize a newly created visitor to use each of the given delegate
   /// visitors to visit the nodes of an AST structure.
-  const DelegatingAstVisitor(this.delegates);
+  const new(this.delegates);
 
   @override
   T? visitNode(AstNode node) {
@@ -138,7 +138,7 @@ class DelegatingAstVisitor2<T> extends UnifyingAstVisitor2<T> {
 
   /// Initialize a newly created visitor to use each of the given delegate
   /// visitors to visit the nodes of an AST structure.
-  const DelegatingAstVisitor2(this.delegates);
+  const new(this.delegates);
 
   @override
   T? visitNode(AstNode node) {
@@ -156,7 +156,7 @@ class _BreadthFirstChildVisitor extends UnifyingAstVisitor<void> {
   final BreadthFirstVisitor outerVisitor;
 
   /// Initialize a newly created visitor to help the [outerVisitor].
-  _BreadthFirstChildVisitor(this.outerVisitor);
+  new(this.outerVisitor);
 
   @override
   void visitNode(AstNode node) {

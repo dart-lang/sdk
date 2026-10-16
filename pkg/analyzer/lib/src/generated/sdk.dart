@@ -77,7 +77,7 @@ class DartSdkManager {
   Map<SdkDescription, DartSdk> sdkMap = HashMap<SdkDescription, DartSdk>();
 
   /// Initialize a newly created manager.
-  DartSdkManager(this.defaultSdkDirectory);
+  new(this.defaultSdkDirectory);
 
   /// Return any SDK that has been created, or `null` if no SDKs have been
   /// created.
@@ -142,7 +142,7 @@ class SdkDescription {
   /// The path of the SDK.
   final String path;
 
-  SdkDescription(this.path);
+  new(this.path);
 
   @override
   int get hashCode {
@@ -268,7 +268,7 @@ class SdkLibraryImpl implements SdkLibrary {
 
   /// Initialize a newly created library to represent the library with the given
   /// [shortName].
-  SdkLibraryImpl(this.shortName);
+  new(this.shortName);
 
   /// Set whether the library is documented.
   set documented(bool documented) {

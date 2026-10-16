@@ -30,10 +30,10 @@ class ElementUsageDetector<TagInfo extends Object> {
   final List<UsageSetAndReporter> usagesArbitrary = [];
   final List<UsageSetAndReporter> usagesMetadataOnly = [];
 
-  ElementUsageDetector({
-    required WorkspacePackage? workspacePackage,
+  new({
+    required this._workspacePackage,
     required List<UsageSetAndReporter> usagesAndReporters,
-  }) : _workspacePackage = workspacePackage {
+  }) {
     for (var usageSetAndReporter in usagesAndReporters) {
       if (usageSetAndReporter.elementUsageSet.reliesOnlyOnElementMetadata) {
         usagesMetadataOnly.add(usageSetAndReporter);
@@ -508,10 +508,10 @@ class ElementUsageDetectorV2<TagInfo extends Object> {
   final List<UsageSetAndReporter> usagesArbitrary = [];
   final List<UsageSetAndReporter> usagesMetadataOnly = [];
 
-  ElementUsageDetectorV2({
-    required WorkspacePackage? workspacePackage,
+  new({
+    required this._workspacePackage,
     required List<UsageSetAndReporter> usagesAndReporters,
-  }) : _workspacePackage = workspacePackage {
+  }) {
     for (var usageSetAndReporter in usagesAndReporters) {
       if (usageSetAndReporter.elementUsageSet.reliesOnlyOnElementMetadata) {
         usagesMetadataOnly.add(usageSetAndReporter);
@@ -1055,5 +1055,5 @@ class UsageSetAndReporter<TagInfo extends Object> {
   final ElementUsageSet<TagInfo> elementUsageSet;
   final ElementUsageReporter<TagInfo> elementUsageReporter;
 
-  UsageSetAndReporter(this.elementUsageSet, this.elementUsageReporter);
+  new(this.elementUsageSet, this.elementUsageReporter);
 }

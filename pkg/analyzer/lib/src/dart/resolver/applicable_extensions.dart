@@ -18,11 +18,7 @@ class InstantiatedExtensionWithMember {
   final MapSubstitution substitution;
   final TypeImpl extendedType;
 
-  InstantiatedExtensionWithMember(
-    this.candidate,
-    this.substitution,
-    this.extendedType,
-  );
+  new(this.candidate, this.substitution, this.extendedType);
 
   ExtensionResolutionResult get asResolutionResult {
     return SingleExtensionResolutionResult(getter2: getter, setter2: setter);
@@ -44,24 +40,20 @@ class InstantiatedExtensionWithoutMember {
   final MapSubstitution substitution;
   final DartType extendedType;
 
-  InstantiatedExtensionWithoutMember(
-    this.extension,
-    this.substitution,
-    this.extendedType,
-  );
+  new(this.extension, this.substitution, this.extendedType);
 }
 
 class _ExtensionWithMemberWithName {
   final ExtensionElementImpl extension;
   final InternalExecutableElement member;
 
-  _ExtensionWithMemberWithName({required this.extension, required this.member});
+  new({required this.extension, required this.member});
 }
 
 abstract class _NotInstantiatedExtension<R> {
   final ExtensionElementImpl extension;
 
-  _NotInstantiatedExtension(this.extension);
+  new(this.extension);
 
   R instantiate({
     required MapSubstitution substitution,
@@ -74,11 +66,8 @@ class _NotInstantiatedExtensionWithMember
   final InternalExecutableElement? getter;
   final InternalExecutableElement? setter;
 
-  _NotInstantiatedExtensionWithMember(
-    super.extension, {
-    this.getter,
-    this.setter,
-  }) : assert(getter != null || setter != null);
+  new(super.extension, {this.getter, this.setter})
+    : assert(getter != null || setter != null);
 
   @override
   InstantiatedExtensionWithMember instantiate({
@@ -92,7 +81,7 @@ class _NotInstantiatedExtensionWithMember
 /// [_NotInstantiatedExtension] for any [ExtensionElement].
 class _NotInstantiatedExtensionWithoutMember
     extends _NotInstantiatedExtension<InstantiatedExtensionWithoutMember> {
-  _NotInstantiatedExtensionWithoutMember(super.extension);
+  new(super.extension);
 
   @override
   InstantiatedExtensionWithoutMember instantiate({

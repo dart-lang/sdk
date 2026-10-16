@@ -132,7 +132,7 @@ final class DocCommentBuilder {
 
   final _blockDocDirectiveBuilderStack = <_BlockDocDirectiveBuilder>[];
 
-  DocCommentBuilder(
+  new(
     this._parser,
     this._diagnosticReporter,
     this._uri,
@@ -861,11 +861,7 @@ class DocImportStringScanner extends StringScanner {
   /// * (31, 96) (The offsets of the first character in the line with `show`.)
   final List<({int offsetInDocImport, int offsetInUnit})> _sourceMap;
 
-  DocImportStringScanner(
-    super.source, {
-    super.configuration,
-    required List<({int offsetInDocImport, int offsetInUnit})> sourceMap,
-  }) : _sourceMap = sourceMap;
+  new(super.source, {super.configuration, required this._sourceMap});
 
   @override
   /// The position of the start of the next token _in the unit_, not in
@@ -912,10 +908,9 @@ final class _BlockDocDirectiveBuilder {
   /// comment.
   final innerDocDirectives = <DocDirective>[];
 
-  _BlockDocDirectiveBuilder(this.openingTag);
+  new(this.openingTag);
 
-  factory _BlockDocDirectiveBuilder.placeholder() =>
-      _BlockDocDirectiveBuilder(null);
+  factory placeholder() => _BlockDocDirectiveBuilder(null);
 
   BlockDocDirective build() {
     var openingTag = this.openingTag;
@@ -940,7 +935,7 @@ final class _BlockDocDirectiveBuilder {
 /// comment (which consists of a series of [Token]s) or a multi-line doc comment
 /// (which consists of a single [Token]).
 abstract class _CharacterSequence {
-  factory _CharacterSequence(Token token) {
+  factory(Token token) {
     var isFromSingleLineComment = token.lexeme.startsWith('///');
     return isFromSingleLineComment
         ? _CharacterSequenceFromSingleLineComment(token)
@@ -968,7 +963,7 @@ class _CharacterSequenceFromMultiLineComment implements _CharacterSequence {
 
   int _end = -1;
 
-  _CharacterSequenceFromMultiLineComment(this._token);
+  new(this._token);
 
   @override
   ({int offset, String content})? next() {
@@ -1059,7 +1054,7 @@ class _CharacterSequenceFromSingleLineComment implements _CharacterSequence {
   @override
   int _offset = -1;
 
-  _CharacterSequenceFromSingleLineComment(this._token);
+  new(this._token);
 
   @override
   ({int offset, String content})? next() {
@@ -1120,18 +1115,15 @@ final class _DirectiveParser {
   /// the index after the end of the last character in [content], if not.
   int? _end;
 
-  _DirectiveParser._({
-    required int offset,
-    required int contentOffset,
+  new _({
+    required this._offset,
+    required this._contentOffset,
     required this.nameOffset,
     required this.nameEnd,
     required this.content,
     required this.index,
-    required DiagnosticReporter? diagnosticReporter,
-  }) : _contentOffset = contentOffset,
-       _offset = offset,
-       _length = content.length,
-       _diagnosticReporter = diagnosticReporter;
+    required this._diagnosticReporter,
+  }) : _length = content.length;
 
   /// Parses a non-block (single line) doc directive.
   DocDirectiveTag directive(DocDirectiveType type) {

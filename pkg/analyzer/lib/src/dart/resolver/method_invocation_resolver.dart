@@ -43,7 +43,7 @@ class MethodInvocationResolver with ScopeHelpers {
   /// Helper for extension method resolution.
   final ExtensionMemberResolver _extensionResolver;
 
-  MethodInvocationResolver(this._typeAnalyzer)
+  new(this._typeAnalyzer)
     : _inheritance = _typeAnalyzer.inheritance,
       _definingLibrary = _typeAnalyzer.definingLibrary,
       _definingLibraryUri = _typeAnalyzer.definingLibrary.uri,

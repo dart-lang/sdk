@@ -30,7 +30,7 @@ typedef InvalidOverrideDiagnosticCode =
 /// A factory used to create diagnostics.
 class DiagnosticFactory {
   /// Initialize a newly created diagnostic factory.
-  DiagnosticFactory();
+  new();
 
   /// Return a diagnostic indicating that [name] is defined by multiple
   /// imports.

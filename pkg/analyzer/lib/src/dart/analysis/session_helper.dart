@@ -16,7 +16,7 @@ class AnalysisSessionHelper {
 
   final Map<String, ResolvedLibraryResult> _resolvedLibraries = {};
 
-  AnalysisSessionHelper(this.session);
+  new(this.session);
 
   /// Returns the [ClassElement] with the given [className] that is exported
   /// from the library with the given [libraryUri], or `null` if the library

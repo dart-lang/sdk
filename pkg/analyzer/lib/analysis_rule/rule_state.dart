@@ -28,17 +28,17 @@ final class RuleState {
   final String? replacedBy;
 
   /// Initializes a state that marks an analysis rule as deprecated.
-  const RuleState.deprecated({this.since, this.replacedBy})
+  const new deprecated({this.since, this.replacedBy})
     : _type = _RuleStateType.deprecated;
 
   /// Initializes a state that marks an analysis rule as experimental.
-  const RuleState.experimental({this.since})
+  const new experimental({this.since})
     : _type = _RuleStateType.experimental,
       replacedBy = null;
 
   /// Initializes a state that marks an analysis rule as for internal (Dart SDK)
   /// use only.
-  const RuleState.internal({this.since})
+  const new internal({this.since})
     : _type = _RuleStateType.internal,
       replacedBy = null;
 
@@ -47,11 +47,11 @@ final class RuleState {
   ///
   /// Deprecated; clients should use [RemovedAnalysisRule] instead.
   @Deprecated('Use RemovedAnalysisRule instead')
-  const RuleState.removed({this.since, this.replacedBy})
+  const new removed({this.since, this.replacedBy})
     : _type = _RuleStateType.removed;
 
   /// Initializes a state that marks an analysis rule as stable.
-  const RuleState.stable({this.since})
+  const new stable({this.since})
     : _type = _RuleStateType.stable,
       replacedBy = null;
 
@@ -62,7 +62,7 @@ final class RuleState {
   /// and have no stability guarantees.
   /// They're not limited to being used within the Dart SDK,
   /// but they're not recommended for general use.
-  const RuleState.testing({this.since}) : _type = .testing, replacedBy = null;
+  const new testing({this.since}) : _type = .testing, replacedBy = null;
 
   /// Whether this state marks an analysis rule as deprecated.
   bool get isDeprecated => _type == _RuleStateType.deprecated;

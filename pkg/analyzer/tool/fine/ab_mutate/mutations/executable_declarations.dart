@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 class CollectExecutablesVisitor extends RecursiveAstVisitor2<void> {
   final List<ExecutableDeclaration> _out;
 
-  CollectExecutablesVisitor._internal(this._out);
+  new _internal(this._out);
 
   @override
   void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
@@ -75,9 +75,5 @@ class ExecutableDeclaration {
   final FormalParameterList? formalParameters;
   final TypeAnnotation? returnType;
 
-  ExecutableDeclaration(
-    this.declarationOffset,
-    this.formalParameters,
-    this.returnType,
-  );
+  new(this.declarationOffset, this.formalParameters, this.returnType);
 }

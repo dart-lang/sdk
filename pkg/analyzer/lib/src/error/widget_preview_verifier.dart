@@ -30,7 +30,7 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 class WidgetPreviewVerifier {
   final DiagnosticReporter _diagnosticReporter;
 
-  WidgetPreviewVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   /// Check is [node] is a Widget Preview application and verify its
   /// correctness.
@@ -225,9 +225,7 @@ class _InvalidWidgetPreviewArgumentDetectorVisitor
   final DiagnosticReporter diagnosticReporter;
 
   NamedArgument? rootArgument;
-  _InvalidWidgetPreviewArgumentDetectorVisitor({
-    required this.diagnosticReporter,
-  });
+  new({required this.diagnosticReporter});
 
   @override
   void visitArgumentList(ArgumentList node) {

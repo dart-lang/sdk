@@ -12,7 +12,7 @@ class _SuperVisitor extends RecursiveAstVisitor2<void> {
   /// Set to `true` if a super invocation with the [name] is found.
   bool hasSuperInvocation = false;
 
-  _SuperVisitor(this.name, this._usage);
+  new(this.name, this._usage);
 
   @override
   void visitBinaryOperatorInvocation(BinaryOperatorInvocation node) {

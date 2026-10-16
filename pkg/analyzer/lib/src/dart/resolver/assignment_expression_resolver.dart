@@ -25,7 +25,7 @@ class AssignmentExpressionResolver {
   final TypePropertyResolver _typePropertyResolver;
   final AssignmentExpressionShared _assignmentShared;
 
-  AssignmentExpressionResolver({required TypeAnalyzer typeAnalyzer})
+  new({required TypeAnalyzer typeAnalyzer})
     : _typeAnalyzer = typeAnalyzer,
       _typePropertyResolver = typeAnalyzer.typePropertyResolver,
       _assignmentShared = AssignmentExpressionShared(
@@ -998,8 +998,7 @@ class AssignmentExpressionResolver {
 class AssignmentExpressionShared {
   final TypeAnalyzer _typeAnalyzer;
 
-  AssignmentExpressionShared({required TypeAnalyzer typeAnalyzer})
-    : _typeAnalyzer = typeAnalyzer;
+  new({required this._typeAnalyzer});
 
   DiagnosticReporter get _errorReporter => _typeAnalyzer.diagnosticReporter;
 
@@ -1055,12 +1054,12 @@ final class InvalidReadWriteTarget extends ReadWriteTargetResult {
   /// [InvalidExpressionAssignmentTargetImpl].
   final ExpressionImpl? expression;
 
-  InvalidReadWriteTarget({required this.target, required this.expression});
+  new({required this.target, required this.expression});
 }
 
 /// The result of [AssignmentExpressionResolver.resolveReadWriteTarget].
 sealed class ReadWriteTargetResult {
-  const ReadWriteTargetResult();
+  const new();
 }
 
 /// A resolved assignment target of a read-write operation.
@@ -1078,7 +1077,7 @@ final class ResolvedReadWriteTarget extends ReadWriteTargetResult {
   /// The flow analysis information about the read.
   final ExpressionInfo? readExpressionInfo;
 
-  ResolvedReadWriteTarget({
+  new({
     required this.readType,
     required this.writeAcceptedType,
     this.variableElement,
@@ -1089,5 +1088,5 @@ final class ResolvedReadWriteTarget extends ReadWriteTargetResult {
 /// An assignment target of a read-write operation whose resolution failed;
 /// the failure is already reported.
 final class UnresolvedReadWriteTarget extends ReadWriteTargetResult {
-  const UnresolvedReadWriteTarget();
+  const new();
 }

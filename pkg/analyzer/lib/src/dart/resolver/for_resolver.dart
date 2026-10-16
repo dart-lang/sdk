@@ -21,8 +21,7 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 class ForResolver {
   final TypeAnalyzer _typeAnalyzer;
 
-  ForResolver({required TypeAnalyzer typeAnalyzer})
-    : _typeAnalyzer = typeAnalyzer;
+  new({required this._typeAnalyzer});
 
   TypeSystemImpl get _typeSystem => _typeAnalyzer.typeSystem;
 

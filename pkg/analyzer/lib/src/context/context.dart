@@ -25,11 +25,11 @@ class AnalysisContextImpl implements AnalysisContext {
   TypeProviderImpl? _typeProvider;
   TypeSystemImpl? _typeSystem;
 
-  AnalysisContextImpl({
-    required AnalysisOptionsMap analysisOptionsMap,
+  new({
+    required this._analysisOptionsMap,
     required this.declaredVariables,
     required this.sourceFactory,
-  }) : _analysisOptionsMap = analysisOptionsMap;
+  });
 
   // TODO(scheglov): Remove it, exists only for Cider.
   set analysisOptions(AnalysisOptionsImpl analysisOptions) {

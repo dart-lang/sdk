@@ -62,7 +62,7 @@ class LibraryCycle {
   /// elements from their dependency cycles, not on all of them.
   final String nonTransitiveApiSignature;
 
-  LibraryCycle({
+  new({
     required this.withFineDependencies,
     required this.libraries,
     required this.libraryUris,
@@ -119,7 +119,7 @@ class LibraryCycleComputer {
 
   /// The resolution of [sourceFactory] must not change, same as for other
   /// state of the analysis context.
-  LibraryCycleComputer({
+  new({
     required this.withFineDependencies,
     required this.saltForElements,
     required SourceFactory sourceFactory,
@@ -138,7 +138,7 @@ class _LibraryNode extends graph.Node<_LibraryNode> {
   final _LibraryWalker walker;
   final LibraryFileKind kind;
 
-  _LibraryNode(this.walker, this.kind);
+  new(this.walker, this.kind);
 
   @override
   bool get isEvaluated => kind.internal_libraryCycle != null;
@@ -175,7 +175,7 @@ class _LibraryWalker extends graph.DependencyWalker<_LibraryNode> {
   final LibraryCycleComputer computer;
   final Map<LibraryFileKind, _LibraryNode> nodesOfFiles = {};
 
-  _LibraryWalker(this.computer);
+  new(this.computer);
 
   @override
   void evaluate(_LibraryNode v) {
@@ -342,7 +342,7 @@ class _UriResolutionEnvironment {
   /// the source factory has no package map.
   final Map<String, int>? _packageNameToIndex;
 
-  factory _UriResolutionEnvironment(SourceFactory sourceFactory) {
+  factory(SourceFactory sourceFactory) {
     var sdk = sourceFactory.dartSdk;
     var sdkPath = sdk is FolderBasedDartSdk ? sdk.directory.path : null;
 
@@ -361,11 +361,7 @@ class _UriResolutionEnvironment {
     );
   }
 
-  _UriResolutionEnvironment._(
-    this._sdkPath,
-    this._sortedPackagePaths,
-    this._packageNameToIndex,
-  );
+  new _(this._sdkPath, this._sortedPackagePaths, this._packageNameToIndex);
 
   /// Adds this environment, restricted to [packageNames], to [signature].
   ///

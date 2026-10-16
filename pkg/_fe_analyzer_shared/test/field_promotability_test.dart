@@ -245,7 +245,7 @@ class Class {
   final List<Field> fields;
   final List<Getter> getters;
 
-  Class({
+  new({
     this.extendsOrMixesIn = const [],
     this.implements = const [],
     this.isAbstract = false,
@@ -261,7 +261,7 @@ class Field {
   final bool isExternal;
   late final PropertyNonPromotabilityReason? nonPromotabilityReason;
 
-  Field(
+  new(
     this.name, {
     this.isFinal = false,
     this.isAbstract = false,
@@ -274,7 +274,7 @@ class Getter {
   final bool isAbstract;
   late final PropertyNonPromotabilityReason? nonPromotabilityReason;
 
-  Getter(this.name, {this.isAbstract = false});
+  new(this.name, {this.isAbstract = false});
 }
 
 class _TestFieldPromotability extends FieldPromotability<Class, Field, Getter> {

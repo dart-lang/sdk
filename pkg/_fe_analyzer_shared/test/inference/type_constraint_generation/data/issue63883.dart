@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class C<X> {
-  C(void Function(X) x);
+  new(void Function(X) x);
 }
 
 T check<T>(C<List<T>> f) {

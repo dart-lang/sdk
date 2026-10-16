@@ -19,9 +19,8 @@ class StringTable {
   ///   - `<the length of the bytes> <-- [startOffset]`
   ///   - `<the number strings>`
   ///   - `<the array of lengths of individual strings>`
-  StringTable({required Uint8List bytes, required int startOffset})
-    : _bytes = bytes,
-      _byteOffset = startOffset {
+  new({required this._bytes, required int startOffset})
+    : _byteOffset = startOffset {
     var offset = startOffset - _readUint30();
     var length = _readUint30();
 

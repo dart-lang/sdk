@@ -63,7 +63,7 @@ class AnalysisForCompletionResult {
   final CompilationUnit parsedUnit;
   final List<AstNode> resolvedNodes;
 
-  AnalysisForCompletionResult({
+  new({
     required this.fileState,
     required this.parsedUnit,
     required this.resolvedNodes,
@@ -91,21 +91,19 @@ class LibraryAnalyzer {
   /// Whether timing data should be gathered during lint rule execution.
   final bool _enableLintRuleTiming;
 
-  LibraryAnalyzer(
+  new(
     this._analysisOptions,
     this._declaredVariables,
     this._libraryElement,
     this._inheritance,
     this._library, {
     required this.performance,
-    TestingData? testingData,
-    bool enableLintRuleTiming = false,
-  }) : _testingData = testingData,
-       _typeSystemOperations = TypeSystemOperations(
+    this._testingData,
+    this._enableLintRuleTiming = false,
+  }) : _typeSystemOperations = TypeSystemOperations(
          _libraryElement.typeSystem,
          strictCasts: _analysisOptions.strictCasts,
-       ),
-       _enableLintRuleTiming = enableLintRuleTiming {
+       ) {
     _libraryVerificationContext = LibraryVerificationContext(
       libraryKind: _library,
       constructorFieldsVerifier: ConstructorFieldsVerifier(
@@ -1141,7 +1139,7 @@ class UnitAnalysisResult {
   final CompilationUnitImpl unit;
   final List<Diagnostic> diagnostics;
 
-  UnitAnalysisResult(this.file, this.unit, this.diagnostics);
+  new(this.file, this.unit, this.diagnostics);
 }
 
 extension on file_state.DirectiveUri {

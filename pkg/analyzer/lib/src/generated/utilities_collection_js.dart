@@ -10,9 +10,9 @@ import 'package:analyzer/src/binary/binary_writer.dart';
 
 /// The set of [Enum] values, up to `60` constants.
 extension type EnumSet<T extends Enum>((int, int) _bits) {
-  EnumSet.empty() : this((0, 0));
+  new empty() : this((0, 0));
 
-  factory EnumSet.read(BinaryReader reader) {
+  factory read(BinaryReader reader) {
     return EnumSet((reader.readInt64(), reader.readInt64()));
   }
 

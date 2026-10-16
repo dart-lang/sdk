@@ -95,7 +95,7 @@ class FooListener extends StackListener {
   @override
   final Uri uri;
 
-  FooListener(this.uri);
+  new(this.uri);
 
   @override
   void addProblem(

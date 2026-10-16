@@ -22,7 +22,7 @@ class _AfterLibrarySubscription {
   final void Function() callback;
   final Stopwatch? timer;
 
-  _AfterLibrarySubscription(this.rule, this.callback, this.timer);
+  new(this.rule, this.callback, this.timer);
 }
 
 /// A single subscription for a node type, by the specified [rule].
@@ -32,7 +32,7 @@ class _Subscription<T> {
   final AstVisitor visitor;
   final Stopwatch? timer;
 
-  _Subscription(this.rule, this.visitor, this.timer);
+  new(this.rule, this.visitor, this.timer);
 }
 
 /// A single subscription using [AstVisitor2], by the specified [rule].
@@ -41,5 +41,5 @@ class _Subscription2<T> {
   final AstVisitor2 visitor;
   final Stopwatch? timer;
 
-  _Subscription2(this.rule, this.visitor, this.timer);
+  new(this.rule, this.visitor, this.timer);
 }

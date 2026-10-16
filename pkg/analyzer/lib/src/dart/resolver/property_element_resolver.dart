@@ -35,7 +35,7 @@ import 'package:analyzer/src/utilities/extensions/object.dart';
 class PropertyElementResolver with ScopeHelpers {
   final TypeAnalyzer _typeAnalyzer;
 
-  PropertyElementResolver(this._typeAnalyzer);
+  new(this._typeAnalyzer);
 
   @override
   DiagnosticReporter get diagnosticReporter => _typeAnalyzer.diagnosticReporter;
@@ -2364,7 +2364,7 @@ class PropertyElementResolverResult {
   /// Might be `_` if `[]` or `[]=` are not resolved or invalid.
   final TypeImpl indexContextType;
 
-  PropertyElementResolverResult({
+  new({
     this.readExpressionInfo,
     this.readElementRequested2,
     this.readElementRecovery2,

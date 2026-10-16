@@ -12,7 +12,7 @@ import 'package:analyzer/src/error/listener.dart';
 class UseResultVerifier {
   final DiagnosticReporter _diagnosticReporter;
 
-  UseResultVerifier(this._diagnosticReporter);
+  new(this._diagnosticReporter);
 
   void checkCallInvocation(CallInvocation node) {
     if (node.resolution case ExecutableInvocationResolution(:var element)) {
