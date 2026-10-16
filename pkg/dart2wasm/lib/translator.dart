@@ -2913,6 +2913,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
           b,
           paramInfo.positional[i]!,
           target.signature.inputs[targetIndex++],
+          dummyValueIfIncompatible: true,
         );
       }
     }
@@ -2933,6 +2934,7 @@ class _ClosureTrampolineGenerator implements CodeGenerator {
           b,
           paramInfo.named[argName]!,
           target.signature.inputs[targetIndex++],
+          dummyValueIfIncompatible: true,
         );
       }
     }
@@ -3034,30 +3036,33 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
 
     // Push positional arguments
     for (int posIdx = 0; posIdx < positionalTotal; posIdx += 1) {
+      final targetParamType = targetInputs[inputIdx];
       if (posIdx < positionalRequired) {
         // Shape check passed, argument must be passed
         b.local_get(posArgsListLocal);
         b.i32_const(posIdx);
         b.array_get(translator.nullableObjectArrayType);
+        translator.convertType(b, translator.topType, targetParamType);
       } else {
         // Argument may be missing
         b.i32_const(posIdx);
         b.local_get(posArgsListLocal);
         b.array_len();
         b.i32_lt_u();
-        b.if_([], [translator.topType]);
+        b.if_([], [targetParamType]);
         b.local_get(posArgsListLocal);
         b.i32_const(posIdx);
         b.array_get(translator.nullableObjectArrayType);
+        translator.convertType(b, translator.topType, targetParamType);
         b.else_();
         translator.constants.instantiateConstant(
           b,
           paramInfo.positional[posIdx]!,
-          translator.topType,
+          targetParamType,
+          dummyValueIfIncompatible: true,
         );
         b.end();
       }
-      translator.convertType(b, translator.topType, targetInputs[inputIdx]);
       inputIdx += 1;
     }
 
@@ -3091,6 +3096,7 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
       translator.callReference(translator.getNamedParameterIndex.reference, b);
       b.local_set(namedArgValueIndexLocal);
 
+      final targetParamType = targetInputs[inputIdx];
       if (functionNodeDefaultValue == null && paramInfoDefaultValue == null) {
         // Shape check passed, parameter must be passed
         b.local_get(namedArgsListLocal);
@@ -3098,29 +3104,27 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         translator.convertType(b, namedArgValueIndexLocal.type, w.NumType.i64);
         b.i32_wrap_i64();
         b.array_get(translator.nullableObjectArrayType);
-        translator.convertType(
-          b,
-          translator.nullableObjectArrayType.elementType.type.unpacked,
-          target.signature.inputs[inputIdx],
-        );
+        translator.convertType(b, translator.topType, targetParamType);
       } else {
         // Parameter may not be passed.
         b.local_get(namedArgValueIndexLocal);
         b.ref_is_null();
-        b.if_([], [translator.topType]);
+        b.if_([], [targetParamType]);
         if (functionNodeDefaultValue != null) {
           // Used by the member, has a default value
           translator.constants.instantiateConstant(
             b,
             (functionNodeDefaultValue as ConstantExpression).constant,
-            translator.topType,
+            targetParamType,
+            dummyValueIfIncompatible: true,
           );
         } else {
           // Not used by the member
           translator.constants.instantiateConstant(
             b,
             paramInfoDefaultValue!,
-            translator.topType,
+            targetParamType,
+            dummyValueIfIncompatible: true,
           );
         }
         b.else_(); // value index not null
@@ -3129,8 +3133,8 @@ class _ClosureDynamicEntryGenerator implements CodeGenerator {
         translator.convertType(b, namedArgValueIndexLocal.type, w.NumType.i64);
         b.i32_wrap_i64();
         b.array_get(translator.nullableObjectArrayType);
+        translator.convertType(b, translator.topType, targetParamType);
         b.end();
-        translator.convertType(b, translator.topType, targetInputs[inputIdx]);
       }
       inputIdx += 1;
     }
