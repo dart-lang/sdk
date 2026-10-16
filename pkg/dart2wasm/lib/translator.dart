@@ -22,7 +22,6 @@ import 'package:vm/metadata/unboxing_info.dart';
 import 'package:vm/metadata/unreachable.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
-import 'cfg/code_generator.dart';
 import 'cfg/ir_log.dart';
 import 'class_info.dart';
 import 'closures.dart';
@@ -39,6 +38,7 @@ import 'kernel_nodes.dart';
 import 'modules.dart';
 import 'namer.dart';
 import 'param_info.dart';
+import 'prod/cfg/code_generator.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
 import 'static_dispatch_table.dart';
