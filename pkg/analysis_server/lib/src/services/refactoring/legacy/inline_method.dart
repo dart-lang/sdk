@@ -706,8 +706,10 @@ class _ReferenceProcessor {
     // prepare node and environment
     _node =
         _refUtils.findNode(reference.sourceRange.offset) as SimpleIdentifier;
-    var refStatement = _node.thisOrAncestorOfType<Statement>();
-    if (refStatement != null) {
+    var refStatement = _node.thisOrAncestorMatching(
+      (node) => node is Statement || node is FunctionBody,
+    );
+    if (refStatement is Statement) {
       _refLineRange = _refUtils.getLinesRangeStatements([refStatement]);
       _refPrefix = _refUtils.getNodePrefix(refStatement);
     } else {
@@ -761,6 +763,29 @@ class _ReferenceProcessor {
     }
     // not in block, cannot inline body
     return false;
+  }
+
+  Future<void> _inlineAsClosureInvocation() async {
+    var typeParameters = switch (ref._methodNode) {
+      FunctionDeclaration(:var functionExpression) =>
+        functionExpression.typeParameters,
+      MethodDeclaration(:var typeParameters) => typeParameters,
+      _ => null,
+    };
+    var originalSource = ref._methodUtils.getRangeText(
+      range.startEnd(typeParameters ?? ref._methodParameters!, ref._methodNode),
+    );
+    var methodPrefix = ref._methodUtils.getLinePrefix(ref._methodNode.offset);
+    var source = _refUtils
+        .replaceSourceIndent(originalSource, methodPrefix, _refPrefix)
+        .trim();
+    if (ref._methodBody is ExpressionFunctionBody) {
+      source = '(${removeEnd(source, ';')!})';
+    }
+    // do insert
+    await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+      builder.addSimpleReplacement(range.node(_node), source);
+    });
   }
 
   Future<void> _inlineMethodInvocation(
@@ -859,6 +884,14 @@ class _ReferenceProcessor {
           parameterToVariableName,
         );
 
+        // Expression bodies and initializers have no statement before which to
+        // declare variables. Use a closure invocation to keep argument
+        // evaluation at the original invocation, including any `await`s.
+        if (result.variableDeclarations.isNotEmpty && _refLineRange == null) {
+          await _inlineAsClosureInvocation();
+          return;
+        }
+
         // If there are variable declarations, insert them before the statement.
         await _insertVariableDeclarations(
           result.variableDeclarations,
@@ -913,20 +946,7 @@ class _ReferenceProcessor {
       }
       return;
     }
-    // inline as closure invocation
-    String source;
-    {
-      source = ref._methodUtils.getRangeText(
-        range.startEnd(ref._methodParameters!.leftParenthesis, ref._methodNode),
-      );
-      var methodPrefix = ref._methodUtils.getLinePrefix(ref._methodNode.offset);
-      source = _refUtils.replaceSourceIndent(source, methodPrefix, _refPrefix);
-      source = source.trim();
-    }
-    // do insert
-    await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
-      builder.addSimpleReplacement(range.node(_node), source);
-    });
+    await _inlineAsClosureInvocation();
   }
 
   /// Inserts [variableDeclarations] in front of the code at [refLineRange].
