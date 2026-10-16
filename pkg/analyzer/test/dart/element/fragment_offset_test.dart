@@ -708,9 +708,7 @@ void f() {
   void g() {}
 }
 ''');
-    var localFunction = result.findNode
-        .functionDeclarationStatement('g()')
-        .functionDeclaration;
+    var localFunction = result.findNode.localFunctionDeclaration('g()');
     checkOffset<LocalFunctionFragment>(
       localFunction,
       localFunction.declaredFragment!,

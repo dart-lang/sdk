@@ -51,7 +51,7 @@ TopLevelFunctionDeclaration
     star: *
     block: Block
       leftBracket: {
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: IntegerLiteral
@@ -405,48 +405,42 @@ void f() {
 }
 ''');
 
-    var node =
-        result.findNode.singleFunctionDeclarationStatement.functionDeclaration;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+LocalFunctionDeclaration
   returnType: NamedType
     name: void
     element: <null>
     type: void
   name: m
-  functionExpression: FunctionExpression
-    typeParameters: TypeParameterList
-      leftBracket: <
-      typeParameters
-        TypeParameter
-          name: T
-          extendsKeyword: extends
-          bound: NamedType
-            name: List
-            typeArguments: TypeArgumentList
-              leftBracket: <
-              arguments
-                NamedType
-                  name: T
-                  element: #E0 T
-                  type: T
-              rightBracket: >
-            element: dart:core::@class::List
-            type: List<T>
-          declaredFragment: <testLibraryFragment> T@20
-            defaultType: List<dynamic>
-      rightBracket: >
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
-    declaredFragment: <testLibraryFragment> m@18
-      element: m@18
-        type: void Function<T extends List<T>>()
-    staticType: void Function<T extends List<T>>()
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: List
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: T
+                element: #E0 T
+                type: T
+            rightBracket: >
+          element: dart:core::@class::List
+          type: List<T>
+        declaredFragment: <testLibraryFragment> T@20
+          defaultType: List<dynamic>
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
   declaredFragment: <testLibraryFragment> m@18
     element: m@18
       type: void Function<T extends List<T>>()
@@ -462,40 +456,34 @@ void f() {
 }
 ''');
 
-    var node =
-        result.findNode.singleFunctionDeclarationStatement.functionDeclaration;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclaration
+LocalFunctionDeclaration
   returnType: NamedType
     name: void
     element: <null>
     type: void
   name: m
-  functionExpression: FunctionExpression
-    typeParameters: TypeParameterList
-      leftBracket: <
-      typeParameters
-        TypeParameter
-          name: T
-          extendsKeyword: extends
-          bound: NamedType
-            name: num
-            element: dart:core::@class::num
-            type: num
-          declaredFragment: <testLibraryFragment> T@20
-            defaultType: num
-      rightBracket: >
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
-    declaredFragment: <testLibraryFragment> m@18
-      element: m@18
-        type: void Function<T extends num>()
-    staticType: void Function<T extends num>()
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        extendsKeyword: extends
+        bound: NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+        declaredFragment: <testLibraryFragment> T@20
+          defaultType: num
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
   declaredFragment: <testLibraryFragment> m@18
     element: m@18
       type: void Function<T extends num>()
@@ -651,7 +639,7 @@ TopLevelSetterDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: value
@@ -814,7 +802,7 @@ TopLevelFunctionDeclaration
     star: *
     block: Block
       leftBracket: {
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: IntegerLiteral

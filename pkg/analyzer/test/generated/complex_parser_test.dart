@@ -547,7 +547,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -580,7 +580,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: LogicalAnd
         leftOperand: BinaryOperatorInvocation
@@ -1868,7 +1868,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: BinaryOperatorInvocation
         leftOperand: BinaryOperatorInvocation
@@ -1978,7 +1978,7 @@ class A {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: BinaryOperatorInvocation
         leftOperand: BinaryOperatorInvocation
@@ -2530,7 +2530,7 @@ LabeledStatement
     Label
       name: c
       colon: :
-  statement: ReturnStatement
+  statement2: ReturnStatement
     returnKeyword: return
     expression2: ParsedUnqualifiedName
       name: x
@@ -2845,29 +2845,25 @@ void f() {
 }
 ''');
 
-    var node = parseResult
-        .findNode
-        .singleFunctionDeclarationStatement
-        .functionDeclaration;
+    var node = parseResult.findNode.singleLocalFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+LocalFunctionDeclaration
   returnType: NamedType
     name: void
   name: g
-  functionExpression: FunctionExpression
-    typeParameters: TypeParameterList
-      leftBracket: <
-      typeParameters
-        TypeParameter
-          name: T
-      rightBracket: >
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+    rightBracket: >
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
 ''');
   }
 }

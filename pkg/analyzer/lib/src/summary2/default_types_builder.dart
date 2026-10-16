@@ -344,6 +344,11 @@ class DefaultTypesBuilder {
           node.declaredFragment!,
           node.typeParameters,
         );
+      case LocalFunctionDeclarationImpl():
+        return _FragmentTypeParameters(
+          node.declaredFragment!,
+          node.typeParameters,
+        );
       case TopLevelFunctionDeclarationImpl():
         return _FragmentTypeParameters(
           node.declaredFragment!,

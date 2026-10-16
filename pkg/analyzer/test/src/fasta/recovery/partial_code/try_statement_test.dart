@@ -35,7 +35,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -114,7 +114,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -181,7 +181,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -254,7 +254,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -326,7 +326,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -344,7 +344,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -414,7 +414,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -480,7 +480,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -509,7 +509,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -578,7 +578,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -658,7 +658,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -727,7 +727,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -802,7 +802,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -876,7 +876,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -894,7 +894,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -964,7 +964,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1032,7 +1032,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1061,7 +1061,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1130,7 +1130,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1152,7 +1152,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1215,7 +1215,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1236,7 +1236,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1299,7 +1299,34 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -1393,7 +1420,34 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -1487,7 +1541,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1569,7 +1623,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1643,7 +1697,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1729,7 +1783,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1815,7 +1869,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1837,7 +1891,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1901,7 +1955,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -1991,7 +2045,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -2066,7 +2120,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -2147,7 +2201,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -2227,7 +2281,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -2248,7 +2302,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -2322,7 +2376,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -2396,7 +2450,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -2428,7 +2482,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2500,7 +2554,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -2525,7 +2579,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2595,7 +2649,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -2684,7 +2738,35 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -2780,7 +2862,37 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -2880,7 +2992,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -2968,7 +3080,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3048,7 +3160,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3140,7 +3252,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3232,7 +3344,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3257,7 +3369,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3324,7 +3436,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3410,7 +3522,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3485,7 +3597,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3566,7 +3678,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3646,7 +3758,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3667,7 +3779,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -3740,7 +3852,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3814,7 +3926,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3846,7 +3958,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3918,7 +4030,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -3943,7 +4055,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4009,7 +4121,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -4033,7 +4145,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4100,7 +4212,37 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -4200,7 +4342,37 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -4300,7 +4472,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -4388,7 +4560,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -4468,7 +4640,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -4560,7 +4732,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -4652,7 +4824,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -4677,7 +4849,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4742,7 +4914,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -4764,7 +4936,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4826,7 +4998,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -4847,7 +5019,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4910,7 +5082,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -4994,7 +5166,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -5063,7 +5235,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -5138,7 +5310,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -5212,7 +5384,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -5230,7 +5402,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -5301,7 +5473,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -5369,7 +5541,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -5398,7 +5570,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5467,7 +5639,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -5489,7 +5661,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5556,7 +5728,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -5639,7 +5811,32 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -5729,7 +5926,34 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -5823,7 +6047,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -5905,7 +6129,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -5979,7 +6203,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -6065,7 +6289,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -6151,7 +6375,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -6173,7 +6397,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6235,7 +6459,34 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -6327,7 +6578,34 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -6419,7 +6697,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -6499,7 +6777,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -6570,7 +6848,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -6653,7 +6931,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -6726,7 +7004,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -6805,7 +7083,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -6882,7 +7160,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -6903,7 +7181,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -6975,7 +7253,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -7046,7 +7324,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -7078,7 +7356,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7147,7 +7425,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -7172,7 +7450,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7236,7 +7514,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -7260,7 +7538,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7323,7 +7601,37 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -7420,7 +7728,37 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -7517,7 +7855,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -7602,7 +7940,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -7679,7 +8017,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -7768,7 +8106,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -7857,7 +8195,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -7882,7 +8220,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7947,7 +8285,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8031,7 +8369,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8115,7 +8453,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8137,7 +8475,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -8198,7 +8536,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8283,7 +8621,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8358,7 +8696,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8439,7 +8777,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8518,7 +8856,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8540,7 +8878,7 @@ CompilationUnit
                 rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -8613,7 +8951,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8686,7 +9024,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8719,7 +9057,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -8789,7 +9127,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8815,7 +9153,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -8880,7 +9218,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -8905,7 +9243,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -8969,7 +9307,38 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -9068,7 +9437,38 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: {
+                    rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -9167,7 +9567,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9254,7 +9654,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9333,7 +9733,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9424,7 +9824,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9515,7 +9915,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9541,7 +9941,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -9606,7 +10006,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9671,7 +10071,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9726,7 +10126,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9787,7 +10187,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9846,7 +10246,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9858,7 +10258,7 @@ CompilationUnit
                 rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -9921,7 +10321,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9974,7 +10374,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -9997,7 +10397,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10057,7 +10457,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10073,7 +10473,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10128,7 +10528,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10143,7 +10543,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10197,7 +10597,28 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -10276,7 +10697,28 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              finallyKeyword: finally
+              finallyBlock: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -10355,7 +10797,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10422,7 +10864,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10481,7 +10923,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10552,7 +10994,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10623,7 +11065,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10639,7 +11081,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10695,7 +11137,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10754,7 +11196,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10802,7 +11244,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10856,7 +11298,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10908,7 +11350,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -10916,7 +11358,7 @@ CompilationUnit
                 rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -10976,7 +11418,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11022,7 +11464,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11041,7 +11483,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -11098,7 +11540,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11110,7 +11552,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -11162,7 +11604,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11173,7 +11615,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -11224,7 +11666,24 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -11296,7 +11755,24 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: { <synthetic>
+                rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -11368,7 +11844,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11428,7 +11904,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11480,7 +11956,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11544,7 +12020,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11608,7 +12084,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11620,7 +12096,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -11671,7 +12147,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11730,7 +12206,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11783,7 +12259,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11836,7 +12312,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11887,7 +12363,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11895,7 +12371,7 @@ CompilationUnit
                 rightBracket: }
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -11954,7 +12430,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -11999,7 +12475,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12018,7 +12494,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -12074,7 +12550,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12086,7 +12562,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -12137,7 +12613,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12148,7 +12624,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -12198,7 +12674,24 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -12269,7 +12762,24 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -12340,7 +12850,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12399,7 +12909,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12450,7 +12960,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12513,7 +13023,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12576,7 +13086,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12588,7 +13098,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -12640,7 +13150,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12715,7 +13225,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12778,7 +13288,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12846,7 +13356,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -12931,7 +13441,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13004,7 +13514,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13083,7 +13593,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13161,7 +13671,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13182,7 +13692,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -13255,7 +13765,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13327,7 +13837,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13359,7 +13869,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -13431,7 +13941,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13517,7 +14027,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13592,7 +14102,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13673,7 +14183,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13753,7 +14263,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13774,7 +14284,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -13847,7 +14357,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13921,7 +14431,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -13953,7 +14463,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -14025,7 +14535,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -14050,7 +14560,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -14116,7 +14626,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -14140,7 +14650,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -14206,7 +14716,37 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -14306,7 +14846,37 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -14406,7 +14976,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -14494,7 +15064,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -14574,7 +15144,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -14666,7 +15236,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -14758,7 +15328,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -14783,7 +15353,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -14850,7 +15420,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -14946,7 +15516,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -15027,7 +15597,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -15114,7 +15684,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -15200,7 +15770,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -15224,7 +15794,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -15301,7 +15871,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -15381,7 +15951,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -15416,7 +15986,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -15491,7 +16061,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -15519,7 +16089,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -15592,7 +16162,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -15687,7 +16257,38 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -15789,7 +16390,40 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -15895,7 +16529,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -15989,7 +16623,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16075,7 +16709,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16173,7 +16807,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16271,7 +16905,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16299,7 +16933,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -16369,7 +17003,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16461,7 +17095,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16542,7 +17176,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16629,7 +17263,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16715,7 +17349,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16739,7 +17373,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -16815,7 +17449,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16895,7 +17529,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -16930,7 +17564,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -17005,7 +17639,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -17033,7 +17667,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -17102,7 +17736,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -17129,7 +17763,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -17199,7 +17833,40 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -17306,7 +17973,40 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -17412,7 +18112,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -17506,7 +18206,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -17592,7 +18292,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -17690,7 +18390,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -17788,7 +18488,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -17816,7 +18516,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -17884,7 +18584,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -17909,7 +18609,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -17974,7 +18674,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -17998,7 +18698,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -18064,7 +18764,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -18154,7 +18854,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -18229,7 +18929,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -18310,7 +19010,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -18390,7 +19090,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -18411,7 +19111,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -18485,7 +19185,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -18559,7 +19259,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -18591,7 +19291,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -18663,7 +19363,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -18688,7 +19388,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -18758,7 +19458,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -18847,7 +19547,35 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: int
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -18943,7 +19671,37 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -19043,7 +19801,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -19131,7 +19889,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -19211,7 +19969,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -19303,7 +20061,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -19395,7 +20153,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -19420,7 +20178,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -19485,7 +20243,37 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -19583,7 +20371,37 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: ( <synthetic>
+                  exceptionParameter: CatchClauseParameter
+                    name: <empty> <synthetic>
+                  rightParenthesis: ) <synthetic>
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -19681,7 +20499,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -19767,7 +20585,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -19844,7 +20662,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -19933,7 +20751,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -20012,7 +20830,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -20097,7 +20915,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -20180,7 +20998,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -20204,7 +21022,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -20279,7 +21097,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -20356,7 +21174,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -20391,7 +21209,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -20463,7 +21281,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -20491,7 +21309,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -20558,7 +21376,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -20585,7 +21403,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -20651,7 +21469,40 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -20754,7 +21605,40 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  catchKeyword: catch
+                  leftParenthesis: (
+                  exceptionParameter: CatchClauseParameter
+                    name: e
+                  comma: ,
+                  stackTraceParameter: CatchClauseParameter
+                    name: s
+                  rightParenthesis: )
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -20857,7 +21741,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -20948,7 +21832,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21031,7 +21915,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21126,7 +22010,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21221,7 +22105,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21249,7 +22133,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -21317,7 +22201,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21407,7 +22291,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21497,7 +22381,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21522,7 +22406,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -21588,7 +22472,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21656,7 +22540,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21672,7 +22556,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -21740,7 +22624,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21802,7 +22686,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21829,7 +22713,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -21893,7 +22777,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -21966,7 +22850,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22029,7 +22913,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22098,7 +22982,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22165,7 +23049,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22181,7 +23065,7 @@ CompilationUnit
                     rightBracket: } <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -22248,7 +23132,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22309,7 +23193,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22336,7 +23220,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -22400,7 +23284,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22420,7 +23304,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -22479,7 +23363,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22498,7 +23382,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -22556,7 +23440,32 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -22643,7 +23552,32 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: A
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -22730,7 +23664,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22805,7 +23739,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22872,7 +23806,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -22951,7 +23885,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -23030,7 +23964,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -23050,7 +23984,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -23110,7 +24044,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -23130,7 +24064,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -23193,7 +24127,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -23270,7 +24204,30 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: int
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -23354,7 +24311,30 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            TryStatement
+              tryKeyword: try
+              body: Block
+                leftBracket: {
+                rightBracket: }
+              catchClauses
+                CatchClause
+                  onKeyword: on
+                  exceptionType: NamedType
+                    name: void
+                  body: Block
+                    leftBracket: { <synthetic>
+                    rightBracket: } <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             TryStatement
               tryKeyword: try
               body: Block
@@ -23438,7 +24418,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -23514,7 +24494,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -23582,7 +24562,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -23662,7 +24642,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -23742,7 +24722,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             TryStatement
               tryKeyword: try
               body: Block
@@ -23762,7 +24742,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }

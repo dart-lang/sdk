@@ -27,7 +27,7 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -93,7 +93,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -203,7 +203,7 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -242,7 +242,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -291,7 +291,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: NamedType
@@ -350,7 +350,7 @@ void f(dynamic a) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -387,7 +387,7 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: IfNull
         leftOperand: ParsedUnqualifiedName
@@ -416,7 +416,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CascadeExpression
         target2: ParsedUnqualifiedName
@@ -453,7 +453,7 @@ void f() { a..[27]?..x; }
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CascadeExpression
         target2: ParsedUnqualifiedName
@@ -498,7 +498,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CascadeExpression
         target2: ParsedUnqualifiedName
@@ -537,7 +537,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CascadeExpression
         target2: ParsedUnqualifiedName
@@ -569,7 +569,7 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: ParsedUnqualifiedName
@@ -599,7 +599,7 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: ParsedUnqualifiedName
@@ -665,7 +665,7 @@ D? foo(X? x) { X ? ? x2 = x + bar(7) : y; }
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: ParsedUnqualifiedName
@@ -739,7 +739,7 @@ D? foo(X? x) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: ParsedUnqualifiedName
@@ -779,7 +779,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -821,7 +821,7 @@ Block
             operand: SimpleIdentifier
               token: x
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -838,7 +838,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -902,7 +902,7 @@ Block
             operand: SimpleIdentifier
               token: y
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -919,7 +919,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -962,7 +962,7 @@ Block
             operand: SimpleIdentifier
               token: x
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -979,7 +979,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -996,7 +996,7 @@ Block
               literal: 7
           rightBracket: ]
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1013,7 +1013,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ForStatement
       forKeyword: for
       leftParenthesis: (
@@ -1033,7 +1033,7 @@ Block
               literal: null
           rightBracket: ]
       rightParenthesis: )
-      body: Block
+      body2: Block
         leftBracket: {
         rightBracket: }
   rightBracket: }
@@ -1055,10 +1055,10 @@ Block
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: ConditionalExpression
             condition2: ParsedUnqualifiedName
@@ -1089,7 +1089,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1121,7 +1121,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1153,7 +1153,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1186,7 +1186,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1225,7 +1225,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         type: GenericFunctionType
@@ -1261,7 +1261,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: ParsedUnqualifiedName
@@ -1292,7 +1292,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: ParsedUnqualifiedName
@@ -1325,7 +1325,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: IsExpression
@@ -1374,7 +1374,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ConditionalExpression
         condition2: ParenthesizedExpression
@@ -1434,7 +1434,7 @@ main() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ParsedValueArguments
         operand: ParsedUnqualifiedName
@@ -1492,7 +1492,7 @@ main() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ParsedValueArguments
         operand: ParsedUnqualifiedName
@@ -1833,7 +1833,7 @@ void f(int? y) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -1864,7 +1864,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -1918,7 +1918,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -1979,7 +1979,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2026,7 +2026,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: ParsedNameAccess
@@ -2075,7 +2075,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2129,7 +2129,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2177,7 +2177,7 @@ void f(int? y) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2227,7 +2227,7 @@ void f(int? y) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2284,7 +2284,7 @@ void f(int? y) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2324,7 +2324,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2378,7 +2378,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2432,7 +2432,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2486,7 +2486,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2529,7 +2529,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2572,7 +2572,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2607,7 +2607,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2656,7 +2656,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2698,7 +2698,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2744,7 +2744,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2800,7 +2800,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: ReceiverIndexExpression
         receiver: NullAssertionExpression
@@ -2860,7 +2860,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2891,7 +2891,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2922,7 +2922,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -2965,7 +2965,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3014,7 +3014,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3059,7 +3059,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3090,7 +3090,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3121,7 +3121,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CallInvocation
         receiver: NullAssertionExpression
@@ -3163,7 +3163,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: CallInvocation
         receiver: NullAssertionExpression
@@ -3226,7 +3226,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3261,7 +3261,7 @@ void f(Point p) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3308,7 +3308,7 @@ void f(int? y) {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3356,7 +3356,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3403,7 +3403,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3450,7 +3450,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     VariableDeclarationStatement
       variables: VariableDeclarationList
         keyword: var
@@ -3497,7 +3497,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: UnaryOperatorInvocation
         operator: -
@@ -3527,7 +3527,7 @@ void f() {
     assertParsedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ExpressionStatement
       expression2: NullAssertionExpression
         operand: IncrementOrDecrementExpression

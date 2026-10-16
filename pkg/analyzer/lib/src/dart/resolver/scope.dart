@@ -22,7 +22,7 @@ class BlockScope {
     for (int i = 0; i < statementCount; i++) {
       Statement statement = statements[i];
       if (statement is LabeledStatement) {
-        statement = statement.statement;
+        statement = statement.statement2;
       }
       if (statement is PatternVariableDeclarationStatementImpl) {
         for (var variable in statement.declaration.elements) {
@@ -34,8 +34,8 @@ class BlockScope {
         for (int j = 0; j < variableCount; j++) {
           yield variables[j].declaredFragment!.element;
         }
-      } else if (statement is FunctionDeclarationStatement) {
-        yield statement.functionDeclaration.declaredFragment!.element;
+      } else if (statement is LocalFunctionDeclaration) {
+        yield statement.declaredFragment!.element;
       }
     }
   }

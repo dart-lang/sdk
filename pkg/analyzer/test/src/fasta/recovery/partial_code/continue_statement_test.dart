@@ -35,7 +35,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -91,7 +91,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -141,7 +141,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -191,7 +191,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -239,13 +239,13 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -303,7 +303,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -345,7 +345,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -362,7 +362,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -417,7 +417,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -427,7 +427,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -481,7 +481,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -544,7 +544,22 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            ContinueStatement
+              continueKeyword: continue
+              label: LabelReference
+                name: int
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -612,7 +627,22 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            ContinueStatement
+              continueKeyword: continue
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -680,7 +710,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -736,7 +766,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -784,7 +814,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -844,7 +874,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -904,7 +934,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               semicolon: ; <synthetic>
@@ -914,7 +944,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -965,7 +995,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1026,7 +1056,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1081,7 +1111,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1136,7 +1166,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1189,7 +1219,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1197,7 +1227,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -1258,7 +1288,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1305,7 +1335,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1324,7 +1354,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1382,7 +1412,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1394,7 +1424,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1447,7 +1477,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1458,7 +1488,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1510,7 +1540,24 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            ContinueStatement
+              continueKeyword: continue
+              label: LabelReference
+                name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1583,7 +1630,24 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            ContinueStatement
+              continueKeyword: continue
+              label: LabelReference
+                name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1656,7 +1720,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1717,7 +1781,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1770,7 +1834,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1835,7 +1899,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1900,7 +1964,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ContinueStatement
               continueKeyword: continue
               label: LabelReference
@@ -1912,7 +1976,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }

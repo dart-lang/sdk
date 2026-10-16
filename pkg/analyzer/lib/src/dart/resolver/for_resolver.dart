@@ -66,7 +66,7 @@ class ForResolver {
   void resolveStatement(ForStatementImpl node) {
     var forLoopParts = node.forLoopParts;
     void visitBody() {
-      node.body.accept2(_typeAnalyzer);
+      node.body2.accept2(_typeAnalyzer);
     }
 
     if (forLoopParts is ForPartsImpl) {
@@ -83,7 +83,7 @@ class ForResolver {
         awaitKeyword: node.awaitKeyword,
         forLoopParts: forLoopParts,
         dispatchBody: () {
-          _typeAnalyzer.dispatchStatement(node.body);
+          _typeAnalyzer.dispatchStatement(node.body2);
         },
         rightParenthesisOffset: node.rightParenthesis.offset,
         endOffset: node.endToken.offset,

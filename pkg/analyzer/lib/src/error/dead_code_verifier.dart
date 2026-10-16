@@ -70,18 +70,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    var element = node.declaredFragment!.element;
-    // TODO(pq): ask the FunctionElement once implemented
-    if (_wildCardVariablesEnabled &&
-        element is LocalFunctionElement &&
-        element.name == '_') {
-      _diagnosticReporter.report(diag.deadCode.at(node));
-    }
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
   void visitImportDirective(covariant ImportDirectiveImpl node) {
     var libraryImport = node.libraryImport;
     if (libraryImport != null) {
@@ -105,6 +93,16 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    var element = node.declaredFragment!.element;
+    // TODO(pq): ask the FunctionElement once implemented
+    if (_wildCardVariablesEnabled && element.name == '_') {
+      _diagnosticReporter.report(diag.deadCode.at(node));
+    }
+    super.visitLocalFunctionDeclaration(node);
+  }
+
+  @override
   void visitSwitchStatement(SwitchStatement node) {
     List<Label> labels = <Label>[];
     for (SwitchMember member in node.members) {
@@ -118,11 +116,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor2<void> {
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
     var initializer = node.initializer2;
-    if (initializer != null && node.isLate) {
+    if (initializer != null) {
       var element = node.declaredFragment!.element;
       // TODO(pq): ask the LocalVariableElement once implemented
       if (_wildCardVariablesEnabled &&
           element is LocalVariableElement &&
+          element.isLate &&
           element.name == '_') {
         _diagnosticReporter.report(
           diag.deadCodeLateWildcardVariableInitializer.at(initializer),
@@ -246,7 +245,7 @@ class NullSafetyDeadCodeVerifier {
       // semicolon that follows one or more constructor initializers.
     } else if (parent is ConstructorDeclaration &&
         firstDeadNode is BlockFunctionBody &&
-        firstDeadNode.block.statements.isEmpty) {
+        firstDeadNode.block.statements2.isEmpty) {
       // Don't report "dead code" for an unreachable, but empty block body that
       // follows one or more constructor initializers.
     } else {
@@ -255,8 +254,8 @@ class NullSafetyDeadCodeVerifier {
       // So, technically the code interval ends at the end of [node].
       // But we trim it to the last statement for presentation purposes.
       if (node != firstDeadNode) {
-        if (node is FunctionDeclaration) {
-          node = node.functionExpression.body;
+        if (node is LocalFunctionDeclaration) {
+          node = node.body;
         }
         if (node is TopLevelFunctionDeclaration) {
           node = node.body;
@@ -276,11 +275,11 @@ class NullSafetyDeadCodeVerifier {
         if (node is BlockFunctionBody) {
           node = node.block;
         }
-        if (node is Block && node.statements.isNotEmpty) {
-          node = node.statements.last;
+        if (node is Block && node.statements2.isNotEmpty) {
+          node = node.statements2.last;
         }
-        if (node is SwitchMember && node.statements.isNotEmpty) {
-          node = node.statements.last;
+        if (node is SwitchMember && node.statements2.isNotEmpty) {
+          node = node.statements2.last;
         }
       } else if (parent is BinaryOperatorInvocation) {
         offset = parent.operator.offset;
@@ -298,7 +297,7 @@ class NullSafetyDeadCodeVerifier {
       } else if (parent is DoStatement) {
         var whileOffset = parent.whileKeyword.offset;
         var whileEnd = parent.semicolon.end;
-        var body = parent.body;
+        var body = parent.body2;
         if (body is Block) {
           whileOffset = body.rightBracket.offset;
         }
@@ -669,7 +668,7 @@ class _LabelTracker {
 extension DoStatementExtension on DoStatement {
   bool get hasBreakStatement {
     var visitor = _BreakDoStatementVisitor(this);
-    body.visitChildren2(visitor);
+    body2.visitChildren2(visitor);
     return visitor.hasBreakStatement;
   }
 }

@@ -79,7 +79,7 @@ void f() {
     assertResolvedNodeText(node, r'''
 Block
   leftBracket: {
-  statements
+  statements2
     ReturnStatement
       returnKeyword: return
       semicolon: ;
@@ -107,9 +107,9 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       BreakStatement
         breakKeyword: break
         semicolon: ;
@@ -145,9 +145,9 @@ WhileStatement
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ContinueStatement
         continueKeyword: continue
         semicolon: ;
@@ -173,9 +173,9 @@ void f(bool b) {
     assertResolvedNodeText(node, r'''
 DoStatement
   doKeyword: do
-  body: Block
+  body2: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -400,7 +400,7 @@ ForStatement
       element: <testLibrary>::@function::f::@formalParameter::values
       staticType: List<int>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
     mayCompleteNormally: true
@@ -424,7 +424,7 @@ ForStatement
     leftSeparator: ;
     rightSeparator: ;
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
     mayCompleteNormally: true
@@ -443,36 +443,30 @@ void f() {
 }
 ''');
 
-    var node = result.findNode.singleFunctionDeclarationStatement;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertResolvedNodeText(node, r'''
-FunctionDeclarationStatement
-  functionDeclaration: FunctionDeclaration
-    returnType: NamedType
-      name: void
-      element: <null>
-      type: void
-    name: g
-    functionExpression: FunctionExpression
-      parameters: FormalParameterList
-        leftParenthesis: (
-        rightParenthesis: )
-      body: BlockFunctionBody
-        block: Block
-          leftBracket: {
-          statements
-            ReturnStatement
-              returnKeyword: return
-              semicolon: ;
-              mayCompleteNormally: false
-          rightBracket: }
+LocalFunctionDeclaration
+  returnType: NamedType
+    name: void
+    element: <null>
+    type: void
+  name: g
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      statements2
+        ReturnStatement
+          returnKeyword: return
+          semicolon: ;
           mayCompleteNormally: false
-      declaredFragment: <testLibraryFragment> g@18
-        element: g@18
-          type: void Function()
-      staticType: void Function()
-    declaredFragment: <testLibraryFragment> g@18
-      element: g@18
-        type: void Function()
+      rightBracket: }
+      mayCompleteNormally: false
+  declaredFragment: <testLibraryFragment> g@18
+    element: g@18
+      type: void Function()
   mayCompleteNormally: true
 ''');
   }
@@ -502,9 +496,9 @@ IfStatement
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -542,9 +536,9 @@ IfStatement
     element: <testLibrary>::@function::f::@formalParameter::b
     staticType: bool
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -552,9 +546,9 @@ IfStatement
     rightBracket: }
     mayCompleteNormally: false
   elseKeyword: else
-  elseStatement: Block
+  elseStatement2: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -582,9 +576,9 @@ LabeledStatement
       name: label
       colon: :
       declaredFragment: <testLibraryFragment> label@13
-  statement: Block
+  statement2: Block
     leftBracket: {
-    statements
+    statements2
       BreakStatement
         breakKeyword: break
         label: LabelReference
@@ -722,7 +716,7 @@ SwitchStatement
             staticType: E
           matchedValueType: E
       colon: :
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: IntegerLiteral
@@ -759,7 +753,7 @@ SwitchStatement
             staticType: E
           matchedValueType: E
       colon: :
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: IntegerLiteral
@@ -809,7 +803,7 @@ SwitchStatement
             staticType: int
           matchedValueType: int
       colon: :
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           semicolon: ;
@@ -834,7 +828,7 @@ TryStatement
   tryKeyword: try
   body: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -879,7 +873,7 @@ TryStatement
   finallyKeyword: finally
   finallyBlock: Block
     leftBracket: {
-    statements
+    statements2
       ReturnStatement
         returnKeyword: return
         semicolon: ;
@@ -987,7 +981,7 @@ WhileStatement
     literal: true
     staticType: bool
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
     mayCompleteNormally: true

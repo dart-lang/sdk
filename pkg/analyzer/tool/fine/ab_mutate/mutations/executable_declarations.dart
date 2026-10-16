@@ -12,15 +12,15 @@ class CollectExecutablesVisitor extends RecursiveAstVisitor2<void> {
   CollectExecutablesVisitor._internal(this._out);
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     _out.add(
       ExecutableDeclaration(
         node.offset,
-        node.functionExpression.parameters,
+        node.formalParameters,
         node.returnType,
       ),
     );
-    super.visitFunctionDeclaration(node);
+    super.visitLocalFunctionDeclaration(node);
   }
 
   @override
@@ -29,6 +29,36 @@ class CollectExecutablesVisitor extends RecursiveAstVisitor2<void> {
       ExecutableDeclaration(node.offset, node.parameters, node.returnType),
     );
     super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelFunctionDeclaration(TopLevelFunctionDeclaration node) {
+    _out.add(
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
+    );
+    super.visitTopLevelFunctionDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelGetterDeclaration(TopLevelGetterDeclaration node) {
+    _out.add(ExecutableDeclaration(node.offset, null, node.returnType));
+    super.visitTopLevelGetterDeclaration(node);
+  }
+
+  @override
+  void visitTopLevelSetterDeclaration(TopLevelSetterDeclaration node) {
+    _out.add(
+      ExecutableDeclaration(
+        node.offset,
+        node.formalParameters,
+        node.returnType,
+      ),
+    );
+    super.visitTopLevelSetterDeclaration(node);
   }
 
   /// Collect all top-level functions and class methods in [unit].

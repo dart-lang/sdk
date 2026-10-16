@@ -157,9 +157,6 @@ features:
   inference-update-4:
     help: "A bundle of updates to type inference."
 
-  this-promotion:
-    help: "Type promotion for `this`."
-
   static-extensions:
     help: "Extensions with static capabilities."
 
@@ -192,6 +189,24 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+  this-promotion:
+    enabledIn: '3.15.0'
+    help: "Type promotion for `this`."
+    validation: |
+      class C {
+        void test() {
+          if (this is D) {
+            f();
+          }
+        }
+      }
+      class D extends C {
+        void f() {}
+      }
+      main() {
+        print('feature enabled');
+      }
+
   record-use:
     enabledIn: '3.13.0'
     help: "Output arguments used by static functions."

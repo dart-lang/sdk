@@ -67,13 +67,12 @@ class _InferredVariableTypesDataExtractor extends AstDataExtractor<DartType> {
       if (element.hasImplicitType) {
         return element.type;
       }
-    } else if (node is FunctionDeclarationStatement) {
-      var element = node.functionDeclaration.declaredFragment!.element;
+    } else if (node is LocalFunctionDeclaration) {
+      var element = node.declaredFragment!.element;
       if (element.hasImplicitReturnType) {
         return element.returnType;
       }
-    } else if (node is FunctionExpression &&
-        node.parent2 is! FunctionDeclaration) {
+    } else if (node is FunctionExpression) {
       var element = node.declaredFragment!.element;
       if (element.hasImplicitReturnType) {
         return element.returnType;

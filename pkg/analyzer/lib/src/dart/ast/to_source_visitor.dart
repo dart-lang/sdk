@@ -113,7 +113,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitBlock(Block node) {
     sink.write('{');
-    _visitNodeList(node.statements, separator: ' ');
+    _visitNodeList(node.statements2, separator: ' ');
     sink.write('}');
   }
 
@@ -458,7 +458,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitDoStatement(DoStatement node) {
     sink.write('do ');
-    _visitNode(node.body);
+    _visitNode(node.body2);
     sink.write(' while (');
     _visitNode(node.condition2);
     sink.write(');');
@@ -733,23 +733,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('for (');
     _visitNode(node.forLoopParts);
     sink.write(') ');
-    _visitNode(node.body);
-  }
-
-  @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.augmentKeyword, suffix: ' ');
-    _visitToken(node.externalKeyword, suffix: ' ');
-    _visitNode(node.returnType, suffix: ' ');
-    _visitToken(node.propertyKeyword, suffix: ' ');
-    _visitToken(node.name);
-    _visitNode(node.functionExpression);
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    _visitNode(node.functionDeclaration);
+    _visitNode(node.body2);
   }
 
   @override
@@ -869,8 +853,8 @@ class ToSourceVisitor implements AstVisitor2<void> {
     _visitNode(node.expression2);
     _visitNode(node.caseClause, prefix: ' ');
     sink.write(') ');
-    _visitNode(node.thenStatement);
-    _visitNode(node.elseStatement, prefix: ' else ');
+    _visitNode(node.thenStatement2);
+    _visitNode(node.elseStatement2, prefix: ' else ');
   }
 
   @override
@@ -1020,7 +1004,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
   @override
   void visitLabeledStatement(LabeledStatement node) {
     _visitNodeList(node.labels, separator: ' ', suffix: ' ');
-    _visitNode(node.statement);
+    _visitNode(node.statement2);
   }
 
   @override
@@ -1051,6 +1035,16 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('[');
     _visitNodeList(node.elements, separator: ', ');
     sink.write(']');
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitNode(node.returnType, suffix: ' ');
+    _visitToken(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.formalParameters);
+    _visitFunctionBody(node.body);
   }
 
   @override
@@ -1633,14 +1627,14 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('case ');
     _visitNode(node.expression2);
     sink.write(': ');
-    _visitNodeList(node.statements, separator: ' ');
+    _visitNodeList(node.statements2, separator: ' ');
   }
 
   @override
   void visitSwitchDefault(SwitchDefault node) {
     _visitNodeList(node.labels, separator: ' ', suffix: ' ');
     sink.write('default: ');
-    _visitNodeList(node.statements, separator: ' ');
+    _visitNodeList(node.statements2, separator: ' ');
   }
 
   @override
@@ -1665,7 +1659,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('case ');
     _visitNode(node.guardedPattern);
     sink.write(': ');
-    _visitNodeList(node.statements, separator: ' ');
+    _visitNodeList(node.statements2, separator: ' ');
   }
 
   @override
@@ -1842,7 +1836,7 @@ class ToSourceVisitor implements AstVisitor2<void> {
     sink.write('while (');
     _visitNode(node.condition2);
     sink.write(') ');
-    _visitNode(node.body);
+    _visitNode(node.body2);
   }
 
   @override

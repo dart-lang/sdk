@@ -737,7 +737,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -812,7 +812,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -880,7 +880,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -948,7 +948,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1015,7 +1015,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1031,7 +1031,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -1098,7 +1098,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1159,7 +1159,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1186,7 +1186,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1250,7 +1250,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1270,7 +1270,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1328,7 +1328,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1391,14 +1391,29 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            LocalFunctionDeclaration
+              metadata
+                Annotation
+                  atSign: @
+                  expression: ParsedUnqualifiedName
+                    name: int
+                  name: SimpleIdentifier
+                    token: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 metadata
                   Annotation
                     atSign: @
-                    expression: ParsedUnqualifiedName
-                      name: int
                     name: SimpleIdentifier
                       token: int
                 name: f
@@ -1460,14 +1475,31 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            LocalFunctionDeclaration
+              metadata
+                Annotation
+                  atSign: @
+                  expression: ParsedUnqualifiedName
+                    name: <empty> <synthetic>
+                  name: SimpleIdentifier
+                    token: <empty> <synthetic>
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 metadata
                   Annotation
                     atSign: @
-                    expression: ParsedUnqualifiedName
-                      name: <empty> <synthetic>
                     name: SimpleIdentifier
                       token: <empty> <synthetic>
                 returnType: NamedType
@@ -1533,7 +1565,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1596,7 +1628,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1663,7 +1695,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1742,7 +1774,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1821,7 +1853,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -1841,7 +1873,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1899,7 +1931,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2012,7 +2044,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2102,7 +2134,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2195,7 +2227,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2287,7 +2319,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2320,7 +2352,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -2394,7 +2426,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2468,7 +2500,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2512,7 +2544,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2584,7 +2616,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2621,7 +2653,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2687,7 +2719,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2786,7 +2818,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2888,7 +2920,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -2987,7 +3019,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -3074,7 +3106,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -3159,7 +3191,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -3262,7 +3294,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -3366,7 +3398,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 metadata
@@ -3403,7 +3435,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3485,12 +3517,27 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: <empty> <synthetic>
+          name: SimpleIdentifier
+            token: <empty> <synthetic>
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -3499,7 +3546,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3557,12 +3604,27 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: <empty> <synthetic>
+          name: SimpleIdentifier
+            token: <empty> <synthetic>
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -3571,7 +3633,7 @@ CompilationUnit
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -3815,7 +3877,7 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
@@ -3823,15 +3885,12 @@ CompilationUnit
             name: typedef
           name: SimpleIdentifier
             token: typedef
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: A
-            equals: =
-            initializer2: ParsedUnqualifiedName
-              name: B
-            initializer(v1): SimpleIdentifier
-              token: B
+      variables
+        TopLevelVariable
+          name: A
+          equals: =
+          initializer: ParsedUnqualifiedName
+            name: B
       semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: Function
@@ -3885,12 +3944,24 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
           expression: ParsedUnqualifiedName
             name: <empty> <synthetic>
+          name: SimpleIdentifier
+            token: <empty> <synthetic>
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: <empty> <synthetic>
       variables: VariableDeclarationList
@@ -3982,7 +4053,7 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
@@ -4007,13 +4078,34 @@ CompilationUnit
               SimpleIdentifier
                 token: <empty> <synthetic>
             rightParenthesis: ) <synthetic>
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: a
+          equals: =
+          initializer: IntegerLiteral
+            literal: 0
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
+          name: SimpleIdentifier
+            token: a
+          arguments: ArgumentList
+            leftParenthesis: (
+            arguments
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
       variables: VariableDeclarationList
         keyword: final
         variables
           VariableDeclaration
             name: a
             equals: =
-            initializer2: IntegerLiteral
+            initializer: IntegerLiteral
               literal: 0
       semicolon: ;
 ''');
@@ -4133,7 +4225,7 @@ CompilationUnit
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
+    TopLevelVariablesDeclaration
       metadata
         Annotation
           atSign: @
@@ -4150,6 +4242,24 @@ CompilationUnit
                 SimpleIdentifier
                   token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
+          name: SimpleIdentifier
+            token: a
+          arguments: ArgumentList
+            leftParenthesis: (
+            arguments
+              SimpleIdentifier
+                token: <empty> <synthetic>
+            rightParenthesis: ) <synthetic>
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: a
+      semicolon: ;
+  declarations(v1)
+    TopLevelVariableDeclaration
+      metadata
+        Annotation
+          atSign: @
           name: SimpleIdentifier
             token: a
           arguments: ArgumentList

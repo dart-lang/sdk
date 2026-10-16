@@ -2453,39 +2453,6 @@ void f () {
     _assertSource(code, node);
   }
 
-  void test_visitFunctionDeclaration_local_blockBody() {
-    var code = 'void foo() {}';
-    var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
-  $code
-}
-''');
-    var node = parseResult.findNode.functionDeclaration(code);
-    _assertSource(code, node);
-  }
-
-  void test_visitFunctionDeclaration_local_expressionBody() {
-    var code = 'int foo() => 42;';
-    var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
-  $code
-}
-''');
-    var node = parseResult.findNode.functionDeclaration(code);
-    _assertSource(code, node);
-  }
-
-  void test_visitFunctionDeclarationStatement() {
-    var code = 'void foo() {}';
-    var parseResult = parseTestCodeWithDiagnostics('''
-void f() {
-  $code
-}
-''');
-    var node = parseResult.findNode.singleFunctionDeclarationStatement;
-    _assertSource(code, node);
-  }
-
   void test_visitFunctionExpression() {
     var code = '() {}';
     var parseResult = parseTestCodeWithDiagnostics('''
@@ -3075,6 +3042,28 @@ void f(x) {
 ''');
     var node = parseResult.findNode.singleListPattern;
     _assertSource('<int>[]', node);
+  }
+
+  void test_visitLocalFunctionDeclaration_blockBody() {
+    var code = 'void foo() {}';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code
+}
+''');
+    var node = parseResult.findNode.localFunctionDeclaration(code);
+    _assertSource(code, node);
+  }
+
+  void test_visitLocalFunctionDeclaration_expressionBody() {
+    var code = 'int foo() => 42;';
+    var parseResult = parseTestCodeWithDiagnostics('''
+void f() {
+  $code
+}
+''');
+    var node = parseResult.findNode.localFunctionDeclaration(code);
+    _assertSource(code, node);
   }
 
   void test_visitLogicalAnd() {

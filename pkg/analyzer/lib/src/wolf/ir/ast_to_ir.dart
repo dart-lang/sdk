@@ -371,7 +371,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   @override
   Null visitBlock(Block node) {
     var previousLocalVariableCount = ir.localVariableCount;
-    for (var statement in node.statements) {
+    for (var statement in node.statements2) {
       dispatchNode(statement);
     }
     ir.releaseTo(previousLocalVariableCount);
@@ -517,7 +517,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     ir.block(0, 0);
     // Stack: BLOCK(0) LOOP(0) BLOCK(0)
     continueStack.add(ir.nestingLevel);
-    dispatchNode(node.body);
+    dispatchNode(node.body2);
     // Stack: BLOCK(0) LOOP(0) BLOCK(0)
     continueStack.removeLast();
     ir.end();
@@ -588,7 +588,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
         ir.block(0, 0);
         // Stack: BLOCK(0) LOOP(0) BLOCK(0)
         continueStack.add(ir.nestingLevel);
-        dispatchNode(node.body);
+        dispatchNode(node.body2);
         // Stack: BLOCK(0) LOOP(0) BLOCK(0)
         continueStack.removeLast();
         ir.end();
@@ -722,7 +722,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
   @override
   Null visitIfStatement(IfStatement node) {
     if (node.caseClause != null) throw UnimplementedError('TODO(paulberry)');
-    var elseStatement = node.elseStatement;
+    var elseStatement = node.elseStatement2;
     if (elseStatement == null) {
       dispatchNode(node.expression2);
       // Stack: expression
@@ -732,7 +732,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       // Stack: BLOCK(0) !expression
       ir.brIf(0);
       // Stack: BLOCK(0)
-      dispatchNode(node.thenStatement);
+      dispatchNode(node.thenStatement2);
       ir.end();
       // Stack: (empty)
     } else {
@@ -746,7 +746,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
       // Stack: BLOCK(0) BLOCK(0) !expression
       ir.brIf(0);
       // Stack: BLOCK(0) BLOCK(0)
-      dispatchNode(node.thenStatement);
+      dispatchNode(node.thenStatement2);
       ir.br(1);
       // Stack: BLOCK(0) BLOCK(0) indeterminate
       ir.end();
@@ -1016,7 +1016,7 @@ class _AstToIRVisitor extends ThrowingAstVisitor2<_LValueTemplates> {
     // Stack: BLOCK(0) LOOP(0) !condition
     ir.brIf(1);
     // Stack: BLOCK(0) LOOP(0)
-    dispatchNode(node.body);
+    dispatchNode(node.body2);
     // Stack: BLOCK(0) LOOP(0)
     continueStack.removeLast();
     ir.end();

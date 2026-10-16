@@ -1079,6 +1079,12 @@ CompilationUnit
               token: <empty> <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -1644,7 +1650,7 @@ void f() {
 // [diag.expectedToken] Expected to find ')'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 IfStatement
   ifKeyword: if
@@ -1654,7 +1660,7 @@ IfStatement
   expression(v1): SimpleIdentifier
     token: x
   rightParenthesis: )
-  thenStatement: ExpressionStatement
+  thenStatement2: ExpressionStatement
     expression2: ParsedValueArguments
       operand: ParsedUnqualifiedName
         name: f
@@ -2201,7 +2207,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2219,7 +2225,7 @@ CompilationUnit
                 rightOperand: NullLiteral
                   literal: null
               rightParenthesis: )
-              thenStatement: ReturnStatement
+              thenStatement2: ReturnStatement
                 returnKeyword: return
                 expression2: NullLiteral
                   literal: null
@@ -2302,7 +2308,7 @@ CompilationUnit
                       body: BlockFunctionBody
                         block: Block
                           leftBracket: {
-                          statements
+                          statements2
                             ExpressionStatement
                               expression2: DirectAssignment
                                 target: ReceiverIndexAssignmentTarget
@@ -2594,6 +2600,12 @@ String
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: String
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables
@@ -2614,6 +2626,13 @@ const
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: const
@@ -2635,6 +2654,13 @@ final
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -2656,6 +2682,13 @@ var
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -2862,7 +2895,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2881,7 +2914,7 @@ ForStatement
       token: i
     rightSeparator: ; <synthetic>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -2897,7 +2930,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 ForStatement
   forKeyword: for
@@ -2916,7 +2949,7 @@ ForStatement
       token: i
     rightSeparator: ; <synthetic>
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -2931,7 +2964,7 @@ void f() {
 }
 // [diag.expectedExecutable][column 1][length 1] Expected a method, getter, setter or operator declaration.
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -2955,7 +2988,7 @@ void f() {
 }
 // [diag.expectedExecutable][column 1][length 1] Expected a method, getter, setter or operator declaration.
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -2975,7 +3008,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -2996,7 +3029,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3017,7 +3050,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3038,7 +3071,7 @@ void f() {
 // [diag.expectedToken] Expected to find ';'.
 }
 ''');
-    var node = parseResult.findNode.firstBlock.statements[0];
+    var node = parseResult.findNode.firstBlock.statements2[0];
     assertParsedNodeText(node, r'''
 VariableDeclarationStatement
   variables: VariableDeclarationList
@@ -3382,7 +3415,7 @@ CompilationUnit
             body: BlockFunctionBody
               block: Block
                 leftBracket: {
-                statements
+                statements2
                   IfStatement
                     ifKeyword: if
                     leftParenthesis: (
@@ -3395,7 +3428,7 @@ CompilationUnit
                       type: NamedType
                         name: <empty> <synthetic>
                     rightParenthesis: )
-                    thenStatement: ReturnStatement
+                    thenStatement2: ReturnStatement
                       returnKeyword: return
                       semicolon: ;
                   IfStatement
@@ -3411,7 +3444,7 @@ CompilationUnit
                       type: NamedType
                         name: <empty> <synthetic>
                     rightParenthesis: )
-                    thenStatement: ExpressionStatement
+                    thenStatement2: ExpressionStatement
                       expression2: ParsedUnqualifiedName
                         name: <empty> <synthetic>
                       expression(v1): SimpleIdentifier
@@ -4012,6 +4045,19 @@ V1: MethodInvocation
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: a
+      variables
+        TopLevelVariable
+          name: b
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: c
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -4099,6 +4145,22 @@ String n x = "";
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: String
+      variables
+        TopLevelVariable
+          name: n
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: x
+          equals: =
+          initializer: SimpleStringLiteral
+            literal: ""
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -4113,7 +4175,7 @@ CompilationUnit
           VariableDeclaration
             name: x
             equals: =
-            initializer2: SimpleStringLiteral
+            initializer: SimpleStringLiteral
               literal: ""
       semicolon: ;
 ''');
@@ -4402,6 +4464,24 @@ CompilationUnit
         literal: "" <synthetic>
       semicolon: ; <synthetic>
   declarations2
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: dart
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: io
+      semicolon: ;
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         variables

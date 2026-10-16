@@ -110,6 +110,30 @@ void f() {
 ''');
   }
 
+  Future<void> test_read_closure_localFunction_return() async {
+    await resolveTestCode('''
+void f(List<int> list) {
+  list.where((i) {
+    String g() {
+      return test;
+    }
+    return g().isEmpty;
+  });
+}
+''');
+    await assertHasFix('''
+void f(List<int> list) {
+  list.where((i) {
+    String g() {
+      String test;
+      return test;
+    }
+    return g().isEmpty;
+  });
+}
+''');
+  }
+
   Future<void> test_read_invocation() async {
     await resolveTestCode('''
 void f() {

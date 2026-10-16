@@ -112,7 +112,7 @@ class AstFinder {
   ) {
     var function = getTopLevelFunction(unit, functionName);
     var body = function.body as BlockFunctionBody;
-    return body.block.statements;
+    return body.block.statements2;
   }
 
   /// Return the declaration of the top-level function with the given

@@ -35,7 +35,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -91,7 +91,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -141,7 +141,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -191,7 +191,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -239,13 +239,13 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -303,7 +303,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -345,7 +345,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -362,7 +362,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -417,7 +417,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -427,7 +427,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -479,7 +479,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -540,7 +540,22 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            BreakStatement
+              breakKeyword: break
+              label: LabelReference
+                name: int
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -608,7 +623,22 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            BreakStatement
+              breakKeyword: break
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -676,7 +706,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -732,7 +762,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -780,7 +810,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -840,7 +870,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -900,7 +930,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               semicolon: ; <synthetic>
@@ -910,7 +940,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -959,7 +989,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1018,7 +1048,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1071,7 +1101,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1124,7 +1154,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1175,7 +1205,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1183,7 +1213,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -1242,7 +1272,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1287,7 +1317,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1306,7 +1336,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1362,7 +1392,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1374,7 +1404,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1425,7 +1455,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1436,7 +1466,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1486,7 +1516,24 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            BreakStatement
+              breakKeyword: break
+              label: LabelReference
+                name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1557,7 +1604,24 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            BreakStatement
+              breakKeyword: break
+              label: LabelReference
+                name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1628,7 +1692,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1687,7 +1751,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1738,7 +1802,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1801,7 +1865,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1864,7 +1928,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             BreakStatement
               breakKeyword: break
               label: LabelReference
@@ -1876,7 +1940,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }

@@ -211,8 +211,8 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   void visitBlock(covariant BlockImpl node) {
     _scopeContext.withLocalScope((scope) {
       node.nameScope = scope;
-      _defineLocalElements(scope, node.statements);
-      node.statements.accept2(this);
+      _defineLocalElements(scope, node.statements2);
+      node.statements2.accept2(this);
     });
   }
 
@@ -388,7 +388,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   @override
   void visitDoStatement(covariant DoStatementImpl node) {
     _withUnlabeledBreakContinueContextNested(node, () {
-      _visitStatementInScope(node.body);
+      _visitStatementInScope(node.body2);
       node.condition2.accept2(this);
     });
   }
@@ -500,20 +500,9 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       _scopeContext.withLocalScope((scope) {
         node.nameScope = scope;
         _visitForLoopParts(scope, node.forLoopParts);
-        _visitStatementInScope(node.body);
+        _visitStatementInScope(node.body2);
       });
     });
-  }
-
-  @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var element = node.declaredFragment!.element as LocalFunctionElementImpl;
-
-    _withEnclosingClosure(element, () {
-      _scopeContext.visitFunctionDeclaration(node, visitor: this);
-    });
-
-    element.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
   }
 
   @override
@@ -625,7 +614,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
 
   @override
   void visitLabeledStatement(LabeledStatement node) {
-    var unlabeled = node.unlabeled;
+    var unlabeled = node.unlabeled2;
     var labelScope = _nestLabelScopes(_labelScope, node.labels, unlabeled);
 
     _withLabelScope(labelScope, () {
@@ -641,6 +630,19 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
       _setElementAnnotations(node.metadata, element.metadata.annotations);
     }
     super.visitLibraryDirective(node);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    var element = node.declaredFragment!.element;
+
+    _withEnclosingClosure(element, () {
+      _scopeContext.visitLocalFunctionDeclaration(node, visitor: this);
+    });
+
+    element.returnType = node.returnType?.type ?? _typeProvider.dynamicType;
   }
 
   @override
@@ -969,7 +971,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   void visitWhileStatement(covariant WhileStatementImpl node) {
     _withUnlabeledBreakContinueContextNested(node, () {
       node.condition2.accept2(this);
-      _visitStatementInScope(node.body);
+      _visitStatementInScope(node.body2);
     });
   }
 
@@ -1000,11 +1002,10 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
 
   void _defineLocalElements(LocalScope scope, List<Statement> statements) {
     for (var statement in statements) {
-      statement = statement.unlabeled;
+      statement = statement.unlabeled2;
       switch (statement) {
-        case FunctionDeclarationStatementImpl():
-          var declaration = statement.functionDeclaration;
-          var element = declaration.declaredFragment!.element;
+        case LocalFunctionDeclarationImpl():
+          var element = statement.declaredFragment!.element;
           scope.add(element);
         case PatternVariableDeclarationStatementImpl():
           var declaration = statement.declaration;
@@ -1479,7 +1480,7 @@ class ScopeAnalyzer extends RecursiveAstVisitor2<void> {
   }
 
   /// We always build local elements for [VariableDeclarationStatement]s and
-  /// [FunctionDeclarationStatement]s in blocks, because invalid code might try
+  /// [LocalFunctionDeclaration]s in blocks, because invalid code might try
   /// to use forward references.
 
   /// Associate each of the annotation [nodes] with the corresponding

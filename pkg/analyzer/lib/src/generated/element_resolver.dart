@@ -205,8 +205,6 @@ class ElementResolver {
 
   void visitFieldFormalParameter(FieldFormalParameter node) {}
 
-  void visitFunctionDeclaration(FunctionDeclaration node) {}
-
   void visitFunctionTypeAlias(FunctionTypeAlias node) {}
 
   void visitGenericTypeAlias(GenericTypeAlias node) {}

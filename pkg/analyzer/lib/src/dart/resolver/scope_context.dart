@@ -253,30 +253,6 @@ class ScopeContext {
     node.defaultClause?.accept2(visitor);
   }
 
-  void visitFunctionDeclaration(
-    FunctionDeclarationImpl node, {
-    required AstVisitor2 visitor,
-  }) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-
-    node.metadata.accept2(visitor);
-
-    withTypeParameterScope(element.typeParameters, () {
-      node.nameScope = nameScope;
-      node.returnType?.accept2(visitor);
-
-      var functionExpression = node.functionExpression;
-      functionExpression.typeParameters?.accept2(visitor);
-      functionExpression.parameters?.accept2(visitor);
-
-      withFormalParameterScope(fragment.formalParameters, () {
-        node.documentationComment?.accept2(visitor);
-        functionExpression.body.accept2(visitor);
-      });
-    });
-  }
-
   void visitFunctionExpression(
     FunctionExpressionImpl node, {
     required AstVisitor2 visitor,
@@ -351,6 +327,28 @@ class ScopeContext {
       } else {
         node.documentationComment?.accept2(visitor);
       }
+    });
+  }
+
+  void visitLocalFunctionDeclaration(
+    LocalFunctionDeclarationImpl node, {
+    required AstVisitor2 visitor,
+  }) {
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    node.metadata.accept2(visitor);
+
+    withTypeParameterScope(element.typeParameters, () {
+      node.nameScope = nameScope;
+      node.returnType?.accept2(visitor);
+      node.typeParameters?.accept2(visitor);
+      node.formalParameters.accept2(visitor);
+
+      withFormalParameterScope(fragment.formalParameters, () {
+        node.documentationComment?.accept2(visitor);
+        node.body.accept2(visitor);
+      });
     });
   }
 

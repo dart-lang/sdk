@@ -951,11 +951,10 @@ CompilationUnit
         expression(v1): SimpleIdentifier
           token: as
         semicolon: ; <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: T
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: T
       semicolon: ;
   declarations(v1)
     FunctionDeclaration
@@ -1052,7 +1051,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -1237,7 +1236,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: CascadeExpression
                 target2: ParsedUnqualifiedName
@@ -2279,7 +2278,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2292,7 +2291,7 @@ CompilationUnit
                 type: NamedType
                   name: String
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2347,7 +2346,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             IfStatement
               ifKeyword: if
               leftParenthesis: (
@@ -2360,7 +2359,7 @@ CompilationUnit
                 type: NamedType
                   name: <empty> <synthetic>
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2880,6 +2879,28 @@ int f int x, int y) {}
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: int
+      variables
+        TopLevelVariable
+          name: f
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: int
+      variables
+        TopLevelVariable
+          name: x
+        TopLevelVariable
+          name: int
+      semicolon: ; <synthetic>
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: y
+      semicolon: ; <synthetic>
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -3531,7 +3552,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -3831,7 +3852,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedValueArguments
                 operand: ParsedUnqualifiedName
@@ -4847,7 +4868,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedValueArguments
                 operand: ParsedUnqualifiedName

@@ -106,7 +106,7 @@ ConstructorFieldInitializer
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements
+            statements2
               ReturnStatement
                 returnKeyword: return
                 expression2: BinaryOperatorInvocation

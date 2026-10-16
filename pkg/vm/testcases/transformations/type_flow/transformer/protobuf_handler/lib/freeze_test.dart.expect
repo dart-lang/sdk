@@ -20,6 +20,7 @@ import "package:matcher/src/interfaces.dart";
 import "package:matcher/src/operator_matchers.dart";
 import "package:matcher/src/type_matcher.dart";
 import "package:matcher/src/util.dart";
+import "package:matcher/src/async_matcher_restriction.dart";
 import "package:matcher/src/expect/async_matcher.dart";
 import "package:matcher/src/expect/util/pretty_print.dart";
 import "dart:async";

@@ -73,8 +73,8 @@ class _ReachabilityDataExtractor
     } else if (_flowResult.unreachableNodes.contains(node)) {
       result.add(_ReachabilityAssertion.unreachable);
     }
-    if (node is FunctionDeclaration) {
-      _checkBodyCompletion(node.functionExpression.body, result);
+    if (node is LocalFunctionDeclaration) {
+      _checkBodyCompletion(node.body, result);
     } else if (node is TopLevelFunctionDeclaration) {
       _checkBodyCompletion(node.body, result);
     } else if (node is TopLevelGetterDeclaration) {

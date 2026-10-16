@@ -1339,11 +1339,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       return expression;
     }
 
-    // Don't rewrite function declarations.
-    if (expression.parent2 is FunctionDeclaration) {
-      return expression;
-    }
-
     var staticType = expression.staticType;
     if (staticType is! FunctionTypeImpl || staticType.typeParameters.isEmpty) {
       return expression;
@@ -1992,7 +1987,6 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           }
         }
       }
-      parameters.accept2(this);
       for (var parameter in formalParameters) {
         var element = parameter.declaredFragment?.element;
         if (element != null) {
@@ -2025,6 +2019,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           }
         }
       }
+      // Visit after declaring the parameters, because the formal parameter
+      // list may contain expressions.
+      parameters.accept2(this);
     }
 
     TypeImpl returnedType;
@@ -2813,7 +2810,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     var condition = node.condition2;
 
     flowAnalysis.flow?.doStatement_bodyBegin(node, offset: node.offset);
-    node.body.accept2(this);
+    node.body2.accept2(this);
 
     flowAnalysis.flow?.doStatement_conditionBegin(
       offset: node.whileKeyword.offset,
@@ -3200,70 +3197,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
     _forResolver.resolveStatement(node);
-    nullSafetyDeadCodeVerifier.flowEnd(node.body);
-    _recordMayCompleteNormally(node);
-    inferenceLogWriter?.exitStatement(node);
-  }
-
-  @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    var fragment = node.declaredFragment!;
-    var element = fragment.element;
-    var functionType = element.type;
-
-    _withEnclosingExecutableElement(element, () {
-      checkUnreachableNode(node);
-      node.documentationComment?.accept2(this);
-      node.metadata.accept2(this);
-      node.returnType?.accept2(this);
-
-      // Use typeParameters or parameters for the offset if available, because
-      // they will be visited before the body, and may contain expressions.
-      var enterOffset =
-          (node.functionExpression.typeParameters ??
-                  node.functionExpression.parameters ??
-                  node.functionExpression.body)
-              .offset;
-      flowAnalysis.flow!.functionExpression_begin(node, offset: enterOffset);
-      flowAnalysis.executableDeclaration_enter(
-        node,
-        element.formalParameters,
-        isClosure: true,
-        offset: enterOffset,
-      );
-
-      // node.functionExpression isn't a real expression, so visit it directly
-      // rather than going through `analyzeExpression`.
-      inferenceLogWriter?.setExpressionVisitCodePath(
-        node.functionExpression,
-        ExpressionVisitCodePath.analyzeExpression,
-      );
-      pushRewrite(node.functionExpression);
-      // Stack: (functionExpression)
-      node.functionExpression.resolveExpression(this, functionType);
-      popRewrite();
-      elementResolver.visitFunctionDeclaration(node);
-
-      checkForBodyMayCompleteNormally(
-        body: node.functionExpression.body,
-        errorNode: node.name,
-      );
-      var exitOffset = node.functionExpression.body.flowEndOffset;
-      flowAnalysis.executableDeclaration_exit(
-        node.functionExpression.body,
-        true,
-        offset: exitOffset,
-      );
-      flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
-      nullSafetyDeadCodeVerifier.flowEnd(node);
-    });
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    inferenceLogWriter?.enterStatement(node);
-    checkUnreachableNode(node);
-    node.visitChildren2(this);
+    nullSafetyDeadCodeVerifier.flowEnd(node.body2);
     _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
@@ -3400,8 +3334,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
         node.expression2,
         guardedPattern.pattern,
         guardedPattern.whenClause?.expression2,
-        node.thenStatement,
-        node.elseStatement,
+        node.thenStatement2,
+        node.elseStatement2,
         guardedPattern.variables,
         afterExpressionOffset: caseClause.caseKeyword.offset,
         thenBeginOffset: node.rightParenthesis.offset,
@@ -3414,8 +3348,8 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       analyzeIfStatement(
         node,
         node.expression2,
-        node.thenStatement,
-        node.elseStatement,
+        node.thenStatement2,
+        node.elseStatement2,
         thenBeginOffset: node.rightParenthesis.offset,
         elseBeginOffset: node.elseKeyword?.offset,
       );
@@ -3621,6 +3555,47 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     checkUnreachableNode(node);
     _typedLiteralResolver.resolveListLiteral(node, contextType: contextType);
     inferenceLogWriter?.exitExpression(node);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    inferenceLogWriter?.enterStatement(node);
+    checkUnreachableNode(node);
+    var element = node.declaredFragment!.element;
+
+    _withEnclosingExecutableElement(element, () {
+      node.documentationComment?.accept2(this);
+      node.metadata.accept2(this);
+      node.returnType?.accept2(this);
+
+      // Use the type parameters or formal parameters for the offset, because
+      // they are visited before the body, and may contain expressions.
+      var enterOffset = (node.typeParameters ?? node.formalParameters).offset;
+      flowAnalysis.flow!.functionExpression_begin(node, offset: enterOffset);
+      flowAnalysis.executableDeclaration_enter(
+        node,
+        element.formalParameters,
+        isClosure: true,
+        offset: enterOffset,
+      );
+
+      _functionExpressionResolver.resolveLocalFunction(node);
+
+      checkForBodyMayCompleteNormally(body: node.body, errorNode: node.name);
+      var exitOffset = node.body.flowEndOffset;
+      flowAnalysis.executableDeclaration_exit(
+        node.body,
+        true,
+        offset: exitOffset,
+      );
+      flowAnalysis.flow!.functionExpression_end(offset: exitOffset);
+      nullSafetyDeadCodeVerifier.flowEnd(node);
+    });
+
+    _recordMayCompleteNormally(node);
+    inferenceLogWriter?.exitStatement(node);
   }
 
   @override
@@ -4913,16 +4888,14 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
 
     var initializer = node.initializer2;
     if (initializer != null) {
-      var parent = node.parent2 as VariableDeclarationList;
-      var declaredType = parent.type;
       var initializerStaticType = initializer.typeOrThrow;
       flowAnalysis.flow?.initialize(
-        node.declaredFragment?.element as PromotableElementImpl,
+        fragment.element as PromotableElementImpl,
         SharedTypeView(initializerStaticType),
         flowAnalysis.getExpressionInfo(initializer),
-        isFinal: parent.isFinal,
-        isLate: parent.isLate,
-        isImplicitlyTyped: declaredType == null,
+        isFinal: fragment.isFinal,
+        isLate: fragment.isLate,
+        isImplicitlyTyped: fragment.hasImplicitType,
         offset: node.end,
       );
     }
@@ -4973,9 +4946,9 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
       flowAnalysis.getExpressionInfo(condition),
       offset: node.rightParenthesis.offset,
     );
-    node.body.accept2(this);
+    node.body2.accept2(this);
     flowAnalysis.flow?.whileStatement_end(offset: node.endToken.offset);
-    nullSafetyDeadCodeVerifier.flowEnd(node.body);
+    nullSafetyDeadCodeVerifier.flowEnd(node.body2);
     _recordMayCompleteNormally(node);
     inferenceLogWriter?.exitStatement(node);
   }
@@ -5106,7 +5079,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
     }
   }
 
-  void _checkTypeInferenceError(VariableDeclaration node) {
+  void _checkTypeInferenceError(VariableBindingImpl node) {
     var fragment = node.declaredFragment;
     if (fragment is! PropertyInducingFragmentImpl) {
       return;

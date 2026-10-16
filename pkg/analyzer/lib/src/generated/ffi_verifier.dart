@@ -425,18 +425,6 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    _checkFfiNative(
-      errorNode: node.name,
-      declarationElement: node.declaredFragment!.element,
-      formalParameterList: node.functionExpression.parameters,
-      metadata: node.metadata,
-      isExternal: node.externalKeyword != null,
-    );
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
   void visitImportPrefixedFunctionInvocation(
     covariant ImportPrefixedFunctionInvocationImpl node,
   ) {
@@ -466,6 +454,18 @@ class FfiVerifier extends RecursiveAstVisitor2<void> {
     }
 
     super.visitLibraryDirective(node);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    _checkFfiNative(
+      errorNode: node.name,
+      declarationElement: node.declaredFragment!.element,
+      formalParameterList: node.formalParameters,
+      metadata: node.metadata,
+      isExternal: false,
+    );
+    super.visitLocalFunctionDeclaration(node);
   }
 
   @override

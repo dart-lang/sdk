@@ -7,9 +7,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart'
-    show DotShorthandNameExpressionImpl;
+    show DotShorthandNameExpressionImpl, VariableBindingImpl;
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/element.dart' show PrefixElementImpl;
+import 'package:analyzer/src/dart/element/element.dart'
+    show FieldElementImpl, PrefixElementImpl;
 import 'package:analyzer/src/dart/element/type.dart';
 
 /// Some [ConstructorElement]s can be temporary marked as "const" to check
@@ -316,10 +317,10 @@ class _Collector {
           return;
         }
         var fieldElement = node
-            .thisOrAncestorOfType2<VariableDeclaration>()
+            .thisOrAncestorOfType2<VariableBindingImpl>()
             ?.declaredFragment
             ?.element;
-        if (fieldElement is FieldElement &&
+        if (fieldElement is FieldElementImpl &&
             !fieldElement.isStatic &&
             !fieldElement.isLate) {
           return;

@@ -189,6 +189,8 @@ class FindNode2 extends _FindNodeBase {
 
   InvalidSuperExpression get singleInvalidSuperExpression => _single();
 
+  LocalFunctionDeclaration get singleLocalFunctionDeclaration => _single();
+
   LogicalAnd get singleLogicalAnd => _single();
 
   LogicalNot get singleLogicalNot => _single();
@@ -279,6 +281,10 @@ class FindNode2 extends _FindNodeBase {
 
   InvalidSuperExpression invalidSuperExpression(String search) {
     return _node(search, (node) => node is InvalidSuperExpression);
+  }
+
+  LocalFunctionDeclaration localFunctionDeclaration(String search) {
+    return _node(search, (node) => node is LocalFunctionDeclaration);
   }
 
   LogicalAnd logicalAnd(String search) {

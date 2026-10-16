@@ -37,15 +37,14 @@ class C {
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        keyword: const
-        variables
-          VariableDeclaration
-            name: annotation
-            equals: =
-            initializer2: NullLiteral
-              literal: null
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: const
+      variables
+        TopLevelVariable
+          name: annotation
+          equals: =
+          initializer: NullLiteral
+            literal: null
       semicolon: ;
     ClassDeclaration
       classKeyword: class
@@ -89,6 +88,60 @@ CompilationUnit
                   leftParenthesis: (
                   rightParenthesis: )
               expression(v1): InstanceCreationExpression
+                keyword: new
+                constructorName: ConstructorName
+                  type: NamedType
+                    name: A
+                    typeArguments: TypeArgumentList
+                      leftBracket: <
+                      arguments
+                        NamedType
+                          name: C
+                      rightBracket: >
+                argumentList: ArgumentList
+                  leftParenthesis: (
+                  rightParenthesis: )
+              semicolon: ;
+        rightBracket: }
+  declarations(v1)
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        keyword: const
+        variables
+          VariableDeclaration
+            name: annotation
+            equals: =
+            initializer: NullLiteral
+              literal: null
+      semicolon: ;
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+        typeParameters: TypeParameterList
+          leftBracket: <
+          typeParameters
+            TypeParameter
+              name: E
+          rightBracket: >
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        members
+          MethodDeclaration
+            name: m
+            parameters: FormalParameterList
+              leftParenthesis: (
+              rightParenthesis: )
+            body: ExpressionFunctionBody
+              functionDefinition: =>
+              expression: InstanceCreationExpression
                 keyword: new
                 constructorName: ConstructorName
                   type: NamedType
@@ -204,7 +257,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedValueArguments
                 operand: ParsedUnqualifiedName
@@ -396,7 +449,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             WhileStatement
               whileKeyword: while
               leftParenthesis: (
@@ -423,7 +476,7 @@ CompilationUnit
                 rightOperand: IntegerLiteral
                   literal: 3
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -471,6 +524,30 @@ List<int> ints = List<int>[];
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: List
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+          rightBracket: >
+      variables
+        TopLevelVariable
+          name: ints
+          equals: =
+          initializer: ListLiteral
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: int
+              rightBracket: >
+            leftBracket: [
+            rightBracket: ]
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -485,7 +562,7 @@ CompilationUnit
           VariableDeclaration
             name: ints
             equals: =
-            initializer2: ListLiteral
+            initializer: ListLiteral
               typeArguments: TypeArgumentList
                 leftBracket: <
                 arguments
@@ -508,6 +585,35 @@ Map<int, int> map = Map<int, int>{};
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      type: NamedType
+        name: Map
+        typeArguments: TypeArgumentList
+          leftBracket: <
+          arguments
+            NamedType
+              name: int
+            NamedType
+              name: int
+          rightBracket: >
+      variables
+        TopLevelVariable
+          name: map
+          equals: =
+          initializer: SetOrMapLiteral
+            typeArguments: TypeArgumentList
+              leftBracket: <
+              arguments
+                NamedType
+                  name: int
+                NamedType
+                  name: int
+              rightBracket: >
+            leftBracket: {
+            rightBracket: }
+            isMap: false
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         type: NamedType
@@ -524,7 +630,7 @@ CompilationUnit
           VariableDeclaration
             name: map
             equals: =
-            initializer2: SetOrMapLiteral
+            initializer: SetOrMapLiteral
               typeArguments: TypeArgumentList
                 leftBracket: <
                 arguments
@@ -670,6 +776,80 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: {
         rightBracket: }
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: final
+      type: NamedType
+        name: Map
+      variables
+        TopLevelVariable
+          name: v
+          equals: =
+          initializer: SetOrMapLiteral
+            leftBracket: {
+            elements2
+              MapLiteralEntry
+                key2: SimpleStringLiteral
+                  literal: 'a'
+                separator: :
+                value2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: ExpressionFunctionBody
+                    functionDefinition: =>
+                    expression2: ConstructorInvocation
+                      keyword: new
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: C
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                    expression(v1): InstanceCreationExpression
+                      keyword: new
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: C
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+              MapLiteralEntry
+                key2: SimpleStringLiteral
+                  literal: 'b'
+                separator: :
+                value2: FunctionExpression
+                  parameters: FormalParameterList
+                    leftParenthesis: (
+                    rightParenthesis: )
+                  body: ExpressionFunctionBody
+                    functionDefinition: =>
+                    expression2: ConstructorInvocation
+                      keyword: new
+                      constructorReference: ConstructorReference2
+                        typeReference: ConstructorTypeReference
+                          name: C
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                    expression(v1): InstanceCreationExpression
+                      keyword: new
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: C
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+            rightBracket: }
+            isMap: false
+      semicolon: ;
+  declarations(v1)
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: final
@@ -679,28 +859,20 @@ CompilationUnit
           VariableDeclaration
             name: v
             equals: =
-            initializer2: SetOrMapLiteral
+            initializer: SetOrMapLiteral
               leftBracket: {
-              elements2
+              elements
                 MapLiteralEntry
-                  key2: SimpleStringLiteral
+                  key: SimpleStringLiteral
                     literal: 'a'
                   separator: :
-                  value2: FunctionExpression
+                  value: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: ConstructorInvocation
-                        keyword: new
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: C
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          rightParenthesis: )
-                      expression(v1): InstanceCreationExpression
+                      expression: InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -709,24 +881,16 @@ CompilationUnit
                           leftParenthesis: (
                           rightParenthesis: )
                 MapLiteralEntry
-                  key2: SimpleStringLiteral
+                  key: SimpleStringLiteral
                     literal: 'b'
                   separator: :
-                  value2: FunctionExpression
+                  value: FunctionExpression
                     parameters: FormalParameterList
                       leftParenthesis: (
                       rightParenthesis: )
                     body: ExpressionFunctionBody
                       functionDefinition: =>
-                      expression2: ConstructorInvocation
-                        keyword: new
-                        constructorReference: ConstructorReference2
-                          typeReference: ConstructorTypeReference
-                            name: C
-                        argumentList: ArgumentList
-                          leftParenthesis: (
-                          rightParenthesis: )
-                      expression(v1): InstanceCreationExpression
+                      expression: InstanceCreationExpression
                         keyword: new
                         constructorName: ConstructorName
                           type: NamedType
@@ -951,11 +1115,10 @@ String void bar() { }
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: String
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: String
       semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       returnType: NamedType

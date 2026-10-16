@@ -59,14 +59,14 @@ SwitchStatement
           operator: ?
           matchedValueType: Object?
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;
     SwitchDefault
       keyword: default
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;
@@ -163,7 +163,7 @@ SwitchStatement
           operator: ?
           matchedValueType: Object?
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;
@@ -179,7 +179,7 @@ SwitchStatement
           operator: ?
           matchedValueType: Object?
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;
@@ -248,7 +248,7 @@ SwitchStatement
             staticType: A
           matchedValueType: Object?
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;
@@ -320,7 +320,7 @@ SwitchStatement
             staticInvokeType: bool Function()
             staticType: bool
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;
@@ -445,7 +445,7 @@ SwitchStatement
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -581,7 +581,7 @@ SwitchStatement
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -753,7 +753,7 @@ SwitchStatement
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -890,7 +890,7 @@ SwitchStatement
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -1027,7 +1027,7 @@ SwitchStatement
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -1163,7 +1163,7 @@ SwitchStatement
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -1302,7 +1302,7 @@ SwitchStatement
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -1403,7 +1403,7 @@ SwitchStatement
             staticType: int
           matchedValueType: Object?
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -1498,7 +1498,7 @@ SwitchStatement
     SwitchDefault
       keyword: default
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -1577,7 +1577,7 @@ SwitchStatement
     SwitchDefault
       keyword: default
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -1676,7 +1676,7 @@ SwitchStatement
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -1773,7 +1773,7 @@ SwitchStatement
               type: String
           matchedValueType: Object?
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -1879,7 +1879,7 @@ SwitchStatement
           matchedValueType: Object?
           requiredType: List<int>
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -1994,7 +1994,7 @@ SwitchStatement
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -2083,7 +2083,7 @@ SwitchStatement
             staticInvokeType: bool Function(num)
             staticType: bool
       colon: :
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -2142,7 +2142,7 @@ SwitchStatement
             literal: true
             staticType: bool
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;
@@ -2191,14 +2191,14 @@ SwitchStatement
         literal: 0
         staticType: int
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;
     SwitchDefault
       keyword: default
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;
@@ -2249,7 +2249,7 @@ SwitchStatement
         literal: 1
         staticType: int
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;
@@ -2259,7 +2259,7 @@ SwitchStatement
         literal: 2
         staticType: int
       colon: :
-      statements
+      statements2
         BreakStatement
           breakKeyword: break
           semicolon: ;

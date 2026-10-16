@@ -581,11 +581,10 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: T
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: T
       semicolon: ; <synthetic>
   declarations(v1)
     FunctionDeclaration
@@ -643,7 +642,7 @@ TopLevelFunctionDeclaration
       leftBracket: T4 { @11
         previous: T3 |)|
         next: T5 |http|
-      statements
+      statements2
         ExpressionStatement
           expression2: ParsedNameAccess
             operand: ParsedUnqualifiedName
@@ -1251,11 +1250,10 @@ CompilationUnit
         block: Block
           leftBracket: { <synthetic>
           rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        variables
-          VariableDeclaration
-            name: T
+    TopLevelVariablesDeclaration
+      variables
+        TopLevelVariable
+          name: T
       semicolon: ; <synthetic>
     TopLevelFunctionDeclaration
       name: #synthetic_function_9 <synthetic>

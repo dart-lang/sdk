@@ -1258,7 +1258,7 @@ E f() => g;
     var classBody = clazz.body as BlockClassBody;
     var method = classBody.members[0] as MethodDeclaration;
     var body = method.body as BlockFunctionBody;
-    Statement statement = body.block.statements[0];
+    Statement statement = body.block.statements2[0];
     expect(statement.findPrevious(findToken('bar'))!.lexeme, 'return');
     expect(statement.findPrevious(findToken(';'))!.lexeme, 'bar');
   }
@@ -1268,7 +1268,7 @@ E f() => g;
     var classBody = clazz.body as BlockClassBody;
     var method = classBody.members[0] as MethodDeclaration;
     var body = method.body as BlockFunctionBody;
-    Statement statement = body.block.statements[0];
+    Statement statement = body.block.statements2[0];
 
     var missing = parseTestCodeWithDiagnostics(r'''
 missing
@@ -1283,7 +1283,7 @@ missing
     var classBody = clazz.body as BlockClassBody;
     var method = classBody.members[0] as MethodDeclaration;
     var body = method.body as BlockFunctionBody;
-    var statement = body.block.statements[0] as ReturnStatement;
+    var statement = body.block.statements2[0] as ReturnStatement;
     var expression = statement.expression2!;
     expect(expression.findPrevious(findToken('return'))!.lexeme, '{');
   }
@@ -1300,7 +1300,7 @@ missing
     var classBody = clazz.body as BlockClassBody;
     var method = classBody.members[0] as MethodDeclaration;
     var body = method.body as BlockFunctionBody;
-    Statement statement = body.block.statements[0];
+    Statement statement = body.block.statements2[0];
     expect(statement.findPrevious(findToken('return'))!.lexeme, '{');
   }
 

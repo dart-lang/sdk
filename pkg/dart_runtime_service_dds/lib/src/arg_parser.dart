@@ -19,6 +19,9 @@ abstract final class DartDevelopmentServiceOptions {
   /// Disables authentication code requirements on DDS endpoints.
   static const disableServiceAuthCodesFlag = 'disable-service-auth-codes';
 
+  /// Disables the HTTP/WebSocket origin check.
+  static const disableServiceOriginCheckFlag = 'disable-service-origin-check';
+
   /// Enables serving DevTools static assets.
   static const serveDevToolsFlag = 'serve-devtools';
 
@@ -81,6 +84,10 @@ abstract final class DartDevelopmentServiceOptions {
       ..addFlag(
         disableServiceAuthCodesFlag,
         help: 'Disables authentication codes.',
+      )
+      ..addFlag(
+        disableServiceOriginCheckFlag,
+        help: 'Disables the HTTP/WebSocket origin check.',
       )
       ..addFlag(
         serveDevToolsFlag,

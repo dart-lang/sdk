@@ -65,7 +65,7 @@ class ConstantInitializersResolver {
     }
 
     var fragment = constantInitializer.fragment;
-    var node = linker.getLinkingNode(fragment) as VariableDeclarationImpl;
+    var node = linker.getLinkingNode(fragment) as VariableBindingImpl;
 
     // TopLevelInference resolves an initializer when it infers the variable's
     // type from it. Only the remaining constant initializers need resolution.
@@ -224,7 +224,7 @@ class _PropertyInducingElementTypeInference
     var firstFragment = _element.firstFragment;
     var node = _linker.getLinkingNode(firstFragment);
     switch (node) {
-      case VariableDeclarationImpl():
+      case VariableBindingImpl():
         if (node.initializer2 != null) {
           initializerLibraryFragment = firstFragment.libraryFragment;
           scope = node.initializerScope!;

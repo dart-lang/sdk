@@ -123,8 +123,8 @@ bool hasDependentDotShorthand2(AstNode node) {
     switch (body) {
       case ExpressionFunctionBody(:var expression2):
         return hasDependentDotShorthand2(expression2);
-      case BlockFunctionBody(block: Block(:var statements)):
-        for (var statement in statements) {
+      case BlockFunctionBody(block: Block(:var statements2)):
+        for (var statement in statements2) {
           if (statement is ReturnStatement) {
             var expression = statement.expression2;
             if (expression != null && hasDependentDotShorthand2(expression)) {

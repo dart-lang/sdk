@@ -614,10 +614,6 @@ abstract class AstVisitor2<R> {
 
   R? visitForStatement(ForStatement node);
 
-  R? visitFunctionDeclaration(FunctionDeclaration node);
-
-  R? visitFunctionDeclarationStatement(FunctionDeclarationStatement node);
-
   R? visitFunctionExpression(FunctionExpression node);
 
   @experimental
@@ -716,6 +712,9 @@ abstract class AstVisitor2<R> {
   R? visitListLiteral(ListLiteral node);
 
   R? visitListPattern(ListPattern node);
+
+  @experimental
+  R? visitLocalFunctionDeclaration(LocalFunctionDeclaration node);
 
   @experimental
   R? visitLogicalAnd(LogicalAnd node);

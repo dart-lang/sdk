@@ -288,7 +288,26 @@ V1: FunctionDeclaration
 
     var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
+TopLevelVariablesDeclaration
+  type: NamedType
+    name: List
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: out
+        NamedType
+          name: String
+      rightBracket: >
+  variables
+    TopLevelVariable
+      name: stringList
+      equals: =
+      initializer: ListLiteral
+        leftBracket: [
+        rightBracket: ]
+  semicolon: ;
+V1: TopLevelVariableDeclaration
   variables: VariableDeclarationList
     type: NamedType
       name: List
@@ -304,7 +323,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: stringList
         equals: =
-        initializer2: ListLiteral
+        initializer: ListLiteral
           leftBracket: [
           rightBracket: ]
   semicolon: ;
@@ -321,7 +340,26 @@ TopLevelVariableDeclaration
 
     var node = parseResult.findNode.singleTopLevelVariableDeclaration;
     assertParsedNodeText(node, r'''
-TopLevelVariableDeclaration
+TopLevelVariablesDeclaration
+  type: NamedType
+    name: List
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: out
+        NamedType
+          name: String
+      rightBracket: >
+  variables
+    TopLevelVariable
+      name: stringList
+      equals: =
+      initializer: ListLiteral
+        leftBracket: [
+        rightBracket: ]
+  semicolon: ;
+V1: TopLevelVariableDeclaration
   variables: VariableDeclarationList
     type: NamedType
       name: List
@@ -337,7 +375,7 @@ TopLevelVariableDeclaration
       VariableDeclaration
         name: stringList
         equals: =
-        initializer2: ListLiteral
+        initializer: ListLiteral
           leftBracket: [
           rightBracket: ]
   semicolon: ;

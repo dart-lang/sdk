@@ -34,7 +34,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -106,7 +106,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: SetOrMapLiteral
                 constKeyword: const
@@ -156,7 +156,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -220,7 +220,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -285,7 +285,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -313,7 +313,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: EmptyStatement
+              body2: EmptyStatement
                 semicolon: ;
           rightBracket: }
   declarations(v1)
@@ -373,7 +373,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -441,7 +441,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -524,7 +524,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -606,7 +606,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -685,7 +685,19 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -746,7 +758,19 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -807,7 +831,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -857,7 +881,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -922,7 +946,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -1009,7 +1033,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -1096,7 +1120,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -1174,7 +1198,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1237,7 +1261,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1294,7 +1318,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1351,7 +1375,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1406,7 +1430,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1416,7 +1440,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -1478,7 +1502,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ConstructorInvocation
                 keyword: const
@@ -1541,7 +1565,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1562,7 +1586,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1620,7 +1644,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1634,7 +1658,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1690,7 +1714,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1759,7 +1783,26 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: a
+                variables
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1834,7 +1877,26 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1909,7 +1971,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -1972,7 +2034,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2027,7 +2089,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2094,7 +2156,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2161,7 +2223,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2175,7 +2237,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2230,7 +2292,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2299,7 +2361,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2361,7 +2423,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2423,7 +2485,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2484,7 +2546,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2496,7 +2558,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -2561,7 +2623,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2616,7 +2678,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2639,7 +2701,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2701,7 +2763,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2717,7 +2779,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2775,7 +2837,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2844,7 +2906,26 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -2921,7 +3002,28 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3002,7 +3104,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3071,7 +3173,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3132,7 +3234,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3205,7 +3307,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3278,7 +3380,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3294,7 +3396,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3349,7 +3451,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3416,7 +3518,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3477,7 +3579,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3538,7 +3640,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3597,7 +3699,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3609,7 +3711,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -3672,7 +3774,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3725,7 +3827,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3748,7 +3850,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3808,7 +3910,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3824,7 +3926,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3879,7 +3981,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -3894,7 +3996,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3948,7 +4050,28 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: b
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4027,7 +4150,28 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: b
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4106,7 +4250,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4173,7 +4317,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4232,7 +4376,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4303,7 +4447,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4374,7 +4518,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4390,7 +4534,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4445,7 +4589,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4512,7 +4656,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4573,7 +4717,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4634,7 +4778,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4693,7 +4837,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4705,7 +4849,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -4768,7 +4912,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4821,7 +4965,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4844,7 +4988,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4904,7 +5048,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4920,7 +5064,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4975,7 +5119,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -4990,7 +5134,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5044,7 +5188,28 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5123,7 +5288,28 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5202,7 +5388,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5269,7 +5455,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5328,7 +5514,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5399,7 +5585,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5470,7 +5656,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5486,7 +5672,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5543,7 +5729,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5616,7 +5802,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5682,7 +5868,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5748,7 +5934,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5813,7 +5999,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5827,7 +6013,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -5894,7 +6080,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5953,7 +6139,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -5978,7 +6164,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6042,7 +6228,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6060,7 +6246,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6120,7 +6306,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6193,7 +6379,28 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6274,7 +6481,30 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: <empty> <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6359,7 +6589,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6432,7 +6662,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6497,7 +6727,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6574,7 +6804,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6651,7 +6881,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6669,7 +6899,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6726,7 +6956,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6797,7 +7027,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6862,7 +7092,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6927,7 +7157,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -6990,7 +7220,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7004,7 +7234,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -7069,7 +7299,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7126,7 +7356,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7151,7 +7381,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7213,7 +7443,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7231,7 +7461,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7288,7 +7518,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7305,7 +7535,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7361,7 +7591,30 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: b
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7444,7 +7697,30 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: const
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+                  VariableDeclaration
+                    name: b
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7527,7 +7803,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7598,7 +7874,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7661,7 +7937,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7736,7 +8012,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7811,7 +8087,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: const
@@ -7829,7 +8105,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7888,7 +8164,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -7953,7 +8229,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8011,7 +8287,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8069,7 +8345,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8126,7 +8402,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8136,7 +8412,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -8199,7 +8475,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8250,7 +8526,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8271,7 +8547,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -8331,7 +8607,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8345,7 +8621,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -8401,7 +8677,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8466,7 +8742,19 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -8527,7 +8815,19 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -8588,7 +8888,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8639,7 +8939,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8696,7 +8996,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8765,7 +9065,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8834,7 +9134,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8848,7 +9148,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -8901,7 +9201,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -8964,7 +9264,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9021,7 +9321,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9078,7 +9378,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9133,7 +9433,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9143,7 +9443,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -9204,7 +9504,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9253,7 +9553,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9274,7 +9574,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -9332,7 +9632,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9346,7 +9646,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -9402,7 +9702,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9471,7 +9771,26 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                type: NamedType
+                  name: a
+                variables
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9546,7 +9865,26 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9621,7 +9959,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9684,7 +10022,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9739,7 +10077,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9806,7 +10144,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9873,7 +10211,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -9887,7 +10225,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -9940,7 +10278,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10007,7 +10345,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10068,7 +10406,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10129,7 +10467,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10188,7 +10526,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10200,7 +10538,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -10263,7 +10601,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10316,7 +10654,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10339,7 +10677,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10399,7 +10737,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10415,7 +10753,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10470,7 +10808,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10485,7 +10823,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -10539,7 +10877,28 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10618,7 +10977,28 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: final
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10697,7 +11077,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10764,7 +11144,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10823,7 +11203,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10894,7 +11274,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10965,7 +11345,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: final
@@ -10981,7 +11361,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -11036,7 +11416,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11095,7 +11475,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11148,7 +11528,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11201,7 +11581,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11252,7 +11632,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11261,7 +11641,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -11319,7 +11699,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11364,7 +11744,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11384,7 +11764,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -11439,7 +11819,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11452,7 +11832,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -11505,7 +11885,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -11572,7 +11952,25 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -11645,11 +12043,27 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
               expression(v1): SimpleIdentifier
+                token: int
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            ExpressionStatement
+              expression: SimpleIdentifier
                 token: int
               semicolon: ; <synthetic>
             FunctionDeclarationStatement
@@ -11716,7 +12130,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11775,7 +12189,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11826,7 +12240,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11889,7 +12303,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11952,7 +12366,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: int
@@ -11965,7 +12379,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -12015,7 +12429,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12080,7 +12494,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12139,7 +12553,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12198,7 +12612,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12255,7 +12669,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12266,7 +12680,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -12328,7 +12742,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12379,7 +12793,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12401,7 +12815,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -12460,7 +12874,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12475,7 +12889,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -12529,7 +12943,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12543,7 +12957,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -12596,7 +13010,27 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12673,7 +13107,27 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                type: NamedType
+                  name: int
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12750,7 +13204,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12815,7 +13269,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12872,7 +13326,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -12941,7 +13395,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -13010,7 +13464,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 type: NamedType
@@ -13025,7 +13479,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -13081,7 +13535,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13146,7 +13600,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13204,7 +13658,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13262,7 +13716,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13319,7 +13773,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13329,7 +13783,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -13392,7 +13846,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13443,7 +13897,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13464,7 +13918,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -13524,7 +13978,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13538,7 +13992,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -13594,7 +14048,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13659,7 +14113,19 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -13720,7 +14186,19 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             FunctionDeclarationStatement
               functionDeclaration: FunctionDeclaration
                 returnType: NamedType
@@ -13781,7 +14259,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13832,7 +14310,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13889,7 +14367,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -13958,7 +14436,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14027,7 +14505,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14041,7 +14519,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -14094,7 +14572,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14157,7 +14635,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14214,7 +14692,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14271,7 +14749,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14326,7 +14804,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14336,7 +14814,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -14397,7 +14875,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14446,7 +14924,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14467,7 +14945,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -14525,7 +15003,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14539,7 +15017,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -14597,7 +15075,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14668,7 +15146,26 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                type: NamedType
+                  name: a
+                variables
+                  VariableDeclaration
+                    name: int
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14743,7 +15240,26 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14818,7 +15334,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14881,7 +15397,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -14936,7 +15452,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15003,7 +15519,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15070,7 +15586,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15084,7 +15600,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -15135,7 +15651,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15213,7 +15729,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15275,7 +15791,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15341,7 +15857,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15406,7 +15922,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15421,7 +15937,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -15487,7 +16003,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15546,7 +16062,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15572,7 +16088,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -15635,7 +16151,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15654,7 +16170,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -15713,7 +16229,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15788,7 +16304,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15857,7 +16373,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15926,7 +16442,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -15999,7 +16515,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16056,7 +16572,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16127,7 +16643,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16204,7 +16720,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16223,7 +16739,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -16279,7 +16795,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16350,7 +16866,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16415,7 +16931,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16480,7 +16996,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16543,7 +17059,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16558,7 +17074,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -16622,7 +17138,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16679,7 +17195,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16705,7 +17221,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -16766,7 +17282,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16785,7 +17301,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -16841,7 +17357,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16859,7 +17375,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -16914,7 +17430,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -16925,6 +17441,28 @@ CompilationUnit
                     initializer2: ParsedUnqualifiedName
                       name: b
                     initializer(v1): SimpleIdentifier
+                      token: b
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
             FunctionDeclarationStatement
@@ -16997,7 +17535,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17008,6 +17546,28 @@ CompilationUnit
                     initializer2: ParsedUnqualifiedName
                       name: b
                     initializer(v1): SimpleIdentifier
+                      token: b
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            VariableDeclarationStatement
+              variables: VariableDeclarationList
+                keyword: var
+                variables
+                  VariableDeclaration
+                    name: a
+                    equals: =
+                    initializer: SimpleIdentifier
                       token: b
               semicolon: ; <synthetic>
             FunctionDeclarationStatement
@@ -17080,7 +17640,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17151,7 +17711,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17214,7 +17774,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17289,7 +17849,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17364,7 +17924,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             VariableDeclarationStatement
               variables: VariableDeclarationList
                 keyword: var
@@ -17383,7 +17943,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }

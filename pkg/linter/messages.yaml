@@ -16332,7 +16332,6 @@ LinterLintCode:
       check that could be performed on `this` directly under the `this-promotion` feature:
 
       ```dart
-      %experiments=this-promotion
       class C {
         void m() {
           var [!self!] = this;
@@ -16350,7 +16349,6 @@ LinterLintCode:
       Remove the local variable and use `this` directly:
 
       ```dart
-      %experiments=this-promotion
       class C {
         void m() {
           if (this is D) {
@@ -16366,7 +16364,6 @@ LinterLintCode:
 
       **BAD:**
       ```dart
-      %experiments=this-promotion
       class C {
         void m() {
           var [!self!] = this;
@@ -16378,7 +16375,6 @@ LinterLintCode:
 
       **GOOD:**
       ```dart
-      %experiments=this-promotion
       class C {
         void m() {
           if (this is D) {}

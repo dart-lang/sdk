@@ -1053,6 +1053,35 @@ var s = '$x$';
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: s
+          equals: =
+          initializer: StringInterpolation
+            elements
+              InterpolationString
+                contents: '
+              InterpolationExpression
+                leftBracket: $
+                expression2: ParsedUnqualifiedName
+                  name: x
+                expression(v1): SimpleIdentifier
+                  token: x
+              InterpolationString
+                contents: <empty> <synthetic>
+              InterpolationExpression
+                leftBracket: $
+                expression2: ParsedUnqualifiedName
+                  name: <empty> <synthetic>
+                expression(v1): SimpleIdentifier
+                  token: <empty> <synthetic>
+              InterpolationString
+                contents: '
+            stringValue: null
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -1060,23 +1089,19 @@ CompilationUnit
           VariableDeclaration
             name: s
             equals: =
-            initializer2: StringInterpolation
+            initializer: StringInterpolation
               elements
                 InterpolationString
                   contents: '
                 InterpolationExpression
                   leftBracket: $
-                  expression2: ParsedUnqualifiedName
-                    name: x
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: x
                 InterpolationString
                   contents: <empty> <synthetic>
                 InterpolationExpression
                   leftBracket: $
-                  expression2: ParsedUnqualifiedName
-                    name: <empty> <synthetic>
-                  expression(v1): SimpleIdentifier
+                  expression: SimpleIdentifier
                     token: <empty> <synthetic>
                 InterpolationString
                   contents: '
@@ -1645,7 +1670,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ParsedUnqualifiedName
                 name: get
@@ -1660,7 +1685,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             Block
               leftBracket: {
-              statements
+              statements2
                 ReturnStatement
                   returnKeyword: return
                   expression2: ParsedUnqualifiedName
@@ -2330,9 +2355,9 @@ library l;
 class C { m() { @Foo f() {} } }
 ''');
 
-    var node = result.findNode.singleFunctionDeclaration;
+    var node = result.findNode.singleLocalFunctionDeclaration;
     assertParsedNodeText(node, r'''
-FunctionDeclaration
+LocalFunctionDeclaration
   metadata
     Annotation
       atSign: @
@@ -2341,14 +2366,13 @@ FunctionDeclaration
       name: SimpleIdentifier
         token: Foo
   name: f
-  functionExpression: FunctionExpression
-    parameters: FormalParameterList
-      leftParenthesis: (
-      rightParenthesis: )
-    body: BlockFunctionBody
-      block: Block
-        leftBracket: {
-        rightBracket: }
+  formalParameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
 ''');
   }
 
@@ -2536,7 +2560,7 @@ TopLevelFunctionDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: InvalidSuperExpression
             superReference: SuperReference
@@ -2709,7 +2733,7 @@ TopLevelFunctionDeclaration
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ReturnStatement
           returnKeyword: return
           expression2: ParsedUnqualifiedName

@@ -12,6 +12,7 @@ dependencies:
   args: any
   browser_launcher: any
   dart_runtime_service: any
+  dds: any
   dds_service_extensions: any
   devtools_shared: any
   dtd: any

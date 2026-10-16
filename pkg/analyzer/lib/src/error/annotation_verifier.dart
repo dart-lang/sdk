@@ -92,13 +92,14 @@ class AnnotationVerifier {
     }
 
     var parent = node.parent2;
-    if (parent
-        case MethodDeclaration(:var declaredFragment) ||
-            FunctionDeclaration(:var declaredFragment)) {
+    if (parent case MethodDeclaration(:var declaredFragment)) {
       var type = declaredFragment?.element.type;
       if (type is FunctionType) {
         checkType(type.returnType);
       }
+    } else if (parent is LocalFunctionDeclaration) {
+      var type = parent.declaredFragment?.element.type;
+      checkType(type?.returnType);
     } else if (parent is TopLevelFunctionDeclaration) {
       var type = parent.declaredFragment?.element.type;
       checkType(type?.returnType);
@@ -314,7 +315,7 @@ class AnnotationVerifier {
     if (body is ExpressionFunctionBody && factoryExpression(body.expression2)) {
       return;
     } else if (body is BlockFunctionBody) {
-      NodeList<Statement> statements = body.block.statements;
+      NodeList<Statement> statements = body.block.statements2;
       if (statements.isNotEmpty) {
         Statement last = statements.last;
         if (last is ReturnStatement && factoryExpression(last.expression2)) {
@@ -531,7 +532,7 @@ class AnnotationVerifier {
     );
     if (undefinedParameter != null) {
       String? name;
-      if (parent is FunctionDeclaration) {
+      if (parent is LocalFunctionDeclaration) {
         name = parent.name.lexeme;
       } else if (parent is MethodDeclaration) {
         name = parent.name.lexeme;
@@ -739,8 +740,8 @@ class AnnotationVerifier {
       return null;
     }
 
-    if (parent is FunctionDeclarationImpl) {
-      return checkParams(parent.functionExpression.parameters);
+    if (parent is LocalFunctionDeclarationImpl) {
+      return checkParams(parent.formalParameters);
     }
     if (parent is TopLevelFunctionDeclarationImpl) {
       return checkParams(parent.formalParameters);

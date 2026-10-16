@@ -512,33 +512,6 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    bool wasInDoNotStoreMember = _inDoNotStoreMember;
-    var element = node.declaredFragment!.element;
-    _elementUsageFrontierDetector.pushElement(element);
-    if (element.metadata.hasDoNotStore) {
-      _inDoNotStoreMember = true;
-    }
-    try {
-      _checkStrictInferenceInParameters(
-        node.functionExpression.parameters,
-        body: node.functionExpression.body,
-      );
-      super.visitFunctionDeclaration(node);
-    } finally {
-      _elementUsageFrontierDetector.popElement();
-      _inDoNotStoreMember = wasInDoNotStoreMember;
-    }
-  }
-
-  @override
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    // TODO(srawlins): Check strict-inference return type on recursive
-    // local functions.
-    super.visitFunctionDeclarationStatement(node);
-  }
-
-  @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
     var body = node.body;
     if (!node.wasFunctionTypeSupplied) {
@@ -628,6 +601,33 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   void visitIsExpression(covariant IsExpressionImpl node) {
     _checkAllTypeChecks(node);
     super.visitIsExpression(node);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    var wasInDoNotStoreMember = _inDoNotStoreMember;
+    var element = node.declaredFragment!.element;
+    _elementUsageFrontierDetector.pushElement(element);
+    if (element.metadata.hasDoNotStore) {
+      _inDoNotStoreMember = true;
+    }
+    try {
+      // TODO(srawlins): Check strict-inference return type on recursive
+      // local functions.
+      _checkStrictInferenceInParameters(node.formalParameters, body: node.body);
+      if (node.body case ExpressionFunctionBodyImpl body) {
+        _checkForUnnecessarySetLiteralWithReturnType(
+          body,
+          node.returnType?.type,
+        );
+      }
+      super.visitLocalFunctionDeclaration(node);
+    } finally {
+      _elementUsageFrontierDetector.popElement();
+      _inDoNotStoreMember = wasInDoNotStoreMember;
+    }
   }
 
   @override
@@ -801,7 +801,8 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
     var element = node.declaration?.declaredFragment!.element;
     _elementUsageFrontierDetector.pushElement(element);
-    // TODO(srawlins): Account for @doNotStore, as in `visitFunctionDeclaration`.
+    // TODO(srawlins): Account for @doNotStore, as in
+    // `visitLocalFunctionDeclaration`.
     super.visitPrimaryConstructorBody(node);
     _elementUsageFrontierDetector.popElement();
   }
@@ -1441,7 +1442,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
     if (expressionMap.isNotEmpty) {
       var parent = expression!.thisOrAncestorMatching2(
         (e) =>
-            e is FunctionDeclaration ||
+            e is LocalFunctionDeclaration ||
             e is MethodDeclaration ||
             e is TopLevelFunctionDeclaration ||
             e is TopLevelGetterDeclaration ||
@@ -1503,7 +1504,7 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
         return true;
       }
     } else if (body is BlockFunctionBody) {
-      List<Statement> statements = body.block.statements;
+      List<Statement> statements = body.block.statements2;
       if (statements.length == 1) {
         Statement returnStatement = statements.first;
         if (returnStatement is ReturnStatement &&
@@ -1527,16 +1528,12 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   ) {
     if (body is ExpressionFunctionBodyImpl) {
       var parameterType = node.correspondingParameter?.type;
-
-      DartType? returnType;
       if (parameterType is FunctionType) {
-        returnType = parameterType.returnType;
-      } else {
-        var parent = node.parent2;
-        if (parent is! FunctionDeclaration) return;
-        returnType = parent.returnType?.type;
+        _checkForUnnecessarySetLiteralWithReturnType(
+          body,
+          parameterType.returnType,
+        );
       }
-      _checkForUnnecessarySetLiteralWithReturnType(body, returnType);
     }
   }
 

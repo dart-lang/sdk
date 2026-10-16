@@ -34,7 +34,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -116,7 +116,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -182,7 +182,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -252,7 +252,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -321,7 +321,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -338,7 +338,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -404,7 +404,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -459,7 +459,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -487,7 +487,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -552,7 +552,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -573,7 +573,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -633,7 +633,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -712,7 +712,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -785,7 +785,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -858,7 +858,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -934,7 +934,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -995,7 +995,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1070,7 +1070,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1151,7 +1151,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1172,7 +1172,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1230,7 +1230,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1297,7 +1297,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1358,7 +1358,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1419,7 +1419,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1478,7 +1478,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1490,7 +1490,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -1553,7 +1553,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1606,7 +1606,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1629,7 +1629,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1689,7 +1689,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1705,7 +1705,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1760,7 +1760,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -1775,7 +1775,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -1829,13 +1829,32 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
               condition2: ParsedUnqualifiedName
                 name: a
               condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -1908,13 +1927,32 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
               condition2: ParsedUnqualifiedName
                 name: a
               condition(v1): SimpleIdentifier
+                token: a
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
                 token: a
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -1987,7 +2025,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -2054,7 +2092,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -2113,7 +2151,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -2184,7 +2222,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -2255,7 +2293,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -2271,7 +2309,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2326,7 +2364,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -2393,7 +2431,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -2453,7 +2491,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -2513,7 +2551,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -2572,7 +2610,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -2584,7 +2622,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -2647,7 +2685,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -2700,7 +2738,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -2723,7 +2761,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2783,7 +2821,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -2799,7 +2837,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2854,7 +2892,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -2869,7 +2907,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -2923,13 +2961,32 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
               condition2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -3002,13 +3059,32 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
               condition2: ParsedUnqualifiedName
                 name: <empty> <synthetic>
               condition(v1): SimpleIdentifier
+                token: <empty> <synthetic>
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: ( <synthetic>
+              condition: SimpleIdentifier
                 token: <empty> <synthetic>
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -3081,7 +3157,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -3148,7 +3224,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -3207,7 +3283,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -3278,7 +3354,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -3349,7 +3425,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: ( <synthetic>
@@ -3365,7 +3441,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3418,7 +3494,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -3492,7 +3568,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -3550,7 +3626,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -3612,7 +3688,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -3673,7 +3749,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -3685,7 +3761,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -3749,7 +3825,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -3804,7 +3880,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -3827,7 +3903,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3889,7 +3965,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -3905,7 +3981,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -3962,7 +4038,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4033,7 +4109,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4098,7 +4174,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4163,7 +4239,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4231,7 +4307,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4284,7 +4360,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4351,7 +4427,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4424,7 +4500,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4440,7 +4516,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -4495,7 +4571,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4570,7 +4646,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4639,7 +4715,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4708,7 +4784,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4775,7 +4851,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4792,7 +4868,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -4858,7 +4934,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4919,7 +4995,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -4947,7 +5023,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5010,7 +5086,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5031,7 +5107,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5089,7 +5165,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5109,7 +5185,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5166,7 +5242,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5178,6 +5254,28 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -5253,7 +5351,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5265,6 +5363,28 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -5340,7 +5460,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5415,7 +5535,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5482,7 +5602,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5561,7 +5681,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5640,7 +5760,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5661,7 +5781,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -5717,7 +5837,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5790,7 +5910,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5857,7 +5977,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5924,7 +6044,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -5989,7 +6109,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6006,7 +6126,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -6070,7 +6190,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6129,7 +6249,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6157,7 +6277,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6218,7 +6338,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6239,7 +6359,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6295,7 +6415,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6315,7 +6435,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6370,7 +6490,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6382,6 +6502,28 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: )
               semicolon: ; <synthetic>
@@ -6455,7 +6597,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6467,6 +6609,28 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: )
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: )
               semicolon: ; <synthetic>
@@ -6540,7 +6704,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6613,7 +6777,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6678,7 +6842,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6755,7 +6919,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6832,7 +6996,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6853,7 +7017,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -6911,7 +7075,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -6986,7 +7150,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7055,7 +7219,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7124,7 +7288,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7191,7 +7355,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7208,7 +7372,7 @@ CompilationUnit
               semicolon: ; <synthetic>
             DoStatement
               doKeyword: do
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
               whileKeyword: while
@@ -7274,7 +7438,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7335,7 +7499,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7363,7 +7527,7 @@ CompilationUnit
                 iterable(v1): SimpleIdentifier
                   token: y
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7426,7 +7590,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7447,7 +7611,7 @@ CompilationUnit
               expression2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              thenStatement: Block
+              thenStatement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7505,7 +7669,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7525,7 +7689,7 @@ CompilationUnit
                 Label
                   name: l
                   colon: :
-              statement: Block
+              statement2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }
@@ -7582,7 +7746,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7594,6 +7758,28 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: int
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -7669,7 +7855,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7681,6 +7867,28 @@ CompilationUnit
               message2: ParsedUnqualifiedName
                 name: b
               message(v1): SimpleIdentifier
+                token: b
+              rightParenthesis: ) <synthetic>
+              semicolon: ; <synthetic>
+            LocalFunctionDeclaration
+              returnType: NamedType
+                name: void
+              name: f
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+              body: BlockFunctionBody
+                block: Block
+                  leftBracket: {
+                  rightBracket: }
+          statements(v1)
+            AssertStatement
+              assertKeyword: assert
+              leftParenthesis: (
+              condition: SimpleIdentifier
+                token: a
+              comma: ,
+              message: SimpleIdentifier
                 token: b
               rightParenthesis: ) <synthetic>
               semicolon: ; <synthetic>
@@ -7756,7 +7964,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7831,7 +8039,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7898,7 +8106,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -7977,7 +8185,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -8056,7 +8264,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             AssertStatement
               assertKeyword: assert
               leftParenthesis: (
@@ -8077,7 +8285,7 @@ CompilationUnit
               condition2: BooleanLiteral
                 literal: true
               rightParenthesis: )
-              body: Block
+              body2: Block
                 leftBracket: {
                 rightBracket: }
           rightBracket: }

@@ -381,7 +381,7 @@ class FlowAnalysisHelper {
   void labeledStatement_exit(LabeledStatement node) {
     if (flow == null) return;
 
-    flow!.labeledStatement_end(offset: node.statement.endToken.offset);
+    flow!.labeledStatement_end(offset: node.statement2.endToken.offset);
   }
 
   /// Associates [expression] with the given [expressionInfo] object, for later
@@ -504,7 +504,7 @@ class FlowAnalysisHelper {
       } else {
         if (node is LabeledStatementImpl) {
           if (_hasLabel(node.labels, element)) {
-            var statement = node.statement;
+            var statement = node.statement2;
             // The inner statement is returned for labeled loops and
             // switch statements, while the LabeledStatement is returned
             // for the other known targets. This could be possibly changed
@@ -1179,26 +1179,11 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
 
   @override
   void visitForStatement(covariant ForStatementImpl node) {
-    _handleFor(node, node.forLoopParts, node.body);
-  }
-
-  @override
-  void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
-    assignedVariables.beginNode();
-    var element = node.declaredFragment!.element;
-    _declareParameters(element.formalParameters);
-    super.visitFunctionDeclaration(node);
-    assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
+    _handleFor(node, node.forLoopParts, node.body2);
   }
 
   @override
   void visitFunctionExpression(covariant FunctionExpressionImpl node) {
-    if (node.parent2 is FunctionDeclaration) {
-      // A FunctionExpression just inside a FunctionDeclaration is an analyzer
-      // artifact--it doesn't correspond to a separate closure.  So skip our
-      // usual processing.
-      return super.visitFunctionExpression(node);
-    }
     assignedVariables.beginNode();
     var element = node.declaredFragment!.element;
     _declareParameters(element.formalParameters);
@@ -1240,6 +1225,17 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor2<void> {
     _readAssignmentTarget(node.target);
     node.visitChildren2(this);
     _writeAssignmentTarget(node.target);
+  }
+
+  @override
+  void visitLocalFunctionDeclaration(
+    covariant LocalFunctionDeclarationImpl node,
+  ) {
+    assignedVariables.beginNode();
+    var element = node.declaredFragment!.element;
+    _declareParameters(element.formalParameters);
+    super.visitLocalFunctionDeclaration(node);
+    assignedVariables.endNode(node, isClosureOrLateVariableInitializer: true);
   }
 
   @override

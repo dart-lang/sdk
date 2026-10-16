@@ -248,6 +248,7 @@ export 'package:analyzer/src/dart/ast/ast.dart'
         ListPattern,
         ListPatternElement,
         Literal,
+        LocalFunctionDeclaration,
         LogicalAnd,
         LogicalAndPattern,
         LogicalNot,

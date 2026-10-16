@@ -1449,7 +1449,7 @@ ClassDeclaration
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements
+            statements2
               ExpressionStatement
                 expression2: UnqualifiedNameExpression
                   name: y
@@ -1491,7 +1491,7 @@ ClassDeclaration
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements
+            statements2
               ExpressionStatement
                 expression2: LogicalNot
                   operator: !
@@ -1620,7 +1620,7 @@ PrimaryConstructorBody
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: y
@@ -1955,7 +1955,7 @@ PrimaryConstructorBody
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -2004,7 +2004,7 @@ PrimaryConstructorBody
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -2053,7 +2053,7 @@ PrimaryConstructorBody
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a
@@ -2126,7 +2126,7 @@ PrimaryConstructorBody
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: a

@@ -47,7 +47,8 @@ class SuperContext {
       )) {
         return SuperContext.anonymousMethod;
       } else if (node is AnonymousMethodInvocation ||
-          node is FunctionExpression) {
+          node is FunctionExpression ||
+          node is LocalFunctionDeclaration) {
         inDefaultValue = false;
       } else if (node is ClassDeclaration ||
           node is EnumDeclaration ||

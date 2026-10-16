@@ -243,7 +243,7 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionDeclaration(FunctionDeclaration node) {
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     // Names do not have AstNodes but offsets at the end should be treated as
     // part of the declaration (not parameter list).
     if (_startOffset == _endOffset && _startOffset == node.name.end) {
@@ -251,7 +251,7 @@ class NodeLocator2 extends UnifyingAstVisitor2<void> {
       return;
     }
 
-    super.visitFunctionDeclaration(node);
+    super.visitLocalFunctionDeclaration(node);
   }
 
   @override
@@ -359,6 +359,28 @@ class ScopedNameFinder extends GeneralizingAstVisitor<void>
   AstNode? parentOf(AstNode node) => node.parent;
 
   @override
+  List<Statement> statementsOf(Block node) => node.statements;
+
+  @override
+  List<Statement> switchMemberStatementsOf(SwitchMember node) =>
+      node.statements;
+
+  @override
+  void visitFunctionDeclaration(FunctionDeclaration node) {
+    if (parentOf(node) is! FunctionDeclarationStatement) {
+      _declarationNode = node;
+    } else {
+      visitNode(node);
+    }
+  }
+
+  @override
+  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
+    _referenceIsWithinLocalFunction = true;
+    visitNode(node);
+  }
+
+  @override
   void visitNode(AstNode node) {
     immediateChild = node;
     parentOf(node)?.accept(this);
@@ -377,9 +399,26 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
   AstNode? parentOf(AstNode node) => node.parent2;
 
   @override
+  List<Statement> statementsOf(Block node) => node.statements2;
+
+  @override
+  List<Statement> switchMemberStatementsOf(SwitchMember node) =>
+      node.statements2;
+
+  @override
+  void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
+    var parameters = node.formalParameters;
+    if (!identical(immediateChild, parameters)) {
+      _addParameters(parameters.allFormalParameters);
+    }
+    _referenceIsWithinLocalFunction = true;
+    visitNode(node);
+  }
+
+  @override
   void visitNode(AstNode node) {
     if (node is SwitchMember) {
-      _checkStatements(node.statements);
+      _checkStatements(switchMemberStatementsOf(node));
     } else if (node is TypeAlias) {
       _declarationNode = node;
       return;
@@ -424,8 +463,14 @@ mixin _ScopedNameFinderMixin {
 
   AstNode? parentOf(AstNode node);
 
+  /// The statements of [node] in the view of this finder.
+  List<Statement> statementsOf(Block node);
+
+  /// The statements of [node] in the view of this finder.
+  List<Statement> switchMemberStatementsOf(SwitchMember node);
+
   void visitBlock(Block node) {
-    _checkStatements(node.statements);
+    _checkStatements(statementsOf(node));
     visitNode(node);
   }
 
@@ -456,19 +501,6 @@ mixin _ScopedNameFinderMixin {
     visitNode(node);
   }
 
-  void visitFunctionDeclaration(FunctionDeclaration node) {
-    if (parentOf(node) is! FunctionDeclarationStatement) {
-      _declarationNode = node;
-    } else {
-      visitNode(node);
-    }
-  }
-
-  void visitFunctionDeclarationStatement(FunctionDeclarationStatement node) {
-    _referenceIsWithinLocalFunction = true;
-    visitNode(node);
-  }
-
   void visitFunctionExpression(FunctionExpression node) {
     var parameters = node.parameters;
     if (parameters != null && !identical(immediateChild, parameters)) {
@@ -488,7 +520,7 @@ mixin _ScopedNameFinderMixin {
   void visitNode(AstNode node);
 
   void visitSwitchMember(SwitchMember node) {
-    _checkStatements(node.statements);
+    _checkStatements(switchMemberStatementsOf(node));
     visitNode(node);
   }
 
@@ -531,6 +563,9 @@ mixin _ScopedNameFinderMixin {
       } else if (statement is FunctionDeclarationStatement &&
           !_referenceIsWithinLocalFunction) {
         _addToScope(statement.functionDeclaration.name);
+      } else if (statement is LocalFunctionDeclaration &&
+          !_referenceIsWithinLocalFunction) {
+        _addToScope(statement.name);
       }
     }
   }

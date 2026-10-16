@@ -98,7 +98,7 @@ f() {
 // [diag.unusedElement] The declaration 'g' isn't referenced.
 }
 ''');
-    var node = result.findNode.functionDeclaration('g() {}');
+    var node = result.findNode.localFunctionDeclaration('g() {}');
     var fragment = node.declaredFragment!;
     var element = fragment.element;
     expect(fragment.name, 'g');

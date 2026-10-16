@@ -100,7 +100,7 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor2 {
   @override
   void visitSwitchCase(SwitchCase node) {
     _find(node.expression2);
-    node.statements.accept2(this);
+    node.statements2.accept2(this);
   }
 
   /// Add dependencies of a [CollectionElement] or [Expression] (which is a type
@@ -199,12 +199,13 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     super.visitVariableDeclaration(node);
     var initializer = node.initializer2;
-    var element = node.declaredFragment!.element;
+    var fragment = node.declaredFragment!;
+    var element = fragment.element;
     if (initializer != null &&
-        (node.isConst ||
+        (fragment.isConst ||
             treatFinalInstanceVarAsConst &&
                 element is FieldElementImpl &&
-                node.isFinal &&
+                fragment.isFinal &&
                 !element.isStatic)) {
       constantsToCompute.add(element);
       // Fill error nodes.

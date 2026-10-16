@@ -91,7 +91,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ReceiverPropertyExtraction
                 receiver: StaticQualifier
@@ -279,7 +279,7 @@ CompilationUnit
       body: BlockFunctionBody
         block: Block
           leftBracket: {
-          statements
+          statements2
             ExpressionStatement
               expression2: ReceiverPropertyExtraction
                 receiver: StaticQualifier
@@ -2258,7 +2258,7 @@ EnumDeclaration
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements
+            statements2
               ExpressionStatement
                 expression2: UnqualifiedNameExpression
                   name: y
@@ -2300,7 +2300,7 @@ EnumDeclaration
         body: BlockFunctionBody
           block: Block
             leftBracket: {
-            statements
+            statements2
               ExpressionStatement
                 expression2: LogicalNot
                   operator: !
@@ -2432,7 +2432,7 @@ PrimaryConstructorBody
   body: BlockFunctionBody
     block: Block
       leftBracket: {
-      statements
+      statements2
         ExpressionStatement
           expression2: UnqualifiedNameExpression
             name: y

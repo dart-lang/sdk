@@ -179,7 +179,7 @@ IfStatement
         expression2: BooleanLiteral
           literal: true
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -211,11 +211,11 @@ IfStatement
         expression2: BooleanLiteral
           literal: true
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
   elseKeyword: else
-  elseStatement: Block
+  elseStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -243,7 +243,7 @@ SwitchPatternCase
       expression2: BooleanLiteral
         literal: true
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -329,7 +329,7 @@ IfStatement
         expression2: IntegerLiteral
           literal: 0
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -353,7 +353,7 @@ SwitchPatternCase
       expression2: IntegerLiteral
         literal: 0
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -463,7 +463,7 @@ IfStatement
         expression2: BooleanLiteral
           literal: true
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -495,7 +495,7 @@ SwitchPatternCase
       expression2: BooleanLiteral
         literal: true
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -593,7 +593,7 @@ IfStatement
         type: NamedType
           name: int
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -621,7 +621,7 @@ SwitchPatternCase
       type: NamedType
         name: int
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -3567,7 +3567,7 @@ IfStatement
               expression: IntegerLiteral
                 literal: 0
   rightParenthesis: )
-  thenStatement: Block
+  thenStatement2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -3826,7 +3826,7 @@ SwitchPatternCase
             expression: IntegerLiteral
               literal: 0
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -4593,7 +4593,7 @@ SwitchPatternCase
           rightParenthesis: )
       rightBracket: ] <synthetic>
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -5719,7 +5719,7 @@ SwitchPatternCase
               token: <empty> <synthetic>
       rightBracket: }
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -5762,7 +5762,7 @@ SwitchPatternCase
         rightBracket: } <synthetic>
       rightParenthesis: )
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -6954,7 +6954,7 @@ SwitchPatternCase
       type: NamedType
         name: Object
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -7191,7 +7191,7 @@ SwitchPatternCase
             rightParenthesis: )
       rightParenthesis: ) <synthetic>
   colon: :
-  statements
+  statements2
     BreakStatement
       breakKeyword: break
       semicolon: ;
@@ -7731,7 +7731,7 @@ ForStatement
     iterable(v1): SimpleIdentifier
       token: x
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -7773,7 +7773,7 @@ ForStatement
     iterable(v1): SimpleIdentifier
       token: x
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -7846,7 +7846,7 @@ ForStatement
     leftSeparator: ;
     rightSeparator: ;
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -7917,7 +7917,7 @@ ForStatement
     leftSeparator: ;
     rightSeparator: ;
   rightParenthesis: )
-  body: Block
+  body2: Block
     leftBracket: {
     rightBracket: }
 ''');
@@ -8193,6 +8193,22 @@ var (a, b) = (0, 1);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
+    TopLevelVariablesDeclaration
+      constFinalOrVarKeyword: var
+      variables
+        TopLevelVariable
+          name: <empty> <synthetic>
+          equals: =
+          initializer: RecordLiteral
+            leftParenthesis: (
+            fields2
+              IntegerLiteral
+                literal: 0
+              IntegerLiteral
+                literal: 1
+            rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
     TopLevelVariableDeclaration
       variables: VariableDeclarationList
         keyword: var
@@ -8200,9 +8216,9 @@ CompilationUnit
           VariableDeclaration
             name: <empty> <synthetic>
             equals: =
-            initializer2: RecordLiteral
+            initializer: RecordLiteral
               leftParenthesis: (
-              fields2
+              fields
                 IntegerLiteral
                   literal: 0
                 IntegerLiteral

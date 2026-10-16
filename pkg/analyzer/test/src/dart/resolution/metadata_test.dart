@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -15,6 +16,7 @@ import 'node_text_expectations.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MetadataResolutionTest);
+    defineReflectiveTests(MetadataResolutionTest_AnonymousMethodsExperiment);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -4702,5 +4704,40 @@ int 42
   ) {
     var value = annotation.computeConstantValue();
     assertDartObjectText(value, expected);
+  }
+}
+
+@reflectiveTest
+class MetadataResolutionTest_AnonymousMethodsExperiment
+    extends PubPackageResolutionTest {
+  @override
+  List<Feature> get experimentalFeatures => [Feature.anonymous_methods];
+
+  test_location_anonymousMethod_formalParameter() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+const foo = 42;
+
+void f() {
+  0.(@foo p) => p;
+}
+''');
+
+    var node = result.findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  expression: UnqualifiedNameExpression
+    name: foo
+    resolution: GetterInvocationResolution
+      element: <testLibrary>::@getter::foo
+      invokeType: int Function()
+      type: int
+    staticType: int
+  name: SimpleIdentifier
+    token: foo
+    element: <testLibrary>::@getter::foo
+    staticType: null
+  element: <testLibrary>::@getter::foo
+''');
   }
 }
