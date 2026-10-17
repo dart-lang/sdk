@@ -3934,6 +3934,10 @@ class _SiteCredentials extends _Credentials {
 
   bool applies(Uri uri, _AuthenticationScheme? scheme) {
     if (scheme != null && credentials.scheme != scheme) return false;
+    // The scheme is part of the protection space, so credentials registered
+    // for an https URL must not be sent over cleartext http
+    // (RFC 7617 section 2.2).
+    if (!uri.isScheme(this.uri.scheme)) return false;
     if (uri.host != this.uri.host) return false;
     int thisPort = this.uri.port == 0
         ? HttpClient.defaultHttpPort
