@@ -517,6 +517,10 @@ void main() {
         expect(await run(const {'BOT': 'true'}), 'true');
       });
 
+      test('CI=false, no agent: not suppressed', () async {
+        expect(await run(const {'CI': 'false'}), 'false');
+      });
+
       test('BOT=false overrides CI variables: not suppressed', () async {
         expect(await run(const {'BOT': 'false', 'CI': 'true'}), 'false');
       });
@@ -580,6 +584,15 @@ void main() {
       expect(isBot(environment: const {'CI': 'true'}), isTrue);
       expect(isBot(environment: const {'GITHUB_ACTIONS': 'true'}), isTrue);
       expect(isBot(environment: const {'SWARMING_TASK_ID': 'x'}), isTrue);
+    });
+
+    test('falsy CI and BOT values are not detected as a bot', () {
+      expect(isBot(environment: const {'CI': 'false'}), isFalse);
+      expect(isBot(environment: const {'CI': '0'}), isFalse);
+      expect(isBot(environment: const {'CI': ''}), isFalse);
+      expect(isBot(environment: const {'BOT': 'false'}), isFalse);
+      expect(isBot(environment: const {'BOT': '0'}), isFalse);
+      expect(isBot(environment: const {'BOT': ''}), isFalse);
     });
 
     test('explicit non-bot signals take precedence', () {
