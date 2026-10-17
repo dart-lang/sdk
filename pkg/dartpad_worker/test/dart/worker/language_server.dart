@@ -10,6 +10,16 @@ import 'package:path/path.dart' as p;
 import '../../worker_harness.dart';
 
 void main() {
+  testDartWorker('starts in an empty workspace', (worker) async {
+    final ws = await worker.createWorkspace();
+    try {
+      final ls = await ws.startLanguageServer();
+      await ls.close();
+    } finally {
+      await ws.close();
+    }
+  });
+
   testDartWorkspace('initialize returns capabilities', (ws) async {
     final ls = await ws.startLanguageServer();
 
