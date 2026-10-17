@@ -194,10 +194,12 @@ enum _CorrectionKind {
 
 extension on Expression {
   DartType? get argumentType {
+    var parent = this.parent;
     if (parent case NamedArgument named) {
       return named.correspondingParameter?.type;
     }
-    if (parent is ArgumentList) {
+    if (parent is ArgumentList ||
+        (parent is IndexExpression && this == parent.index)) {
       return correspondingParameter?.type;
     }
     if (parent case AssignmentExpression assignment) {

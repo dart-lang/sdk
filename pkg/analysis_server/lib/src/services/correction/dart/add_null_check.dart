@@ -112,7 +112,8 @@ class AddNullCheck extends ResolvedCorrectionProducer {
       toType = parent.staticType;
     } else if (parent is VariableDeclaration && _target == parent.initializer) {
       toType = parent.declaredFragment!.element.type;
-    } else if (parent is ArgumentList) {
+    } else if (parent is ArgumentList ||
+        (parent is IndexExpression && _target == parent.index)) {
       toType = _target.correspondingParameter?.type;
     } else if (parent is IndexExpression) {
       toType = parent.realTarget.typeOrThrow;
