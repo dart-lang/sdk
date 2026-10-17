@@ -1522,7 +1522,18 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           return DEFAULT_WINDOW_BITS;
         }
 
-        return int.tryParse(o) ?? DEFAULT_WINDOW_BITS;
+        // RFC 7692 only permits a window size of 8..15 bits. A value from the
+        // peer outside that range is treated the same as an unparseable one
+        // and falls back to the default, rather than being forwarded to zlib
+        // where it fails to initialise and tears down the connection with an
+        // opaque error.
+        final bits = int.tryParse(o);
+        if (bits == null ||
+            bits < ZLibOption.minWindowBits ||
+            bits > ZLibOption.maxWindowBits) {
+          return DEFAULT_WINDOW_BITS;
+        }
+        return bits;
       }
 
       return _WebSocketPerMessageDeflate(
