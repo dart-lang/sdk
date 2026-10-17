@@ -214,7 +214,15 @@ class Node {
       char* path = reinterpret_cast<char**>(event_paths)[i];
       char* relative_path = path;
 
-      relative_path += node->base_path_length();
+      // Advance past the watched directory to obtain the path relative to it.
+      // FSEvents normally reports paths rooted at the watched directory, but it
+      // can deliver a path shorter than that root (for example after the root
+      // is renamed to a shorter name). Advancing by base_path_length_ in that
+      // case would read past the end of the reported C string, so clamp the
+      // offset to the actual path length.
+      const size_t path_length = strlen(path);
+      const size_t base_length = static_cast<size_t>(node->base_path_length());
+      relative_path += (path_length < base_length) ? path_length : base_length;
       // If path is longer than the base, skip next character ('/').
       if (relative_path[0] != '\0') {
         relative_path += 1;
