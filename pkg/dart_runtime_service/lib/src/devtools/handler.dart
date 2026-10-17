@@ -18,6 +18,7 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf_static/shelf_static.dart';
 import 'package:sse/server/sse_handler.dart';
 
+import '../handlers.dart';
 import 'client.dart';
 
 const sseKeepAlive = Duration(seconds: 30);
@@ -47,6 +48,8 @@ FutureOr<Handler> defaultHandler({
   required ExtensionsManager devtoolsExtensionsManager,
   String? appRoot,
   bool enableLogging = false,
+  Uri? serverUri,
+  bool disableOriginCheck = false,
 }) {
   appRoot ??= '/';
   if (!appRoot.endsWith('/')) {
@@ -147,6 +150,29 @@ FutureOr<Handler> defaultHandler({
     // If the request isn't of the form api/<method> assume it's a request for
     // DevTools assets.
     if (request.url.pathSegments case ['api', final method, ...]) {
+      if (!disableOriginCheck) {
+        final allowedUris = [if (serverUri case final uri?) uri];
+
+        // Host header check for all api/* requests to prevent DNS rebinding.
+        final hostHeader = request.headers[HttpHeaders.hostHeader];
+        if (hostHeader == null ||
+            !isAllowedHost(hostHeader, allowedUris: allowedUris)) {
+          return Response.forbidden('forbidden host');
+        }
+
+        // Origin header check for all api/* requests to prevent CSRF. Browsers
+        // set Origin on cross-origin fetch/XHR/EventSource requests, so this
+        // rejects requests from a page the DevTools server never granted trust
+        // to, even though such a request's Host header legitimately matches
+        // this server (Host reflects the request's destination, not the page
+        // that issued it, so the check above does not protect against this).
+        final origin = request.headers['Origin'];
+        if (origin != null &&
+            !isAllowedOrigin(origin, allowedUris: allowedUris)) {
+          return Response.forbidden('forbidden origin');
+        }
+      }
+
       if (method == 'ping') {
         // Note: we have an 'OK' body response, otherwise the response has an
         // incorrect status code (204 instead of 200).

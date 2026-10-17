@@ -79,7 +79,7 @@ Middleware originCheckMiddleware({required DartRuntimeService frontend}) =>
       }
 
       for (final origin in origins.split(',')) {
-        if (_isAllowedOrigin(origin, frontend)) {
+        if (isAllowedOrigin(origin, allowedUris: [frontend.uri])) {
           return innerHandler(request);
         }
       }
@@ -93,7 +93,7 @@ Middleware hostCheckMiddleware({required DartRuntimeService frontend}) =>
         return Response.forbidden('missing Host header');
       }
 
-      if (!_isAllowedHost(hostHeader, frontend)) {
+      if (!isAllowedHost(hostHeader, allowedUris: [frontend.uri])) {
         return Response.forbidden('forbidden host');
       }
 
@@ -102,11 +102,13 @@ Middleware hostCheckMiddleware({required DartRuntimeService frontend}) =>
 
 /// Validates if [origin] is allowed to connect to the service.
 ///
-/// Returns `true` if the origin is localhost, loopback, or matches the
-/// bound address of the server.
-bool _isAllowedOrigin(String origin, DartRuntimeService frontend) {
+/// Returns `true` if the origin is localhost, loopback, or matches the host
+/// and port of any URI in [allowedUris].
+bool isAllowedOrigin(String origin, {Iterable<Uri> allowedUris = const []}) {
   Uri uri;
   try {
+    // The Origin and Host headers are caller-controlled and can contain
+    // malformed URIs, so parsing must not be allowed to throw.
     uri = Uri.parse(origin);
   } catch (_) {
     return false;
@@ -120,9 +122,10 @@ bool _isAllowedOrigin(String origin, DartRuntimeService frontend) {
     return true;
   }
 
-  final serverUri = frontend.uri;
-  if (uri.port == serverUri.port && uri.host == serverUri.host) {
-    return true;
+  for (final allowedUri in allowedUris) {
+    if (uri.port == allowedUri.port && uri.host == allowedUri.host) {
+      return true;
+    }
   }
 
   return false;
@@ -134,9 +137,9 @@ bool _isAllowedOrigin(String origin, DartRuntimeService frontend) {
 /// which may optionally include a port (e.g., `localhost` or `localhost:8080`).
 ///
 /// Prepends `http://` to the host header to parse it as a [Uri] and delegates
-/// to [_isAllowedOrigin].
-bool _isAllowedHost(String hostHeader, DartRuntimeService frontend) {
-  return _isAllowedOrigin('http://$hostHeader', frontend);
+/// to [isAllowedOrigin].
+bool isAllowedHost(String hostHeader, {Iterable<Uri> allowedUris = const []}) {
+  return isAllowedOrigin('http://$hostHeader', allowedUris: allowedUris);
 }
 
 /// Creates a [Handler] responsible for processing HTTP requests.
