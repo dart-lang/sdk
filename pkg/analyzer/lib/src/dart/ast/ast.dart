@@ -19304,6 +19304,17 @@ sealed class ExpressionImpl extends InstanceReceiverImpl
       if (identical(parent.index, this)) {
         return parent._staticParameterElementForIndex;
       }
+      // ignore: analyzer_v1_ast_use
+    } else if (parent is IndexExpressionImpl) {
+      // ignore: analyzer_v1_ast_use
+      if (identical(parent.index, this)) {
+        return switch (parent._v1ProjectionOrigin) {
+          IndexExpression2Impl origin => origin._staticParameterElementForIndex,
+          IndexAssignmentTargetImpl origin =>
+            origin._staticParameterElementForIndex,
+          _ => null,
+        };
+      }
     } else if (parent is BinaryOperatorInvocationImpl) {
       // TODO(scheglov): https://github.com/dart-lang/sdk/issues/49102
       if (identical(parent.rightOperand, this)) {
