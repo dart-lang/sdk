@@ -267,8 +267,8 @@ class ScopeContext {
     });
   }
 
-  void visitFunctionTypeAlias(
-    FunctionTypeAliasImpl node, {
+  void visitFunctionTypeAlias2(
+    FunctionTypeAlias2Impl node, {
     required AstVisitor2 visitor,
   }) {
     var element = node.declaredFragment!.element;
@@ -299,8 +299,8 @@ class ScopeContext {
     });
   }
 
-  void visitGenericTypeAlias(
-    GenericTypeAliasImpl node, {
+  void visitGenericTypeAlias2(
+    GenericTypeAlias2Impl node, {
     required AstVisitor2 visitor,
     void Function()? enterTypeParameterScope,
   }) {

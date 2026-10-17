@@ -168,12 +168,12 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
             declaration,
             _libraryFragment.mixins[mixinIndex++],
           );
-        case FunctionTypeAliasImpl():
+        case FunctionTypeAlias2Impl():
           _bindFunctionTypeAlias(
             declaration,
             _libraryFragment.typeAliases[typedefIndex++],
           );
-        case GenericTypeAliasImpl():
+        case GenericTypeAlias2Impl():
           _bindGenericTypeAlias(
             declaration,
             _libraryFragment.typeAliases[typedefIndex++],
@@ -758,7 +758,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindFunctionTypeAlias(
-    FunctionTypeAliasImpl node,
+    FunctionTypeAlias2Impl node,
     TypeAliasFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;
@@ -778,7 +778,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindGenericTypeAlias(
-    GenericTypeAliasImpl node,
+    GenericTypeAlias2Impl node,
     TypeAliasFragmentImpl fragment,
   ) {
     node.declaredFragment = fragment;

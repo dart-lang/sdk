@@ -736,7 +736,7 @@ class TypeArgumentsVerifier {
     switch (namedType.parent2) {
       case ClassTypeAlias _:
       case ExtendsClause _:
-      case GenericTypeAlias _:
+      case GenericTypeAlias2 _:
       case ImplementsClause _:
       case MixinOnClause _:
       case WithClause _:

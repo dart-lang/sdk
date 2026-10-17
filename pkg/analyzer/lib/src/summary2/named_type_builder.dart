@@ -280,7 +280,7 @@ class NamedTypeBuilder extends TypeBuilder {
       element.aliasedType = _dynamicType;
     }
 
-    if (typedefNode is FunctionTypeAliasImpl) {
+    if (typedefNode is FunctionTypeAlias2Impl) {
       var result = _buildFunctionType(
         typeParameterList: null,
         returnTypeNode: typedefNode.returnType,
@@ -289,7 +289,7 @@ class NamedTypeBuilder extends TypeBuilder {
       );
       element.aliasedType = result;
       return result;
-    } else if (typedefNode is GenericTypeAlias) {
+    } else if (typedefNode is GenericTypeAlias2) {
       var aliasedTypeNode = typedefNode.type;
       var aliasedType = _buildAliasedType(aliasedTypeNode);
       element.aliasedType = aliasedType;

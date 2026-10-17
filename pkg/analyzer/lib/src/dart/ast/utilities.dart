@@ -411,6 +411,16 @@ class ScopedNameFinder2 extends UnifyingAstVisitor2<void>
       node.statements2;
 
   @override
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
+    _declarationNode = node;
+  }
+
+  @override
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
+    _declarationNode = node;
+  }
+
+  @override
   void visitLocalFunctionDeclaration(LocalFunctionDeclaration node) {
     var parameters = node.formalParameters;
     if (!identical(immediateChild, parameters)) {

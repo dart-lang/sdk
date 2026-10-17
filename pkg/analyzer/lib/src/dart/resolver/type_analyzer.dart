@@ -3228,10 +3228,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitFunctionTypeAlias(node);
+    elementResolver.visitFunctionTypeAlias2(node);
   }
 
   @override
@@ -3241,10 +3241,10 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitGenericTypeAlias(node);
+    elementResolver.visitGenericTypeAlias2(node);
   }
 
   @override

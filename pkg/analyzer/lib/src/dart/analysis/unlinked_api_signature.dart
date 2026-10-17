@@ -73,7 +73,9 @@ class _UnitApiSignatureComputer {
           _addFunctionBodyModifiers(declaration.body);
         case TopLevelVariablesDeclarationImpl():
           _topLevelVariablesDeclaration(declaration);
-        case TypeAliasImpl():
+        case ClassTypeAliasImpl() ||
+            FunctionTypeAlias2Impl() ||
+            GenericTypeAlias2Impl():
           _addNode(declaration);
       }
     }

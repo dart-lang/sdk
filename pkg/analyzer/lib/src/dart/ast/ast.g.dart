@@ -619,7 +619,8 @@ abstract class AstVisitor2<R> {
   @experimental
   R? visitFunctionInstantiation(FunctionInstantiation node);
 
-  R? visitFunctionTypeAlias(FunctionTypeAlias node);
+  @experimental
+  R? visitFunctionTypeAlias2(FunctionTypeAlias2 node);
 
   R? visitFunctionTypedFormalParameterSuffix(
     FunctionTypedFormalParameterSuffix node,
@@ -627,7 +628,8 @@ abstract class AstVisitor2<R> {
 
   R? visitGenericFunctionType(GenericFunctionType node);
 
-  R? visitGenericTypeAlias(GenericTypeAlias node);
+  @experimental
+  R? visitGenericTypeAlias2(GenericTypeAlias2 node);
 
   @experimental
   R? visitGetterDeclaration(GetterDeclaration node);

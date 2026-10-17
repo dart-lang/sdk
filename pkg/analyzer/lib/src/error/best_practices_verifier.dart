@@ -522,13 +522,13 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
     _checkStrictInferenceReturnType(node.returnType, node, node.name.lexeme);
     _checkStrictInferenceInParameters(node.parameters);
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitFunctionTypeAlias(node);
+      super.visitFunctionTypeAlias2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }
@@ -536,27 +536,23 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
 
   @override
   void visitGenericFunctionType(GenericFunctionType node) {
-    // GenericTypeAlias is handled in [visitGenericTypeAlias], where a proper
+    // GenericTypeAlias2 is handled in [visitGenericTypeAlias2], where a proper
     // name can be reported in any message.
-    if (node.parent2 is! GenericTypeAlias) {
+    if (node.parent2 is! GenericTypeAlias2) {
       _checkStrictInferenceReturnType(node.returnType, node, node.toString());
     }
     super.visitGenericFunctionType(node);
   }
 
   @override
-  void visitGenericTypeAlias(covariant GenericTypeAliasImpl node) {
-    if (node.functionType != null) {
-      _checkStrictInferenceReturnType(
-        node.functionType!.returnType,
-        node,
-        node.name.lexeme,
-      );
+  void visitGenericTypeAlias2(covariant GenericTypeAlias2Impl node) {
+    if (node.type case GenericFunctionType type) {
+      _checkStrictInferenceReturnType(type.returnType, node, node.name.lexeme);
     }
     _elementUsageFrontierDetector.pushElement(node.declaredFragment!.element);
 
     try {
-      super.visitGenericTypeAlias(node);
+      super.visitGenericTypeAlias2(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }

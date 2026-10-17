@@ -1765,9 +1765,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _runSubscriptions(node, _registry._forFunctionTypeAlias);
+  void visitFunctionTypeAlias2(FunctionTypeAlias2 node) {
+    _runSubscriptions(node, _registry._forFunctionTypeAlias2);
     node.visitChildren2(this);
   }
 
@@ -1785,9 +1786,10 @@ class AnalysisRuleVisitor2 implements AstVisitor2<void> {
     node.visitChildren2(this);
   }
 
+  @experimental
   @override
-  void visitGenericTypeAlias(GenericTypeAlias node) {
-    _runSubscriptions(node, _registry._forGenericTypeAlias);
+  void visitGenericTypeAlias2(GenericTypeAlias2 node) {
+    _runSubscriptions(node, _registry._forGenericTypeAlias2);
     node.visitChildren2(this);
   }
 
@@ -4700,14 +4702,14 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   final List<_Subscription2<FunctionInstantiation>> _forFunctionInstantiation =
       [];
 
-  final List<_Subscription2<FunctionTypeAlias>> _forFunctionTypeAlias = [];
+  final List<_Subscription2<FunctionTypeAlias2>> _forFunctionTypeAlias2 = [];
 
   final List<_Subscription2<FunctionTypedFormalParameterSuffix>>
   _forFunctionTypedFormalParameterSuffix = [];
 
   final List<_Subscription2<GenericFunctionType>> _forGenericFunctionType = [];
 
-  final List<_Subscription2<GenericTypeAlias>> _forGenericTypeAlias = [];
+  final List<_Subscription2<GenericTypeAlias2>> _forGenericTypeAlias2 = [];
 
   final List<_Subscription2<GetterDeclaration>> _forGetterDeclaration = [];
 
@@ -5732,9 +5734,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addFunctionTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addFunctionTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forFunctionTypeAlias.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forFunctionTypeAlias2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -5755,9 +5757,9 @@ class RuleVisitorRegistryImpl2 implements RuleVisitorRegistry2 {
   }
 
   @override
-  void addGenericTypeAlias(AbstractAnalysisRule rule, AstVisitor2 visitor) {
+  void addGenericTypeAlias2(AbstractAnalysisRule rule, AstVisitor2 visitor) {
     _hasNodeProcessors = true;
-    _forGenericTypeAlias.add(_Subscription2(rule, visitor, _getTimer(rule)));
+    _forGenericTypeAlias2.add(_Subscription2(rule, visitor, _getTimer(rule)));
   }
 
   @override

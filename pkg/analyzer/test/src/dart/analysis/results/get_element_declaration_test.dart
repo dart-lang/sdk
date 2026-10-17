@@ -315,6 +315,42 @@ typedef A = List<int>;
     expect(node.name.lexeme, 'A');
   }
 
+  test_genericTypeAlias_v2() async {
+    var unitResult = await resolveTestCode(r'''
+typedef A = List<int>;
+''');
+    var fragment = unitResult.findElement.typeAlias('A').firstFragment;
+    var result = await getFragmentDeclaration2(fragment);
+    assertParsedNodeText(result!.node, r'''
+GenericTypeAlias2
+  typedefKeyword: typedef
+  name: A
+  equals: =
+  type: NamedType
+    name: List
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  semicolon: ;
+V1: GenericTypeAlias
+  typedefKeyword: typedef
+  name: A
+  equals: =
+  type: NamedType
+    name: List
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: int
+      rightBracket: >
+  semicolon: ;
+''');
+  }
+
   test_getter_class() async {
     var unitResult = await resolveTestCode(r'''
 class A {

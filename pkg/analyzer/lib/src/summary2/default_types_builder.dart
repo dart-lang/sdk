@@ -317,12 +317,12 @@ class DefaultTypesBuilder {
           node.declaredFragment!,
           node.namePart.typeParameters,
         );
-      case FunctionTypeAliasImpl():
+      case FunctionTypeAlias2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,
         );
-      case GenericTypeAliasImpl():
+      case GenericTypeAlias2Impl():
         return _FragmentTypeParameters(
           node.declaredFragment!,
           node.typeParameters,
