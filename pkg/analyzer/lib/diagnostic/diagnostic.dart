@@ -66,14 +66,15 @@ class Diagnostic {
     List<Object?> arguments = const [],
     List<DiagnosticMessage> contextMessages = const [],
   }) {
-    assert(
-      arguments.length == diagnosticCode.numParameters,
-      'Message $diagnosticCode requires ${diagnosticCode.numParameters} '
-      'argument${diagnosticCode.numParameters == 1 ? '' : 's'}, but '
-      '${arguments.length} '
-      'argument${arguments.length == 1 ? ' was' : 's were'} '
-      'provided',
-    );
+    if (arguments.length != diagnosticCode.numParameters) {
+      throw ArgumentError(
+        'Message $diagnosticCode requires ${diagnosticCode.numParameters} '
+        'argument${diagnosticCode.numParameters == 1 ? '' : 's'}, but '
+        '${arguments.length} '
+        'argument${arguments.length == 1 ? ' was' : 's were'} '
+        'provided',
+      );
+    }
     String message = formatList(diagnosticCode.problemMessage, arguments);
     String? correctionTemplate = diagnosticCode.correctionMessage;
     String? correctionMessage;
