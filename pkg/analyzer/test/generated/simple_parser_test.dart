@@ -3890,7 +3890,7 @@ CompilationUnit
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var a = b;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariable;
     assertParsedNodeText(node, r'''
 TopLevelVariable
   name: a
@@ -4048,7 +4048,7 @@ VariableDeclarationStatement
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var a;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariable;
     assertParsedNodeText(node, r'''
 TopLevelVariable
   name: a
@@ -4125,7 +4125,7 @@ typedef K=Function(<>($
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: K
       equals: =
@@ -4173,6 +4173,31 @@ CompilationUnit
                 rightParenthesis: ) <synthetic>
           rightParenthesis: ) <synthetic>
       semicolon: ; <synthetic>
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: K
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: <empty> <synthetic>
+            functionTypedSuffix: FunctionTypedFormalParameterSuffix
+              typeParameters: TypeParameterList
+                leftBracket: <
+                typeParameters
+                  TypeParameter
+                    name: <empty> <synthetic>
+                rightBracket: >
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                parameter: RegularFormalParameter
+                  name: $
+                rightParenthesis: ) <synthetic>
+          rightParenthesis: ) <synthetic>
+      semicolon: ; <synthetic>
 ''');
   }
 
@@ -4187,7 +4212,7 @@ typedef T=Function(<S>());
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: T
       equals: =
@@ -4210,6 +4235,29 @@ CompilationUnit
                   rightParenthesis: )
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            name: <empty> <synthetic>
+            functionTypedSuffix: FunctionTypedFormalParameterSuffix
+              typeParameters: TypeParameterList
+                leftBracket: <
+                typeParameters
+                  TypeParameter
+                    name: S
+                rightBracket: >
+              formalParameters: FormalParameterList
+                leftParenthesis: (
+                rightParenthesis: )
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: T
+      equals: =
+      type: GenericFunctionType
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             name: <empty> <synthetic>

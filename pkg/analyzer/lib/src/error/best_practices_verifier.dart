@@ -985,17 +985,17 @@ class BestPracticesVerifier extends UnifyingAstVisitor2<void> {
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     _elementUsageFrontierDetector.pushElement(node.firstVariableElement);
 
     if (!_invalidAccessVerifier._inTestDirectory) {
-      for (var decl in node.variables.variables) {
-        _checkForAssignmentOfDoNotStore(decl.initializer2);
+      for (var variable in node.variables) {
+        _checkForAssignmentOfDoNotStore(variable.initializer);
       }
     }
 
     try {
-      super.visitTopLevelVariableDeclaration(node);
+      super.visitTopLevelVariablesDeclaration(node);
     } finally {
       _elementUsageFrontierDetector.popElement();
     }

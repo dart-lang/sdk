@@ -109,12 +109,9 @@ class AnnotationVerifier {
       for (var field in fields.variables) {
         checkType(field.declaredFieldElement.type, errorNode: field);
       }
-    } else if (parent case TopLevelVariableDeclaration(:var variables)) {
-      for (var variable in variables.variables) {
-        checkType(
-          variable.declaredTopLevelVariableElement.type,
-          errorNode: variable,
-        );
+    } else if (parent case TopLevelVariablesDeclaration(:var variables)) {
+      for (var variable in variables) {
+        checkType(variable.declaredElement.type, errorNode: variable);
       }
     } else if (parent case GenericTypeAlias(functionType: var type?)) {
       checkType(type.returnType?.type);
@@ -333,9 +330,9 @@ class AnnotationVerifier {
     var parent = node.parent2;
     var parentElement = _declaredElement(parent);
     var parentElementIsPrivate = parentElement?.isPrivate ?? false;
-    if (parent is TopLevelVariableDeclaration) {
-      for (var variable in parent.variables.variables) {
-        var element = variable.declaredTopLevelVariableElement;
+    if (parent is TopLevelVariablesDeclaration) {
+      for (var variable in parent.variables) {
+        var element = variable.declaredElement;
         if (element.isPrivate) {
           _diagnosticReporter.report(
             diag.invalidInternalAnnotation.at(variable),
@@ -574,9 +571,9 @@ class AnnotationVerifier {
       );
     }
 
-    if (parent is TopLevelVariableDeclaration) {
-      for (VariableDeclaration variable in parent.variables.variables) {
-        var variableElement = variable.declaredTopLevelVariableElement;
+    if (parent is TopLevelVariablesDeclaration) {
+      for (var variable in parent.variables) {
+        var variableElement = variable.declaredElement;
 
         var variableName = variableElement.name;
         if (variableName != null && variableName.isPrivateName) {
@@ -808,10 +805,9 @@ class AnnotationVerifier {
         return [?element];
       case PrimaryConstructorBody(:var declaration):
         return [?declaration?.declaredFragment?.element];
-      case TopLevelVariableDeclaration(:var variables):
+      case TopLevelVariablesDeclaration(:var variables):
         return [
-          for (var variable in variables.variables)
-            ?variable.declaredFragment?.element,
+          for (var variable in variables) ?variable.declaredFragment?.element,
         ];
       case FragmentDeclaringNode(:var declaredFragment):
         return [?declaredFragment?.element];

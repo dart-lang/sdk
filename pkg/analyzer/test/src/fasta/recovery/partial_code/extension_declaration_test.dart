@@ -486,7 +486,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -505,6 +505,35 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    ExtensionDeclaration
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: String
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1582,7 +1611,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -1601,6 +1630,35 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    ExtensionDeclaration
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on <synthetic>
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -2155,7 +2213,7 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -2174,6 +2232,35 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    ExtensionDeclaration
+      extensionKeyword: extension
+      name: E
+      onClause: ExtensionOnClause
+        onKeyword: on
+        extendedType: NamedType
+          name: <empty> <synthetic>
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

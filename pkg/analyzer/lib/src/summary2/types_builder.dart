@@ -169,6 +169,8 @@ class TypesBuilder {
       _topLevelGetterDeclaration(node);
     } else if (node is TopLevelSetterDeclarationImpl) {
       _topLevelSetterDeclaration(node);
+    } else if (node is TopLevelVariablesDeclarationImpl) {
+      _topLevelVariablesDeclaration(node);
     } else if (node is FunctionTypeAliasImpl) {
       _functionTypeAlias(node);
     } else if (node is RegularFormalParameterImpl) {
@@ -463,6 +465,18 @@ class TypesBuilder {
     if (fragment.previousFragment == null) {
       element.returnType = node.returnType?.type ?? _voidType;
       _setSyntheticVariableType(element);
+    }
+  }
+
+  void _topLevelVariablesDeclaration(TopLevelVariablesDeclarationImpl node) {
+    var type = node.type?.type;
+    if (type != null) {
+      for (var variable in node.variables) {
+        var variableFragment = variable.declaredFragment!;
+        if (variableFragment.previousFragment == null) {
+          variableFragment.element.type = type;
+        }
+      }
     }
   }
 

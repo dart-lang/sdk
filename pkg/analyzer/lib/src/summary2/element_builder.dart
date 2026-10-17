@@ -2261,30 +2261,30 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitTopLevelVariableDeclaration(
-    covariant TopLevelVariableDeclarationImpl node,
+  void visitTopLevelVariablesDeclaration(
+    covariant TopLevelVariablesDeclarationImpl node,
   ) {
     var metadata = _buildMetadata(node.metadata);
-    for (var variable in node.variables.variables) {
+    for (var variable in node.variables) {
       var nameToken = variable.name;
       var name2 = _getFragmentName(nameToken);
 
       var fragment = TopLevelVariableFragmentImpl(name: name2);
 
-      fragment.hasInitializer = variable.initializer2 != null;
+      fragment.hasInitializer = variable.initializer != null;
       fragment.isAbstract = node.abstractKeyword != null;
       fragment.isAugmentation = node.augmentKeyword != null;
-      fragment.isConst = node.variables.isConst;
+      fragment.isConst = node.constKeyword != null;
       fragment.isExternal = node.externalKeyword != null;
-      fragment.isFinal = node.variables.isFinal;
-      fragment.isLate = node.variables.isLate;
+      fragment.isFinal = node.finalKeyword != null;
+      fragment.isLate = node.lateKeyword != null;
       fragment.isOriginDeclaration = true;
       fragment.metadata = metadata;
       if (fragment.isConst) {
-        fragment.constantInitializer2 = variable.initializer2;
+        fragment.constantInitializer2 = variable.initializer;
       }
 
-      if (node.variables.type == null) {
+      if (node.type == null) {
         fragment.hasImplicitType = true;
       }
 
@@ -2294,7 +2294,7 @@ class FragmentBuilder extends ThrowingAstVisitor2<void> {
       variable.declaredFragment = fragment;
     }
 
-    node.variables.type?.accept2(this);
+    node.type?.accept2(this);
   }
 
   @override

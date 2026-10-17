@@ -850,7 +850,8 @@ String? findInheritedAnalysisOptions(
 /// `dart analyze`, as lines to print: how many there are of each code, most
 /// frequent first, followed by the locations of the first [maxLocations].
 ///
-/// Paths are shown relative to [root].
+/// Paths are shown relative to [root], with `/` separators on every platform,
+/// matching the `pkg/<name>` paths used elsewhere in this tool's output.
 List<String> formatDiagnosticSummary(
   List<Object?> diagnostics, {
   required String root,
@@ -873,7 +874,8 @@ List<String> formatDiagnosticSummary(
         'file': String file,
         'range': {'start': {'line': int line, 'column': int column}},
       })
-        '${relative(file, from: root)}:$line:$column: ${diagnostic['code']}',
+        '${posix.joinAll(split(relative(file, from: root)))}:$line:$column: '
+            '${diagnostic['code']}',
     if (diagnostics.length > maxLocations)
       '...and ${diagnostics.length - maxLocations} more',
   ];

@@ -84,11 +84,10 @@ class CompletionState {
 extension on ClassMember {
   /// Whether this member is a static member.
   bool get isStatic {
-    var self = this;
-    if (self is MethodDeclaration) {
-      return self.isStatic;
-    } else if (self is FieldDeclaration) {
-      return self.isStatic;
+    if (this is MethodDeclaration) {
+      return this.isStatic;
+    } else if (this is FieldDeclaration) {
+      return this.isStatic;
     }
     return false;
   }

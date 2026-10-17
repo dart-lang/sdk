@@ -21,7 +21,7 @@ class TopLevelVariableParserTest extends ParserDiagnosticsTest {
 abstract int foo;
 ''');
 
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelVariablesDeclaration
   abstractKeyword: abstract
@@ -50,7 +50,7 @@ abstract int foo;
 // [diag.extraneousModifier][column 1][length 8] Can't have modifier 'abstract' here.
 ''');
 
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelVariablesDeclaration
   abstractKeyword: abstract
@@ -77,7 +77,7 @@ V1: TopLevelVariableDeclaration
 augment final foo = 0;
 ''');
 
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelVariablesDeclaration
   augmentKeyword: augment
@@ -108,7 +108,7 @@ V1: TopLevelVariableDeclaration
 augment abstract int foo;
 ''');
 
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelVariablesDeclaration
   augmentKeyword: augment
@@ -229,7 +229,7 @@ CompilationUnit
 augment external int foo;
 ''');
 
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelVariablesDeclaration
   augmentKeyword: augment
@@ -258,7 +258,7 @@ V1: TopLevelVariableDeclaration
 external int foo;
 ''');
 
-    var node = parseResult.findNode.singleTopLevelVariableDeclaration;
+    var node = parseResult.findNode.singleTopLevelVariablesDeclaration;
     assertParsedNodeText(node, r'''
 TopLevelVariablesDeclaration
   externalKeyword: external

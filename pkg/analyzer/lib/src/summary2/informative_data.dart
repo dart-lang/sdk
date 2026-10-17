@@ -599,9 +599,9 @@ class _InfoBuilder {
         topLevelGetters.add(_buildTopLevelGetter(declaration));
       } else if (declaration is TopLevelSetterDeclarationImpl) {
         topLevelSetters.add(_buildTopLevelSetter(declaration));
-      } else if (declaration is TopLevelVariableDeclaration) {
-        for (var variable in declaration.variables.variables) {
-          topLevelVariable.add(_buildTopLevelVariable(variable));
+      } else if (declaration is TopLevelVariablesDeclaration) {
+        for (var variable in declaration.variables) {
+          topLevelVariable.add(_buildTopLevelVariable(declaration, variable));
         }
       } else if (declaration is FunctionTypeAlias) {
         typeAliases.add(_buildFunctionTypeAlias(declaration));
@@ -1162,18 +1162,22 @@ class _InfoBuilder {
     );
   }
 
-  _InfoTopLevelVariable _buildTopLevelVariable(VariableDeclaration node) {
-    var codeOffset = _codeOffsetForVariable(node);
-    var declaration = node.parent2!.parent2 as TopLevelVariableDeclaration;
+  _InfoTopLevelVariable _buildTopLevelVariable(
+    TopLevelVariablesDeclaration declaration,
+    TopLevelVariable2 node,
+  ) {
+    var codeOffset = node == declaration.variables.first
+        ? declaration.offset
+        : node.offset;
     return _InfoTopLevelVariable(
       firstTokenOffset: node.offset,
       codeOffset: codeOffset,
       codeLength: node.end - codeOffset,
       nameOffset: node.name.offsetIfNotEmpty,
-      documentationComment: _getDocumentationComment(node),
+      documentationComment: _getDocumentationComment(declaration),
       constantOffsets: _buildConstantOffsets(
         metadata: declaration.metadata,
-        constantInitializer: node.initializer2,
+        constantInitializer: node.initializer,
       ),
     );
   }

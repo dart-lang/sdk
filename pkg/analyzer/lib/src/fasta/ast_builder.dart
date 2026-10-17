@@ -1754,15 +1754,7 @@ class AstBuilder extends StackListener {
     var initializer = _popExpression();
     var name = pop() as Token;
     reportErrorIfSuper(initializer);
-    push(
-      VariableDeclarationImpl(
-        comment: null,
-        metadata: [],
-        name: name,
-        equals: equals,
-        initializer2: initializer,
-      ),
-    );
+    push(_FieldVariable(name: name, equals: equals, initializer: initializer));
   }
 
   @override
@@ -3380,26 +3372,28 @@ class AstBuilder extends StackListener {
       }
     }
 
-    var variables = popTypedList2<VariableDeclarationImpl>(count);
+    var variables = popTypedList2<_FieldVariable>(count);
     var type = pop() as TypeAnnotationImpl?;
-    var variableList = VariableDeclarationListImpl(
-      comment: null,
-      metadata: null,
-      lateKeyword: lateToken,
-      keyword: varFinalOrConst,
-      type: type,
-      variables: variables,
-    );
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
     declarations.add(
-      TopLevelVariableDeclarationImpl(
+      TopLevelVariablesDeclarationImpl(
         comment: comment,
         metadata: metadata,
-        abstractKeyword: abstractToken,
         augmentKeyword: augmentToken,
         externalKeyword: externalToken,
-        variables: variableList,
+        abstractKeyword: abstractToken,
+        lateKeyword: lateToken,
+        constFinalOrVarKeyword: varFinalOrConst,
+        type: type,
+        variables: [
+          for (var variable in variables)
+            TopLevelVariable2Impl(
+              name: variable.name,
+              equals: variable.equals,
+              initializer: variable.initializer,
+            ),
+        ],
         semicolon: semicolon,
       ),
     );
@@ -5262,15 +5256,7 @@ class AstBuilder extends StackListener {
     debugEvent("NoFieldInitializer");
 
     var name = pop() as Token;
-    push(
-      VariableDeclarationImpl(
-        comment: null,
-        metadata: [],
-        name: name,
-        equals: null,
-        initializer2: null,
-      ),
-    );
+    push(_FieldVariable(name: name, equals: null, initializer: null));
   }
 
   @override
@@ -6343,7 +6329,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    var variables = popTypedList2<VariableDeclarationImpl>(count);
+    var variables = popTypedList2<_FieldVariable>(count);
     var type = pop() as TypeAnnotationImpl?;
     var variableList = VariableDeclarationListImpl(
       comment: null,
@@ -6351,7 +6337,16 @@ class AstBuilder extends StackListener {
       lateKeyword: lateToken,
       keyword: varFinalOrConst,
       type: type,
-      variables: variables,
+      variables: [
+        for (var variable in variables)
+          VariableDeclarationImpl(
+            comment: null,
+            metadata: [],
+            name: variable.name,
+            equals: variable.equals,
+            initializer2: variable.initializer,
+          ),
+      ],
     );
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, beginToken);
@@ -7090,6 +7085,17 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       body: body,
     );
   }
+}
+
+/// Data structure placed on the stack to carry a variable of a top-level or
+/// class field declaration until the enclosing declaration builds the node
+/// for its kind.
+class _FieldVariable {
+  final Token name;
+  final Token? equals;
+  final ExpressionImpl? initializer;
+
+  new({required this.name, required this.equals, required this.initializer});
 }
 
 /// Data structure placed on the stack to carry function-typed parameter parts

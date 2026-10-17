@@ -151,7 +151,7 @@ T Function<T>(T) makeFunction() => identity;
 var x = makeFunction()<int>.call(0);
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
@@ -2448,7 +2448,7 @@ C get c => C();
 var x = c<int>.call(0);
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
@@ -7199,7 +7199,7 @@ extension E on int Function(int) {
 var x = p.identity<int>.transform<String>('s');
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation
@@ -7475,7 +7475,7 @@ T identity<T>(T value) => value;
 var x = identity<int>.hashCode;
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverPropertyExtraction
   receiver: FunctionInstantiation
@@ -7896,7 +7896,7 @@ var x = missing<int>.call();
 // [diag.newWithNonType] The name 'missing' isn't a class.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -8077,7 +8077,7 @@ var x = p.missing<int>.call();
 // [diag.newWithNonType] The name 'missing' isn't a class.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -8224,7 +8224,7 @@ var x = identity<int>.call(0);
 // [diag.sdkVersionConstructorTearoffs] Tearing off a constructor requires the 'constructor-tearoffs' language feature.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: FunctionInstantiation

@@ -314,29 +314,27 @@ extension on ParenthesizedExpression {
 
 extension on Expression? {
   /// Returns whether this directly contains whitespace.
-  bool get directlyContainsWhitespace {
-    var self = this;
-    return self is AsExpression ||
-        self is AssignmentExpression ||
-        self is AwaitExpression ||
-        self is BinaryExpression ||
-        self is FunctionExpression ||
-        self is IsExpression ||
-        self is SwitchExpression ||
-        // As in, `!(new Foo())`.
-        (self is InstanceCreationExpression && self.keyword != null) ||
-        // No TypedLiteral (ListLiteral, MapLiteral, SetLiteral) accepts `-`
-        // or `!` as a prefix operator, but this method can be called
-        // recursively, so this catches things like
-        // `!(const [].contains(42))`.
-        (self is TypedLiteral && self.constKeyword != null) ||
-        // As in, `!(const List(3).contains(7))`, and chains like
-        // `-(new List(3).skip(1).take(3).skip(1).length)`.
-        (self is MethodInvocation && self.target.directlyContainsWhitespace) ||
-        // As in, `-(new List(3).length)`, and chains like
-        // `-(new List(3).length.bitLength.bitLength)`.
-        (self is PropertyAccess && self.target.directlyContainsWhitespace);
-  }
+  bool get directlyContainsWhitespace =>
+      this is AsExpression ||
+      this is AssignmentExpression ||
+      this is AwaitExpression ||
+      this is BinaryExpression ||
+      this is FunctionExpression ||
+      this is IsExpression ||
+      this is SwitchExpression ||
+      // As in, `!(new Foo())`.
+      (this is InstanceCreationExpression && keyword != null) ||
+      // No TypedLiteral (ListLiteral, MapLiteral, SetLiteral) accepts `-`
+      // or `!` as a prefix operator, but this method can be called
+      // recursively, so this catches things like
+      // `!(const [].contains(42))`.
+      (this is TypedLiteral && constKeyword != null) ||
+      // As in, `!(const List(3).contains(7))`, and chains like
+      // `-(new List(3).skip(1).take(3).skip(1).length)`.
+      (this is MethodInvocation && target.directlyContainsWhitespace) ||
+      // As in, `-(new List(3).length)`, and chains like
+      // `-(new List(3).length.bitLength.bitLength)`.
+      (this is PropertyAccess && target.directlyContainsWhitespace);
 }
 
 extension on Expression {

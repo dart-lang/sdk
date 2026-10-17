@@ -872,7 +872,7 @@ const x = C<int>.();
 // [diag.missingIdentifier] Expected an identifier.
 ''');
 
-    var node = result.findNode.singleVariableDeclaration.initializer2!;
+    var node = result.findNode.singleTopLevelVariable.initializer!;
     assertResolvedNodeText(node, r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2
@@ -1866,7 +1866,7 @@ const x = p.C<int>.();
 ''');
 
     assertResolvedNodeText(
-      result.findNode.singleVariableDeclaration.initializer2!,
+      result.findNode.singleTopLevelVariable.initializer!,
       r'''
 ConstructorInvocation
   constructorReference: ConstructorReference2

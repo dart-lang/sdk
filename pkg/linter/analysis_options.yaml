@@ -60,6 +60,7 @@ linter:
     - unnecessary_null_checks
     - unnecessary_parenthesis
     - unnecessary_statements
+    - unnecessary_this_alias
     - unnecessary_type_name_in_constructor
     - unreachable_from_main
     - use_late_for_private_fields_and_variables

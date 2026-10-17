@@ -104,6 +104,14 @@ class _AssignedVariablesDataExtractor extends AstDataExtractor<_Data> {
   }
 
   @override
+  void visitTopLevelVariable2(TopLevelVariable2 node) {
+    _handlePossibleTopLevelDeclaration(
+      node,
+      () => super.visitTopLevelVariable2(node),
+    );
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
     _handlePossibleTopLevelDeclaration(
       node,

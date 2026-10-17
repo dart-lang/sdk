@@ -1094,7 +1094,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    _sink.writeln('FunctionTypeAlias');
+    // TODO(scheglov): Remove the V2 label when type aliases are parsed as
+    // FunctionTypeAlias2.
+    _sink.writeln(
+      _view == _AstView.v2 ? 'FunctionTypeAlias2' : 'FunctionTypeAlias',
+    );
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -1128,7 +1132,11 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
-    _sink.writeln('GenericTypeAlias');
+    // TODO(scheglov): Remove the V2 label when type aliases are parsed as
+    // GenericTypeAlias2.
+    _sink.writeln(
+      _view == _AstView.v2 ? 'GenericTypeAlias2' : 'GenericTypeAlias',
+    );
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
@@ -2358,16 +2366,28 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    if (_view == _AstView.v2) {
-      _writeTopLevelVariablesDeclaration(node);
-      return;
-    }
+  void visitTopLevelVariable2(TopLevelVariable2 node) {
+    _sink.writeln('TopLevelVariable');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
 
+  @override
+  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     _sink.writeln('TopLevelVariableDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
       _writeDeclaredFragment(node.declaredFragment);
+    });
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
+    _sink.writeln('TopLevelVariablesDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
     });
   }
 
@@ -2474,11 +2494,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
 
   @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (_view == _AstView.v2 && _isTopLevelVariable(node)) {
-      _writeTopLevelVariable(node);
-      return;
-    }
-
     _sink.writeln('VariableDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
@@ -2577,9 +2592,10 @@ class ResolvedAstPrinter extends ThrowingAstVisitor2<void>
       v1 = V1Projection.toV1Expression(expression);
     }
 
-    // TODO(scheglov): Remove when top-level variables are parsed as
-    // TopLevelVariablesDeclaration, which has a distinct V1 projection.
-    if (node is TopLevelVariableDeclaration) {
+    // TODO(scheglov): Remove when type aliases are parsed as
+    // GenericTypeAlias2 and FunctionTypeAlias2, which have distinct V1
+    // projections.
+    if (node is FunctionTypeAlias || node is GenericTypeAlias) {
       _withInlineV1ChildEntities(false, () => writeNode(node));
       _sink.writeWithIndent('V1: ');
       _withView(_AstView.v1, () => _acceptInView(node));
@@ -3048,8 +3064,14 @@ Expected parent: (${parent.runtimeType}) $parent
     }
 
     var entities2 = node.namedChildEntities2.toList();
+    // TODO(scheglov): Remove the type alias cases when type aliases are
+    // parsed as GenericTypeAlias2 and FunctionTypeAlias2, which have no V1
+    // child entities.
     var entities =
-        !_includeInlineV1ChildEntities || node.astNodeApi == AstNodeApi.v2
+        !_includeInlineV1ChildEntities ||
+            node.astNodeApi == AstNodeApi.v2 ||
+            node is FunctionTypeAlias ||
+            node is GenericTypeAlias
         ? <ChildEntity>[]
         // ignore: analyzer_v1_ast_use
         : node.namedChildEntities.toList();
@@ -3079,7 +3101,7 @@ Expected parent: (${parent.runtimeType}) $parent
       } else if (entity != null &&
           entity.name != entity2.name &&
           (!_sameChildEntityValue(entity2.value, entity.value) ||
-              _hasTopLevelVariable(entity2.value))) {
+              _hasTypeAlias(entity2.value))) {
         _withView(_AstView.v1, () {
           _writeNamedChildEntity(node, entity!, name: '${entity.name}(v1)');
         });
@@ -3359,57 +3381,6 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
-  /// Writes a top-level variable [node] as it will be printed once top-level
-  /// variables are parsed as `TopLevelVariable`.
-  ///
-  /// The V1 view is not written inline, because `TopLevelVariable` has a
-  /// distinct V1 projection.
-  // TODO(scheglov): Remove when top-level variables are parsed as
-  // TopLevelVariablesDeclaration.
-  void _writeTopLevelVariable(VariableDeclaration node) {
-    node as VariableDeclarationImpl;
-    _sink.writeln('TopLevelVariable');
-    _sink.withIndent(() {
-      for (var entity in node.namedChildEntities2) {
-        var name = entity.name == 'initializer2' ? 'initializer' : entity.name;
-        _writeNamedChildEntity(node, entity, name: name);
-      }
-      _writeDeclaredFragment(node.declaredFragment);
-    });
-  }
-
-  /// Writes [node] as it will be printed once top-level variables are parsed
-  /// as `TopLevelVariablesDeclaration`.
-  ///
-  /// The properties of the [VariableDeclarationList] are written as
-  /// properties of the declaration itself, and the V1 view is not written
-  /// inline, because `TopLevelVariablesDeclaration` has a distinct V1
-  /// projection.
-  // TODO(scheglov): Remove when top-level variables are parsed as
-  // TopLevelVariablesDeclaration.
-  void _writeTopLevelVariablesDeclaration(TopLevelVariableDeclaration node) {
-    node as TopLevelVariableDeclarationImpl;
-    _sink.writeln('TopLevelVariablesDeclaration');
-    _sink.withIndent(() {
-      for (var entity in node.namedChildEntities2) {
-        if (entity.name != 'variables') {
-          _writeNamedChildEntity(node, entity);
-          continue;
-        }
-        var variableList = node.variables;
-        _writeToken('lateKeyword', variableList.lateKeyword);
-        _writeToken('constFinalOrVarKeyword', variableList.keyword);
-        if (variableList.type case var type?) {
-          _writeNamedChildEntity(variableList, ChildEntity('type', type));
-        }
-        _writeNamedChildEntity(
-          variableList,
-          ChildEntity('variables', variableList.variables),
-        );
-      }
-    });
-  }
-
   void _writeType(String name, DartType? type) {
     if (_withResolution) {
       _elementPrinter.writeNamedType(name, type);
@@ -3506,23 +3477,17 @@ Expected parent: (${parent.runtimeType}) $parent
     );
   }
 
-  /// Whether [value] is a list of nodes that includes a top-level variable
-  /// declaration.
+  /// Whether [value] is a list of nodes that includes a generic or function
+  /// type alias.
   ///
   /// Such a list is printed as if it already had a distinct V1 projection.
-  // TODO(scheglov): Remove when top-level variables are parsed as
-  // TopLevelVariablesDeclaration.
-  static bool _hasTopLevelVariable(Object value) {
+  // TODO(scheglov): Remove when type aliases are parsed as GenericTypeAlias2
+  // and FunctionTypeAlias2.
+  static bool _hasTypeAlias(Object value) {
     return value is List<AstNode> &&
-        value.any((node) => node is TopLevelVariableDeclaration);
-  }
-
-  /// Whether [node] is a top-level variable, which will be parsed as
-  /// `TopLevelVariable` with a distinct V1 projection.
-  // TODO(scheglov): Remove when top-level variables are parsed as
-  // TopLevelVariablesDeclaration.
-  static bool _isTopLevelVariable(VariableDeclaration node) {
-    return node.parent2?.parent2 is TopLevelVariableDeclaration;
+        value.any(
+          (node) => node is FunctionTypeAlias || node is GenericTypeAlias,
+        );
   }
 
   static bool _sameChildEntityValue(Object value2, Object value) {

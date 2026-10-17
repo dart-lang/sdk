@@ -1151,7 +1151,7 @@ CompilationUnit
           EnumConstantDeclaration
             name: <empty> <synthetic>
         rightBracket: }
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -1170,6 +1170,35 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+        rightBracket: }
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -1754,7 +1783,7 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -1773,6 +1802,37 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -2342,7 +2402,7 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: }
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -2361,6 +2421,37 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: <empty> <synthetic>
+          EnumConstantDeclaration
+            name: a
+        rightBracket: }
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -2796,7 +2887,7 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -2815,6 +2906,32 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -3886,7 +4003,7 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: {
         rightBracket: }
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -3905,6 +4022,32 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: <empty> <synthetic>
+      body: BlockEnumBody
+        leftBracket: {
+        rightBracket: }
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4377,7 +4520,7 @@ CompilationUnit
       body: BlockEnumBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -4396,6 +4539,32 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType
@@ -4918,7 +5087,7 @@ CompilationUnit
           EnumConstantDeclaration
             name: a
         rightBracket: } <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -4937,6 +5106,35 @@ CompilationUnit
                 name: D
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: C
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: D
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    EnumDeclaration
+      enumKeyword: enum
+      namePart: NameWithTypeParameters
+        typeName: E
+      body: BlockEnumBody
+        leftBracket: {
+        constants
+          EnumConstantDeclaration
+            name: a
+        rightBracket: } <synthetic>
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: A
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: B
+        functionKeyword: Function
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

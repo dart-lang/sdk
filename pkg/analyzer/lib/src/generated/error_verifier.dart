@@ -2441,14 +2441,16 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitTopLevelVariableDeclaration(
-    covariant TopLevelVariableDeclarationImpl node,
-  ) {
-    var variableList = node.variables;
+  void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
+    _visitVariableInitializer(node);
+  }
 
-    for (var variable in variableList.variables) {
-      var declaredFragment =
-          variable.declaredFragment! as TopLevelVariableFragmentImpl;
+  @override
+  void visitTopLevelVariablesDeclaration(
+    covariant TopLevelVariablesDeclarationImpl node,
+  ) {
+    for (var variable in node.variables) {
+      var declaredFragment = variable.declaredFragment!;
       var hasConstVariableAugmentation = _checkForConstVariableAugmentation(
         fragment: declaredFragment,
         errorToken: variable.name,
@@ -2471,7 +2473,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
           if (declaredFragment.inducedGetter case var inducedGetter?) {
             _checkForAugmentationReturnTypeMismatch(
               fragment: inducedGetter,
-              returnTypeNode: variableList.type,
+              returnTypeNode: node.type,
               errorEntity: variable.name,
             );
           }
@@ -2479,9 +2481,9 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
 
-    if (variableList.isConst) {
-      for (var variable in variableList.variables) {
-        if (variable.initializer2 == null) {
+    if (node.constKeyword != null) {
+      for (var variable in node.variables) {
+        if (variable.initializer == null) {
           diagnosticReporter.report(
             diag.constNotInitialized
                 .withArguments(name: variable.name.lexeme)
@@ -2491,12 +2493,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     } else if (node.abstractKeyword == null &&
         node.externalKeyword == null &&
-        !variableList.isLate) {
-      for (var variable in variableList.variables) {
+        node.lateKeyword == null) {
+      for (var variable in node.variables) {
         var element = variable.declaredFragment!.element;
 
-        if (variable.initializer2 == null) {
-          if (variableList.isFinal) {
+        if (variable.initializer == null) {
+          if (node.finalKeyword != null) {
             diagnosticReporter.report(
               diag.finalNotInitialized
                   .withArguments(name: variable.name.lexeme)
@@ -2515,9 +2517,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       }
     }
 
-    for (var variable in node.variables.variables) {
-      var declaredFragment = variable.declaredFragment;
-      declaredFragment as TopLevelVariableFragmentImpl;
+    for (var variable in node.variables) {
+      var declaredFragment = variable.declaredFragment!;
 
       if (node.abstractKeyword != null) {
         _checkForIncompleteInducedAccessors(
@@ -2528,7 +2529,8 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
       _checkForMainFunction1(declaredFragment, variable.name);
     }
 
-    super.visitTopLevelVariableDeclaration(node);
+    _checkForTypeAnnotationDeferredClass(node.type);
+    super.visitTopLevelVariablesDeclaration(node);
   }
 
   @override
@@ -2601,27 +2603,12 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   @override
-  void visitVariableDeclaration(VariableDeclaration node) {
+  void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     var element = node.declaredFragment!.element;
-
-    var nameToken = node.name;
-    var initializerNode = node.initializer2;
-    // do checks
-    _checkForAbstractOrExternalVariableInitializer(node);
-    // visit initializer
-    String name = nameToken.lexeme;
-    _namesForReferenceToDeclaredVariableInInitializer.add(name);
-    try {
-      if (initializerNode != null) {
-        initializerNode.accept2(this);
-      }
-    } finally {
-      _namesForReferenceToDeclaredVariableInInitializer.remove(name);
-    }
+    _visitVariableInitializer(node);
     // declare the variable
     AstNode grandparent = node.parent2!.parent2!;
-    if (grandparent is! TopLevelVariableDeclaration &&
-        grandparent is! FieldDeclaration) {
+    if (grandparent is! FieldDeclaration) {
       // There is no hidden elements if we are outside of a function body,
       // which will happen for variables declared in control flow elements.
       _hiddenElements?.declare(element);
@@ -2897,7 +2884,7 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
   }
 
   void _checkForAbstractOrExternalVariableInitializer(
-    VariableDeclaration node,
+    VariableBindingImpl node,
   ) {
     var declaredFragment = node.declaredFragment;
     if (node.initializer2 != null) {
@@ -8686,6 +8673,19 @@ class ErrorVerifier extends RecursiveAstVisitor2<void>
     _requiredParametersVerifier.verifyNamedFunctionInvocation(node);
     _constArgumentsVerifier.verifyNamedFunctionInvocation(node);
     _checkUseVerifier.checkNamedFunctionInvocation(node);
+  }
+
+  /// Checks and visits the initializer of the variable [node], with the name
+  /// of the variable recorded as being declared by it.
+  void _visitVariableInitializer(VariableBindingImpl node) {
+    _checkForAbstractOrExternalVariableInitializer(node);
+    var name = node.name.lexeme;
+    _namesForReferenceToDeclaredVariableInInitializer.add(name);
+    try {
+      node.initializer2?.accept2(this);
+    } finally {
+      _namesForReferenceToDeclaredVariableInInitializer.remove(name);
+    }
   }
 
   void _withEnclosingExecutable(

@@ -3884,7 +3884,7 @@ var x = A.foo();
 // [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
 ''');
 
-    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    var node = result.findNode.topLevelVariable('x =').initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: StaticQualifier
@@ -3935,7 +3935,7 @@ var x = A.foo(a: 0);
 // [diag.undefinedNamedParameter] The named parameter 'a' isn't defined.
 ''');
 
-    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    var node = result.findNode.topLevelVariable('x =').initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: StaticQualifier
@@ -4000,7 +4000,7 @@ var x = E.foo();
 // [diag.staticAccessToInstanceMember] Instance member 'foo' can't be accessed using static access.
 ''');
 
-    var node = result.findNode.variableDeclaration('x =').initializer2!;
+    var node = result.findNode.topLevelVariable('x =').initializer!;
     assertResolvedNodeText(node, r'''
 ReceiverMethodInvocation
   receiver: StaticQualifier

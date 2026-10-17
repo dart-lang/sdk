@@ -874,7 +874,7 @@ x@12
     var result = await resolveTestCodeWithDiagnostics(r'''
 var x = 42;
 ''');
-    var node = result.findNode.variableDeclaration('x =');
+    var node = result.findNodeV1.variableDeclaration('x =');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
 <testLibrary>::@topLevelVariable::x
@@ -2025,6 +2025,17 @@ int get x => 0;
 ''');
   }
 
+  test_locate_TopLevelVariable() async {
+    var result = await resolveTestCodeWithDiagnostics(r'''
+var x = 42;
+''');
+    var node = result.findNode.topLevelVariable('x =');
+    var element = ElementLocatorV2.locate(node);
+    _assertElement(element, r'''
+<testLibrary>::@topLevelVariable::x
+''');
+  }
+
   test_locate_UnqualifiedNameExpression_recovery() async {
     var result = await resolveTestCodeWithDiagnostics(r'''
 set foo(int _) {}
@@ -2053,17 +2064,6 @@ f() {
     var element = ElementLocatorV2.locate(node);
     _assertElement(element, r'''
 x@12
-''');
-  }
-
-  test_locate_VariableDeclaration_TopLevel() async {
-    var result = await resolveTestCodeWithDiagnostics(r'''
-var x = 42;
-''');
-    var node = result.findNode.variableDeclaration('x =');
-    var element = ElementLocatorV2.locate(node);
-    _assertElement(element, r'''
-<testLibrary>::@topLevelVariable::x
 ''');
   }
 

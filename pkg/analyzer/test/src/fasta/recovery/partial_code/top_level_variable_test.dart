@@ -407,7 +407,7 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -964,7 +964,7 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -1576,7 +1576,7 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -2186,7 +2186,7 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -2794,7 +2794,7 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -3454,7 +3454,7 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -4112,7 +4112,7 @@ CompilationUnit
         TopLevelVariable
           name: b
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -4564,7 +4564,7 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -5121,7 +5121,7 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -5723,7 +5723,7 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -6264,7 +6264,7 @@ CompilationUnit
         TopLevelVariable
           name: int
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -6842,7 +6842,7 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -7356,7 +7356,7 @@ CompilationUnit
         TopLevelVariable
           name: <empty> <synthetic>
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -7916,7 +7916,7 @@ CompilationUnit
         TopLevelVariable
           name: a
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =
@@ -9189,7 +9189,7 @@ CompilationUnit
           initializer: ParsedUnqualifiedName
             name: b
       semicolon: ; <synthetic>
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: A
       equals: =

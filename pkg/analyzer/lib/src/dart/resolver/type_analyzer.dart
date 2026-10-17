@@ -1460,7 +1460,7 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
           node is TopLevelFunctionDeclaration ||
           node is TopLevelGetterDeclaration ||
           node is TopLevelSetterDeclaration ||
-          node is TopLevelVariableDeclaration;
+          node is TopLevelVariablesDeclaration;
     }
 
     if (parent is ClassBody || parent is EnumBody) {
@@ -4736,10 +4736,15 @@ class TypeAnalyzer extends ThrowingAstVisitor2<void>
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
+    _variableDeclarationResolver.resolve(node);
+    _checkTypeInferenceError(node);
+  }
+
+  @override
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     checkUnreachableNode(node);
     node.visitChildren2(this);
-    elementResolver.visitTopLevelVariableDeclaration(node);
   }
 
   @override

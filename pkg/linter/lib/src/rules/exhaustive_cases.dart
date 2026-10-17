@@ -96,10 +96,9 @@ class _Visitor(final AnalysisRule rule) extends SimpleAstVisitor<void> {
 
 extension on Element? {
   Element? get variableElement {
-    var self = this;
-    if (self is GetterElement) {
-      return self.variable;
+    if (this is GetterElement) {
+      return variable;
     }
-    return self;
+    return this;
   }
 }

@@ -274,10 +274,9 @@ class DuplicateDefinitionVerifier {
               fragment: declaredFragment,
             );
           }
-        case TopLevelVariableDeclarationImpl():
-          for (var variable in member.variables.variables) {
-            var declaredFragment = variable.declaredFragment;
-            declaredFragment as TopLevelVariableFragmentImpl;
+        case TopLevelVariablesDeclarationImpl():
+          for (var variable in member.variables) {
+            var declaredFragment = variable.declaredFragment!;
             if (!declaredFragment.isAugmentation) {
               var declaredElement = declaredFragment.element;
               if (declaredElement.getter?.firstFragment case var getter?) {

@@ -3101,7 +3101,7 @@ var x = a..b.(0);
 //           ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 CascadeExpression
   target2: ParsedUnqualifiedName
@@ -3147,7 +3147,7 @@ var x = a.[0];
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedUnqualifiedName
@@ -3169,7 +3169,7 @@ var x = a.<int>[];
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedUnqualifiedName
@@ -3191,7 +3191,7 @@ var x = a.(0);
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -3226,7 +3226,7 @@ var x = a.();
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -3255,7 +3255,7 @@ var x = a.(0, b: 1);
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -3300,7 +3300,7 @@ var x = a?.(0);
 //         ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -3335,7 +3335,7 @@ var x = a.b.(0).c;
 //          ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedValueArguments
@@ -3384,7 +3384,7 @@ var x = a.{};
 //        ^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedUnqualifiedName
@@ -3406,7 +3406,7 @@ var x = a."s";
 //        ^^^
 // [diag.missingIdentifier] Expected an identifier.
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedUnqualifiedName
@@ -5550,7 +5550,7 @@ typedef Predicate = bool <E>(E element);
     assertParsedNodeText(node, r'''
 CompilationUnit
   declarations2
-    GenericTypeAlias
+    GenericTypeAlias2
       typedefKeyword: typedef
       name: Predicate
       equals: =
@@ -5573,6 +5573,29 @@ CompilationUnit
               name: element
           rightParenthesis: )
         parameters(v1): FormalParameterList
+          leftParenthesis: (
+          parameter: RegularFormalParameter
+            type: NamedType
+              name: E
+            name: element
+          rightParenthesis: )
+      semicolon: ;
+  declarations(v1)
+    GenericTypeAlias
+      typedefKeyword: typedef
+      name: Predicate
+      equals: =
+      type: GenericFunctionType
+        returnType: NamedType
+          name: bool
+          typeArguments: TypeArgumentList
+            leftBracket: <
+            arguments
+              NamedType
+                name: E
+            rightBracket: >
+        functionKeyword: Function <synthetic>
+        parameters: FormalParameterList
           leftParenthesis: (
           parameter: RegularFormalParameter
             type: NamedType

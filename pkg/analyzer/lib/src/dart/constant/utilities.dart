@@ -196,8 +196,24 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
   }
 
   @override
+  void visitTopLevelVariable2(covariant TopLevelVariable2Impl node) {
+    super.visitTopLevelVariable2(node);
+    _visitVariable(node);
+  }
+
+  @override
   void visitVariableDeclaration(covariant VariableDeclarationImpl node) {
     super.visitVariableDeclaration(node);
+    _visitVariable(node);
+  }
+
+  void _visitFormalParameter(FormalParameterImpl node) {
+    if (node.defaultClause != null && node.declaredFragment != null) {
+      constantsToCompute.add(node.declaredFragment!.element);
+    }
+  }
+
+  void _visitVariable(VariableBindingImpl node) {
     var initializer = node.initializer2;
     var fragment = node.declaredFragment!;
     var element = fragment.element;
@@ -215,12 +231,6 @@ class ConstantFinder extends RecursiveAstVisitor2<void> {
           fromAst: node.initializer2,
         );
       }
-    }
-  }
-
-  void _visitFormalParameter(FormalParameterImpl node) {
-    if (node.defaultClause != null && node.declaredFragment != null) {
-      constantsToCompute.add(node.declaredFragment!.element);
     }
   }
 }

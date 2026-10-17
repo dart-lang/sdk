@@ -416,7 +416,7 @@ V1: InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -443,7 +443,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -484,7 +484,7 @@ V1: InstanceCreationExpression
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -518,7 +518,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -630,7 +630,7 @@ ConstructorDeclaration
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedUnqualifiedName
@@ -650,7 +650,7 @@ V1: PrefixedIdentifier
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedTypeArguments
@@ -684,7 +684,7 @@ V1: PropertyAccess
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C<int>.new.toString();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -755,7 +755,7 @@ CommentReference
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = C.new.toString();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -789,7 +789,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedNameAccess
@@ -816,7 +816,7 @@ V1: PropertyAccess
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new;
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedNameAccess
   operand: ParsedTypeArguments
@@ -857,7 +857,7 @@ V1: PropertyAccess
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C<int>.new.toString();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess
@@ -912,7 +912,7 @@ V1: MethodInvocation
     var parseResult = parseTestCodeWithDiagnostics(r'''
 var x = prefix.C.new.toString();
 ''');
-    var node = parseResult.findNode.singleVariableDeclaration.initializer2!;
+    var node = parseResult.findNode.singleTopLevelVariable.initializer!;
     assertParsedNodeText(node, r'''
 ParsedValueArguments
   operand: ParsedNameAccess

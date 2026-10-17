@@ -375,7 +375,7 @@ ExpressionFunctionBody
 T id<T>(T value) => value;
 var f = id;
 ''');
-    assertResolvedNodeText(result.findNode.variableDeclaration('f ='), r'''
+    assertResolvedNodeText(result.findNode.topLevelVariable('f ='), r'''
 TopLevelVariable
   name: f
   equals: =

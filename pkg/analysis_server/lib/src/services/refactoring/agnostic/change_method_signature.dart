@@ -1316,46 +1316,44 @@ extension on AstNode {
   /// This is usually a [Declaration] but could be a
   /// [PrimaryConstructorDeclaration].
   AstNode? get declaration {
-    var self = this;
-    var parent = self.parent;
+    var parent = this.parent;
 
-    if (self is PrimaryConstructorName &&
+    if (this is PrimaryConstructorName &&
         parent is PrimaryConstructorDeclaration) {
       return parent;
     }
 
-    if (self is FunctionExpression && parent is FunctionDeclaration) {
+    if (this is FunctionExpression && parent is FunctionDeclaration) {
       return parent;
     }
 
-    if (self is SimpleIdentifier &&
+    if (this is SimpleIdentifier &&
         parent is ConstructorDeclaration &&
-        parent.typeName == self) {
+        parent.typeName == this) {
       return parent;
     }
 
-    switch (self) {
+    switch (this) {
       case ConstructorDeclaration():
       case FunctionDeclaration():
       case MethodDeclaration():
       case PrimaryConstructorDeclaration():
-        return self;
+        return this;
     }
 
     return null;
   }
 
   FormalParameterList? get formalParameterList {
-    var self = this;
-    switch (self) {
+    switch (this) {
       case ConstructorDeclaration():
-        return self.parameters;
+        return parameters;
       case FunctionDeclaration():
-        return self.functionExpression.parameters;
+        return functionExpression.parameters;
       case MethodDeclaration():
-        return self.parameters;
+        return parameters;
       case PrimaryConstructorDeclaration():
-        return self.formalParameters;
+        return formalParameters;
     }
     return null;
   }

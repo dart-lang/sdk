@@ -35,5 +35,6 @@ linter:
     - unnecessary_ignore
     - unnecessary_library_directive
     - unnecessary_parenthesis
+    - unnecessary_this_alias
     - unnecessary_type_name_in_constructor
     - unreachable_from_main

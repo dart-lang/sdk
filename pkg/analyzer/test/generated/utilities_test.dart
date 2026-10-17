@@ -1858,20 +1858,39 @@ double g() => 0;
     );
   }
 
-  void test_topLevelVariableDeclaration() {
+  void test_topLevelVariable() {
     var parseResult = parseTestCodeWithDiagnostics(r'''
-@myA1
-@myA2
 var a = 0;
 var b = 1;
 ''');
-    _assertAnnotatedNode(
-      parseResult.findNode.topLevelVariableDeclaration('a = 0'),
+    _assertReplacementForChildren<TopLevelVariable2>(
+      destination: parseResult.findNode.topLevelVariable('a = 0'),
+      source: parseResult.findNode.topLevelVariable('b = 1'),
+      childAccessors: [(node) => node.initializer!],
     );
-    _assertReplacementForChildren<TopLevelVariableDeclaration>(
-      destination: parseResult.findNode.topLevelVariableDeclaration('a = 0'),
-      source: parseResult.findNode.topLevelVariableDeclaration('b = 1'),
-      childAccessors: [(node) => node.variables],
+  }
+
+  void test_topLevelVariablesDeclaration() {
+    var parseResult = parseTestCodeWithDiagnostics(r'''
+@myA1
+@myA2
+int a = 0, b = 1;
+double c = 2;
+''');
+    var destination = parseResult.findNode.topLevelVariablesDeclaration(
+      'a = 0',
+    );
+    var source = parseResult.findNode.topLevelVariablesDeclaration('c = 2');
+    _assertAnnotatedNode(destination);
+    _assertReplaceInList(
+      destination: destination,
+      child: destination.variables[0],
+      replacement: destination.variables[1],
+    );
+    _assertReplacementForChildren<TopLevelVariablesDeclaration>(
+      destination: destination,
+      source: source,
+      childAccessors: [(node) => node.type!],
     );
   }
 

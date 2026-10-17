@@ -313,7 +313,7 @@ class MetadataResolver extends ThrowingAstVisitor2<void> {
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariablesDeclaration(TopLevelVariablesDeclaration node) {
     node.metadata.accept2(this);
   }
 

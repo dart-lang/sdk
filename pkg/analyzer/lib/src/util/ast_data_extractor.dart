@@ -276,10 +276,14 @@ abstract class AstDataExtractor<T> extends UnifyingAstVisitor2<void>
   }
 
   @override
+  void visitTopLevelVariable2(TopLevelVariable2 node) {
+    computeForMember(node, createMemberId(node));
+    super.visitTopLevelVariable2(node);
+  }
+
+  @override
   void visitVariableDeclaration(VariableDeclaration node) {
-    if (node.parent2!.parent2 is TopLevelVariableDeclaration) {
-      computeForMember(node, createMemberId(node));
-    } else if (node.parent2!.parent2 is FieldDeclaration) {
+    if (node.parent2!.parent2 is FieldDeclaration) {
       computeForMember(node, createMemberId(node));
     } else {
       computeForVariableDeclaration(node, computeDefaultNodeId(node));

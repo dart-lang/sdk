@@ -187,10 +187,10 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
           _bindTopLevelGetterDeclaration(declaration, getters[getterIndex++]);
         case TopLevelSetterDeclarationImpl():
           _bindTopLevelSetterDeclaration(declaration, setters[setterIndex++]);
-        case TopLevelVariableDeclarationImpl():
+        case TopLevelVariablesDeclarationImpl():
           declaration.documentationComment?.accept2(this);
-          declaration.variables.type?.accept2(this);
-          for (var variable in declaration.variables.variables) {
+          declaration.type?.accept2(this);
+          for (var variable in declaration.variables) {
             _bindTopLevelVariable(
               variable,
               variables[variableIndex++],
@@ -913,20 +913,19 @@ class ElementBindingVisitor extends RecursiveAstVisitor2<void> {
   }
 
   void _bindTopLevelVariable(
-    VariableDeclarationImpl node,
+    TopLevelVariable2Impl node,
     TopLevelVariableFragmentImpl fragment,
-    TopLevelVariableDeclarationImpl declaration,
+    TopLevelVariablesDeclarationImpl declaration,
   ) {
     node.declaredFragment = fragment;
     _setOrCreateMetadataElements(fragment, declaration.metadata);
 
-    var offset = node == declaration.variables.variables.first
+    var offset = node == declaration.variables.first
         ? declaration.offset
         : node.offset;
     fragment.setCodeRange(offset, node.end - offset);
 
-    node.documentationComment?.accept2(this);
-    if (node.initializer2 case var initializer?) {
+    if (node.initializer case var initializer?) {
       _withElementHolder(ElementHolder(fragment), () {
         initializer.accept2(this);
       });

@@ -13,11 +13,11 @@ import 'package:cfg/passes/value_numbering.dart';
 import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
-import '../code_generator.dart';
-import '../intrinsics.dart';
-import '../reference_extensions.dart';
-import '../translator.dart';
-import '../util.dart';
+import '../../code_generator.dart';
+import '../../intrinsics.dart';
+import '../../reference_extensions.dart';
+import '../../translator.dart';
+import '../../util.dart';
 import 'to_wasm.dart';
 
 bool mayUseCfgToCompileMember(Translator translator, Member member) {
@@ -54,7 +54,6 @@ class CfgProcedureCodeGenerator implements CodeGenerator {
   CfgProcedureCodeGenerator(this.fallback);
 
   Translator get translator => fallback.translator;
-  w.FunctionType get functionType => fallback.functionType;
   Procedure get member => fallback.member;
   Reference get reference => fallback.reference;
   EntryPoint get kind => fallback.kind;
@@ -71,13 +70,13 @@ class CfgProcedureCodeGenerator implements CodeGenerator {
 
     if (allowFallback) {
       try {
-        if (_tryGenerate(b, paramLocals, returnLabel)) return;
+        if (_tryGenerate(b, paramLocals)) return;
       } catch (_) {}
       translator.cfgLog?.appendFailed(member);
       b.reset();
       fallback.generate(b, paramLocals, returnLabel);
     } else {
-      if (!_tryGenerate(b, paramLocals, returnLabel)) {
+      if (!_tryGenerate(b, paramLocals)) {
         throw StateError(
           'Member $member ($reference) has @pragma("wasm:cfg") but failed to compile with CFG.',
         );
@@ -85,11 +84,7 @@ class CfgProcedureCodeGenerator implements CodeGenerator {
     }
   }
 
-  bool _tryGenerate(
-    w.InstructionsBuilder b,
-    List<w.Local> paramLocals,
-    w.Label? returnLabel,
-  ) {
+  bool _tryGenerate(w.InstructionsBuilder b, List<w.Local> paramLocals) {
     final cFunction = translator.functionRegistry.getFunction(
       member,
       isGetter: member.isGetter,
@@ -118,15 +113,12 @@ class CfgProcedureCodeGenerator implements CodeGenerator {
 
     pipeline.run(graph);
 
-    final cfgToWasm = CfgToWasm(
+    final cfgToWasm = ProdCfgToWasm(
       translator,
-      functionType,
-      member,
       graph,
       b,
       paramLocals,
-      returnLabel,
-      kind,
+      kind: kind,
     );
 
     if (!cfgToWasm.canTranslate()) {
