@@ -371,6 +371,40 @@ Future<void> baz() async {
 }
 ''', filter: (error) => error.diagnosticCode == diag.invalidAssignment);
   }
+
+  Future<void> test_indexExpression_assignment_index() async {
+    await resolveTestCode('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, Future<int> a) async {
+  c[a] = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, Future<int> a) async {
+  c[await a] = 0;
+}
+''');
+  }
+
+  Future<void> test_indexExpression_read_index() async {
+    await resolveTestCode('''
+void f(List<int> list, Future<int> a) async {
+  list[a];
+}
+''');
+    await assertHasFix('''
+void f(List<int> list, Future<int> a) async {
+  list[await a];
+}
+''');
+  }
 }
 
 @reflectiveTest
