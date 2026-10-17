@@ -197,7 +197,8 @@ extension on Expression {
     if (parent case NamedArgument named) {
       return named.correspondingParameter?.type;
     }
-    if (parent is ArgumentList) {
+    if (parent is ArgumentList ||
+        (parent is IndexExpression && this == parent.index)) {
       return correspondingParameter?.type;
     }
     return null;

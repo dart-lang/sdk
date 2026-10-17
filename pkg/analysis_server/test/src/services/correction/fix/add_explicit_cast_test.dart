@@ -665,6 +665,61 @@ void foo(int a) {
     );
   }
 
+  Future<void> test_indexExpression_assignment() async {
+    await resolveTestCode('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, num a) {
+  c[a] = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, num a) {
+  c[a as int] = 0;
+}
+''');
+  }
+
+  Future<void> test_indexExpression_read() async {
+    await resolveTestCode('''
+class C {
+  int operator [](int a) => 0;
+}
+
+void f(C c, num a) {
+  c[a];
+}
+''');
+    await assertHasFix('''
+class C {
+  int operator [](int a) => 0;
+}
+
+void f(C c, num a) {
+  c[a as int];
+}
+''');
+  }
+
+  Future<void> test_assignment_downcast() async {
+    await resolveTestCode('''
+void f(num a) {
+  int b = a;
+}
+''');
+    await assertHasFix('''
+void f(num a) {
+  int b = a as int;
+}
+''');
+  }
+
   Future<void> test_postfixIncrement_argumentNotAssignable() async {
     List;
     await resolveTestCode('''

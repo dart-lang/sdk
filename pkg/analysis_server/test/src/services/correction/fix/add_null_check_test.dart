@@ -341,6 +341,40 @@ void f(Map<String, String> map) {
 ''');
   }
 
+  Future<void> test_indexExpression_assignment_index() async {
+    await resolveTestCode('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, int? a) {
+  c[a] = 0;
+}
+''');
+    await assertHasFix('''
+class C {
+  void operator []=(int a, int b) {}
+}
+
+void f(C c, int? a) {
+  c[a!] = 0;
+}
+''');
+  }
+
+  Future<void> test_indexExpression_read_index() async {
+    await resolveTestCode('''
+void f(List<int> list, int? a) {
+  list[a];
+}
+''');
+    await assertHasFix('''
+void f(List<int> list, int? a) {
+  list[a!];
+}
+''');
+  }
+
   Future<void> test_initializer() async {
     await resolveTestCode('''
 void f(int? x) {
