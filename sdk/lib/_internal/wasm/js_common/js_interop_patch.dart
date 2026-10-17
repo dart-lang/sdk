@@ -357,6 +357,22 @@ bool _isJSTypedArray(Object? any) {
 bool _isNullableJSTypedArray(Object? any) =>
     any == null || _isJSTypedArray(any);
 
+bool _isJSError(Object? any) {
+  return _isJSAny(any) &&
+      js_helper
+          .JS<WasmI32>(
+            // We have to fall back on `instanceof` even if `Error.isError`
+            // exists because Safari's implementation is incorrect for
+            // `DOMException` (see
+            // https://bugs.webkit.org/show_bug.cgi?id=292727).
+            '(o) => (Error.isError && Error.isError(o)) || o instanceof Error',
+            unsafeCast<JSAny>(any).toExternRef,
+          )
+          .toBool();
+}
+
+bool _isNullableJSError(Object? any) => any == null || _isJSError(any);
+
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
 @patch
