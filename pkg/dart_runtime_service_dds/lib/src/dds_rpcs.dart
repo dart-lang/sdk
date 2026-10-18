@@ -42,6 +42,7 @@ class DdsRpcHandlers {
       'getRequireUserPermissionToResume';
   static const _kGetStreamHistory = 'getStreamHistory';
   static const _kGetSupportedProtocols = 'getSupportedProtocols';
+  static const _kLookupResolvedPackageUris = 'lookupResolvedPackageUris';
   static const _kPostEvent = 'postEvent';
   static const _kReadyToResume = 'readyToResume';
   static const _kRequirePermissionToResume = 'requirePermissionToResume';
@@ -64,6 +65,7 @@ class DdsRpcHandlers {
     (_kGetRequireUserPermissionToResume, getRequireUserPermissionToResume),
     (_kGetStreamHistory, getStreamHistory),
     (_kGetSupportedProtocols, getSupportedProtocols),
+    (_kLookupResolvedPackageUris, lookupResolvedPackageUris),
     (_kPostEvent, postEvent),
     (_kReadyToResume, readyToResume),
     (_kRequirePermissionToResume, requirePermissionToResume),
@@ -211,6 +213,40 @@ class DdsRpcHandlers {
       ),
     );
     return protocolList.toJson();
+  }
+
+  /// Handles the `lookupResolvedPackageUris` RPC.
+  ///
+  /// Forwards the request to the VM Service and, when `local` is `true` and a
+  /// custom [DartRuntimeServiceDdsBackend.uriConverter] is configured, applies
+  /// the converter to resolve package and custom scheme URIs to local `file://`
+  /// URIs.
+  Future<RpcResponse> lookupResolvedPackageUris(
+    json_rpc.Parameters parameters,
+  ) async {
+    final isolateId = parameters['isolateId'].asString;
+    final uris = parameters['uris'].asList.cast<String>();
+    final local = parameters['local'].asBoolOr(false);
+
+    final result = await backend.callVmService(
+      _kLookupResolvedPackageUris,
+      args: <String, Object?>{'isolateId': isolateId, 'uris': uris},
+    );
+
+    final converter = backend.uriConverter;
+    if (converter != null && local) {
+      if (result case {'uris': final List<Object?> vmUris}) {
+        final resultUris = <String?>[
+          for (final (i, uri) in uris.indexed)
+            if (converter(uri) case final String localPath)
+              Uri.file(localPath).toString()
+            else
+              i < vmUris.length ? vmUris[i] as String? : null,
+        ];
+        return vm.UriList(uris: resultUris).toJson();
+      }
+    }
+    return result;
   }
 
   /// Handles the `postEvent` custom DDS RPC.

@@ -3,4 +3,5 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'src/arg_parser.dart';
+export 'src/bazel_uri_converter.dart';
 export 'src/dds_backend.dart';
