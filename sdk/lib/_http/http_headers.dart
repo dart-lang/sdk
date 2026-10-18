@@ -1018,7 +1018,7 @@ class _Cookie implements Cookie {
   String _value;
   DateTime? expires;
   int? maxAge;
-  String? domain;
+  String? _domain;
   String? _path;
   bool httpOnly = false;
   bool secure = false;
@@ -1031,6 +1031,13 @@ class _Cookie implements Cookie {
 
   String get name => _name;
   String get value => _value;
+
+  String? get domain => _domain;
+
+  set domain(String? newDomain) {
+    _validateDomain(newDomain);
+    _domain = newDomain;
+  }
 
   String? get path => _path;
 
@@ -1350,6 +1357,20 @@ class _Cookie implements Cookie {
       throw FormatException(
         "Invalid character in cookie path, code unit: '${path.codeUnitAt(errorAt)}'",
         path,
+        errorAt,
+      );
+    }
+  }
+
+  static void _validateDomain(String? domain) {
+    if (domain == null) return;
+    // Like the path, the domain is written verbatim as an attribute value, so
+    // ';' and controls must not occur in it.
+    var errorAt = _isValidPath(domain, 0, domain.length);
+    if (errorAt >= 0) {
+      throw FormatException(
+        "Invalid character in cookie domain, code unit: '${domain.codeUnitAt(errorAt)}'",
+        domain,
         errorAt,
       );
     }
